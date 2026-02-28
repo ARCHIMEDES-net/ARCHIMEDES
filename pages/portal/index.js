@@ -2,6 +2,7 @@ import RequireAuth from "../../components/RequireAuth";
 
 export default function PortalHome() {
   return (
+  <RequireAuth>
     <div style={{ maxWidth: 900, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
       <h1>Portál – registrovaná část</h1>
 
@@ -18,5 +19,6 @@ export default function PortalHome() {
         <Link href="/">Zpět na veřejnou část</Link>
       </p>
     </div>
-  );
+  </RequireAuth>
+);
 }
