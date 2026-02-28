@@ -23,8 +23,9 @@ const udalosti = [
 
 export default function Kalendar() {
   return (
-    <div style={{ maxWidth: 900, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
-      <h1>Kalendář vysílání</h1>
+    return (
+  <RequireAuth>
+    <div style={{ maxWidth: 900, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>      <h1>Kalendář vysílání</h1>
 
       {udalosti.map((u) => (
         <div
@@ -49,6 +50,7 @@ export default function Kalendar() {
       <p style={{ marginTop: 20 }}>
         <Link href="/portal">← Zpět do portálu</Link>
       </p>
-    </div>
-  );
+        </div>
+  </RequireAuth>
+  ); 
 }
