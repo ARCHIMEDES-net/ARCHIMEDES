@@ -1,4 +1,4 @@
-import Link from "next/link";
+import RequireAuth from "../../components/RequireAuth";
 
 export default function PortalHome() {
   return (
