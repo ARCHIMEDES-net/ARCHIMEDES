@@ -4,10 +4,9 @@ import RequireAuth from "../../../components/RequireAuth";
 import { supabase } from "../../../lib/supabaseClient";
 
 const ADMIN_EMAILS = [
-  "antonin.koplik@gmail.com", // ty
-  // sem pak doplníme další 2 admin e-maily
+  "antonin.koplik@gmail.com",
+  "antonin.koplik@eduvision.cz",
 ];
-
 export default function AdminUdalosti() {
   const [userEmail, setUserEmail] = useState("");
   const [loadingUser, setLoadingUser] = useState(true);
