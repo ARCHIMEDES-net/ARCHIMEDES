@@ -14,6 +14,8 @@ export default function PortalHome() {
           <li><Link href="/portal/pracovni-listy">Pracovní listy</Link></li>
           <li><Link href="/portal/inzerce">Inzerce</Link></li>
           <li><Link href="/portal/clenove">Databáze členů</Link></li>
+  <li>
+  <a href="/logout">Odhlásit se</a>
         </ul>
 
         <p style={{ marginTop: 18 }}>
