@@ -20,6 +20,12 @@ export default function RequireAuth({ children }) {
     checkSession();
   }, [router]);
 
-if (loading) return <div style={{ padding: 24, fontFamily: "system-ui" }}>🔒 Ověřuji přihlášení…</div>;
+  if (loading)
+    return (
+      <div style={{ padding: 24, fontFamily: "system-ui" }}>
+        🔒 Ověřuji přihlášení…
+      </div>
+    );
+
   return children;
 }
