@@ -3,162 +3,133 @@ import Link from "next/link";
 import RequireAuth from "../../components/RequireAuth";
 import { supabase } from "../../lib/supabaseClient";
 
-function fmtDateTime(iso) {
-  if (!iso) return "";
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString("cs-CZ", {
-      weekday: "long",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso;
-  }
+function isValidDate(d) {
+  return d instanceof Date && !Number.isNaN(d.getTime());
+}
+
+function safeDate(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return isValidDate(d) ? d : null;
+}
+
+function formatDayLabel(date) {
+  return date.toLocaleDateString("cs-CZ", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function formatTime(date) {
+  return date.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
 }
 
 function normalizeAudience(aud) {
   if (!aud) return "";
-  return String(aud).trim();
+  if (Array.isArray(aud)) return aud.filter(Boolean).join(", ");
+  return String(aud);
 }
 
 export default function Kalendar() {
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  const [events, setEvents] = useState([]);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   const [q, setQ] = useState("");
   const [onlyFuture, setOnlyFuture] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
+    let alive = true;
 
-    async function loadAll() {
+    async function load() {
       setLoading(true);
       setErr("");
 
-      // 1) zjistit admin práva (pokud RPC existuje)
-      let admin = false;
-      try {
-        const { data, error } = await supabase.rpc("is_platform_admin");
-        if (!error && data === true) admin = true;
-      } catch {
-        // když RPC není nebo selže, admin=false a jedeme dál
+      const { data, error } = await supabase
+        .from("events")
+        .select(
+          "id,title,short_description,full_description,audience,start_at,is_published,stream_url,worksheet_url,archive_url,poster_url,promo_short_text"
+        )
+        .eq("is_published", true)
+        .order("start_at", { ascending: true });
+
+      if (!alive) return;
+
+      if (error) {
+        setErr(error.message);
+        setRows([]);
+      } else {
+        setRows(data || []);
       }
 
-      if (!mounted) return;
-      setIsAdmin(admin);
-
-      // 2) načíst události
-      // - běžný uživatel: jen is_published=true
-      // - admin: všechno
-      try {
-        let query = supabase
-          .from("events")
-          .select(
-            "id,name,start_at,audience,full_description,stream_url,worksheet_url,is_published,created_at,updated_at"
-          )
-          .order("start_at", { ascending: true, nullsFirst: false });
-
-        if (!admin) query = query.eq("is_published", true);
-
-        const { data, error } = await query;
-        if (error) throw error;
-
-        if (!mounted) return;
-        setEvents(Array.isArray(data) ? data : []);
-      } catch (e) {
-        if (!mounted) return;
-        setErr(e?.message || "Nepodařilo se načíst události.");
-      } finally {
-        if (!mounted) return;
-        setLoading(false);
-      }
+      setLoading(false);
     }
 
-    loadAll();
+    load();
     return () => {
-      mounted = false;
+      alive = false;
     };
   }, []);
 
   const filtered = useMemo(() => {
     const now = new Date();
-    const qq = q.trim().toLowerCase();
+    const needle = q.trim().toLowerCase();
 
-    return (events || [])
-      .filter((ev) => {
-        if (onlyFuture && ev?.start_at) {
-          const d = new Date(ev.start_at);
-          if (!Number.isNaN(d.getTime()) && d < now) return false;
-        }
-        if (!qq) return true;
-
+    return (rows || [])
+      .map((r) => ({
+        ...r,
+        _start: safeDate(r.start_at),
+        _aud: normalizeAudience(r.audience),
+      }))
+      .filter((r) => r._start) // jen validní datum
+      .filter((r) => (onlyFuture ? r._start >= now : true))
+      .filter((r) => {
+        if (!needle) return true;
         const hay = [
-          ev?.name,
-          ev?.audience,
-          ev?.full_description,
+          r.title,
+          r.short_description,
+          r.full_description,
+          r._aud,
+          r.promo_short_text,
         ]
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
+        return hay.includes(needle);
+      });
+  }, [rows, q, onlyFuture]);
 
-        return hay.includes(qq);
-      })
-      .map((ev) => ({
-        ...ev,
-        audience: normalizeAudience(ev?.audience),
-      }));
-  }, [events, q, onlyFuture]);
+  const grouped = useMemo(() => {
+    const map = new Map();
+    for (const r of filtered) {
+      const key = formatDayLabel(r._start);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(r);
+    }
+    return Array.from(map.entries());
+  }, [filtered]);
 
   return (
     <RequireAuth>
-      <div
-        style={{
-          maxWidth: 980,
-          margin: "40px auto",
-          fontFamily: "system-ui",
-          padding: 16,
-        }}
-      >
+      <div style={{ maxWidth: 1000, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
         <h1>Kalendář</h1>
 
-        <p style={{ marginTop: 8 }}>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <Link href="/portal">← Zpět do portálu</Link>
-          {isAdmin ? (
-            <span style={{ marginLeft: 12, fontWeight: 600 }}>
-              (admin režim)
-            </span>
-          ) : null}
-        </p>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            alignItems: "center",
-            marginTop: 16,
-            flexWrap: "wrap",
-          }}
-        >
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Hledat (název / cílovka / popis)…"
-            style={{
-              width: 360,
-              maxWidth: "100%",
-              padding: "10px 12px",
-              border: "1px solid #ccc",
-              borderRadius: 8,
-            }}
-          />
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input
+              type="text"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Hledat (název / cílovka / popis)…"
+              style={{ width: 340, padding: "8px 10px" }}
+            />
+          </label>
 
-          <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <input
               type="checkbox"
               checked={onlyFuture}
@@ -167,85 +138,58 @@ export default function Kalendar() {
             Jen budoucí
           </label>
 
-          {isAdmin ? (
-            <Link href="/portal/admin/udalosti" style={{ marginLeft: "auto" }}>
-              Admin – události →
-            </Link>
-          ) : null}
+          <span style={{ marginLeft: "auto" }}>
+            <Link href="/portal/admin/udalosti">Admin – události →</Link>
+          </span>
         </div>
 
-        {loading ? (
-          <p style={{ marginTop: 18 }}>Načítám…</p>
-        ) : err ? (
-          <div style={{ marginTop: 18 }}>
-            <p style={{ color: "crimson", fontWeight: 600 }}>
-              Chyba: {err}
-            </p>
-            <p style={{ opacity: 0.85 }}>
-              Tip: zkontroluj v Supabase tabulku <b>events</b> a RLS policy.
-            </p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <p style={{ marginTop: 18 }}>Zatím tu nejsou žádné události.</p>
-        ) : (
-          <div style={{ marginTop: 18 }}>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                border: "1px solid #ddd",
-              }}
-            >
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "left", padding: 10, borderBottom: "1px solid #ddd" }}>
-                    Datum a čas
-                  </th>
-                  <th style={{ textAlign: "left", padding: 10, borderBottom: "1px solid #ddd" }}>
-                    Název
-                  </th>
-                  <th style={{ textAlign: "left", padding: 10, borderBottom: "1px solid #ddd" }}>
-                    Cílovka
-                  </th>
-                  {isAdmin ? (
-                    <th style={{ textAlign: "left", padding: 10, borderBottom: "1px solid #ddd" }}>
-                      Publikováno
-                    </th>
-                  ) : null}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((ev) => (
-                  <tr key={ev.id}>
-                    <td style={{ padding: 10, borderBottom: "1px solid #eee", width: 230 }}>
-                      {fmtDateTime(ev.start_at) || <span style={{ opacity: 0.6 }}>—</span>}
-                    </td>
-                    <td style={{ padding: 10, borderBottom: "1px solid #eee" }}>
-                      <Link href={`/portal/udalost/${ev.id}`}>
-                        {ev.name || "(bez názvu)"}
-                      </Link>
-                      {!ev.is_published && isAdmin ? (
-                        <span style={{ marginLeft: 10, color: "#b45309", fontWeight: 600 }}>
-                          draft
-                        </span>
-                      ) : null}
-                    </td>
-                    <td style={{ padding: 10, borderBottom: "1px solid #eee", width: 220 }}>
-                      {ev.audience || <span style={{ opacity: 0.6 }}>—</span>}
-                    </td>
-                    {isAdmin ? (
-                      <td style={{ padding: 10, borderBottom: "1px solid #eee", width: 120 }}>
-                        {ev.is_published ? "ANO" : "NE"}
-                      </td>
-                    ) : null}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {loading && <p style={{ marginTop: 16 }}>Načítám…</p>}
+        {!loading && err && <p style={{ marginTop: 16, color: "crimson" }}>Chyba: {err}</p>}
 
-            <p style={{ marginTop: 14, opacity: 0.8 }}>
-              Klikni na název události pro detail.
-            </p>
+        {!loading && !err && grouped.length === 0 && (
+          <p style={{ marginTop: 16 }}>Nic nenalezeno (nebo nejsou publikované události).</p>
+        )}
+
+        {!loading && !err && grouped.length > 0 && (
+          <div style={{ marginTop: 18 }}>
+            {grouped.map(([day, items]) => (
+              <div key={day} style={{ marginBottom: 18 }}>
+                <h3 style={{ margin: "16px 0 10px" }}>{day}</h3>
+
+                <div style={{ border: "1px solid #e5e5e5", borderRadius: 10, overflow: "hidden" }}>
+                  {items.map((r, idx) => (
+                    <div
+                      key={r.id}
+                      style={{
+                        padding: 12,
+                        borderTop: idx === 0 ? "none" : "1px solid #eee",
+                        display: "grid",
+                        gridTemplateColumns: "90px 1fr",
+                        gap: 12,
+                      }}
+                    >
+                      <div style={{ fontWeight: 700 }}>{formatTime(r._start)}</div>
+
+                      <div>
+                        <div style={{ fontSize: 16, fontWeight: 700 }}>
+                          <Link href={`/portal/udalost/${r.id}`}>{r.title || "(bez názvu)"}</Link>
+                        </div>
+
+                        {r._aud && (
+                          <div style={{ opacity: 0.8, marginTop: 2 }}>Cílovka: {r._aud}</div>
+                        )}
+
+                        {(r.short_description || r.promo_short_text) && (
+                          <div style={{ marginTop: 6 }}>
+                            {r.short_description || r.promo_short_text}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
