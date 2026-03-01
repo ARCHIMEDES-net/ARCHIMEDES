@@ -1,16 +1,57 @@
-import RequireAuth from "../../components/RequireAuth";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { supabase } from "../../lib/supabaseClient";
 
 export default function Kalendar() {
-  return (
-    <RequireAuth>
-      <div style={{ maxWidth: 900, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
-        <h1>Kalendář</h1>
-        <p>Zde bude kalendář událostí + odkazy na vysílání.</p>
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-        <p>
-          <a href="/portal">← Zpět do portálu</a>
-        </p>
-      </div>
-    </RequireAuth>
+  useEffect(() => {
+    async function fetchEvents() {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("start_at", { ascending: true });
+
+      if (!error) {
+        setEvents(data);
+      }
+
+      setLoading(false);
+    }
+
+    fetchEvents();
+  }, []);
+
+  if (loading) {
+    return <div style={{ padding: 24 }}>Načítám události...</div>;
+  }
+
+  return (
+    <div style={{ maxWidth: 900, margin: "40px auto", fontFamily: "system-ui" }}>
+      <h1>Kalendář</h1>
+
+      {events.length === 0 && <p>Zatím nejsou žádné události.</p>}
+
+      <ul>
+        {events.map((event) => (
+          <li key={event.id} style={{ marginBottom: 16 }}>
+            <strong>{event.title}</strong>
+            <br />
+            {event.start_at && (
+              <span>
+                {new Date(event.start_at).toLocaleString("cs-CZ")}
+              </span>
+            )}
+            <br />
+            {event.target && <span>Cílovka: {event.target}</span>}
+          </li>
+        ))}
+      </ul>
+
+      <p style={{ marginTop: 20 }}>
+        <Link href="/portal">Zpět do portálu</Link>
+      </p>
+    </div>
   );
 }
