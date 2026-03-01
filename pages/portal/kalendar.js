@@ -3,6 +3,16 @@ import Link from "next/link";
 import RequireAuth from "../../components/RequireAuth";
 import { supabase } from "../../lib/supabaseClient";
 
+function isValidDate(d) {
+  return d instanceof Date && !Number.isNaN(d.getTime());
+}
+
+function safeDate(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return isValidDate(d) ? d : null;
+}
+
 function formatDayLabel(date) {
   return date.toLocaleDateString("cs-CZ", {
     weekday: "long",
@@ -18,15 +28,15 @@ function formatTime(date) {
 
 function normalizeAudience(aud) {
   if (!aud) return "";
-  const s = aud.toLowerCase();
+  const s = String(aud).toLowerCase();
   if (s.includes("1")) return "1. stupeň";
   if (s.includes("2")) return "2. stupeň";
   if (s.includes("sen")) return "Senioři";
   if (s.includes("kom")) return "Komunita";
-  return aud;
+  return String(aud);
 }
 
-function pillStyle(label) {
+function pillStyle() {
   return {
     display: "inline-block",
     padding: "2px 10px",
@@ -38,25 +48,36 @@ function pillStyle(label) {
   };
 }
 
-function groupByDay(events) {
+function groupByDay(items) {
   const map = new Map();
-  for (const e of events) {
-    const d = e.start_at ? new Date(e.start_at) : null;
+
+  for (const e of items) {
+    const d = safeDate(e.start_at);
     const key = d ? d.toISOString().slice(0, 10) : "bez-datumu";
+
     if (!map.has(key)) map.set(key, []);
     map.get(key).push(e);
   }
-  // Seřadit události v každém dni podle času
+
+  // sort items inside each day by time; invalid dates go last
   for (const [k, arr] of map) {
     arr.sort((a, b) => {
-      const ta = a.start_at ? new Date(a.start_at).getTime() : 0;
-      const tb = b.start_at ? new Date(b.start_at).getTime() : 0;
+      const da = safeDate(a.start_at);
+      const db = safeDate(b.start_at);
+      const ta = da ? da.getTime() : Number.POSITIVE_INFINITY;
+      const tb = db ? db.getTime() : Number.POSITIVE_INFINITY;
       return ta - tb;
     });
     map.set(k, arr);
   }
-  // Seřadit dny
-  const keys = Array.from(map.keys()).sort();
+
+  // sort day keys; keep "bez-datumu" last
+  const keys = Array.from(map.keys()).sort((a, b) => {
+    if (a === "bez-datumu") return 1;
+    if (b === "bez-datumu") return -1;
+    return a.localeCompare(b);
+  });
+
   return keys.map((k) => ({ key: k, items: map.get(k) }));
 }
 
@@ -79,7 +100,7 @@ export default function Kalendar() {
         setError(error.message || "Nepodařilo se načíst události.");
         setEvents([]);
       } else {
-        setEvents(data || []);
+        setEvents(Array.isArray(data) ? data : []);
       }
 
       setLoading(false);
@@ -88,22 +109,23 @@ export default function Kalendar() {
     load();
   }, []);
 
-  const now = Date.now();
+  const nowTs = Date.now();
 
   const { upcomingGrouped, archiveGrouped } = useMemo(() => {
     const upcoming = [];
     const archive = [];
 
     for (const e of events) {
-      const t = e.start_at ? new Date(e.start_at).getTime() : null;
+      const d = safeDate(e.start_at);
 
-      // Bez start_at dáme zatím do nadcházejících (ať se neztratí)
-      if (!t) {
+      // bez start_at necháme mezi nadcházejícími, aby se neztratily
+      if (!d) {
         upcoming.push(e);
         continue;
       }
 
-      if (t >= now - 5 * 60 * 1000) upcoming.push(e); // malá tolerance -5 min
+      // tolerance -5 minut
+      if (d.getTime() >= nowTs - 5 * 60 * 1000) upcoming.push(e);
       else archive.push(e);
     }
 
@@ -111,7 +133,7 @@ export default function Kalendar() {
       upcomingGrouped: groupByDay(upcoming),
       archiveGrouped: groupByDay(archive),
     };
-  }, [events, now]);
+  }, [events, nowTs]);
 
   return (
     <RequireAuth>
@@ -133,7 +155,6 @@ export default function Kalendar() {
 
         {!loading && !error && (
           <>
-            {/* NADCHÁZEJÍCÍ */}
             <h2 style={{ marginTop: 26 }}>Nadcházející</h2>
 
             {upcomingGrouped.length === 0 ? (
@@ -144,12 +165,12 @@ export default function Kalendar() {
                 return (
                   <div key={g.key} style={{ marginTop: 14 }}>
                     <div style={{ fontWeight: 700, marginBottom: 8 }}>
-                      {dayDate ? formatDayLabel(dayDate) : "Bez data"}
+                      {dayDate && isValidDate(dayDate) ? formatDayLabel(dayDate) : "Bez data"}
                     </div>
 
                     <div style={{ display: "grid", gap: 10 }}>
                       {g.items.map((e) => {
-                        const d = e.start_at ? new Date(e.start_at) : null;
+                        const d = safeDate(e.start_at);
                         const aud = normalizeAudience(e.audience);
 
                         return (
@@ -172,7 +193,7 @@ export default function Kalendar() {
                             <div>
                               <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
                                 <div style={{ fontWeight: 800 }}>{e.title}</div>
-                                {aud && <span style={pillStyle(aud)}>{aud}</span>}
+                                {aud && <span style={pillStyle()}>{aud}</span>}
                               </div>
 
                               {e.short_description && (
@@ -208,7 +229,6 @@ export default function Kalendar() {
               })
             )}
 
-            {/* ARCHIV */}
             <h2 style={{ marginTop: 34 }}>Archiv</h2>
 
             {archiveGrouped.length === 0 ? (
@@ -216,18 +236,18 @@ export default function Kalendar() {
             ) : (
               archiveGrouped
                 .slice()
-                .reverse() // v archivu chceme nejnovější den nahoře
+                .reverse()
                 .map((g) => {
                   const dayDate = g.key === "bez-datumu" ? null : new Date(g.key + "T00:00:00");
                   return (
                     <div key={g.key} style={{ marginTop: 14 }}>
                       <div style={{ fontWeight: 700, marginBottom: 8, opacity: 0.85 }}>
-                        {dayDate ? formatDayLabel(dayDate) : "Bez data"}
+                        {dayDate && isValidDate(dayDate) ? formatDayLabel(dayDate) : "Bez data"}
                       </div>
 
                       <div style={{ display: "grid", gap: 10 }}>
                         {g.items.map((e) => {
-                          const d = e.start_at ? new Date(e.start_at) : null;
+                          const d = safeDate(e.start_at);
                           const aud = normalizeAudience(e.audience);
 
                           return (
@@ -248,7 +268,7 @@ export default function Kalendar() {
                               <div>
                                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
                                   <div style={{ fontWeight: 800 }}>{e.title}</div>
-                                  {aud && <span style={pillStyle(aud)}>{aud}</span>}
+                                  {aud && <span style={pillStyle()}>{aud}</span>}
                                 </div>
 
                                 <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 10 }}>
