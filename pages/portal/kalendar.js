@@ -15,8 +15,8 @@ export default function Kalendar() {
 
       const { data, error } = await supabase
         .from("events")
-        .select("id,title,start_at,short_description,full_description,audience,stream_url,worksheet_url")
-        .order("start_at", { ascending: true, nullsFirst: false });
+        .select("id,title,short_description,full_description,audience,stream_url,worksheet_url,created_at")
+        .order("created_at", { ascending: false });
 
       if (error) {
         setError(error.message || "Nepodařilo se načíst události.");
@@ -43,21 +43,13 @@ export default function Kalendar() {
         {loading && <p>Načítám události…</p>}
         {error && <p style={{ color: "crimson" }}>Chyba: {error}</p>}
 
-        {!loading && !error && events.length === 0 && (
-          <p>Zatím nejsou žádné události.</p>
-        )}
+        {!loading && !error && events.length === 0 && <p>Zatím nejsou žádné události.</p>}
 
         {!loading && !error && events.length > 0 && (
           <ul style={{ paddingLeft: 18 }}>
             {events.map((e) => (
               <li key={e.id} style={{ marginBottom: 14 }}>
                 <div style={{ fontWeight: 700 }}>{e.title}</div>
-
-                {e.start_at && (
-                  <div style={{ opacity: 0.8 }}>
-                    {new Date(e.start_at).toLocaleString("cs-CZ")}
-                  </div>
-                )}
 
                 {e.short_description && <div>{e.short_description}</div>}
                 {e.audience && <div style={{ opacity: 0.8 }}>Cílovka: {e.audience}</div>}
