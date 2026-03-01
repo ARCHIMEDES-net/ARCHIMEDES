@@ -10,10 +10,12 @@ export default function Kalendar() {
     async function fetchEvents() {
       const { data, error } = await supabase
         .from("events")
-        .select("*")
-        .order("start_at", { ascending: true });
+        .select("*");
 
-      if (!error) {
+      console.log("DATA:", data);
+      console.log("ERROR:", error);
+
+      if (!error && data) {
         setEvents(data);
       }
 
@@ -38,13 +40,9 @@ export default function Kalendar() {
           <li key={event.id} style={{ marginBottom: 16 }}>
             <strong>{event.title}</strong>
             <br />
-            {event.start_at && (
-              <span>
-                {new Date(event.start_at).toLocaleString("cs-CZ")}
-              </span>
-            )}
+            {event.audience && <span>Cílovka: {event.audience}</span>}
             <br />
-            {event.target && <span>Cílovka: {event.target}</span>}
+            {event.full_description && <span>{event.full_description}</span>}
           </li>
         ))}
       </ul>
