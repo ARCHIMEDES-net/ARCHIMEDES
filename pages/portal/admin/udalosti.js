@@ -41,11 +41,10 @@ export default function AdminUdalosti() {
   const [worksheetUrl, setWorksheetUrl] = useState("");
   const [isPublished, setIsPublished] = useState(false);
 
+  // ✅ Datum je povinné
   const canSave = useMemo(() => {
-    // datum nechávám volitelné, protože ty sis řešil NOT NULL na DB;
-    // pokud chceš, uděláme ho povinné i ve formuláři
-    return title.trim().length > 0;
-  }, [title]);
+    return title.trim().length > 0 && !!startAt;
+  }, [title, startAt]);
 
   useEffect(() => {
     let mounted = true;
@@ -92,19 +91,24 @@ export default function AdminUdalosti() {
     setErr("");
     setMsg("");
 
-    if (!canSave) {
+    if (!title.trim()) {
       setErr("Vyplň Název události.");
       return;
     }
+    if (!startAt) {
+      setErr("Vyplň Datum a čas události.");
+      return;
+    }
 
-    // starts_at: pokud je vyplněno, pošleme jako ISO
-    const starts_at_value = startAt ? new Date(startAt).toISOString() : null;
+    const starts_at_value = new Date(startAt).toISOString();
+    if (!starts_at_value || starts_at_value === "Invalid Date") {
+      setErr("Datum a čas není ve správném formátu.");
+      return;
+    }
 
     const payload = {
       title: title.trim(),
-
-      // ✅ správný sloupec v DB
-      starts_at: starts_at_value,
+      starts_at: starts_at_value, // ✅ NOT NULL
 
       // ✅ DB je text[] → uložíme jako pole (prozatím 1 položka)
       audience: audience.trim() ? [audience.trim()] : null,
@@ -123,6 +127,7 @@ export default function AdminUdalosti() {
     }
 
     setMsg("Uloženo.");
+
     // vyčistit formulář
     setTitle("");
     setStartAt("");
@@ -205,13 +210,17 @@ export default function AdminUdalosti() {
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontWeight: 700 }}>Datum a čas (starts_at)</label>
+            <label style={{ display: "block", fontWeight: 700 }}>Datum a čas (starts_at)*</label>
             <input
               type="datetime-local"
               value={startAt}
               onChange={(e) => setStartAt(e.target.value)}
               style={{ padding: 10 }}
+              required
             />
+            <div style={{ fontSize: 13, opacity: 0.75, marginTop: 6 }}>
+              Povinné pole (databáze vyžaduje starts_at).
+            </div>
           </div>
 
           <div style={{ marginBottom: 12 }}>
@@ -223,7 +232,7 @@ export default function AdminUdalosti() {
               placeholder="1. stupeň / 2. stupeň / senioři / komunita…"
             />
             <div style={{ fontSize: 13, opacity: 0.75, marginTop: 6 }}>
-              Pozn.: aktuálně se uloží jako 1 položka pole (text[]). Později uděláme multi-select.
+              Pozn.: ukládá se jako 1 položka pole (text[]). Později uděláme multi-select.
             </div>
           </div>
 
