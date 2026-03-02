@@ -1,129 +1,223 @@
-// pages/portal/udalost/[id].js
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import RequireAuth from "../../../components/RequireAuth";
-import { supabase } from "../../../lib/supabaseClient"; // pokud máš jinou cestu, uprav
+import { supabase } from "../../../lib/supabaseClient";
+
+function isValidDate(d) {
+  return d instanceof Date && !Number.isNaN(d.getTime());
+}
+
+function safeDate(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return isValidDate(d) ? d : null;
+}
+
+function formatDay(date) {
+  return date.toLocaleDateString("cs-CZ", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function formatTime(date) {
+  return date.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
+}
+
+function normalizeAudience(aud) {
+  if (!aud) return "";
+  if (Array.isArray(aud)) return aud.filter(Boolean).join(", ");
+  return String(aud);
+}
 
 export default function UdalostDetail() {
   const router = useRouter();
   const { id } = router.query;
 
   const [loading, setLoading] = useState(true);
-  const [event, setEvent] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [err, setErr] = useState("");
+  const [row, setRow] = useState(null);
 
   useEffect(() => {
-    if (!router.isReady) return;
+    if (!id) return;
+    let alive = true;
 
     async function load() {
       setLoading(true);
-      setErrorMsg("");
-      setEvent(null);
+      setErr("");
 
-      // 1) Admin check (nevadí když selže – jen admin práva budou false)
-      const { data: adminData } = await supabase.rpc("is_platform_admin");
-      const admin = adminData === true;
-      setIsAdmin(admin);
-
-      // 2) Event fetch
       const { data, error } = await supabase
         .from("events")
-        .select("id,title,audience,full_description,stream_url,worksheet_url,start_at,is_published,created_at,updated_at")
+        .select(
+          "id,title,short_description,full_description,audience,starts_at,is_published,stream_url,worksheet_url,archive_url,poster_url,promo_short_text"
+        )
         .eq("id", id)
-        .maybeSingle();
+        .single();
+
+      if (!alive) return;
 
       if (error) {
-        setErrorMsg(`Chyba načítání: ${error.message}`);
-        setLoading(false);
-        return;
+        setErr(error.message || "Nepodařilo se načíst detail události.");
+        setRow(null);
+      } else {
+        setRow(data || null);
       }
 
-      if (!data) {
-        setErrorMsg("Událost nebyla nalezena (neexistuje nebo nemáš přístup).");
-        setLoading(false);
-        return;
-      }
-
-      // 3) Pokud není publikovaná a uživatel není admin → schovat
-      if (!data.is_published && !admin) {
-        setErrorMsg("Tato událost není publikovaná.");
-        setLoading(false);
-        return;
-      }
-
-      setEvent(data);
       setLoading(false);
     }
 
     load();
-  }, [router.isReady, id]);
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+
+  const start = useMemo(() => safeDate(row?.starts_at), [row?.starts_at]);
+  const aud = useMemo(() => normalizeAudience(row?.audience), [row?.audience]);
 
   return (
     <RequireAuth>
-      <div style={{ maxWidth: 900, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
-        <p style={{ marginBottom: 10 }}>
-          <Link href="/portal/kalendar">← Zpět do kalendáře</Link>
-        </p>
+      <div style={{ maxWidth: 980, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <Link href="/portal">← Portál</Link>
+          <span style={{ opacity: 0.6 }}>|</span>
+          <Link href="/portal/kalendar">Kalendář</Link>
+        </div>
 
-        {loading && <p>Načítám…</p>}
+        {loading && <p style={{ marginTop: 16 }}>Načítám…</p>}
+        {!loading && err && <p style={{ marginTop: 16, color: "crimson" }}>Chyba: {err}</p>}
 
-        {!loading && errorMsg && (
-          <div>
-            <h1>Detail události</h1>
-            <p style={{ color: "crimson" }}>{errorMsg}</p>
-          </div>
+        {!loading && !err && !row && (
+          <p style={{ marginTop: 16 }}>Událost nebyla nalezena.</p>
         )}
 
-        {!loading && event && (
-          <div>
-            <h1>{event.title}</h1>
+        {!loading && !err && row && (
+          <>
+            <h1 style={{ marginTop: 18 }}>{row.title || "(bez názvu)"}</h1>
 
-            <p>
-              <strong>Datum:</strong>{" "}
-              {event.start_at ? new Date(event.start_at).toLocaleString("cs-CZ") : "—"}
-            </p>
+            <div
+              style={{
+                marginTop: 12,
+                padding: 14,
+                border: "1px solid #e5e5e5",
+                borderRadius: 12,
+                background: "#fff",
+              }}
+            >
+              <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
+                <div style={{ fontWeight: 800 }}>
+                  {start ? `${formatDay(start)} • ${formatTime(start)}` : "Bez data"}
+                </div>
 
-            {event.audience && (
-              <p>
-                <strong>Cílovka:</strong> {event.audience}
-              </p>
-            )}
+                {aud ? (
+                  <div style={{ opacity: 0.85 }}>Cílovka: {aud}</div>
+                ) : (
+                  <div style={{ opacity: 0.6 }}>Cílovka: —</div>
+                )}
 
-            {event.full_description && (
-              <div style={{ marginTop: 12, whiteSpace: "pre-wrap" }}>
-                {event.full_description}
+                <div style={{ marginLeft: "auto", fontSize: 13, opacity: 0.75 }}>
+                  Stav: {row.is_published ? "PUBLISHED" : "DRAFT"}
+                </div>
               </div>
-            )}
 
-            <div style={{ marginTop: 16 }}>
-              {event.stream_url && (
-                <p>
-                  <strong>Vysílání:</strong>{" "}
-                  <a href={event.stream_url} target="_blank" rel="noreferrer">
-                    otevřít odkaz
-                  </a>
-                </p>
+              {(row.short_description || row.promo_short_text) && (
+                <div style={{ marginTop: 10, fontSize: 16 }}>
+                  {row.short_description || row.promo_short_text}
+                </div>
               )}
 
-              {event.worksheet_url && (
-                <p>
-                  <strong>Pracovní list:</strong>{" "}
-                  <a href={event.worksheet_url} target="_blank" rel="noreferrer">
-                    otevřít odkaz
-                  </a>
-                </p>
+              {row.full_description && (
+                <div style={{ marginTop: 10, whiteSpace: "pre-wrap", lineHeight: 1.45 }}>
+                  {row.full_description}
+                </div>
               )}
+
+              <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                {row.stream_url ? (
+                  <a
+                    href={row.stream_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      border: "1px solid #ddd",
+                      textDecoration: "none",
+                      fontWeight: 800,
+                    }}
+                  >
+                    ▶ Vysílání
+                  </a>
+                ) : (
+                  <span style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #eee", opacity: 0.6 }}>
+                    ▶ Vysílání
+                  </span>
+                )}
+
+                {row.worksheet_url ? (
+                  <a
+                    href={row.worksheet_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      border: "1px solid #ddd",
+                      textDecoration: "none",
+                      fontWeight: 800,
+                    }}
+                  >
+                    📄 Pracovní list
+                  </a>
+                ) : (
+                  <span style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #eee", opacity: 0.6 }}>
+                    📄 Pracovní list
+                  </span>
+                )}
+
+                {row.archive_url ? (
+                  <a
+                    href={row.archive_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      border: "1px solid #ddd",
+                      textDecoration: "none",
+                      fontWeight: 800,
+                    }}
+                  >
+                    🎬 Záznam
+                  </a>
+                ) : null}
+
+                {row.poster_url ? (
+                  <a
+                    href={row.poster_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      border: "1px solid #ddd",
+                      textDecoration: "none",
+                      fontWeight: 800,
+                    }}
+                  >
+                    🖼 Plakát
+                  </a>
+                ) : null}
+              </div>
             </div>
 
-            <hr style={{ margin: "18px 0" }} />
-
-            <p>
-              <strong>Stav:</strong> {event.is_published ? "PUBLISHED" : "DRAFT"}
-              {isAdmin ? " (admin)" : ""}
-            </p>
-          </div>
+            <div style={{ marginTop: 18, fontSize: 13, opacity: 0.75 }}>
+              ID události: {row.id}
+            </div>
+          </>
         )}
       </div>
     </RequireAuth>
