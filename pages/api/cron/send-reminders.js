@@ -1,4 +1,11 @@
+// pages/api/cron/send-reminders.js
 import { createClient } from "@supabase/supabase-js";
+
+function getBearer(req) {
+  const h = req.headers?.authorization || "";
+  const m = h.match(/^Bearer\s+(.+)$/i);
+  return m ? m[1] : "";
+}
 
 function mustEnv(name) {
   const v = process.env[name];
@@ -6,251 +13,120 @@ function mustEnv(name) {
   return v;
 }
 
-function escapeHtml(s) {
-  return String(s ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+function asDate(v) {
+  if (!v) return null;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
-function formatCZ(dt) {
-  return new Intl.DateTimeFormat("cs-CZ", {
-    weekday: "long",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/Prague",
-  }).format(dt);
+function minutesBetween(a, b) {
+  return Math.round((a.getTime() - b.getTime()) / 60000);
 }
 
-function normalizeAudience(aud) {
-  if (!aud) return "";
-  if (Array.isArray(aud)) return aud.filter(Boolean).join(", ");
-  return String(aud);
-}
-
-function buildEmailHtml(events, heading) {
-  const items = events
-    .map((e) => {
-      const when = e.starts_at ? formatCZ(new Date(e.starts_at)) : "";
-      const aud = normalizeAudience(e.audience);
-      const title = escapeHtml(e.title || "(bez názvu)");
-
-      const stream = e.stream_url
-        ? `<a href="${escapeHtml(e.stream_url)}" style="font-weight:800;text-decoration:none">▶ Vysílání</a>`
-        : `<span style="opacity:.6;font-weight:800">▶ Vysílání</span>`;
-
-      const ws = e.worksheet_url
-        ? `<a href="${escapeHtml(e.worksheet_url)}" style="font-weight:800;text-decoration:none">📄 Pracovní list</a>`
-        : `<span style="opacity:.6;font-weight:800">📄 Pracovní list</span>`;
-
-      return `
-        <div style="padding:14px;border:1px solid #e5e5e5;border-radius:14px;margin:12px 0;">
-          <div style="font-size:16px;font-weight:900">${title}</div>
-          <div style="margin-top:6px;opacity:.85">
-            ${escapeHtml(when)}${aud ? ` • ${escapeHtml(aud)}` : ""}
-          </div>
-          <div style="margin-top:12px;display:flex;gap:18px;flex-wrap:wrap">
-            ${stream}
-            ${ws}
-          </div>
-        </div>
-      `;
-    })
-    .join("");
-
-  return `
-  <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;max-width:720px;margin:0 auto;padding:18px">
-    <h2 style="margin:0 0 12px">${escapeHtml(heading)}</h2>
-    ${items || `<p>Žádné události.</p>`}
-    <p style="opacity:.7;font-size:13px;margin-top:18px">
-      ARCHIMEDES Live
-    </p>
-  </div>
-  `;
-}
-
-/**
- * Ecomail Campaigns API:
- * - Create campaign: POST https://api2.ecomailapp.cz/campaigns
- * - Send campaign:   GET  https://api2.ecomailapp.cz/campaign/{id}/send
- */
-async function ecomailCreateCampaign({ title, subject, htmlText, recipientLists }) {
-  const apiKey = mustEnv("ECOMAIL_API_KEY");
-
-  const resp = await fetch("https://api2.ecomailapp.cz/campaigns", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      key: apiKey,
-    },
-    body: JSON.stringify({
-      title,
-      from_name: mustEnv("ECOMAIL_FROM_NAME"),
-      from_email: mustEnv("ECOMAIL_FROM_EMAIL"),
-      reply_to: mustEnv("ECOMAIL_REPLY_TO"),
-      subject,
-      html_text: htmlText,
-      recepient_lists: recipientLists,
-    }),
-  });
-
-  const text = await resp.text();
-  if (!resp.ok) throw new Error(`Ecomail create campaign failed ${resp.status}: ${text}`);
-
-  let json;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    throw new Error(`Ecomail create campaign returned non-JSON: ${text}`);
-  }
-  if (!json?.id) throw new Error(`Ecomail create campaign missing id: ${text}`);
-  return json;
-}
-
-async function ecomailSendCampaign(campaignId) {
-  const apiKey = mustEnv("ECOMAIL_API_KEY");
-
-  const resp = await fetch(`https://api2.ecomailapp.cz/campaign/${campaignId}/send`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      key: apiKey,
-    },
-  });
-
-  const text = await resp.text();
-  if (!resp.ok) throw new Error(`Ecomail send campaign failed ${resp.status}: ${text}`);
-  return text;
-}
-
-function getRecipientListsFromEnv() {
-  // 1) Preferuj JSON (umožní i segmenty)
-  // Podle Ecomail docs lze použít:
-  // - [1,2,3]  (list IDs)
-  // - {"segments":[{"id":"segment_id","list":14}]}
-  // viz doc pro recepient_lists.
-  const json = process.env.ECOMAIL_RECIPIENT_LISTS_JSON;
-  if (json) {
-    try {
-      return JSON.parse(json);
-    } catch (e) {
-      throw new Error(`ECOMAIL_RECIPIENT_LISTS_JSON is not valid JSON: ${e.message}`);
-    }
-  }
-
-  // 2) Fallback na jeden list ID
-  const listId = process.env.ECOMAIL_LIST_ID;
-  if (listId) {
-    const n = Number(listId);
-    if (!Number.isFinite(n)) throw new Error("ECOMAIL_LIST_ID must be a number");
-    return [n];
-  }
-
-  throw new Error("Missing ECOMAIL_RECIPIENT_LISTS_JSON or ECOMAIL_LIST_ID");
+function pickStart(row) {
+  // podporujeme obě varianty názvů sloupce
+  return row.starts_at ?? row.start_at ?? null;
 }
 
 export default async function handler(req, res) {
   try {
-    // ---- Auth pro cron endpoint
-    const token = process.env.CRON_TOKEN;
-    if (token) {
-      const auth = req.headers.authorization || "";
-      if (auth !== `Bearer ${token}`) {
-        return res.status(401).json({ ok: false, error: "Unauthorized" });
+    // --- AUTH ---
+    const CRON_SECRET = mustEnv("CRON_SECRET");
+    const token = getBearer(req) || String(req.query?.secret || "");
+    if (token !== CRON_SECRET) {
+      return res.status(401).json({ ok: false, error: "Unauthorized" });
+    }
+
+    // --- MODE ---
+    const mode = String(req.query?.mode || "").toLowerCase();
+    const preview = mode === "preview";
+
+    // --- SUPABASE ---
+    const SUPABASE_URL = mustEnv("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = mustEnv("SUPABASE_SERVICE_ROLE_KEY");
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    });
+
+    // --- CONFIG (jednoduché a rozumné defaulty) ---
+    // připomínky v minutách před startem
+    const REMINDER_MINUTES = [60, 15]; // 60 min a 15 min předem
+    // kolik minut tolerance okolo cílového času (aby cron nemusel běžet na vteřinu přesně)
+    const WINDOW_MIN = 6; // ±6 minut
+
+    const now = new Date();
+
+    // --- LOAD EVENTS (pouze publikované, s budoucím startem) ---
+    // bereme pár dní dopředu, ať je to rychlé a stabilní
+    const from = new Date(now.getTime() - 24 * 60 * 60000); // včera (kvůli oknu)
+    const to = new Date(now.getTime() + 14 * 24 * 60 * 60000); // 14 dní dopředu
+
+    const { data: rows, error } = await supabase
+      .from("events")
+      .select("id,title,is_published,start_at,starts_at,stream_url,worksheet_url,audience")
+      .eq("is_published", true)
+      // filtrujeme podle jedné z variant; když DB má jen jednu, druhá se ignoruje
+      .or(
+        `start_at.gte.${from.toISOString()},starts_at.gte.${from.toISOString()}`
+      )
+      .order("start_at", { ascending: true });
+
+    if (error) {
+      return res.status(500).json({ ok: false, error: error.message });
+    }
+
+    const events = Array.isArray(rows) ? rows : [];
+
+    // --- BUILD REMINDER PLAN ---
+    // Tady zatím neodesíláme emaily (nemáme ještě Ecomail/SMTP), jen vypíšeme “co by se posílalo”.
+    const plan = [];
+
+    for (const ev of events) {
+      const startVal = pickStart(ev);
+      const start = asDate(startVal);
+      if (!start) continue;
+
+      // mimo rozsah "to" (protože .or filtr nahoře není perfektní pro obě pole)
+      if (start > to) continue;
+
+      for (const mins of REMINDER_MINUTES) {
+        const target = new Date(start.getTime() - mins * 60000);
+        const diff = minutesBetween(now, target); // kladné = teprve přijde, záporné = už bylo
+
+        // chceme trefit jen okno kolem target času
+        if (Math.abs(diff) <= WINDOW_MIN) {
+          plan.push({
+            event_id: ev.id,
+            title: ev.title || "(bez názvu)",
+            starts_at: start.toISOString(),
+            reminder_minutes_before: mins,
+            target_at: target.toISOString(),
+            now: now.toISOString(),
+            window_min: WINDOW_MIN,
+            stream_url: ev.stream_url || null,
+            worksheet_url: ev.worksheet_url || null,
+            audience: ev.audience || null,
+          });
+        }
       }
     }
 
-    // ---- Params
-    // mode=preview -> jen vrátí HTML a nic neposílá
-    // mode=send    -> vytvoří a odešle kampaň
-    const mode = (req.query.mode || "preview").toString();
-    const shouldSend = mode === "send";
-
-    // okno reminderu (minuty)
-    const minFrom = Number(req.query.from_min ?? 30); // za 30 minut
-    const minTo = Number(req.query.to_min ?? 60);     // až za 60 minut
-    if (!Number.isFinite(minFrom) || !Number.isFinite(minTo) || minFrom < 0 || minTo < 0) {
-      return res.status(400).json({ ok: false, error: "Invalid from_min/to_min" });
-    }
-
-    // ---- Supabase (server)
-    const supabase = createClient(
-      mustEnv("SUPABASE_URL"),
-      mustEnv("SUPABASE_SERVICE_ROLE_KEY")
-    );
-
-    // ---- Vyber události v okně
-    const now = new Date();
-    const fromIso = new Date(now.getTime() + minFrom * 60 * 1000).toISOString();
-    const toIso = new Date(now.getTime() + minTo * 60 * 1000).toISOString();
-
-    const { data, error } = await supabase
-      .from("events")
-      .select("id,title,audience,starts_at,stream_url,worksheet_url,is_published")
-      .eq("is_published", true)
-      .gte("starts_at", fromIso)
-      .lte("starts_at", toIso)
-      .order("starts_at", { ascending: true });
-
-    if (error) throw error;
-
-    const events = Array.isArray(data) ? data : [];
-
-    if (events.length === 0) {
-      return res.status(200).json({
-        ok: true,
-        sent: false,
-        reason: "no events in time window",
-        window: { fromIso, toIso, from_min: minFrom, to_min: minTo },
-      });
-    }
-
-    // ---- Email content
-    const subject = `ARCHIMEDES Live: začínáme za chvíli (${events.length}×)`;
-    const html = buildEmailHtml(events, "Za chvíli vysíláme");
-
-    if (!shouldSend) {
-      // Preview mode
-      return res.status(200).json({
-        ok: true,
-        mode: "preview",
-        would_send: true,
-        subject,
-        count: events.length,
-        window: { fromIso, toIso, from_min: minFrom, to_min: minTo },
-        html,
-      });
-    }
-
-    // ---- Create campaign + send
-    const recipientLists = getRecipientListsFromEnv();
-    const title = `ARCHIMEDES reminder ${formatCZ(now)}`;
-
-    const created = await ecomailCreateCampaign({
-      title,
-      subject,
-      htmlText: html,
-      recipientLists,
-    });
-
-    const sendResult = await ecomailSendCampaign(created.id);
-
+    // --- RESPONSE ---
+    // preview: pouze ukáže plán (bez side-effectů)
+    // run: zatím také jen ukáže plán + info, že posílání není implementované
     return res.status(200).json({
       ok: true,
-      mode: "send",
-      sent: true,
-      campaign_id: created.id,
-      campaign_title: created.title,
-      count: events.length,
-      window: { fromIso, toIso, from_min: minFrom, to_min: minTo },
-      ecomail_send_response: sendResult,
+      preview,
+      now: now.toISOString(),
+      found_events: events.length,
+      reminders_in_window: plan.length,
+      plan,
+      note: preview
+        ? "PREVIEW mode: nic se neposílá."
+        : "RUN mode: posílání emailů zatím není implementované (jen plán).",
     });
   } catch (e) {
-    return res.status(500).json({ ok: false, error: e?.message || "Server error" });
+    return res.status(500).json({ ok: false, error: e?.message || String(e) });
   }
 }
