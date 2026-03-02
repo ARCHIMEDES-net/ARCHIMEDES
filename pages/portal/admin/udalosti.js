@@ -4,10 +4,36 @@ import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
-/* -------------------------
-   Helpers
-------------------------- */
+/* =========================
+   Audience options (chips)
+========================= */
+const AUDIENCE_OPTIONS = [
+  "1. stupeň",
+  "2. stupeň",
+  "Senioři",
+  "Komunita",
+  "Wellbeing",
+  "Filmový klub",
+  "Čtenářský klub – děti",
+  "Čtenářský klub – dospělí",
+  "Smart Cities",
+  "Kariérní poradenství",
+  "Speciál",
+];
 
+function splitAudience(value) {
+  return (value || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+function joinAudience(list) {
+  return (list || []).join(", ");
+}
+
+/* =========================
+   Helpers
+========================= */
 function pad2(n) {
   return String(n).padStart(2, "0");
 }
@@ -49,21 +75,32 @@ function normalizeText(v) {
 function normalizeUrl(url) {
   let v = (url || "").trim();
   if (!v) return "";
-
   if (v.startsWith("ww.")) v = "www." + v.slice(3);
-
   if (v.startsWith("http://") || v.startsWith("https://")) return v;
-
   return `https://${v}`;
 }
 
-/* -------------------------
-   Component
-------------------------- */
+function safeFileExt(fileName) {
+  const parts = String(fileName || "").split(".");
+  const ext = parts.length > 1 ? parts.pop().toLowerCase() : "";
+  return ext.replace(/[^a-z0-9]/g, "");
+}
 
+function makePosterPath(file) {
+  const ext = safeFileExt(file?.name) || "jpg";
+  const now = new Date();
+  const ym = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;
+  const rand = Math.random().toString(36).slice(2, 8);
+  return `${ym}/${Date.now()}-${rand}.${ext}`;
+}
+
+/* =========================
+   Component
+========================= */
 export default function AdminUdalosti() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPoster, setUploadingPoster] = useState(false);
 
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
@@ -79,7 +116,7 @@ export default function AdminUdalosti() {
   const [fullDescription, setFullDescription] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [worksheetUrl, setWorksheetUrl] = useState("");
-  const [posterUrl, setPosterUrl] = useState(""); // NEW
+  const [posterUrl, setPosterUrl] = useState("");
   const [isPublished, setIsPublished] = useState(true);
 
   async function loadEvents() {
@@ -154,11 +191,55 @@ export default function AdminUdalosti() {
     const t = title.trim();
     const aud = audience.trim();
     const dt = fromDatetimeLocalValue(startsAtLocal);
-
     if (!t) return "Vyplň název události.";
     if (!startsAtLocal || !dt) return "Vyplň datum a čas (start).";
     if (!aud) return "Vyplň cílovku (audience).";
     return "";
+  }
+
+  async function handlePosterUpload(file) {
+    setError("");
+    setInfo("");
+    if (!file) return;
+
+    const okType =
+      file.type === "image/jpeg" || file.type === "image/png" || file.type === "image/webp";
+    if (!okType) {
+      setError("Plakát musí být JPG, PNG nebo WEBP.");
+      return;
+    }
+    if (file.size > 7 * 1024 * 1024) {
+      setError("Plakát je moc velký (max 7 MB).");
+      return;
+    }
+
+    setUploadingPoster(true);
+    try {
+      const path = makePosterPath(file);
+
+      const { error: upErr } = await supabase.storage.from("posters").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      });
+
+      if (upErr) throw upErr;
+
+      const { data } = supabase.storage.from("posters").getPublicUrl(path);
+      const url = data?.publicUrl ? String(data.publicUrl) : "";
+
+      if (!url) {
+        setError("Upload proběhl, ale nepodařilo se získat veřejnou URL.");
+        return;
+      }
+
+      setPosterUrl(url);
+      setInfo("Plakát nahrán. URL se vyplnila automaticky.");
+    } catch (err) {
+      setError(err?.message || "Chyba při nahrávání plakátu.");
+    } finally {
+      setUploadingPoster(false);
+    }
   }
 
   async function saveEvent(e) {
@@ -185,7 +266,7 @@ export default function AdminUdalosti() {
       full_description: (fullDescription || "").trim(),
       stream_url: normalizeUrl(streamUrl),
       worksheet_url: normalizeUrl(worksheetUrl),
-      poster_url: normalizeUrl(posterUrl), // NEW (will keep empty if blank)
+      poster_url: normalizeUrl(posterUrl),
       is_published: !!isPublished,
     };
 
@@ -257,20 +338,14 @@ export default function AdminUdalosti() {
         </div>
 
         <h1 style={{ margin: "10px 0 6px" }}>Admin – události</h1>
-        <p style={{ margin: 0, color: "#374151" }}>
-          Správa vysílání a programu. Povinné: <b>Název</b>, <b>Datum a čas</b>, <b>Cílovka</b>.
-          Odkazy se automaticky opraví na <code>https://</code>.
-        </p>
 
         {error ? (
           <div style={errorBox}>
             <b>Chyba:</b> {error}
           </div>
         ) : null}
-
         {info ? <div style={infoBox}>{info}</div> : null}
 
-        {/* Form */}
         <section style={{ marginTop: 16 }}>
           <div style={card}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
@@ -290,12 +365,7 @@ export default function AdminUdalosti() {
             <form onSubmit={saveEvent} style={{ marginTop: 12, display: "grid", gap: 12 }}>
               <div style={grid2}>
                 <Field label="Název události *">
-                  <input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Např. Science On – energie"
-                    style={input}
-                  />
+                  <input value={title} onChange={(e) => setTitle(e.target.value)} style={input} />
                 </Field>
 
                 <Field label="Datum a čas (starts_at) *">
@@ -310,24 +380,52 @@ export default function AdminUdalosti() {
 
               <div style={grid2}>
                 <Field label="Cílovka (audience) *">
-                  <input
-                    value={audience}
-                    onChange={(e) => setAudience(e.target.value)}
-                    placeholder="1. stupeň / 2. stupeň / senioři / komunita…"
-                    style={input}
-                  />
+                  <div style={{ display: "grid", gap: 10 }}>
+                    <input
+                      value={audience}
+                      onChange={(e) => setAudience(e.target.value)}
+                      style={input}
+                      placeholder="Vyber níže nebo napiš ručně…"
+                    />
+
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {AUDIENCE_OPTIONS.map((opt) => {
+                        const selected = splitAudience(audience).includes(opt);
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => {
+                              const cur = splitAudience(audience);
+                              const next = selected ? cur.filter((x) => x !== opt) : [...cur, opt];
+                              setAudience(joinAudience(next));
+                            }}
+                            style={{
+                              padding: "8px 10px",
+                              borderRadius: 999,
+                              border: selected ? "1px solid #111827" : "1px solid #e5e7eb",
+                              background: selected ? "#111827" : "white",
+                              color: selected ? "white" : "#111827",
+                              cursor: "pointer",
+                              fontWeight: 700,
+                            }}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div style={{ color: "#6b7280", fontSize: 13 }}>
+                      Tip: můžeš kombinovat více cílovek. Uloží se jako text „1. stupeň, Komunita…“.
+                    </div>
+                  </div>
                 </Field>
 
                 <Field label="Publikovat">
                   <label style={{ display: "flex", gap: 10, alignItems: "center", padding: "10px 0" }}>
-                    <input
-                      type="checkbox"
-                      checked={!!isPublished}
-                      onChange={(e) => setIsPublished(e.target.checked)}
-                    />
-                    <span style={{ color: "#374151" }}>
-                      {isPublished ? "Ano (viditelné v kalendáři)" : "Ne (skryté)"}
-                    </span>
+                    <input type="checkbox" checked={!!isPublished} onChange={(e) => setIsPublished(e.target.checked)} />
+                    <span>{isPublished ? "Ano (viditelné)" : "Ne (skryté)"}</span>
                   </label>
                 </Field>
               </div>
@@ -336,72 +434,52 @@ export default function AdminUdalosti() {
                 <textarea
                   value={fullDescription}
                   onChange={(e) => setFullDescription(e.target.value)}
-                  placeholder="Krátký popis události, instrukce, co si připravit…"
                   style={{ ...input, minHeight: 110, resize: "vertical" }}
                 />
               </Field>
 
               <div style={grid2}>
                 <Field label="Odkaz na vysílání (stream_url)">
-                  <input
-                    value={streamUrl}
-                    onChange={(e) => setStreamUrl(e.target.value)}
-                    placeholder="meet.google.com/abc-defg-hij"
-                    style={input}
-                  />
+                  <input value={streamUrl} onChange={(e) => setStreamUrl(e.target.value)} style={input} />
                 </Field>
 
                 <Field label="Pracovní list (worksheet_url)">
-                  <input
-                    value={worksheetUrl}
-                    onChange={(e) => setWorksheetUrl(e.target.value)}
-                    placeholder="www.archimedesoec.com/..."
-                    style={input}
-                  />
+                  <input value={worksheetUrl} onChange={(e) => setWorksheetUrl(e.target.value)} style={input} />
                 </Field>
               </div>
 
               <Field label="Plakát / cover (poster_url)">
-                <input
-                  value={posterUrl}
-                  onChange={(e) => setPosterUrl(e.target.value)}
-                  placeholder="https://... (odkaz na obrázek plakátu)"
-                  style={input}
-                />
-                     <div style={{marginTop:10}}>
-  <input
-    type="file"
-    accept="image/*"
-    onChange={async (e)=>{
-
-      const file = e.target.files?.[0];
-      if(!file) return;
-
-      const fileName =
-        Date.now()+"_"+file.name.replace(/\s+/g,"_");
-
-      const { error } =
-        await supabase.storage
-        .from("posters")
-        .upload(fileName,file);
-
-      if(error){
-        alert("Chyba uploadu: "+error.message);
-        return;
-      }
-
-      const { data } =
-        supabase.storage
-        .from("posters")
-        .getPublicUrl(fileName);
-
-      setPosterUrl(data.publicUrl);
-
-    }}
-  />
-</div>                <div style={{ marginTop: 8, color: "#6b7280", fontSize: 12 }}>
-                  Tip: stačí veřejná URL obrázku (png/jpg/webp). Automaticky doplníme <code>https://</code>.
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10 }}>
+                  <input value={posterUrl} onChange={(e) => setPosterUrl(e.target.value)} style={input} />
+                  <label style={{ ...btnSecondary, display: "inline-flex", alignItems: "center" }}>
+                    {uploadingPoster ? "Nahrávám…" : "Nahrát z PC"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      style={{ display: "none" }}
+                      onChange={(e) => handlePosterUpload(e.target.files?.[0])}
+                      disabled={uploadingPoster}
+                    />
+                  </label>
                 </div>
+
+                {posterUrl ? (
+                  <div style={{ marginTop: 10 }}>
+                    <img
+                      src={posterUrl}
+                      alt="Plakát"
+                      style={{
+                        width: 260,
+                        height: 140,
+                        objectFit: "cover",
+                        borderRadius: 12,
+                        border: "1px solid #e5e7eb",
+                        background: "#f9fafb",
+                      }}
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                    />
+                  </div>
+                ) : null}
               </Field>
 
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -418,16 +496,13 @@ export default function AdminUdalosti() {
           </div>
         </section>
 
-        {/* LIST */}
         <section style={{ marginTop: 16 }}>
           <div style={card}>
             <h2 style={{ marginTop: 0 }}>Seznam událostí</h2>
 
             {loading ? <p>Načítám…</p> : null}
 
-            {!loading && sortedRows.length === 0 ? (
-              <p style={{ margin: 0, color: "#6b7280" }}>Zatím žádné události.</p>
-            ) : null}
+            {!loading && sortedRows.length === 0 ? <p style={{ margin: 0, color: "#6b7280" }}>Zatím žádné události.</p> : null}
 
             {!loading && sortedRows.length > 0 ? (
               <div style={{ display: "grid", gap: 12 }}>
@@ -441,24 +516,19 @@ export default function AdminUdalosti() {
                     <div key={r.id} style={rowCard}>
                       <div style={{ display: "grid", gridTemplateColumns: poster ? "140px 1fr" : "1fr", gap: 12 }}>
                         {poster ? (
-                          <div style={{ width: 140 }}>
-                            {/* simple poster preview */}
-                            <img
-                              src={poster}
-                              alt="Plakát"
-                              style={{
-                                width: "100%",
-                                height: 90,
-                                objectFit: "cover",
-                                borderRadius: 10,
-                                border: "1px solid #e5e7eb",
-                              }}
-                              onError={(e) => {
-                                // hide broken image gracefully
-                                e.currentTarget.style.display = "none";
-                              }}
-                            />
-                          </div>
+                          <img
+                            src={poster}
+                            alt="Plakát"
+                            style={{
+                              width: 140,
+                              height: 90,
+                              objectFit: "cover",
+                              borderRadius: 10,
+                              border: "1px solid #e5e7eb",
+                              background: "#f9fafb",
+                            }}
+                            onError={(e) => (e.currentTarget.style.display = "none")}
+                          />
                         ) : null}
 
                         <div>
@@ -471,25 +541,17 @@ export default function AdminUdalosti() {
                                 <span>
                                   {" "}
                                   &nbsp; • &nbsp;{" "}
-                                  {published ? (
-                                    <b style={{ color: "#166534" }}>publikováno</b>
-                                  ) : (
-                                    <b style={{ color: "#991b1b" }}>skryto</b>
-                                  )}
+                                  {published ? <b style={{ color: "#166534" }}>publikováno</b> : <b style={{ color: "#991b1b" }}>skryto</b>}
                                 </span>
                               </div>
                             </div>
 
-                            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                               <button type="button" style={btnSecondary} onClick={() => fillFormFromRow(r)}>
                                 Upravit
                               </button>
 
-                              <button
-                                type="button"
-                                style={btnSecondary}
-                                onClick={() => togglePublished(r.id, published)}
-                              >
+                              <button type="button" style={btnSecondary} onClick={() => togglePublished(r.id, published)}>
                                 {published ? "Skrýt" : "Publikovat"}
                               </button>
 
@@ -513,9 +575,7 @@ export default function AdminUdalosti() {
                           </div>
 
                           {r.full_description ? (
-                            <div style={{ marginTop: 10, color: "#374151", whiteSpace: "pre-wrap" }}>
-                              {String(r.full_description)}
-                            </div>
+                            <div style={{ marginTop: 10, color: "#374151", whiteSpace: "pre-wrap" }}>{String(r.full_description)}</div>
                           ) : null}
                         </div>
                       </div>
@@ -531,6 +591,9 @@ export default function AdminUdalosti() {
   );
 }
 
+/* =========================
+   Small UI components/styles
+========================= */
 function Field({ label, children }) {
   return (
     <div>
