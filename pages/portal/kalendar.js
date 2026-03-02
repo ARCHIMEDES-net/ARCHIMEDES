@@ -50,15 +50,16 @@ export default function Kalendar() {
       const { data, error } = await supabase
         .from("events")
         .select(
-          "id,title,short_description,full_description,audience,start_at,is_published,stream_url,worksheet_url,archive_url,poster_url,promo_short_text"
+          "id,title,short_description,full_description,audience,starts_at,is_published,stream_url,worksheet_url,archive_url,poster_url,promo_short_text"
         )
         .eq("is_published", true)
-        .order("start_at", { ascending: true });
+        .order("starts_at", { ascending: true });
 
       if (!alive) return;
 
       if (error) {
-        setErr(error.message);
+        // Tohle je teď důležité – ať vidíme skutečný důvod.
+        setErr(error.message || "Chyba při načítání událostí.");
         setRows([]);
       } else {
         setRows(data || []);
@@ -80,7 +81,7 @@ export default function Kalendar() {
     return (rows || [])
       .map((r) => ({
         ...r,
-        _start: safeDate(r.start_at),
+        _start: safeDate(r.starts_at), // ✅ správný sloupec
         _aud: normalizeAudience(r.audience),
       }))
       .filter((r) => r._start) // jen validní datum
@@ -113,7 +114,14 @@ export default function Kalendar() {
 
   return (
     <RequireAuth>
-      <div style={{ maxWidth: 1000, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
+      <div
+        style={{
+          maxWidth: 1000,
+          margin: "40px auto",
+          fontFamily: "system-ui",
+          padding: 16,
+        }}
+      >
         <h1>Kalendář</h1>
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
@@ -184,6 +192,25 @@ export default function Kalendar() {
                             {r.short_description || r.promo_short_text}
                           </div>
                         )}
+
+                        {/* Volitelně: rychlé odkazy */}
+                        <div style={{ marginTop: 8, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                          {r.stream_url ? (
+                            <a href={r.stream_url} target="_blank" rel="noreferrer">
+                              ▶ Vysílání
+                            </a>
+                          ) : (
+                            <span style={{ opacity: 0.6 }}>▶ Vysílání</span>
+                          )}
+
+                          {r.worksheet_url ? (
+                            <a href={r.worksheet_url} target="_blank" rel="noreferrer">
+                              📄 Pracovní list
+                            </a>
+                          ) : (
+                            <span style={{ opacity: 0.6 }}>📄 Pracovní list</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
