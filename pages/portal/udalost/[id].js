@@ -17,6 +17,8 @@ const CATEGORIES = [
   "Speciál",
 ];
 
+const POSTERS_BUCKET = "posters";
+
 function formatCz(dt) {
   try {
     const d = new Date(dt);
@@ -54,6 +56,12 @@ function normalizeCategory(e) {
   return cat;
 }
 
+function posterUrl(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from(POSTERS_BUCKET).getPublicUrl(path);
+  return data?.publicUrl || null;
+}
+
 function Pill({ children, strong }) {
   return <span className={`pill ${strong ? "pill-strong" : ""}`}>{children}</span>;
 }
@@ -68,7 +76,6 @@ export default function UdalostDetail() {
 
   const safeId = useMemo(() => {
     if (!id) return null;
-    // UUID nebo string id – necháme tak jak je
     return String(id);
   }, [id]);
 
@@ -82,7 +89,9 @@ export default function UdalostDetail() {
 
       const { data, error } = await supabase
         .from("events")
-        .select("id,title,starts_at,category,audience_groups,audience,full_description,stream_url,worksheet_url,is_published")
+        .select(
+          "id,title,starts_at,category,audience_groups,audience,full_description,stream_url,worksheet_url,is_published,poster_path,poster_caption"
+        )
         .eq("id", safeId)
         .single();
 
@@ -142,6 +151,8 @@ export default function UdalostDetail() {
   const hasStream = !!event.stream_url;
   const hasWorksheet = !!event.worksheet_url;
 
+  const pUrl = posterUrl(event.poster_path);
+
   return (
     <div className="container">
       <div className="topbar">
@@ -159,6 +170,38 @@ export default function UdalostDetail() {
           </Link>
         </div>
       </div>
+
+      {/* PLAKÁT */}
+      {pUrl ? (
+        <div className="card card-pad" style={{ marginBottom: 12 }}>
+          <div style={{ fontWeight: 900, marginBottom: 10 }}>Plakát</div>
+
+          {event.poster_caption ? (
+            <div className="small" style={{ marginBottom: 10 }}>
+              {event.poster_caption}
+            </div>
+          ) : null}
+
+          <a href={pUrl} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
+            <img
+              src={pUrl}
+              alt="Plakát"
+              style={{
+                width: "100%",
+                maxHeight: 560,
+                objectFit: "contain",
+                borderRadius: 14,
+                border: "1px solid rgba(11,18,32,.10)",
+                background: "rgba(11,18,32,.02)",
+              }}
+            />
+          </a>
+
+          <div className="small" style={{ marginTop: 10 }}>
+            Klikni na plakát pro otevření v plné velikosti.
+          </div>
+        </div>
+      ) : null}
 
       <div className="card card-pad">
         <div className="row" style={{ justifyContent: "space-between" }}>
