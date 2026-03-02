@@ -1,93 +1,50 @@
 import Link from "next/link";
-import { useState } from "react";
 import RequireAuth from "../../components/RequireAuth";
-import { supabase } from "../../lib/supabaseClient";
+import PortalHeader from "../../components/PortalHeader";
 
-export default function PortalIndex() {
-  const [msg, setMsg] = useState("");
-  const [err, setErr] = useState("");
-
-  async function signOut() {
-    setMsg("");
-    setErr("");
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      setErr(error.message || "Odhlášení selhalo.");
-      return;
-    }
-    setMsg("Odhlášeno.");
-    // volitelně: přesměrování na login, pokud ho máš
-    // window.location.href = "/login";
-  }
-
+export default function PortalHome() {
   return (
     <RequireAuth>
-      <div style={{ maxWidth: 980, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
-        <h1>Portál</h1>
-        <p style={{ marginTop: 6, opacity: 0.8 }}>
-          Rychlé odkazy pro práci s vysíláním a obsahem.
+      <PortalHeader />
+
+      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
+        <h1 style={{ margin: "10px 0 6px" }}>ARCHIMEDES Live – Portál</h1>
+        <p style={{ margin: 0, color: "#374151" }}>
+          Vítej v registrované části. Primární je program vysílání (kalendář) a následně archiv a pracovní listy.
         </p>
 
-        {err && <p style={{ color: "crimson" }}>Chyba: {err}</p>}
-        {msg && <p style={{ color: "green" }}>{msg}</p>}
+        <section style={{ marginTop: 18, display: "grid", gap: 12 }}>
+          <Card title="Program (Kalendář)" desc="Přehled nadcházejících vysílání a detail událostí.">
+            <Link href="/portal/kalendar">Otevřít program</Link>
+          </Card>
 
-        <div style={{ marginTop: 18, display: "grid", gap: 12 }}>
-          <Card
-            title="Program (TV)"
-            desc="Přehled vysílání jako TV program – nadcházející a archiv."
-            href="/portal/kalendar"
-          />
+          <Card title="Archiv" desc="Záznamy vysílání (MVP zatím může být prázdný).">
+            <Link href="/portal/archiv">Otevřít archiv</Link>
+          </Card>
 
-          <Card
-            title="Pracovní listy"
-            desc="Knihovna pracovních listů pro učitele (PDF / odkazy)."
-            href="/portal/pracovni-listy"
-          />
+          <Card title="Pracovní listy" desc="Odkazy / materiály k událostem a výuce.">
+            <Link href="/portal/pracovni-listy">Otevřít pracovní listy</Link>
+          </Card>
 
-          <Card
-            title="Admin – události"
-            desc="Vkládání a správa událostí (jen pro administrátory)."
-            href="/portal/admin/udalosti"
-          />
+          <Card title="Inzerce" desc="Pozvánky, nabídky kroužků, komunitní oznámení.">
+            <Link href="/portal/inzerce">Otevřít inzerci</Link>
+          </Card>
 
-          <button
-            onClick={signOut}
-            style={{
-              marginTop: 8,
-              padding: "10px 14px",
-              borderRadius: 12,
-              border: "1px solid rgba(0,0,0,0.14)",
-              background: "white",
-              cursor: "pointer",
-              fontWeight: 800,
-              width: 180,
-            }}
-          >
-            Odhlásit
-          </button>
-        </div>
-      </div>
+          <Card title="Admin" desc="Správa událostí, obsahu a dalších sekcí.">
+            <Link href="/portal/admin">Otevřít admin</Link>
+          </Card>
+        </section>
+      </main>
     </RequireAuth>
   );
 }
 
-function Card({ title, desc, href }) {
+function Card({ title, desc, children }) {
   return (
-    <Link
-      href={href}
-      style={{
-        display: "block",
-        padding: 16,
-        borderRadius: 16,
-        border: "1px solid rgba(0,0,0,0.10)",
-        background: "rgba(0,0,0,0.02)",
-        textDecoration: "none",
-        color: "inherit",
-      }}
-    >
-      <div style={{ fontSize: 18, fontWeight: 900 }}>{title}</div>
-      <div style={{ marginTop: 6, opacity: 0.8 }}>{desc}</div>
-      <div style={{ marginTop: 10, fontWeight: 800 }}>Otevřít →</div>
-    </Link>
+    <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 14 }}>
+      <div style={{ fontWeight: 800 }}>{title}</div>
+      <div style={{ color: "#374151", marginTop: 6 }}>{desc}</div>
+      <div style={{ marginTop: 10 }}>{children}</div>
+    </div>
   );
 }
