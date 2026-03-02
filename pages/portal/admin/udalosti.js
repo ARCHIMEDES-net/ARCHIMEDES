@@ -4,8 +4,21 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 
+const AUDIENCE_GROUPS = ["1. stupeň", "2. stupeň", "Dospělí", "Senioři", "Komunita"];
+
+const CATEGORIES = [
+  "Kariérní poradenství",
+  "Wellbeing",
+  "Wellbeing story",
+  "Čtenářský klub ZŠ",
+  "Senior klub",
+  "Čtenářský klub dospělí",
+  "Vzdělávání",
+  "Filmový klub",
+  "Speciál",
+];
+
 function toDatetimeLocalValue(date) {
-  // date: Date
   const pad = (n) => String(n).padStart(2, "0");
   return (
     date.getFullYear() +
@@ -21,8 +34,6 @@ function toDatetimeLocalValue(date) {
 }
 
 function fromDatetimeLocalToISO(value) {
-  // value: "YYYY-MM-DDTHH:mm" (local time)
-  // Convert to ISO string in UTC
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
   return d.toISOString();
@@ -34,16 +45,20 @@ export default function AdminUdalosti() {
   const [error, setError] = useState("");
   const [items, setItems] = useState([]);
 
-  // Form states
   const defaultStartsAtLocal = useMemo(() => {
     const d = new Date();
     d.setMinutes(d.getMinutes() + 30);
     return toDatetimeLocalValue(d);
   }, []);
 
+  // Form
   const [title, setTitle] = useState("");
   const [startsAtLocal, setStartsAtLocal] = useState(defaultStartsAtLocal);
-  const [audience, setAudience] = useState("");
+
+  // ✅ nové "pořádné" řízení
+  const [category, setCategory] = useState("Speciál");
+  const [audienceGroups, setAudienceGroups] = useState(["Komunita"]);
+
   const [fullDescription, setFullDescription] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [worksheetUrl, setWorksheetUrl] = useState("");
@@ -55,7 +70,7 @@ export default function AdminUdalosti() {
 
     const { data, error } = await supabase
       .from("events")
-      .select("id,title,starts_at,audience,is_published,stream_url,worksheet_url,created_at")
+      .select("id,title,starts_at,category,audience_groups,is_published,stream_url,worksheet_url")
       .order("starts_at", { ascending: false })
       .limit(300);
 
@@ -65,7 +80,6 @@ export default function AdminUdalosti() {
     } else {
       setItems(data || []);
     }
-
     setLoading(false);
   }
 
@@ -78,20 +92,27 @@ export default function AdminUdalosti() {
     setError("");
 
     const t = (title || "").trim();
-    const a = (audience || "").trim();
     const starts_at = fromDatetimeLocalToISO(startsAtLocal);
 
-    // Validace proti NOT NULL chybám
     if (!t) return setError("Vyplň název události.");
-    if (!a) return setError("Vyplň cílovku (audience).");
-    if (!starts_at) return setError("Vyplň datum a čas (starts_at).");
+    if (!starts_at) return setError("Vyplň datum a čas.");
+    if (!category) return setError("Vyber rubriku (category).");
+    if (!Array.isArray(audienceGroups) || audienceGroups.length === 0) {
+      return setError("Vyber alespoň jednu skupinu (pro koho).");
+    }
 
     setSaving(true);
 
+    // kompatibilita: původní audience (text[]) naplníme automaticky
+    // => díky tomu funguje i starší kód / exporty
+    const audience = [...audienceGroups, category];
+
     const payload = {
       title: t,
-      starts_at, // ✅ DB expects starts_at (NOT NULL)
-      audience: a, // ✅ DB expects audience (NOT NULL)
+      starts_at,
+      category,
+      audience_groups: audienceGroups,
+      audience, // text[] v DB – vyhneme se "malformed array literal"
       full_description: (fullDescription || "").trim() || null,
       stream_url: (streamUrl || "").trim() || null,
       worksheet_url: (worksheetUrl || "").trim() || null,
@@ -106,15 +127,15 @@ export default function AdminUdalosti() {
       return;
     }
 
-    // Reset form
+    // Reset
     setTitle("");
-    setAudience("");
     setFullDescription("");
     setStreamUrl("");
     setWorksheetUrl("");
     setIsPublished(true);
+    setCategory("Speciál");
+    setAudienceGroups(["Komunita"]);
 
-    // Refresh list
     await loadEvents();
     setSaving(false);
   }
@@ -139,7 +160,9 @@ export default function AdminUdalosti() {
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 800 }}>Admin – události</div>
-          <div style={{ opacity: 0.7 }}>Vytváření a správa vysílání v kalendáři (TV program).</div>
+          <div style={{ opacity: 0.7 }}>
+            Vytváření vysílání: <b>rubrika</b> + <b>pro koho</b> + odkazy.
+          </div>
         </div>
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -173,42 +196,78 @@ export default function AdminUdalosti() {
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="např. Wellbeing pro žáky"
+              placeholder="např. Wellbeing – práce se stresem"
               style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
             />
           </div>
 
           <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr" }}>
             <div>
-              <label style={{ fontWeight: 700 }}>Datum a čas (start)*</label>
+              <label style={{ fontWeight: 700 }}>Datum a čas*</label>
               <input
                 type="datetime-local"
                 value={startsAtLocal}
                 onChange={(e) => setStartsAtLocal(e.target.value)}
                 style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
               />
-              <div style={{ opacity: 0.65, fontSize: 12, marginTop: 6 }}>
-                Ukládá se do DB jako <b>starts_at</b> v ISO (UTC).
-              </div>
             </div>
 
             <div>
-              <label style={{ fontWeight: 700 }}>Cílovka (audience)*</label>
-              <input
-                value={audience}
-                onChange={(e) => setAudience(e.target.value)}
-                placeholder="1. stupeň / 2. stupeň / senioři / komunita…"
+              <label style={{ fontWeight: 700 }}>Rubrika (category)*</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
                 style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
-              />
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           <div>
-            <label style={{ fontWeight: 700 }}>Popis (full_description)</label>
+            <label style={{ fontWeight: 700 }}>Pro koho (audience_groups)*</label>
+            <div style={{ marginTop: 8, display: "grid", gap: 8, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+              {AUDIENCE_GROUPS.map((opt) => {
+                const checked = audienceGroups.includes(opt);
+                return (
+                  <label
+                    key={opt}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "center",
+                      padding: 10,
+                      border: "1px solid #eee",
+                      borderRadius: 12,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => {
+                        if (e.target.checked) setAudienceGroups((prev) => [...prev, opt]);
+                        else setAudienceGroups((prev) => prev.filter((x) => x !== opt));
+                      }}
+                    />
+                    <span>{opt}</span>
+                  </label>
+                );
+              })}
+            </div>
+            <div style={{ opacity: 0.65, fontSize: 12, marginTop: 6 }}>
+              Ukládá se do DB jako <b>audience_groups</b> (pole) a kvůli kompatibilitě i do <b>audience</b>.
+            </div>
+          </div>
+
+          <div>
+            <label style={{ fontWeight: 700 }}>Popis</label>
             <textarea
               value={fullDescription}
               onChange={(e) => setFullDescription(e.target.value)}
-              placeholder="Krátký popis, instrukce, co si připravit…"
               rows={5}
               style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
             />
@@ -237,14 +296,8 @@ export default function AdminUdalosti() {
           </div>
 
           <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <input
-              type="checkbox"
-              checked={isPublished}
-              onChange={(e) => setIsPublished(e.target.checked)}
-            />
-            <span>
-              Publikovat (<b>is_published</b> = true). Když není publikováno, neuvidí se v kalendáři.
-            </span>
+            <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} />
+            <span>Publikovat (is_published = true)</span>
           </label>
 
           <button
@@ -300,11 +353,18 @@ export default function AdminUdalosti() {
                   </div>
                 </div>
 
-                <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap", opacity: 0.85 }}>
-                  <span style={{ padding: "4px 8px", border: "1px solid #eee", borderRadius: 999 }}>
-                    {e.audience}
+                <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap", opacity: 0.9 }}>
+                  <span style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999, fontWeight: 700 }}>
+                    {e.category || "Speciál"}
                   </span>
-                  <span style={{ padding: "4px 8px", border: "1px solid #eee", borderRadius: 999 }}>
+
+                  {(Array.isArray(e.audience_groups) ? e.audience_groups : []).map((g) => (
+                    <span key={g} style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999 }}>
+                      {g}
+                    </span>
+                  ))}
+
+                  <span style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999 }}>
                     {e.is_published ? "publikováno" : "nepublikováno"}
                   </span>
                 </div>
@@ -315,28 +375,6 @@ export default function AdminUdalosti() {
                       Detail
                     </a>
                   </Link>
-
-                  {e.stream_url ? (
-                    <a
-                      href={e.stream_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
-                    >
-                      ▶ Vysílání
-                    </a>
-                  ) : null}
-
-                  {e.worksheet_url ? (
-                    <a
-                      href={e.worksheet_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
-                    >
-                      📄 Pracovní list
-                    </a>
-                  ) : null}
 
                   <button
                     onClick={() => handleDelete(e.id)}
