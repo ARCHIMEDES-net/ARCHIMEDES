@@ -2,6 +2,20 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
+const AUDIENCE_GROUPS = ["1. stupeň", "2. stupeň", "Dospělí", "Senioři", "Komunita"];
+
+const CATEGORIES = [
+  "Kariérní poradenství",
+  "Wellbeing",
+  "Wellbeing story",
+  "Čtenářský klub ZŠ",
+  "Senior klub",
+  "Čtenářský klub dospělí",
+  "Vzdělávání",
+  "Filmový klub",
+  "Speciál",
+];
+
 function formatCz(dt) {
   try {
     const d = new Date(dt);
@@ -18,11 +32,44 @@ function formatCz(dt) {
   }
 }
 
+function normalizeGroups(e) {
+  const groups =
+    Array.isArray(e?.audience_groups) && e.audience_groups.length
+      ? e.audience_groups
+      : Array.isArray(e?.audience) && e.audience.length
+      ? e.audience.filter((x) => AUDIENCE_GROUPS.includes(x))
+      : [];
+  return groups;
+}
+
+function normalizeCategory(e) {
+  const cat =
+    typeof e?.category === "string" && e.category
+      ? e.category
+      : Array.isArray(e?.audience) && e.audience.length
+      ? (e.audience.find((x) => CATEGORIES.includes(x)) || "Speciál")
+      : "Speciál";
+  return cat;
+}
+
+function intersects(a, b) {
+  // a,b arrays
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
+  const setB = new Set(b);
+  for (const x of a) if (setB.has(x)) return true;
+  return false;
+}
+
 export default function Kalendar() {
   const [loading, setLoading] = useState(true);
-  const [upcoming, setUpcoming] = useState([]);
-  const [past, setPast] = useState([]);
   const [error, setError] = useState("");
+
+  const [upcomingRaw, setUpcomingRaw] = useState([]);
+  const [pastRaw, setPastRaw] = useState([]);
+
+  // Filters
+  const [filterCategory, setFilterCategory] = useState("Vše");
+  const [filterGroups, setFilterGroups] = useState([]); // selected groups
 
   const nowIso = useMemo(() => new Date().toISOString(), []);
 
@@ -33,23 +80,24 @@ export default function Kalendar() {
       setLoading(true);
       setError("");
 
-      // Nadcházející (publikované)
+      const selectCols =
+        "id,title,starts_at,category,audience_groups,audience,stream_url,worksheet_url,is_published";
+
       const upcomingRes = await supabase
         .from("events")
-        .select("id,title,starts_at,audience,stream_url,worksheet_url,is_published")
+        .select(selectCols)
         .eq("is_published", true)
         .gte("starts_at", nowIso)
         .order("starts_at", { ascending: true })
-        .limit(200);
+        .limit(300);
 
-      // Archiv (publikované)
       const pastRes = await supabase
         .from("events")
-        .select("id,title,starts_at,audience,stream_url,worksheet_url,is_published")
+        .select(selectCols)
         .eq("is_published", true)
         .lt("starts_at", nowIso)
         .order("starts_at", { ascending: false })
-        .limit(200);
+        .limit(300);
 
       if (!isMounted) return;
 
@@ -59,11 +107,11 @@ export default function Kalendar() {
 
       if (errs.length) {
         setError(errs.join(" | "));
-        setUpcoming([]);
-        setPast([]);
+        setUpcomingRaw([]);
+        setPastRaw([]);
       } else {
-        setUpcoming(upcomingRes.data || []);
-        setPast(pastRes.data || []);
+        setUpcomingRaw(upcomingRes.data || []);
+        setPastRaw(pastRes.data || []);
       }
 
       setLoading(false);
@@ -75,21 +123,45 @@ export default function Kalendar() {
     };
   }, [nowIso]);
 
+  const upcoming = useMemo(() => {
+    return (upcomingRaw || []).filter((e) => {
+      const cat = normalizeCategory(e);
+      const groups = normalizeGroups(e);
+
+      if (filterCategory !== "Vše" && cat !== filterCategory) return false;
+      if (filterGroups.length > 0 && !intersects(groups, filterGroups)) return false;
+      return true;
+    });
+  }, [upcomingRaw, filterCategory, filterGroups]);
+
+  const past = useMemo(() => {
+    return (pastRaw || []).filter((e) => {
+      const cat = normalizeCategory(e);
+      const groups = normalizeGroups(e);
+
+      if (filterCategory !== "Vše" && cat !== filterCategory) return false;
+      if (filterGroups.length > 0 && !intersects(groups, filterGroups)) return false;
+      return true;
+    });
+  }, [pastRaw, filterCategory, filterGroups]);
+
   return (
-    <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>
+    <div style={{ maxWidth: 1050, margin: "0 auto", padding: 24 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center" }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 700 }}>Program (TV)</div>
-          <div style={{ opacity: 0.7 }}>Přehled vysílání jako TV program. Řazeno podle starts_at.</div>
+          <div style={{ fontSize: 22, fontWeight: 800 }}>Program (TV)</div>
+          <div style={{ opacity: 0.7 }}>
+            Přehled vysílání jako TV program. Řazeno podle <b>starts_at</b>.
+          </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Link href="/portal">
             <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
               ← Zpět do portálu
             </a>
           </Link>
-          <Link href="/portal/admin/events">
+          <Link href="/portal/admin/udalosti">
             <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
               Admin – události
             </a>
@@ -97,8 +169,80 @@ export default function Kalendar() {
         </div>
       </div>
 
+      {/* Filters */}
+      <div style={{ marginTop: 16, padding: 14, border: "1px solid #eee", borderRadius: 16 }}>
+        <div style={{ fontWeight: 800, marginBottom: 10 }}>Filtry</div>
+
+        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1.2fr" }}>
+          <div>
+            <label style={{ fontWeight: 700 }}>Rubrika</label>
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
+            >
+              <option value="Vše">Vše</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label style={{ fontWeight: 700 }}>Pro koho</label>
+            <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {AUDIENCE_GROUPS.map((g) => {
+                const active = filterGroups.includes(g);
+                return (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => {
+                      if (active) setFilterGroups((prev) => prev.filter((x) => x !== g));
+                      else setFilterGroups((prev) => [...prev, g]);
+                    }}
+                    style={{
+                      padding: "8px 10px",
+                      borderRadius: 999,
+                      border: "1px solid #ddd",
+                      background: active ? "#f3f3f3" : "white",
+                      cursor: "pointer",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {g}
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={() => setFilterGroups([])}
+                style={{
+                  padding: "8px 10px",
+                  borderRadius: 999,
+                  border: "1px solid #ddd",
+                  background: "white",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                  opacity: 0.8,
+                }}
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 10, opacity: 0.7, fontSize: 13 }}>
+          Zobrazuji jen publikované události (is_published = true).
+        </div>
+      </div>
+
       {error ? (
-        <div style={{ marginTop: 16, padding: 12, border: "1px solid #f2c", borderRadius: 12 }}>
+        <div style={{ marginTop: 16, padding: 12, border: "1px solid #ff4d4f", borderRadius: 12 }}>
           <b>Chyba:</b> {error}
         </div>
       ) : null}
@@ -107,20 +251,10 @@ export default function Kalendar() {
         <div style={{ marginTop: 18, opacity: 0.7 }}>Načítám…</div>
       ) : (
         <>
-          <Section
-            title="Nadcházející"
-            items={upcoming}
-          />
-          <Section
-            title="Archiv"
-            items={past}
-          />
+          <Section title="Nadcházející" items={upcoming} />
+          <Section title="Archiv" items={past} />
         </>
       )}
-
-      <div style={{ marginTop: 24, opacity: 0.6, fontSize: 13 }}>
-        Pozn.: Zobrazuji pouze publikované události (is_published = true).
-      </div>
     </div>
   );
 }
@@ -128,60 +262,82 @@ export default function Kalendar() {
 function Section({ title, items }) {
   return (
     <div style={{ marginTop: 22 }}>
-      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>{title}</div>
+      <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>
+        {title}{" "}
+        <span style={{ opacity: 0.6, fontWeight: 600 }}>
+          ({items?.length || 0})
+        </span>
+      </div>
 
-      {(!items || items.length === 0) ? (
+      {!items || items.length === 0 ? (
         <div style={{ padding: 14, border: "1px solid #eee", borderRadius: 14, opacity: 0.75 }}>
           Zatím prázdné.
         </div>
       ) : (
         <div style={{ display: "grid", gap: 12 }}>
-          {items.map((e) => (
-            <div key={e.id} style={{ padding: 14, border: "1px solid #eee", borderRadius: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-                <div style={{ fontWeight: 700 }}>{e.title}</div>
-                <div style={{ opacity: 0.75, fontSize: 14 }}>{formatCz(e.starts_at)}</div>
+          {items.map((e) => {
+            const cat = normalizeCategory(e);
+            const groups = normalizeGroups(e);
+
+            return (
+              <div key={e.id} style={{ padding: 14, border: "1px solid #eee", borderRadius: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
+                  <div style={{ fontWeight: 800 }}>{e.title}</div>
+                  <div style={{ opacity: 0.75, fontSize: 14 }}>{formatCz(e.starts_at)}</div>
+                </div>
+
+                <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999, fontWeight: 700 }}>
+                    {cat}
+                  </span>
+
+                  {(Array.isArray(groups) ? groups : []).map((g) => (
+                    <span key={g} style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999 }}>
+                      {g}
+                    </span>
+                  ))}
+
+                  {e.stream_url ? (
+                    <span style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999 }}>▶ vysílání</span>
+                  ) : null}
+
+                  {e.worksheet_url ? (
+                    <span style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999 }}>📄 pracovní list</span>
+                  ) : null}
+                </div>
+
+                <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <Link href={`/portal/udalost/${e.id}`}>
+                    <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
+                      Detail
+                    </a>
+                  </Link>
+
+                  {e.stream_url ? (
+                    <a
+                      href={e.stream_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
+                    >
+                      ▶ Vysílání
+                    </a>
+                  ) : null}
+
+                  {e.worksheet_url ? (
+                    <a
+                      href={e.worksheet_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
+                    >
+                      📄 Pracovní list
+                    </a>
+                  ) : null}
+                </div>
               </div>
-
-              <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap", opacity: 0.85 }}>
-                <span style={{ padding: "4px 8px", border: "1px solid #eee", borderRadius: 999 }}>
-                  {e.audience}
-                </span>
-                {e.stream_url ? <span style={{ padding: "4px 8px", border: "1px solid #eee", borderRadius: 999 }}>▶ vysílání</span> : null}
-                {e.worksheet_url ? <span style={{ padding: "4px 8px", border: "1px solid #eee", borderRadius: 999 }}>📄 pracovní list</span> : null}
-              </div>
-
-              <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <Link href={`/portal/event/${e.id}`}>
-                  <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
-                    Detail
-                  </a>
-                </Link>
-
-                {e.stream_url ? (
-                  <a
-                    href={e.stream_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
-                  >
-                    ▶ Vysílání
-                  </a>
-                ) : null}
-
-                {e.worksheet_url ? (
-                  <a
-                    href={e.worksheet_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
-                  >
-                    📄 Pracovní list
-                  </a>
-                ) : null}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
