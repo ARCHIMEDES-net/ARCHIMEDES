@@ -1,54 +1,83 @@
 import Link from "next/link";
 
+const LOGO_SRC = "/logo/archimedes-live.png";
+
 export default function PortalHeader() {
   return (
-
-    <div
+    <header
       style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "10px 20px",
-        borderBottom: "1px solid #ddd",
-        marginBottom: "20px"
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        background: "white",
+        borderBottom: "1px solid #e5e7eb",
       }}
     >
-
-      {/* LOGO */}
-
-      <Link href="/portal">
-
-        <img
-          src="/logo/archimedes-live.png"
-          style={{
-            height: "50px",
-            cursor: "pointer"
-          }}
-        />
-
-      </Link>
-
-
-      {/* MENU */}
-
-      <div style={{ display: "flex", gap: "15px" }}>
-
-        <Link href="/portal">
-          Portál
+      <div
+        style={{
+          maxWidth: 1100,
+          margin: "0 auto",
+          padding: "10px 16px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        {/* Logo */}
+        <Link
+          href="/portal"
+          style={{ display: "inline-flex", alignItems: "center", gap: 10, textDecoration: "none" }}
+          aria-label="ARCHIMEDES Live – Portál"
+        >
+          <img
+            src={LOGO_SRC}
+            alt="ARCHIMEDES Live"
+            style={{
+              height: 44,
+              width: "auto",
+              display: "block",
+            }}
+            onError={(e) => {
+              // Když by logo nebylo nalezeno, ať je aspoň vidět fallback text
+              e.currentTarget.style.display = "none";
+            }}
+          />
+          <span style={{ fontWeight: 700, color: "#111827" }}>Portál</span>
         </Link>
 
-        <Link href="/portal/kalendar">
-          Program
-        </Link>
+        {/* Menu */}
+        <nav style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <Link href="/portal" style={linkStyle}>Portál</Link>
+          <Link href="/portal/kalendar" style={linkStyle}>Program</Link>
+          <Link href="/portal/archiv" style={linkStyle}>Archiv</Link>
+          <Link href="/portal/pracovni-listy" style={linkStyle}>Pracovní listy</Link>
+          <Link href="/portal/inzerce" style={linkStyle}>Inzerce</Link>
 
-        <Link href="/portal/admin">
-          Admin
-        </Link>
+          <span style={{ width: 1, height: 18, background: "#e5e7eb", margin: "0 4px" }} />
 
+          <Link
+            href="/portal/admin"
+            title="Admin"
+            style={{
+              ...linkStyle,
+              border: "1px solid #e5e7eb",
+              borderRadius: 10,
+              padding: "8px 10px",
+              fontWeight: 700,
+            }}
+          >
+            Admin
+          </Link>
+        </nav>
       </div>
-
-
-    </div>
-
+    </header>
   );
 }
+
+const linkStyle = {
+  textDecoration: "none",
+  color: "#111827",
+  padding: "8px 6px",
+  borderRadius: 8,
+};
