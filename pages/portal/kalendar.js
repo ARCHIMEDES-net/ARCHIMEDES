@@ -1,457 +1,441 @@
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
-const AUDIENCE_GROUPS = [
-  "1. stupeň",
-  "2. stupeň",
-  "Dospělí",
-  "Senioři",
-  "Komunita",
-];
+export default function Program() {
 
-const CATEGORIES = [
-  "Kariérní poradenství",
-  "Wellbeing",
-  "Wellbeing story",
-  "Čtenářský klub ZŠ",
-  "Senior klub",
-  "Čtenářský klub dospělí",
-  "Vzdělávání",
-  "Filmový klub",
-  "Speciál",
-];
+const [events,setEvents] = useState([]);
 
-function Pill({ children, strong }) {
-  return (
-    <span className={`pill ${strong ? "pill-strong" : ""}`}>
-      {children}
-    </span>
-  );
+useEffect(()=>{
+load();
+},[]);
+
+async function load(){
+
+const { data } = await supabase
+.from("events")
+.select("*")
+.eq("is_published",true)
+.order("starts_at",{ascending:true});
+
+setEvents(data || []);
+
 }
 
-function normalizeGroups(e) {
-  if (Array.isArray(e.audience_groups) && e.audience_groups.length)
-    return e.audience_groups;
 
-  if (Array.isArray(e.audience))
-    return e.audience.filter((x) =>
-      AUDIENCE_GROUPS.includes(x)
-    );
+const upcoming = events.filter(e =>
+new Date(e.starts_at) >= new Date()
+);
 
-  return [];
+const archive = events.filter(e =>
+new Date(e.starts_at) < new Date()
+);
+
+
+return (
+
+<div style={styles.page}>
+
+
+<h1 style={styles.title}>
+Program vysílání
+</h1>
+
+<p style={styles.subtitle}>
+Přehled živých vysílání ARCHIMEDES Live
+</p>
+
+
+<div style={styles.buttons}>
+
+<Link href="/portal">
+
+<button style={styles.button}>
+← Zpět do portálu
+</button>
+
+</Link>
+
+<Link href="/portal/admin/udalosti">
+
+<button style={styles.buttonSecondary}>
+Admin – události
+</button>
+
+</Link>
+
+</div>
+
+
+
+<h2 style={styles.section}>
+Nadcházející vysílání
+</h2>
+
+
+
+{upcoming.map(e=>(
+<EventCard key={e.id} e={e}/>
+))}
+
+
+{upcoming.length==0 && (
+<p>Žádné vysílání není naplánováno.</p>
+)}
+
+
+
+
+<h2 style={styles.section}>
+Archiv vysílání
+</h2>
+
+
+
+{archive.map(e=>(
+<EventCard key={e.id} e={e}/>
+))}
+
+
+{archive.length==0 && (
+<p>Archiv je zatím prázdný.</p>
+)}
+
+
+
+</div>
+
+);
 }
 
-function normalizeCategory(e) {
-  if (e.category) return e.category;
 
-  if (Array.isArray(e.audience)) {
-    const found = e.audience.find((x) =>
-      CATEGORIES.includes(x)
-    );
-    if (found) return found;
-  }
 
-  return "Speciál";
+function EventCard({e}){
+
+return(
+
+<div style={styles.card}>
+
+
+<div style={styles.posterWrap}>
+
+{e.poster_url ?
+
+<img
+src={e.poster_url}
+style={styles.poster}
+/>
+
+:
+
+<div style={styles.noPoster}>
+bez plakátu
+</div>
+
 }
 
-function posterUrl(path) {
-  if (!path) return null;
+</div>
 
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/posters/${path}`;
+
+
+<div style={styles.content}>
+
+<h3 style={styles.eventTitle}>
+{e.title}
+</h3>
+
+
+<div style={styles.meta}>
+
+{e.category &&
+<span style={styles.badge}>
+{e.category}
+</span>
 }
 
-export default function ProgramPage() {
+{e.audience_groups?.map(g=>(
+<span key={g} style={styles.badgeLight}>
+{g}
+</span>
+))}
 
-  const [events,setEvents]=useState([])
-  const [loading,setLoading]=useState(true)
+</div>
 
-  const [category,setCategory]=useState("Vše")
-  const [groups,setGroups]=useState([])
 
-  useEffect(()=>{
+<div style={styles.date}>
 
-    async function load(){
+{new Date(e.starts_at).toLocaleString("cs-CZ")}
 
-      const {data,error}=await supabase
-      .from("events")
-      .select("*")
-      .eq("is_published",true)
-      .order("starts_at",{ascending:true})
+</div>
 
-      if(!error) setEvents(data || [])
 
-      setLoading(false)
-    }
 
-    load()
+<div style={styles.actions}>
 
-  },[])
+<Link href={"/portal/udalost/"+e.id}>
 
-  const filtered=useMemo(()=>{
+<button style={styles.buttonDetail}>
+Detail
+</button>
 
-    return events.filter(e=>{
+</Link>
 
-      const cat=normalizeCategory(e)
-      const g=normalizeGroups(e)
 
-      if(category!=="Vše" && cat!==category)
-        return false
+{e.stream_url &&
 
-      if(groups.length>0){
+<a href={e.stream_url} target="_blank">
 
-        const match=g.some(x=>groups.includes(x))
+<button style={styles.buttonLive}>
+▶ Vysílání
+</button>
 
-        if(!match) return false
-      }
-
-      return true
-
-    })
-
-  },[events,category,groups])
-
-  const now=new Date()
-
-  const upcoming=filtered.filter(e=>new Date(e.starts_at)>=now)
-  const archive=filtered.filter(e=>new Date(e.starts_at)<now).reverse()
-
-  function toggleGroup(g){
-
-    setGroups(prev=>
-      prev.includes(g)
-      ? prev.filter(x=>x!==g)
-      : [...prev,g]
-    )
-
-  }
-
-  function resetFilters(){
-    setGroups([])
-    setCategory("Vše")
-  }
-
-  function Section({title,items}){
-
-    if(items.length===0)
-      return null
-
-    return(
-
-      <div style={{marginTop:24}}>
-
-        <div
-        style={{
-        fontWeight:900,
-        marginBottom:8
-        }}
-        >
-        {title} ({items.length})
-        </div>
-
-        <div
-        style={{
-        display:"grid",
-        gap:12
-        }}
-        >
-
-        {items.map(e=>{
-
-        const cat=normalizeCategory(e)
-        const g=normalizeGroups(e)
-        const pUrl=posterUrl(e.poster_path)
-
-        return(
-
-        <div
-        key={e.id}
-        className="card card-pad"
-        >
-
-        <div
-        style={{
-        display:"flex",
-        gap:16,
-        alignItems:"center"
-        }}
-        >
-
-        {pUrl ? (
-
-        <a
-        href={pUrl}
-        target="_blank"
-        rel="noreferrer"
-        >
-
-        <img
-        src={pUrl}
-        alt="Plakát"
-        style={{
-        width:96,
-        height:96,
-        objectFit:"cover",
-        borderRadius:14,
-        border:"1px solid rgba(11,18,32,.10)"
-        }}
-        />
-
-        </a>
-
-        ):(
-        <div
-        style={{
-        width:96,
-        height:96,
-        borderRadius:14,
-        border:"1px dashed rgba(11,18,32,.18)",
-        background:"rgba(11,18,32,.02)",
-        display:"flex",
-        alignItems:"center",
-        justifyContent:"center",
-        fontSize:12,
-        color:"rgba(11,18,32,.55)",
-        fontWeight:800
-        }}
-        >
-        bez plakátu
-        </div>
-        )}
-
-        <div style={{flex:1}}>
-
-        <div
-        style={{
-        display:"flex",
-        justifyContent:"space-between"
-        }}
-        >
-
-        <div
-        style={{
-        fontWeight:900,
-        fontSize:16
-        }}
-        >
-        {e.title}
-        </div>
-
-        <div className="small">
-        {new Date(e.starts_at).toLocaleString("cs-CZ")}
-        </div>
-
-        </div>
-
-        <div
-        className="row"
-        style={{marginTop:8}}
-        >
-
-        <Pill strong>{cat}</Pill>
-
-        {g.map(x=>(
-        <Pill key={x}>{x}</Pill>
-        ))}
-
-        {e.stream_url && <Pill>▶ vysílání</Pill>}
-        {e.worksheet_url && <Pill>📄 pracovní list</Pill>}
-
-        </div>
-
-        <div
-        className="row"
-        style={{marginTop:10}}
-        >
-
-        <Link href={`/portal/udalost/${e.id}`}>
-        <a className="btn">Detail</a>
-        </Link>
-
-        {e.stream_url && (
-        <a
-        href={e.stream_url}
-        target="_blank"
-        className="btn"
-        >
-        ▶ Vysílání
-        </a>
-        )}
-
-        {e.worksheet_url && (
-        <a
-        href={e.worksheet_url}
-        target="_blank"
-        className="btn"
-        >
-        📄 Pracovní list
-        </a>
-        )}
-
-        </div>
-
-        </div>
-
-        </div>
-
-        </div>
-
-        )
-
-        })}
-
-        </div>
-
-      </div>
-
-    )
-
-  }
-
-  if(loading)
-  return(
-  <div className="container">
-  Načítám...
-  </div>
-  )
-
-  return(
-
-  <div className="container">
-
-  <div className="topbar">
-
-  <div>
-
-  <h1 className="h1">
-  Program
-  </h1>
-
-  <div className="sub">
-  Přehled vysílání. Řazeno podle starts_at.
-  </div>
-
-  </div>
-
-  <div className="row">
-
-  <Link href="/portal">
-  <a className="btn">
-  ← Zpět do portálu
-  </a>
-  </Link>
-
-  <Link href="/portal/admin/udalosti">
-  <a className="btn">
-  Admin – události
-  </a>
-  </Link>
-
-  </div>
-
-  </div>
-
-  <div className="card card-pad">
-
-  <div style={{fontWeight:900}}>
-  Filtry
-  </div>
-
-  <div
-  style={{
-  marginTop:12,
-  display:"grid",
-  gridTemplateColumns:"1fr 1fr",
-  gap:20
-  }}
-  >
-
-  <div>
-
-  <div style={{fontWeight:800}}>
-  Rubrika
-  </div>
-
-  <select
-  className="select"
-  value={category}
-  onChange={e=>setCategory(e.target.value)}
-  style={{marginTop:6}}
-  >
-
-  <option>Vše</option>
-
-  {CATEGORIES.map(c=>(
-  <option key={c}>{c}</option>
-  ))}
-
-  </select>
-
-  </div>
-
-  <div>
-
-  <div style={{fontWeight:800}}>
-  Pro koho
-  </div>
-
-  <div
-  className="row"
-  style={{marginTop:8}}
-  >
-
-  {AUDIENCE_GROUPS.map(g=>{
-
-  const active=groups.includes(g)
-
-  return(
-
-  <button
-  key={g}
-  className="btn"
-  onClick={()=>toggleGroup(g)}
-  type="button"
-  style={{
-  background:active?"#0b1220":"#fff",
-  color:active?"white":"black"
-  }}
-  >
-
-  {g}
-
-  </button>
-
-  )
-
-  })}
-
-  <button
-  className="btn"
-  onClick={resetFilters}
-  type="button"
-  >
-
-  Reset
-
-  </button>
-
-  </div>
-
-  </div>
-
-  </div>
-
-  <div className="small" style={{marginTop:10}}>
-  Zobrazuji jen publikované události (is_published = true).
-  </div>
-
-  </div>
-
-  <Section title="Nadcházející" items={upcoming}/>
-  <Section title="Archiv" items={archive}/>
-
-  </div>
-
-  )
+</a>
 
 }
+
+
+{e.worksheet_url &&
+
+<a href={e.worksheet_url} target="_blank">
+
+<button style={styles.buttonDoc}>
+Pracovní list
+</button>
+
+</a>
+
+}
+
+
+</div>
+
+
+</div>
+
+</div>
+
+);
+
+}
+
+
+
+const styles={
+
+page:{
+
+maxWidth:1000,
+margin:"auto",
+padding:40,
+fontFamily:"Segoe UI"
+
+},
+
+
+title:{
+
+fontSize:36,
+fontWeight:700,
+marginBottom:5
+
+},
+
+
+subtitle:{
+
+color:"#666",
+marginBottom:30
+
+},
+
+
+
+section:{
+
+marginTop:40,
+marginBottom:20,
+fontSize:22
+
+},
+
+
+
+card:{
+
+display:"flex",
+gap:20,
+padding:20,
+borderRadius:16,
+boxShadow:"0 4px 20px rgba(0,0,0,0.08)",
+marginBottom:20,
+background:"#fff"
+
+},
+
+
+
+posterWrap:{
+
+width:160
+
+},
+
+
+
+poster:{
+
+width:"100%",
+borderRadius:12
+
+},
+
+
+
+noPoster:{
+
+width:140,
+height:200,
+borderRadius:12,
+background:"#eee",
+display:"flex",
+alignItems:"center",
+justifyContent:"center",
+color:"#888",
+fontSize:14
+
+},
+
+
+
+content:{
+
+flex:1
+
+},
+
+
+eventTitle:{
+
+fontSize:22,
+fontWeight:600,
+marginBottom:10
+
+},
+
+
+
+meta:{
+
+marginBottom:10
+
+},
+
+
+badge:{
+
+background:"#e53935",
+color:"white",
+padding:"4px 10px",
+borderRadius:10,
+marginRight:8,
+fontSize:14
+
+},
+
+
+badgeLight:{
+
+background:"#eee",
+padding:"4px 10px",
+borderRadius:10,
+marginRight:8,
+fontSize:14
+
+},
+
+
+
+date:{
+
+color:"#666",
+marginBottom:15
+
+},
+
+
+actions:{
+
+display:"flex",
+gap:10
+
+},
+
+
+buttons:{
+
+display:"flex",
+gap:10,
+marginBottom:30
+
+},
+
+
+button:{
+
+padding:"10px 16px",
+borderRadius:10,
+border:"none",
+background:"#eee",
+cursor:"pointer"
+
+},
+
+
+buttonSecondary:{
+
+padding:"10px 16px",
+borderRadius:10,
+border:"none",
+background:"#333",
+color:"white",
+cursor:"pointer"
+
+},
+
+
+buttonDetail:{
+
+padding:"10px 16px",
+borderRadius:10,
+border:"none",
+background:"#ddd",
+cursor:"pointer"
+
+},
+
+
+buttonLive:{
+
+padding:"10px 16px",
+borderRadius:10,
+border:"none",
+background:"#e53935",
+color:"white",
+cursor:"pointer",
+fontWeight:600
+
+},
+
+
+buttonDoc:{
+
+padding:"10px 16px",
+borderRadius:10,
+border:"none",
+background:"#1976d2",
+color:"white",
+cursor:"pointer"
+
+}
+
+};
