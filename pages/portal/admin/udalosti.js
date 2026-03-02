@@ -4,30 +4,24 @@ import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
-/**
- * Admin – Události (ARCHIMEDES Live)
- * - CRUD pro tabulku events v Supabase
- * - Povinné: title, starts_at, audience (kvůli typickým NOT NULL constraintům)
- * - Inline jednoduchý UI styl (bez Tailwind závislosti)
- */
+/* -------------------------
+   Helpers
+------------------------- */
+
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
 
 function toDatetimeLocalValue(dateLike) {
-  // Accepts ISO string or Date; returns "YYYY-MM-DDTHH:mm"
   if (!dateLike) return "";
-  const d = dateLike instanceof Date ? dateLike : new Date(dateLike);
+  const d = new Date(dateLike);
   if (Number.isNaN(d.getTime())) return "";
-
-  const pad = (n) => String(n).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  const mm = pad(d.getMonth() + 1);
-  const dd = pad(d.getDate());
-  const hh = pad(d.getHours());
-  const mi = pad(d.getMinutes());
-  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(
+    d.getHours()
+  )}:${pad2(d.getMinutes())}`;
 }
 
 function fromDatetimeLocalValue(value) {
-  // "YYYY-MM-DDTHH:mm" => Date (local)
   if (!value) return null;
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
@@ -47,10 +41,25 @@ function formatDateTimeCZ(value) {
   });
 }
 
-function normalizeStr(v) {
+function normalizeText(v) {
   if (v === null || v === undefined) return "";
   return String(v);
 }
+
+function normalizeUrl(url) {
+  let v = (url || "").trim();
+  if (!v) return "";
+
+  if (v.startsWith("ww.")) v = "www." + v.slice(3);
+
+  if (v.startsWith("http://") || v.startsWith("https://")) return v;
+
+  return `https://${v}`;
+}
+
+/* -------------------------
+   Component
+------------------------- */
 
 export default function AdminUdalosti() {
   const [loading, setLoading] = useState(true);
@@ -61,31 +70,16 @@ export default function AdminUdalosti() {
 
   const [rows, setRows] = useState([]);
 
-  // Form state
+  // form
   const [editingId, setEditingId] = useState(null);
 
   const [title, setTitle] = useState("");
-  const [startsAtLocal, setStartsAtLocal] = useState(""); // datetime-local input
+  const [startsAtLocal, setStartsAtLocal] = useState("");
   const [audience, setAudience] = useState("");
   const [fullDescription, setFullDescription] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [worksheetUrl, setWorksheetUrl] = useState("");
   const [isPublished, setIsPublished] = useState(true);
-
-  const sortedRows = useMemo(() => {
-    // Published first? Keep simple: sort by starts_at DESC then created_at DESC
-    const copy = Array.isArray(rows) ? [...rows] : [];
-    copy.sort((a, b) => {
-      const da = a?.starts_at ? new Date(a.starts_at).getTime() : 0;
-      const db = b?.starts_at ? new Date(b.starts_at).getTime() : 0;
-      if (db !== da) return db - da;
-
-      const ca = a?.created_at ? new Date(a.created_at).getTime() : 0;
-      const cb = b?.created_at ? new Date(b.created_at).getTime() : 0;
-      return cb - ca;
-    });
-    return copy;
-  }, [rows]);
 
   async function loadEvents() {
     setLoading(true);
@@ -113,6 +107,19 @@ export default function AdminUdalosti() {
     loadEvents();
   }, []);
 
+  const sortedRows = useMemo(() => {
+    const copy = Array.isArray(rows) ? [...rows] : [];
+    copy.sort((a, b) => {
+      const ta = a?.starts_at ? new Date(a.starts_at).getTime() : 0;
+      const tb = b?.starts_at ? new Date(b.starts_at).getTime() : 0;
+      if (tb !== ta) return tb - ta;
+      const ca = a?.created_at ? new Date(a.created_at).getTime() : 0;
+      const cb = b?.created_at ? new Date(b.created_at).getTime() : 0;
+      return cb - ca;
+    });
+    return copy;
+  }, [rows]);
+
   function resetForm() {
     setEditingId(null);
     setTitle("");
@@ -128,12 +135,12 @@ export default function AdminUdalosti() {
 
   function fillFormFromRow(r) {
     setEditingId(r.id);
-    setTitle(normalizeStr(r.title));
+    setTitle(normalizeText(r.title));
     setStartsAtLocal(toDatetimeLocalValue(r.starts_at));
-    setAudience(normalizeStr(r.audience));
-    setFullDescription(normalizeStr(r.full_description));
-    setStreamUrl(normalizeStr(r.stream_url));
-    setWorksheetUrl(normalizeStr(r.worksheet_url));
+    setAudience(normalizeText(r.audience));
+    setFullDescription(normalizeText(r.full_description));
+    setStreamUrl(normalizeText(r.stream_url));
+    setWorksheetUrl(normalizeText(r.worksheet_url));
     setIsPublished(r.is_published !== false);
     setError("");
     setInfo("");
@@ -168,14 +175,13 @@ export default function AdminUdalosti() {
       return;
     }
 
-    // Payload – držíme se názvů sloupců v DB
     const payload = {
       title: title.trim(),
       starts_at: startsAt.toISOString(),
-      audience: audience.trim(),
-      full_description: fullDescription?.trim() || "",
-      stream_url: streamUrl?.trim() || "",
-      worksheet_url: worksheetUrl?.trim() || "",
+      audience: audience.trim(), // doporučeno: DB audience = text
+      full_description: (fullDescription || "").trim(),
+      stream_url: normalizeUrl(streamUrl),
+      worksheet_url: normalizeUrl(worksheetUrl),
       is_published: !!isPublished,
     };
 
@@ -183,11 +189,7 @@ export default function AdminUdalosti() {
 
     try {
       if (editingId) {
-        const { error } = await supabase
-          .from("events")
-          .update(payload)
-          .eq("id", editingId);
-
+        const { error } = await supabase.from("events").update(payload).eq("id", editingId);
         if (error) throw error;
         setInfo("Událost byla upravena.");
       } else {
@@ -223,16 +225,16 @@ export default function AdminUdalosti() {
     }
   }
 
-  async function togglePublished(id, current) {
+  async function togglePublished(id, currentPublished) {
     setError("");
     setInfo("");
     try {
       const { error } = await supabase
         .from("events")
-        .update({ is_published: !current })
+        .update({ is_published: !currentPublished })
         .eq("id", id);
       if (error) throw error;
-      setInfo(!current ? "Událost publikována." : "Událost skryta.");
+      setInfo(!currentPublished ? "Událost publikována." : "Událost skryta.");
       await loadEvents();
     } catch (err) {
       setError(err?.message || "Chyba při změně publikace.");
@@ -253,6 +255,7 @@ export default function AdminUdalosti() {
         <h1 style={{ margin: "10px 0 6px" }}>Admin – události</h1>
         <p style={{ margin: 0, color: "#374151" }}>
           Správa vysílání a programu. Povinné: <b>Název</b>, <b>Datum a čas</b>, <b>Cílovka</b>.
+          Odkazy se automaticky opraví na <code>https://</code>.
         </p>
 
         {error ? (
@@ -291,9 +294,7 @@ export default function AdminUdalosti() {
         <section style={{ marginTop: 16 }}>
           <div style={card}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-              <h2 style={{ margin: 0 }}>
-                {editingId ? "Upravit událost" : "Nová událost"}
-              </h2>
+              <h2 style={{ margin: 0 }}>{editingId ? "Upravit událost" : "Nová událost"}</h2>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 {editingId ? (
                   <button type="button" onClick={resetForm} style={btnSecondary}>
@@ -365,7 +366,7 @@ export default function AdminUdalosti() {
                   <input
                     value={streamUrl}
                     onChange={(e) => setStreamUrl(e.target.value)}
-                    placeholder="https://meet.google.com/..."
+                    placeholder="meet.google.com/abc-defg-hij"
                     style={input}
                   />
                 </Field>
@@ -374,7 +375,7 @@ export default function AdminUdalosti() {
                   <input
                     value={worksheetUrl}
                     onChange={(e) => setWorksheetUrl(e.target.value)}
-                    placeholder="https://..."
+                    placeholder="www.archimedesoec.com/..."
                     style={input}
                   />
                 </Field>
@@ -394,7 +395,7 @@ export default function AdminUdalosti() {
           </div>
         </section>
 
-        {/* List */}
+        {/* LIST = tvoje “plakáty” */}
         <section style={{ marginTop: 16 }}>
           <div style={card}>
             <h2 style={{ marginTop: 0 }}>Seznam událostí</h2>
@@ -407,69 +408,71 @@ export default function AdminUdalosti() {
 
             {!loading && sortedRows.length > 0 ? (
               <div style={{ display: "grid", gap: 12 }}>
-                {sortedRows.map((r) => (
-                  <div key={r.id} style={rowCard}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: 16 }}>{r.title}</div>
-                        <div style={{ marginTop: 6, color: "#374151" }}>
-                          <span>{formatDateTimeCZ(r.starts_at)}</span>
-                          {r.audience ? <span> &nbsp; • &nbsp; {String(r.audience)}</span> : null}
-                          <span>
-                            {" "}
-                            &nbsp; • &nbsp;{" "}
-                            {r.is_published !== false ? (
-                              <b style={{ color: "#166534" }}>publikováno</b>
-                            ) : (
-                              <b style={{ color: "#991b1b" }}>skryto</b>
-                            )}
-                          </span>
+                {sortedRows.map((r) => {
+                  const published = r.is_published !== false;
+                  const stream = normalizeText(r.stream_url);
+                  const worksheet = normalizeText(r.worksheet_url);
+
+                  return (
+                    <div key={r.id} style={rowCard}>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: 16 }}>{r.title}</div>
+                          <div style={{ marginTop: 6, color: "#374151" }}>
+                            <span>{formatDateTimeCZ(r.starts_at)}</span>
+                            {r.audience ? <span> &nbsp; • &nbsp; {String(r.audience)}</span> : null}
+                            <span>
+                              {" "}
+                              &nbsp; • &nbsp;{" "}
+                              {published ? (
+                                <b style={{ color: "#166534" }}>publikováno</b>
+                              ) : (
+                                <b style={{ color: "#991b1b" }}>skryto</b>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                          <button type="button" style={btnSecondary} onClick={() => fillFormFromRow(r)}>
+                            Upravit
+                          </button>
+
+                          <button
+                            type="button"
+                            style={btnSecondary}
+                            onClick={() => togglePublished(r.id, published)}
+                          >
+                            {published ? "Skrýt" : "Publikovat"}
+                          </button>
+
+                          <button type="button" style={btnDanger} onClick={() => deleteEvent(r.id)}>
+                            Smazat
+                          </button>
                         </div>
                       </div>
 
-                      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                        <button
-                          type="button"
-                          style={btnSecondary}
-                          onClick={() => fillFormFromRow(r)}
-                        >
-                          Upravit
-                        </button>
-
-                        <button
-                          type="button"
-                          style={btnSecondary}
-                          onClick={() => togglePublished(r.id, r.is_published !== false)}
-                        >
-                          {r.is_published !== false ? "Skrýt" : "Publikovat"}
-                        </button>
-
-                        <button type="button" style={btnDanger} onClick={() => deleteEvent(r.id)}>
-                          Smazat
-                        </button>
+                      <div style={{ marginTop: 10, display: "flex", gap: 12, flexWrap: "wrap" }}>
+                        {stream ? (
+                          <a href={stream} target="_blank" rel="noreferrer">
+                            ▶ Vysílání
+                          </a>
+                        ) : null}
+                        {worksheet ? (
+                          <a href={worksheet} target="_blank" rel="noreferrer">
+                            📄 Pracovní list
+                          </a>
+                        ) : null}
                       </div>
-                    </div>
 
-                    <div style={{ marginTop: 10, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                      {r.stream_url ? (
-                        <a href={r.stream_url} target="_blank" rel="noreferrer">
-                          ▶ Vysílání
-                        </a>
-                      ) : null}
-                      {r.worksheet_url ? (
-                        <a href={r.worksheet_url} target="_blank" rel="noreferrer">
-                          📄 Pracovní list
-                        </a>
+                      {r.full_description ? (
+                        <div style={{ marginTop: 10, color: "#374151", whiteSpace: "pre-wrap" }}>
+                          {String(r.full_description)}
+                        </div>
                       ) : null}
                     </div>
-
-                    {r.full_description ? (
-                      <div style={{ marginTop: 10, color: "#374151", whiteSpace: "pre-wrap" }}>
-                        {String(r.full_description)}
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : null}
           </div>
