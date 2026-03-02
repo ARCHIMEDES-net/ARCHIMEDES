@@ -1,341 +1,362 @@
-import { useEffect, useMemo, useState } from "react";
+// pages/portal/admin/udalosti.js
+
 import Link from "next/link";
-import RequireAuth from "../../../components/RequireAuth";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 
-function toInputDateTime(value) {
-  if (!value) return "";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "";
+function toDatetimeLocalValue(date) {
+  // date: Date
   const pad = (n) => String(n).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  const mm = pad(d.getMonth() + 1);
-  const dd = pad(d.getDate());
-  const hh = pad(d.getHours());
-  const mi = pad(d.getMinutes());
-  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  return (
+    date.getFullYear() +
+    "-" +
+    pad(date.getMonth() + 1) +
+    "-" +
+    pad(date.getDate()) +
+    "T" +
+    pad(date.getHours()) +
+    ":" +
+    pad(date.getMinutes())
+  );
 }
 
-function parseAudience(input) {
-  const raw = String(input || "").trim();
-  if (!raw) return ["komunita"]; // audience je NOT NULL
-  return raw
-    .split(/[\/,;]+/g)
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
-function audienceToText(aud) {
-  if (!aud) return "";
-  if (Array.isArray(aud)) return aud.filter(Boolean).join(", ");
-  return String(aud);
+function fromDatetimeLocalToISO(value) {
+  // value: "YYYY-MM-DDTHH:mm" (local time)
+  // Convert to ISO string in UTC
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
 }
 
 export default function AdminUdalosti() {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [checkingAdmin, setCheckingAdmin] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [items, setItems] = useState([]);
 
-  const [loadingList, setLoadingList] = useState(true);
-  const [events, setEvents] = useState([]);
-  const [msg, setMsg] = useState("");
-  const [err, setErr] = useState("");
+  // Form states
+  const defaultStartsAtLocal = useMemo(() => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() + 30);
+    return toDatetimeLocalValue(d);
+  }, []);
 
-  // formulář
   const [title, setTitle] = useState("");
-  const [startsAt, setStartsAt] = useState(""); // datetime-local => uložíme do starts_at (NOT NULL)
+  const [startsAtLocal, setStartsAtLocal] = useState(defaultStartsAtLocal);
   const [audience, setAudience] = useState("");
   const [fullDescription, setFullDescription] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [worksheetUrl, setWorksheetUrl] = useState("");
-  const [isPublished, setIsPublished] = useState(false);
-
-  const canSave = useMemo(() => title.trim().length > 0, [title]);
-
-  useEffect(() => {
-    let mounted = true;
-    async function check() {
-      setCheckingAdmin(true);
-      const { data, error } = await supabase.rpc("is_platform_admin");
-      if (!mounted) return;
-      setIsAdmin(!error && data === true);
-      setCheckingAdmin(false);
-    }
-    check();
-    return () => (mounted = false);
-  }, []);
+  const [isPublished, setIsPublished] = useState(true);
 
   async function loadEvents() {
-    setLoadingList(true);
-    setErr("");
-    setMsg("");
+    setLoading(true);
+    setError("");
 
     const { data, error } = await supabase
       .from("events")
-      .select("id,title,starts_at,audience,is_published,updated_at")
-      .order("updated_at", { ascending: false });
+      .select("id,title,starts_at,audience,is_published,stream_url,worksheet_url,created_at")
+      .order("starts_at", { ascending: false })
+      .limit(300);
 
     if (error) {
-      setErr(error.message || "Nepodařilo se načíst seznam událostí.");
-      setEvents([]);
+      setError(error.message);
+      setItems([]);
     } else {
-      setEvents(Array.isArray(data) ? data : []);
+      setItems(data || []);
     }
 
-    setLoadingList(false);
+    setLoading(false);
   }
 
   useEffect(() => {
-    if (!checkingAdmin && isAdmin) loadEvents();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checkingAdmin, isAdmin]);
+    loadEvents();
+  }, []);
 
-  async function saveEvent(e) {
+  async function handleCreate(e) {
     e.preventDefault();
-    setErr("");
-    setMsg("");
+    setError("");
 
-    if (!canSave) {
-      setErr("Vyplň Název události.");
-      return;
-    }
+    const t = (title || "").trim();
+    const a = (audience || "").trim();
+    const starts_at = fromDatetimeLocalToISO(startsAtLocal);
 
-    if (!startsAt) {
-      setErr("Vyplň Datum a čas (starts_at).");
-      return;
-    }
+    // Validace proti NOT NULL chybám
+    if (!t) return setError("Vyplň název události.");
+    if (!a) return setError("Vyplň cílovku (audience).");
+    if (!starts_at) return setError("Vyplň datum a čas (starts_at).");
 
-    const starts_at_value = new Date(startsAt).toISOString();
-    if (Number.isNaN(new Date(startsAt).getTime())) {
-      setErr("Neplatné datum a čas.");
-      return;
-    }
+    setSaving(true);
 
     const payload = {
-      title: title.trim(),
-      starts_at: starts_at_value, // ✅ DB chce starts_at NOT NULL
-      audience: parseAudience(audience), // ✅ text[] a NOT NULL
-      full_description: fullDescription.trim() || null,
-      stream_url: streamUrl.trim() || null,
-      worksheet_url: worksheetUrl.trim() || null,
+      title: t,
+      starts_at, // ✅ DB expects starts_at (NOT NULL)
+      audience: a, // ✅ DB expects audience (NOT NULL)
+      full_description: (fullDescription || "").trim() || null,
+      stream_url: (streamUrl || "").trim() || null,
+      worksheet_url: (worksheetUrl || "").trim() || null,
       is_published: !!isPublished,
     };
 
-    const { error } = await supabase.from("events").insert(payload);
+    const { error: insertErr } = await supabase.from("events").insert([payload]);
 
-    if (error) {
-      setErr(error.message || "Uložení selhalo.");
+    if (insertErr) {
+      setError(insertErr.message);
+      setSaving(false);
       return;
     }
 
-    setMsg("Uloženo.");
-
-    // reset
+    // Reset form
     setTitle("");
-    setStartsAt("");
     setAudience("");
     setFullDescription("");
     setStreamUrl("");
     setWorksheetUrl("");
-    setIsPublished(false);
+    setIsPublished(true);
 
+    // Refresh list
     await loadEvents();
+    setSaving(false);
   }
 
-  async function togglePublished(id, current) {
-    setErr("");
-    setMsg("");
+  async function handleDelete(id) {
+    const ok = window.confirm("Opravdu smazat tuto událost?");
+    if (!ok) return;
 
-    const { error } = await supabase
-      .from("events")
-      .update({ is_published: !current })
-      .eq("id", id);
+    setError("");
+    const { error: delErr } = await supabase.from("events").delete().eq("id", id);
 
-    if (error) {
-      setErr(error.message || "Změna publikace selhala.");
+    if (delErr) {
+      setError(delErr.message);
       return;
     }
 
-    setMsg("Změněno.");
     await loadEvents();
   }
 
-  if (checkingAdmin) {
-    return (
-      <RequireAuth>
-        <div style={{ maxWidth: 980, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
-          <h1>Admin – události</h1>
-          <p>Kontroluji oprávnění…</p>
-        </div>
-      </RequireAuth>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <RequireAuth>
-        <div style={{ maxWidth: 980, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
-          <h1>Admin – události</h1>
-          <p style={{ color: "crimson" }}>Nemáš oprávnění pro administraci.</p>
-          <p>
-            <Link href="/portal">← Zpět do portálu</Link>
-          </p>
-        </div>
-      </RequireAuth>
-    );
-  }
-
   return (
-    <RequireAuth>
-      <div style={{ maxWidth: 980, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
-        <h1>Admin – události</h1>
+    <div style={{ maxWidth: 1050, margin: "0 auto", padding: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 800 }}>Admin – události</div>
+          <div style={{ opacity: 0.7 }}>Vytváření a správa vysílání v kalendáři (TV program).</div>
+        </div>
 
-        <p style={{ marginTop: 8 }}>
-          <Link href="/portal">← Zpět do portálu</Link> {" | "}
-          <Link href="/portal/kalendar">Kalendář</Link>
-        </p>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Link href="/portal">
+            <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
+              ← Zpět do portálu
+            </a>
+          </Link>
 
-        {err && <p style={{ color: "crimson" }}>Chyba: {err}</p>}
-        {msg && <p style={{ color: "green" }}>{msg}</p>}
+          <Link href="/portal/kalendar">
+            <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
+              Program (TV)
+            </a>
+          </Link>
+        </div>
+      </div>
 
-        <h2 style={{ marginTop: 24 }}>Nová událost</h2>
+      {error ? (
+        <div style={{ marginTop: 14, padding: 12, border: "1px solid #ff4d4f", borderRadius: 12 }}>
+          <b>Chyba:</b> {error}
+        </div>
+      ) : null}
 
-        <form onSubmit={saveEvent}>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontWeight: 700 }}>Název události*</label>
+      {/* CREATE FORM */}
+      <div style={{ marginTop: 18, padding: 16, border: "1px solid #eee", borderRadius: 16 }}>
+        <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>Nová událost</div>
+
+        <form onSubmit={handleCreate} style={{ display: "grid", gap: 12 }}>
+          <div>
+            <label style={{ fontWeight: 700 }}>Název události*</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              style={{ width: "100%", padding: 10 }}
-              placeholder="např. Wellbeing pro 1. stupeň"
+              placeholder="např. Wellbeing pro žáky"
+              style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
             />
           </div>
 
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontWeight: 700 }}>Datum a čas (starts_at)*</label>
-            <input
-              type="datetime-local"
-              value={startsAt}
-              onChange={(e) => setStartsAt(e.target.value)}
-              style={{ padding: 10 }}
-            />
-          </div>
+          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr" }}>
+            <div>
+              <label style={{ fontWeight: 700 }}>Datum a čas (start)*</label>
+              <input
+                type="datetime-local"
+                value={startsAtLocal}
+                onChange={(e) => setStartsAtLocal(e.target.value)}
+                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
+              />
+              <div style={{ opacity: 0.65, fontSize: 12, marginTop: 6 }}>
+                Ukládá se do DB jako <b>starts_at</b> v ISO (UTC).
+              </div>
+            </div>
 
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontWeight: 700 }}>Cílovka (audience)</label>
-            <input
-              value={audience}
-              onChange={(e) => setAudience(e.target.value)}
-              style={{ width: "100%", padding: 10 }}
-              placeholder='např. "1. stupeň / 2. stupeň / senioři / komunita"'
-            />
-            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
-              Ukládá se jako seznam (pole). Když necháš prázdné, uloží se „komunita“.
+            <div>
+              <label style={{ fontWeight: 700 }}>Cílovka (audience)*</label>
+              <input
+                value={audience}
+                onChange={(e) => setAudience(e.target.value)}
+                placeholder="1. stupeň / 2. stupeň / senioři / komunita…"
+                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
+              />
             </div>
           </div>
 
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontWeight: 700 }}>Popis (full_description)</label>
+          <div>
+            <label style={{ fontWeight: 700 }}>Popis (full_description)</label>
             <textarea
               value={fullDescription}
               onChange={(e) => setFullDescription(e.target.value)}
-              style={{ width: "100%", padding: 10, minHeight: 110 }}
-              placeholder="Krátký popis události…"
+              placeholder="Krátký popis, instrukce, co si připravit…"
+              rows={5}
+              style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
             />
           </div>
 
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontWeight: 700 }}>Odkaz na vysílání (stream_url)</label>
-            <input
-              value={streamUrl}
-              onChange={(e) => setStreamUrl(e.target.value)}
-              style={{ width: "100%", padding: 10 }}
-              placeholder="https://meet.google.com/..."
-            />
-          </div>
-
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontWeight: 700 }}>Pracovní list (worksheet_url)</label>
-            <input
-              value={worksheetUrl}
-              onChange={(e) => setWorksheetUrl(e.target.value)}
-              style={{ width: "100%", padding: 10 }}
-              placeholder="https://..."
-            />
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr" }}>
+            <div>
+              <label style={{ fontWeight: 700 }}>Odkaz na vysílání (stream_url)</label>
               <input
-                type="checkbox"
-                checked={isPublished}
-                onChange={(e) => setIsPublished(e.target.checked)}
+                value={streamUrl}
+                onChange={(e) => setStreamUrl(e.target.value)}
+                placeholder="https://meet.google.com/..."
+                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
               />
-              <span style={{ fontWeight: 700 }}>Publikovat (is_published = true)</span>
-            </label>
-            <div style={{ fontSize: 13, opacity: 0.75, marginTop: 4 }}>
-              Když není publikováno, neuvidí se v kalendáři.
+            </div>
+
+            <div>
+              <label style={{ fontWeight: 700 }}>Pracovní list (worksheet_url)</label>
+              <input
+                value={worksheetUrl}
+                onChange={(e) => setWorksheetUrl(e.target.value)}
+                placeholder="https://..."
+                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
+              />
             </div>
           </div>
 
+          <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <input
+              type="checkbox"
+              checked={isPublished}
+              onChange={(e) => setIsPublished(e.target.checked)}
+            />
+            <span>
+              Publikovat (<b>is_published</b> = true). Když není publikováno, neuvidí se v kalendáři.
+            </span>
+          </label>
+
           <button
-            type="submit"
-            disabled={!canSave}
-            style={{ padding: "10px 16px", cursor: canSave ? "pointer" : "not-allowed" }}
+            disabled={saving}
+            style={{
+              padding: "12px 14px",
+              borderRadius: 12,
+              border: "1px solid #ddd",
+              background: saving ? "#f7f7f7" : "white",
+              cursor: saving ? "not-allowed" : "pointer",
+              fontWeight: 700,
+            }}
           >
-            Uložit událost
+            {saving ? "Ukládám…" : "Uložit událost"}
           </button>
         </form>
+      </div>
 
-        <h2 style={{ marginTop: 32 }}>Seznam událostí</h2>
+      {/* LIST */}
+      <div style={{ marginTop: 18 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
+          <div style={{ fontSize: 16, fontWeight: 800 }}>Seznam událostí</div>
+          <button
+            onClick={loadEvents}
+            disabled={loading}
+            style={{
+              padding: "10px 12px",
+              borderRadius: 12,
+              border: "1px solid #ddd",
+              background: "white",
+              cursor: loading ? "not-allowed" : "pointer",
+              fontWeight: 700,
+            }}
+          >
+            {loading ? "Načítám…" : "Obnovit"}
+          </button>
+        </div>
 
-        {loadingList ? (
-          <p>Načítám…</p>
-        ) : events.length === 0 ? (
-          <p>Zatím žádné události.</p>
+        {loading ? (
+          <div style={{ marginTop: 10, opacity: 0.7 }}>Načítám…</div>
+        ) : items.length === 0 ? (
+          <div style={{ marginTop: 10, padding: 14, border: "1px solid #eee", borderRadius: 14, opacity: 0.75 }}>
+            Zatím nejsou žádné události.
+          </div>
         ) : (
-          <div style={{ marginTop: 10 }}>
-            {events.map((e) => (
-              <div
-                key={e.id}
-                style={{
-                  borderTop: "1px solid #eee",
-                  paddingTop: 12,
-                  paddingBottom: 12,
-                }}
-              >
-                <div style={{ fontWeight: 800 }}>
-                  {e.title || "(bez názvu)"}{" "}
-                  <span style={{ fontWeight: 600, opacity: 0.7 }}>
-                    {e.starts_at ? `— ${toInputDateTime(e.starts_at).replace("T", " ")}` : ""}
+          <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
+            {items.map((e) => (
+              <div key={e.id} style={{ padding: 14, border: "1px solid #eee", borderRadius: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
+                  <div style={{ fontWeight: 800 }}>{e.title}</div>
+                  <div style={{ opacity: 0.75, fontSize: 13 }}>
+                    {e.starts_at ? new Date(e.starts_at).toLocaleString("cs-CZ") : "—"}
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap", opacity: 0.85 }}>
+                  <span style={{ padding: "4px 8px", border: "1px solid #eee", borderRadius: 999 }}>
+                    {e.audience}
+                  </span>
+                  <span style={{ padding: "4px 8px", border: "1px solid #eee", borderRadius: 999 }}>
+                    {e.is_published ? "publikováno" : "nepublikováno"}
                   </span>
                 </div>
 
-                {e.audience && (
-                  <div style={{ opacity: 0.85 }}>Cílovka: {audienceToText(e.audience)}</div>
-                )}
+                <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <Link href={`/portal/udalost/${e.id}`}>
+                    <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
+                      Detail
+                    </a>
+                  </Link>
 
-                <div style={{ marginTop: 6 }}>
+                  {e.stream_url ? (
+                    <a
+                      href={e.stream_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
+                    >
+                      ▶ Vysílání
+                    </a>
+                  ) : null}
+
+                  {e.worksheet_url ? (
+                    <a
+                      href={e.worksheet_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
+                    >
+                      📄 Pracovní list
+                    </a>
+                  ) : null}
+
                   <button
-                    onClick={() => togglePublished(e.id, e.is_published)}
-                    style={{ padding: "6px 10px", cursor: "pointer" }}
+                    onClick={() => handleDelete(e.id)}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      border: "1px solid #ddd",
+                      background: "white",
+                      cursor: "pointer",
+                      fontWeight: 700,
+                    }}
                   >
-                    {e.is_published ? "Znepublikovat" : "Publikovat"}
+                    Smazat
                   </button>
-
-                  <span style={{ marginLeft: 10, fontSize: 13, opacity: 0.8 }}>
-                    Stav: {e.is_published ? "PUBLISHED" : "DRAFT"}
-                  </span>
-
-                  <span style={{ marginLeft: 12 }}>
-                    {" | "}
-                    <Link href={`/portal/udalost/${e.id}`}>Otevřít detail</Link>
-                  </span>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
-    </RequireAuth>
+    </div>
   );
 }
