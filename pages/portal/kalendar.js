@@ -53,11 +53,80 @@ function normalizeCategory(e) {
 }
 
 function intersects(a, b) {
-  // a,b arrays
   if (!Array.isArray(a) || !Array.isArray(b)) return false;
   const setB = new Set(b);
   for (const x of a) if (setB.has(x)) return true;
   return false;
+}
+
+function Card({ children }) {
+  return (
+    <div
+      style={{
+        padding: 16,
+        border: "1px solid #eee",
+        borderRadius: 16,
+        background: "white",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Pill({ children, strong }) {
+  return (
+    <span
+      style={{
+        padding: "6px 10px",
+        border: "1px solid #eee",
+        borderRadius: 999,
+        fontWeight: strong ? 700 : 500,
+        fontSize: 13,
+        background: "white",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function BtnLink({ href, children }) {
+  return (
+    <Link href={href}>
+      <a
+        style={{
+          padding: "10px 12px",
+          border: "1px solid #ddd",
+          borderRadius: 12,
+          textDecoration: "none",
+          fontWeight: 700,
+          background: "white",
+        }}
+      >
+        {children}
+      </a>
+    </Link>
+  );
+}
+
+function Btn({ onClick, children, active }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        padding: "8px 10px",
+        borderRadius: 999,
+        border: "1px solid #ddd",
+        background: active ? "#f3f3f3" : "white",
+        cursor: "pointer",
+        fontWeight: 700,
+      }}
+    >
+      {children}
+    </button>
+  );
 }
 
 export default function Kalendar() {
@@ -69,7 +138,7 @@ export default function Kalendar() {
 
   // Filters
   const [filterCategory, setFilterCategory] = useState("Vše");
-  const [filterGroups, setFilterGroups] = useState([]); // selected groups
+  const [filterGroups, setFilterGroups] = useState([]);
 
   const nowIso = useMemo(() => new Date().toISOString(), []);
 
@@ -147,103 +216,92 @@ export default function Kalendar() {
 
   return (
     <div style={{ maxWidth: 1050, margin: "0 auto", padding: 24 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 16,
+          alignItems: "center",
+        }}
+      >
         <div>
-          <div style={{ fontSize: 22, fontWeight: 800 }}>Program (TV)</div>
-          <div style={{ opacity: 0.7 }}>
-            Přehled vysílání jako TV program. Řazeno podle <b>starts_at</b>.
+          <div style={{ fontSize: 26, fontWeight: 900 }}>Program</div>
+          <div style={{ opacity: 0.72, marginTop: 4 }}>
+            Přehled vysílání. Řazeno podle <b>starts_at</b>.
           </div>
         </div>
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link href="/portal">
-            <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
-              ← Zpět do portálu
-            </a>
-          </Link>
-          <Link href="/portal/admin/udalosti">
-            <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
-              Admin – události
-            </a>
-          </Link>
+          <BtnLink href="/portal">← Zpět do portálu</BtnLink>
+          <BtnLink href="/portal/admin/udalosti">Admin – události</BtnLink>
         </div>
       </div>
 
-      {/* Filters */}
-      <div style={{ marginTop: 16, padding: 14, border: "1px solid #eee", borderRadius: 16 }}>
-        <div style={{ fontWeight: 800, marginBottom: 10 }}>Filtry</div>
+      <div style={{ marginTop: 16 }}>
+        <Card>
+          <div style={{ fontWeight: 900, marginBottom: 10 }}>Filtry</div>
 
-        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1.2fr" }}>
-          <div>
-            <label style={{ fontWeight: 700 }}>Rubrika</label>
-            <select
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
-            >
-              <option value="Vše">Vše</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label style={{ fontWeight: 700 }}>Pro koho</label>
-            <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {AUDIENCE_GROUPS.map((g) => {
-                const active = filterGroups.includes(g);
-                return (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => {
-                      if (active) setFilterGroups((prev) => prev.filter((x) => x !== g));
-                      else setFilterGroups((prev) => [...prev, g]);
-                    }}
-                    style={{
-                      padding: "8px 10px",
-                      borderRadius: 999,
-                      border: "1px solid #ddd",
-                      background: active ? "#f3f3f3" : "white",
-                      cursor: "pointer",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {g}
-                  </button>
-                );
-              })}
-
-              <button
-                type="button"
-                onClick={() => setFilterGroups([])}
+          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1.2fr" }}>
+            <div>
+              <label style={{ fontWeight: 800 }}>Rubrika</label>
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
                 style={{
-                  padding: "8px 10px",
-                  borderRadius: 999,
+                  width: "100%",
+                  padding: 10,
+                  borderRadius: 12,
                   border: "1px solid #ddd",
+                  marginTop: 6,
                   background: "white",
-                  cursor: "pointer",
-                  fontWeight: 700,
-                  opacity: 0.8,
                 }}
               >
-                Reset
-              </button>
+                <option value="Vše">Vše</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontWeight: 800 }}>Pro koho</label>
+              <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {AUDIENCE_GROUPS.map((g) => {
+                  const active = filterGroups.includes(g);
+                  return (
+                    <Btn
+                      key={g}
+                      active={active}
+                      onClick={() => {
+                        if (active) setFilterGroups((prev) => prev.filter((x) => x !== g));
+                        else setFilterGroups((prev) => [...prev, g]);
+                      }}
+                    >
+                      {g}
+                    </Btn>
+                  );
+                })}
+
+                <Btn active={false} onClick={() => setFilterGroups([])}>
+                  Reset
+                </Btn>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div style={{ marginTop: 10, opacity: 0.7, fontSize: 13 }}>
-          Zobrazuji jen publikované události (is_published = true).
-        </div>
+          <div style={{ marginTop: 10, opacity: 0.7, fontSize: 13 }}>
+            Zobrazuji jen publikované události (is_published = true).
+          </div>
+        </Card>
       </div>
 
       {error ? (
-        <div style={{ marginTop: 16, padding: 12, border: "1px solid #ff4d4f", borderRadius: 12 }}>
-          <b>Chyba:</b> {error}
+        <div style={{ marginTop: 16 }}>
+          <Card>
+            <b>Chyba:</b> {error}
+          </Card>
         </div>
       ) : null}
 
@@ -262,17 +320,17 @@ export default function Kalendar() {
 function Section({ title, items }) {
   return (
     <div style={{ marginTop: 22 }}>
-      <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>
+      <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 10 }}>
         {title}{" "}
-        <span style={{ opacity: 0.6, fontWeight: 600 }}>
+        <span style={{ opacity: 0.6, fontWeight: 700 }}>
           ({items?.length || 0})
         </span>
       </div>
 
       {!items || items.length === 0 ? (
-        <div style={{ padding: 14, border: "1px solid #eee", borderRadius: 14, opacity: 0.75 }}>
-          Zatím prázdné.
-        </div>
+        <Card>
+          <div style={{ opacity: 0.75 }}>Zatím prázdné.</div>
+        </Card>
       ) : (
         <div style={{ display: "grid", gap: 12 }}>
           {items.map((e) => {
@@ -280,35 +338,24 @@ function Section({ title, items }) {
             const groups = normalizeGroups(e);
 
             return (
-              <div key={e.id} style={{ padding: 14, border: "1px solid #eee", borderRadius: 14 }}>
+              <Card key={e.id}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-                  <div style={{ fontWeight: 800 }}>{e.title}</div>
+                  <div style={{ fontWeight: 900, fontSize: 16 }}>{e.title}</div>
                   <div style={{ opacity: 0.75, fontSize: 14 }}>{formatCz(e.starts_at)}</div>
                 </div>
 
-                <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999, fontWeight: 700 }}>
-                    {cat}
-                  </span>
-
+                <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <Pill strong>{cat}</Pill>
                   {(Array.isArray(groups) ? groups : []).map((g) => (
-                    <span key={g} style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999 }}>
-                      {g}
-                    </span>
+                    <Pill key={g}>{g}</Pill>
                   ))}
-
-                  {e.stream_url ? (
-                    <span style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999 }}>▶ vysílání</span>
-                  ) : null}
-
-                  {e.worksheet_url ? (
-                    <span style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999 }}>📄 pracovní list</span>
-                  ) : null}
+                  {e.stream_url ? <Pill>▶ vysílání</Pill> : null}
+                  {e.worksheet_url ? <Pill>📄 pracovní list</Pill> : null}
                 </div>
 
-                <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
                   <Link href={`/portal/udalost/${e.id}`}>
-                    <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
+                    <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 12, textDecoration: "none", fontWeight: 800 }}>
                       Detail
                     </a>
                   </Link>
@@ -318,7 +365,7 @@ function Section({ title, items }) {
                       href={e.stream_url}
                       target="_blank"
                       rel="noreferrer"
-                      style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
+                      style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 12, textDecoration: "none", fontWeight: 800 }}
                     >
                       ▶ Vysílání
                     </a>
@@ -329,13 +376,13 @@ function Section({ title, items }) {
                       href={e.worksheet_url}
                       target="_blank"
                       rel="noreferrer"
-                      style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
+                      style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 12, textDecoration: "none", fontWeight: 800 }}
                     >
                       📄 Pracovní list
                     </a>
                   ) : null}
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
