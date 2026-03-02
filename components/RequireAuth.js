@@ -82,7 +82,7 @@ export default function RequireAuth({ children }) {
           <Link href="/portal">
 
             <img
-              src="/logo.png"
+              src="/logo.jpg"
               alt="Archimedes Live"
               style={{
                 height: 60,
