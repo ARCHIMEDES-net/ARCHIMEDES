@@ -17,6 +17,12 @@ function toInputDateTime(value) {
   return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
 }
 
+function normalizeAudience(aud) {
+  if (!aud) return "";
+  if (Array.isArray(aud)) return aud.filter(Boolean).join(", ");
+  return String(aud);
+}
+
 export default function AdminUdalosti() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
@@ -36,6 +42,8 @@ export default function AdminUdalosti() {
   const [isPublished, setIsPublished] = useState(false);
 
   const canSave = useMemo(() => {
+    // datum nechávám volitelné, protože ty sis řešil NOT NULL na DB;
+    // pokud chceš, uděláme ho povinné i ve formuláři
     return title.trim().length > 0;
   }, [title]);
 
@@ -59,7 +67,7 @@ export default function AdminUdalosti() {
 
     const { data, error } = await supabase
       .from("events")
-      .select("id,title,start_at,audience,is_published,updated_at")
+      .select("id,title,starts_at,audience,is_published,updated_at")
       .order("updated_at", { ascending: false });
 
     if (error) {
@@ -89,20 +97,25 @@ export default function AdminUdalosti() {
       return;
     }
 
-    // startAt: pokud je vyplněno, pošleme jako ISO
-    const start_at_value = startAt ? new Date(startAt).toISOString() : null;
+    // starts_at: pokud je vyplněno, pošleme jako ISO
+    const starts_at_value = startAt ? new Date(startAt).toISOString() : null;
 
     const payload = {
       title: title.trim(),
-      start_at: start_at_value,
-      audience: audience.trim() || null,
+
+      // ✅ správný sloupec v DB
+      starts_at: starts_at_value,
+
+      // ✅ DB je text[] → uložíme jako pole (prozatím 1 položka)
+      audience: audience.trim() ? [audience.trim()] : null,
+
       full_description: fullDescription.trim() || null,
       stream_url: streamUrl.trim() || null,
       worksheet_url: worksheetUrl.trim() || null,
       is_published: !!isPublished,
     };
 
-    const { error } = await supabase.from("events").insert(payload);
+    const { error } = await supabase.from("events").insert([payload]);
 
     if (error) {
       setErr(error.message || "Uložení selhalo.");
@@ -192,7 +205,7 @@ export default function AdminUdalosti() {
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontWeight: 700 }}>Datum a čas (start_at)</label>
+            <label style={{ display: "block", fontWeight: 700 }}>Datum a čas (starts_at)</label>
             <input
               type="datetime-local"
               value={startAt}
@@ -209,6 +222,9 @@ export default function AdminUdalosti() {
               style={{ width: "100%", padding: 10 }}
               placeholder="1. stupeň / 2. stupeň / senioři / komunita…"
             />
+            <div style={{ fontSize: 13, opacity: 0.75, marginTop: 6 }}>
+              Pozn.: aktuálně se uloží jako 1 položka pole (text[]). Později uděláme multi-select.
+            </div>
           </div>
 
           <div style={{ marginBottom: 12 }}>
@@ -284,11 +300,13 @@ export default function AdminUdalosti() {
                 <div style={{ fontWeight: 800 }}>
                   {e.title || "(bez názvu)"}{" "}
                   <span style={{ fontWeight: 600, opacity: 0.7 }}>
-                    {e.start_at ? `— ${toInputDateTime(e.start_at).replace("T", " ")}` : ""}
+                    {e.starts_at ? `— ${toInputDateTime(e.starts_at).replace("T", " ")}` : ""}
                   </span>
                 </div>
 
-                {e.audience && <div style={{ opacity: 0.85 }}>Cílovka: {e.audience}</div>}
+                {e.audience && (
+                  <div style={{ opacity: 0.85 }}>Cílovka: {normalizeAudience(e.audience)}</div>
+                )}
 
                 <div style={{ marginTop: 6 }}>
                   <button
