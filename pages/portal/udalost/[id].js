@@ -1,191 +1,212 @@
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 
-const AUDIENCE_GROUPS = ["1. stupeň","2. stupeň","Dospělí","Senioři","Komunita"];
+const AUDIENCE_GROUPS = ["1. stupeň", "2. stupeň", "Dospělí", "Senioři", "Komunita"];
 
-function formatCz(dt){
+const CATEGORIES = [
+  "Kariérní poradenství",
+  "Wellbeing",
+  "Wellbeing story",
+  "Čtenářský klub ZŠ",
+  "Senior klub",
+  "Čtenářský klub dospělí",
+  "Vzdělávání",
+  "Filmový klub",
+  "Speciál",
+];
 
-const d = new Date(dt);
-
-return d.toLocaleString("cs-CZ");
-
+function formatCz(dt) {
+  try {
+    const d = new Date(dt);
+    if (Number.isNaN(d.getTime())) return "—";
+    return new Intl.DateTimeFormat("cs-CZ", {
+      weekday: "long",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(d);
+  } catch {
+    return "—";
+  }
 }
 
-export default function EventDetail(){
+function normalizeGroups(e) {
+  const groups =
+    Array.isArray(e?.audience_groups) && e.audience_groups.length
+      ? e.audience_groups
+      : Array.isArray(e?.audience) && e.audience.length
+      ? e.audience.filter((x) => AUDIENCE_GROUPS.includes(x))
+      : [];
+  return groups;
+}
 
-const router = useRouter();
-const {id} = router.query;
+function normalizeCategory(e) {
+  const cat =
+    typeof e?.category === "string" && e.category
+      ? e.category
+      : Array.isArray(e?.audience) && e.audience.length
+      ? (e.audience.find((x) => CATEGORIES.includes(x)) || "Speciál")
+      : "Speciál";
+  return cat;
+}
 
-const [event,setEvent] = useState(null);
+function Pill({ children, strong }) {
+  return <span className={`pill ${strong ? "pill-strong" : ""}`}>{children}</span>;
+}
 
-useEffect(()=>{
+export default function UdalostDetail() {
+  const router = useRouter();
+  const { id } = router.query;
 
-if(!id) return;
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [event, setEvent] = useState(null);
 
-supabase
-.from("events")
-.select("*")
-.eq("id",id)
-.single()
-.then(({data})=>{
+  const safeId = useMemo(() => {
+    if (!id) return null;
+    // UUID nebo string id – necháme tak jak je
+    return String(id);
+  }, [id]);
 
-setEvent(data)
+  useEffect(() => {
+    let isMounted = true;
 
-})
+    async function load() {
+      if (!safeId) return;
+      setLoading(true);
+      setError("");
 
-},[id])
+      const { data, error } = await supabase
+        .from("events")
+        .select("id,title,starts_at,category,audience_groups,audience,full_description,stream_url,worksheet_url,is_published")
+        .eq("id", safeId)
+        .single();
 
-if(!event) return <div style={{padding:"30px"}}>Načítám...</div>
+      if (!isMounted) return;
 
-const groups =
-Array.isArray(event.audience_groups)
-? event.audience_groups
-: [];
+      if (error) {
+        setError(error.message);
+        setEvent(null);
+      } else {
+        setEvent(data);
+      }
 
-const category =
-event.category
-? event.category
-: "Speciál";
+      setLoading(false);
+    }
 
-return(
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [safeId]);
 
-<div style={{maxWidth:"900px",margin:"0 auto",padding:"30px"}}>
+  if (loading) {
+    return (
+      <div className="container">
+        <div className="card card-pad">
+          <div className="small">Načítám…</div>
+        </div>
+      </div>
+    );
+  }
 
-<div style={{marginBottom:"20px"}}>
+  if (error || !event) {
+    return (
+      <div className="container">
+        <div className="topbar">
+          <div>
+            <h1 className="h1">Událost</h1>
+            <div className="sub">Detail vysílání</div>
+          </div>
+          <div className="row">
+            <Link href="/portal/kalendar">
+              <a className="btn">← Zpět na program</a>
+            </Link>
+          </div>
+        </div>
 
-<Link href="/portal/kalendar">
+        <div className="bad">
+          <b>Chyba:</b> {error || "Událost nebyla nalezena."}
+        </div>
+      </div>
+    );
+  }
 
-<a style={{
-padding:"10px 14px",
-border:"1px solid #ddd",
-borderRadius:"10px",
-textDecoration:"none"
-}}>
+  const cat = normalizeCategory(event);
+  const groups = normalizeGroups(event);
 
-← Zpět na program
+  const hasStream = !!event.stream_url;
+  const hasWorksheet = !!event.worksheet_url;
 
-</a>
+  return (
+    <div className="container">
+      <div className="topbar">
+        <div>
+          <h1 className="h1">{event.title}</h1>
+          <div className="sub">{formatCz(event.starts_at)}</div>
+        </div>
 
-</Link>
+        <div className="row">
+          <Link href="/portal/kalendar">
+            <a className="btn">← Zpět na program</a>
+          </Link>
+          <Link href="/portal/admin/udalosti">
+            <a className="btn">Admin</a>
+          </Link>
+        </div>
+      </div>
 
-</div>
+      <div className="card card-pad">
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <div className="row">
+            <Pill strong>{cat}</Pill>
+            {(Array.isArray(groups) ? groups : []).map((g) => (
+              <Pill key={g}>{g}</Pill>
+            ))}
+            {!event.is_published ? <Pill>nepublikováno</Pill> : null}
+          </div>
 
-<h1 style={{
-fontSize:"26px",
-marginBottom:"10px"
-}}>
+          <div className="small">ID: {event.id}</div>
+        </div>
 
-{event.title}
+        <div className="hr" />
 
-</h1>
+        <div style={{ display: "grid", gap: 12 }}>
+          <div>
+            <div style={{ fontWeight: 900, marginBottom: 6 }}>Popis</div>
+            <div style={{ color: "rgba(11,18,32,.88)", whiteSpace: "pre-wrap" }}>
+              {event.full_description ? event.full_description : "—"}
+            </div>
+          </div>
 
-<div style={{
-marginBottom:"10px",
-color:"#666"
-}}>
+          <div className="hr" />
 
-{formatCz(event.starts_at)}
+          <div>
+            <div style={{ fontWeight: 900, marginBottom: 10 }}>Odkazy</div>
+            <div className="row">
+              {hasStream ? (
+                <a className="btn" href={event.stream_url} target="_blank" rel="noreferrer">
+                  ▶ Vysílání
+                </a>
+              ) : (
+                <span className="small">Vysílání zatím není nastaveno.</span>
+              )}
 
-</div>
-
-
-<div style={{
-display:"flex",
-gap:"8px",
-flexWrap:"wrap",
-marginBottom:"20px"
-}}>
-
-<span style={{
-padding:"5px 10px",
-border:"1px solid #ddd",
-borderRadius:"20px",
-fontWeight:"600"
-}}>
-
-{category}
-
-</span>
-
-
-{groups.map(g=>(
-<span key={g} style={{
-padding:"5px 10px",
-border:"1px solid #ddd",
-borderRadius:"20px"
-}}>
-{g}
-</span>
-))}
-
-</div>
-
-
-<div style={{
-lineHeight:"1.6",
-marginBottom:"30px"
-}}>
-
-{event.full_description}
-
-</div>
-
-
-<div style={{
-display:"flex",
-gap:"10px",
-flexWrap:"wrap"
-}}>
-
-
-{event.stream_url && (
-
-<a
-href={event.stream_url}
-target="_blank"
-style={{
-padding:"12px 16px",
-border:"1px solid #ddd",
-borderRadius:"10px",
-textDecoration:"none",
-fontWeight:"600"
-}}
->
-
-▶ Vysílání
-
-</a>
-
-)}
-
-
-{event.worksheet_url && (
-
-<a
-href={event.worksheet_url}
-target="_blank"
-style={{
-padding:"12px 16px",
-border:"1px solid #ddd",
-borderRadius:"10px",
-textDecoration:"none",
-fontWeight:"600"
-}}
->
-
-📄 Pracovní list
-
-</a>
-
-)}
-
-
-</div>
-
-</div>
-
-)
-
+              {hasWorksheet ? (
+                <a className="btn" href={event.worksheet_url} target="_blank" rel="noreferrer">
+                  📄 Pracovní list
+                </a>
+              ) : (
+                <span className="small">Pracovní list zatím není nastaven.</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
