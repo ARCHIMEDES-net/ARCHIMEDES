@@ -30,9 +30,7 @@ export default function RequireAuth({ children }) {
       setSession(newSession || null);
       setLoading(false);
 
-      if (!newSession) {
-        router.replace("/login");
-      }
+      if (!newSession) router.replace("/login");
     });
 
     return () => {
@@ -56,10 +54,14 @@ export default function RequireAuth({ children }) {
 
   if (!session) return null;
 
-  // nastavujeme "okno" headeru a "ořez" loga uvnitř
-  const HEADER_H = 70;      // výška horního řádku (tvoje „šířka řádku je ok“)
-  const LOGO_H = 120;       // reálná výška loga (velké)
-  const LOGO_SHIFT_Y = -26; // posun loga v ořezovém okně (doladíme podle oka)
+  // Header a “okno” pro logo
+  const HEADER_H = 70;
+
+  // DŮLEŽITÉ: tady řešíme velké bílé okraje v PNG
+  // LOGO_BOX_W = jak široké bude “okno” pro logo
+  // LOGO_ZOOM = přiblížení loga uvnitř okna (1.0 = bez zoomu)
+  const LOGO_BOX_W = 260;
+  const LOGO_ZOOM = 1.55; // když bude pořád malé, dej 1.75; když moc velké, dej 1.35
 
   return (
     <div style={{ minHeight: "100vh", background: "#f6f8fb" }}>
@@ -84,7 +86,7 @@ export default function RequireAuth({ children }) {
             fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial",
           }}
         >
-          {/* LOGO - ořezové okno */}
+          {/* LOGO – ořez + zoom (řeší bílé okraje v PNG) */}
           <Link
             href="/portal"
             style={{
@@ -97,7 +99,8 @@ export default function RequireAuth({ children }) {
             <div
               style={{
                 height: HEADER_H,
-                overflow: "hidden",     // ✅ TADY vzniká čistý ořez
+                width: LOGO_BOX_W,
+                overflow: "hidden",
                 display: "flex",
                 alignItems: "center",
               }}
@@ -106,10 +109,13 @@ export default function RequireAuth({ children }) {
                 src="/logo.png"
                 alt="Archimedes Live"
                 style={{
-                  height: LOGO_H,
-                  width: "auto",
+                  height: "100%",
+                  width: "100%",
                   display: "block",
-                  transform: `translateY(${LOGO_SHIFT_Y}px)`, // ✅ posun uvnitř ořezu
+                  objectFit: "cover", // ✅ ořez
+                  objectPosition: "left center", // ✅ drží nápis vlevo
+                  transform: `scale(${LOGO_ZOOM})`, // ✅ přiblížení (vyřeší prázdné okraje v PNG)
+                  transformOrigin: "left center",
                 }}
               />
             </div>
