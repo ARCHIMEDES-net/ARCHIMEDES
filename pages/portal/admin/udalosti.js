@@ -79,6 +79,7 @@ export default function AdminUdalosti() {
   const [fullDescription, setFullDescription] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [worksheetUrl, setWorksheetUrl] = useState("");
+  const [posterUrl, setPosterUrl] = useState(""); // NEW
   const [isPublished, setIsPublished] = useState(true);
 
   async function loadEvents() {
@@ -89,7 +90,7 @@ export default function AdminUdalosti() {
     const { data, error } = await supabase
       .from("events")
       .select(
-        "id,title,starts_at,audience,full_description,stream_url,worksheet_url,is_published,created_at"
+        "id,title,starts_at,audience,full_description,stream_url,worksheet_url,poster_url,is_published,created_at"
       )
       .order("starts_at", { ascending: false });
 
@@ -128,6 +129,7 @@ export default function AdminUdalosti() {
     setFullDescription("");
     setStreamUrl("");
     setWorksheetUrl("");
+    setPosterUrl("");
     setIsPublished(true);
     setError("");
     setInfo("");
@@ -141,6 +143,7 @@ export default function AdminUdalosti() {
     setFullDescription(normalizeText(r.full_description));
     setStreamUrl(normalizeText(r.stream_url));
     setWorksheetUrl(normalizeText(r.worksheet_url));
+    setPosterUrl(normalizeText(r.poster_url));
     setIsPublished(r.is_published !== false);
     setError("");
     setInfo("");
@@ -178,10 +181,11 @@ export default function AdminUdalosti() {
     const payload = {
       title: title.trim(),
       starts_at: startsAt.toISOString(),
-      audience: audience.trim(), // doporučeno: DB audience = text
+      audience: audience.trim(),
       full_description: (fullDescription || "").trim(),
       stream_url: normalizeUrl(streamUrl),
       worksheet_url: normalizeUrl(worksheetUrl),
+      poster_url: normalizeUrl(posterUrl), // NEW (will keep empty if blank)
       is_published: !!isPublished,
     };
 
@@ -259,36 +263,12 @@ export default function AdminUdalosti() {
         </p>
 
         {error ? (
-          <div
-            style={{
-              marginTop: 12,
-              padding: 12,
-              border: "1px solid #fecaca",
-              background: "#fef2f2",
-              borderRadius: 12,
-              color: "#991b1b",
-              whiteSpace: "pre-wrap",
-            }}
-          >
+          <div style={errorBox}>
             <b>Chyba:</b> {error}
           </div>
         ) : null}
 
-        {info ? (
-          <div
-            style={{
-              marginTop: 12,
-              padding: 12,
-              border: "1px solid #bbf7d0",
-              background: "#f0fdf4",
-              borderRadius: 12,
-              color: "#166534",
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {info}
-          </div>
-        ) : null}
+        {info ? <div style={infoBox}>{info}</div> : null}
 
         {/* Form */}
         <section style={{ marginTop: 16 }}>
@@ -381,6 +361,18 @@ export default function AdminUdalosti() {
                 </Field>
               </div>
 
+              <Field label="Plakát / cover (poster_url)">
+                <input
+                  value={posterUrl}
+                  onChange={(e) => setPosterUrl(e.target.value)}
+                  placeholder="https://... (odkaz na obrázek plakátu)"
+                  style={input}
+                />
+                <div style={{ marginTop: 8, color: "#6b7280", fontSize: 12 }}>
+                  Tip: stačí veřejná URL obrázku (png/jpg/webp). Automaticky doplníme <code>https://</code>.
+                </div>
+              </Field>
+
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 <button type="submit" style={btnPrimary} disabled={saving}>
                   {saving ? "Ukládám…" : editingId ? "Uložit změny" : "Vytvořit událost"}
@@ -395,7 +387,7 @@ export default function AdminUdalosti() {
           </div>
         </section>
 
-        {/* LIST = tvoje “plakáty” */}
+        {/* LIST */}
         <section style={{ marginTop: 16 }}>
           <div style={card}>
             <h2 style={{ marginTop: 0 }}>Seznam událostí</h2>
@@ -412,64 +404,90 @@ export default function AdminUdalosti() {
                   const published = r.is_published !== false;
                   const stream = normalizeText(r.stream_url);
                   const worksheet = normalizeText(r.worksheet_url);
+                  const poster = normalizeText(r.poster_url);
 
                   return (
                     <div key={r.id} style={rowCard}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                        <div>
-                          <div style={{ fontWeight: 800, fontSize: 16 }}>{r.title}</div>
-                          <div style={{ marginTop: 6, color: "#374151" }}>
-                            <span>{formatDateTimeCZ(r.starts_at)}</span>
-                            {r.audience ? <span> &nbsp; • &nbsp; {String(r.audience)}</span> : null}
-                            <span>
-                              {" "}
-                              &nbsp; • &nbsp;{" "}
-                              {published ? (
-                                <b style={{ color: "#166534" }}>publikováno</b>
-                              ) : (
-                                <b style={{ color: "#991b1b" }}>skryto</b>
-                              )}
-                            </span>
+                      <div style={{ display: "grid", gridTemplateColumns: poster ? "140px 1fr" : "1fr", gap: 12 }}>
+                        {poster ? (
+                          <div style={{ width: 140 }}>
+                            {/* simple poster preview */}
+                            <img
+                              src={poster}
+                              alt="Plakát"
+                              style={{
+                                width: "100%",
+                                height: 90,
+                                objectFit: "cover",
+                                borderRadius: 10,
+                                border: "1px solid #e5e7eb",
+                              }}
+                              onError={(e) => {
+                                // hide broken image gracefully
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
                           </div>
-                        </div>
+                        ) : null}
 
-                        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                          <button type="button" style={btnSecondary} onClick={() => fillFormFromRow(r)}>
-                            Upravit
-                          </button>
+                        <div>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                            <div>
+                              <div style={{ fontWeight: 800, fontSize: 16 }}>{r.title}</div>
+                              <div style={{ marginTop: 6, color: "#374151" }}>
+                                <span>{formatDateTimeCZ(r.starts_at)}</span>
+                                {r.audience ? <span> &nbsp; • &nbsp; {String(r.audience)}</span> : null}
+                                <span>
+                                  {" "}
+                                  &nbsp; • &nbsp;{" "}
+                                  {published ? (
+                                    <b style={{ color: "#166534" }}>publikováno</b>
+                                  ) : (
+                                    <b style={{ color: "#991b1b" }}>skryto</b>
+                                  )}
+                                </span>
+                              </div>
+                            </div>
 
-                          <button
-                            type="button"
-                            style={btnSecondary}
-                            onClick={() => togglePublished(r.id, published)}
-                          >
-                            {published ? "Skrýt" : "Publikovat"}
-                          </button>
+                            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                              <button type="button" style={btnSecondary} onClick={() => fillFormFromRow(r)}>
+                                Upravit
+                              </button>
 
-                          <button type="button" style={btnDanger} onClick={() => deleteEvent(r.id)}>
-                            Smazat
-                          </button>
+                              <button
+                                type="button"
+                                style={btnSecondary}
+                                onClick={() => togglePublished(r.id, published)}
+                              >
+                                {published ? "Skrýt" : "Publikovat"}
+                              </button>
+
+                              <button type="button" style={btnDanger} onClick={() => deleteEvent(r.id)}>
+                                Smazat
+                              </button>
+                            </div>
+                          </div>
+
+                          <div style={{ marginTop: 10, display: "flex", gap: 12, flexWrap: "wrap" }}>
+                            {stream ? (
+                              <a href={stream} target="_blank" rel="noreferrer">
+                                ▶ Vysílání
+                              </a>
+                            ) : null}
+                            {worksheet ? (
+                              <a href={worksheet} target="_blank" rel="noreferrer">
+                                📄 Pracovní list
+                              </a>
+                            ) : null}
+                          </div>
+
+                          {r.full_description ? (
+                            <div style={{ marginTop: 10, color: "#374151", whiteSpace: "pre-wrap" }}>
+                              {String(r.full_description)}
+                            </div>
+                          ) : null}
                         </div>
                       </div>
-
-                      <div style={{ marginTop: 10, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                        {stream ? (
-                          <a href={stream} target="_blank" rel="noreferrer">
-                            ▶ Vysílání
-                          </a>
-                        ) : null}
-                        {worksheet ? (
-                          <a href={worksheet} target="_blank" rel="noreferrer">
-                            📄 Pracovní list
-                          </a>
-                        ) : null}
-                      </div>
-
-                      {r.full_description ? (
-                        <div style={{ marginTop: 10, color: "#374151", whiteSpace: "pre-wrap" }}>
-                          {String(r.full_description)}
-                        </div>
-                      ) : null}
                     </div>
                   );
                 })}
@@ -490,6 +508,26 @@ function Field({ label, children }) {
     </div>
   );
 }
+
+const errorBox = {
+  marginTop: 12,
+  padding: 12,
+  border: "1px solid #fecaca",
+  background: "#fef2f2",
+  borderRadius: 12,
+  color: "#991b1b",
+  whiteSpace: "pre-wrap",
+};
+
+const infoBox = {
+  marginTop: 12,
+  padding: 12,
+  border: "1px solid #bbf7d0",
+  background: "#f0fdf4",
+  borderRadius: 12,
+  color: "#166534",
+  whiteSpace: "pre-wrap",
+};
 
 const card = {
   border: "1px solid #e5e7eb",
