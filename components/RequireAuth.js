@@ -56,14 +56,18 @@ export default function RequireAuth({ children }) {
 
   if (!session) return null;
 
+  // nastavujeme "okno" headeru a "ořez" loga uvnitř
+  const HEADER_H = 70;      // výška horního řádku (tvoje „šířka řádku je ok“)
+  const LOGO_H = 120;       // reálná výška loga (velké)
+  const LOGO_SHIFT_Y = -26; // posun loga v ořezovém okně (doladíme podle oka)
+
   return (
     <div style={{ minHeight: "100vh", background: "#f6f8fb" }}>
-      {/* HLAVIČKA - pevně nízká */}
       <header
         style={{
           background: "white",
           borderBottom: "1px solid #e6eaf0",
-          height: 70, // <- TADY se řeší "široký" horní řádek
+          height: HEADER_H,
           display: "flex",
           alignItems: "center",
         }}
@@ -73,34 +77,42 @@ export default function RequireAuth({ children }) {
             maxWidth: 1200,
             width: "100%",
             margin: "0 auto",
-            padding: "0 20px", // žádné svislé paddingy
+            padding: "0 20px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial",
           }}
         >
-          {/* LOGO - velké, ale header neroztahuje (přesahuje nahoru) */}
+          {/* LOGO - ořezové okno */}
           <Link
             href="/portal"
             style={{
-              display: "flex",
-              alignItems: "center",
               textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
               lineHeight: 0,
             }}
           >
-            <img
-              src="/logo.png"
-              alt="Archimedes Live"
+            <div
               style={{
-                height: 120, // logo zůstává velké
-                width: "auto",
-                marginTop: -28, // posun nahoru -> header zůstane nízký
-                display: "block",
-                cursor: "pointer",
+                height: HEADER_H,
+                overflow: "hidden",     // ✅ TADY vzniká čistý ořez
+                display: "flex",
+                alignItems: "center",
               }}
-            />
+            >
+              <img
+                src="/logo.png"
+                alt="Archimedes Live"
+                style={{
+                  height: LOGO_H,
+                  width: "auto",
+                  display: "block",
+                  transform: `translateY(${LOGO_SHIFT_Y}px)`, // ✅ posun uvnitř ořezu
+                }}
+              />
+            </div>
           </Link>
 
           {/* MENU */}
@@ -124,7 +136,6 @@ export default function RequireAuth({ children }) {
         </div>
       </header>
 
-      {/* OBSAH */}
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: 30 }}>{children}</main>
     </div>
   );
