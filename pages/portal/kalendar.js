@@ -3,19 +3,15 @@ import Link from "next/link";
 import RequireAuth from "../../components/RequireAuth";
 import { supabase } from "../../lib/supabaseClient";
 
-function isValidDate(d) {
-  return d instanceof Date && !Number.isNaN(d.getTime());
-}
-
 function safeDate(value) {
   if (!value) return null;
   const d = new Date(value);
-  return isValidDate(d) ? d : null;
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
 }
 
-function formatDayLabel(date) {
+function formatDate(date) {
   return date.toLocaleDateString("cs-CZ", {
-    weekday: "long",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -23,203 +19,339 @@ function formatDayLabel(date) {
 }
 
 function formatTime(date) {
-  return date.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleTimeString("cs-CZ", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function normalizeAudience(aud) {
   if (!aud) return "";
-  if (Array.isArray(aud)) return aud.filter(Boolean).join(", ");
+  if (Array.isArray(aud)) return aud.join(", ");
   return String(aud);
 }
 
 export default function Kalendar() {
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
 
-  const [q, setQ] = useState("");
-  const [onlyFuture, setOnlyFuture] = useState(true);
+  const [rows,setRows] = useState([]);
+  const [loading,setLoading] = useState(true);
+  const [err,setErr] = useState("");
 
-  useEffect(() => {
-    let alive = true;
+  useEffect(()=>{
 
-    async function load() {
+    async function load(){
+
       setLoading(true);
-      setErr("");
 
-      const { data, error } = await supabase
+      const {data,error} = await supabase
         .from("events")
-        .select(
-          "id,title,short_description,full_description,audience,starts_at,is_published,stream_url,worksheet_url,archive_url,poster_url,promo_short_text"
-        )
-        .eq("is_published", true)
-        .order("starts_at", { ascending: true });
+        .select("id,title,audience,starts_at,is_published,stream_url,worksheet_url")
+        .eq("is_published",true)
+        .order("starts_at",{ascending:true});
 
-      if (!alive) return;
+      if(error){
 
-      if (error) {
-        // Tohle je teď důležité – ať vidíme skutečný důvod.
-        setErr(error.message || "Chyba při načítání událostí.");
+        setErr(error.message);
         setRows([]);
-      } else {
+
+      }else{
+
         setRows(data || []);
+
       }
 
       setLoading(false);
+
     }
 
     load();
-    return () => {
-      alive = false;
-    };
-  }, []);
 
-  const filtered = useMemo(() => {
-    const now = new Date();
-    const needle = q.trim().toLowerCase();
+  },[]);
 
-    return (rows || [])
-      .map((r) => ({
+
+  const now = new Date();
+
+  const upcoming = useMemo(()=>{
+
+    return rows
+      .map(r=>({
+
         ...r,
-        _start: safeDate(r.starts_at), // ✅ správný sloupec
-        _aud: normalizeAudience(r.audience),
-      }))
-      .filter((r) => r._start) // jen validní datum
-      .filter((r) => (onlyFuture ? r._start >= now : true))
-      .filter((r) => {
-        if (!needle) return true;
-        const hay = [
-          r.title,
-          r.short_description,
-          r.full_description,
-          r._aud,
-          r.promo_short_text,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        return hay.includes(needle);
-      });
-  }, [rows, q, onlyFuture]);
+        start:safeDate(r.starts_at),
+        aud:normalizeAudience(r.audience)
 
-  const grouped = useMemo(() => {
-    const map = new Map();
-    for (const r of filtered) {
-      const key = formatDayLabel(r._start);
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(r);
-    }
-    return Array.from(map.entries());
-  }, [filtered]);
+      }))
+      .filter(r=>r.start && r.start>=now);
+
+  },[rows]);
+
+
+  const archive = useMemo(()=>{
+
+    return rows
+      .map(r=>({
+
+        ...r,
+        start:safeDate(r.starts_at),
+        aud:normalizeAudience(r.audience)
+
+      }))
+      .filter(r=>r.start && r.start<now)
+      .reverse();
+
+  },[rows]);
+
 
   return (
+
     <RequireAuth>
-      <div
-        style={{
-          maxWidth: 1000,
-          margin: "40px auto",
-          fontFamily: "system-ui",
-          padding: 16,
-        }}
-      >
-        <h1>Kalendář</h1>
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-          <Link href="/portal">← Zpět do portálu</Link>
+    <div style={{
+      maxWidth:1000,
+      margin:"40px auto",
+      fontFamily:"system-ui",
+      padding:16
+    }}>
 
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input
-              type="text"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Hledat (název / cílovka / popis)…"
-              style={{ width: 340, padding: "8px 10px" }}
-            />
-          </label>
+      <h1>Program vysílání</h1>
 
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input
-              type="checkbox"
-              checked={onlyFuture}
-              onChange={(e) => setOnlyFuture(e.target.checked)}
-            />
-            Jen budoucí
-          </label>
+      <div style={{marginBottom:20}}>
 
-          <span style={{ marginLeft: "auto" }}>
-            <Link href="/portal/admin/udalosti">Admin – události →</Link>
-          </span>
-        </div>
+        <Link href="/portal">← Portál</Link>
 
-        {loading && <p style={{ marginTop: 16 }}>Načítám…</p>}
-        {!loading && err && <p style={{ marginTop: 16, color: "crimson" }}>Chyba: {err}</p>}
+        {" | "}
 
-        {!loading && !err && grouped.length === 0 && (
-          <p style={{ marginTop: 16 }}>Nic nenalezeno (nebo nejsou publikované události).</p>
-        )}
+        <Link href="/portal/pracovni-listy">Pracovní listy</Link>
 
-        {!loading && !err && grouped.length > 0 && (
-          <div style={{ marginTop: 18 }}>
-            {grouped.map(([day, items]) => (
-              <div key={day} style={{ marginBottom: 18 }}>
-                <h3 style={{ margin: "16px 0 10px" }}>{day}</h3>
+        {" | "}
 
-                <div style={{ border: "1px solid #e5e5e5", borderRadius: 10, overflow: "hidden" }}>
-                  {items.map((r, idx) => (
-                    <div
-                      key={r.id}
-                      style={{
-                        padding: 12,
-                        borderTop: idx === 0 ? "none" : "1px solid #eee",
-                        display: "grid",
-                        gridTemplateColumns: "90px 1fr",
-                        gap: 12,
-                      }}
-                    >
-                      <div style={{ fontWeight: 700 }}>{formatTime(r._start)}</div>
+        <Link href="/portal/admin/udalosti">
+        Admin
+        </Link>
 
-                      <div>
-                        <div style={{ fontSize: 16, fontWeight: 700 }}>
-                          <Link href={`/portal/udalost/${r.id}`}>{r.title || "(bez názvu)"}</Link>
-                        </div>
-
-                        {r._aud && (
-                          <div style={{ opacity: 0.8, marginTop: 2 }}>Cílovka: {r._aud}</div>
-                        )}
-
-                        {(r.short_description || r.promo_short_text) && (
-                          <div style={{ marginTop: 6 }}>
-                            {r.short_description || r.promo_short_text}
-                          </div>
-                        )}
-
-                        {/* Volitelně: rychlé odkazy */}
-                        <div style={{ marginTop: 8, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                          {r.stream_url ? (
-                            <a href={r.stream_url} target="_blank" rel="noreferrer">
-                              ▶ Vysílání
-                            </a>
-                          ) : (
-                            <span style={{ opacity: 0.6 }}>▶ Vysílání</span>
-                          )}
-
-                          {r.worksheet_url ? (
-                            <a href={r.worksheet_url} target="_blank" rel="noreferrer">
-                              📄 Pracovní list
-                            </a>
-                          ) : (
-                            <span style={{ opacity: 0.6 }}>📄 Pracovní list</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-    </RequireAuth>
+
+
+
+      {loading && <p>Načítám...</p>}
+
+      {err && <p style={{color:"red"}}>{err}</p>}
+
+
+
+{/* NADCHÁZEJÍCÍ */}
+
+
+<h2 style={{marginTop:20}}>
+Nadcházející vysílání
+</h2>
+
+
+{upcoming.length===0 &&
+
+<p>
+Žádné plánované vysílání.
+</p>
+
+}
+
+
+{upcoming.map(ev=>(
+
+<div key={ev.id}
+
+style={{
+
+border:"1px solid #ddd",
+borderRadius:12,
+padding:16,
+marginBottom:12
+
+}}>
+
+<div style={{
+
+fontSize:26,
+fontWeight:800
+
+}}>
+
+{formatTime(ev.start)}
+
+</div>
+
+
+<div style={{
+
+fontSize:18,
+fontWeight:700
+
+}}>
+
+<Link href={`/portal/udalost/${ev.id}`}>
+
+{ev.title}
+
+</Link>
+
+</div>
+
+
+<div>
+
+{formatDate(ev.start)}
+
+</div>
+
+
+{ev.aud &&
+
+<div>
+
+Cílovka: {ev.aud}
+
+</div>
+
+}
+
+
+<div style={{
+
+marginTop:10,
+display:"flex",
+gap:10
+
+}}>
+
+
+{ev.stream_url &&
+
+<a
+
+href={ev.stream_url}
+target="_blank"
+
+style={{
+
+border:"1px solid black",
+padding:8,
+borderRadius:8,
+textDecoration:"none",
+fontWeight:700
+
+}}
+
+>
+
+▶ Vysílání
+
+</a>
+
+}
+
+
+
+{ev.worksheet_url &&
+
+<a
+
+href={ev.worksheet_url}
+target="_blank"
+
+style={{
+
+border:"1px solid black",
+padding:8,
+borderRadius:8,
+textDecoration:"none",
+fontWeight:700
+
+}}
+
+>
+
+📄 List
+
+</a>
+
+}
+
+
+</div>
+
+</div>
+
+))}
+
+
+
+
+
+{/* ARCHIV */}
+
+
+
+<h2 style={{marginTop:40}}>
+Archiv vysílání
+</h2>
+
+
+{archive.length===0 &&
+
+<p>
+
+Archiv je zatím prázdný.
+
+</p>
+
+}
+
+
+{archive.map(ev=>(
+
+<div key={ev.id}
+
+style={{
+
+border:"1px solid #eee",
+borderRadius:12,
+padding:14,
+marginBottom:10,
+opacity:0.85
+
+}}>
+
+<div style={{
+
+fontSize:20,
+fontWeight:700
+
+}}>
+
+<Link href={`/portal/udalost/${ev.id}`}>
+
+{ev.title}
+
+</Link>
+
+</div>
+
+
+<div>
+
+{formatDate(ev.start)}
+
+</div>
+
+</div>
+
+))}
+
+
+
+</div>
+
+</RequireAuth>
+
   );
 }
