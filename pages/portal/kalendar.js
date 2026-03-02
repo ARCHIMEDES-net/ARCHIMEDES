@@ -2,7 +2,13 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
-const AUDIENCE_GROUPS = ["1. stupeň", "2. stupeň", "Dospělí", "Senioři", "Komunita"];
+const AUDIENCE_GROUPS = [
+  "1. stupeň",
+  "2. stupeň",
+  "Dospělí",
+  "Senioři",
+  "Komunita",
+];
 
 const CATEGORIES = [
   "Kariérní poradenství",
@@ -16,357 +22,436 @@ const CATEGORIES = [
   "Speciál",
 ];
 
-const POSTERS_BUCKET = "posters";
-
-function formatCz(dt) {
-  try {
-    const d = new Date(dt);
-    if (Number.isNaN(d.getTime())) return "—";
-    return new Intl.DateTimeFormat("cs-CZ", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(d);
-  } catch {
-    return "—";
-  }
+function Pill({ children, strong }) {
+  return (
+    <span className={`pill ${strong ? "pill-strong" : ""}`}>
+      {children}
+    </span>
+  );
 }
 
 function normalizeGroups(e) {
-  const groups =
-    Array.isArray(e?.audience_groups) && e.audience_groups.length
-      ? e.audience_groups
-      : Array.isArray(e?.audience) && e.audience.length
-      ? e.audience.filter((x) => AUDIENCE_GROUPS.includes(x))
-      : [];
-  return groups;
+  if (Array.isArray(e.audience_groups) && e.audience_groups.length)
+    return e.audience_groups;
+
+  if (Array.isArray(e.audience))
+    return e.audience.filter((x) =>
+      AUDIENCE_GROUPS.includes(x)
+    );
+
+  return [];
 }
 
 function normalizeCategory(e) {
-  const cat =
-    typeof e?.category === "string" && e.category
-      ? e.category
-      : Array.isArray(e?.audience) && e.audience.length
-      ? (e.audience.find((x) => CATEGORIES.includes(x)) || "Speciál")
-      : "Speciál";
-  return cat;
-}
+  if (e.category) return e.category;
 
-function intersects(a, b) {
-  if (!Array.isArray(a) || !Array.isArray(b)) return false;
-  const setB = new Set(b);
-  for (const x of a) if (setB.has(x)) return true;
-  return false;
+  if (Array.isArray(e.audience)) {
+    const found = e.audience.find((x) =>
+      CATEGORIES.includes(x)
+    );
+    if (found) return found;
+  }
+
+  return "Speciál";
 }
 
 function posterUrl(path) {
   if (!path) return null;
-  const { data } = supabase.storage.from(POSTERS_BUCKET).getPublicUrl(path);
-  return data?.publicUrl || null;
+
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/posters/${path}`;
 }
 
-function Card({ children }) {
-  return <div className="card card-pad">{children}</div>;
-}
+export default function ProgramPage() {
 
-function BtnLink({ href, children }) {
-  return (
-    <Link href={href}>
-      <a className="btn">{children}</a>
-    </Link>
-  );
-}
+  const [events,setEvents]=useState([])
+  const [loading,setLoading]=useState(true)
 
-function Btn({ active, onClick, children }) {
-  return (
-    <button
-      type="button"
-      className="btn"
-      onClick={onClick}
-      style={{ background: active ? "rgba(11,18,32,.04)" : "white" }}
-    >
-      {children}
-    </button>
-  );
-}
+  const [category,setCategory]=useState("Vše")
+  const [groups,setGroups]=useState([])
 
-function Pill({ children, strong }) {
-  return <span className={`pill ${strong ? "pill-strong" : ""}`}>{children}</span>;
-}
+  useEffect(()=>{
 
-export default function Kalendar() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+    async function load(){
 
-  const [upcomingRaw, setUpcomingRaw] = useState([]);
-  const [pastRaw, setPastRaw] = useState([]);
+      const {data,error}=await supabase
+      .from("events")
+      .select("*")
+      .eq("is_published",true)
+      .order("starts_at",{ascending:true})
 
-  const [filterCategory, setFilterCategory] = useState("Vše");
-  const [filterGroups, setFilterGroups] = useState([]);
+      if(!error) setEvents(data || [])
 
-  const nowIso = useMemo(() => new Date().toISOString(), []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function load() {
-      setLoading(true);
-      setError("");
-
-      const selectCols =
-        "id,title,starts_at,category,audience_groups,audience,stream_url,worksheet_url,is_published,poster_path,poster_caption";
-
-      const upcomingRes = await supabase
-        .from("events")
-        .select(selectCols)
-        .eq("is_published", true)
-        .gte("starts_at", nowIso)
-        .order("starts_at", { ascending: true })
-        .limit(300);
-
-      const pastRes = await supabase
-        .from("events")
-        .select(selectCols)
-        .eq("is_published", true)
-        .lt("starts_at", nowIso)
-        .order("starts_at", { ascending: false })
-        .limit(300);
-
-      if (!isMounted) return;
-
-      const errs = [];
-      if (upcomingRes.error) errs.push(upcomingRes.error.message);
-      if (pastRes.error) errs.push(pastRes.error.message);
-
-      if (errs.length) {
-        setError(errs.join(" | "));
-        setUpcomingRaw([]);
-        setPastRaw([]);
-      } else {
-        setUpcomingRaw(upcomingRes.data || []);
-        setPastRaw(pastRes.data || []);
-      }
-
-      setLoading(false);
+      setLoading(false)
     }
 
-    load();
-    return () => {
-      isMounted = false;
-    };
-  }, [nowIso]);
+    load()
 
-  const upcoming = useMemo(() => {
-    return (upcomingRaw || []).filter((e) => {
-      const cat = normalizeCategory(e);
-      const groups = normalizeGroups(e);
+  },[])
 
-      if (filterCategory !== "Vše" && cat !== filterCategory) return false;
-      if (filterGroups.length > 0 && !intersects(groups, filterGroups)) return false;
-      return true;
-    });
-  }, [upcomingRaw, filterCategory, filterGroups]);
+  const filtered=useMemo(()=>{
 
-  const past = useMemo(() => {
-    return (pastRaw || []).filter((e) => {
-      const cat = normalizeCategory(e);
-      const groups = normalizeGroups(e);
+    return events.filter(e=>{
 
-      if (filterCategory !== "Vše" && cat !== filterCategory) return false;
-      if (filterGroups.length > 0 && !intersects(groups, filterGroups)) return false;
-      return true;
-    });
-  }, [pastRaw, filterCategory, filterGroups]);
+      const cat=normalizeCategory(e)
+      const g=normalizeGroups(e)
 
-  return (
-    <div className="container">
-      <div className="topbar">
-        <div>
-          <h1 className="h1">Program</h1>
-          <div className="sub">
-            Přehled vysílání. Řazeno podle <b>starts_at</b>.
-          </div>
+      if(category!=="Vše" && cat!==category)
+        return false
+
+      if(groups.length>0){
+
+        const match=g.some(x=>groups.includes(x))
+
+        if(!match) return false
+      }
+
+      return true
+
+    })
+
+  },[events,category,groups])
+
+  const now=new Date()
+
+  const upcoming=filtered.filter(e=>new Date(e.starts_at)>=now)
+  const archive=filtered.filter(e=>new Date(e.starts_at)<now).reverse()
+
+  function toggleGroup(g){
+
+    setGroups(prev=>
+      prev.includes(g)
+      ? prev.filter(x=>x!==g)
+      : [...prev,g]
+    )
+
+  }
+
+  function resetFilters(){
+    setGroups([])
+    setCategory("Vše")
+  }
+
+  function Section({title,items}){
+
+    if(items.length===0)
+      return null
+
+    return(
+
+      <div style={{marginTop:24}}>
+
+        <div
+        style={{
+        fontWeight:900,
+        marginBottom:8
+        }}
+        >
+        {title} ({items.length})
         </div>
 
-        <div className="row">
-          <BtnLink href="/portal">← Zpět do portálu</BtnLink>
-          <BtnLink href="/portal/admin/udalosti">Admin – události</BtnLink>
+        <div
+        style={{
+        display:"grid",
+        gap:12
+        }}
+        >
+
+        {items.map(e=>{
+
+        const cat=normalizeCategory(e)
+        const g=normalizeGroups(e)
+        const pUrl=posterUrl(e.poster_path)
+
+        return(
+
+        <div
+        key={e.id}
+        className="card card-pad"
+        >
+
+        <div
+        style={{
+        display:"flex",
+        gap:16,
+        alignItems:"center"
+        }}
+        >
+
+        {pUrl ? (
+
+        <a
+        href={pUrl}
+        target="_blank"
+        rel="noreferrer"
+        >
+
+        <img
+        src={pUrl}
+        alt="Plakát"
+        style={{
+        width:96,
+        height:96,
+        objectFit:"cover",
+        borderRadius:14,
+        border:"1px solid rgba(11,18,32,.10)"
+        }}
+        />
+
+        </a>
+
+        ):(
+        <div
+        style={{
+        width:96,
+        height:96,
+        borderRadius:14,
+        border:"1px dashed rgba(11,18,32,.18)",
+        background:"rgba(11,18,32,.02)",
+        display:"flex",
+        alignItems:"center",
+        justifyContent:"center",
+        fontSize:12,
+        color:"rgba(11,18,32,.55)",
+        fontWeight:800
+        }}
+        >
+        bez plakátu
         </div>
+        )}
+
+        <div style={{flex:1}}>
+
+        <div
+        style={{
+        display:"flex",
+        justifyContent:"space-between"
+        }}
+        >
+
+        <div
+        style={{
+        fontWeight:900,
+        fontSize:16
+        }}
+        >
+        {e.title}
+        </div>
+
+        <div className="small">
+        {new Date(e.starts_at).toLocaleString("cs-CZ")}
+        </div>
+
+        </div>
+
+        <div
+        className="row"
+        style={{marginTop:8}}
+        >
+
+        <Pill strong>{cat}</Pill>
+
+        {g.map(x=>(
+        <Pill key={x}>{x}</Pill>
+        ))}
+
+        {e.stream_url && <Pill>▶ vysílání</Pill>}
+        {e.worksheet_url && <Pill>📄 pracovní list</Pill>}
+
+        </div>
+
+        <div
+        className="row"
+        style={{marginTop:10}}
+        >
+
+        <Link href={`/portal/udalost/${e.id}`}>
+        <a className="btn">Detail</a>
+        </Link>
+
+        {e.stream_url && (
+        <a
+        href={e.stream_url}
+        target="_blank"
+        className="btn"
+        >
+        ▶ Vysílání
+        </a>
+        )}
+
+        {e.worksheet_url && (
+        <a
+        href={e.worksheet_url}
+        target="_blank"
+        className="btn"
+        >
+        📄 Pracovní list
+        </a>
+        )}
+
+        </div>
+
+        </div>
+
+        </div>
+
+        </div>
+
+        )
+
+        })}
+
+        </div>
+
       </div>
 
-      <Card>
-        <div style={{ fontWeight: 900, marginBottom: 10 }}>Filtry</div>
+    )
 
-        <div className="grid-2">
-          <div>
-            <label style={{ fontWeight: 800 }}>Rubrika</label>
-            <select
-              className="select"
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              style={{ marginTop: 6 }}
-            >
-              <option value="Vše">Vše</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
+  }
 
-          <div>
-            <label style={{ fontWeight: 800 }}>Pro koho</label>
-            <div className="row" style={{ marginTop: 8 }}>
-              {AUDIENCE_GROUPS.map((g) => {
-                const active = filterGroups.includes(g);
-                return (
-                  <Btn
-                    key={g}
-                    active={active}
-                    onClick={() => {
-                      if (active) setFilterGroups((prev) => prev.filter((x) => x !== g));
-                      else setFilterGroups((prev) => [...prev, g]);
-                    }}
-                  >
-                    {g}
-                  </Btn>
-                );
-              })}
-              <Btn active={false} onClick={() => setFilterGroups([])}>
-                Reset
-              </Btn>
-            </div>
-          </div>
-        </div>
+  if(loading)
+  return(
+  <div className="container">
+  Načítám...
+  </div>
+  )
 
-        <div className="small" style={{ marginTop: 10 }}>
-          Zobrazuji jen publikované události (is_published = true).
-        </div>
-      </Card>
+  return(
 
-      {error ? (
-        <div style={{ marginTop: 16 }} className="bad">
-          <b>Chyba:</b> {error}
-        </div>
-      ) : null}
+  <div className="container">
 
-      {loading ? (
-        <div style={{ marginTop: 18 }} className="small">
-          Načítám…
-        </div>
-      ) : (
-        <>
-          <Section title="Nadcházející" items={upcoming} />
-          <Section title="Archiv" items={past} />
-        </>
-      )}
-    </div>
-  );
-}
+  <div className="topbar">
 
-function Section({ title, items }) {
-  return (
-    <div style={{ marginTop: 18 }}>
-      <div style={{ fontSize: 15, fontWeight: 900, marginBottom: 10 }}>
-        {title} <span style={{ opacity: 0.6, fontWeight: 800 }}>({items?.length || 0})</span>
-      </div>
+  <div>
 
-      {!items || items.length === 0 ? (
-        <div className="card card-pad">
-          <div className="small">Zatím prázdné.</div>
-        </div>
-      ) : (
-        <div style={{ display: "grid", gap: 12 }}>
-          {items.map((e) => {
-            const cat = normalizeCategory(e);
-            const groups = normalizeGroups(e);
-            const pUrl = posterUrl(e.poster_path);
+  <h1 className="h1">
+  Program
+  </h1>
 
-            return (
-              <div key={e.id} className="card card-pad">
-                <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                  <div style={{ width: 96, flex: "0 0 96px" }}>
-                    {pUrl ? (
-                      <img
-                        src={pUrl}
-                        alt="Plakát"
-                        style={{
-                          width: 96,
-                          height: 96,
-                          objectFit: "cover",
-                          borderRadius: 14,
-                          border: "1px solid rgba(11,18,32,.10)",
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: 96,
-                          height: 96,
-                          borderRadius: 14,
-                          border: "1px solid rgba(11,18,32,.10)",
-                          background: "rgba(11,18,32,.03)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 12,
-                          color: "rgba(11,18,32,.55)",
-                          fontWeight: 700,
-                        }}
-                      >
-                        bez plakátu
-                      </div>
-                    )}
-                  </div>
+  <div className="sub">
+  Přehled vysílání. Řazeno podle starts_at.
+  </div>
 
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-                      <div style={{ fontWeight: 900, fontSize: 16 }}>{e.title}</div>
-                      <div className="small">{formatCz(e.starts_at)}</div>
-                    </div>
+  </div>
 
-                    {e.poster_caption ? (
-                      <div className="small" style={{ marginTop: 6 }}>
-                        {e.poster_caption}
-                      </div>
-                    ) : null}
+  <div className="row">
 
-                    <div className="row" style={{ marginTop: 10 }}>
-                      <Pill strong>{cat}</Pill>
-                      {(Array.isArray(groups) ? groups : []).map((g) => (
-                        <Pill key={g}>{g}</Pill>
-                      ))}
-                      {e.stream_url ? <Pill>▶ vysílání</Pill> : null}
-                      {e.worksheet_url ? <Pill>📄 pracovní list</Pill> : null}
-                    </div>
+  <Link href="/portal">
+  <a className="btn">
+  ← Zpět do portálu
+  </a>
+  </Link>
 
-                    <div className="row" style={{ marginTop: 12 }}>
-                      <Link href={`/portal/udalost/${e.id}`}>
-                        <a className="btn">Detail</a>
-                      </Link>
+  <Link href="/portal/admin/udalosti">
+  <a className="btn">
+  Admin – události
+  </a>
+  </Link>
 
-                      {e.stream_url ? (
-                        <a className="btn" href={e.stream_url} target="_blank" rel="noreferrer">
-                          ▶ Vysílání
-                        </a>
-                      ) : null}
+  </div>
 
-                      {e.worksheet_url ? (
-                        <a className="btn" href={e.worksheet_url} target="_blank" rel="noreferrer">
-                          📄 Pracovní list
-                        </a>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
+  </div>
+
+  <div className="card card-pad">
+
+  <div style={{fontWeight:900}}>
+  Filtry
+  </div>
+
+  <div
+  style={{
+  marginTop:12,
+  display:"grid",
+  gridTemplateColumns:"1fr 1fr",
+  gap:20
+  }}
+  >
+
+  <div>
+
+  <div style={{fontWeight:800}}>
+  Rubrika
+  </div>
+
+  <select
+  className="select"
+  value={category}
+  onChange={e=>setCategory(e.target.value)}
+  style={{marginTop:6}}
+  >
+
+  <option>Vše</option>
+
+  {CATEGORIES.map(c=>(
+  <option key={c}>{c}</option>
+  ))}
+
+  </select>
+
+  </div>
+
+  <div>
+
+  <div style={{fontWeight:800}}>
+  Pro koho
+  </div>
+
+  <div
+  className="row"
+  style={{marginTop:8}}
+  >
+
+  {AUDIENCE_GROUPS.map(g=>{
+
+  const active=groups.includes(g)
+
+  return(
+
+  <button
+  key={g}
+  className="btn"
+  onClick={()=>toggleGroup(g)}
+  type="button"
+  style={{
+  background:active?"#0b1220":"#fff",
+  color:active?"white":"black"
+  }}
+  >
+
+  {g}
+
+  </button>
+
+  )
+
+  })}
+
+  <button
+  className="btn"
+  onClick={resetFilters}
+  type="button"
+  >
+
+  Reset
+
+  </button>
+
+  </div>
+
+  </div>
+
+  </div>
+
+  <div className="small" style={{marginTop:10}}>
+  Zobrazuji jen publikované události (is_published = true).
+  </div>
+
+  </div>
+
+  <Section title="Nadcházející" items={upcoming}/>
+  <Section title="Archiv" items={archive}/>
+
+  </div>
+
+  )
+
 }
