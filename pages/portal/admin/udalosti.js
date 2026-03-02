@@ -1,5 +1,3 @@
-// pages/portal/admin/udalosti.js
-
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
@@ -40,10 +38,13 @@ function fromDatetimeLocalToISO(value) {
 }
 
 function fromIsoToDatetimeLocal(iso) {
-  // ISO -> local datetime-local string
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   return toDatetimeLocalValue(d);
+}
+
+function Pill({ children, strong }) {
+  return <span className={`pill ${strong ? "pill-strong" : ""}`}>{children}</span>;
 }
 
 export default function AdminUdalosti() {
@@ -59,7 +60,7 @@ export default function AdminUdalosti() {
   }, []);
 
   // Form
-  const [editingId, setEditingId] = useState(null); // null = create
+  const [editingId, setEditingId] = useState(null);
   const [title, setTitle] = useState("");
   const [startsAtLocal, setStartsAtLocal] = useState(defaultStartsAtLocal);
   const [category, setCategory] = useState("Speciál");
@@ -75,7 +76,9 @@ export default function AdminUdalosti() {
 
     const { data, error } = await supabase
       .from("events")
-      .select("id,title,starts_at,category,audience_groups,is_published,stream_url,worksheet_url,full_description")
+      .select(
+        "id,title,starts_at,category,audience_groups,is_published,stream_url,worksheet_url,full_description"
+      )
       .order("starts_at", { ascending: false })
       .limit(500);
 
@@ -110,13 +113,14 @@ export default function AdminUdalosti() {
     setTitle(e.title || "");
     setStartsAtLocal(e.starts_at ? fromIsoToDatetimeLocal(e.starts_at) : defaultStartsAtLocal);
     setCategory(e.category || "Speciál");
-    setAudienceGroups(Array.isArray(e.audience_groups) && e.audience_groups.length ? e.audience_groups : ["Komunita"]);
+    setAudienceGroups(
+      Array.isArray(e.audience_groups) && e.audience_groups.length ? e.audience_groups : ["Komunita"]
+    );
     setFullDescription(e.full_description || "");
     setStreamUrl(e.stream_url || "");
     setWorksheetUrl(e.worksheet_url || "");
     setIsPublished(!!e.is_published);
 
-    // posuň uživatele nahoru k formuláři
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -129,14 +133,14 @@ export default function AdminUdalosti() {
 
     if (!t) return setError("Vyplň název události.");
     if (!starts_at) return setError("Vyplň datum a čas.");
-    if (!category) return setError("Vyber rubriku (category).");
+    if (!category) return setError("Vyber rubriku.");
     if (!Array.isArray(audienceGroups) || audienceGroups.length === 0) {
-      return setError("Vyber alespoň jednu skupinu (pro koho).");
+      return setError("Vyber alespoň jednu cílovou skupinu.");
     }
 
     setSaving(true);
 
-    // kompatibilita: původní audience (text[]) naplníme automaticky
+    // kompatibilita pro starší kód: audience = audience_groups + category
     const audience = [...audienceGroups, category];
 
     const payload = {
@@ -184,96 +188,81 @@ export default function AdminUdalosti() {
       return;
     }
 
-    // pokud mažeš právě editovanou, reset
     if (editingId === id) resetForm();
-
     await loadEvents();
   }
 
   return (
-    <div style={{ maxWidth: 1050, margin: "0 auto", padding: 24 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+    <div className="container">
+      <div className="topbar">
         <div>
-          <div style={{ fontSize: 22, fontWeight: 800 }}>Admin – události</div>
-          <div style={{ opacity: 0.7 }}>
-            Vytváření a úpravy vysílání: <b>rubrika</b> + <b>pro koho</b> + odkazy.
-          </div>
+          <h1 className="h1">Admin – události</h1>
+          <div className="sub">Vytvářej a spravuj vysílání (rubrika + pro koho + odkazy).</div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div className="row">
           <Link href="/portal">
-            <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
-              ← Zpět do portálu
-            </a>
+            <a className="btn">← Zpět do portálu</a>
           </Link>
-
           <Link href="/portal/kalendar">
-            <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
-              Program (TV)
-            </a>
+            <a className="btn">Program</a>
           </Link>
         </div>
       </div>
 
       {error ? (
-        <div style={{ marginTop: 14, padding: 12, border: "1px solid #ff4d4f", borderRadius: 12 }}>
+        <div className="bad">
           <b>Chyba:</b> {error}
         </div>
       ) : null}
 
       {/* FORM */}
-      <div style={{ marginTop: 18, padding: 16, border: "1px solid #eee", borderRadius: 16 }}>
+      <div className="card card-pad">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
-          <div style={{ fontSize: 16, fontWeight: 800 }}>
+          <div style={{ fontWeight: 900, fontSize: 16 }}>
             {editingId ? "Upravit událost" : "Nová událost"}
           </div>
 
           {editingId ? (
-            <button
-              type="button"
-              onClick={resetForm}
-              style={{
-                padding: "10px 12px",
-                borderRadius: 12,
-                border: "1px solid #ddd",
-                background: "white",
-                cursor: "pointer",
-                fontWeight: 700,
-              }}
-            >
+            <button className="btn" type="button" onClick={resetForm}>
               Zrušit úpravy
             </button>
           ) : null}
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12, marginTop: 12 }}>
+        <div className="hr" />
+
+        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12 }}>
           <div>
-            <label style={{ fontWeight: 700 }}>Název události*</label>
+            <label style={{ fontWeight: 800 }}>Název události*</label>
             <input
+              className="input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="např. Wellbeing – práce se stresem"
-              style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
+              style={{ marginTop: 6 }}
             />
           </div>
 
-          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr" }}>
+          <div className="grid-2">
             <div>
-              <label style={{ fontWeight: 700 }}>Datum a čas*</label>
+              <label style={{ fontWeight: 800 }}>Datum a čas*</label>
               <input
+                className="input"
                 type="datetime-local"
                 value={startsAtLocal}
                 onChange={(e) => setStartsAtLocal(e.target.value)}
-                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
+                style={{ marginTop: 6 }}
               />
             </div>
 
             <div>
-              <label style={{ fontWeight: 700 }}>Rubrika (category)*</label>
+              <label style={{ fontWeight: 800 }}>Rubrika*</label>
               <select
+                className="select"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
+                style={{ marginTop: 6 }}
               >
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>
@@ -285,20 +274,22 @@ export default function AdminUdalosti() {
           </div>
 
           <div>
-            <label style={{ fontWeight: 700 }}>Pro koho (audience_groups)*</label>
-            <div style={{ marginTop: 8, display: "grid", gap: 8, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
+            <label style={{ fontWeight: 800 }}>Pro koho*</label>
+
+            <div style={{ marginTop: 10, display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
               {AUDIENCE_GROUPS.map((opt) => {
                 const checked = audienceGroups.includes(opt);
                 return (
                   <label
                     key={opt}
+                    className="card"
                     style={{
+                      padding: 12,
+                      borderRadius: 14,
+                      boxShadow: "none",
                       display: "flex",
-                      gap: 10,
                       alignItems: "center",
-                      padding: 10,
-                      border: "1px solid #eee",
-                      borderRadius: 12,
+                      gap: 10,
                     }}
                   >
                     <input
@@ -309,151 +300,112 @@ export default function AdminUdalosti() {
                         else setAudienceGroups((prev) => prev.filter((x) => x !== opt));
                       }}
                     />
-                    <span>{opt}</span>
+                    <span style={{ fontWeight: 700 }}>{opt}</span>
                   </label>
                 );
               })}
             </div>
+
+            <div className="small" style={{ marginTop: 8 }}>
+              Ukládá se do <b>audience_groups</b> a kompatibilně i do <b>audience</b>.
+            </div>
           </div>
 
           <div>
-            <label style={{ fontWeight: 700 }}>Popis</label>
+            <label style={{ fontWeight: 800 }}>Popis</label>
             <textarea
+              className="textarea"
               value={fullDescription}
               onChange={(e) => setFullDescription(e.target.value)}
               rows={5}
-              style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
+              style={{ marginTop: 6 }}
             />
           </div>
 
-          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr" }}>
+          <div className="grid-2">
             <div>
-              <label style={{ fontWeight: 700 }}>Odkaz na vysílání (stream_url)</label>
+              <label style={{ fontWeight: 800 }}>Odkaz na vysílání</label>
               <input
+                className="input"
                 value={streamUrl}
                 onChange={(e) => setStreamUrl(e.target.value)}
                 placeholder="https://meet.google.com/..."
-                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
+                style={{ marginTop: 6 }}
               />
             </div>
 
             <div>
-              <label style={{ fontWeight: 700 }}>Pracovní list (worksheet_url)</label>
+              <label style={{ fontWeight: 800 }}>Pracovní list</label>
               <input
+                className="input"
                 value={worksheetUrl}
                 onChange={(e) => setWorksheetUrl(e.target.value)}
                 placeholder="https://..."
-                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", marginTop: 6 }}
+                style={{ marginTop: 6 }}
               />
             </div>
           </div>
 
-          <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <label className="row" style={{ marginTop: 4 }}>
             <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} />
-            <span>Publikovat (is_published = true)</span>
+            <span style={{ fontWeight: 800 }}>Publikovat</span>
+            <span className="small">(is_published = true)</span>
           </label>
 
-          <button
-            disabled={saving}
-            style={{
-              padding: "12px 14px",
-              borderRadius: 12,
-              border: "1px solid #ddd",
-              background: saving ? "#f7f7f7" : "white",
-              cursor: saving ? "not-allowed" : "pointer",
-              fontWeight: 700,
-            }}
-          >
-            {saving ? "Ukládám…" : editingId ? "Uložit změny" : "Uložit událost"}
-          </button>
+          <div className="row" style={{ justifyContent: "flex-end" }}>
+            <button className="btn" disabled={saving} type="submit" style={{ opacity: saving ? 0.7 : 1 }}>
+              {saving ? "Ukládám…" : editingId ? "Uložit změny" : "Uložit událost"}
+            </button>
+          </div>
         </form>
       </div>
 
       {/* LIST */}
-      <div style={{ marginTop: 18 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
-          <div style={{ fontSize: 16, fontWeight: 800 }}>Seznam událostí</div>
-          <button
-            onClick={loadEvents}
-            disabled={loading}
-            style={{
-              padding: "10px 12px",
-              borderRadius: 12,
-              border: "1px solid #ddd",
-              background: "white",
-              cursor: loading ? "not-allowed" : "pointer",
-              fontWeight: 700,
-            }}
-          >
+      <div style={{ marginTop: 16 }}>
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <div style={{ fontWeight: 900 }}>Seznam událostí</div>
+          <button className="btn" onClick={loadEvents} disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>
             {loading ? "Načítám…" : "Obnovit"}
           </button>
         </div>
 
         {loading ? (
-          <div style={{ marginTop: 10, opacity: 0.7 }}>Načítám…</div>
+          <div className="small" style={{ marginTop: 10 }}>
+            Načítám…
+          </div>
         ) : items.length === 0 ? (
-          <div style={{ marginTop: 10, padding: 14, border: "1px solid #eee", borderRadius: 14, opacity: 0.75 }}>
-            Zatím nejsou žádné události.
+          <div className="card card-pad" style={{ marginTop: 10 }}>
+            <div className="small">Zatím nejsou žádné události.</div>
           </div>
         ) : (
-          <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
+          <div style={{ marginTop: 10, display: "grid", gap: 12 }}>
             {items.map((e) => (
-              <div key={e.id} style={{ padding: 14, border: "1px solid #eee", borderRadius: 14 }}>
+              <div key={e.id} className="card card-pad">
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-                  <div style={{ fontWeight: 800 }}>{e.title}</div>
-                  <div style={{ opacity: 0.75, fontSize: 13 }}>
+                  <div style={{ fontWeight: 900, fontSize: 16 }}>{e.title}</div>
+                  <div className="small">
                     {e.starts_at ? new Date(e.starts_at).toLocaleString("cs-CZ") : "—"}
                   </div>
                 </div>
 
-                <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap", opacity: 0.9 }}>
-                  <span style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999, fontWeight: 700 }}>
-                    {e.category || "Speciál"}
-                  </span>
-
+                <div className="row" style={{ marginTop: 10 }}>
+                  <Pill strong>{e.category || "Speciál"}</Pill>
                   {(Array.isArray(e.audience_groups) ? e.audience_groups : []).map((g) => (
-                    <span key={g} style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999 }}>
-                      {g}
-                    </span>
+                    <Pill key={g}>{g}</Pill>
                   ))}
-
-                  <span style={{ padding: "4px 10px", border: "1px solid #eee", borderRadius: 999 }}>
-                    {e.is_published ? "publikováno" : "nepublikováno"}
-                  </span>
+                  <Pill>{e.is_published ? "publikováno" : "nepublikováno"}</Pill>
                 </div>
 
-                <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <div className="row" style={{ marginTop: 12 }}>
                   <Link href={`/portal/udalost/${e.id}`}>
-                    <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
-                      Detail
-                    </a>
+                    <a className="btn">Detail</a>
                   </Link>
 
-                  <button
-                    onClick={() => startEdit(e)}
-                    style={{
-                      padding: "10px 12px",
-                      borderRadius: 10,
-                      border: "1px solid #ddd",
-                      background: "white",
-                      cursor: "pointer",
-                      fontWeight: 700,
-                    }}
-                  >
+                  <button className="btn" onClick={() => startEdit(e)} type="button">
                     Upravit
                   </button>
 
-                  <button
-                    onClick={() => handleDelete(e.id)}
-                    style={{
-                      padding: "10px 12px",
-                      borderRadius: 10,
-                      border: "1px solid #ddd",
-                      background: "white",
-                      cursor: "pointer",
-                      fontWeight: 700,
-                    }}
-                  >
+                  <button className="btn" onClick={() => handleDelete(e.id)} type="button">
                     Smazat
                   </button>
                 </div>
