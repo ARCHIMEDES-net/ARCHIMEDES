@@ -5,7 +5,22 @@ import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
 /* =========================
-   Audience options (chips)
+   Předvolby (RUBRIKY) – "jako dřív"
+========================= */
+const RUBRICS = [
+  { key: "science", label: "Science On", titlePrefix: "Science On – ", aud: ["2. stupeň"] },
+  { key: "senior", label: "Senior klub", titlePrefix: "Senior klub – ", aud: ["Senioři"] },
+  { key: "ctenari_deti", label: "Čtenářský klub (děti)", titlePrefix: "Čtenářský klub – děti – ", aud: ["1. stupeň"] },
+  { key: "ctenari_dosp", label: "Čtenářský klub (dospělí)", titlePrefix: "Čtenářský klub – dospělí – ", aud: ["Komunita"] },
+  { key: "film", label: "Filmový klub", titlePrefix: "Filmový klub – ", aud: ["Komunita", "Filmový klub"] },
+  { key: "smart", label: "Smart Cities", titlePrefix: "Smart Cities – ", aud: ["2. stupeň", "Smart Cities"] },
+  { key: "kariera", label: "Kariérní poradenství", titlePrefix: "Kariérní poradenství – ", aud: ["2. stupeň", "Kariérní poradenství"] },
+  { key: "wellbeing", label: "Wellbeing", titlePrefix: "Wellbeing – ", aud: ["Wellbeing"] },
+  { key: "special", label: "Speciál", titlePrefix: "Speciál – ", aud: ["Speciál"] },
+];
+
+/* =========================
+   Cílovky (checkbox „tabulka“)
 ========================= */
 const AUDIENCE_OPTIONS = [
   "1. stupeň",
@@ -75,8 +90,8 @@ function normalizeText(v) {
 function normalizeUrl(url) {
   let v = (url || "").trim();
   if (!v) return "";
-  if (v.startsWith("ww.")) v = "www." + v.slice(3);
   if (v.startsWith("http://") || v.startsWith("https://")) return v;
+  // pokud někdo vloží "www..." nebo doménu, doplníme https
   return `https://${v}`;
 }
 
@@ -95,7 +110,7 @@ function makePosterPath(file) {
 }
 
 /* =========================
-   Component
+   Page
 ========================= */
 export default function AdminUdalosti() {
   const [loading, setLoading] = useState(true);
@@ -110,14 +125,35 @@ export default function AdminUdalosti() {
   // form
   const [editingId, setEditingId] = useState(null);
 
+  const [rubricKey, setRubricKey] = useState(""); // UI pomoc – volitelné
   const [title, setTitle] = useState("");
   const [startsAtLocal, setStartsAtLocal] = useState("");
-  const [audience, setAudience] = useState("");
+  const [audienceText, setAudienceText] = useState(""); // ukládá se do DB (text)
+  const [audienceSelected, setAudienceSelected] = useState([]); // checkboxy
   const [fullDescription, setFullDescription] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [worksheetUrl, setWorksheetUrl] = useState("");
   const [posterUrl, setPosterUrl] = useState("");
   const [isPublished, setIsPublished] = useState(true);
+
+  // sync: checkboxy -> text
+  useEffect(() => {
+    // jen když checkboxy existují (abychom nepřepisovali ruční text při initu)
+    if (Array.isArray(audienceSelected)) {
+      setAudienceText(joinAudience(audienceSelected));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audienceSelected]);
+
+  // sync: text -> checkboxy (když někdo upraví ručně)
+  useEffect(() => {
+    const parsed = splitAudience(audienceText);
+    // pouze když se liší, ať to neskáče
+    const a = JSON.stringify(parsed);
+    const b = JSON.stringify(audienceSelected);
+    if (a !== b) setAudienceSelected(parsed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audienceText]);
 
   async function loadEvents() {
     setLoading(true);
@@ -160,9 +196,11 @@ export default function AdminUdalosti() {
 
   function resetForm() {
     setEditingId(null);
+    setRubricKey("");
     setTitle("");
     setStartsAtLocal("");
-    setAudience("");
+    setAudienceText("");
+    setAudienceSelected([]);
     setFullDescription("");
     setStreamUrl("");
     setWorksheetUrl("");
@@ -174,9 +212,14 @@ export default function AdminUdalosti() {
 
   function fillFormFromRow(r) {
     setEditingId(r.id);
+    setRubricKey("");
     setTitle(normalizeText(r.title));
     setStartsAtLocal(toDatetimeLocalValue(r.starts_at));
-    setAudience(normalizeText(r.audience));
+
+    const aud = normalizeText(r.audience);
+    setAudienceText(aud);
+    setAudienceSelected(splitAudience(aud));
+
     setFullDescription(normalizeText(r.full_description));
     setStreamUrl(normalizeText(r.stream_url));
     setWorksheetUrl(normalizeText(r.worksheet_url));
@@ -187,9 +230,29 @@ export default function AdminUdalosti() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function applyRubric(r) {
+    setRubricKey(r.key);
+
+    // předvyplň název, pokud je prázdný nebo krátký
+    if (!title.trim() || title.trim().length < 3) {
+      setTitle(r.titlePrefix);
+    } else if (!title.startsWith(r.titlePrefix)) {
+      // pokud už něco je, jen nepřepisujeme, ať se neztrácí práce
+      // (když chceš přepis, dej vědět)
+    }
+
+    // doplň cílovku (sloučení)
+    const cur = splitAudience(audienceText);
+    const merged = Array.from(new Set([...(cur || []), ...(r.aud || [])]));
+    setAudienceSelected(merged);
+    setAudienceText(joinAudience(merged));
+
+    setInfo(`Rubrika nastavena: ${r.label}`);
+  }
+
   function validateForm() {
     const t = title.trim();
-    const aud = audience.trim();
+    const aud = audienceText.trim();
     const dt = fromDatetimeLocalValue(startsAtLocal);
     if (!t) return "Vyplň název události.";
     if (!startsAtLocal || !dt) return "Vyplň datum a čas (start).";
@@ -262,7 +325,7 @@ export default function AdminUdalosti() {
     const payload = {
       title: title.trim(),
       starts_at: startsAt.toISOString(),
-      audience: audience.trim(),
+      audience: audienceText.trim(),
       full_description: (fullDescription || "").trim(),
       stream_url: normalizeUrl(streamUrl),
       worksheet_url: normalizeUrl(worksheetUrl),
@@ -346,6 +409,7 @@ export default function AdminUdalosti() {
         ) : null}
         {info ? <div style={infoBox}>{info}</div> : null}
 
+        {/* FORM */}
         <section style={{ marginTop: 16 }}>
           <div style={card}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
@@ -359,6 +423,34 @@ export default function AdminUdalosti() {
                 <button type="button" onClick={loadEvents} style={btnSecondary} disabled={loading}>
                   Obnovit seznam
                 </button>
+              </div>
+            </div>
+
+            {/* RUBRIKY – jako dřív */}
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontWeight: 800, marginBottom: 8 }}>Rubriky</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {RUBRICS.map((r) => (
+                  <button
+                    key={r.key}
+                    type="button"
+                    onClick={() => applyRubric(r)}
+                    style={{
+                      padding: "8px 10px",
+                      borderRadius: 999,
+                      border: rubricKey === r.key ? "1px solid #111827" : "1px solid #e5e7eb",
+                      background: rubricKey === r.key ? "#111827" : "white",
+                      color: rubricKey === r.key ? "white" : "#111827",
+                      cursor: "pointer",
+                      fontWeight: 800,
+                    }}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+              <div style={{ marginTop: 6, color: "#6b7280", fontSize: 13 }}>
+                Kliknutím se předvyplní název a cílovka (můžeš dál upravit).
               </div>
             </div>
 
@@ -379,45 +471,42 @@ export default function AdminUdalosti() {
               </div>
 
               <div style={grid2}>
+                {/* CÍLOVKA „TABULKA“ */}
                 <Field label="Cílovka (audience) *">
                   <div style={{ display: "grid", gap: 10 }}>
-                    <input
-                      value={audience}
-                      onChange={(e) => setAudience(e.target.value)}
-                      style={input}
-                      placeholder="Vyber níže nebo napiš ručně…"
-                    />
-
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    <div style={audGrid}>
                       {AUDIENCE_OPTIONS.map((opt) => {
-                        const selected = splitAudience(audience).includes(opt);
+                        const checked = audienceSelected.includes(opt);
                         return (
-                          <button
-                            key={opt}
-                            type="button"
-                            onClick={() => {
-                              const cur = splitAudience(audience);
-                              const next = selected ? cur.filter((x) => x !== opt) : [...cur, opt];
-                              setAudience(joinAudience(next));
-                            }}
-                            style={{
-                              padding: "8px 10px",
-                              borderRadius: 999,
-                              border: selected ? "1px solid #111827" : "1px solid #e5e7eb",
-                              background: selected ? "#111827" : "white",
-                              color: selected ? "white" : "#111827",
-                              cursor: "pointer",
-                              fontWeight: 700,
-                            }}
-                          >
-                            {opt}
-                          </button>
+                          <label key={opt} style={audCell}>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => {
+                                const cur = splitAudience(audienceText);
+                                const next = e.target.checked
+                                  ? Array.from(new Set([...cur, opt]))
+                                  : cur.filter((x) => x !== opt);
+                                setAudienceSelected(next);
+                                setAudienceText(joinAudience(next));
+                              }}
+                            />
+                            <span>{opt}</span>
+                          </label>
                         );
                       })}
                     </div>
 
+                    {/* Zůstává i textové pole – kdyby bylo potřeba ručně */}
+                    <input
+                      value={audienceText}
+                      onChange={(e) => setAudienceText(e.target.value)}
+                      style={input}
+                      placeholder="Výsledek výběru (lze upravit ručně)…"
+                    />
+
                     <div style={{ color: "#6b7280", fontSize: 13 }}>
-                      Tip: můžeš kombinovat více cílovek. Uloží se jako text „1. stupeň, Komunita…“.
+                      Tip: můžeš kombinovat více cílovek. Ukládá se jako text „1. stupeň, Komunita…“.
                     </div>
                   </div>
                 </Field>
@@ -425,7 +514,7 @@ export default function AdminUdalosti() {
                 <Field label="Publikovat">
                   <label style={{ display: "flex", gap: 10, alignItems: "center", padding: "10px 0" }}>
                     <input type="checkbox" checked={!!isPublished} onChange={(e) => setIsPublished(e.target.checked)} />
-                    <span>{isPublished ? "Ano (viditelné)" : "Ne (skryté)"}</span>
+                    <span>{isPublished ? "Ano (viditelné v kalendáři)" : "Ne (skryté)"}</span>
                   </label>
                 </Field>
               </div>
@@ -466,7 +555,7 @@ export default function AdminUdalosti() {
                 {posterUrl ? (
                   <div style={{ marginTop: 10 }}>
                     <img
-                      src={posterUrl}
+                      src={normalizeUrl(posterUrl)}
                       alt="Plakát"
                       style={{
                         width: 260,
@@ -496,13 +585,15 @@ export default function AdminUdalosti() {
           </div>
         </section>
 
+        {/* LIST */}
         <section style={{ marginTop: 16 }}>
           <div style={card}>
             <h2 style={{ marginTop: 0 }}>Seznam událostí</h2>
 
             {loading ? <p>Načítám…</p> : null}
-
-            {!loading && sortedRows.length === 0 ? <p style={{ margin: 0, color: "#6b7280" }}>Zatím žádné události.</p> : null}
+            {!loading && sortedRows.length === 0 ? (
+              <p style={{ margin: 0, color: "#6b7280" }}>Zatím žádné události.</p>
+            ) : null}
 
             {!loading && sortedRows.length > 0 ? (
               <div style={{ display: "grid", gap: 12 }}>
@@ -517,7 +608,7 @@ export default function AdminUdalosti() {
                       <div style={{ display: "grid", gridTemplateColumns: poster ? "140px 1fr" : "1fr", gap: 12 }}>
                         {poster ? (
                           <img
-                            src={poster}
+                            src={normalizeUrl(poster)}
                             alt="Plakát"
                             style={{
                               width: 140,
@@ -541,7 +632,11 @@ export default function AdminUdalosti() {
                                 <span>
                                   {" "}
                                   &nbsp; • &nbsp;{" "}
-                                  {published ? <b style={{ color: "#166534" }}>publikováno</b> : <b style={{ color: "#991b1b" }}>skryto</b>}
+                                  {published ? (
+                                    <b style={{ color: "#166534" }}>publikováno</b>
+                                  ) : (
+                                    <b style={{ color: "#991b1b" }}>skryto</b>
+                                  )}
                                 </span>
                               </div>
                             </div>
@@ -563,19 +658,21 @@ export default function AdminUdalosti() {
 
                           <div style={{ marginTop: 10, display: "flex", gap: 12, flexWrap: "wrap" }}>
                             {stream ? (
-                              <a href={stream} target="_blank" rel="noreferrer">
+                              <a href={normalizeUrl(stream)} target="_blank" rel="noreferrer">
                                 ▶ Vysílání
                               </a>
                             ) : null}
                             {worksheet ? (
-                              <a href={worksheet} target="_blank" rel="noreferrer">
+                              <a href={normalizeUrl(worksheet)} target="_blank" rel="noreferrer">
                                 📄 Pracovní list
                               </a>
                             ) : null}
                           </div>
 
                           {r.full_description ? (
-                            <div style={{ marginTop: 10, color: "#374151", whiteSpace: "pre-wrap" }}>{String(r.full_description)}</div>
+                            <div style={{ marginTop: 10, color: "#374151", whiteSpace: "pre-wrap" }}>
+                              {String(r.full_description)}
+                            </div>
                           ) : null}
                         </div>
                       </div>
@@ -592,7 +689,7 @@ export default function AdminUdalosti() {
 }
 
 /* =========================
-   Small UI components/styles
+   UI helpers/styles
 ========================= */
 function Field({ label, children }) {
   return (
@@ -679,4 +776,24 @@ const btnDanger = {
   color: "#991b1b",
   cursor: "pointer",
   fontWeight: 800,
+};
+
+const audGrid = {
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: 8,
+  padding: 10,
+  border: "1px solid #e5e7eb",
+  borderRadius: 12,
+  background: "#fff",
+};
+
+const audCell = {
+  display: "flex",
+  gap: 10,
+  alignItems: "center",
+  padding: "8px 10px",
+  border: "1px solid #f3f4f6",
+  borderRadius: 10,
+  background: "#fafafa",
 };
