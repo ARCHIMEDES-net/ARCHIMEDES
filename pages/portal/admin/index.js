@@ -1,104 +1,40 @@
 import Link from "next/link";
 import RequireAuth from "../../../components/RequireAuth";
+import PortalHeader from "../../../components/PortalHeader";
 
 export default function AdminHome() {
-
   return (
     <RequireAuth>
+      <PortalHeader />
 
-      <div style={{
-        maxWidth: "900px",
-        margin: "40px auto",
-        padding: "20px",
-        fontFamily: "sans-serif"
-      }}>
+      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
+        <h1 style={{ margin: "10px 0 6px" }}>Admin</h1>
+        <p style={{ margin: 0, color: "#374151" }}>Správa obsahu živé platformy.</p>
 
-        {/* Horní menu */}
+        <section style={{ marginTop: 16, display: "grid", gap: 12 }}>
+          <Card title="Události" desc="Správa vysílání a kalendáře (vkládání, úpravy, publikace).">
+            <Link href="/portal/admin-udalosti">Otevřít admin událostí</Link>
+          </Card>
 
-        <div style={{
-          display: "flex",
-          gap: "20px",
-          marginBottom: "30px",
-          borderBottom: "1px solid #ddd",
-          paddingBottom: "10px"
-        }}>
+          <Card title="Pracovní listy" desc="MVP: zatím odkazová sekce (bude rozšířeno).">
+            <Link href="/portal/pracovni-listy">Otevřít pracovní listy</Link>
+          </Card>
 
-          <Link href="/portal">
-            ← Zpět do portálu
-          </Link>
-
-          <Link href="/portal/kalendar">
-            Kalendář
-          </Link>
-
-        </div>
-
-
-        <h1>Admin – ARCHIMEDES Live</h1>
-
-        <p>
-          Správa obsahu živé platformy.
-        </p>
-
-
-        <div style={{
-          marginTop: "30px",
-          display: "grid",
-          gap: "20px"
-        }}>
-
-          {/* Události */}
-
-          <div style={{
-            border: "1px solid #ddd",
-            borderRadius: "10px",
-            padding: "20px"
-          }}>
-
-            <h2>Události</h2>
-
-            <p>
-              Správa vysílání a kalendáře.
-            </p>
-
-            <Link href="/portal/admin-udalosti">
-
-              <button style={{
-                padding: "10px 20px",
-                cursor: "pointer"
-              }}>
-                Otevřít admin událostí
-              </button>
-
-            </Link>
-
-          </div>
-
-
-
-          {/* Rezerva pro další sekce */}
-
-          <div style={{
-            border: "1px solid #ddd",
-            borderRadius: "10px",
-            padding: "20px",
-            opacity: 0.6
-          }}>
-
-            <h2>Další sekce</h2>
-
-            <p>
-              Pracovní listy, inzerce a další obsah bude doplněn.
-            </p>
-
-          </div>
-
-
-        </div>
-
-
-      </div>
-
+          <Card title="Inzerce" desc="MVP: jednoduchá stránka pro komunitní informace.">
+            <Link href="/portal/inzerce">Otevřít inzerci</Link>
+          </Card>
+        </section>
+      </main>
     </RequireAuth>
+  );
+}
+
+function Card({ title, desc, children }) {
+  return (
+    <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 14 }}>
+      <div style={{ fontWeight: 800 }}>{title}</div>
+      <div style={{ color: "#374151", marginTop: 6 }}>{desc}</div>
+      <div style={{ marginTop: 10 }}>{children}</div>
+    </div>
   );
 }
