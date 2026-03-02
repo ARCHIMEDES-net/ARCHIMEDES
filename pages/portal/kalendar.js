@@ -16,6 +16,8 @@ const CATEGORIES = [
   "Speciál",
 ];
 
+const POSTERS_BUCKET = "posters";
+
 function formatCz(dt) {
   try {
     const d = new Date(dt);
@@ -59,74 +61,39 @@ function intersects(a, b) {
   return false;
 }
 
-function Card({ children }) {
-  return (
-    <div
-      style={{
-        padding: 16,
-        border: "1px solid #eee",
-        borderRadius: 16,
-        background: "white",
-      }}
-    >
-      {children}
-    </div>
-  );
+function posterUrl(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from(POSTERS_BUCKET).getPublicUrl(path);
+  return data?.publicUrl || null;
 }
 
-function Pill({ children, strong }) {
-  return (
-    <span
-      style={{
-        padding: "6px 10px",
-        border: "1px solid #eee",
-        borderRadius: 999,
-        fontWeight: strong ? 700 : 500,
-        fontSize: 13,
-        background: "white",
-      }}
-    >
-      {children}
-    </span>
-  );
+function Card({ children }) {
+  return <div className="card card-pad">{children}</div>;
 }
 
 function BtnLink({ href, children }) {
   return (
     <Link href={href}>
-      <a
-        style={{
-          padding: "10px 12px",
-          border: "1px solid #ddd",
-          borderRadius: 12,
-          textDecoration: "none",
-          fontWeight: 700,
-          background: "white",
-        }}
-      >
-        {children}
-      </a>
+      <a className="btn">{children}</a>
     </Link>
   );
 }
 
-function Btn({ onClick, children, active }) {
+function Btn({ active, onClick, children }) {
   return (
     <button
       type="button"
+      className="btn"
       onClick={onClick}
-      style={{
-        padding: "8px 10px",
-        borderRadius: 999,
-        border: "1px solid #ddd",
-        background: active ? "#f3f3f3" : "white",
-        cursor: "pointer",
-        fontWeight: 700,
-      }}
+      style={{ background: active ? "rgba(11,18,32,.04)" : "white" }}
     >
       {children}
     </button>
   );
+}
+
+function Pill({ children, strong }) {
+  return <span className={`pill ${strong ? "pill-strong" : ""}`}>{children}</span>;
 }
 
 export default function Kalendar() {
@@ -136,7 +103,6 @@ export default function Kalendar() {
   const [upcomingRaw, setUpcomingRaw] = useState([]);
   const [pastRaw, setPastRaw] = useState([]);
 
-  // Filters
   const [filterCategory, setFilterCategory] = useState("Vše");
   const [filterGroups, setFilterGroups] = useState([]);
 
@@ -150,7 +116,7 @@ export default function Kalendar() {
       setError("");
 
       const selectCols =
-        "id,title,starts_at,category,audience_groups,audience,stream_url,worksheet_url,is_published";
+        "id,title,starts_at,category,audience_groups,audience,stream_url,worksheet_url,is_published,poster_path,poster_caption";
 
       const upcomingRes = await supabase
         .from("events")
@@ -215,98 +181,82 @@ export default function Kalendar() {
   }, [pastRaw, filterCategory, filterGroups]);
 
   return (
-    <div style={{ maxWidth: 1050, margin: "0 auto", padding: 24 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 16,
-          alignItems: "center",
-        }}
-      >
+    <div className="container">
+      <div className="topbar">
         <div>
-          <div style={{ fontSize: 26, fontWeight: 900 }}>Program</div>
-          <div style={{ opacity: 0.72, marginTop: 4 }}>
+          <h1 className="h1">Program</h1>
+          <div className="sub">
             Přehled vysílání. Řazeno podle <b>starts_at</b>.
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div className="row">
           <BtnLink href="/portal">← Zpět do portálu</BtnLink>
           <BtnLink href="/portal/admin/udalosti">Admin – události</BtnLink>
         </div>
       </div>
 
-      <div style={{ marginTop: 16 }}>
-        <Card>
-          <div style={{ fontWeight: 900, marginBottom: 10 }}>Filtry</div>
+      <Card>
+        <div style={{ fontWeight: 900, marginBottom: 10 }}>Filtry</div>
 
-          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1.2fr" }}>
-            <div>
-              <label style={{ fontWeight: 800 }}>Rubrika</label>
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  borderRadius: 12,
-                  border: "1px solid #ddd",
-                  marginTop: 6,
-                  background: "white",
-                }}
-              >
-                <option value="Vše">Vše</option>
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label style={{ fontWeight: 800 }}>Pro koho</label>
-              <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {AUDIENCE_GROUPS.map((g) => {
-                  const active = filterGroups.includes(g);
-                  return (
-                    <Btn
-                      key={g}
-                      active={active}
-                      onClick={() => {
-                        if (active) setFilterGroups((prev) => prev.filter((x) => x !== g));
-                        else setFilterGroups((prev) => [...prev, g]);
-                      }}
-                    >
-                      {g}
-                    </Btn>
-                  );
-                })}
-
-                <Btn active={false} onClick={() => setFilterGroups([])}>
-                  Reset
-                </Btn>
-              </div>
-            </div>
+        <div className="grid-2">
+          <div>
+            <label style={{ fontWeight: 800 }}>Rubrika</label>
+            <select
+              className="select"
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              style={{ marginTop: 6 }}
+            >
+              <option value="Vše">Vše</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div style={{ marginTop: 10, opacity: 0.7, fontSize: 13 }}>
-            Zobrazuji jen publikované události (is_published = true).
+          <div>
+            <label style={{ fontWeight: 800 }}>Pro koho</label>
+            <div className="row" style={{ marginTop: 8 }}>
+              {AUDIENCE_GROUPS.map((g) => {
+                const active = filterGroups.includes(g);
+                return (
+                  <Btn
+                    key={g}
+                    active={active}
+                    onClick={() => {
+                      if (active) setFilterGroups((prev) => prev.filter((x) => x !== g));
+                      else setFilterGroups((prev) => [...prev, g]);
+                    }}
+                  >
+                    {g}
+                  </Btn>
+                );
+              })}
+              <Btn active={false} onClick={() => setFilterGroups([])}>
+                Reset
+              </Btn>
+            </div>
           </div>
-        </Card>
-      </div>
+        </div>
+
+        <div className="small" style={{ marginTop: 10 }}>
+          Zobrazuji jen publikované události (is_published = true).
+        </div>
+      </Card>
 
       {error ? (
-        <div style={{ marginTop: 16 }}>
-          <Card>
-            <b>Chyba:</b> {error}
-          </Card>
+        <div style={{ marginTop: 16 }} className="bad">
+          <b>Chyba:</b> {error}
         </div>
       ) : null}
 
       {loading ? (
-        <div style={{ marginTop: 18, opacity: 0.7 }}>Načítám…</div>
+        <div style={{ marginTop: 18 }} className="small">
+          Načítám…
+        </div>
       ) : (
         <>
           <Section title="Nadcházející" items={upcoming} />
@@ -319,70 +269,100 @@ export default function Kalendar() {
 
 function Section({ title, items }) {
   return (
-    <div style={{ marginTop: 22 }}>
-      <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 10 }}>
-        {title}{" "}
-        <span style={{ opacity: 0.6, fontWeight: 700 }}>
-          ({items?.length || 0})
-        </span>
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontSize: 15, fontWeight: 900, marginBottom: 10 }}>
+        {title} <span style={{ opacity: 0.6, fontWeight: 800 }}>({items?.length || 0})</span>
       </div>
 
       {!items || items.length === 0 ? (
-        <Card>
-          <div style={{ opacity: 0.75 }}>Zatím prázdné.</div>
-        </Card>
+        <div className="card card-pad">
+          <div className="small">Zatím prázdné.</div>
+        </div>
       ) : (
         <div style={{ display: "grid", gap: 12 }}>
           {items.map((e) => {
             const cat = normalizeCategory(e);
             const groups = normalizeGroups(e);
+            const pUrl = posterUrl(e.poster_path);
 
             return (
-              <Card key={e.id}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-                  <div style={{ fontWeight: 900, fontSize: 16 }}>{e.title}</div>
-                  <div style={{ opacity: 0.75, fontSize: 14 }}>{formatCz(e.starts_at)}</div>
+              <div key={e.id} className="card card-pad">
+                <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                  <div style={{ width: 96, flex: "0 0 96px" }}>
+                    {pUrl ? (
+                      <img
+                        src={pUrl}
+                        alt="Plakát"
+                        style={{
+                          width: 96,
+                          height: 96,
+                          objectFit: "cover",
+                          borderRadius: 14,
+                          border: "1px solid rgba(11,18,32,.10)",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: 96,
+                          height: 96,
+                          borderRadius: 14,
+                          border: "1px solid rgba(11,18,32,.10)",
+                          background: "rgba(11,18,32,.03)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 12,
+                          color: "rgba(11,18,32,.55)",
+                          fontWeight: 700,
+                        }}
+                      >
+                        bez plakátu
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
+                      <div style={{ fontWeight: 900, fontSize: 16 }}>{e.title}</div>
+                      <div className="small">{formatCz(e.starts_at)}</div>
+                    </div>
+
+                    {e.poster_caption ? (
+                      <div className="small" style={{ marginTop: 6 }}>
+                        {e.poster_caption}
+                      </div>
+                    ) : null}
+
+                    <div className="row" style={{ marginTop: 10 }}>
+                      <Pill strong>{cat}</Pill>
+                      {(Array.isArray(groups) ? groups : []).map((g) => (
+                        <Pill key={g}>{g}</Pill>
+                      ))}
+                      {e.stream_url ? <Pill>▶ vysílání</Pill> : null}
+                      {e.worksheet_url ? <Pill>📄 pracovní list</Pill> : null}
+                    </div>
+
+                    <div className="row" style={{ marginTop: 12 }}>
+                      <Link href={`/portal/udalost/${e.id}`}>
+                        <a className="btn">Detail</a>
+                      </Link>
+
+                      {e.stream_url ? (
+                        <a className="btn" href={e.stream_url} target="_blank" rel="noreferrer">
+                          ▶ Vysílání
+                        </a>
+                      ) : null}
+
+                      {e.worksheet_url ? (
+                        <a className="btn" href={e.worksheet_url} target="_blank" rel="noreferrer">
+                          📄 Pracovní list
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
-
-                <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <Pill strong>{cat}</Pill>
-                  {(Array.isArray(groups) ? groups : []).map((g) => (
-                    <Pill key={g}>{g}</Pill>
-                  ))}
-                  {e.stream_url ? <Pill>▶ vysílání</Pill> : null}
-                  {e.worksheet_url ? <Pill>📄 pracovní list</Pill> : null}
-                </div>
-
-                <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <Link href={`/portal/udalost/${e.id}`}>
-                    <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 12, textDecoration: "none", fontWeight: 800 }}>
-                      Detail
-                    </a>
-                  </Link>
-
-                  {e.stream_url ? (
-                    <a
-                      href={e.stream_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 12, textDecoration: "none", fontWeight: 800 }}
-                    >
-                      ▶ Vysílání
-                    </a>
-                  ) : null}
-
-                  {e.worksheet_url ? (
-                    <a
-                      href={e.worksheet_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 12, textDecoration: "none", fontWeight: 800 }}
-                    >
-                      📄 Pracovní list
-                    </a>
-                  ) : null}
-                </div>
-              </Card>
+              </div>
             );
           })}
         </div>
