@@ -68,7 +68,7 @@ export default function RequireAuth({ children }) {
           style={{
             maxWidth: 1200,
             margin: "0 auto",
-            padding: "6px 20px",
+            padding: "2px 20px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between"
