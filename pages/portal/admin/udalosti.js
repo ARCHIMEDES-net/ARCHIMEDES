@@ -368,7 +368,38 @@ export default function AdminUdalosti() {
                   placeholder="https://... (odkaz na obrázek plakátu)"
                   style={input}
                 />
-                <div style={{ marginTop: 8, color: "#6b7280", fontSize: 12 }}>
+                     <div style={{marginTop:10}}>
+  <input
+    type="file"
+    accept="image/*"
+    onChange={async (e)=>{
+
+      const file = e.target.files?.[0];
+      if(!file) return;
+
+      const fileName =
+        Date.now()+"_"+file.name.replace(/\s+/g,"_");
+
+      const { error } =
+        await supabase.storage
+        .from("posters")
+        .upload(fileName,file);
+
+      if(error){
+        alert("Chyba uploadu: "+error.message);
+        return;
+      }
+
+      const { data } =
+        supabase.storage
+        .from("posters")
+        .getPublicUrl(fileName);
+
+      setPosterUrl(data.publicUrl);
+
+    }}
+  />
+</div>                <div style={{ marginTop: 8, color: "#6b7280", fontSize: 12 }}>
                   Tip: stačí veřejná URL obrázku (png/jpg/webp). Automaticky doplníme <code>https://</code>.
                 </div>
               </Field>
