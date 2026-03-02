@@ -36,35 +36,75 @@ const CATEGORY_OPTIONS = [
 
 function normalizeAudienceGroups(groups) {
   if (!Array.isArray(groups)) return [];
-  // sjednotíme případné "komunita" -> "Komunita"
-  return groups.map((g) => (g === "komunita" ? "Komunita" : g));
+  return groups
+    .map((g) => (g === "komunita" ? "Komunita" : g))
+    .map((g) => String(g).trim())
+    .filter(Boolean);
 }
 
 function toIsoFromDatetimeLocal(value) {
-  // input datetime-local vrací "YYYY-MM-DDTHH:mm"
-  // Nový Date(...) z toho udělá lokální čas; toISOString() pošle UTC.
-  // Pro většinu použití s timestamptz je to OK (Supabase uloží správně jako timestamptz).
+  // input datetime-local => "YYYY-MM-DDTHH:mm"
   if (!value) return null;
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
   return d.toISOString();
 }
 
+function PosterThumb({ title, url, caption }) {
+  const [failed, setFailed] = useState(false);
+
+  if (!url || failed) {
+    return (
+      <div
+        style={{
+          width: 120,
+          height: 90,
+          borderRadius: 10,
+          border: "1px solid #e3e6ee",
+          background: "#f2f3f7",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 8,
+          fontSize: 12,
+          textAlign: "center",
+          color: "#333",
+        }}
+        title={caption || title || ""}
+      >
+        {title || "Plakát"}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      style={{
+        width: 120,
+        height: 90,
+        borderRadius: 10,
+        objectFit: "cover",
+        border: "1px solid #e3e6ee",
+        background: "#f2f3f7",
+      }}
+      src={url}
+      alt=""
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 export default function AdminUdalosti() {
   const [events, setEvents] = useState([]);
 
   const [title, setTitle] = useState("");
-  const [startAtLocal, setStartAtLocal] = useState(""); // datetime-local string
+  const [startAtLocal, setStartAtLocal] = useState(""); // datetime-local
   const [description, setDescription] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [worksheetUrl, setWorksheetUrl] = useState("");
   const [category, setCategory] = useState("Speciál");
 
   const [audienceGroups, setAudienceGroups] = useState([]);
-  const normalizedAudienceGroups = useMemo(
-    () => normalizeAudienceGroups(audienceGroups),
-    [audienceGroups]
-  );
 
   // plakát
   const [posterFile, setPosterFile] = useState(null);
@@ -74,13 +114,33 @@ export default function AdminUdalosti() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const normalizedAudienceGroups = useMemo(
+    () => normalizeAudienceGroups(audienceGroups),
+    [audienceGroups]
+  );
+
   async function loadEvents() {
     const { data, error } = await supabase
       .from("events")
       .select("*")
       .order("starts_at", { ascending: true });
 
-    if (!error) setEvents(data || []);
+    if (error) return;
+
+    // ✅ Bucket je PUBLIC, ale některé záznamy mají rozbitý poster_url.
+    // Proto vždy dopočítáme správný veřejný odkaz z poster_path.
+    const rows = (data || []).map((e) => {
+      if (e?.poster_path) {
+        const { data: pub } = supabase.storage
+          .from("posters")
+          .getPublicUrl(e.poster_path);
+        const fixedUrl = pub?.publicUrl || null;
+        return { ...e, poster_url: fixedUrl || e.poster_url };
+      }
+      return e;
+    });
+
+    setEvents(rows);
   }
 
   useEffect(() => {
@@ -99,7 +159,6 @@ export default function AdminUdalosti() {
       return { poster_path: null, poster_url: null };
     }
 
-    // bucket "posters" (podle vašich Supabase query tabů)
     const bucket = "posters";
     const safeName = posterFile.name.replace(/[^\w.\-]+/g, "_");
     const path = `events/${Date.now()}-${safeName}`;
@@ -110,8 +169,8 @@ export default function AdminUdalosti() {
 
     if (upErr) throw upErr;
 
-    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-    const publicUrl = data?.publicUrl || null;
+    const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
+    const publicUrl = pub?.publicUrl || null;
 
     return { poster_path: path, poster_url: publicUrl };
   }
@@ -144,14 +203,12 @@ export default function AdminUdalosti() {
 
     try {
       const { poster_path, poster_url } = await uploadPosterIfAny();
-
-      // čitelný text do legacy audience
       const audienceText = normalizedAudienceGroups.join(", ");
 
       const payload = {
         title: title.trim(),
 
-        // ✅ DB vyžaduje starts_at (NOT NULL) — uložíme obojí pro kompatibilitu
+        // ✅ kompatibilita: DB vyžaduje starts_at, ale někde se používalo start_at
         starts_at: startsAtIso,
         start_at: startsAtIso,
 
@@ -165,9 +222,8 @@ export default function AdminUdalosti() {
 
         is_published: true,
 
-        // plakát
         poster_path: poster_path,
-        poster_url: poster_url,
+        poster_url: poster_url, // i kdyby bylo rozbité, loadEvents ho později opraví z poster_path
         poster_caption: posterCaption || null,
         poster_alt_text: posterAltText || null,
       };
@@ -183,7 +239,6 @@ export default function AdminUdalosti() {
       setWorksheetUrl("");
       setCategory("Speciál");
       setAudienceGroups([]);
-
       setPosterFile(null);
       setPosterCaption("");
       setPosterAltText("");
@@ -206,7 +261,12 @@ export default function AdminUdalosti() {
       padding: 24,
       boxShadow: "0 6px 24px rgba(0,0,0,0.08)",
     },
-    topbar: { display: "flex", alignItems: "center", justifyContent: "space-between" },
+    topbar: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+    },
     h1: { margin: 0, fontSize: 28 },
     link: { textDecoration: "underline" },
     error: {
@@ -255,14 +315,6 @@ export default function AdminUdalosti() {
       gap: 14,
       alignItems: "start",
     },
-    poster: {
-      width: 120,
-      height: 90,
-      borderRadius: 10,
-      objectFit: "cover",
-      border: "1px solid #e3e6ee",
-      background: "#f2f3f7",
-    },
     meta: { display: "grid", gap: 6 },
     badgeRow: { display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 },
     badge: {
@@ -272,6 +324,7 @@ export default function AdminUdalosti() {
       background: "#eef2ff",
       border: "1px solid #d9e0ff",
     },
+    smallLinks: { marginTop: 6, display: "flex", gap: 10, flexWrap: "wrap" },
   };
 
   return (
@@ -371,7 +424,7 @@ export default function AdminUdalosti() {
                 style={styles.input}
                 value={posterAltText}
                 onChange={(e) => setPosterAltText(e.target.value)}
-                placeholder="Např. Plakát – Generace Z (volitelné)"
+                placeholder="Volitelné"
               />
             </div>
           </div>
@@ -380,7 +433,10 @@ export default function AdminUdalosti() {
           <div style={styles.audienceBox}>
             <div style={styles.audienceGrid}>
               {AUDIENCE_OPTIONS.map((a) => (
-                <label key={a} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <label
+                  key={a}
+                  style={{ display: "flex", gap: 8, alignItems: "center" }}
+                >
                   <input
                     type="checkbox"
                     checked={audienceGroups.includes(a)}
@@ -419,20 +475,14 @@ export default function AdminUdalosti() {
           <div style={styles.list}>
             {events.map((e) => (
               <div key={e.id} style={styles.card}>
-                <img
-                  style={styles.poster}
-                  src={e.poster_url || "/favicon.ico"}
-                  alt={e.poster_alt_text || e.title || "Plakát"}
-                  onError={(ev) => {
-                    // fallback pokud URL nejde
-                    ev.currentTarget.src = "/favicon.ico";
-                  }}
+                <PosterThumb
+                  title={e.title}
+                  url={e.poster_url}
+                  caption={e.poster_caption}
                 />
                 <div style={styles.meta}>
                   <div style={{ fontWeight: 800, fontSize: 16 }}>{e.title}</div>
-                  <div style={{ color: "#444" }}>
-                    {e.starts_at || e.start_at || ""}
-                  </div>
+                  <div style={{ color: "#444" }}>{e.starts_at || e.start_at || ""}</div>
                   <div style={{ color: "#444" }}>{e.category || ""}</div>
 
                   <div style={styles.badgeRow}>
@@ -447,7 +497,7 @@ export default function AdminUdalosti() {
                     <div style={{ marginTop: 6, color: "#555" }}>{e.poster_caption}</div>
                   ) : null}
 
-                  <div style={{ marginTop: 6, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <div style={styles.smallLinks}>
                     {e.stream_url ? (
                       <a href={e.stream_url} target="_blank" rel="noreferrer">
                         ▶ Vysílání
