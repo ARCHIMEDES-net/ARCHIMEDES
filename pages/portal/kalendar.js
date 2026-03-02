@@ -1,65 +1,69 @@
-import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import RequireAuth from "../../components/RequireAuth";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
-function isValidDate(d) {
-  return d instanceof Date && !Number.isNaN(d.getTime());
-}
-
-function safeDate(value) {
-  if (!value) return null;
-  const d = new Date(value);
-  return isValidDate(d) ? d : null;
-}
-
-function formatDayLabel(date) {
-  return date.toLocaleDateString("cs-CZ", {
-    weekday: "long",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
-
-function formatTime(date) {
-  return date.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
-}
-
-function normalizeAudience(aud) {
-  if (!aud) return "";
-  if (Array.isArray(aud)) return aud.filter(Boolean).join(", ");
-  return String(aud);
+function formatCz(dt) {
+  try {
+    const d = new Date(dt);
+    if (Number.isNaN(d.getTime())) return "—";
+    return new Intl.DateTimeFormat("cs-CZ", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(d);
+  } catch {
+    return "—";
+  }
 }
 
 export default function Kalendar() {
-  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
+  const [upcoming, setUpcoming] = useState([]);
+  const [past, setPast] = useState([]);
+  const [error, setError] = useState("");
 
-  const [q, setQ] = useState("");
-  const [onlyFuture, setOnlyFuture] = useState(true);
+  const nowIso = useMemo(() => new Date().toISOString(), []);
 
   useEffect(() => {
-    let alive = true;
+    let isMounted = true;
 
     async function load() {
       setLoading(true);
-      setErr("");
+      setError("");
 
-      const { data, error } = await supabase
+      // Nadcházející (publikované)
+      const upcomingRes = await supabase
         .from("events")
-        .select("id,title,audience,starts_at,is_published,stream_url,worksheet_url,full_description,short_description,promo_short_text")
+        .select("id,title,starts_at,audience,stream_url,worksheet_url,is_published")
         .eq("is_published", true)
-        .order("starts_at", { ascending: true });
+        .gte("starts_at", nowIso)
+        .order("starts_at", { ascending: true })
+        .limit(200);
 
-      if (!alive) return;
+      // Archiv (publikované)
+      const pastRes = await supabase
+        .from("events")
+        .select("id,title,starts_at,audience,stream_url,worksheet_url,is_published")
+        .eq("is_published", true)
+        .lt("starts_at", nowIso)
+        .order("starts_at", { ascending: false })
+        .limit(200);
 
-      if (error) {
-        setErr(error.message);
-        setRows([]);
+      if (!isMounted) return;
+
+      const errs = [];
+      if (upcomingRes.error) errs.push(upcomingRes.error.message);
+      if (pastRes.error) errs.push(pastRes.error.message);
+
+      if (errs.length) {
+        setError(errs.join(" | "));
+        setUpcoming([]);
+        setPast([]);
       } else {
-        setRows(data || []);
+        setUpcoming(upcomingRes.data || []);
+        setPast(pastRes.data || []);
       }
 
       setLoading(false);
@@ -67,169 +71,119 @@ export default function Kalendar() {
 
     load();
     return () => {
-      alive = false;
+      isMounted = false;
     };
-  }, []);
-
-  const filtered = useMemo(() => {
-    const now = new Date();
-    const needle = q.trim().toLowerCase();
-
-    return (rows || [])
-      .map((r) => ({
-        ...r,
-        _start: safeDate(r.starts_at),
-        _aud: normalizeAudience(r.audience),
-      }))
-      .filter((r) => r._start) // jen validní datum
-      .filter((r) => (onlyFuture ? r._start >= now : true))
-      .filter((r) => {
-        if (!needle) return true;
-        const hay = [
-          r.title,
-          r.short_description,
-          r.full_description,
-          r.promo_short_text,
-          r._aud,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        return hay.includes(needle);
-      });
-  }, [rows, q, onlyFuture]);
-
-  const grouped = useMemo(() => {
-    const map = new Map();
-    for (const r of filtered) {
-      const key = formatDayLabel(r._start);
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(r);
-    }
-    return Array.from(map.entries());
-  }, [filtered]);
+  }, [nowIso]);
 
   return (
-    <RequireAuth>
-      <div style={{ maxWidth: 1000, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
-        <h1>Program vysílání (TV)</h1>
-
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-          <Link href="/portal">← Zpět do portálu</Link>
-
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input
-              type="text"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Hledat (název / cílovka / popis)…"
-              style={{ width: 340, padding: "8px 10px" }}
-            />
-          </label>
-
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input
-              type="checkbox"
-              checked={onlyFuture}
-              onChange={(e) => setOnlyFuture(e.target.checked)}
-            />
-            Jen budoucí
-          </label>
-
-          <span style={{ marginLeft: "auto" }}>
-            <Link href="/portal/admin/udalosti">Admin – události →</Link>
-          </span>
+    <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 700 }}>Program (TV)</div>
+          <div style={{ opacity: 0.7 }}>Přehled vysílání jako TV program. Řazeno podle starts_at.</div>
         </div>
 
-        {loading && <p style={{ marginTop: 16 }}>Načítám…</p>}
-        {!loading && err && <p style={{ marginTop: 16, color: "crimson" }}>Chyba: {err}</p>}
-
-        {!loading && !err && grouped.length === 0 && (
-          <p style={{ marginTop: 16 }}>Nic nenalezeno (nebo nejsou publikované události).</p>
-        )}
-
-        {!loading && !err && grouped.length > 0 && (
-          <div style={{ marginTop: 18 }}>
-            {grouped.map(([day, items]) => (
-              <div key={day} style={{ marginBottom: 18 }}>
-                <h3 style={{ margin: "16px 0 10px" }}>{day}</h3>
-
-                <div style={{ border: "1px solid #e5e5e5", borderRadius: 12, overflow: "hidden" }}>
-                  {items.map((r, idx) => (
-                    <div
-                      key={r.id}
-                      style={{
-                        padding: 12,
-                        borderTop: idx === 0 ? "none" : "1px solid #eee",
-                        display: "grid",
-                        gridTemplateColumns: "90px 1fr",
-                        gap: 12,
-                        alignItems: "start",
-                      }}
-                    >
-                      <div style={{ fontWeight: 800, fontSize: 18 }}>{formatTime(r._start)}</div>
-
-                      <div>
-                        <div style={{ fontSize: 16, fontWeight: 800 }}>
-                          <Link href={`/portal/udalost/${r.id}`}>{r.title || "(bez názvu)"}</Link>
-                        </div>
-
-                        {r._aud && (
-                          <div style={{ opacity: 0.8, marginTop: 2 }}>Cílovka: {r._aud}</div>
-                        )}
-
-                        {(r.short_description || r.promo_short_text) && (
-                          <div style={{ marginTop: 6 }}>
-                            {r.short_description || r.promo_short_text}
-                          </div>
-                        )}
-
-                        {(r.stream_url || r.worksheet_url) && (
-                          <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                            {r.stream_url && (
-                              <a
-                                href={r.stream_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                style={{
-                                  border: "1px solid #111",
-                                  padding: "8px 10px",
-                                  borderRadius: 10,
-                                  textDecoration: "none",
-                                  fontWeight: 800,
-                                }}
-                              >
-                                ▶ Vysílání
-                              </a>
-                            )}
-
-                            {r.worksheet_url && (
-                              <a
-                                href={r.worksheet_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                style={{
-                                  border: "1px solid #111",
-                                  padding: "8px 10px",
-                                  borderRadius: 10,
-                                  textDecoration: "none",
-                                  fontWeight: 800,
-                                }}
-                              >
-                                📄 Pracovní list
-                              </a>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <div style={{ display: "flex", gap: 10 }}>
+          <Link href="/portal">
+            <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
+              ← Zpět do portálu
+            </a>
+          </Link>
+          <Link href="/portal/admin/events">
+            <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
+              Admin – události
+            </a>
+          </Link>
+        </div>
       </div>
-    </RequireAuth>
+
+      {error ? (
+        <div style={{ marginTop: 16, padding: 12, border: "1px solid #f2c", borderRadius: 12 }}>
+          <b>Chyba:</b> {error}
+        </div>
+      ) : null}
+
+      {loading ? (
+        <div style={{ marginTop: 18, opacity: 0.7 }}>Načítám…</div>
+      ) : (
+        <>
+          <Section
+            title="Nadcházející"
+            items={upcoming}
+          />
+          <Section
+            title="Archiv"
+            items={past}
+          />
+        </>
+      )}
+
+      <div style={{ marginTop: 24, opacity: 0.6, fontSize: 13 }}>
+        Pozn.: Zobrazuji pouze publikované události (is_published = true).
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, items }) {
+  return (
+    <div style={{ marginTop: 22 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>{title}</div>
+
+      {(!items || items.length === 0) ? (
+        <div style={{ padding: 14, border: "1px solid #eee", borderRadius: 14, opacity: 0.75 }}>
+          Zatím prázdné.
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: 12 }}>
+          {items.map((e) => (
+            <div key={e.id} style={{ padding: 14, border: "1px solid #eee", borderRadius: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
+                <div style={{ fontWeight: 700 }}>{e.title}</div>
+                <div style={{ opacity: 0.75, fontSize: 14 }}>{formatCz(e.starts_at)}</div>
+              </div>
+
+              <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap", opacity: 0.85 }}>
+                <span style={{ padding: "4px 8px", border: "1px solid #eee", borderRadius: 999 }}>
+                  {e.audience}
+                </span>
+                {e.stream_url ? <span style={{ padding: "4px 8px", border: "1px solid #eee", borderRadius: 999 }}>▶ vysílání</span> : null}
+                {e.worksheet_url ? <span style={{ padding: "4px 8px", border: "1px solid #eee", borderRadius: 999 }}>📄 pracovní list</span> : null}
+              </div>
+
+              <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <Link href={`/portal/event/${e.id}`}>
+                  <a style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}>
+                    Detail
+                  </a>
+                </Link>
+
+                {e.stream_url ? (
+                  <a
+                    href={e.stream_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
+                  >
+                    ▶ Vysílání
+                  </a>
+                ) : null}
+
+                {e.worksheet_url ? (
+                  <a
+                    href={e.worksheet_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ padding: "10px 12px", border: "1px solid #ddd", borderRadius: 10, textDecoration: "none" }}
+                  >
+                    📄 Pracovní list
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
