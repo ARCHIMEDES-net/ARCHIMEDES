@@ -1,4 +1,3 @@
-// components/RequireAuth.js
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -14,12 +13,12 @@ export default function RequireAuth({ children }) {
 
     async function init() {
       const { data } = await supabase.auth.getSession();
+
       if (!mounted) return;
 
       setSession(data?.session || null);
       setLoading(false);
 
-      // Pokud nejsi přihlášen, pošleme tě na /login
       if (!data?.session) {
         router.replace("/login");
       }
@@ -27,14 +26,15 @@ export default function RequireAuth({ children }) {
 
     init();
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession || null);
-      setLoading(false);
+    const { data: sub } =
+      supabase.auth.onAuthStateChange((_event, newSession) => {
+        setSession(newSession || null);
+        setLoading(false);
 
-      if (!newSession) {
-        router.replace("/login");
-      }
-    });
+        if (!newSession) {
+          router.replace("/login");
+        }
+      });
 
     return () => {
       mounted = false;
@@ -47,21 +47,31 @@ export default function RequireAuth({ children }) {
     router.replace("/login");
   }
 
-  // Zabrání “bliknutí” obsahu, než ověříme session
   if (loading) {
     return (
-      <div style={{ padding: 24, fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial" }}>
+      <div
+        style={{
+          padding: 24,
+          fontFamily:
+            "system-ui, -apple-system, Segoe UI, Roboto, Arial",
+        }}
+      >
         Načítám…
       </div>
     );
   }
 
-  // Když není session, stejně už přesměrováváme na /login
   if (!session) return null;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f6f8fb" }}>
-      {/* HEADER */}
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#f6f8fb",
+      }}
+    >
+
+      {/* HORNÍ LIŠTA */}
       <header
         style={{
           position: "sticky",
@@ -75,33 +85,51 @@ export default function RequireAuth({ children }) {
           style={{
             maxWidth: 1100,
             margin: "0 auto",
-            padding: "12px 16px",
+            padding: "14px 18px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 16,
-            fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial",
+            fontFamily:
+              "system-ui, -apple-system, Segoe UI, Roboto, Arial",
           }}
         >
-          {/* LOGO + home link */}
-          <Link href="/portal" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
+
+          {/* LOGO */}
+          <Link
+            href="/portal"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              textDecoration: "none",
+            }}
+          >
             <img
               src="/logo.png"
               alt="Archimedes Live"
-              style={{ height: 34, width: "auto", display: "block" }}
+              style={{
+                height: 60,
+                width: "auto",
+              }}
             />
           </Link>
 
-          {/* NAV */}
-          <nav style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+          {/* MENU */}
+          <nav
+            style={{
+              display: "flex",
+              gap: 18,
+              alignItems: "center",
+            }}
+          >
+
             <Link href="/portal" style={linkStyle}>
               Portál
             </Link>
+
             <Link href="/portal/kalendar" style={linkStyle}>
               Program
             </Link>
 
-            {/* Pokud máš admin stránku, nech si to tu */}
             <Link href="/portal/admin-udalosti" style={linkStyle}>
               Admin
             </Link>
@@ -109,12 +137,22 @@ export default function RequireAuth({ children }) {
             <button onClick={handleLogout} style={buttonStyle}>
               Odhlásit
             </button>
+
           </nav>
         </div>
       </header>
 
-      {/* CONTENT */}
-      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>{children}</main>
+      {/* OBSAH */}
+      <main
+        style={{
+          maxWidth: 1100,
+          margin: "0 auto",
+          padding: "20px",
+        }}
+      >
+        {children}
+      </main>
+
     </div>
   );
 }
@@ -122,15 +160,12 @@ export default function RequireAuth({ children }) {
 const linkStyle = {
   color: "#0f172a",
   textDecoration: "none",
-  fontSize: 14,
-  padding: "8px 10px",
-  borderRadius: 10,
-  background: "transparent",
+  fontSize: 15,
 };
 
 const buttonStyle = {
   fontSize: 14,
-  padding: "8px 12px",
+  padding: "8px 14px",
   borderRadius: 10,
   border: "1px solid #e6eaf0",
   background: "white",
