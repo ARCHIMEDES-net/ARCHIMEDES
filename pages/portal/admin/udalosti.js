@@ -39,6 +39,13 @@ function fromDatetimeLocalToISO(value) {
   return d.toISOString();
 }
 
+function fromIsoToDatetimeLocal(iso) {
+  // ISO -> local datetime-local string
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return toDatetimeLocalValue(d);
+}
+
 export default function AdminUdalosti() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -52,13 +59,11 @@ export default function AdminUdalosti() {
   }, []);
 
   // Form
+  const [editingId, setEditingId] = useState(null); // null = create
   const [title, setTitle] = useState("");
   const [startsAtLocal, setStartsAtLocal] = useState(defaultStartsAtLocal);
-
-  // ✅ nové "pořádné" řízení
   const [category, setCategory] = useState("Speciál");
   const [audienceGroups, setAudienceGroups] = useState(["Komunita"]);
-
   const [fullDescription, setFullDescription] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [worksheetUrl, setWorksheetUrl] = useState("");
@@ -70,9 +75,9 @@ export default function AdminUdalosti() {
 
     const { data, error } = await supabase
       .from("events")
-      .select("id,title,starts_at,category,audience_groups,is_published,stream_url,worksheet_url")
+      .select("id,title,starts_at,category,audience_groups,is_published,stream_url,worksheet_url,full_description")
       .order("starts_at", { ascending: false })
-      .limit(300);
+      .limit(500);
 
     if (error) {
       setError(error.message);
@@ -87,7 +92,35 @@ export default function AdminUdalosti() {
     loadEvents();
   }, []);
 
-  async function handleCreate(e) {
+  function resetForm() {
+    setEditingId(null);
+    setTitle("");
+    setStartsAtLocal(defaultStartsAtLocal);
+    setCategory("Speciál");
+    setAudienceGroups(["Komunita"]);
+    setFullDescription("");
+    setStreamUrl("");
+    setWorksheetUrl("");
+    setIsPublished(true);
+  }
+
+  function startEdit(e) {
+    setError("");
+    setEditingId(e.id);
+    setTitle(e.title || "");
+    setStartsAtLocal(e.starts_at ? fromIsoToDatetimeLocal(e.starts_at) : defaultStartsAtLocal);
+    setCategory(e.category || "Speciál");
+    setAudienceGroups(Array.isArray(e.audience_groups) && e.audience_groups.length ? e.audience_groups : ["Komunita"]);
+    setFullDescription(e.full_description || "");
+    setStreamUrl(e.stream_url || "");
+    setWorksheetUrl(e.worksheet_url || "");
+    setIsPublished(!!e.is_published);
+
+    // posuň uživatele nahoru k formuláři
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
@@ -104,7 +137,6 @@ export default function AdminUdalosti() {
     setSaving(true);
 
     // kompatibilita: původní audience (text[]) naplníme automaticky
-    // => díky tomu funguje i starší kód / exporty
     const audience = [...audienceGroups, category];
 
     const payload = {
@@ -112,31 +144,31 @@ export default function AdminUdalosti() {
       starts_at,
       category,
       audience_groups: audienceGroups,
-      audience, // text[] v DB – vyhneme se "malformed array literal"
+      audience,
       full_description: (fullDescription || "").trim() || null,
       stream_url: (streamUrl || "").trim() || null,
       worksheet_url: (worksheetUrl || "").trim() || null,
       is_published: !!isPublished,
     };
 
-    const { error: insertErr } = await supabase.from("events").insert([payload]);
-
-    if (insertErr) {
-      setError(insertErr.message);
-      setSaving(false);
-      return;
+    if (editingId) {
+      const { error: updErr } = await supabase.from("events").update(payload).eq("id", editingId);
+      if (updErr) {
+        setError(updErr.message);
+        setSaving(false);
+        return;
+      }
+    } else {
+      const { error: insErr } = await supabase.from("events").insert([payload]);
+      if (insErr) {
+        setError(insErr.message);
+        setSaving(false);
+        return;
+      }
     }
 
-    // Reset
-    setTitle("");
-    setFullDescription("");
-    setStreamUrl("");
-    setWorksheetUrl("");
-    setIsPublished(true);
-    setCategory("Speciál");
-    setAudienceGroups(["Komunita"]);
-
     await loadEvents();
+    resetForm();
     setSaving(false);
   }
 
@@ -152,6 +184,9 @@ export default function AdminUdalosti() {
       return;
     }
 
+    // pokud mažeš právě editovanou, reset
+    if (editingId === id) resetForm();
+
     await loadEvents();
   }
 
@@ -161,7 +196,7 @@ export default function AdminUdalosti() {
         <div>
           <div style={{ fontSize: 22, fontWeight: 800 }}>Admin – události</div>
           <div style={{ opacity: 0.7 }}>
-            Vytváření vysílání: <b>rubrika</b> + <b>pro koho</b> + odkazy.
+            Vytváření a úpravy vysílání: <b>rubrika</b> + <b>pro koho</b> + odkazy.
           </div>
         </div>
 
@@ -186,11 +221,32 @@ export default function AdminUdalosti() {
         </div>
       ) : null}
 
-      {/* CREATE FORM */}
+      {/* FORM */}
       <div style={{ marginTop: 18, padding: 16, border: "1px solid #eee", borderRadius: 16 }}>
-        <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 10 }}>Nová událost</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
+          <div style={{ fontSize: 16, fontWeight: 800 }}>
+            {editingId ? "Upravit událost" : "Nová událost"}
+          </div>
 
-        <form onSubmit={handleCreate} style={{ display: "grid", gap: 12 }}>
+          {editingId ? (
+            <button
+              type="button"
+              onClick={resetForm}
+              style={{
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: "1px solid #ddd",
+                background: "white",
+                cursor: "pointer",
+                fontWeight: 700,
+              }}
+            >
+              Zrušit úpravy
+            </button>
+          ) : null}
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12, marginTop: 12 }}>
           <div>
             <label style={{ fontWeight: 700 }}>Název události*</label>
             <input
@@ -258,9 +314,6 @@ export default function AdminUdalosti() {
                 );
               })}
             </div>
-            <div style={{ opacity: 0.65, fontSize: 12, marginTop: 6 }}>
-              Ukládá se do DB jako <b>audience_groups</b> (pole) a kvůli kompatibilitě i do <b>audience</b>.
-            </div>
           </div>
 
           <div>
@@ -311,7 +364,7 @@ export default function AdminUdalosti() {
               fontWeight: 700,
             }}
           >
-            {saving ? "Ukládám…" : "Uložit událost"}
+            {saving ? "Ukládám…" : editingId ? "Uložit změny" : "Uložit událost"}
           </button>
         </form>
       </div>
@@ -375,6 +428,20 @@ export default function AdminUdalosti() {
                       Detail
                     </a>
                   </Link>
+
+                  <button
+                    onClick={() => startEdit(e)}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      border: "1px solid #ddd",
+                      background: "white",
+                      cursor: "pointer",
+                      fontWeight: 700,
+                    }}
+                  >
+                    Upravit
+                  </button>
 
                   <button
                     onClick={() => handleDelete(e.id)}
