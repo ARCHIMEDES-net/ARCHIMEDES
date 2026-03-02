@@ -3,11 +3,6 @@ import Link from "next/link";
 import RequireAuth from "../../../components/RequireAuth";
 import { supabase } from "../../../lib/supabaseClient";
 
-/**
- * Pokud máš v DB místo start_at sloupec starts_at,
- * změň v celém souboru řetězec "start_at" -> "starts_at" (3 výskyty v select/insert/render).
- */
-
 function toInputDateTime(value) {
   if (!value) return "";
   const d = new Date(value);
@@ -22,13 +17,10 @@ function toInputDateTime(value) {
 }
 
 function parseAudience(input) {
-  // Uživatelsky zadáno např.:
-  // "1. stupeň / 2. stupeň / senioři / komunita"
-  // => uložíme jako text[] (Postgres array)
   const raw = String(input || "").trim();
-  if (!raw) return ["komunita"]; // default, aby to nikdy nebylo null (audience je NOT NULL)
+  if (!raw) return ["komunita"]; // audience je NOT NULL
   return raw
-    .split(/[\/,;]+/g) // oddělovače: / , ;
+    .split(/[\/,;]+/g)
     .map((s) => s.trim())
     .filter(Boolean);
 }
@@ -50,8 +42,8 @@ export default function AdminUdalosti() {
 
   // formulář
   const [title, setTitle] = useState("");
-  const [startAt, setStartAt] = useState(""); // datetime-local
-  const [audience, setAudience] = useState(""); // text input => převedeme na text[]
+  const [startsAt, setStartsAt] = useState(""); // datetime-local => uložíme do starts_at (NOT NULL)
+  const [audience, setAudience] = useState("");
   const [fullDescription, setFullDescription] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [worksheetUrl, setWorksheetUrl] = useState("");
@@ -63,7 +55,6 @@ export default function AdminUdalosti() {
     let mounted = true;
     async function check() {
       setCheckingAdmin(true);
-      // očekáváme, že máš RPC funkci is_platform_admin()
       const { data, error } = await supabase.rpc("is_platform_admin");
       if (!mounted) return;
       setIsAdmin(!error && data === true);
@@ -80,7 +71,7 @@ export default function AdminUdalosti() {
 
     const { data, error } = await supabase
       .from("events")
-      .select("id,title,start_at,audience,is_published,updated_at")
+      .select("id,title,starts_at,audience,is_published,updated_at")
       .order("updated_at", { ascending: false });
 
     if (error) {
@@ -94,9 +85,7 @@ export default function AdminUdalosti() {
   }
 
   useEffect(() => {
-    if (!checkingAdmin && isAdmin) {
-      loadEvents();
-    }
+    if (!checkingAdmin && isAdmin) loadEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkingAdmin, isAdmin]);
 
@@ -110,16 +99,21 @@ export default function AdminUdalosti() {
       return;
     }
 
-    // startAt: pokud je vyplněno, pošleme jako ISO
-    const start_at_value = startAt ? new Date(startAt).toISOString() : null;
+    if (!startsAt) {
+      setErr("Vyplň Datum a čas (starts_at).");
+      return;
+    }
 
-    // audience je NOT NULL + array => vždy pole (minimálně ["komunita"])
-    const audArray = parseAudience(audience);
+    const starts_at_value = new Date(startsAt).toISOString();
+    if (Number.isNaN(new Date(startsAt).getTime())) {
+      setErr("Neplatné datum a čas.");
+      return;
+    }
 
     const payload = {
       title: title.trim(),
-      start_at: start_at_value,
-      audience: audArray, // ✅ text[]
+      starts_at: starts_at_value, // ✅ DB chce starts_at NOT NULL
+      audience: parseAudience(audience), // ✅ text[] a NOT NULL
       full_description: fullDescription.trim() || null,
       stream_url: streamUrl.trim() || null,
       worksheet_url: worksheetUrl.trim() || null,
@@ -135,9 +129,9 @@ export default function AdminUdalosti() {
 
     setMsg("Uloženo.");
 
-    // vyčistit formulář
+    // reset
     setTitle("");
-    setStartAt("");
+    setStartsAt("");
     setAudience("");
     setFullDescription("");
     setStreamUrl("");
@@ -217,11 +211,11 @@ export default function AdminUdalosti() {
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontWeight: 700 }}>Datum a čas (start_at)</label>
+            <label style={{ display: "block", fontWeight: 700 }}>Datum a čas (starts_at)*</label>
             <input
               type="datetime-local"
-              value={startAt}
-              onChange={(e) => setStartAt(e.target.value)}
+              value={startsAt}
+              onChange={(e) => setStartsAt(e.target.value)}
               style={{ padding: 10 }}
             />
           </div>
@@ -232,10 +226,10 @@ export default function AdminUdalosti() {
               value={audience}
               onChange={(e) => setAudience(e.target.value)}
               style={{ width: "100%", padding: 10 }}
-              placeholder='např. "1. stupeň / 2. stupeň / senioři / komunita" (odděl "/" nebo ",")'
+              placeholder='např. "1. stupeň / 2. stupeň / senioři / komunita"'
             />
             <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
-              Ukládá se jako seznam (pole). Když necháš prázdné, uloží se automaticky „komunita“.
+              Ukládá se jako seznam (pole). Když necháš prázdné, uloží se „komunita“.
             </div>
           </div>
 
@@ -312,7 +306,7 @@ export default function AdminUdalosti() {
                 <div style={{ fontWeight: 800 }}>
                   {e.title || "(bez názvu)"}{" "}
                   <span style={{ fontWeight: 600, opacity: 0.7 }}>
-                    {e.start_at ? `— ${toInputDateTime(e.start_at).replace("T", " ")}` : ""}
+                    {e.starts_at ? `— ${toInputDateTime(e.starts_at).replace("T", " ")}` : ""}
                   </span>
                 </div>
 
