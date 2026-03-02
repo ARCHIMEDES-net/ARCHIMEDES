@@ -3,8 +3,12 @@ import Link from "next/link";
 import RequireAuth from "../../../components/RequireAuth";
 import { supabase } from "../../../lib/supabaseClient";
 
+/**
+ * Pokud máš v DB místo start_at sloupec starts_at,
+ * změň v celém souboru řetězec "start_at" -> "starts_at" (3 výskyty v select/insert/render).
+ */
+
 function toInputDateTime(value) {
-  // value může být timestamptz => chceme "YYYY-MM-DDTHH:mm"
   if (!value) return "";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
@@ -17,7 +21,19 @@ function toInputDateTime(value) {
   return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
 }
 
-function normalizeAudience(aud) {
+function parseAudience(input) {
+  // Uživatelsky zadáno např.:
+  // "1. stupeň / 2. stupeň / senioři / komunita"
+  // => uložíme jako text[] (Postgres array)
+  const raw = String(input || "").trim();
+  if (!raw) return ["komunita"]; // default, aby to nikdy nebylo null (audience je NOT NULL)
+  return raw
+    .split(/[\/,;]+/g) // oddělovače: / , ;
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function audienceToText(aud) {
   if (!aud) return "";
   if (Array.isArray(aud)) return aud.filter(Boolean).join(", ");
   return String(aud);
@@ -35,21 +51,19 @@ export default function AdminUdalosti() {
   // formulář
   const [title, setTitle] = useState("");
   const [startAt, setStartAt] = useState(""); // datetime-local
-  const [audience, setAudience] = useState("");
+  const [audience, setAudience] = useState(""); // text input => převedeme na text[]
   const [fullDescription, setFullDescription] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [worksheetUrl, setWorksheetUrl] = useState("");
   const [isPublished, setIsPublished] = useState(false);
 
-  // ✅ Datum je povinné
-  const canSave = useMemo(() => {
-    return title.trim().length > 0 && !!startAt;
-  }, [title, startAt]);
+  const canSave = useMemo(() => title.trim().length > 0, [title]);
 
   useEffect(() => {
     let mounted = true;
     async function check() {
       setCheckingAdmin(true);
+      // očekáváme, že máš RPC funkci is_platform_admin()
       const { data, error } = await supabase.rpc("is_platform_admin");
       if (!mounted) return;
       setIsAdmin(!error && data === true);
@@ -66,7 +80,7 @@ export default function AdminUdalosti() {
 
     const { data, error } = await supabase
       .from("events")
-      .select("id,title,starts_at,audience,is_published,updated_at")
+      .select("id,title,start_at,audience,is_published,updated_at")
       .order("updated_at", { ascending: false });
 
     if (error) {
@@ -91,35 +105,28 @@ export default function AdminUdalosti() {
     setErr("");
     setMsg("");
 
-    if (!title.trim()) {
+    if (!canSave) {
       setErr("Vyplň Název události.");
       return;
     }
-    if (!startAt) {
-      setErr("Vyplň Datum a čas události.");
-      return;
-    }
 
-    const starts_at_value = new Date(startAt).toISOString();
-    if (!starts_at_value || starts_at_value === "Invalid Date") {
-      setErr("Datum a čas není ve správném formátu.");
-      return;
-    }
+    // startAt: pokud je vyplněno, pošleme jako ISO
+    const start_at_value = startAt ? new Date(startAt).toISOString() : null;
+
+    // audience je NOT NULL + array => vždy pole (minimálně ["komunita"])
+    const audArray = parseAudience(audience);
 
     const payload = {
       title: title.trim(),
-      starts_at: starts_at_value, // ✅ NOT NULL
-
-      // ✅ DB je text[] → uložíme jako pole (prozatím 1 položka)
-      audience: audience.trim() ? [audience.trim()] : null,
-
+      start_at: start_at_value,
+      audience: audArray, // ✅ text[]
       full_description: fullDescription.trim() || null,
       stream_url: streamUrl.trim() || null,
       worksheet_url: worksheetUrl.trim() || null,
       is_published: !!isPublished,
     };
 
-    const { error } = await supabase.from("events").insert([payload]);
+    const { error } = await supabase.from("events").insert(payload);
 
     if (error) {
       setErr(error.message || "Uložení selhalo.");
@@ -210,17 +217,13 @@ export default function AdminUdalosti() {
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontWeight: 700 }}>Datum a čas (starts_at)*</label>
+            <label style={{ display: "block", fontWeight: 700 }}>Datum a čas (start_at)</label>
             <input
               type="datetime-local"
               value={startAt}
               onChange={(e) => setStartAt(e.target.value)}
               style={{ padding: 10 }}
-              required
             />
-            <div style={{ fontSize: 13, opacity: 0.75, marginTop: 6 }}>
-              Povinné pole (databáze vyžaduje starts_at).
-            </div>
           </div>
 
           <div style={{ marginBottom: 12 }}>
@@ -229,10 +232,10 @@ export default function AdminUdalosti() {
               value={audience}
               onChange={(e) => setAudience(e.target.value)}
               style={{ width: "100%", padding: 10 }}
-              placeholder="1. stupeň / 2. stupeň / senioři / komunita…"
+              placeholder='např. "1. stupeň / 2. stupeň / senioři / komunita" (odděl "/" nebo ",")'
             />
-            <div style={{ fontSize: 13, opacity: 0.75, marginTop: 6 }}>
-              Pozn.: ukládá se jako 1 položka pole (text[]). Později uděláme multi-select.
+            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+              Ukládá se jako seznam (pole). Když necháš prázdné, uloží se automaticky „komunita“.
             </div>
           </div>
 
@@ -309,12 +312,12 @@ export default function AdminUdalosti() {
                 <div style={{ fontWeight: 800 }}>
                   {e.title || "(bez názvu)"}{" "}
                   <span style={{ fontWeight: 600, opacity: 0.7 }}>
-                    {e.starts_at ? `— ${toInputDateTime(e.starts_at).replace("T", " ")}` : ""}
+                    {e.start_at ? `— ${toInputDateTime(e.start_at).replace("T", " ")}` : ""}
                   </span>
                 </div>
 
                 {e.audience && (
-                  <div style={{ opacity: 0.85 }}>Cílovka: {normalizeAudience(e.audience)}</div>
+                  <div style={{ opacity: 0.85 }}>Cílovka: {audienceToText(e.audience)}</div>
                 )}
 
                 <div style={{ marginTop: 6 }}>
