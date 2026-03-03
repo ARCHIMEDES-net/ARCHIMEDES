@@ -7,7 +7,6 @@ import { supabase } from "../../../lib/supabaseClient";
 
 const BUCKET = "marketplace";
 
-// UI (CZ) -> DB type (EN) + DB kind (CZ)
 const TYPE_OPTIONS = [
   { value: "nabidka", label: "Nabídka", dbType: "offer" },
   { value: "poptavka", label: "Poptávka", dbType: "demand" },
@@ -34,7 +33,6 @@ const CATEGORY_OPTIONS = [
 function clsx(...xs) {
   return xs.filter(Boolean).join(" ");
 }
-
 function inputCls() {
   return "mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-slate-300";
 }
@@ -82,6 +80,7 @@ export default function NovyInzerat() {
 
   const [kind, setKind] = useState("nabidka");
   const [category, setCategory] = useState("");
+  const [location, setLocation] = useState(""); // ✅ nové
   const [description, setDescription] = useState("");
 
   const [contactName, setContactName] = useState("");
@@ -132,25 +131,21 @@ export default function NovyInzerat() {
     }
 
     const cat = category?.trim() || "";
+    const loc = location?.trim() || "";
     const title = makeTitle(description, selectedType.label, cat);
 
     const payload = {
       author_id: user.id,
-      // ✅ DB check: type only offer/demand/partnership
-      type: selectedType.dbType,
-      // ✅ DB kind is CZ
-      kind: selectedType.value,
-
+      type: selectedType.dbType, // offer/demand/partnership
+      kind: selectedType.value,  // nabidka/poptavka/spoluprace
       title,
       category: cat || null,
+      location: loc || null, // ✅ nové
       description: description.trim(),
-
       contact_name: contactName?.trim() || null,
-      contact_email: contactEmail.trim(), // povinné + DB regex
-      contact_phone: contactPhone?.trim() || null, // volitelné, ale když je, DB chce min 6
-
+      contact_email: contactEmail.trim(),
+      contact_phone: contactPhone?.trim() || null,
       expires_at: toISODateOrNull(expiresAt),
-
       status: "active",
       is_closed: false,
       is_pinned: false,
@@ -171,7 +166,6 @@ export default function NovyInzerat() {
 
     const postId = post.id;
 
-    // ✅ Upload fotek + záznam do marketplace_attachments (správné sloupce)
     const uploadErrors = [];
     for (const file of files || []) {
       const safeName = (file.name || "soubor").replace(/\s+/g, "_");
@@ -204,10 +198,7 @@ export default function NovyInzerat() {
     }
 
     if (uploadErrors.length) {
-      setErr(
-        "Inzerát byl uložen, ale některé fotky se nepodařilo uložit:\n" +
-          uploadErrors.join("\n")
-      );
+      setErr("Inzerát byl uložen, ale některé fotky se nepodařilo uložit:\n" + uploadErrors.join("\n"));
       setLoading(false);
       return;
     }
@@ -223,7 +214,7 @@ export default function NovyInzerat() {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-semibold">Nový inzerát</h1>
-            <p className="text-slate-600 mt-1">Vyplň typ, rubriku, popis a případně přidej fotky.</p>
+            <p className="text-slate-600 mt-1">Vyplň typ, rubriku, popis, lokalitu a případně přidej fotky.</p>
           </div>
 
           <Link
@@ -247,9 +238,7 @@ export default function NovyInzerat() {
                 <label className={labelCls()}>Typ inzerátu</label>
                 <select className={inputCls()} value={kind} onChange={(e) => setKind(e.target.value)}>
                   {TYPE_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
+                    <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </select>
                 <p className={helpCls()}>
@@ -267,12 +256,21 @@ export default function NovyInzerat() {
                   list="category-list"
                 />
                 <datalist id="category-list">
-                  {CATEGORY_OPTIONS.map((c) => (
-                    <option key={c} value={c} />
-                  ))}
+                  {CATEGORY_OPTIONS.map((c) => (<option key={c} value={c} />))}
                 </datalist>
                 <p className={helpCls()}>Vyber z nabídky nebo napiš vlastní.</p>
               </div>
+            </div>
+
+            <div className="mt-5">
+              <label className={labelCls()}>Lokalita</label>
+              <input
+                className={inputCls()}
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="např. Hodonín / Křenov / Praha"
+              />
+              <p className={helpCls()}>Pomůže ostatním se rychle zorientovat (inzerce je globální).</p>
             </div>
 
             <div className="mt-5">
@@ -306,10 +304,7 @@ export default function NovyInzerat() {
               <div>
                 <label className={labelCls()}>E-mail *</label>
                 <input
-                  className={clsx(
-                    inputCls(),
-                    !isValidEmail(contactEmail) && contactEmail.length > 0 ? "border-red-300" : ""
-                  )}
+                  className={clsx(inputCls(), !isValidEmail(contactEmail) && contactEmail.length > 0 ? "border-red-300" : "")}
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
                   placeholder="např. jan@obec.cz"
@@ -352,10 +347,7 @@ export default function NovyInzerat() {
               {loading ? "Ukládám…" : "Uložit inzerát"}
             </button>
 
-            <Link
-              href="/portal/inzerce"
-              className="px-4 py-2 rounded-xl border border-slate-200 hover:border-slate-300 bg-white"
-            >
+            <Link href="/portal/inzerce" className="px-4 py-2 rounded-xl border border-slate-200 hover:border-slate-300 bg-white">
               Zrušit
             </Link>
           </div>
