@@ -26,37 +26,60 @@ export default function DetailInzeratu() {
   const { id } = router.query;
 
   const [row, setRow] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  async function load() {
-    if (!id) return;
+  useEffect(() => {
+    async function init() {
+      if (!id) return;
 
-    const { data, error } = await supabase
+      const { data: userData } = await supabase.auth.getUser();
+      setCurrentUser(userData?.user || null);
+
+      const { data, error } = await supabase
+        .from("marketplace_posts")
+        .select(`
+          *,
+          marketplace_attachments (
+            file_path,
+            is_image
+          )
+        `)
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        setErr(error.message);
+        setLoading(false);
+        return;
+      }
+
+      setRow(data);
+      setLoading(false);
+    }
+
+    init();
+  }, [id]);
+
+  async function closePost() {
+    if (!confirm("Opravdu chcete inzerát uzavřít?")) return;
+
+    const { error } = await supabase
       .from("marketplace_posts")
-      .select(`
-        *,
-        marketplace_attachments (
-          file_path,
-          is_image
-        )
-      `)
-      .eq("id", id)
-      .single();
+      .update({
+        status: "closed",
+        is_closed: true
+      })
+      .eq("id", row.id);
 
     if (error) {
-      setErr(error.message);
-      setLoading(false);
+      alert("Nepodařilo se uzavřít inzerát.");
       return;
     }
 
-    setRow(data);
-    setLoading(false);
+    router.push("/portal/inzerce");
   }
-
-  useEffect(() => {
-    load();
-  }, [id]);
 
   function getPublicUrl(path) {
     const { data } = supabase
@@ -67,10 +90,11 @@ export default function DetailInzeratu() {
     return data?.publicUrl;
   }
 
-  if (loading) return <div>Načítám…</div>;
-  if (err) return <div className="text-red-600">{err}</div>;
-  if (!row) return <div>Inzerát nenalezen.</div>;
+  if (loading) return <div className="p-6">Načítám…</div>;
+  if (err) return <div className="p-6 text-red-600">{err}</div>;
+  if (!row) return <div className="p-6">Inzerát nenalezen.</div>;
 
+  const isOwner = currentUser?.id === row.author_id;
   const images = row.marketplace_attachments?.filter(a => a.is_image) || [];
 
   return (
@@ -88,15 +112,35 @@ export default function DetailInzeratu() {
 
         <div className="mt-4 bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
 
-          <div className="flex items-center gap-2 mb-3">
-            <span className={`px-3 py-1 text-xs rounded-full ${typeBadge(row.type)}`}>
-              {typeLabel(row.type)}
-            </span>
-
-            {row.category && (
-              <span className="text-xs text-slate-500">
-                {row.category}
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex items-center gap-2">
+              <span className={`px-3 py-1 text-xs rounded-full ${typeBadge(row.type)}`}>
+                {typeLabel(row.type)}
               </span>
+
+              {row.category && (
+                <span className="text-xs text-slate-500">
+                  {row.category}
+                </span>
+              )}
+            </div>
+
+            {isOwner && (
+              <div className="flex gap-2">
+                <Link
+                  href={`/portal/inzerce/edit/${row.id}`}
+                  className="text-sm px-3 py-1 border rounded-lg hover:bg-slate-100"
+                >
+                  ✏ Upravit
+                </Link>
+
+                <button
+                  onClick={closePost}
+                  className="text-sm px-3 py-1 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                >
+                  Uzavřít
+                </button>
+              </div>
             )}
           </div>
 
@@ -104,7 +148,6 @@ export default function DetailInzeratu() {
             {row.title}
           </h1>
 
-          {/* Galerie */}
           {images.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
               {images.map((img, i) => (
@@ -118,11 +161,10 @@ export default function DetailInzeratu() {
             </div>
           )}
 
-          <div className="prose max-w-none text-slate-700 mb-6">
+          <div className="text-slate-700 mb-6 whitespace-pre-wrap">
             {row.description}
           </div>
 
-          {/* Kontakt */}
           <div className="border-t pt-4 text-sm text-slate-600 space-y-1">
             {row.contact_name && (
               <div><strong>Kontakt:</strong> {row.contact_name}</div>
