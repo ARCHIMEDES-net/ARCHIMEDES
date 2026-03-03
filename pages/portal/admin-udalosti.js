@@ -206,7 +206,7 @@ export default function AdminUdalosti() {
                     onClick={() => duplicateEvent(row)}
                     className="text-sm px-3 py-1 border rounded-lg hover:bg-slate-100"
                   >
-                    🧬 Duplikovat TEST
+                    🧬 Duplikovat
                   </button>
 
                   <Link
