@@ -16,7 +16,6 @@ const KIND_OPTIONS = [
 
 function toISODateOrNull(v) {
   if (!v) return null;
-  // očekáváme "YYYY-MM-DD"
   const d = new Date(v + "T00:00:00");
   if (Number.isNaN(d.getTime())) return null;
   return d.toISOString();
@@ -30,37 +29,10 @@ export default function NovyInzerat() {
 
   const [kind, setKind] = useState("nabidka");
   const [category, setCategory] = useState("");
-  const [categories, setCategories] = useState([]);
-
   const [description, setDescription] = useState("");
-  const [contactName, setContactName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [expiresAt, setExpiresAt] = useState(""); // YYYY-MM-DD
+  const [files, setFiles] = useState([]);
 
-  const canSubmit = useMemo(() => {
-    return description.trim().length >= 10;
-  }, [description]);
-
-  async function loadCategories() {
-    // vytáhneme existující rubriky z DB, ať je to pohodlné
-    const { data, error } = await supabase
-      .from("marketplace_posts")
-      .select("category")
-      .not("category", "is", null);
-
-    if (error) return;
-
-    const set = new Set();
-    for (const r of data || []) {
-      if (r?.category && String(r.category).trim()) set.add(String(r.category).trim());
-    }
-    setCategories(Array.from(set).sort((a, b) => a.localeCompare(b, "cs")));
-  }
-
-  useEffect(() => {
-    loadCategories();
-  }, []);
+  const canSubmit = useMemo(() => description.trim().length >= 10, [description]);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -73,48 +45,55 @@ export default function NovyInzerat() {
 
     setLoading(true);
 
-    // vezmeme přihlášeného uživatele jako author_id
-    const { data: userData, error: userErr } = await supabase.auth.getUser();
-    if (userErr || !userData?.user) {
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
+
+    if (!user) {
       setErr("Nejste přihlášen.");
       setLoading(false);
       return;
     }
 
-    const payload = {
-      author_id: userData.user.id,
-      kind, // nový typ inzerátu
-      category: category?.trim() || null, // rubrika
-      description: description.trim(),
-      contact_name: contactName?.trim() || null,
-      contact_email: contactEmail?.trim() || null,
-      contact_phone: contactPhone?.trim() || null,
-      expires_at: toISODateOrNull(expiresAt),
-      status: "active",
-      is_closed: false,
-      is_pinned: false,
-      is_archimedes: false,
-    };
-
-    const { data, error } = await supabase
+    // 1️⃣ Vytvořit inzerát
+    const { data: post, error: postError } = await supabase
       .from("marketplace_posts")
-      .insert(payload)
+      .insert({
+        author_id: user.id,
+        kind,
+        category: category || null,
+        description,
+        status: "active",
+        is_closed: false,
+      })
       .select("id")
       .single();
 
-    if (error) {
-      setErr(error.message || "Chyba při ukládání inzerátu.");
+    if (postError) {
+      setErr(postError.message);
       setLoading(false);
       return;
     }
 
-    // po vytvoření jdeme na detail (pokud detail ještě nemáš, klidně do /portal/inzerce)
-    const newId = data?.id;
-    if (newId) {
-      router.push(`/portal/inzerce/${newId}?edit=1`);
-    } else {
-      router.push("/portal/inzerce");
+    const postId = post.id;
+
+    // 2️⃣ Upload fotek
+    for (let file of files) {
+      const filePath = `${postId}/${Date.now()}-${file.name}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("marketplace")
+        .upload(filePath, file);
+
+      if (uploadError) continue;
+
+      await supabase.from("marketplace_attachments").insert({
+        post_id: postId,
+        file_path: filePath,
+        mime_type: file.type,
+      });
     }
+
+    router.push("/portal/inzerce");
   }
 
   return (
@@ -122,147 +101,81 @@ export default function NovyInzerat() {
       <PortalHeader />
 
       <div className="max-w-3xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="text-2xl font-semibold">Nový inzerát</h1>
-            <p className="text-slate-600 mt-1">
-              Vyplň typ (nabídka/poptávka…), rubriku a popis. Fotky se doplní v detailu po uložení.
-            </p>
-          </div>
+        <h1 className="text-2xl font-semibold mb-4">Nový inzerát</h1>
 
-          <Link
-            href="/portal/inzerce"
-            className="px-4 py-2 rounded-xl border border-slate-200 hover:border-slate-300"
-          >
-            Zpět na inzerci
-          </Link>
-        </div>
-
-        {err ? (
-          <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700">
+        {err && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-xl">
             {err}
           </div>
-        ) : null}
+        )}
 
-        <form onSubmit={onSubmit} className="mt-6 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Typ */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Typ inzerátu</label>
-              <select
-                className="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"
-                value={kind}
-                onChange={(e) => setKind(e.target.value)}
-              >
-                {KIND_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-slate-500">
-                Typ = nabídka/poptávka/služba… (nový sloupec <code>kind</code>)
-              </p>
-            </div>
+        <form onSubmit={onSubmit} className="bg-white p-6 rounded-2xl shadow border">
 
-            {/* Rubrika */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Rubrika</label>
-              <input
-                className="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="např. Vybavení školy"
-                list="category-list"
-              />
-              <datalist id="category-list">
-                {categories.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
-              <p className="mt-1 text-xs text-slate-500">
-                Rubrika = tematické členění (sloupec <code>category</code>)
-              </p>
-            </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium">Typ</label>
+            <select
+              className="mt-1 w-full border rounded-xl p-2"
+              value={kind}
+              onChange={(e) => setKind(e.target.value)}
+            >
+              {KIND_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Popis */}
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-slate-700">Popis *</label>
+          <div className="mb-4">
+            <label className="block text-sm font-medium">Rubrika</label>
+            <input
+              className="mt-1 w-full border rounded-xl p-2"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="např. Vybavení školy"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium">Popis *</label>
             <textarea
-              className="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 min-h-[160px]"
+              className="mt-1 w-full border rounded-xl p-3 min-h-[150px]"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Napiš stručně co nabízíš / poptáváš, podmínky, cenu, kde, atd."
             />
-            <p className="mt-1 text-xs text-slate-500">Minimálně 10 znaků.</p>
           </div>
 
-          {/* Kontakt */}
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Kontaktní osoba</label>
-              <input
-                className="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200"
-                value={contactName}
-                onChange={(e) => setContactName(e.target.value)}
-                placeholder="Jméno"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">E-mail</label>
-              <input
-                className="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200"
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
-                placeholder="email@..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Telefon</label>
-              <input
-                className="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200"
-                value={contactPhone}
-                onChange={(e) => setContactPhone(e.target.value)}
-                placeholder="+420 ..."
-              />
-            </div>
-          </div>
-
-          {/* Expirace */}
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-slate-700">Platnost do</label>
+          {/* 📷 Upload fotek */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium">
+              Fotky (můžeš vybrat více)
+            </label>
             <input
-              type="date"
-              className="mt-1 px-3 py-2 rounded-xl border border-slate-200"
-              value={expiresAt}
-              onChange={(e) => setExpiresAt(e.target.value)}
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) => setFiles([...e.target.files])}
+              className="mt-2"
             />
-            <p className="mt-1 text-xs text-slate-500">
-              Když necháš prázdné, inzerát nebude automaticky expirovat.
-            </p>
           </div>
 
-          {/* Tlačítka */}
-          <div className="mt-6 flex gap-2">
+          <div className="flex gap-2">
             <button
               type="submit"
-              disabled={!canSubmit || loading}
-              className={[
-                "px-4 py-2 rounded-xl text-white",
-                !canSubmit || loading ? "bg-slate-400" : "bg-slate-900 hover:bg-slate-800",
-              ].join(" ")}
+              disabled={loading}
+              className="bg-slate-900 text-white px-4 py-2 rounded-xl"
             >
-              {loading ? "Ukládám…" : "Uložit inzerát"}
+              {loading ? "Ukládám..." : "Uložit inzerát"}
             </button>
 
             <Link
               href="/portal/inzerce"
-              className="px-4 py-2 rounded-xl border border-slate-200 hover:border-slate-300"
+              className="border px-4 py-2 rounded-xl"
             >
               Zrušit
             </Link>
           </div>
+
         </form>
       </div>
     </RequireAuth>
