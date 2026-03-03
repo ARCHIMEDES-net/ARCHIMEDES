@@ -1,50 +1,118 @@
+// pages/portal/index.js
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
+import { supabase } from "../../lib/supabaseClient";
 
-export default function PortalHome() {
+export default function PortalIndex() {
+  const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // Pokud existuje funkce public.is_admin() (SQL jsme ji vytvořili),
+        // vrátí boolean. Když nebude existovat, ignorujeme a admin sekce se neskryje.
+        const { data, error } = await supabase.rpc("is_admin");
+        if (!error) setIsAdmin(!!data);
+      } catch (e) {
+        // no-op
+      } finally {
+        setCheckingAdmin(false);
+      }
+    })();
+  }, []);
+
+  async function onLogout() {
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
+
   return (
     <RequireAuth>
-      <PortalHeader />
+      <PortalHeader title="Portál" />
 
-      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
-        <h1 style={{ margin: "10px 0 6px" }}>ARCHIMEDES Live – Portál</h1>
-        <p style={{ margin: 0, color: "#374151" }}>
-          Vítej v registrované části. Primární je program vysílání (kalendář) a následně archiv a pracovní listy.
-        </p>
+      <div style={{ padding: 16, maxWidth: 900, margin: "0 auto" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+          <div style={{ fontSize: 14, opacity: 0.75 }}>
+            Přístup k obsahu pro registrované.
+          </div>
 
-        <section style={{ marginTop: 18, display: "grid", gap: 12 }}>
-          <Card title="Program (Kalendář)" desc="Přehled nadcházejících vysílání a detail událostí.">
-            <Link href="/portal/kalendar">Otevřít program</Link>
-          </Card>
+          <div style={{ marginLeft: "auto" }}>
+            <button
+              onClick={onLogout}
+              style={{
+                padding: "8px 12px",
+                borderRadius: 12,
+                border: "1px solid #ddd",
+                cursor: "pointer",
+              }}
+            >
+              Odhlásit
+            </button>
+          </div>
+        </div>
 
-          <Card title="Archiv" desc="Záznamy vysílání (MVP zatím může být prázdný).">
-            <Link href="/portal/archiv">Otevřít archiv</Link>
-          </Card>
+        <div style={{ display: "grid", gap: 10 }}>
+          <Section title="Program">
+            <NavLink href="/portal/kalendar" title="Kalendář" desc="Přehled vysílání jako TV program + detail." />
+            <NavLink href="/portal/archiv" title="Archiv" desc="Záznamy, materiály a pracovní listy (postupně doplníme)." />
+          </Section>
 
-          <Card title="Pracovní listy" desc="Odkazy / materiály k událostem a výuce.">
-            <Link href="/portal/pracovni-listy">Otevřít pracovní listy</Link>
-          </Card>
+          <Section title="Komunita">
+            <NavLink href="/portal/inzerce" title="Inzerce" desc="Nabídky, poptávky a partnerství mezi školami a obcemi." />
+          </Section>
 
-          <Card title="Inzerce" desc="Pozvánky, nabídky kroužků, komunitní oznámení.">
-            <Link href="/portal/inzerce">Otevřít inzerci</Link>
-          </Card>
+          <Section title="Administrace">
+            {checkingAdmin ? (
+              <div style={{ padding: 12, opacity: 0.7 }}>Načítám práva…</div>
+            ) : isAdmin ? (
+              <>
+                <NavLink href="/portal/admin-udalosti" title="Admin – Události" desc="Vkládání, úpravy a správa programu." />
+                <NavLink href="/portal/admin-inzerce" title="Admin – Inzerce" desc="Moderace, TOP, ARCHIMEDES, mazání." />
+              </>
+            ) : (
+              <div style={{ padding: 12, opacity: 0.7 }}>
+                Administrace je dostupná jen správcům.
+              </div>
+            )}
+          </Section>
+        </div>
 
-          <Card title="Admin" desc="Správa událostí, obsahu a dalších sekcí.">
-            <Link href="/portal/admin">Otevřít admin</Link>
-          </Card>
-        </section>
-      </main>
+        <div style={{ marginTop: 14, fontSize: 12, opacity: 0.65 }}>
+          Tip: pokud někde uvidíš chybu oprávnění, je to typicky role/RLS nebo přihlášení.
+        </div>
+      </div>
     </RequireAuth>
   );
 }
 
-function Card({ title, desc, children }) {
+function Section({ title, children }) {
   return (
-    <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 14 }}>
-      <div style={{ fontWeight: 800 }}>{title}</div>
-      <div style={{ color: "#374151", marginTop: 6 }}>{desc}</div>
-      <div style={{ marginTop: 10 }}>{children}</div>
+    <div style={{ border: "1px solid #e6e6e6", borderRadius: 14, padding: 12 }}>
+      <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 8 }}>{title}</div>
+      <div style={{ display: "grid", gap: 8 }}>{children}</div>
     </div>
+  );
+}
+
+function NavLink({ href, title, desc }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "block",
+        padding: 12,
+        borderRadius: 14,
+        border: "1px solid #eee",
+        textDecoration: "none",
+      }}
+    >
+      <div style={{ fontWeight: 800 }}>{title}</div>
+      {desc ? <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>{desc}</div> : null}
+    </Link>
   );
 }
