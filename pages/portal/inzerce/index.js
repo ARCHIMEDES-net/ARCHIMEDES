@@ -28,28 +28,132 @@ function nowIso() {
 
 const PAGE_SIZE = 10;
 
+const S = {
+  page: { maxWidth: 1100, margin: "0 auto", padding: "18px 16px 28px" },
+  topRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" },
+  h1: { fontSize: 22, fontWeight: 700, margin: 0 },
+  subtleLink: { color: "#0f172a", textDecoration: "underline", fontSize: 14 },
+  btn: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "9px 12px",
+    borderRadius: 10,
+    border: "1px solid #d1d5db",
+    background: "#fff",
+    cursor: "pointer",
+    textDecoration: "none",
+    color: "#0f172a",
+    fontSize: 14,
+    fontWeight: 600,
+  },
+  btnGhost: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "9px 12px",
+    borderRadius: 10,
+    border: "1px solid #d1d5db",
+    background: "#fff",
+    cursor: "pointer",
+    color: "#0f172a",
+    fontSize: 14,
+    fontWeight: 600,
+  },
+  btnDisabled: { opacity: 0.5, cursor: "not-allowed" },
+  card: {
+    marginTop: 14,
+    border: "1px solid #e5e7eb",
+    background: "#fff",
+    borderRadius: 14,
+    padding: 14,
+    boxShadow: "0 1px 0 rgba(15,23,42,0.04)",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
+    gap: 10,
+    alignItems: "end",
+  },
+  col4: { gridColumn: "span 4 / span 4" },
+  col3: { gridColumn: "span 3 / span 3" },
+  col2: { gridColumn: "span 2 / span 2" },
+  col12: { gridColumn: "span 12 / span 12" },
+  label: { display: "block", fontSize: 13, color: "#334155", marginBottom: 6, fontWeight: 600 },
+  input: {
+    width: "100%",
+    padding: "9px 10px",
+    borderRadius: 10,
+    border: "1px solid #d1d5db",
+    fontSize: 14,
+    outline: "none",
+  },
+  select: {
+    width: "100%",
+    padding: "9px 10px",
+    borderRadius: 10,
+    border: "1px solid #d1d5db",
+    fontSize: 14,
+    background: "#fff",
+  },
+  row: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
+  checkboxLabel: { display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, color: "#0f172a" },
+  meta: { marginTop: 10, fontSize: 13, color: "#475569" },
+  error: {
+    marginTop: 10,
+    border: "1px solid #fecaca",
+    background: "#fef2f2",
+    color: "#991b1b",
+    borderRadius: 12,
+    padding: "10px 12px",
+    fontSize: 13,
+    whiteSpace: "pre-wrap",
+  },
+  list: { marginTop: 14, display: "grid", gap: 10 },
+  item: {
+    display: "block",
+    textDecoration: "none",
+    color: "#0f172a",
+    border: "1px solid #e5e7eb",
+    background: "#fff",
+    borderRadius: 14,
+    padding: 14,
+  },
+  itemHover: { background: "#f8fafc" },
+  badges: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" },
+  badge: {
+    fontSize: 12,
+    padding: "4px 9px",
+    borderRadius: 999,
+    border: "1px solid #d1d5db",
+    background: "#fff",
+    color: "#0f172a",
+    fontWeight: 600,
+  },
+  itemTitle: { marginTop: 8, fontSize: 18, fontWeight: 800 },
+  itemDesc: { marginTop: 6, fontSize: 14, color: "#334155" },
+  itemMeta: { marginTop: 8, fontSize: 12, color: "#64748b" },
+  pager: { marginTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 },
+};
+
 export default function InzerceIndex() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // filters
   const [q, setQ] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all"); // "all" | "NABIDKA" | "POPTAVKA" | "SPOLUPRACE"
-  const [categoryFilter, setCategoryFilter] = useState("all"); // "all" | "Vybavení školy" ...
-  const [statusFilter, setStatusFilter] = useState("active"); // "active" | "closed" | "expired" | "all"
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
   const [onlyNonExpired, setOnlyNonExpired] = useState(true);
   const [onlyArchimedes, setOnlyArchimedes] = useState(false);
 
-  // pagination
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  // data
   const [rows, setRows] = useState([]);
   const [categories, setCategories] = useState([]);
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil((totalCount || 0) / PAGE_SIZE)), [totalCount]);
-  const fromIdx = useMemo(() => (page - 1) * PAGE_SIZE, [page]);
 
   async function loadCategoriesOnce() {
     try {
@@ -76,11 +180,9 @@ export default function InzerceIndex() {
       const from = (effectivePage - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      let query = supabase
-        .from("marketplace_posts")
-        .select("*", { count: "exact" });
+      let query = supabase.from("marketplace_posts").select("*", { count: "exact" });
 
-      // fulltext search
+      // fulltext
       if (q && q.trim().length > 0) {
         query = query.textSearch("search_tsv", q.trim(), {
           type: "websearch",
@@ -88,16 +190,10 @@ export default function InzerceIndex() {
         });
       }
 
-      // type
       if (typeFilter !== "all") query = query.eq("post_type", typeFilter);
-
-      // category
       if (categoryFilter !== "all") query = query.eq("category", categoryFilter);
-
-      // only archimedes
       if (onlyArchimedes) query = query.eq("is_archimedes", true);
 
-      // expiry / status
       const now = nowIso();
 
       if (onlyNonExpired) {
@@ -167,42 +263,36 @@ export default function InzerceIndex() {
   return (
     <RequireAuth>
       <PortalHeader />
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="text-2xl font-semibold">Inzerce</div>
-          <Link
-            href="/portal/inzerce/novy"
-            className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 hover:bg-gray-50"
-          >
-            <span className="text-lg leading-none">+</span>
-            <span>Nový inzerát</span>
+
+      <div style={S.page}>
+        <div style={S.topRow}>
+          <h1 style={S.h1}>Inzerce</h1>
+          <Link href="/portal/inzerce/novy" style={S.btn}>
+            <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
+            Nový inzerát
           </Link>
         </div>
 
-        <div className="mt-4 rounded-xl border bg-white p-4">
-          <Link href="/portal" className="text-sm underline">
+        <div style={S.card}>
+          <Link href="/portal" style={S.subtleLink}>
             ← Zpět do portálu
           </Link>
 
-          <form onSubmit={onSubmitSearch} className="mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-              <div className="md:col-span-4">
-                <label className="block text-sm text-gray-700 mb-1">Vyhledávání</label>
+          <form onSubmit={onSubmitSearch} style={{ marginTop: 12 }}>
+            <div style={S.grid}>
+              <div style={S.col4}>
+                <label style={S.label}>Vyhledávání</label>
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="např. židle, zidle, dřevěné..."
-                  className="w-full rounded-lg border px-3 py-2"
+                  style={S.input}
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm text-gray-700 mb-1">Typ</label>
-                <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  className="w-full rounded-lg border px-3 py-2"
-                >
+              <div style={S.col2}>
+                <label style={S.label}>Typ</label>
+                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} style={S.select}>
                   <option value="all">Vše</option>
                   <option value="POPTAVKA">Poptávka</option>
                   <option value="NABIDKA">Nabídka</option>
@@ -210,13 +300,9 @@ export default function InzerceIndex() {
                 </select>
               </div>
 
-              <div className="md:col-span-3">
-                <label className="block text-sm text-gray-700 mb-1">Kategorie</label>
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="w-full rounded-lg border px-3 py-2"
-                >
+              <div style={S.col3}>
+                <label style={S.label}>Kategorie</label>
+                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} style={S.select}>
                   <option value="all">Vše</option>
                   {categories.map((c) => (
                     <option key={c} value={c}>
@@ -226,13 +312,9 @@ export default function InzerceIndex() {
                 </select>
               </div>
 
-              <div className="md:col-span-3">
-                <label className="block text-sm text-gray-700 mb-1">Stav</label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full rounded-lg border px-3 py-2"
-                >
+              <div style={S.col3}>
+                <label style={S.label}>Stav</label>
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={S.select}>
                   <option value="active">Aktivní</option>
                   <option value="closed">Uzavřené</option>
                   <option value="expired">Expirované</option>
@@ -240,103 +322,104 @@ export default function InzerceIndex() {
                 </select>
               </div>
 
-              <div className="md:col-span-12 flex flex-wrap items-center gap-3 mt-1">
-                <button type="submit" className="rounded-lg border px-4 py-2 hover:bg-gray-50" disabled={loading}>
-                  Hledat
-                </button>
+              <div style={S.col12}>
+                <div style={S.row}>
+                  <button type="submit" style={{ ...S.btnGhost, ...(loading ? S.btnDisabled : {}) }} disabled={loading}>
+                    Hledat
+                  </button>
+                  <button type="button" style={{ ...S.btnGhost, ...(loading ? S.btnDisabled : {}) }} onClick={onReset} disabled={loading}>
+                    Reset
+                  </button>
 
-                <button type="button" className="rounded-lg border px-4 py-2 hover:bg-gray-50" onClick={onReset} disabled={loading}>
-                  Reset
-                </button>
+                  <label style={S.checkboxLabel}>
+                    <input type="checkbox" checked={onlyNonExpired} onChange={(e) => setOnlyNonExpired(e.target.checked)} />
+                    Jen neexpir.
+                  </label>
 
-                <label className="inline-flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={onlyNonExpired} onChange={(e) => setOnlyNonExpired(e.target.checked)} />
-                  Jen neexpir.
-                </label>
+                  <label style={S.checkboxLabel}>
+                    <input type="checkbox" checked={onlyArchimedes} onChange={(e) => setOnlyArchimedes(e.target.checked)} />
+                    Jen ARCHIMEDES
+                  </label>
 
-                <label className="inline-flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={onlyArchimedes} onChange={(e) => setOnlyArchimedes(e.target.checked)} />
-                  Jen ARCHIMEDES
-                </label>
+                  <button
+                    type="button"
+                    style={{ ...S.btnGhost, marginLeft: "auto", ...(loading ? S.btnDisabled : {}) }}
+                    onClick={() => fetchRows({ resetPage: true })}
+                    disabled={loading}
+                    title="Obnovit seznam"
+                  >
+                    Obnovit
+                  </button>
+                </div>
 
-                <button
-                  type="button"
-                  className="ml-auto rounded-lg border px-4 py-2 hover:bg-gray-50"
-                  onClick={() => fetchRows({ resetPage: true })}
-                  disabled={loading}
-                  title="Obnovit seznam"
-                >
-                  Obnovit
-                </button>
+                <div style={S.meta}>
+                  Zobrazeno: <b>{rows.length}</b> / <b>{totalCount}</b> • stránka: <b>{page}</b> / <b>{totalPages}</b>
+                </div>
+
+                {error ? <div style={S.error}>Chyba: {error}</div> : null}
               </div>
             </div>
-
-            <div className="mt-3 text-sm text-gray-600">
-              Zobrazeno: <strong>{rows.length}</strong> / <strong>{totalCount}</strong> • stránka:{" "}
-              <strong>
-                {page} / {totalPages}
-              </strong>
-            </div>
-
-            {error ? (
-              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-                Chyba: {error}
-              </div>
-            ) : null}
           </form>
         </div>
 
-        <div className="mt-4">
+        <div style={S.list}>
           {loading ? (
-            <div className="text-sm text-gray-600">Načítám…</div>
+            <div style={{ fontSize: 14, color: "#475569" }}>Načítám…</div>
           ) : rows.length === 0 ? (
-            <div className="text-sm text-gray-600">Zatím tu nic není.</div>
+            <div style={{ fontSize: 14, color: "#475569" }}>Zatím tu nic není.</div>
           ) : (
-            <div className="grid grid-cols-1 gap-3">
-              {rows.map((r) => {
-                const created = safeDate(r.created_at);
-                const expires = safeDate(r.expires_at);
-                const expired = expires ? expires.getTime() <= Date.now() : false;
+            rows.map((r) => {
+              const created = safeDate(r.created_at);
+              const expires = safeDate(r.expires_at);
+              const expired = expires ? expires.getTime() <= Date.now() : false;
 
-                const badgeType =
-                  r.post_type === "POPTAVKA" ? "POPTÁVKA" : r.post_type === "NABIDKA" ? "NABÍDKA" : r.post_type || "—";
+              const badgeType = r.post_type === "POPTAVKA" ? "POPTÁVKA" : r.post_type === "NABIDKA" ? "NABÍDKA" : r.post_type || "—";
+              const stateLabel = r.is_closed ? "Uzavřené" : expired ? "Expirované" : "Aktivní";
 
-                const stateLabel = r.is_closed ? "Uzavřené" : expired ? "Expirované" : "Aktivní";
+              return (
+                <Link
+                  key={r.id}
+                  href={`/portal/inzerce/${r.id}`}
+                  style={S.item}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = S.itemHover.background)}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "#fff")}
+                >
+                  <div style={S.badges}>
+                    <span style={S.badge}>{badgeType}</span>
+                    {r.category ? <span style={S.badge}>{r.category}</span> : null}
+                    {r.is_archimedes ? <span style={S.badge}>ARCHIMEDES</span> : null}
+                    {r.location ? <span style={S.badge}>{r.location}</span> : null}
+                    <span style={{ marginLeft: "auto", fontSize: 12, color: "#64748b" }}>Stav: {stateLabel}</span>
+                  </div>
 
-                return (
-                  <Link
-                    key={r.id}
-                    href={`/portal/inzerce/${r.id}`}
-                    className="block rounded-xl border bg-white p-4 hover:bg-gray-50"
-                  >
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-700">
-                      <span className="rounded-full border px-2 py-1">{badgeType}</span>
-                      {r.category ? <span className="rounded-full border px-2 py-1">{r.category}</span> : null}
-                      {r.is_archimedes ? <span className="rounded-full border px-2 py-1">ARCHIMEDES</span> : null}
-                      {r.location ? <span className="rounded-full border px-2 py-1">{r.location}</span> : null}
-                      <span className="ml-auto text-gray-600">Stav: {stateLabel}</span>
-                    </div>
+                  <div style={S.itemTitle}>{r.title || "Bez názvu"}</div>
 
-                    <div className="mt-2 text-lg font-semibold">{r.title || "Bez názvu"}</div>
+                  {r.description ? <div style={S.itemDesc}>{String(r.description).slice(0, 220)}{String(r.description).length > 220 ? "…" : ""}</div> : null}
 
-                    {r.description ? <div className="mt-1 text-sm text-gray-700 line-clamp-2">{r.description}</div> : null}
-
-                    <div className="mt-2 text-xs text-gray-600">
-                      {created ? <>Vloženo: {formatDateTimeCS(created)}</> : null}
-                      {expires ? <> • Expirace: {formatDateTimeCS(expires)}</> : null}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+                  <div style={S.itemMeta}>
+                    {created ? <>Vloženo: {formatDateTimeCS(created)}</> : null}
+                    {expires ? <> • Expirace: {formatDateTimeCS(expires)}</> : null}
+                  </div>
+                </Link>
+              );
+            })
           )}
         </div>
 
-        <div className="mt-5 flex items-center justify-between">
-          <button className="rounded-lg border px-4 py-2 disabled:opacity-50" onClick={goPrev} disabled={loading || page <= 1}>
+        <div style={S.pager}>
+          <button
+            style={{ ...S.btnGhost, ...(loading || page <= 1 ? S.btnDisabled : {}) }}
+            onClick={goPrev}
+            disabled={loading || page <= 1}
+          >
             ← Předchozí
           </button>
-          <button className="rounded-lg border px-4 py-2 disabled:opacity-50" onClick={goNext} disabled={loading || page >= totalPages}>
+
+          <button
+            style={{ ...S.btnGhost, ...(loading || page >= totalPages ? S.btnDisabled : {}) }}
+            onClick={goNext}
+            disabled={loading || page >= totalPages}
+          >
             Další →
           </button>
         </div>
