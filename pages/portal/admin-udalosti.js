@@ -4,7 +4,15 @@ import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
 
-const AUDIENCE_OPTIONS = ["1. stupeň", "2. stupeň", "Deváťáci", "Rodiče", "Učitelé", "Senioři", "Komunita"];
+const AUDIENCE_OPTIONS = [
+  "1. stupeň",
+  "2. stupeň",
+  "Deváťáci",
+  "Rodiče",
+  "Učitelé",
+  "Senioři",
+  "Komunita",
+];
 
 const CATEGORY_OPTIONS = [
   "Vstup expertů – 1. stupeň",
@@ -54,7 +62,13 @@ function formatDateTimeCS(value) {
   if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
-  return d.toLocaleString("cs-CZ", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleString("cs-CZ", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function PosterThumb({ url }) {
@@ -122,15 +136,24 @@ export default function AdminUdalosti() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const normalizedAudienceGroups = useMemo(() => normalizeAudienceGroups(audienceGroups), [audienceGroups]);
+  const normalizedAudienceGroups = useMemo(
+    () => normalizeAudienceGroups(audienceGroups),
+    [audienceGroups]
+  );
 
   async function loadEvents() {
-    const { data, error } = await supabase.from("events").select("*").order("starts_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .order("starts_at", { ascending: false });
+
     if (error) return;
 
     const rows = (data || []).map((e) => {
       if (e?.poster_path) {
-        const { data: pub } = supabase.storage.from("posters").getPublicUrl(e.poster_path);
+        const { data: pub } = supabase.storage
+          .from("posters")
+          .getPublicUrl(e.poster_path);
         const fixedUrl = pub?.publicUrl || null;
         return { ...e, poster_url: fixedUrl || e.poster_url };
       }
@@ -145,7 +168,9 @@ export default function AdminUdalosti() {
   }, []);
 
   function toggleAudience(value) {
-    setAudienceGroups((prev) => (prev.includes(value) ? prev.filter((a) => a !== value) : [...prev, value]));
+    setAudienceGroups((prev) =>
+      prev.includes(value) ? prev.filter((a) => a !== value) : [...prev, value]
+    );
   }
 
   function resetForm() {
@@ -197,7 +222,9 @@ export default function AdminUdalosti() {
     const safeName = posterFile.name.replace(/[^\w.\-]+/g, "_");
     const path = `events/${Date.now()}-${safeName}`;
 
-    const { error: upErr } = await supabase.storage.from(bucket).upload(path, posterFile, { upsert: true });
+    const { error: upErr } = await supabase.storage
+      .from(bucket)
+      .upload(path, posterFile, { upsert: true });
     if (upErr) throw upErr;
 
     const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
@@ -215,7 +242,8 @@ export default function AdminUdalosti() {
     const startsAtIso = toIsoFromDatetimeLocal(startAtLocal);
     if (!startsAtIso) return setError("Neplatné datum a čas");
 
-    if (normalizedAudienceGroups.length === 0) return setError("Vyber alespoň jednu cílovou skupinu");
+    if (normalizedAudienceGroups.length === 0)
+      return setError("Vyber alespoň jednu cílovou skupinu");
 
     setLoading(true);
 
@@ -239,7 +267,10 @@ export default function AdminUdalosti() {
       };
 
       if (editingId) {
-        const { error: updErr } = await supabase.from("events").update(payload).eq("id", editingId);
+        const { error: updErr } = await supabase
+          .from("events")
+          .update(payload)
+          .eq("id", editingId);
         if (updErr) throw updErr;
       } else {
         const { error: insErr } = await supabase.from("events").insert([payload]);
@@ -282,7 +313,6 @@ export default function AdminUdalosti() {
   };
 
   const label = { fontWeight: 800, marginBottom: 6 };
-
   const input = { padding: "10px 12px", borderRadius: 12, border: "1px solid #e5e7eb" };
 
   return (
@@ -290,20 +320,38 @@ export default function AdminUdalosti() {
       <PortalHeader />
 
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
           <div>
             <h1 style={{ margin: "10px 0 6px" }}>Admin – události</h1>
             <div style={{ color: "#374151" }}>Správa programu, plakátů a odkazů.</div>
           </div>
 
+          {/* ✅ mini-úprava: rychlé odkazy */}
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <Link href="/portal/kalendar">→ Program</Link>
+            <Link href="/portal/admin-inzerce">→ Admin inzerce</Link>
             <Link href="/portal">→ Portál</Link>
           </div>
         </div>
 
         {error ? (
-          <div style={{ marginTop: 12, padding: 12, borderRadius: 12, border: "1px solid #fecaca", background: "#fef2f2" }}>
+          <div
+            style={{
+              marginTop: 12,
+              padding: 12,
+              borderRadius: 12,
+              border: "1px solid #fecaca",
+              background: "#fef2f2",
+            }}
+          >
             <b>Chyba:</b> {error}
           </div>
         ) : null}
@@ -315,19 +363,26 @@ export default function AdminUdalosti() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <div>
               <div style={label}>Název události*</div>
-              <input style={input} value={title} onChange={(e) => setTitle(e.target.value)} />
+              <input style={{ ...input, width: "100%" }} value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
 
             <div>
               <div style={label}>Datum a čas (start)</div>
-              <input style={input} type="datetime-local" value={startAtLocal} onChange={(e) => setStartAtLocal(e.target.value)} />
+              <input
+                style={{ ...input, width: "100%" }}
+                type="datetime-local"
+                value={startAtLocal}
+                onChange={(e) => setStartAtLocal(e.target.value)}
+              />
             </div>
 
             <div>
               <div style={label}>Rubrika</div>
-              <select style={input} value={category} onChange={(e) => setCategory(e.target.value)}>
+              <select style={{ ...input, width: "100%" }} value={category} onChange={(e) => setCategory(e.target.value)}>
                 {CATEGORY_OPTIONS.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
                 ))}
               </select>
             </div>
@@ -342,27 +397,29 @@ export default function AdminUdalosti() {
 
             <div>
               <div style={label}>Odkaz na vysílání</div>
-              <input style={input} value={streamUrl} onChange={(e) => setStreamUrl(e.target.value)} placeholder="https://…" />
+              <input style={{ ...input, width: "100%" }} value={streamUrl} onChange={(e) => setStreamUrl(e.target.value)} placeholder="https://…" />
             </div>
 
             <div>
               <div style={label}>Pracovní list</div>
-              <input style={input} value={worksheetUrl} onChange={(e) => setWorksheetUrl(e.target.value)} placeholder="https://…" />
+              <input style={{ ...input, width: "100%" }} value={worksheetUrl} onChange={(e) => setWorksheetUrl(e.target.value)} placeholder="https://…" />
             </div>
 
             <div>
-              <div style={label}>Plakát (upload){editingId && currentPosterUrl ? " – aktuální zůstane, pokud nevybereš nový" : ""}</div>
-              <input style={input} type="file" accept="image/*" onChange={(e) => setPosterFile(e.target.files?.[0] || null)} />
+              <div style={label}>
+                Plakát (upload){editingId && currentPosterUrl ? " – aktuální zůstane, pokud nevybereš nový" : ""}
+              </div>
+              <input style={{ ...input, width: "100%" }} type="file" accept="image/*" onChange={(e) => setPosterFile(e.target.files?.[0] || null)} />
             </div>
 
             <div>
               <div style={label}>Popisek plakátu</div>
-              <input style={input} value={posterCaption} onChange={(e) => setPosterCaption(e.target.value)} />
+              <input style={{ ...input, width: "100%" }} value={posterCaption} onChange={(e) => setPosterCaption(e.target.value)} />
             </div>
 
             <div>
               <div style={label}>Alt text plakátu</div>
-              <input style={input} value={posterAltText} onChange={(e) => setPosterAltText(e.target.value)} />
+              <input style={{ ...input, width: "100%" }} value={posterAltText} onChange={(e) => setPosterAltText(e.target.value)} />
             </div>
           </div>
 
@@ -382,11 +439,7 @@ export default function AdminUdalosti() {
 
           <div style={{ marginTop: 14 }}>
             <div style={label}>Popis</div>
-            <textarea
-              style={{ ...input, width: "100%", minHeight: 120 }}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+            <textarea style={{ ...input, width: "100%", minHeight: 120 }} value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
 
           <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
