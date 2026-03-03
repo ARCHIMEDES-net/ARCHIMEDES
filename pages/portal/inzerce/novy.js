@@ -7,12 +7,11 @@ import { supabase } from "../../../lib/supabaseClient";
 
 const BUCKET = "marketplace";
 
-const KIND_OPTIONS = [
-  { value: "nabidka", label: "Nabídka" },
-  { value: "poptavka", label: "Poptávka" },
-  { value: "sluzba", label: "Služba" },
-  { value: "spoluprace", label: "Spolupráce" }, // ✅ nové
-  { value: "pozvanka", label: "Pozvánka" },
+// UI (CZ) -> DB type (EN) + DB kind (CZ)
+const TYPE_OPTIONS = [
+  { value: "nabidka", label: "Nabídka", dbType: "offer" },
+  { value: "poptavka", label: "Poptávka", dbType: "demand" },
+  { value: "spoluprace", label: "Spolupráce", dbType: "partnership" },
 ];
 
 const CATEGORY_OPTIONS = [
@@ -32,11 +31,8 @@ const CATEGORY_OPTIONS = [
   "Ostatní",
 ];
 
-function toISODateOrNull(v) {
-  if (!v) return null;
-  const d = new Date(v + "T00:00:00");
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toISOString();
+function clsx(...xs) {
+  return xs.filter(Boolean).join(" ");
 }
 
 function inputCls() {
@@ -49,14 +45,27 @@ function helpCls() {
   return "mt-1 text-xs text-slate-500";
 }
 
-function titleFromDescription(desc, kindLabel, category) {
-  const clean = String(desc || "").trim().replace(/\s+/g, " ");
+function toISODateOrNull(v) {
+  if (!v) return null;
+  const d = new Date(v + "T00:00:00");
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
+function makeTitle(description, typeLabel, category) {
+  const clean = String(description || "").trim().replace(/\s+/g, " ");
   const short = clean.slice(0, 80);
   const prefixParts = [];
-  if (kindLabel) prefixParts.push(kindLabel);
+  if (typeLabel) prefixParts.push(typeLabel);
   if (category) prefixParts.push(category);
   const prefix = prefixParts.length ? prefixParts.join(" · ") + " — " : "";
   return (prefix + short).slice(0, 120);
+}
+
+function isValidEmail(email) {
+  // stačí rozumná klientská validace – DB má ještě svůj regex constraint
+  const e = String(email || "").trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 }
 
 export default function NovyInzerat() {
@@ -65,6 +74,7 @@ export default function NovyInzerat() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
+  // "kind" value = nabidka/poptavka/spoluprace (CZ)
   const [kind, setKind] = useState("nabidka");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -76,14 +86,33 @@ export default function NovyInzerat() {
 
   const [files, setFiles] = useState([]);
 
-  const canSubmit = useMemo(() => description.trim().length >= 1, [description]);
+  const selectedType = useMemo(
+    () => TYPE_OPTIONS.find((o) => o.value === kind) || TYPE_OPTIONS[0],
+    [kind]
+  );
+
+  const canSubmit = useMemo(() => {
+    if (description.trim().length < 1) return false;
+    if (!isValidEmail(contactEmail)) return false;
+    // telefon není povinný, ale pokud je vyplněn, min. 6 znaků (DB constraint)
+    if (contactPhone.trim().length > 0 && contactPhone.trim().length < 6) return false;
+    return true;
+  }, [description, contactEmail, contactPhone]);
 
   async function onSubmit(e) {
     e.preventDefault();
     setErr("");
 
-    if (!canSubmit) {
+    if (description.trim().length < 1) {
       setErr("Prosím vyplň popis.");
+      return;
+    }
+    if (!isValidEmail(contactEmail)) {
+      setErr("Prosím vyplň platný e-mail (je povinný).");
+      return;
+    }
+    if (contactPhone.trim().length > 0 && contactPhone.trim().length < 6) {
+      setErr("Telefon musí mít alespoň 6 znaků, nebo ho nech prázdný.");
       return;
     }
 
@@ -98,21 +127,25 @@ export default function NovyInzerat() {
       return;
     }
 
-    const kindLabel = KIND_OPTIONS.find((x) => x.value === kind)?.label || "";
     const cat = category?.trim() || "";
+    const title = makeTitle(description, selectedType.label, cat);
 
-    // ✅ povinné sloupce ve starém schématu: type + title
+    // ✅ DB CHECK: type musí být offer|demand|partnership
+    // ✅ DB CHECK: kind je CZ (nabidka|poptavka|... podle marketplace_posts_kind_allowed)
     const payload = {
       author_id: user.id,
-      kind,
-      type: kind, // kvůli NOT NULL sloupci "type"
-      title: titleFromDescription(description, kindLabel, cat), // kvůli NOT NULL sloupci "title"
+      type: selectedType.dbType, // offer / demand / partnership
+      kind: selectedType.value,  // nabidka / poptavka / spoluprace
+      title,
       category: cat || null,
       description: description.trim(),
+
       contact_name: contactName?.trim() || null,
-      contact_email: contactEmail?.trim() || null,
-      contact_phone: contactPhone?.trim() || null,
+      contact_email: contactEmail.trim(), // ✅ povinné
+      contact_phone: contactPhone?.trim() || null, // volitelné (ale pokud vyplněno, DB chce min length)
+
       expires_at: toISODateOrNull(expiresAt),
+
       status: "active",
       is_closed: false,
       is_pinned: false,
@@ -152,7 +185,7 @@ export default function NovyInzerat() {
           mime_type: file.type || null,
         });
       } catch {
-        // nechceme shodit celý proces kvůli jedné fotce
+        // nepadáme kvůli jedné fotce
       }
     }
 
@@ -188,13 +221,15 @@ export default function NovyInzerat() {
               <div>
                 <label className={labelCls()}>Typ inzerátu</label>
                 <select className={inputCls()} value={kind} onChange={(e) => setKind(e.target.value)}>
-                  {KIND_OPTIONS.map((o) => (
+                  {TYPE_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>
                       {o.label}
                     </option>
                   ))}
                 </select>
-                <p className={helpCls()}>Typ se ukládá do sloupců <code>kind</code> a <code>type</code>.</p>
+                <p className={helpCls()}>
+                  Ukládá se jako <code>type</code> ({selectedType.dbType}) a <code>kind</code> ({selectedType.value}).
+                </p>
               </div>
 
               <div>
@@ -244,12 +279,24 @@ export default function NovyInzerat() {
                 <input className={inputCls()} value={contactName} onChange={(e) => setContactName(e.target.value)} />
               </div>
               <div>
-                <label className={labelCls()}>E-mail</label>
-                <input className={inputCls()} value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
+                <label className={labelCls()}>E-mail *</label>
+                <input
+                  className={clsx(inputCls(), !isValidEmail(contactEmail) && contactEmail.length > 0 ? "border-red-300" : "")}
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="např. jan@obec.cz"
+                />
+                <p className={helpCls()}>E-mail je povinný.</p>
               </div>
               <div>
                 <label className={labelCls()}>Telefon</label>
-                <input className={inputCls()} value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
+                <input
+                  className={inputCls()}
+                  value={contactPhone}
+                  onChange={(e) => setContactPhone(e.target.value)}
+                  placeholder="+420 ..."
+                />
+                <p className={helpCls()}>Volitelné (když vyplníš, min. 6 znaků).</p>
               </div>
             </div>
 
@@ -269,10 +316,10 @@ export default function NovyInzerat() {
             <button
               type="submit"
               disabled={!canSubmit || loading}
-              className={[
+              className={clsx(
                 "px-4 py-2 rounded-xl text-white",
-                !canSubmit || loading ? "bg-slate-400" : "bg-slate-900 hover:bg-slate-800",
-              ].join(" ")}
+                !canSubmit || loading ? "bg-slate-400" : "bg-slate-900 hover:bg-slate-800"
+              )}
             >
               {loading ? "Ukládám…" : "Uložit inzerát"}
             </button>
