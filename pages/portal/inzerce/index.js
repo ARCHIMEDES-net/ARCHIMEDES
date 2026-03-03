@@ -5,6 +5,7 @@ import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
 const BUCKET = "marketplace";
+const ADMIN_EMAIL = "antonin.koplik@eduvision.cz";
 
 function typeBadge(type) {
   if (type === "offer") return "bg-green-100 text-green-800";
@@ -24,14 +25,20 @@ export default function Inzerce() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    async function init() {
+      const { data: userData } = await supabase.auth.getUser();
+      setCurrentUser(userData?.user || null);
+      load();
+    }
+    init();
+  }, []);
 
   async function load() {
-    setLoading(true);
-    setErr("");
-
     const { data, error } = await supabase
       .from("marketplace_posts")
       .select(`
@@ -55,10 +62,6 @@ export default function Inzerce() {
     setLoading(false);
   }
 
-  useEffect(() => {
-    load();
-  }, []);
-
   function getImage(row) {
     const img = row.marketplace_attachments?.find(a => a.is_image);
     if (!img?.file_path) return null;
@@ -70,6 +73,18 @@ export default function Inzerce() {
 
     return data?.publicUrl || null;
   }
+
+  async function togglePinned(id, currentValue) {
+    await supabase
+      .from("marketplace_posts")
+      .update({ is_pinned: !currentValue })
+      .eq("id", id);
+
+    load();
+  }
+
+  const isAdmin =
+    (currentUser?.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
   const filtered = useMemo(() => {
     return rows.filter(row => {
@@ -128,13 +143,8 @@ export default function Inzerce() {
           </select>
         </div>
 
-        {err && (
-          <div className="p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700">
-            {err}
-          </div>
-        )}
-
         {loading && <div>Načítám…</div>}
+        {err && <div className="text-red-600">{err}</div>}
 
         <div className="space-y-4">
           {filtered.map((row) => {
@@ -200,12 +210,24 @@ export default function Inzerce() {
                       {new Date(row.created_at).toLocaleDateString("cs-CZ")}
                     </span>
 
-                    <Link
-                      href={`/portal/inzerce/${row.id}`}
-                      className="text-slate-900 font-medium hover:underline"
-                    >
-                      Detail →
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      {isAdmin && (
+                        <button
+                          onClick={() => togglePinned(row.id, row.is_pinned)}
+                          className="text-yellow-600 hover:text-yellow-800"
+                          title="Připnout / Odepnout"
+                        >
+                          {row.is_pinned ? "★" : "☆"}
+                        </button>
+                      )}
+
+                      <Link
+                        href={`/portal/inzerce/${row.id}`}
+                        className="text-slate-900 font-medium hover:underline"
+                      >
+                        Detail →
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
