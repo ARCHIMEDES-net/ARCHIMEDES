@@ -113,6 +113,51 @@ function PosterThumb({ url }) {
   );
 }
 
+/** Pro: profesionální "breadcrumb" ve formě tlačítek */
+function AdminTopNav({ active }) {
+  const baseBtn = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "8px 12px",
+    borderRadius: 999,
+    border: "1px solid #e5e7eb",
+    background: "#fff",
+    textDecoration: "none",
+    color: "#111827",
+    fontSize: 13,
+    fontWeight: 900,
+    lineHeight: 1,
+    boxShadow: "0 1px 0 rgba(0,0,0,0.02)",
+  };
+
+  const activeBtn = {
+    ...baseBtn,
+    background: "#111827",
+    border: "1px solid #111827",
+    color: "#fff",
+  };
+
+  const btn = (key) => (active === key ? activeBtn : baseBtn);
+
+  return (
+    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+      <Link href="/portal/admin-udalosti" style={btn("udalosti")}>
+        Události
+      </Link>
+      <Link href="/portal/admin-inzerce" style={btn("inzerce")}>
+        Inzerce
+      </Link>
+      <Link href="/portal/kalendar" style={btn("program")}>
+        Program
+      </Link>
+      <Link href="/portal" style={btn("portal")}>
+        Portál
+      </Link>
+    </div>
+  );
+}
+
 export default function AdminUdalosti() {
   const [events, setEvents] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -216,7 +261,8 @@ export default function AdminUdalosti() {
   }
 
   async function uploadPosterIfAny() {
-    if (!posterFile) return { poster_path: currentPosterPath, poster_url: currentPosterUrl };
+    if (!posterFile)
+      return { poster_path: currentPosterPath, poster_url: currentPosterUrl };
 
     const bucket = "posters";
     const safeName = posterFile.name.replace(/[^\w.\-]+/g, "_");
@@ -313,7 +359,11 @@ export default function AdminUdalosti() {
   };
 
   const label = { fontWeight: 800, marginBottom: 6 };
-  const input = { padding: "10px 12px", borderRadius: 12, border: "1px solid #e5e7eb" };
+  const input = {
+    padding: "10px 12px",
+    borderRadius: 12,
+    border: "1px solid #e5e7eb",
+  };
 
   return (
     <RequireAuth>
@@ -334,12 +384,8 @@ export default function AdminUdalosti() {
             <div style={{ color: "#374151" }}>Správa programu, plakátů a odkazů.</div>
           </div>
 
-          {/* ✅ mini-úprava: rychlé odkazy */}
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <Link href="/portal/kalendar">→ Program</Link>
-            <Link href="/portal/admin-inzerce">→ Admin inzerce</Link>
-            <Link href="/portal">→ Portál</Link>
-          </div>
+          {/* ✅ Profi tlačítka místo textu se šipkami */}
+          <AdminTopNav active="udalosti" />
         </div>
 
         {error ? (
@@ -363,7 +409,11 @@ export default function AdminUdalosti() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <div>
               <div style={label}>Název události*</div>
-              <input style={{ ...input, width: "100%" }} value={title} onChange={(e) => setTitle(e.target.value)} />
+              <input
+                style={{ ...input, width: "100%" }}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </div>
 
             <div>
@@ -378,7 +428,11 @@ export default function AdminUdalosti() {
 
             <div>
               <div style={label}>Rubrika</div>
-              <select style={{ ...input, width: "100%" }} value={category} onChange={(e) => setCategory(e.target.value)}>
+              <select
+                style={{ ...input, width: "100%" }}
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
                 {CATEGORY_OPTIONS.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -390,46 +444,87 @@ export default function AdminUdalosti() {
             <div>
               <div style={label}>Publikovat</div>
               <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={isPublished}
+                  onChange={(e) => setIsPublished(e.target.checked)}
+                />
                 {isPublished ? "Ano (zobrazí se v programu)" : "Ne (skryto)"}
               </label>
             </div>
 
             <div>
               <div style={label}>Odkaz na vysílání</div>
-              <input style={{ ...input, width: "100%" }} value={streamUrl} onChange={(e) => setStreamUrl(e.target.value)} placeholder="https://…" />
+              <input
+                style={{ ...input, width: "100%" }}
+                value={streamUrl}
+                onChange={(e) => setStreamUrl(e.target.value)}
+                placeholder="https://…"
+              />
             </div>
 
             <div>
               <div style={label}>Pracovní list</div>
-              <input style={{ ...input, width: "100%" }} value={worksheetUrl} onChange={(e) => setWorksheetUrl(e.target.value)} placeholder="https://…" />
+              <input
+                style={{ ...input, width: "100%" }}
+                value={worksheetUrl}
+                onChange={(e) => setWorksheetUrl(e.target.value)}
+                placeholder="https://…"
+              />
             </div>
 
             <div>
               <div style={label}>
-                Plakát (upload){editingId && currentPosterUrl ? " – aktuální zůstane, pokud nevybereš nový" : ""}
+                Plakát (upload)
+                {editingId && currentPosterUrl
+                  ? " – aktuální zůstane, pokud nevybereš nový"
+                  : ""}
               </div>
-              <input style={{ ...input, width: "100%" }} type="file" accept="image/*" onChange={(e) => setPosterFile(e.target.files?.[0] || null)} />
+              <input
+                style={{ ...input, width: "100%" }}
+                type="file"
+                accept="image/*"
+                onChange={(e) => setPosterFile(e.target.files?.[0] || null)}
+              />
             </div>
 
             <div>
               <div style={label}>Popisek plakátu</div>
-              <input style={{ ...input, width: "100%" }} value={posterCaption} onChange={(e) => setPosterCaption(e.target.value)} />
+              <input
+                style={{ ...input, width: "100%" }}
+                value={posterCaption}
+                onChange={(e) => setPosterCaption(e.target.value)}
+              />
             </div>
 
             <div>
               <div style={label}>Alt text plakátu</div>
-              <input style={{ ...input, width: "100%" }} value={posterAltText} onChange={(e) => setPosterAltText(e.target.value)} />
+              <input
+                style={{ ...input, width: "100%" }}
+                value={posterAltText}
+                onChange={(e) => setPosterAltText(e.target.value)}
+              />
             </div>
           </div>
 
           <div style={{ marginTop: 14 }}>
             <div style={label}>Cílové skupiny</div>
-            <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 12, background: "#fff" }}>
+            <div
+              style={{
+                border: "1px solid #e5e7eb",
+                borderRadius: 14,
+                padding: 12,
+                background: "#fff",
+              }}
+            >
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 {AUDIENCE_OPTIONS.map((a) => (
                   <label key={a} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <input type="checkbox" checked={audienceGroups.includes(a)} onChange={() => toggleAudience(a)} />
+                    <input
+                      type="checkbox"
+                      checked={audienceGroups.includes(a)}
+                      onChange={() => toggleAudience(a)}
+                    />
                     {a}
                   </label>
                 ))}
@@ -439,7 +534,11 @@ export default function AdminUdalosti() {
 
           <div style={{ marginTop: 14 }}>
             <div style={label}>Popis</div>
-            <textarea style={{ ...input, width: "100%", minHeight: 120 }} value={description} onChange={(e) => setDescription(e.target.value)} />
+            <textarea
+              style={{ ...input, width: "100%", minHeight: 120 }}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </div>
 
           <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -501,8 +600,13 @@ export default function AdminUdalosti() {
                 <PosterThumb url={e.poster_url} />
 
                 <div>
-                  <Link href={`/portal/udalost/${e.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                    <div style={{ fontWeight: 900, fontSize: 16, cursor: "pointer" }}>{e.title}</div>
+                  <Link
+                    href={`/portal/udalost/${e.id}`}
+                    style={{ textDecoration: "none", color: "inherit" }}
+                  >
+                    <div style={{ fontWeight: 900, fontSize: 16, cursor: "pointer" }}>
+                      {e.title}
+                    </div>
                   </Link>
 
                   <div style={{ marginTop: 6, color: "#374151" }}>
