@@ -16,6 +16,24 @@ const KIND_OPTIONS = [
   { value: "ztraty_a_nalezy", label: "Ztráty & nálezy" },
 ];
 
+// ✅ pevný seznam rubrik (můžeš kdykoli rozšířit)
+const CATEGORY_OPTIONS = [
+  "Vybavení školy",
+  "Učebnice a pomůcky",
+  "Technologie a IT",
+  "Nábytek",
+  "Sportovní vybavení",
+  "Knihy a čtenářský klub",
+  "Kultura a akce",
+  "Volnočasové kroužky",
+  "Wellbeing",
+  "Senior klub",
+  "Komunita a spolky",
+  "Dobrovolnictví",
+  "Služby",
+  "Ostatní",
+];
+
 function toISODateOrNull(v) {
   if (!v) return null;
   const d = new Date(v + "T00:00:00");
@@ -41,38 +59,17 @@ export default function NovyInzerat() {
 
   const [kind, setKind] = useState("nabidka");
   const [category, setCategory] = useState("");
-  const [categories, setCategories] = useState([]);
-
   const [description, setDescription] = useState("");
+
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
-  const [expiresAt, setExpiresAt] = useState(""); // YYYY-MM-DD
+  const [expiresAt, setExpiresAt] = useState("");
 
   const [files, setFiles] = useState([]);
 
-  // Popis: žádné zbytečné limity. Stačí něco napsat.
+  // stačí cokoliv (ale ne prázdné)
   const canSubmit = useMemo(() => description.trim().length >= 1, [description]);
-
-  async function loadCategories() {
-    const { data, error } = await supabase
-      .from("marketplace_posts")
-      .select("category")
-      .not("category", "is", null);
-
-    if (error) return;
-
-    const set = new Set();
-    for (const r of data || []) {
-      const c = String(r?.category || "").trim();
-      if (c) set.add(c);
-    }
-    setCategories(Array.from(set).sort((a, b) => a.localeCompare(b, "cs")));
-  }
-
-  useEffect(() => {
-    loadCategories();
-  }, []);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -94,10 +91,11 @@ export default function NovyInzerat() {
       return;
     }
 
-    // 1) vytvořit post
+    // ✅ důležité: posíláme i 'type' kvůli NOT NULL constraintu
     const payload = {
       author_id: user.id,
       kind,
+      type: kind, // <- klíčová oprava
       category: category?.trim() || null,
       description: description.trim(),
       contact_name: contactName?.trim() || null,
@@ -124,8 +122,7 @@ export default function NovyInzerat() {
 
     const postId = post.id;
 
-    // 2) upload fotek + záznam do marketplace_attachments
-    // (pokud upload selže, inzerát zůstane – uživatel může fotky doplnit později)
+    // Upload fotek
     for (const file of files || []) {
       try {
         const safeName = file.name.replace(/\s+/g, "_");
@@ -143,12 +140,9 @@ export default function NovyInzerat() {
           file_path: path,
           mime_type: file.type || null,
         });
-      } catch (e2) {
-        // ignorujeme, ať to nespadne celé
-      }
+      } catch (e2) {}
     }
 
-    // 3) po uložení přesměrujeme do inzerce (nebo klidně na detail, pokud ho už máš)
     router.push("/portal/inzerce");
   }
 
@@ -191,9 +185,6 @@ export default function NovyInzerat() {
                     </option>
                   ))}
                 </select>
-                <p className={helpCls()}>
-                  Typ = nabídka/poptávka/služba… (sloupec <code>kind</code>)
-                </p>
               </div>
 
               <div>
@@ -206,13 +197,11 @@ export default function NovyInzerat() {
                   list="category-list"
                 />
                 <datalist id="category-list">
-                  {categories.map((c) => (
+                  {CATEGORY_OPTIONS.map((c) => (
                     <option key={c} value={c} />
                   ))}
                 </datalist>
-                <p className={helpCls()}>
-                  Rubrika = tematické členění (sloupec <code>category</code>)
-                </p>
+                <p className={helpCls()}>Vyber z nabídky nebo napiš vlastní.</p>
               </div>
             </div>
 
