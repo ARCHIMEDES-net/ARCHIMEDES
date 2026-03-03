@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
-
-const BUCKET = "posters";
 
 function toDateTimeLocalValue(date) {
   if (!date) return "";
@@ -29,13 +28,10 @@ function normalizeAudienceGroups(val) {
   if (Array.isArray(val)) return val.filter(Boolean).map(String);
   const s = String(val).trim();
   if (!s) return [];
-  return s.split(",").map((x) => x.trim()).filter(Boolean);
-}
-
-function publicUrlFromPath(path) {
-  if (!path) return "";
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data?.publicUrl || "";
+  return s
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
 }
 
 export default function NovaUdalost() {
@@ -45,7 +41,7 @@ export default function NovaUdalost() {
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
 
-  // data
+  // form data
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [audienceGroups, setAudienceGroups] = useState([]);
@@ -56,49 +52,66 @@ export default function NovaUdalost() {
   const [startsAtLocal, setStartsAtLocal] = useState(toDateTimeLocalValue(new Date()));
   const [isPublished, setIsPublished] = useState(false);
 
-  // lookup
+  // lookups
   const [catOptions, setCatOptions] = useState([]);
   const [audOptions, setAudOptions] = useState([]);
   const [lookupErr, setLookupErr] = useState("");
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadLookups() {
       setLookupErr("");
 
-      // categories
-      const catRes = await supabase.from("categories").select("*").order("sort", { ascending: true });
-      if (!catRes.error) {
-        const opts =
-          (catRes.data || []).map((x) => ({
-            value: x.slug || x.code || x.name || x.id,
-            label: x.name || x.title || x.slug || x.code || String(x.id),
-          })) || [];
-        setCatOptions(opts);
-      }
+      const { data: catData, error: catError } = await supabase
+        .from("categories")
+        .select("*")
+        .order("sort", { ascending: true });
 
-      // audience groups
-      const audRes = await supabase.from("audience_groups").select("*").order("sort", { ascending: true });
-      if (!audRes.error) {
-        const opts =
-          (audRes.data || []).map((x) => ({
-            value: x.slug || x.code || x.name || x.id,
-            label: x.name || x.title || x.slug || x.code || String(x.id),
-          })) || [];
-        setAudOptions(opts);
-      }
+      const { data: audData, error: audError } = await supabase
+        .from("audience_groups")
+        .select("*")
+        .order("sort", { ascending: true });
 
-      // pokud obě tabulky neexistují, dáme jen info (fallback ruční režim)
-      if (catRes.error && audRes.error) {
+      if (cancelled) return;
+
+      if (catError || audError) {
+        console.error("Lookup error:", catError, audError);
         setLookupErr(
-          "Pozn.: Nepodařilo se načíst tabulky categories/audience_groups. Nevadí — lze zadat ručně, ale musí to odpovídat DB constraintům."
+          `Nepodařilo se načíst číselníky. categories: ${
+            catError?.message || "OK"
+          } | audience_groups: ${audError?.message || "OK"}`
         );
+        // necháme to v ručním režimu
+        setCatOptions([]);
+        setAudOptions([]);
+        return;
       }
+
+      // map options
+      const cats =
+        (catData || []).map((x) => ({
+          value: x.name, // ukládáme přesně name, aby seděl DB constraint
+          label: x.name,
+        })) || [];
+
+      const auds =
+        (audData || []).map((x) => ({
+          value: x.name,
+          label: x.name,
+        })) || [];
+
+      setCatOptions(cats);
+      setAudOptions(auds);
+      setLookupErr("");
     }
 
     loadLookups();
-  }, []);
 
-  const posterPreview = useMemo(() => "", []);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function createEvent() {
     setSaving(true);
@@ -106,11 +119,13 @@ export default function NovaUdalost() {
     setInfo("");
 
     const starts_at = fromDateTimeLocalValue(startsAtLocal);
+
     if (!title.trim()) {
       setErr("Vyplň prosím název události.");
       setSaving(false);
       return;
     }
+
     if (!starts_at) {
       setErr("Vyplň prosím datum a čas (starts_at).");
       setSaving(false);
@@ -118,7 +133,7 @@ export default function NovaUdalost() {
     }
 
     const aud = normalizeAudienceGroups(audienceGroups);
-    const audience_groups = aud.length ? aud : ["komunita"]; // aby prošel constraint
+    const audience_groups = aud.length ? aud : ["komunita"]; // kvůli constraintu
 
     const payload = {
       title: title.trim(),
@@ -132,7 +147,11 @@ export default function NovaUdalost() {
       is_published: !!isPublished,
     };
 
-    const { data, error } = await supabase.from("events").insert(payload).select("id").single();
+    const { data, error } = await supabase
+      .from("events")
+      .insert(payload)
+      .select("id")
+      .single();
 
     if (error) {
       setErr(error.message);
@@ -150,24 +169,27 @@ export default function NovaUdalost() {
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex items-start justify-between gap-3 flex-wrap">
-          <Link href="/portal/admin-udalosti" className="text-sm text-slate-500 hover:underline">
+          <Link
+            href="/portal/admin-udalosti"
+            className="text-sm text-slate-500 hover:underline"
+          >
             ← Zpět do Adminu událostí
           </Link>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => router.back()}
-              className="text-sm px-3 py-1 rounded-lg border border-slate-200 hover:bg-slate-50"
-            >
-              Zpět
-            </button>
-          </div>
+          <button
+            onClick={() => router.back()}
+            className="text-sm px-3 py-1 rounded-lg border border-slate-200 hover:bg-slate-50"
+          >
+            Zpět
+          </button>
         </div>
 
         <div className="mt-4 bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
           <h1 className="text-2xl font-semibold">Nová událost</h1>
 
-          {lookupErr ? <div className="mt-3 text-xs text-amber-700">{lookupErr}</div> : null}
+          {lookupErr ? (
+            <div className="mt-3 text-sm text-amber-700">{lookupErr}</div>
+          ) : null}
 
           {err ? <div className="mt-3 text-red-600">{err}</div> : null}
           {info ? <div className="mt-3 text-green-700">{info}</div> : null}
@@ -220,6 +242,7 @@ export default function NovaUdalost() {
 
             <div className="grid gap-2">
               <div className="text-sm text-slate-600">Cílovky (audience_groups)*</div>
+
               {audOptions.length ? (
                 <div className="flex flex-wrap gap-2">
                   {audOptions.map((o) => {
@@ -230,11 +253,15 @@ export default function NovaUdalost() {
                         type="button"
                         onClick={() =>
                           setAudienceGroups((prev) =>
-                            prev.includes(o.value) ? prev.filter((x) => x !== o.value) : [...prev, o.value]
+                            prev.includes(o.value)
+                              ? prev.filter((x) => x !== o.value)
+                              : [...prev, o.value]
                           )
                         }
                         className={`text-sm px-3 py-1 rounded-full border ${
-                          on ? "bg-slate-900 text-white border-slate-900" : "bg-white hover:bg-slate-50"
+                          on
+                            ? "bg-slate-900 text-white border-slate-900"
+                            : "bg-white hover:bg-slate-50"
                         }`}
                       >
                         {o.label}
@@ -250,6 +277,7 @@ export default function NovaUdalost() {
                   placeholder="např. 1. stupeň, 2. stupeň, senioři, komunita…"
                 />
               )}
+
               <div className="text-xs text-slate-500">
                 Pokud nic nevybereš, uloží se fallback <b>komunita</b> (kvůli DB constraintu).
               </div>
@@ -318,10 +346,6 @@ export default function NovaUdalost() {
                 Zpět do seznamu
               </Link>
             </div>
-
-            {posterPreview ? (
-              <div className="mt-2 text-xs text-slate-500">Pozn.: Plakát se přidává až v detailu po vytvoření.</div>
-            ) : null}
           </div>
         </div>
       </div>
