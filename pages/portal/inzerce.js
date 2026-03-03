@@ -4,96 +4,33 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
-const BUCKET = "announcements";
+const TYPE_OPTIONS = [
+  { value: "", label: "Vše" },
+  { value: "offer", label: "Nabídka" },
+  { value: "demand", label: "Poptávka" },
+  { value: "partnership", label: "Partnerství" },
+];
 
-function safeDate(value) {
-  if (!value) return null;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return null;
-  return d;
-}
+const STATUS_OPTIONS = [
+  { value: "active", label: "Aktivní" },
+  { value: "closed", label: "Uzavřené" },
+];
 
-function formatDateTimeCS(date) {
-  return date.toLocaleString("cs-CZ", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+const CATEGORY_OPTIONS = [
+  "",
+  "Vybavení školy",
+  "Učebnice a pomůcky",
+  "Technologie",
+  "Výměnné pobyty a projekty",
+  "Obec a komunita",
+  "ARCHIMEDES komponenty",
+];
 
-function publicUrlFromPath(path) {
-  if (!path) return null;
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data?.publicUrl || null;
-}
-
-function isActiveNow(row) {
-  const now = new Date();
-  const s = safeDate(row.starts_at);
-  const e = safeDate(row.ends_at);
-
-  if (row.is_published === false) return false;
-  if (s && s > now) return false;
-  if (e && e < now) return false;
-  return true;
-}
-
-// ✅ normalizace odkazu (řeší www.. bez https a mezery)
-function normalizeUrl(raw) {
-  if (!raw) return null;
-  const trimmed = String(raw).trim();
-  if (!trimmed) return null;
-
-  // pokud je to třeba "www.example.cz" nebo "example.cz"
-  if (!/^https?:\/\//i.test(trimmed)) {
-    return `https://${trimmed.replace(/^\/+/, "")}`;
-  }
-  return trimmed;
-}
-
-function Img({ url, alt }) {
-  const [failed, setFailed] = useState(false);
-
-  if (!url || failed) {
-    return (
-      <div
-        style={{
-          width: 120,
-          height: 90,
-          borderRadius: 12,
-          border: "1px dashed #d1d5db",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#6b7280",
-          fontSize: 12,
-          fontWeight: 800,
-          background: "#fff",
-        }}
-      >
-        Bez fotky
-      </div>
-    );
-  }
-
-  return (
-    <img
-      src={url}
-      alt={alt || ""}
-      style={{
-        width: 120,
-        height: 90,
-        borderRadius: 12,
-        objectFit: "cover",
-        border: "1px solid #e5e7eb",
-        background: "#f9fafb",
-        display: "block",
-      }}
-      onError={() => setFailed(true)}
-    />
-  );
+function typeLabel(t) {
+  if (t === "offer") return "NABÍDKA";
+  if (t === "demand") return "POPTÁVKA";
+  if (t === "partnership") return "PARTNERSTVÍ";
+  return t || "";
 }
 
 export default function Inzerce() {
@@ -102,209 +39,192 @@ export default function Inzerce() {
   const [err, setErr] = useState("");
 
   const [q, setQ] = useState("");
-  const [showAll, setShowAll] = useState(false); // false = jen aktivní, true = vše publikované
+  const [type, setType] = useState("");
+  const [category, setCategory] = useState("");
+  const [status, setStatus] = useState("active");
+  const [onlyArchimedes, setOnlyArchimedes] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
+  async function load() {
+    setLoading(true);
+    setErr("");
 
-    async function load() {
-      setLoading(true);
-      setErr("");
+    let query = supabase
+      .from("marketplace_posts")
+      .select("id,type,category,title,location,is_archimedes,is_pinned,status,created_at,expires_at,author_id")
+      .eq("status", status);
 
-      const { data, error } = await supabase
-        .from("announcements")
-        .select(
-          "id,title,starts_at,ends_at,url,description,is_published,created_at,image_path,image_caption,image_alt_text"
-        )
-        .order("created_at", { ascending: false });
+    if (type) query = query.eq("type", type);
+    if (category) query = query.eq("category", category);
+    if (onlyArchimedes) query = query.eq("is_archimedes", true);
 
-      if (!isMounted) return;
+    // Řazení: pinned nahoře, pak nejnovější
+    query = query.order("is_pinned", { ascending: false }).order("created_at", { ascending: false });
 
-      if (error) {
-        setErr(error.message || "Chyba načítání");
-        setRows([]);
-      } else {
-        setRows(Array.isArray(data) ? data : []);
-      }
+    const { data, error } = await query;
+
+    if (error) {
+      setErr(error.message || "Chyba při načítání inzerce.");
+      setRows([]);
       setLoading(false);
+      return;
     }
 
-    load();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const visible = useMemo(() => {
+    // jednoduché fulltext filtrování na klientovi (MVP)
     const qq = q.trim().toLowerCase();
+    const filtered = (data || []).filter((r) => {
+      if (!qq) return true;
+      return (
+        String(r.title || "").toLowerCase().includes(qq) ||
+        String(r.category || "").toLowerCase().includes(qq) ||
+        String(r.location || "").toLowerCase().includes(qq)
+      );
+    });
 
-    return rows
-      .filter((r) => r.is_published !== false)
-      .filter((r) => (showAll ? true : isActiveNow(r)))
-      .filter((r) => {
-        if (!qq) return true;
-        const text = `${r.title || ""} ${r.description || ""} ${r.image_caption || ""}`.toLowerCase();
-        return text.includes(qq);
-      });
-  }, [rows, q, showAll]);
+    setRows(filtered);
+    setLoading(false);
+  }
 
-  const card = {
-    border: "1px solid #e5e7eb",
-    borderRadius: 14,
-    padding: 14,
-    background: "#fff",
-  };
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, category, status, onlyArchimedes]);
 
-  const btnLink = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "8px 10px",
-    borderRadius: 10,
-    border: "1px solid #e5e7eb",
-    textDecoration: "none",
-    fontWeight: 900,
-    color: "#111827",
-    background: "#fff",
-  };
+  const activeCount = useMemo(() => rows.filter((r) => r.status === "active").length, [rows]);
 
   return (
     <RequireAuth>
-      <PortalHeader />
+      <PortalHeader title="Inzerce" />
 
-      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 12,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <h1 style={{ margin: "10px 0 6px" }}>Inzerce</h1>
-            <p style={{ margin: 0, color: "#374151" }}>Pozvánky, nabídky, prodej věcí, komunitní oznámení.</p>
-          </div>
+      <div style={{ padding: 16, maxWidth: 1100, margin: "0 auto" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
+          <Link href="/portal">
+            ← Zpět do portálu
+          </Link>
 
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <Link href="/portal/admin-inzerce">Admin inzerce</Link>
+          <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
+            <Link href="/portal/inzerce/novy">
+              + Nový inzerát
+            </Link>
           </div>
         </div>
 
-        <section style={{ ...card, marginTop: 14 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "end" }}>
+        <div style={{ padding: 12, border: "1px solid #e6e6e6", borderRadius: 12, marginBottom: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: 10 }}>
             <div>
-              <div style={{ fontWeight: 900, marginBottom: 6 }}>Hledat</div>
+              <div style={{ fontSize: 12, opacity: 0.7 }}>Hledat</div>
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Název nebo text…"
-                style={{ width: "100%", padding: "10px 12px", borderRadius: 12, border: "1px solid #e5e7eb" }}
+                placeholder="název, kategorie, lokalita…"
+                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd" }}
               />
+              <div style={{ marginTop: 8 }}>
+                <button
+                  onClick={load}
+                  style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid #ddd", cursor: "pointer" }}
+                >
+                  Hledat
+                </button>
+              </div>
             </div>
 
-            <label style={{ display: "flex", gap: 10, alignItems: "center", whiteSpace: "nowrap" }}>
-              <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
-              Zobrazit i neaktivní
-            </label>
+            <div>
+              <div style={{ fontSize: 12, opacity: 0.7 }}>Typ</div>
+              <select value={type} onChange={(e) => setType(e.target.value)} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd" }}>
+                {TYPE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, opacity: 0.7 }}>Kategorie</div>
+              <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd" }}>
+                {CATEGORY_OPTIONS.map((c) => (
+                  <option key={c || "all"} value={c}>{c || "Vše"}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 12, opacity: 0.7 }}>Stav</div>
+              <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd" }}>
+                {STATUS_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+
+              <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10, userSelect: "none" }}>
+                <input
+                  type="checkbox"
+                  checked={onlyArchimedes}
+                  onChange={(e) => setOnlyArchimedes(e.target.checked)}
+                />
+                Jen ARCHIMEDES
+              </label>
+            </div>
           </div>
-        </section>
+
+          <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>
+            Zobrazeno: {rows.length} (aktivní: {activeCount})
+          </div>
+        </div>
 
         {err ? (
-          <div style={{ marginTop: 12, padding: 12, border: "1px solid #fecaca", background: "#fef2f2", borderRadius: 12 }}>
-            <b>Chyba:</b> {err}
+          <div style={{ padding: 12, border: "1px solid #f3c2c2", background: "#fff4f4", borderRadius: 12, marginBottom: 12 }}>
+            Chyba: {err}
           </div>
         ) : null}
 
-        {loading ? <p style={{ marginTop: 14 }}>Načítám…</p> : null}
-
-        {!loading && !err ? (
-          <section style={{ marginTop: 14 }}>
-            {visible.length === 0 ? (
-              <div style={{ ...card, color: "#6b7280" }}>Žádná inzerce podle zvolených filtrů.</div>
+        {loading ? (
+          <div style={{ padding: 12, opacity: 0.7 }}>Načítám…</div>
+        ) : (
+          <div style={{ display: "grid", gap: 10 }}>
+            {rows.length === 0 ? (
+              <div style={{ padding: 12, opacity: 0.7 }}>Zatím tu nic není.</div>
             ) : (
-              <div style={{ display: "grid", gap: 12 }}>
-                {visible.map((r) => {
-                  const s = safeDate(r.starts_at);
-                  const e = safeDate(r.ends_at);
-                  const active = isActiveNow(r);
-                  const imgUrl = r.image_path ? publicUrlFromPath(r.image_path) : null;
+              rows.map((r) => (
+                <div key={r.id} style={{ border: "1px solid #e6e6e6", borderRadius: 14, padding: 12 }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 12, padding: "4px 8px", borderRadius: 999, border: "1px solid #ddd" }}>
+                      {typeLabel(r.type)}
+                    </span>
+                    {r.category ? (
+                      <span style={{ fontSize: 12, padding: "4px 8px", borderRadius: 999, border: "1px solid #ddd" }}>
+                        {r.category}
+                      </span>
+                    ) : null}
+                    {r.location ? (
+                      <span style={{ fontSize: 12, padding: "4px 8px", borderRadius: 999, border: "1px solid #ddd" }}>
+                        {r.location}
+                      </span>
+                    ) : null}
+                    {r.is_archimedes ? (
+                      <span style={{ fontSize: 12, padding: "4px 8px", borderRadius: 999, border: "1px solid #ddd" }}>
+                        ARCHIMEDES
+                      </span>
+                    ) : null}
+                    {r.is_pinned ? (
+                      <span style={{ fontSize: 12, padding: "4px 8px", borderRadius: 999, border: "1px solid #ddd" }}>
+                        TOP
+                      </span>
+                    ) : null}
 
-                  const normalized = normalizeUrl(r.url);
-
-                  return (
-                    <div key={r.id} style={card}>
-                      <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 12, alignItems: "start" }}>
-                        {/* ✅ Kliknutí na fotku otevře full-size */}
-                        {imgUrl ? (
-                          <a href={imgUrl} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
-                            <Img url={imgUrl} alt={r.image_alt_text || r.title || ""} />
-                          </a>
-                        ) : (
-                          <Img url={null} alt="" />
-                        )}
-
-                        <div>
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              gap: 12,
-                              flexWrap: "wrap",
-                              alignItems: "center",
-                            }}
-                          >
-                            <div style={{ fontWeight: 900, fontSize: 16 }}>{r.title}</div>
-                            <span
-                              style={{
-                                fontSize: 12,
-                                padding: "4px 8px",
-                                borderRadius: 999,
-                                border: "1px solid #e5e7eb",
-                                background: active ? "#ecfdf5" : "#f3f4f6",
-                                fontWeight: 900,
-                              }}
-                            >
-                              {active ? "aktivní" : "neaktivní"}
-                            </span>
-                          </div>
-
-                          <div style={{ marginTop: 8, color: "#374151" }}>
-                            {s ? <span>Od {formatDateTimeCS(s)}</span> : <span>Od kdykoli</span>}
-                            {e ? <span> &nbsp; • &nbsp; Do {formatDateTimeCS(e)}</span> : <span> &nbsp; • &nbsp; Bez konce</span>}
-                          </div>
-
-                          {r.image_caption ? <div style={{ marginTop: 8, color: "#374151" }}>{r.image_caption}</div> : null}
-
-                          {r.description ? (
-                            <div style={{ marginTop: 10, whiteSpace: "pre-wrap", color: "#111827" }}>{r.description}</div>
-                          ) : null}
-
-                          <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                            {normalized ? (
-                              <a href={normalized} target="_blank" rel="noreferrer" style={btnLink}>
-                                → Otevřít odkaz
-                              </a>
-                            ) : (
-                              <span style={{ color: "#6b7280", fontWeight: 800 }}>Bez odkazu</span>
-                            )}
-                          </div>
-
-                          {/* ✅ Debug info pro admin (můžeš později smazat) */}
-                          {/* <div style={{ marginTop: 8, color: "#9ca3af", fontSize: 12 }}>
-                            url raw: {String(r.url || "—")} / normalized: {String(normalized || "—")}
-                          </div> */}
-                        </div>
-                      </div>
+                    <div style={{ marginLeft: "auto" }}>
+                      <Link href={`/portal/inzerce/${r.id}`}>Detail</Link>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+
+                  <div style={{ marginTop: 8, fontSize: 16, fontWeight: 600 }}>{r.title}</div>
+                  <div style={{ marginTop: 6, fontSize: 12, opacity: 0.7 }}>
+                    Stav: {r.status === "active" ? "Aktivní" : "Uzavřené"} • Vloženo: {new Date(r.created_at).toLocaleString("cs-CZ")}
+                  </div>
+                </div>
+              ))
             )}
-          </section>
-        ) : null}
-      </main>
+          </div>
+        )}
+      </div>
     </RequireAuth>
   );
 }
