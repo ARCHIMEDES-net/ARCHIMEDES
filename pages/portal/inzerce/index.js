@@ -1,9 +1,10 @@
-// pages/portal/inzerce/index.js
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
+
+const BUCKET = "marketplace";
 
 function safeDate(value) {
   if (!value) return null;
@@ -12,8 +13,10 @@ function safeDate(value) {
   return d;
 }
 
-function formatDateTimeCS(date) {
-  return date.toLocaleString("cs-CZ", {
+function formatDateTimeCS(value) {
+  const d = safeDate(value);
+  if (!d) return "—";
+  return d.toLocaleString("cs-CZ", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -22,408 +25,429 @@ function formatDateTimeCS(date) {
   });
 }
 
-function nowIso() {
-  return new Date().toISOString();
+function publicUrlFromPath(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data?.publicUrl || null;
 }
 
-const PAGE_SIZE = 10;
+function buildFallbackPath(att) {
+  // Pokud by v DB někdy nebyl file_path, zkusíme složit:
+  // <author_id>/posts/<post_id>/<file_name>
+  if (!att?.author_id || !att?.post_id || !att?.file_name) return null;
+  return `${att.author_id}/posts/${att.post_id}/${att.file_name}`;
+}
 
-const S = {
-  page: { maxWidth: 1100, margin: "0 auto", padding: "18px 16px 28px" },
-  topRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" },
-  h1: { fontSize: 22, fontWeight: 700, margin: 0 },
-  subtleLink: { color: "#0f172a", textDecoration: "underline", fontSize: 14 },
-  btn: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "9px 12px",
-    borderRadius: 10,
-    border: "1px solid #d1d5db",
-    background: "#fff",
-    cursor: "pointer",
-    textDecoration: "none",
-    color: "#0f172a",
-    fontSize: 14,
-    fontWeight: 600,
-  },
-  btnGhost: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "9px 12px",
-    borderRadius: 10,
-    border: "1px solid #d1d5db",
-    background: "#fff",
-    cursor: "pointer",
-    color: "#0f172a",
-    fontSize: 14,
-    fontWeight: 600,
-  },
-  btnDisabled: { opacity: 0.5, cursor: "not-allowed" },
-  card: {
-    marginTop: 14,
-    border: "1px solid #e5e7eb",
-    background: "#fff",
-    borderRadius: 14,
-    padding: 14,
-    boxShadow: "0 1px 0 rgba(15,23,42,0.04)",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
-    gap: 10,
-    alignItems: "end",
-  },
-  col4: { gridColumn: "span 4 / span 4" },
-  col3: { gridColumn: "span 3 / span 3" },
-  col2: { gridColumn: "span 2 / span 2" },
-  col12: { gridColumn: "span 12 / span 12" },
-  label: { display: "block", fontSize: 13, color: "#334155", marginBottom: 6, fontWeight: 600 },
-  input: {
-    width: "100%",
-    padding: "9px 10px",
-    borderRadius: 10,
-    border: "1px solid #d1d5db",
-    fontSize: 14,
-    outline: "none",
-  },
-  select: {
-    width: "100%",
-    padding: "9px 10px",
-    borderRadius: 10,
-    border: "1px solid #d1d5db",
-    fontSize: 14,
-    background: "#fff",
-  },
-  row: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" },
-  checkboxLabel: { display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, color: "#0f172a" },
-  meta: { marginTop: 10, fontSize: 13, color: "#475569" },
-  error: {
-    marginTop: 10,
-    border: "1px solid #fecaca",
-    background: "#fef2f2",
-    color: "#991b1b",
-    borderRadius: 12,
-    padding: "10px 12px",
-    fontSize: 13,
-    whiteSpace: "pre-wrap",
-  },
-  list: { marginTop: 14, display: "grid", gap: 10 },
-  item: {
-    display: "block",
-    textDecoration: "none",
-    color: "#0f172a",
-    border: "1px solid #e5e7eb",
-    background: "#fff",
-    borderRadius: 14,
-    padding: 14,
-  },
-  itemHover: { background: "#f8fafc" },
-  badges: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" },
-  badge: {
-    fontSize: 12,
-    padding: "4px 9px",
-    borderRadius: 999,
-    border: "1px solid #d1d5db",
-    background: "#fff",
-    color: "#0f172a",
-    fontWeight: 600,
-  },
-  itemTitle: { marginTop: 8, fontSize: 18, fontWeight: 800 },
-  itemDesc: { marginTop: 6, fontSize: 14, color: "#334155" },
-  itemMeta: { marginTop: 8, fontSize: 12, color: "#64748b" },
-  pager: { marginTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 },
-};
+function Thumb({ url }) {
+  const [failed, setFailed] = useState(false);
 
-export default function InzerceIndex() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const [q, setQ] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("active");
-  const [onlyNonExpired, setOnlyNonExpired] = useState(true);
-  const [onlyArchimedes, setOnlyArchimedes] = useState(false);
-
-  const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-
-  const [rows, setRows] = useState([]);
-  const [categories, setCategories] = useState([]);
-
-  const totalPages = useMemo(() => Math.max(1, Math.ceil((totalCount || 0) / PAGE_SIZE)), [totalCount]);
-
-  async function loadCategoriesOnce() {
-    try {
-      const { data, error } = await supabase
-        .from("marketplace_posts")
-        .select("category")
-        .not("category", "is", null);
-
-      if (error) return;
-      const uniq = Array.from(new Set((data || []).map((x) => x.category).filter(Boolean)));
-      uniq.sort((a, b) => String(a).localeCompare(String(b), "cs"));
-      setCategories(uniq);
-    } catch {
-      // ignore
-    }
+  if (!url || failed) {
+    return (
+      <div
+        style={{
+          width: 120,
+          height: 90,
+          borderRadius: 14,
+          border: "1px dashed #d1d5db",
+          background: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#6b7280",
+          fontWeight: 900,
+          fontSize: 12,
+        }}
+      >
+        Bez fotky
+      </div>
+    );
   }
 
-  async function fetchRows({ resetPage = false } = {}) {
+  return (
+    <img
+      src={url}
+      alt=""
+      onError={() => setFailed(true)}
+      style={{
+        width: 120,
+        height: 90,
+        borderRadius: 14,
+        objectFit: "cover",
+        border: "1px solid #e5e7eb",
+        background: "#f9fafb",
+      }}
+    />
+  );
+}
+
+function Chip({ children }) {
+  return (
+    <span
+      style={{
+        fontSize: 12,
+        padding: "4px 10px",
+        borderRadius: 999,
+        background: "#f3f4f6",
+        border: "1px solid #e5e7eb",
+        fontWeight: 800,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+export default function InzerceIndex() {
+  const [rows, setRows] = useState([]);
+  const [thumbByPostId, setThumbByPostId] = useState({}); // post_id -> url
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  // Filtry (pokud už je máš jinde, klidně uprav)
+  const [q, setQ] = useState("");
+  const [type, setType] = useState("Vše");
+  const [category, setCategory] = useState("Vše");
+  const [status, setStatus] = useState("Aktivní");
+  const [onlyUnexpired, setOnlyUnexpired] = useState(true);
+  const [onlyArchimedes, setOnlyArchimedes] = useState(false);
+
+  // Paging
+  const PAGE_SIZE = 20;
+  const [page, setPage] = useState(1);
+
+  const filters = useMemo(
+    () => ({ q, type, category, status, onlyUnexpired, onlyArchimedes, page }),
+    [q, type, category, status, onlyUnexpired, onlyArchimedes, page]
+  );
+
+  async function load() {
     setLoading(true);
-    setError("");
+    setErr("");
 
     try {
-      const effectivePage = resetPage ? 1 : page;
-      const from = (effectivePage - 1) * PAGE_SIZE;
+      let query = supabase
+        .from("marketplace_posts")
+        .select(
+          "id,type,category,title,location,is_archimedes,is_pinned,status,created_at,expires_at,author_id"
+        )
+        .order("is_pinned", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      // Status
+      if (status && status !== "Vše") query = query.eq("status", status);
+
+      // Type
+      if (type && type !== "Vše") query = query.eq("type", type);
+
+      // Category
+      if (category && category !== "Vše") query = query.eq("category", category);
+
+      // Jen ARCHIMEDES
+      if (onlyArchimedes) query = query.eq("is_archimedes", true);
+
+      // Hledání (jednoduše přes title ilike)
+      if (q?.trim()) query = query.ilike("title", `%${q.trim()}%`);
+
+      // Jen neexpir.
+      if (onlyUnexpired) {
+        const nowIso = new Date().toISOString();
+        // Pokud expires_at je null => bereme jako neexpirující
+        // (Supabase neumí přímo OR s is null + gt bez RPC, takže to vyřešíme až v JS filtrem)
+        // => tady jen přitáhneme data, níže odfiltrujeme.
+      }
+
+      // paging
+      const from = (page - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
+      query = query.range(from, to);
 
-      let query = supabase.from("marketplace_posts").select("*", { count: "exact" });
+      const { data, error } = await query;
+      if (error) throw error;
 
-      // fulltext
-      if (q && q.trim().length > 0) {
-        query = query.textSearch("search_tsv", q.trim(), {
-          type: "websearch",
-          config: "simple",
+      let list = data || [];
+
+      // dofiltrujeme neexpirující/expirující v JS (kvůli NULL)
+      if (onlyUnexpired) {
+        const now = new Date();
+        list = list.filter((r) => {
+          if (!r.expires_at) return true;
+          const ex = new Date(r.expires_at);
+          if (Number.isNaN(ex.getTime())) return true;
+          return ex >= now;
         });
       }
 
-      if (typeFilter !== "all") query = query.eq("post_type", typeFilter);
-      if (categoryFilter !== "all") query = query.eq("category", categoryFilter);
-      if (onlyArchimedes) query = query.eq("is_archimedes", true);
+      setRows(list);
 
-      const now = nowIso();
-
-      if (onlyNonExpired) {
-        query = query.or(`expires_at.is.null,expires_at.gt.${now}`);
+      // --- Načti fotky pro aktuální stránku (nejnovější obrázek per post)
+      const ids = list.map((r) => r.id).filter(Boolean);
+      if (ids.length === 0) {
+        setThumbByPostId({});
+        setLoading(false);
+        return;
       }
 
-      if (statusFilter === "active") {
-        query = query.eq("is_closed", false);
-        query = query.or(`expires_at.is.null,expires_at.gt.${now}`);
-      } else if (statusFilter === "closed") {
-        query = query.eq("is_closed", true);
-      } else if (statusFilter === "expired") {
-        query = query.not("expires_at", "is", null).lte("expires_at", now);
-      }
+      const { data: att, error: attErr } = await supabase
+        .from("marketplace_attachments")
+        .select("id,post_id,author_id,file_path,file_name,is_image,created_at")
+        .in("post_id", ids)
+        .eq("is_image", true)
+        .order("created_at", { ascending: false });
 
-      query = query.order("created_at", { ascending: false }).range(from, to);
+      if (attErr) throw attErr;
 
-      const { data, error, count } = await query;
-      if (error) throw error;
+      // vytvoříme mapu: první (nejnovější) image pro každý post_id
+      const map = {};
+      (att || []).forEach((a) => {
+        if (!a?.post_id) return;
+        if (map[a.post_id]) return; // už máme nejnovější
+        const path = a.file_path || buildFallbackPath(a);
+        const url = publicUrlFromPath(path);
+        if (url) map[a.post_id] = url;
+      });
 
-      setRows(data || []);
-      setTotalCount(count || 0);
-      if (resetPage) setPage(1);
+      setThumbByPostId(map);
+      setLoading(false);
     } catch (e) {
+      setErr(e?.message || String(e));
       setRows([]);
-      setTotalCount(0);
-      setError(e?.message || "Chyba při načítání inzerce.");
-    } finally {
+      setThumbByPostId({});
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchRows({ resetPage: true });
-    loadCategoriesOnce();
+    load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [filters.q, filters.type, filters.category, filters.status, filters.onlyUnexpired, filters.onlyArchimedes, filters.page]);
 
-  function onSubmitSearch(e) {
-    e.preventDefault();
-    fetchRows({ resetPage: true });
-  }
-
-  function onReset() {
+  function resetFilters() {
     setQ("");
-    setTypeFilter("all");
-    setCategoryFilter("all");
-    setStatusFilter("active");
-    setOnlyNonExpired(true);
+    setType("Vše");
+    setCategory("Vše");
+    setStatus("Aktivní");
+    setOnlyUnexpired(true);
     setOnlyArchimedes(false);
     setPage(1);
-    setTimeout(() => fetchRows({ resetPage: true }), 0);
   }
 
-  function goPrev() {
-    const next = Math.max(1, page - 1);
-    setPage(next);
-    setTimeout(() => fetchRows(), 0);
-  }
+  const card = {
+    border: "1px solid #e5e7eb",
+    borderRadius: 16,
+    padding: 14,
+    background: "#fff",
+  };
 
-  function goNext() {
-    const next = Math.min(totalPages, page + 1);
-    setPage(next);
-    setTimeout(() => fetchRows(), 0);
-  }
+  const input = {
+    padding: "10px 12px",
+    borderRadius: 12,
+    border: "1px solid #e5e7eb",
+  };
 
   return (
     <RequireAuth>
       <PortalHeader />
 
-      <div style={S.page}>
-        <div style={S.topRow}>
-          <h1 style={S.h1}>Inzerce</h1>
-          <Link href="/portal/inzerce/novy" style={S.btn}>
-            <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
-            Nový inzerát
-          </Link>
+      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <div>
+            <h1 style={{ margin: "10px 0 6px" }}>Inzerce</h1>
+            <div style={{ color: "#374151" }}>Nabídky a poptávky v rámci komunity ARCHIMEDES.</div>
+          </div>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Link href="/portal/inzerce/novy">+ Nový inzerát</Link>
+            <button
+              onClick={load}
+              style={{
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: "1px solid #e5e7eb",
+                background: "#fff",
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+            >
+              Obnovit
+            </button>
+          </div>
         </div>
 
-        <div style={S.card}>
-          <Link href="/portal" style={S.subtleLink}>
-            ← Zpět do portálu
-          </Link>
+        {err ? (
+          <div style={{ marginTop: 12, padding: 12, borderRadius: 12, border: "1px solid #fecaca", background: "#fef2f2" }}>
+            <b>Chyba:</b> {err}
+          </div>
+        ) : null}
 
-          <form onSubmit={onSubmitSearch} style={{ marginTop: 12 }}>
-            <div style={S.grid}>
-              <div style={S.col4}>
-                <label style={S.label}>Vyhledávání</label>
-                <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="např. židle, zidle, dřevěné..."
-                  style={S.input}
-                />
-              </div>
-
-              <div style={S.col2}>
-                <label style={S.label}>Typ</label>
-                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} style={S.select}>
-                  <option value="all">Vše</option>
-                  <option value="POPTAVKA">Poptávka</option>
-                  <option value="NABIDKA">Nabídka</option>
-                  <option value="SPOLUPRACE">Spolupráce</option>
-                </select>
-              </div>
-
-              <div style={S.col3}>
-                <label style={S.label}>Kategorie</label>
-                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} style={S.select}>
-                  <option value="all">Vše</option>
-                  {categories.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={S.col3}>
-                <label style={S.label}>Stav</label>
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={S.select}>
-                  <option value="active">Aktivní</option>
-                  <option value="closed">Uzavřené</option>
-                  <option value="expired">Expirované</option>
-                  <option value="all">Vše</option>
-                </select>
-              </div>
-
-              <div style={S.col12}>
-                <div style={S.row}>
-                  <button type="submit" style={{ ...S.btnGhost, ...(loading ? S.btnDisabled : {}) }} disabled={loading}>
-                    Hledat
-                  </button>
-                  <button type="button" style={{ ...S.btnGhost, ...(loading ? S.btnDisabled : {}) }} onClick={onReset} disabled={loading}>
-                    Reset
-                  </button>
-
-                  <label style={S.checkboxLabel}>
-                    <input type="checkbox" checked={onlyNonExpired} onChange={(e) => setOnlyNonExpired(e.target.checked)} />
-                    Jen neexpir.
-                  </label>
-
-                  <label style={S.checkboxLabel}>
-                    <input type="checkbox" checked={onlyArchimedes} onChange={(e) => setOnlyArchimedes(e.target.checked)} />
-                    Jen ARCHIMEDES
-                  </label>
-
-                  <button
-                    type="button"
-                    style={{ ...S.btnGhost, marginLeft: "auto", ...(loading ? S.btnDisabled : {}) }}
-                    onClick={() => fetchRows({ resetPage: true })}
-                    disabled={loading}
-                    title="Obnovit seznam"
-                  >
-                    Obnovit
-                  </button>
-                </div>
-
-                <div style={S.meta}>
-                  Zobrazeno: <b>{rows.length}</b> / <b>{totalCount}</b> • stránka: <b>{page}</b> / <b>{totalPages}</b>
-                </div>
-
-                {error ? <div style={S.error}>Chyba: {error}</div> : null}
-              </div>
+        {/* FILTRY */}
+        <section style={{ ...card, marginTop: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.7fr 1fr 0.8fr", gap: 12, alignItems: "end" }}>
+            <div>
+              <div style={{ fontWeight: 900, marginBottom: 6 }}>Vyhledávání</div>
+              <input style={{ ...input, width: "100%" }} value={q} onChange={(e) => setQ(e.target.value)} placeholder="např. židle, stůl…" />
             </div>
-          </form>
-        </div>
 
-        <div style={S.list}>
+            <div>
+              <div style={{ fontWeight: 900, marginBottom: 6 }}>Typ</div>
+              <select style={{ ...input, width: "100%" }} value={type} onChange={(e) => { setType(e.target.value); setPage(1); }}>
+                <option>Vše</option>
+                <option>NABÍDKA</option>
+                <option>POPTÁVKA</option>
+              </select>
+            </div>
+
+            <div>
+              <div style={{ fontWeight: 900, marginBottom: 6 }}>Kategorie</div>
+              <select style={{ ...input, width: "100%" }} value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }}>
+                <option>Vše</option>
+                {/* nechávám volné – kategorie bereš z DB, nebo doplň staticky */}
+              </select>
+            </div>
+
+            <div>
+              <div style={{ fontWeight: 900, marginBottom: 6 }}>Stav</div>
+              <select style={{ ...input, width: "100%" }} value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
+                <option>Aktivní</option>
+                <option>Vše</option>
+                <option>Uzavřeno</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", marginTop: 12 }}>
+            <button
+              onClick={load}
+              style={{
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: "1px solid #111827",
+                background: "#111827",
+                color: "#fff",
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+            >
+              Hledat
+            </button>
+
+            <button
+              onClick={resetFilters}
+              style={{
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: "1px solid #e5e7eb",
+                background: "#fff",
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+            >
+              Reset
+            </button>
+
+            <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 800 }}>
+              <input type="checkbox" checked={onlyUnexpired} onChange={(e) => { setOnlyUnexpired(e.target.checked); setPage(1); }} />
+              Jen neexpir.
+            </label>
+
+            <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 800 }}>
+              <input type="checkbox" checked={onlyArchimedes} onChange={(e) => { setOnlyArchimedes(e.target.checked); setPage(1); }} />
+              Jen ARCHIMEDES
+            </label>
+
+            <div style={{ marginLeft: "auto", color: "#6b7280", fontWeight: 800 }}>
+              Zobrazeno: {rows.length} • stránka: {page}
+            </div>
+          </div>
+        </section>
+
+        {/* LIST */}
+        <section style={{ marginTop: 14 }}>
           {loading ? (
-            <div style={{ fontSize: 14, color: "#475569" }}>Načítám…</div>
+            <div style={{ padding: 12, opacity: 0.7 }}>Načítám…</div>
           ) : rows.length === 0 ? (
-            <div style={{ fontSize: 14, color: "#475569" }}>Zatím tu nic není.</div>
+            <div style={{ padding: 12, opacity: 0.8 }}>Zatím tu nic není.</div>
           ) : (
-            rows.map((r) => {
-              const created = safeDate(r.created_at);
-              const expires = safeDate(r.expires_at);
-              const expired = expires ? expires.getTime() <= Date.now() : false;
-
-              const badgeType = r.post_type === "POPTAVKA" ? "POPTÁVKA" : r.post_type === "NABIDKA" ? "NABÍDKA" : r.post_type || "—";
-              const stateLabel = r.is_closed ? "Uzavřené" : expired ? "Expirované" : "Aktivní";
-
-              return (
-                <Link
+            <div style={{ display: "grid", gap: 12 }}>
+              {rows.map((r) => (
+                <div
                   key={r.id}
-                  href={`/portal/inzerce/${r.id}`}
-                  style={S.item}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = S.itemHover.background)}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "#fff")}
+                  style={{
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 16,
+                    padding: 14,
+                    background: "#fff",
+                    display: "grid",
+                    gridTemplateColumns: "120px 1fr",
+                    gap: 14,
+                    alignItems: "start",
+                  }}
                 >
-                  <div style={S.badges}>
-                    <span style={S.badge}>{badgeType}</span>
-                    {r.category ? <span style={S.badge}>{r.category}</span> : null}
-                    {r.is_archimedes ? <span style={S.badge}>ARCHIMEDES</span> : null}
-                    {r.location ? <span style={S.badge}>{r.location}</span> : null}
-                    <span style={{ marginLeft: "auto", fontSize: 12, color: "#64748b" }}>Stav: {stateLabel}</span>
+                  <Thumb url={thumbByPostId[r.id]} />
+
+                  <div>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                      <Chip>{r.type || "—"}</Chip>
+                      {r.category ? <Chip>{r.category}</Chip> : null}
+                      {r.location ? <Chip>{String(r.location).toLowerCase()}</Chip> : null}
+                      {r.is_archimedes ? <Chip>ARCHIMEDES</Chip> : null}
+                      {r.is_pinned ? <Chip>TOP</Chip> : null}
+
+                      <div style={{ marginLeft: "auto", color: "#6b7280", fontWeight: 800 }}>
+                        Stav: {r.status || "—"}
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: 10 }}>
+                      <Link href={`/portal/inzerce/${r.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                        <div style={{ fontWeight: 1000, fontSize: 18 }}>{r.title}</div>
+                      </Link>
+                    </div>
+
+                    <div style={{ marginTop: 8, color: "#6b7280", fontWeight: 700, fontSize: 13 }}>
+                      Vloženo: {formatDateTimeCS(r.created_at)}
+                      {r.expires_at ? ` • Expirace: ${formatDateTimeCS(r.expires_at)}` : ""}
+                    </div>
                   </div>
-
-                  <div style={S.itemTitle}>{r.title || "Bez názvu"}</div>
-
-                  {r.description ? <div style={S.itemDesc}>{String(r.description).slice(0, 220)}{String(r.description).length > 220 ? "…" : ""}</div> : null}
-
-                  <div style={S.itemMeta}>
-                    {created ? <>Vloženo: {formatDateTimeCS(created)}</> : null}
-                    {expires ? <> • Expirace: {formatDateTimeCS(expires)}</> : null}
-                  </div>
-                </Link>
-              );
-            })
+                </div>
+              ))}
+            </div>
           )}
-        </div>
+        </section>
 
-        <div style={S.pager}>
+        {/* PAGING */}
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginTop: 14 }}>
           <button
-            style={{ ...S.btnGhost, ...(loading || page <= 1 ? S.btnDisabled : {}) }}
-            onClick={goPrev}
-            disabled={loading || page <= 1}
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            style={{
+              padding: "10px 12px",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb",
+              background: page <= 1 ? "#f9fafb" : "#fff",
+              fontWeight: 900,
+              cursor: page <= 1 ? "not-allowed" : "pointer",
+              opacity: page <= 1 ? 0.6 : 1,
+            }}
           >
             ← Předchozí
           </button>
 
           <button
-            style={{ ...S.btnGhost, ...(loading || page >= totalPages ? S.btnDisabled : {}) }}
-            onClick={goNext}
-            disabled={loading || page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+            style={{
+              padding: "10px 12px",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb",
+              background: "#fff",
+              fontWeight: 900,
+              cursor: "pointer",
+            }}
           >
             Další →
           </button>
         </div>
-      </div>
+      </main>
     </RequireAuth>
   );
 }
