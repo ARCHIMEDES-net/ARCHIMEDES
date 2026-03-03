@@ -1,10 +1,11 @@
-
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
+
+const BUCKET = "posters";
 
 function toDateTimeLocalValue(date) {
   if (!date) return "";
@@ -34,6 +35,25 @@ function normalizeAudienceGroups(val) {
     .filter(Boolean);
 }
 
+function publicUrlFromPath(path) {
+  if (!path) return "";
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data?.publicUrl || "";
+}
+
+function safeFileName(name) {
+  return String(name || "poster")
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9.\-_]/g, "");
+}
+
+function makeId() {
+  // browser uuid
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 export default function NovaUdalost() {
   const router = useRouter();
 
@@ -51,6 +71,10 @@ export default function NovaUdalost() {
   const [worksheetUrl, setWorksheetUrl] = useState("");
   const [startsAtLocal, setStartsAtLocal] = useState(toDateTimeLocalValue(new Date()));
   const [isPublished, setIsPublished] = useState(false);
+
+  // poster upload
+  const [posterFile, setPosterFile] = useState(null);
+  const [posterPreview, setPosterPreview] = useState("");
 
   // lookups
   const [catOptions, setCatOptions] = useState([]);
@@ -82,36 +106,44 @@ export default function NovaUdalost() {
             catError?.message || "OK"
           } | audience_groups: ${audError?.message || "OK"}`
         );
-        // necháme to v ručním režimu
         setCatOptions([]);
         setAudOptions([]);
         return;
       }
 
-      // map options
-      const cats =
-        (catData || []).map((x) => ({
-          value: x.name, // ukládáme přesně name, aby seděl DB constraint
-          label: x.name,
-        })) || [];
-
-      const auds =
-        (audData || []).map((x) => ({
-          value: x.name,
-          label: x.name,
-        })) || [];
-
-      setCatOptions(cats);
-      setAudOptions(auds);
+      setCatOptions(
+        (catData || []).map((x) => ({ value: x.name, label: x.name }))
+      );
+      setAudOptions(
+        (audData || []).map((x) => ({ value: x.name, label: x.name }))
+      );
       setLookupErr("");
     }
 
     loadLookups();
-
     return () => {
       cancelled = true;
     };
   }, []);
+
+  async function uploadPosterIfAny() {
+    if (!posterFile) return null;
+
+    const ext = posterFile.name?.split(".").pop() || "png";
+    const key = `${makeId()}-${safeFileName(posterFile.name || "poster")}`;
+    const path = `events/${key}`;
+
+    const { error: upErr } = await supabase.storage
+      .from(BUCKET)
+      .upload(path, posterFile, {
+        cacheControl: "3600",
+        upsert: true,
+        contentType: posterFile.type || undefined,
+      });
+
+    if (upErr) throw upErr;
+    return path;
+  }
 
   async function createEvent() {
     setSaving(true);
@@ -135,6 +167,15 @@ export default function NovaUdalost() {
     const aud = normalizeAudienceGroups(audienceGroups);
     const audience_groups = aud.length ? aud : ["komunita"]; // kvůli constraintu
 
+    let poster_path = null;
+    try {
+      poster_path = await uploadPosterIfAny();
+    } catch (e) {
+      setErr(`Nepodařilo se nahrát plakát: ${e?.message || String(e)}`);
+      setSaving(false);
+      return;
+    }
+
     const payload = {
       title: title.trim(),
       category: category || null,
@@ -145,6 +186,7 @@ export default function NovaUdalost() {
       worksheet_url: worksheetUrl || "",
       starts_at,
       is_published: !!isPublished,
+      poster_path: poster_path,
     };
 
     const { data, error } = await supabase
@@ -195,6 +237,34 @@ export default function NovaUdalost() {
           {info ? <div className="mt-3 text-green-700">{info}</div> : null}
 
           <div className="mt-5 grid grid-cols-1 gap-4">
+            {/* PLAKÁT */}
+            <div className="grid gap-2">
+              <div className="text-sm text-slate-600">Plakát (poster)</div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] || null;
+                  setPosterFile(f);
+                  if (f) {
+                    const url = URL.createObjectURL(f);
+                    setPosterPreview(url);
+                  } else {
+                    setPosterPreview("");
+                  }
+                }}
+              />
+              {posterPreview ? (
+                <div className="border border-slate-200 rounded-2xl overflow-hidden max-w-xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={posterPreview} alt="Náhled plakátu" className="w-full h-auto" />
+                </div>
+              ) : null}
+              <div className="text-xs text-slate-500">
+                Ukládá se do Supabase Storage bucketu <b>{BUCKET}</b> a do DB jako <b>poster_path</b>.
+              </div>
+            </div>
+
             <label className="grid gap-1">
               <span className="text-sm text-slate-600">Název události*</span>
               <input
