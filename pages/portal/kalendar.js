@@ -4,7 +4,7 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
-const BUCKET = "events";  pokud máš jinak, změň jen toto
+const BUCKET = "events";  
 
 function safeDate(value) {
   if (!value) return null;
