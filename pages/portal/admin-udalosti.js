@@ -3,18 +3,9 @@ import RequireAuth from "../../components/RequireAuth";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
 
-const AUDIENCE_OPTIONS = [
-  "1. stupeň",
-  "2. stupeň",
-  "Deváťáci",
-  "Rodiče",
-  "Učitelé",
-  "Senioři",
-  "Komunita",
-];
+const AUDIENCE_OPTIONS = ["1. stupeň", "2. stupeň", "Deváťáci", "Rodiče", "Učitelé", "Senioři", "Komunita"];
 
 const CATEGORY_OPTIONS = [
-  // Školní program
   "Vstup expertů – 1. stupeň",
   "Vstup expertů – 2. stupeň",
   "Kariérní poradenství jinak",
@@ -22,13 +13,9 @@ const CATEGORY_OPTIONS = [
   "Generace Z",
   "13. komnata VIP",
   "English Talk",
-
-  // Komunitní program
   "Senior klub",
   "Čtenářský klub – děti",
   "Čtenářský klub – dospělí",
-
-  // Obecné rubriky
   "Speciál",
   "Wellbeing",
   "Filmový klub",
@@ -53,7 +40,6 @@ function toDatetimeLocalFromIso(iso) {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  // yyyy-MM-ddTHH:mm v lokálním čase
   const pad = (n) => String(n).padStart(2, "0");
   const yyyy = d.getFullYear();
   const mm = pad(d.getMonth() + 1);
@@ -61,6 +47,13 @@ function toDatetimeLocalFromIso(iso) {
   const hh = pad(d.getHours());
   const mi = pad(d.getMinutes());
   return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+}
+
+function formatDateTimeCS(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString("cs-CZ", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function PosterThumb({ title, url, caption }) {
@@ -85,7 +78,7 @@ function PosterThumb({ title, url, caption }) {
         }}
         title={caption || title || ""}
       >
-        {title || "Plakát"}
+        Bez plakátu
       </div>
     );
   }
@@ -109,51 +102,36 @@ function PosterThumb({ title, url, caption }) {
 
 export default function AdminUdalosti() {
   const [events, setEvents] = useState([]);
-
-  // edit mode
   const [editingId, setEditingId] = useState(null);
 
-  // form
   const [title, setTitle] = useState("");
-  const [startAtLocal, setStartAtLocal] = useState(""); // datetime-local
+  const [startAtLocal, setStartAtLocal] = useState("");
   const [description, setDescription] = useState("");
   const [streamUrl, setStreamUrl] = useState("");
   const [worksheetUrl, setWorksheetUrl] = useState("");
   const [category, setCategory] = useState("Speciál");
   const [audienceGroups, setAudienceGroups] = useState([]);
+  const [isPublished, setIsPublished] = useState(true);
 
-  // poster
   const [posterFile, setPosterFile] = useState(null);
   const [posterCaption, setPosterCaption] = useState("");
   const [posterAltText, setPosterAltText] = useState("");
 
-  // keep current poster when editing (if user doesn’t upload new)
   const [currentPosterPath, setCurrentPosterPath] = useState(null);
   const [currentPosterUrl, setCurrentPosterUrl] = useState(null);
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const normalizedAudienceGroups = useMemo(
-    () => normalizeAudienceGroups(audienceGroups),
-    [audienceGroups]
-  );
+  const normalizedAudienceGroups = useMemo(() => normalizeAudienceGroups(audienceGroups), [audienceGroups]);
 
   async function loadEvents() {
-    const { data, error } = await supabase
-      .from("events")
-      .select("*")
-      // ✅ admin: nejnovější nahoře
-      .order("starts_at", { ascending: false });
-
+    const { data, error } = await supabase.from("events").select("*").order("starts_at", { ascending: false });
     if (error) return;
 
-    // ✅ vždy dopočítat poster_url z poster_path (bucket je public)
     const rows = (data || []).map((e) => {
       if (e?.poster_path) {
-        const { data: pub } = supabase.storage
-          .from("posters")
-          .getPublicUrl(e.poster_path);
+        const { data: pub } = supabase.storage.from("posters").getPublicUrl(e.poster_path);
         const fixedUrl = pub?.publicUrl || null;
         return { ...e, poster_url: fixedUrl || e.poster_url };
       }
@@ -168,15 +146,11 @@ export default function AdminUdalosti() {
   }, []);
 
   function toggleAudience(value) {
-    setAudienceGroups((prev) => {
-      if (prev.includes(value)) return prev.filter((a) => a !== value);
-      return [...prev, value];
-    });
+    setAudienceGroups((prev) => (prev.includes(value) ? prev.filter((a) => a !== value) : [...prev, value]));
   }
 
   function resetForm() {
     setEditingId(null);
-
     setTitle("");
     setStartAtLocal("");
     setDescription("");
@@ -184,6 +158,7 @@ export default function AdminUdalosti() {
     setWorksheetUrl("");
     setCategory("Speciál");
     setAudienceGroups([]);
+    setIsPublished(true);
 
     setPosterFile(null);
     setPosterCaption("");
@@ -198,12 +173,13 @@ export default function AdminUdalosti() {
     setEditingId(e.id);
 
     setTitle(e.title || "");
-    setStartAtLocal(toDatetimeLocalFromIso(e.starts_at || e.start_at || ""));
+    setStartAtLocal(toDatetimeLocalFromIso(e.starts_at || ""));
     setDescription(e.full_description || "");
     setStreamUrl(e.stream_url || "");
     setWorksheetUrl(e.worksheet_url || "");
     setCategory(e.category || "Speciál");
     setAudienceGroups(Array.isArray(e.audience_groups) ? e.audience_groups : []);
+    setIsPublished(e.is_published !== false);
 
     setPosterFile(null);
     setPosterCaption(e.poster_caption || "");
@@ -212,24 +188,17 @@ export default function AdminUdalosti() {
     setCurrentPosterPath(e.poster_path || null);
     setCurrentPosterUrl(e.poster_url || null);
 
-    // scroll nahoru na formulář
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function uploadPosterIfAny() {
-    if (!posterFile) {
-      // pokud se neupravuje plakát, vracíme původní (může být null)
-      return { poster_path: currentPosterPath, poster_url: currentPosterUrl };
-    }
+    if (!posterFile) return { poster_path: currentPosterPath, poster_url: currentPosterUrl };
 
     const bucket = "posters";
     const safeName = posterFile.name.replace(/[^\w.\-]+/g, "_");
     const path = `events/${Date.now()}-${safeName}`;
 
-    const { error: upErr } = await supabase.storage
-      .from(bucket)
-      .upload(path, posterFile, { upsert: true });
-
+    const { error: upErr } = await supabase.storage.from(bucket).upload(path, posterFile, { upsert: true });
     if (upErr) throw upErr;
 
     const { data: pub } = supabase.storage.from(bucket).getPublicUrl(path);
@@ -241,39 +210,22 @@ export default function AdminUdalosti() {
   async function saveEvent() {
     setError("");
 
-    if (!title.trim()) {
-      setError("Chybí název");
-      return;
-    }
-
-    if (!startAtLocal) {
-      setError("Chybí datum a čas");
-      return;
-    }
+    if (!title.trim()) return setError("Chybí název");
+    if (!startAtLocal) return setError("Chybí datum a čas");
 
     const startsAtIso = toIsoFromDatetimeLocal(startAtLocal);
-    if (!startsAtIso) {
-      setError("Neplatné datum a čas");
-      return;
-    }
+    if (!startsAtIso) return setError("Neplatné datum a čas");
 
-    if (normalizedAudienceGroups.length === 0) {
-      setError("Vyber alespoň jednu cílovou skupinu");
-      return;
-    }
+    if (normalizedAudienceGroups.length === 0) return setError("Vyber alespoň jednu cílovou skupinu");
 
     setLoading(true);
 
     try {
       const { poster_path, poster_url } = await uploadPosterIfAny();
-      const audienceText = normalizedAudienceGroups.join(", ");
 
       const payload = {
         title: title.trim(),
-
-        // ✅ kompatibilita
         starts_at: startsAtIso,
-        start_at: startsAtIso,
 
         full_description: description || null,
         stream_url: streamUrl || null,
@@ -281,10 +233,11 @@ export default function AdminUdalosti() {
 
         category: category || null,
         audience_groups: normalizedAudienceGroups,
-        audience: audienceText,
 
-        // default true (můžeme později přidat přepínač)
-        is_published: true,
+        // legacy kompatibilita: ukládej jako array (ne string)
+        audience: normalizedAudienceGroups,
+
+        is_published: !!isPublished,
 
         poster_path: poster_path || null,
         poster_url: poster_url || null,
@@ -293,10 +246,7 @@ export default function AdminUdalosti() {
       };
 
       if (editingId) {
-        const { error: updErr } = await supabase
-          .from("events")
-          .update(payload)
-          .eq("id", editingId);
+        const { error: updErr } = await supabase.from("events").update(payload).eq("id", editingId);
         if (updErr) throw updErr;
       } else {
         const { error: insErr } = await supabase.from("events").insert([payload]);
@@ -333,87 +283,30 @@ export default function AdminUdalosti() {
 
   const styles = {
     page: { padding: 24, background: "#f6f7fb", minHeight: "100vh" },
-    container: {
-      maxWidth: 980,
-      margin: "0 auto",
-      background: "white",
-      borderRadius: 12,
-      padding: 24,
-      boxShadow: "0 6px 24px rgba(0,0,0,0.08)",
-    },
-    topbar: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 12,
-    },
+    container: { maxWidth: 980, margin: "0 auto", background: "white", borderRadius: 12, padding: 24, boxShadow: "0 6px 24px rgba(0,0,0,0.08)" },
+    topbar: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" },
     h1: { margin: 0, fontSize: 28 },
     link: { textDecoration: "underline" },
-    error: {
-      marginTop: 12,
-      padding: 12,
-      borderRadius: 10,
-      background: "#ffecec",
-      color: "#b00020",
-      border: "1px solid #ffb3b3",
-    },
-    grid: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 16,
-      marginTop: 16,
-    },
+    error: { marginTop: 12, padding: 12, borderRadius: 10, background: "#ffecec", color: "#b00020", border: "1px solid #ffb3b3" },
+    grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 16 },
     field: { display: "flex", flexDirection: "column", gap: 6 },
     label: { fontWeight: 600 },
     input: { padding: "10px 12px", borderRadius: 10, border: "1px solid #d6d9e0" },
     textarea: { padding: "10px 12px", borderRadius: 10, border: "1px solid #d6d9e0" },
     select: { padding: "10px 12px", borderRadius: 10, border: "1px solid #d6d9e0" },
     sectionTitle: { marginTop: 18, marginBottom: 6, fontSize: 18 },
-    audienceBox: {
-      border: "1px solid #d6d9e0",
-      borderRadius: 10,
-      padding: 12,
-      background: "#fafbff",
-    },
+    audienceBox: { border: "1px solid #d6d9e0", borderRadius: 10, padding: 12, background: "#fafbff" },
     audienceGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 },
     buttonRow: { marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" },
-    button: {
-      padding: "12px 14px",
-      borderRadius: 12,
-      border: "none",
-      cursor: "pointer",
-      fontWeight: 700,
-    },
+    button: { padding: "12px 14px", borderRadius: 12, border: "none", cursor: "pointer", fontWeight: 700 },
     list: { marginTop: 18, display: "grid", gap: 12 },
-    card: {
-      border: "1px solid #e3e6ee",
-      borderRadius: 12,
-      padding: 14,
-      background: "white",
-      display: "grid",
-      gridTemplateColumns: "120px 1fr",
-      gap: 14,
-      alignItems: "start",
-    },
+    card: { border: "1px solid #e3e6ee", borderRadius: 12, padding: 14, background: "white", display: "grid", gridTemplateColumns: "120px 1fr", gap: 14, alignItems: "start" },
     meta: { display: "grid", gap: 6 },
     badgeRow: { display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 },
-    badge: {
-      fontSize: 12,
-      padding: "4px 8px",
-      borderRadius: 999,
-      background: "#eef2ff",
-      border: "1px solid #d9e0ff",
-    },
+    badge: { fontSize: 12, padding: "4px 8px", borderRadius: 999, background: "#eef2ff", border: "1px solid #d9e0ff" },
     smallLinks: { marginTop: 6, display: "flex", gap: 10, flexWrap: "wrap" },
     actions: { marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" },
-    actionBtn: {
-      padding: "8px 10px",
-      borderRadius: 10,
-      border: "1px solid #d6d9e0",
-      background: "white",
-      cursor: "pointer",
-      fontWeight: 700,
-    },
+    actionBtn: { padding: "8px 10px", borderRadius: 10, border: "1px solid #d6d9e0", background: "white", cursor: "pointer", fontWeight: 700 },
   };
 
   return (
@@ -422,101 +315,69 @@ export default function AdminUdalosti() {
         <div style={styles.container}>
           <div style={styles.topbar}>
             <h1 style={styles.h1}>Admin – události</h1>
-            <Link href="/portal" style={styles.link}>
-              ← Zpět do portálu
-            </Link>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <Link href="/portal" style={styles.link}>← Zpět do portálu</Link>
+              <Link href="/portal/kalendar" style={styles.link}>Program</Link>
+            </div>
           </div>
 
           {error && <div style={styles.error}>Chyba: {error}</div>}
 
-          <h2 style={{ marginTop: 18 }}>
-            {editingId ? "Upravit událost" : "Nová událost"}
-          </h2>
+          <h2 style={{ marginTop: 18 }}>{editingId ? "Upravit událost" : "Nová událost"}</h2>
 
           <div style={styles.grid}>
             <div style={styles.field}>
               <div style={styles.label}>Název události*</div>
-              <input
-                style={styles.input}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
+              <input style={styles.input} value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
 
             <div style={styles.field}>
               <div style={styles.label}>Datum a čas (start)</div>
-              <input
-                style={styles.input}
-                type="datetime-local"
-                value={startAtLocal}
-                onChange={(e) => setStartAtLocal(e.target.value)}
-              />
+              <input style={styles.input} type="datetime-local" value={startAtLocal} onChange={(e) => setStartAtLocal(e.target.value)} />
             </div>
 
             <div style={styles.field}>
               <div style={styles.label}>Rubrika</div>
-              <select
-                style={styles.select}
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
+              <select style={styles.select} value={category} onChange={(e) => setCategory(e.target.value)}>
                 {CATEGORY_OPTIONS.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
+                  <option key={c} value={c}>{c}</option>
                 ))}
               </select>
             </div>
 
             <div style={styles.field}>
+              <div style={styles.label}>Publikovat</div>
+              <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} />
+                {isPublished ? "Ano (zobrazí se v programu)" : "Ne (skryto)"}
+              </label>
+            </div>
+
+            <div style={styles.field}>
               <div style={styles.label}>Odkaz na vysílání</div>
-              <input
-                style={styles.input}
-                value={streamUrl}
-                onChange={(e) => setStreamUrl(e.target.value)}
-                placeholder="https://…"
-              />
+              <input style={styles.input} value={streamUrl} onChange={(e) => setStreamUrl(e.target.value)} placeholder="https://…" />
             </div>
 
             <div style={styles.field}>
               <div style={styles.label}>Pracovní list</div>
-              <input
-                style={styles.input}
-                value={worksheetUrl}
-                onChange={(e) => setWorksheetUrl(e.target.value)}
-                placeholder="https://…"
-              />
+              <input style={styles.input} value={worksheetUrl} onChange={(e) => setWorksheetUrl(e.target.value)} placeholder="https://…" />
             </div>
 
             <div style={styles.field}>
               <div style={styles.label}>
-                Plakát (upload){" "}
-                {editingId && currentPosterUrl ? "– aktuální zůstane, pokud nevybereš nový" : ""}
+                Plakát (upload) {editingId && currentPosterUrl ? "– aktuální zůstane, pokud nevybereš nový" : ""}
               </div>
-              <input
-                style={styles.input}
-                type="file"
-                accept="image/*"
-                onChange={(e) => setPosterFile(e.target.files?.[0] || null)}
-              />
+              <input style={styles.input} type="file" accept="image/*" onChange={(e) => setPosterFile(e.target.files?.[0] || null)} />
             </div>
 
             <div style={styles.field}>
               <div style={styles.label}>Popisek plakátu</div>
-              <input
-                style={styles.input}
-                value={posterCaption}
-                onChange={(e) => setPosterCaption(e.target.value)}
-              />
+              <input style={styles.input} value={posterCaption} onChange={(e) => setPosterCaption(e.target.value)} />
             </div>
 
             <div style={styles.field}>
               <div style={styles.label}>Alt text plakátu</div>
-              <input
-                style={styles.input}
-                value={posterAltText}
-                onChange={(e) => setPosterAltText(e.target.value)}
-              />
+              <input style={styles.input} value={posterAltText} onChange={(e) => setPosterAltText(e.target.value)} />
             </div>
           </div>
 
@@ -525,11 +386,7 @@ export default function AdminUdalosti() {
             <div style={styles.audienceGrid}>
               {AUDIENCE_OPTIONS.map((a) => (
                 <label key={a} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <input
-                    type="checkbox"
-                    checked={audienceGroups.includes(a)}
-                    onChange={() => toggleAudience(a)}
-                  />
+                  <input type="checkbox" checked={audienceGroups.includes(a)} onChange={() => toggleAudience(a)} />
                   {a}
                 </label>
               ))}
@@ -538,33 +395,20 @@ export default function AdminUdalosti() {
 
           <div style={{ marginTop: 16 }}>
             <div style={styles.label}>Popis</div>
-            <textarea
-              style={{ ...styles.textarea, width: "100%" }}
-              rows={5}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+            <textarea style={{ ...styles.textarea, width: "100%" }} rows={5} value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
 
           <div style={styles.buttonRow}>
             <button
               onClick={saveEvent}
               disabled={loading}
-              style={{
-                ...styles.button,
-                background: loading ? "#c9d1ff" : "#2f52ff",
-                color: "white",
-              }}
+              style={{ ...styles.button, background: loading ? "#c9d1ff" : "#2f52ff", color: "white" }}
             >
               {loading ? "Ukládám…" : editingId ? "Uložit změny" : "Uložit událost"}
             </button>
 
             {editingId ? (
-              <button
-                onClick={resetForm}
-                disabled={loading}
-                style={{ ...styles.button, background: "#f2f3f7", color: "#111" }}
-              >
+              <button onClick={resetForm} disabled={loading} style={{ ...styles.button, background: "#f2f3f7", color: "#111" }}>
                 Zrušit úpravy
               </button>
             ) : null}
@@ -576,33 +420,25 @@ export default function AdminUdalosti() {
               <div key={e.id} style={styles.card}>
                 <PosterThumb title={e.title} url={e.poster_url} caption={e.poster_caption} />
                 <div style={styles.meta}>
-                  <div style={{ fontWeight: 800, fontSize: 16 }}>{e.title}</div>
-                  <div style={{ color: "#444" }}>{e.starts_at || e.start_at || ""}</div>
+                  <Link href={`/portal/udalost/${e.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                    <div style={{ fontWeight: 900, fontSize: 16, cursor: "pointer" }}>{e.title}</div>
+                  </Link>
+
+                  <div style={{ color: "#444" }}>{formatDateTimeCS(e.starts_at)}</div>
                   <div style={{ color: "#444" }}>{e.category || ""}</div>
 
                   <div style={styles.badgeRow}>
                     {(e.audience_groups || []).map((g) => (
-                      <span key={g} style={styles.badge}>
-                        {g}
-                      </span>
+                      <span key={g} style={styles.badge}>{g}</span>
                     ))}
+                    {e.is_published === false ? <span style={{ ...styles.badge, background: "#ffecec", borderColor: "#ffb3b3" }}>nepublikováno</span> : null}
                   </div>
 
-                  {e.poster_caption ? (
-                    <div style={{ marginTop: 6, color: "#555" }}>{e.poster_caption}</div>
-                  ) : null}
+                  {e.poster_caption ? <div style={{ marginTop: 6, color: "#555" }}>{e.poster_caption}</div> : null}
 
                   <div style={styles.smallLinks}>
-                    {e.stream_url ? (
-                      <a href={e.stream_url} target="_blank" rel="noreferrer">
-                        ▶ Vysílání
-                      </a>
-                    ) : null}
-                    {e.worksheet_url ? (
-                      <a href={e.worksheet_url} target="_blank" rel="noreferrer">
-                        📄 Pracovní list
-                      </a>
-                    ) : null}
+                    {e.stream_url ? <a href={e.stream_url} target="_blank" rel="noreferrer">▶ Vysílání</a> : null}
+                    {e.worksheet_url ? <a href={e.worksheet_url} target="_blank" rel="noreferrer">📄 Pracovní list</a> : null}
                   </div>
 
                   <div style={styles.actions}>
