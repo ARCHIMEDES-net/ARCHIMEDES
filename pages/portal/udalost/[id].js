@@ -5,6 +5,8 @@ import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
+const BUCKET = "posters";
+
 function safeDate(value) {
   if (!value) return null;
   const d = new Date(value);
@@ -39,6 +41,12 @@ function normalizeAudience(aud) {
   const s = String(aud).trim();
   if (!s) return [];
   return s.split(",").map((x) => x.trim()).filter(Boolean);
+}
+
+function publicUrlFromPath(path) {
+  if (!path) return "";
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data?.publicUrl || "";
 }
 
 export default function UdalostDetail() {
@@ -76,10 +84,18 @@ export default function UdalostDetail() {
   }, [id]);
 
   const starts = useMemo(() => safeDate(row?.starts_at), [row?.starts_at]);
-  const aud = useMemo(() => normalizeAudience(row?.audience_groups || row?.audience), [row]);
+  const aud = useMemo(
+    () => normalizeAudience(row?.audience_groups || row?.audience),
+    [row]
+  );
 
   const streamUrl = row?.stream_url || row?.streamUrl || "";
   const worksheetUrl = row?.worksheet_url || "";
+
+  const posterUrl = useMemo(
+    () => publicUrlFromPath(row?.poster_path),
+    [row?.poster_path]
+  );
 
   if (loading) return <div className="p-6">Načítám…</div>;
   if (err) return <div className="p-6 text-red-600">{err}</div>;
@@ -105,11 +121,26 @@ export default function UdalostDetail() {
         </div>
 
         <div className="mt-4 bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+          {/* PLAKÁT */}
+          {posterUrl ? (
+            <div className="mb-5 border border-slate-200 rounded-2xl overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={posterUrl}
+                alt="Plakát události"
+                className="w-full h-auto"
+                loading="lazy"
+              />
+            </div>
+          ) : null}
+
           <div className="text-sm text-slate-500">
             {starts ? formatDateTimeCS(starts) : "Bez data"}
           </div>
 
-          <h1 className="text-2xl font-semibold mt-2">{row.title || row.name || "Událost"}</h1>
+          <h1 className="text-2xl font-semibold mt-2">
+            {row.title || row.name || "Událost"}
+          </h1>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {row.category ? (
