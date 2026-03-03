@@ -40,6 +40,19 @@ function isActiveNow(row) {
   return true;
 }
 
+// ✅ normalizace odkazu (řeší www.. bez https a mezery)
+function normalizeUrl(raw) {
+  if (!raw) return null;
+  const trimmed = String(raw).trim();
+  if (!trimmed) return null;
+
+  // pokud je to třeba "www.example.cz" nebo "example.cz"
+  if (!/^https?:\/\//i.test(trimmed)) {
+    return `https://${trimmed.replace(/^\/+/, "")}`;
+  }
+  return trimmed;
+}
+
 function Img({ url, alt }) {
   const [failed, setFailed] = useState(false);
 
@@ -76,6 +89,7 @@ function Img({ url, alt }) {
         objectFit: "cover",
         border: "1px solid #e5e7eb",
         background: "#f9fafb",
+        display: "block",
       }}
       onError={() => setFailed(true)}
     />
@@ -99,7 +113,9 @@ export default function Inzerce() {
 
       const { data, error } = await supabase
         .from("announcements")
-        .select("id,title,starts_at,ends_at,url,description,is_published,created_at,image_path,image_caption,image_alt_text")
+        .select(
+          "id,title,starts_at,ends_at,url,description,is_published,created_at,image_path,image_caption,image_alt_text"
+        )
         .order("created_at", { ascending: false });
 
       if (!isMounted) return;
@@ -139,17 +155,36 @@ export default function Inzerce() {
     background: "#fff",
   };
 
+  const btnLink = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "8px 10px",
+    borderRadius: 10,
+    border: "1px solid #e5e7eb",
+    textDecoration: "none",
+    fontWeight: 900,
+    color: "#111827",
+    background: "#fff",
+  };
+
   return (
     <RequireAuth>
       <PortalHeader />
 
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
           <div>
             <h1 style={{ margin: "10px 0 6px" }}>Inzerce</h1>
-            <p style={{ margin: 0, color: "#374151" }}>
-              Pozvánky, nabídky, prodej věcí, komunitní oznámení.
-            </p>
+            <p style={{ margin: 0, color: "#374151" }}>Pozvánky, nabídky, prodej věcí, komunitní oznámení.</p>
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
@@ -196,13 +231,30 @@ export default function Inzerce() {
                   const active = isActiveNow(r);
                   const imgUrl = r.image_path ? publicUrlFromPath(r.image_path) : null;
 
+                  const normalized = normalizeUrl(r.url);
+
                   return (
                     <div key={r.id} style={card}>
                       <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 12, alignItems: "start" }}>
-                        <Img url={imgUrl} alt={r.image_alt_text || r.title || ""} />
+                        {/* ✅ Kliknutí na fotku otevře full-size */}
+                        {imgUrl ? (
+                          <a href={imgUrl} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
+                            <Img url={imgUrl} alt={r.image_alt_text || r.title || ""} />
+                          </a>
+                        ) : (
+                          <Img url={null} alt="" />
+                        )}
 
                         <div>
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              gap: 12,
+                              flexWrap: "wrap",
+                              alignItems: "center",
+                            }}
+                          >
                             <div style={{ fontWeight: 900, fontSize: 16 }}>{r.title}</div>
                             <span
                               style={{
@@ -223,21 +275,26 @@ export default function Inzerce() {
                             {e ? <span> &nbsp; • &nbsp; Do {formatDateTimeCS(e)}</span> : <span> &nbsp; • &nbsp; Bez konce</span>}
                           </div>
 
-                          {r.image_caption ? (
-                            <div style={{ marginTop: 8, color: "#374151" }}>{r.image_caption}</div>
-                          ) : null}
+                          {r.image_caption ? <div style={{ marginTop: 8, color: "#374151" }}>{r.image_caption}</div> : null}
 
                           {r.description ? (
                             <div style={{ marginTop: 10, whiteSpace: "pre-wrap", color: "#111827" }}>{r.description}</div>
                           ) : null}
 
                           <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                            {r.url ? (
-                              <a href={r.url} target="_blank" rel="noreferrer">
+                            {normalized ? (
+                              <a href={normalized} target="_blank" rel="noreferrer" style={btnLink}>
                                 → Otevřít odkaz
                               </a>
-                            ) : null}
+                            ) : (
+                              <span style={{ color: "#6b7280", fontWeight: 800 }}>Bez odkazu</span>
+                            )}
                           </div>
+
+                          {/* ✅ Debug info pro admin (můžeš později smazat) */}
+                          {/* <div style={{ marginTop: 8, color: "#9ca3af", fontSize: 12 }}>
+                            url raw: {String(r.url || "—")} / normalized: {String(normalized || "—")}
+                          </div> */}
                         </div>
                       </div>
                     </div>
