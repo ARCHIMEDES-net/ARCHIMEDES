@@ -4,6 +4,8 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
+const BUCKET = "announcements";
+
 function toIsoFromDatetimeLocal(value) {
   if (!value) return null;
   const d = new Date(value);
@@ -28,7 +30,61 @@ function formatDateTimeCS(value) {
   if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
-  return d.toLocaleString("cs-CZ", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleString("cs-CZ", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function publicUrlFromPath(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data?.publicUrl || null;
+}
+
+function Thumb({ url }) {
+  const [failed, setFailed] = useState(false);
+
+  if (!url || failed) {
+    return (
+      <div
+        style={{
+          width: 120,
+          height: 90,
+          borderRadius: 12,
+          border: "1px dashed #d1d5db",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#6b7280",
+          fontSize: 12,
+          fontWeight: 800,
+          background: "#fff",
+        }}
+      >
+        Bez fotky
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={url}
+      alt=""
+      style={{
+        width: 120,
+        height: 90,
+        borderRadius: 12,
+        objectFit: "cover",
+        border: "1px solid #e5e7eb",
+        background: "#f9fafb",
+      }}
+      onError={() => setFailed(true)}
+    />
+  );
 }
 
 export default function AdminInzerce() {
@@ -45,6 +101,13 @@ export default function AdminInzerce() {
   const [description, setDescription] = useState("");
   const [isPublished, setIsPublished] = useState(true);
 
+  // image
+  const [imageFile, setImageFile] = useState(null);
+  const [imageCaption, setImageCaption] = useState("");
+  const [imageAltText, setImageAltText] = useState("");
+  const [currentImagePath, setCurrentImagePath] = useState(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState(null);
+
   async function loadRows() {
     const { data, error } = await supabase
       .from("announcements")
@@ -52,7 +115,13 @@ export default function AdminInzerce() {
       .order("created_at", { ascending: false });
 
     if (error) return;
-    setRows(Array.isArray(data) ? data : []);
+
+    const fixed = (data || []).map((r) => {
+      const url = r?.image_path ? publicUrlFromPath(r.image_path) : null;
+      return { ...r, image_url: url };
+    });
+
+    setRows(fixed);
   }
 
   useEffect(() => {
@@ -67,18 +136,49 @@ export default function AdminInzerce() {
     setUrl("");
     setDescription("");
     setIsPublished(true);
+
+    setImageFile(null);
+    setImageCaption("");
+    setImageAltText("");
+    setCurrentImagePath(null);
+    setCurrentImageUrl(null);
   }
 
   function startEdit(r) {
     setErr("");
     setEditingId(r.id);
+
     setTitle(r.title || "");
     setStartsAtLocal(toDatetimeLocalFromIso(r.starts_at || ""));
     setEndsAtLocal(toDatetimeLocalFromIso(r.ends_at || ""));
     setUrl(r.url || "");
     setDescription(r.description || "");
     setIsPublished(r.is_published !== false);
+
+    setImageFile(null);
+    setImageCaption(r.image_caption || "");
+    setImageAltText(r.image_alt_text || "");
+    setCurrentImagePath(r.image_path || null);
+    setCurrentImageUrl(r.image_path ? publicUrlFromPath(r.image_path) : null);
+
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function uploadImageIfAny() {
+    if (!imageFile) {
+      return { image_path: currentImagePath };
+    }
+
+    const safeName = imageFile.name.replace(/[^\w.\-]+/g, "_");
+    const path = `items/${Date.now()}-${safeName}`;
+
+    const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, imageFile, {
+      upsert: true,
+    });
+
+    if (upErr) throw upErr;
+
+    return { image_path: path };
   }
 
   async function save() {
@@ -98,6 +198,8 @@ export default function AdminInzerce() {
     setLoading(true);
 
     try {
+      const { image_path } = await uploadImageIfAny();
+
       const payload = {
         title: title.trim(),
         starts_at: startsAtIso,
@@ -105,6 +207,10 @@ export default function AdminInzerce() {
         url: url || null,
         description: description || null,
         is_published: !!isPublished,
+
+        image_path: image_path || null,
+        image_caption: imageCaption || null,
+        image_alt_text: imageAltText || null,
       };
 
       if (editingId) {
@@ -158,10 +264,18 @@ export default function AdminInzerce() {
       <PortalHeader />
 
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
           <div>
             <h1 style={{ margin: "10px 0 6px" }}>Admin – inzerce</h1>
-            <div style={{ color: "#374151" }}>Správa oznámení a pozvánek pro komunitu.</div>
+            <div style={{ color: "#374151" }}>Správa oznámení a pozvánek + fotek.</div>
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
@@ -170,7 +284,15 @@ export default function AdminInzerce() {
         </div>
 
         {err ? (
-          <div style={{ marginTop: 12, padding: 12, borderRadius: 12, border: "1px solid #fecaca", background: "#fef2f2" }}>
+          <div
+            style={{
+              marginTop: 12,
+              padding: 12,
+              borderRadius: 12,
+              border: "1px solid #fecaca",
+              background: "#fef2f2",
+            }}
+          >
             <b>Chyba:</b> {err}
           </div>
         ) : null}
@@ -214,12 +336,35 @@ export default function AdminInzerce() {
 
             <div style={{ gridColumn: "1 / -1" }}>
               <div style={label}>Odkaz</div>
+              <input style={{ ...input, width: "100%" }} value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
+            </div>
+
+            {/* IMAGE UPLOAD */}
+            <div style={{ gridColumn: "1 / -1" }}>
+              <div style={label}>
+                Fotka (upload){editingId && currentImageUrl ? " – aktuální zůstane, pokud nevybereš novou" : ""}
+              </div>
               <input
                 style={{ ...input, width: "100%" }}
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://…"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
               />
+              {currentImageUrl ? (
+                <div style={{ marginTop: 10 }}>
+                  <Thumb url={currentImageUrl} />
+                </div>
+              ) : null}
+            </div>
+
+            <div style={{ gridColumn: "1 / -1" }}>
+              <div style={label}>Popisek fotky</div>
+              <input style={{ ...input, width: "100%" }} value={imageCaption} onChange={(e) => setImageCaption(e.target.value)} />
+            </div>
+
+            <div style={{ gridColumn: "1 / -1" }}>
+              <div style={label}>Alt text fotky</div>
+              <input style={{ ...input, width: "100%" }} value={imageAltText} onChange={(e) => setImageAltText(e.target.value)} />
             </div>
 
             <div style={{ gridColumn: "1 / -1" }}>
@@ -273,74 +418,90 @@ export default function AdminInzerce() {
           <h2 style={{ margin: "0 0 10px" }}>Seznam inzerce (nejnovější nahoře)</h2>
 
           <div style={{ display: "grid", gap: 12 }}>
-            {rows.map((r) => (
-              <div key={r.id} style={card}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-                  <div style={{ fontWeight: 900, fontSize: 16 }}>{r.title}</div>
+            {rows.map((r) => {
+              const imgUrl = r?.image_path ? publicUrlFromPath(r.image_path) : null;
 
-                  <span
-                    style={{
-                      fontSize: 12,
-                      padding: "4px 8px",
-                      borderRadius: 999,
-                      border: "1px solid #e5e7eb",
-                      background: r.is_published === false ? "#f3f4f6" : "#ecfdf5",
-                      fontWeight: 900,
-                    }}
-                  >
-                    {r.is_published === false ? "nepublikováno" : "publikováno"}
-                  </span>
-                </div>
+              return (
+                <div key={r.id} style={card}>
+                  <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 12, alignItems: "start" }}>
+                    <Thumb url={imgUrl} />
 
-                <div style={{ marginTop: 8, color: "#374151" }}>
-                  {r.starts_at ? `Od ${formatDateTimeCS(r.starts_at)}` : "Od kdykoli"}
-                  {r.ends_at ? ` • Do ${formatDateTimeCS(r.ends_at)}` : " • Bez konce"}
-                </div>
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                        <div style={{ fontWeight: 900, fontSize: 16 }}>{r.title}</div>
 
-                {r.url ? (
-                  <div style={{ marginTop: 10 }}>
-                    <a href={r.url} target="_blank" rel="noreferrer">
-                      → Otevřít odkaz
-                    </a>
+                        <span
+                          style={{
+                            fontSize: 12,
+                            padding: "4px 8px",
+                            borderRadius: 999,
+                            border: "1px solid #e5e7eb",
+                            background: r.is_published === false ? "#f3f4f6" : "#ecfdf5",
+                            fontWeight: 900,
+                          }}
+                        >
+                          {r.is_published === false ? "nepublikováno" : "publikováno"}
+                        </span>
+                      </div>
+
+                      <div style={{ marginTop: 8, color: "#374151" }}>
+                        {r.starts_at ? `Od ${formatDateTimeCS(r.starts_at)}` : "Od kdykoli"}
+                        {r.ends_at ? ` • Do ${formatDateTimeCS(r.ends_at)}` : " • Bez konce"}
+                      </div>
+
+                      {r.url ? (
+                        <div style={{ marginTop: 10 }}>
+                          <a href={r.url} target="_blank" rel="noreferrer">
+                            → Otevřít odkaz
+                          </a>
+                        </div>
+                      ) : null}
+
+                      {r.image_caption ? (
+                        <div style={{ marginTop: 8, color: "#374151" }}>{r.image_caption}</div>
+                      ) : null}
+
+                      {r.description ? (
+                        <div style={{ marginTop: 10, whiteSpace: "pre-wrap", color: "#111827" }}>
+                          {r.description}
+                        </div>
+                      ) : null}
+
+                      <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        <button
+                          onClick={() => startEdit(r)}
+                          disabled={loading}
+                          style={{
+                            padding: "8px 10px",
+                            borderRadius: 10,
+                            border: "1px solid #e5e7eb",
+                            background: "#fff",
+                            fontWeight: 900,
+                            cursor: "pointer",
+                          }}
+                        >
+                          Upravit
+                        </button>
+                        <button
+                          onClick={() => del(r.id)}
+                          disabled={loading}
+                          style={{
+                            padding: "8px 10px",
+                            borderRadius: 10,
+                            border: "1px solid #fecaca",
+                            background: "#fff",
+                            fontWeight: 900,
+                            cursor: "pointer",
+                          }}
+                        >
+                          Smazat
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                ) : null}
-
-                {r.description ? (
-                  <div style={{ marginTop: 10, whiteSpace: "pre-wrap", color: "#111827" }}>{r.description}</div>
-                ) : null}
-
-                <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <button
-                    onClick={() => startEdit(r)}
-                    disabled={loading}
-                    style={{
-                      padding: "8px 10px",
-                      borderRadius: 10,
-                      border: "1px solid #e5e7eb",
-                      background: "#fff",
-                      fontWeight: 900,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Upravit
-                  </button>
-                  <button
-                    onClick={() => del(r.id)}
-                    disabled={loading}
-                    style={{
-                      padding: "8px 10px",
-                      borderRadius: 10,
-                      border: "1px solid #fecaca",
-                      background: "#fff",
-                      fontWeight: 900,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Smazat
-                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       </main>
