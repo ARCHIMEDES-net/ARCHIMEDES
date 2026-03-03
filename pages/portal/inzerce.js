@@ -4,6 +4,8 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
+const BUCKET = "announcements";
+
 function safeDate(value) {
   if (!value) return null;
   const d = new Date(value);
@@ -21,6 +23,12 @@ function formatDateTimeCS(date) {
   });
 }
 
+function publicUrlFromPath(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data?.publicUrl || null;
+}
+
 function isActiveNow(row) {
   const now = new Date();
   const s = safeDate(row.starts_at);
@@ -30,6 +38,48 @@ function isActiveNow(row) {
   if (s && s > now) return false;
   if (e && e < now) return false;
   return true;
+}
+
+function Img({ url, alt }) {
+  const [failed, setFailed] = useState(false);
+
+  if (!url || failed) {
+    return (
+      <div
+        style={{
+          width: 120,
+          height: 90,
+          borderRadius: 12,
+          border: "1px dashed #d1d5db",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#6b7280",
+          fontSize: 12,
+          fontWeight: 800,
+          background: "#fff",
+        }}
+      >
+        Bez fotky
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={url}
+      alt={alt || ""}
+      style={{
+        width: 120,
+        height: 90,
+        borderRadius: 12,
+        objectFit: "cover",
+        border: "1px solid #e5e7eb",
+        background: "#f9fafb",
+      }}
+      onError={() => setFailed(true)}
+    />
+  );
 }
 
 export default function Inzerce() {
@@ -49,7 +99,7 @@ export default function Inzerce() {
 
       const { data, error } = await supabase
         .from("announcements")
-        .select("id,title,starts_at,ends_at,url,description,is_published,created_at,updated_at")
+        .select("id,title,starts_at,ends_at,url,description,is_published,created_at,image_path,image_caption,image_alt_text")
         .order("created_at", { ascending: false });
 
       if (!isMounted) return;
@@ -77,7 +127,7 @@ export default function Inzerce() {
       .filter((r) => (showAll ? true : isActiveNow(r)))
       .filter((r) => {
         if (!qq) return true;
-        const text = `${r.title || ""} ${r.description || ""}`.toLowerCase();
+        const text = `${r.title || ""} ${r.description || ""} ${r.image_caption || ""}`.toLowerCase();
         return text.includes(qq);
       });
   }, [rows, q, showAll]);
@@ -98,7 +148,7 @@ export default function Inzerce() {
           <div>
             <h1 style={{ margin: "10px 0 6px" }}>Inzerce</h1>
             <p style={{ margin: 0, color: "#374151" }}>
-              Pozvánky, nabídky kroužků, komunitní oznámení, akce v obci.
+              Pozvánky, nabídky, prodej věcí, komunitní oznámení.
             </p>
           </div>
 
@@ -120,11 +170,7 @@ export default function Inzerce() {
             </div>
 
             <label style={{ display: "flex", gap: 10, alignItems: "center", whiteSpace: "nowrap" }}>
-              <input
-                type="checkbox"
-                checked={showAll}
-                onChange={(e) => setShowAll(e.target.checked)}
-              />
+              <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
               Zobrazit i neaktivní
             </label>
           </div>
@@ -141,51 +187,58 @@ export default function Inzerce() {
         {!loading && !err ? (
           <section style={{ marginTop: 14 }}>
             {visible.length === 0 ? (
-              <div style={{ ...card, color: "#6b7280" }}>
-                Žádná inzerce podle zvolených filtrů.
-              </div>
+              <div style={{ ...card, color: "#6b7280" }}>Žádná inzerce podle zvolených filtrů.</div>
             ) : (
               <div style={{ display: "grid", gap: 12 }}>
                 {visible.map((r) => {
                   const s = safeDate(r.starts_at);
                   const e = safeDate(r.ends_at);
                   const active = isActiveNow(r);
+                  const imgUrl = r.image_path ? publicUrlFromPath(r.image_path) : null;
 
                   return (
                     <div key={r.id} style={card}>
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-                        <div style={{ fontWeight: 900, fontSize: 16 }}>{r.title}</div>
-                        <span
-                          style={{
-                            fontSize: 12,
-                            padding: "4px 8px",
-                            borderRadius: 999,
-                            border: "1px solid #e5e7eb",
-                            background: active ? "#ecfdf5" : "#f3f4f6",
-                            fontWeight: 900,
-                          }}
-                        >
-                          {active ? "aktivní" : "neaktivní"}
-                        </span>
-                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 12, alignItems: "start" }}>
+                        <Img url={imgUrl} alt={r.image_alt_text || r.title || ""} />
 
-                      <div style={{ marginTop: 8, color: "#374151" }}>
-                        {s ? <span>Od {formatDateTimeCS(s)}</span> : <span>Od kdykoli</span>}
-                        {e ? <span> &nbsp; • &nbsp; Do {formatDateTimeCS(e)}</span> : <span> &nbsp; • &nbsp; Bez konce</span>}
-                      </div>
+                        <div>
+                          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                            <div style={{ fontWeight: 900, fontSize: 16 }}>{r.title}</div>
+                            <span
+                              style={{
+                                fontSize: 12,
+                                padding: "4px 8px",
+                                borderRadius: 999,
+                                border: "1px solid #e5e7eb",
+                                background: active ? "#ecfdf5" : "#f3f4f6",
+                                fontWeight: 900,
+                              }}
+                            >
+                              {active ? "aktivní" : "neaktivní"}
+                            </span>
+                          </div>
 
-                      {r.description ? (
-                        <div style={{ marginTop: 10, whiteSpace: "pre-wrap", color: "#111827" }}>
-                          {r.description}
+                          <div style={{ marginTop: 8, color: "#374151" }}>
+                            {s ? <span>Od {formatDateTimeCS(s)}</span> : <span>Od kdykoli</span>}
+                            {e ? <span> &nbsp; • &nbsp; Do {formatDateTimeCS(e)}</span> : <span> &nbsp; • &nbsp; Bez konce</span>}
+                          </div>
+
+                          {r.image_caption ? (
+                            <div style={{ marginTop: 8, color: "#374151" }}>{r.image_caption}</div>
+                          ) : null}
+
+                          {r.description ? (
+                            <div style={{ marginTop: 10, whiteSpace: "pre-wrap", color: "#111827" }}>{r.description}</div>
+                          ) : null}
+
+                          <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                            {r.url ? (
+                              <a href={r.url} target="_blank" rel="noreferrer">
+                                → Otevřít odkaz
+                              </a>
+                            ) : null}
+                          </div>
                         </div>
-                      ) : null}
-
-                      <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                        {r.url ? (
-                          <a href={r.url} target="_blank" rel="noreferrer">
-                            → Otevřít odkaz
-                          </a>
-                        ) : null}
                       </div>
                     </div>
                   );
