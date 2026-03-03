@@ -22,7 +22,7 @@ const CATEGORY_OPTIONS = [
   "Sportovní vybavení",
   "Knihy a čtenářský klub",
   "Kultura a akce",
-  "Partnerství", // ✅ nové
+  "Partnerství",
   "Volnočasové kroužky",
   "Wellbeing",
   "Senior klub",
@@ -63,9 +63,15 @@ function makeTitle(description, typeLabel, category) {
 }
 
 function isValidEmail(email) {
-  // stačí rozumná klientská validace – DB má ještě svůj regex constraint
   const e = String(email || "").trim();
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+}
+
+function isImageFile(file) {
+  if (!file) return false;
+  if (file.type && file.type.startsWith("image/")) return true;
+  const n = (file.name || "").toLowerCase();
+  return n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg") || n.endsWith(".webp") || n.endsWith(".gif");
 }
 
 export default function NovyInzerat() {
@@ -74,7 +80,6 @@ export default function NovyInzerat() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  // "kind" value = nabidka/poptavka/spoluprace (CZ)
   const [kind, setKind] = useState("nabidka");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -94,7 +99,6 @@ export default function NovyInzerat() {
   const canSubmit = useMemo(() => {
     if (description.trim().length < 1) return false;
     if (!isValidEmail(contactEmail)) return false;
-    // telefon není povinný, ale pokud je vyplněn, min. 6 znaků (DB constraint)
     if (contactPhone.trim().length > 0 && contactPhone.trim().length < 6) return false;
     return true;
   }, [description, contactEmail, contactPhone]);
@@ -130,19 +134,20 @@ export default function NovyInzerat() {
     const cat = category?.trim() || "";
     const title = makeTitle(description, selectedType.label, cat);
 
-    // ✅ DB CHECK: type musí být offer|demand|partnership
-    // ✅ DB CHECK: kind je CZ (nabidka|poptavka|... podle marketplace_posts_kind_allowed)
     const payload = {
       author_id: user.id,
-      type: selectedType.dbType, // offer / demand / partnership
-      kind: selectedType.value,  // nabidka / poptavka / spoluprace
+      // ✅ DB check: type only offer/demand/partnership
+      type: selectedType.dbType,
+      // ✅ DB kind is CZ
+      kind: selectedType.value,
+
       title,
       category: cat || null,
       description: description.trim(),
 
       contact_name: contactName?.trim() || null,
-      contact_email: contactEmail.trim(), // ✅ povinné
-      contact_phone: contactPhone?.trim() || null, // volitelné (ale pokud vyplněno, DB chce min length)
+      contact_email: contactEmail.trim(), // povinné + DB regex
+      contact_phone: contactPhone?.trim() || null, // volitelné, ale když je, DB chce min 6
 
       expires_at: toISODateOrNull(expiresAt),
 
@@ -166,27 +171,45 @@ export default function NovyInzerat() {
 
     const postId = post.id;
 
-    // Upload fotek + záznam do marketplace_attachments
+    // ✅ Upload fotek + záznam do marketplace_attachments (správné sloupce)
+    const uploadErrors = [];
     for (const file of files || []) {
-      try {
-        const safeName = file.name.replace(/\s+/g, "_");
-        const path = `${postId}/${Date.now()}-${safeName}`;
+      const safeName = (file.name || "soubor").replace(/\s+/g, "_");
+      const path = `${postId}/${Date.now()}-${safeName}`;
 
-        const up = await supabase.storage.from(BUCKET).upload(path, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || "application/octet-stream",
+      });
 
-        if (up.error) continue;
-
-        await supabase.from("marketplace_attachments").insert({
-          post_id: postId,
-          file_path: path,
-          mime_type: file.type || null,
-        });
-      } catch {
-        // nepadáme kvůli jedné fotce
+      if (upErr) {
+        uploadErrors.push(`Upload ${safeName}: ${upErr.message}`);
+        continue;
       }
+
+      const { error: attErr } = await supabase.from("marketplace_attachments").insert({
+        post_id: postId,
+        author_id: user.id,
+        file_name: file.name || safeName,
+        file_path: path,
+        file_size: typeof file.size === "number" ? file.size : null,
+        is_image: isImageFile(file),
+        mime_type: file.type || null,
+      });
+
+      if (attErr) {
+        uploadErrors.push(`DB attachment ${safeName}: ${attErr.message}`);
+      }
+    }
+
+    if (uploadErrors.length) {
+      setErr(
+        "Inzerát byl uložen, ale některé fotky se nepodařilo uložit:\n" +
+          uploadErrors.join("\n")
+      );
+      setLoading(false);
+      return;
     }
 
     router.push("/portal/inzerce");
@@ -212,7 +235,9 @@ export default function NovyInzerat() {
         </div>
 
         {err ? (
-          <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700">{err}</div>
+          <pre className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 whitespace-pre-wrap">
+            {err}
+          </pre>
         ) : null}
 
         <form onSubmit={onSubmit} className="mt-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
@@ -281,7 +306,10 @@ export default function NovyInzerat() {
               <div>
                 <label className={labelCls()}>E-mail *</label>
                 <input
-                  className={clsx(inputCls(), !isValidEmail(contactEmail) && contactEmail.length > 0 ? "border-red-300" : "")}
+                  className={clsx(
+                    inputCls(),
+                    !isValidEmail(contactEmail) && contactEmail.length > 0 ? "border-red-300" : ""
+                  )}
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
                   placeholder="např. jan@obec.cz"
