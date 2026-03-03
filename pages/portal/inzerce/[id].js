@@ -68,7 +68,7 @@ export default function DetailInzeratu() {
 
   function getPublicUrl(path) {
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-    return data?.publicUrl;
+    return data?.publicUrl || null;
   }
 
   async function closePost() {
@@ -79,7 +79,6 @@ export default function DetailInzeratu() {
       .from("marketplace_posts")
       .update({ status: "closed", is_closed: true })
       .eq("id", row.id);
-
     setBusy(false);
 
     if (error) {
@@ -129,7 +128,7 @@ export default function DetailInzeratu() {
 
         <div className="mt-4 bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
           <div className="flex justify-between items-start mb-4 gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className={`px-3 py-1 text-xs rounded-full ${typeBadge(row.type)}`}>
                 {typeLabel(row.type)}
               </span>
@@ -141,6 +140,8 @@ export default function DetailInzeratu() {
               )}
 
               {row.category && <span className="text-xs text-slate-500">{row.category}</span>}
+
+              {row.location && <span className="text-xs text-slate-500">• {row.location}</span>}
             </div>
 
             <div className="flex gap-2">
@@ -187,7 +188,7 @@ export default function DetailInzeratu() {
                   key={i}
                   src={getPublicUrl(img.file_path)}
                   alt=""
-                  className="rounded-xl object-cover w-full h-48"
+                  className="rounded-xl object-cover w-full h-48 border border-slate-200"
                 />
               ))}
             </div>
