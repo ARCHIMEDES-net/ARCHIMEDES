@@ -1,337 +1,269 @@
-// pages/portal/inzerce/novy.js
-import { useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
-const BUCKET = "marketplace";
-
-const CATEGORY_OPTIONS = [
-  "Vybavení školy",
-  "Učebnice a pomůcky",
-  "Technologie",
-  "Výměnné pobyty a projekty",
-  "Obec a komunita",
-  "ARCHIMEDES komponenty",
+const KIND_OPTIONS = [
+  { value: "nabidka", label: "Nabídka" },
+  { value: "poptavka", label: "Poptávka" },
+  { value: "sluzba", label: "Služba" },
+  { value: "pozvanka", label: "Pozvánka" },
+  { value: "dobrovolnictvi", label: "Dobrovolnictví" },
+  { value: "ztraty_a_nalezy", label: "Ztráty & nálezy" },
 ];
 
-const EXPIRY_PRESETS = [
-  { value: "30", label: "30 dní" },
-  { value: "60", label: "60 dní" },
-  { value: "90", label: "90 dní" },
-  { value: "custom", label: "Vlastní datum" },
-];
-
-function sanitizeFileName(name) {
-  return String(name || "")
-    .trim()
-    .replace(/\s+/g, "_")
-    .replace(/[^a-zA-Z0-9._-]/g, "");
-}
-
-function isImageMime(mime) {
-  return typeof mime === "string" && mime.startsWith("image/");
+function toISODateOrNull(v) {
+  if (!v) return null;
+  // očekáváme "YYYY-MM-DD"
+  const d = new Date(v + "T00:00:00");
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
 }
 
 export default function NovyInzerat() {
   const router = useRouter();
+
+  const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const [saving, setSaving] = useState(false);
 
-  const [type, setType] = useState("offer");
-  const [category, setCategory] = useState(CATEGORY_OPTIONS[0]);
-  const [title, setTitle] = useState("");
+  const [kind, setKind] = useState("nabidka");
+  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState([]);
+
   const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
-
+  const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
+  const [expiresAt, setExpiresAt] = useState(""); // YYYY-MM-DD
 
-  const [expiryPreset, setExpiryPreset] = useState("90");
-  const [customExpiry, setCustomExpiry] = useState(""); // yyyy-mm-dd
+  const canSubmit = useMemo(() => {
+    return description.trim().length >= 10;
+  }, [description]);
 
-  const [imageFiles, setImageFiles] = useState([]);
-  const [docFiles, setDocFiles] = useState([]);
+  async function loadCategories() {
+    // vytáhneme existující rubriky z DB, ať je to pohodlné
+    const { data, error } = await supabase
+      .from("marketplace_posts")
+      .select("category")
+      .not("category", "is", null);
 
-  function validate() {
-    const email = contactEmail.trim();
-    const phone = contactPhone.trim();
-    if (!title.trim()) return "Vyplň název inzerátu.";
-    if (!category) return "Vyber kategorii.";
-    if (!email) return "Kontakt e-mail je povinný.";
-    if (!phone) return "Telefon je povinný.";
-    if (phone.replace(/\s+/g, "").length < 6) return "Telefon vypadá příliš krátký.";
+    if (error) return;
 
-    if (expiryPreset === "custom") {
-      if (!customExpiry) return "Vyber vlastní datum expirace.";
-      const d = new Date(customExpiry + "T00:00:00");
-      if (Number.isNaN(d.getTime())) return "Neplatné datum expirace.";
-      // min. zítra
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      if (d.getTime() < tomorrow.getTime()) return "Expirace musí být nejdříve zítra.";
+    const set = new Set();
+    for (const r of data || []) {
+      if (r?.category && String(r.category).trim()) set.add(String(r.category).trim());
     }
-
-    if (imageFiles.length > 5) return "Maximálně 5 fotek.";
-    if (docFiles.length > 5) return "Maximálně 5 příloh.";
-
-    return "";
+    setCategories(Array.from(set).sort((a, b) => a.localeCompare(b, "cs")));
   }
 
-  function computeExpiresAtIso() {
-    if (expiryPreset === "custom") {
-      // konec dne lokálně
-      return new Date(customExpiry + "T23:59:59").toISOString();
-    }
-    const days = parseInt(expiryPreset, 10);
-    const d = new Date();
-    d.setDate(d.getDate() + (Number.isFinite(days) ? days : 90));
-    return d.toISOString();
-  }
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
-  async function uploadOneFile({ file, userId, postId }) {
-    const safeName = sanitizeFileName(file.name) || `file_${Date.now()}`;
-    const path = `${userId}/posts/${postId}/${Date.now()}_${safeName}`;
-
-    const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: file.type || undefined,
-    });
-
-    if (upErr) throw new Error(upErr.message || "Upload selhal.");
-
-    const payload = {
-      post_id: postId,
-      author_id: userId,
-      file_path: path,
-      file_name: file.name || safeName,
-      mime_type: file.type || null,
-      file_size: typeof file.size === "number" ? file.size : null,
-      is_image: isImageMime(file.type),
-    };
-
-    const { error: insErr } = await supabase.from("marketplace_attachments").insert(payload);
-    if (insErr) throw new Error(insErr.message || "Uložení přílohy selhalo.");
-  }
-
-  async function onSave() {
+  async function onSubmit(e) {
+    e.preventDefault();
     setErr("");
-    const v = validate();
-    if (v) {
-      setErr(v);
+
+    if (!canSubmit) {
+      setErr("Popis musí mít alespoň 10 znaků.");
       return;
     }
 
-    setSaving(true);
+    setLoading(true);
 
-    const { data: auth } = await supabase.auth.getUser();
-    const userId = auth?.user?.id;
-
-    if (!userId) {
+    // vezmeme přihlášeného uživatele jako author_id
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !userData?.user) {
       setErr("Nejste přihlášen.");
-      setSaving(false);
+      setLoading(false);
       return;
     }
 
-    // 1) uložit inzerát
     const payload = {
-      author_id: userId,
-      type,
-      category,
-      title: title.trim(),
-      description: description.trim() || null,
-      location: location.trim() || null,
-      contact_email: contactEmail.trim(),
-      contact_phone: contactPhone.trim(),
+      author_id: userData.user.id,
+      kind, // nový typ inzerátu
+      category: category?.trim() || null, // rubrika
+      description: description.trim(),
+      contact_name: contactName?.trim() || null,
+      contact_email: contactEmail?.trim() || null,
+      contact_phone: contactPhone?.trim() || null,
+      expires_at: toISODateOrNull(expiresAt),
       status: "active",
-      expires_at: computeExpiresAtIso(),
+      is_closed: false,
+      is_pinned: false,
+      is_archimedes: false,
     };
 
-    const { data: post, error: postErr } = await supabase
+    const { data, error } = await supabase
       .from("marketplace_posts")
       .insert(payload)
       .select("id")
       .single();
 
-    if (postErr) {
-      setErr(postErr.message || "Nepodařilo se uložit inzerát.");
-      setSaving(false);
+    if (error) {
+      setErr(error.message || "Chyba při ukládání inzerátu.");
+      setLoading(false);
       return;
     }
 
-    const postId = post.id;
-
-    // 2) nahrát přílohy (fota + dokumenty)
-    try {
-      const all = [...imageFiles, ...docFiles];
-      for (const f of all) {
-        // eslint-disable-next-line no-await-in-loop
-        await uploadOneFile({ file: f, userId, postId });
-      }
-    } catch (e) {
-      // inzerát existuje, jen přílohy selhaly
-      setErr(`Inzerát uložen, ale přílohy se nepodařilo nahrát: ${e?.message || e}`);
-      setSaving(false);
-      router.push(`/portal/inzerce/${postId}`);
-      return;
+    // po vytvoření jdeme na detail (pokud detail ještě nemáš, klidně do /portal/inzerce)
+    const newId = data?.id;
+    if (newId) {
+      router.push(`/portal/inzerce/${newId}?edit=1`);
+    } else {
+      router.push("/portal/inzerce");
     }
-
-    setSaving(false);
-    router.push(`/portal/inzerce/${postId}`);
   }
 
   return (
     <RequireAuth>
-      <PortalHeader title="Inzerce – nový inzerát" />
+      <PortalHeader />
 
-      <div style={{ padding: 16, maxWidth: 900, margin: "0 auto" }}>
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
-          <Link href="/portal/inzerce">← Zpět na Inzerci</Link>
+      <div className="max-w-3xl mx-auto px-4 py-6">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-semibold">Nový inzerát</h1>
+            <p className="text-slate-600 mt-1">
+              Vyplň typ (nabídka/poptávka…), rubriku a popis. Fotky se doplní v detailu po uložení.
+            </p>
+          </div>
+
+          <Link
+            href="/portal/inzerce"
+            className="px-4 py-2 rounded-xl border border-slate-200 hover:border-slate-300"
+          >
+            Zpět na inzerci
+          </Link>
         </div>
 
         {err ? (
-          <div style={{ padding: 12, border: "1px solid #f3c2c2", background: "#fff4f4", borderRadius: 12, marginBottom: 12 }}>
-            Chyba: {err}
+          <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700">
+            {err}
           </div>
         ) : null}
 
-        <div style={{ border: "1px solid #e6e6e6", borderRadius: 14, padding: 12 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <form onSubmit={onSubmit} className="mt-6 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Typ */}
             <div>
-              <div style={{ fontSize: 12, opacity: 0.7 }}>Typ</div>
-              <select value={type} onChange={(e) => setType(e.target.value)} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd" }}>
-                <option value="offer">Nabídka</option>
-                <option value="demand">Poptávka</option>
-                <option value="partnership">Partnerství</option>
-              </select>
-            </div>
-
-            <div>
-              <div style={{ fontSize: 12, opacity: 0.7 }}>Kategorie</div>
-              <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd" }}>
-                {CATEGORY_OPTIONS.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+              <label className="block text-sm font-medium text-slate-700">Typ inzerátu</label>
+              <select
+                className="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"
+                value={kind}
+                onChange={(e) => setKind(e.target.value)}
+              >
+                {KIND_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
                 ))}
               </select>
+              <p className="mt-1 text-xs text-slate-500">
+                Typ = nabídka/poptávka/služba… (nový sloupec <code>kind</code>)
+              </p>
+            </div>
+
+            {/* Rubrika */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Rubrika</label>
+              <input
+                className="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="např. Vybavení školy"
+                list="category-list"
+              />
+              <datalist id="category-list">
+                {categories.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+              <p className="mt-1 text-xs text-slate-500">
+                Rubrika = tematické členění (sloupec <code>category</code>)
+              </p>
             </div>
           </div>
 
-          <div style={{ marginTop: 10 }}>
-            <div style={{ fontSize: 12, opacity: 0.7 }}>Název inzerátu*</div>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
-          </div>
-
-          <div style={{ marginTop: 10 }}>
-            <div style={{ fontSize: 12, opacity: 0.7 }}>Popis</div>
+          {/* Popis */}
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-slate-700">Popis *</label>
             <textarea
+              className="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 min-h-[160px]"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={6}
-              style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd" }}
+              placeholder="Napiš stručně co nabízíš / poptáváš, podmínky, cenu, kde, atd."
             />
+            <p className="mt-1 text-xs text-slate-500">Minimálně 10 znaků.</p>
           </div>
 
-          <div style={{ marginTop: 10 }}>
-            <div style={{ fontSize: 12, opacity: 0.7 }}>Lokalita (obec/město)</div>
-            <input value={location} onChange={(e) => setLocation(e.target.value)} style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
-          </div>
-
-          <div style={{ marginTop: 12 }}>
-            <div style={{ fontSize: 12, opacity: 0.7 }}>Expirace</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <select
-                value={expiryPreset}
-                onChange={(e) => setExpiryPreset(e.target.value)}
-                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd" }}
-              >
-                {EXPIRY_PRESETS.map((p) => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
-                ))}
-              </select>
-
+          {/* Kontakt */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Kontaktní osoba</label>
               <input
-                type="date"
-                disabled={expiryPreset !== "custom"}
-                value={customExpiry}
-                onChange={(e) => setCustomExpiry(e.target.value)}
-                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd", opacity: expiryPreset === "custom" ? 1 : 0.5 }}
+                className="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200"
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                placeholder="Jméno"
               />
             </div>
-            <div style={{ marginTop: 6, fontSize: 12, opacity: 0.7 }}>
-              Doporučeno: 90 dní. Po expiraci se inzerát nebude zobrazovat (pokud je zapnut filtr „Jen neexpir.“).
-            </div>
-          </div>
-
-          <div style={{ marginTop: 16, fontWeight: 700 }}>Kontakt (povinné)</div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 8 }}>
             <div>
-              <div style={{ fontSize: 12, opacity: 0.7 }}>E-mail*</div>
+              <label className="block text-sm font-medium text-slate-700">E-mail</label>
               <input
+                className="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200"
                 value={contactEmail}
                 onChange={(e) => setContactEmail(e.target.value)}
-                placeholder="např. ucitel@skola.cz"
-                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd" }}
+                placeholder="email@..."
               />
             </div>
             <div>
-              <div style={{ fontSize: 12, opacity: 0.7 }}>Telefon*</div>
+              <label className="block text-sm font-medium text-slate-700">Telefon</label>
               <input
+                className="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200"
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
-                placeholder="+420 777 000 000"
-                style={{ width: "100%", padding: 10, borderRadius: 10, border: "1px solid #ddd" }}
+                placeholder="+420 ..."
               />
             </div>
           </div>
 
-          <div style={{ marginTop: 16, fontWeight: 700 }}>Fotky (max 5)</div>
-          <div style={{ marginTop: 8 }}>
+          {/* Expirace */}
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-slate-700">Platnost do</label>
             <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => setImageFiles(Array.from(e.target.files || []).slice(0, 5))}
+              type="date"
+              className="mt-1 px-3 py-2 rounded-xl border border-slate-200"
+              value={expiresAt}
+              onChange={(e) => setExpiresAt(e.target.value)}
             />
-            {imageFiles.length ? (
-              <div style={{ marginTop: 8, fontSize: 12, opacity: 0.8 }}>
-                Vybráno: {imageFiles.map((f) => f.name).join(", ")}
-              </div>
-            ) : null}
+            <p className="mt-1 text-xs text-slate-500">
+              Když necháš prázdné, inzerát nebude automaticky expirovat.
+            </p>
           </div>
 
-          <div style={{ marginTop: 16, fontWeight: 700 }}>Přílohy (PDF, DOCX, XLSX… max 5)</div>
-          <div style={{ marginTop: 8 }}>
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
-              multiple
-              onChange={(e) => setDocFiles(Array.from(e.target.files || []).slice(0, 5))}
-            />
-            {docFiles.length ? (
-              <div style={{ marginTop: 8, fontSize: 12, opacity: 0.8 }}>
-                Vybráno: {docFiles.map((f) => f.name).join(", ")}
-              </div>
-            ) : null}
-          </div>
-
-          <div style={{ marginTop: 14 }}>
+          {/* Tlačítka */}
+          <div className="mt-6 flex gap-2">
             <button
-              onClick={onSave}
-              disabled={saving}
-              style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid #ddd", cursor: "pointer" }}
+              type="submit"
+              disabled={!canSubmit || loading}
+              className={[
+                "px-4 py-2 rounded-xl text-white",
+                !canSubmit || loading ? "bg-slate-400" : "bg-slate-900 hover:bg-slate-800",
+              ].join(" ")}
             >
-              {saving ? "Ukládám…" : "Uložit inzerát"}
+              {loading ? "Ukládám…" : "Uložit inzerát"}
             </button>
-          </div>
 
-          <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>
-            Pozn.: Přílohy se nahrají až po uložení inzerátu.
+            <Link
+              href="/portal/inzerce"
+              className="px-4 py-2 rounded-xl border border-slate-200 hover:border-slate-300"
+            >
+              Zrušit
+            </Link>
           </div>
-        </div>
+        </form>
       </div>
     </RequireAuth>
   );
