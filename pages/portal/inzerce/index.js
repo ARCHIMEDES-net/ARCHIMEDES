@@ -1,9 +1,9 @@
 // pages/portal/inzerce/index.js
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import RequireAuth from "../../components/RequireAuth";
-import PortalHeader from "../../components/PortalHeader";
-import { supabase } from "../../lib/supabaseClient";
+import RequireAuth from "../../../components/RequireAuth";
+import PortalHeader from "../../../components/PortalHeader";
+import { supabase } from "../../../lib/supabaseClient";
 
 function safeDate(value) {
   if (!value) return null;
@@ -48,15 +48,10 @@ export default function InzerceIndex() {
   const [rows, setRows] = useState([]);
   const [categories, setCategories] = useState([]);
 
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil((totalCount || 0) / PAGE_SIZE));
-  }, [totalCount]);
-
+  const totalPages = useMemo(() => Math.max(1, Math.ceil((totalCount || 0) / PAGE_SIZE)), [totalCount]);
   const fromIdx = useMemo(() => (page - 1) * PAGE_SIZE, [page]);
-  const toIdx = useMemo(() => fromIdx + PAGE_SIZE - 1, [fromIdx]);
 
   async function loadCategoriesOnce() {
-    // zkusíme vytáhnout unikátní kategorie (pokud to Supabase RLS dovolí)
     try {
       const { data, error } = await supabase
         .from("marketplace_posts")
@@ -64,12 +59,11 @@ export default function InzerceIndex() {
         .not("category", "is", null);
 
       if (error) return;
-
       const uniq = Array.from(new Set((data || []).map((x) => x.category).filter(Boolean)));
       uniq.sort((a, b) => String(a).localeCompare(String(b), "cs"));
       setCategories(uniq);
     } catch {
-      // no-op
+      // ignore
     }
   }
 
@@ -84,11 +78,9 @@ export default function InzerceIndex() {
 
       let query = supabase
         .from("marketplace_posts")
-        // IMPORTANT: count exact pro stránkování
         .select("*", { count: "exact" });
 
-      // ---- FILTERS ----
-      // 1) Fulltext search (diakritika / unaccent už řeší trigger)
+      // fulltext search
       if (q && q.trim().length > 0) {
         query = query.textSearch("search_tsv", q.trim(), {
           type: "websearch",
@@ -96,46 +88,34 @@ export default function InzerceIndex() {
         });
       }
 
-      // 2) Typ (poptávka/nabídka/spolupráce)
-      if (typeFilter !== "all") {
-        query = query.eq("post_type", typeFilter);
-      }
+      // type
+      if (typeFilter !== "all") query = query.eq("post_type", typeFilter);
 
-      // 3) Kategorie
-      if (categoryFilter !== "all") {
-        query = query.eq("category", categoryFilter);
-      }
+      // category
+      if (categoryFilter !== "all") query = query.eq("category", categoryFilter);
 
-      // 4) Jen ARCHIMEDES (naše inzerce komponent / vybavení apod.)
-      if (onlyArchimedes) {
-        query = query.eq("is_archimedes", true);
-      }
+      // only archimedes
+      if (onlyArchimedes) query = query.eq("is_archimedes", true);
 
-      // 5) Expirace / stav
+      // expiry / status
       const now = nowIso();
 
-      // Checkbox "Jen neexpir."
       if (onlyNonExpired) {
-        // expirace je buď NULL (neexpiruje), nebo v budoucnu
         query = query.or(`expires_at.is.null,expires_at.gt.${now}`);
       }
 
-      // Select "Stav"
       if (statusFilter === "active") {
-        // aktivní = neuzavřené a neexpirované
         query = query.eq("is_closed", false);
         query = query.or(`expires_at.is.null,expires_at.gt.${now}`);
       } else if (statusFilter === "closed") {
         query = query.eq("is_closed", true);
       } else if (statusFilter === "expired") {
         query = query.not("expires_at", "is", null).lte("expires_at", now);
-      } // "all" -> nic
+      }
 
-      // ---- ORDER + PAGINATION ----
       query = query.order("created_at", { ascending: false }).range(from, to);
 
       const { data, error, count } = await query;
-
       if (error) throw error;
 
       setRows(data || []);
@@ -151,7 +131,6 @@ export default function InzerceIndex() {
   }
 
   useEffect(() => {
-    // initial load
     fetchRows({ resetPage: true });
     loadCategoriesOnce();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -170,14 +149,12 @@ export default function InzerceIndex() {
     setOnlyNonExpired(true);
     setOnlyArchimedes(false);
     setPage(1);
-    // načti znovu
     setTimeout(() => fetchRows({ resetPage: true }), 0);
   }
 
   function goPrev() {
     const next = Math.max(1, page - 1);
     setPage(next);
-    // načti příští stránku
     setTimeout(() => fetchRows(), 0);
   }
 
@@ -264,38 +241,21 @@ export default function InzerceIndex() {
               </div>
 
               <div className="md:col-span-12 flex flex-wrap items-center gap-3 mt-1">
-                <button
-                  type="submit"
-                  className="rounded-lg border px-4 py-2 hover:bg-gray-50"
-                  disabled={loading}
-                >
+                <button type="submit" className="rounded-lg border px-4 py-2 hover:bg-gray-50" disabled={loading}>
                   Hledat
                 </button>
 
-                <button
-                  type="button"
-                  className="rounded-lg border px-4 py-2 hover:bg-gray-50"
-                  onClick={onReset}
-                  disabled={loading}
-                >
+                <button type="button" className="rounded-lg border px-4 py-2 hover:bg-gray-50" onClick={onReset} disabled={loading}>
                   Reset
                 </button>
 
                 <label className="inline-flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={onlyNonExpired}
-                    onChange={(e) => setOnlyNonExpired(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={onlyNonExpired} onChange={(e) => setOnlyNonExpired(e.target.checked)} />
                   Jen neexpir.
                 </label>
 
                 <label className="inline-flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={onlyArchimedes}
-                    onChange={(e) => setOnlyArchimedes(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={onlyArchimedes} onChange={(e) => setOnlyArchimedes(e.target.checked)} />
                   Jen ARCHIMEDES
                 </label>
 
@@ -312,8 +272,7 @@ export default function InzerceIndex() {
             </div>
 
             <div className="mt-3 text-sm text-gray-600">
-              Zobrazeno: <strong>{rows.length}</strong> / <strong>{totalCount}</strong> • aktivní na stránce:{" "}
-              <strong>{rows.filter((r) => !r?.is_closed).length}</strong> • stránka:{" "}
+              Zobrazeno: <strong>{rows.length}</strong> / <strong>{totalCount}</strong> • stránka:{" "}
               <strong>
                 {page} / {totalPages}
               </strong>
@@ -337,7 +296,7 @@ export default function InzerceIndex() {
               {rows.map((r) => {
                 const created = safeDate(r.created_at);
                 const expires = safeDate(r.expires_at);
-                const expired = expires ? expires.getTime() <= new Date().getTime() : false;
+                const expired = expires ? expires.getTime() <= Date.now() : false;
 
                 const badgeType =
                   r.post_type === "POPTAVKA" ? "POPTÁVKA" : r.post_type === "NABIDKA" ? "NABÍDKA" : r.post_type || "—";
@@ -360,9 +319,7 @@ export default function InzerceIndex() {
 
                     <div className="mt-2 text-lg font-semibold">{r.title || "Bez názvu"}</div>
 
-                    {r.description ? (
-                      <div className="mt-1 text-sm text-gray-700 line-clamp-2">{r.description}</div>
-                    ) : null}
+                    {r.description ? <div className="mt-1 text-sm text-gray-700 line-clamp-2">{r.description}</div> : null}
 
                     <div className="mt-2 text-xs text-gray-600">
                       {created ? <>Vloženo: {formatDateTimeCS(created)}</> : null}
@@ -376,18 +333,10 @@ export default function InzerceIndex() {
         </div>
 
         <div className="mt-5 flex items-center justify-between">
-          <button
-            className="rounded-lg border px-4 py-2 disabled:opacity-50"
-            onClick={goPrev}
-            disabled={loading || page <= 1}
-          >
+          <button className="rounded-lg border px-4 py-2 disabled:opacity-50" onClick={goPrev} disabled={loading || page <= 1}>
             ← Předchozí
           </button>
-          <button
-            className="rounded-lg border px-4 py-2 disabled:opacity-50"
-            onClick={goNext}
-            disabled={loading || page >= totalPages}
-          >
+          <button className="rounded-lg border px-4 py-2 disabled:opacity-50" onClick={goNext} disabled={loading || page >= totalPages}>
             Další →
           </button>
         </div>
