@@ -4,6 +4,8 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
+const BUCKET = "event-posters"; // ← pokud máš jinak, změň jen toto
+
 function safeDate(value) {
   if (!value) return null;
   const d = new Date(value);
@@ -21,21 +23,12 @@ function formatDateTimeCS(date) {
   });
 }
 
-function isSameDay(a, b) {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-function minutesToHuman(mins) {
-  if (mins < 1) return "za chvíli";
-  if (mins < 60) return `za ${mins} min`;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  if (m === 0) return `za ${h} h`;
-  return `za ${h} h ${m} min`;
+function normalizeAudience(aud) {
+  if (!aud) return [];
+  if (Array.isArray(aud)) return aud.filter(Boolean).map(String);
+  const s = String(aud).trim();
+  if (!s) return [];
+  return s.split(",").map((x) => x.trim()).filter(Boolean);
 }
 
 function badgeColor(label) {
@@ -49,22 +42,10 @@ function badgeColor(label) {
   return "bg-slate-100 text-slate-700";
 }
 
-function normalizeAudience(aud) {
-  if (!aud) return [];
-  if (Array.isArray(aud)) return aud.filter(Boolean).map(String);
-  // kdyby bylo uložené jako text
-  const s = String(aud).trim();
-  if (!s) return [];
-  return s.split(",").map((x) => x.trim()).filter(Boolean);
-}
-
-function sortByStartAsc(a, b) {
-  const da = safeDate(a?.starts_at);
-  const db = safeDate(b?.starts_at);
-  if (!da && !db) return 0;
-  if (!da) return 1;
-  if (!db) return -1;
-  return da.getTime() - db.getTime();
+function publicUrlFromPath(path) {
+  if (!path) return "";
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data?.publicUrl || "";
 }
 
 export default function Kalendar() {
@@ -76,13 +57,11 @@ export default function Kalendar() {
     setLoading(true);
     setErr("");
 
-    // Bereme jen publikované (pokud sloupec existuje a používáš ho)
-    // Když by náhodou neexistoval, Supabase vrátí chybu – u tebe už is_published používáme, takže OK.
     const { data, error } = await supabase
       .from("events")
-      .select("*")
+      .select("id,title,category,audience_groups,starts_at,stream_url,worksheet_url,is_published,poster_path")
       .eq("is_published", true)
-      .order("starts_at", { ascending: true, nullsFirst: false });
+      .order("starts_at", { ascending: true });
 
     if (error) {
       setErr(error.message);
@@ -100,161 +79,26 @@ export default function Kalendar() {
 
   const now = new Date();
 
-  const enriched = useMemo(() => {
-    return (rows || []).map((r) => {
+  const upcoming = useMemo(() => {
+    return rows.filter((r) => {
       const d = safeDate(r.starts_at);
-      const aud = normalizeAudience(r.audience_groups || r.audience);
-      return {
-        ...r,
-        _starts: d,
-        _aud: aud,
-      };
+      return d && d >= now;
     });
   }, [rows]);
 
-  const { todayNextHero, upcoming, archive, undated } = useMemo(() => {
-    const future = [];
-    const past = [];
-    const noDate = [];
-
-    for (const r of enriched) {
-      if (!r._starts) {
-        noDate.push(r);
-      } else if (r._starts.getTime() >= now.getTime()) {
-        future.push(r);
-      } else {
-        past.push(r);
-      }
-    }
-
-    future.sort(sortByStartAsc);
-    past.sort((a, b) => (b._starts?.getTime() || 0) - (a._starts?.getTime() || 0));
-
-    // hero = nejbližší událost, ideálně dnes; když není dnes, tak nejbližší budoucí
-    let hero = null;
-    const today = future.find((x) => x._starts && isSameDay(x._starts, now));
-    hero = today || future[0] || null;
-
-    // upcoming bez hero
-    const up = hero ? future.filter((x) => x.id !== hero.id) : future;
-
-    return {
-      todayNextHero: hero,
-      upcoming: up,
-      archive: past,
-      undated: noDate,
-    };
-  }, [enriched]);
-
-  function HeroBadge(hero) {
-    if (!hero?._starts) return null;
-    const mins = Math.round((hero._starts.getTime() - now.getTime()) / 60000);
-    const sameDay = isSameDay(hero._starts, now);
-
-    if (mins <= 0) {
-      return (
-        <span className="px-3 py-1 rounded-full text-xs bg-red-100 text-red-800">
-          🔴 Právě probíhá / právě začíná
-        </span>
-      );
-    }
-    if (sameDay) {
-      return (
-        <span className="px-3 py-1 rounded-full text-xs bg-red-100 text-red-800">
-          DNES {minutesToHuman(mins)}
-        </span>
-      );
-    }
-    return (
-      <span className="px-3 py-1 rounded-full text-xs bg-slate-100 text-slate-700">
-        Nejbližší vysílání
-      </span>
-    );
-  }
-
-  function EventCard({ r, variant = "default" }) {
-    const dt = r._starts ? formatDateTimeCS(r._starts) : "Bez data";
-    const category = r.category || "";
-    const hasLink = !!(r.stream_url || r.streamUrl);
-    const streamUrl = r.stream_url || r.streamUrl || "";
-
-    return (
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="text-xs text-slate-500">{dt}</div>
-            <div className="text-lg font-semibold mt-1">{r.title || r.name || "Událost"}</div>
-
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              {category ? (
-                <span className="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700">
-                  {category}
-                </span>
-              ) : null}
-
-              {(r._aud || []).map((a, i) => (
-                <span key={i} className={`px-2 py-1 rounded-full text-xs ${badgeColor(a)}`}>
-                  {a}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {variant === "hero" ? (
-            <div className="shrink-0">{HeroBadge(r)}</div>
-          ) : null}
-        </div>
-
-        {r.short_description || r.description ? (
-          <div className="mt-3 text-sm text-slate-600 whitespace-pre-wrap">
-            {r.short_description || r.description}
-          </div>
-        ) : null}
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link
-            href={`/portal/udalost/${r.id}`}
-            className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
-          >
-            Detail
-          </Link>
-
-          {hasLink ? (
-            <a
-              href={streamUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
-            >
-              ▶ Odkaz na vysílání
-            </a>
-          ) : null}
-
-          {r.worksheet_url ? (
-            <a
-              href={r.worksheet_url}
-              target="_blank"
-              rel="noreferrer"
-              className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
-            >
-              📄 Pracovní list
-            </a>
-          ) : null}
-        </div>
-      </div>
-    );
-  }
+  const nextOne = upcoming[0] || null;
+  const later = upcoming.slice(1);
 
   return (
     <RequireAuth>
       <PortalHeader />
 
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="flex items-end justify-between gap-3 flex-wrap">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-semibold">Program</h1>
             <p className="text-slate-600 mt-1">
-              Přehled živého vysílání a archivu. (Archiv se tvoří automaticky podle data.)
+              Přehled živého vysílání a archivu.
             </p>
           </div>
 
@@ -266,82 +110,174 @@ export default function Kalendar() {
           </button>
         </div>
 
-        {err ? (
-          <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700">
-            {err}
-          </div>
-        ) : null}
+        {loading && <div className="mt-6">Načítám…</div>}
+        {err && <div className="mt-6 text-red-600">{err}</div>}
 
-        {loading ? <div className="mt-6">Načítám…</div> : null}
-
-        {/* HERO */}
-        <div className="mt-6">
-          <div className="text-sm font-semibold text-slate-800 mb-3">
-            Nejbližší vysílání
-          </div>
-
-          {todayNextHero ? (
-            <div className="border border-slate-200 rounded-2xl bg-gradient-to-b from-slate-50 to-white p-1">
-              <div className="rounded-2xl">
-                <EventCard r={todayNextHero} variant="hero" />
+        {!loading && !err ? (
+          <div className="mt-6 space-y-8">
+            <div>
+              <div className="text-sm font-semibold text-slate-700 mb-3">
+                Nejbližší vysílání
               </div>
+
+              {nextOne ? (
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+                  <div className="flex gap-4 items-start">
+                    {nextOne.poster_path ? (
+                      <div className="w-[140px] shrink-0 border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={publicUrlFromPath(nextOne.poster_path)}
+                          alt="Plakát"
+                          className="w-full h-auto"
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : null}
+
+                    <div className="flex-1 min-w-[260px]">
+                      <div className="text-sm text-slate-500">
+                        {nextOne.starts_at
+                          ? formatDateTimeCS(new Date(nextOne.starts_at))
+                          : "Bez data"}
+                      </div>
+
+                      <div className="text-lg font-semibold mt-1">
+                        {nextOne.title}
+                      </div>
+
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                        {nextOne.category ? (
+                          <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700">
+                            {nextOne.category}
+                          </span>
+                        ) : null}
+
+                        {normalizeAudience(nextOne.audience_groups).map((a, i) => (
+                          <span
+                            key={i}
+                            className={`px-2 py-1 rounded-full ${badgeColor(a)}`}
+                          >
+                            {a}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="mt-4 flex gap-2 flex-wrap">
+                        <Link
+                          href={`/portal/udalost/${nextOne.id}`}
+                          className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
+                        >
+                          Detail
+                        </Link>
+
+                        {nextOne.stream_url ? (
+                          <a
+                            href={nextOne.stream_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
+                          >
+                            ▶ Odkaz na vysílání
+                          </a>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-slate-600">Žádné nadcházející vysílání.</div>
+              )}
             </div>
-          ) : (
-            <div className="text-slate-500">Zatím tu není žádné naplánované vysílání.</div>
-          )}
-        </div>
 
-        {/* UPCOMING */}
-        <div className="mt-10">
-          <div className="text-sm font-semibold text-slate-800 mb-3">
-            Nadcházející vysílání
-          </div>
+            <div>
+              <div className="text-sm font-semibold text-slate-700 mb-3">
+                Nadcházející vysílání
+              </div>
 
-          {upcoming.length ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {upcoming.map((r) => (
-                <EventCard key={r.id} r={r} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-slate-500">Žádné další nadcházející vysílání.</div>
-          )}
-        </div>
+              {later.length ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {later.map((r) => {
+                    const posterUrl = r.poster_path
+                      ? publicUrlFromPath(r.poster_path)
+                      : "";
+                    return (
+                      <div
+                        key={r.id}
+                        className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5"
+                      >
+                        <div className="flex gap-4 items-start">
+                          {posterUrl ? (
+                            <div className="w-[120px] shrink-0 border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={posterUrl}
+                                alt="Plakát"
+                                className="w-full h-auto"
+                                loading="lazy"
+                              />
+                            </div>
+                          ) : null}
 
-        {/* UNDATED */}
-        {undated.length ? (
-          <div className="mt-10">
-            <div className="text-sm font-semibold text-slate-800 mb-3">
-              Bez data
-            </div>
+                          <div className="flex-1">
+                            <div className="text-sm text-slate-500">
+                              {r.starts_at
+                                ? formatDateTimeCS(new Date(r.starts_at))
+                                : "Bez data"}
+                            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {undated.map((r) => (
-                <EventCard key={r.id} r={r} />
-              ))}
+                            <div className="text-lg font-semibold mt-1">
+                              {r.title}
+                            </div>
+
+                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                              {r.category ? (
+                                <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700">
+                                  {r.category}
+                                </span>
+                              ) : null}
+
+                              {normalizeAudience(r.audience_groups).map((a, i) => (
+                                <span
+                                  key={i}
+                                  className={`px-2 py-1 rounded-full ${badgeColor(a)}`}
+                                >
+                                  {a}
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="mt-4 flex gap-2 flex-wrap">
+                              <Link
+                                href={`/portal/udalost/${r.id}`}
+                                className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
+                              >
+                                Detail
+                              </Link>
+
+                              {r.stream_url ? (
+                                <a
+                                  href={r.stream_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
+                                >
+                                  ▶ Odkaz na vysílání
+                                </a>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-slate-600">Žádné další nadcházející vysílání.</div>
+              )}
             </div>
           </div>
         ) : null}
-
-        {/* ARCHIVE */}
-        <div className="mt-10">
-          <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
-            <div className="text-sm font-semibold text-slate-800">Archiv</div>
-            <div className="text-xs text-slate-500">
-              (Zatím bez „záznamů“ – až přidáme `recording_url`, doplníme tlačítko Záznam.)
-            </div>
-          </div>
-
-          {archive.length ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {archive.slice(0, 20).map((r) => (
-                <EventCard key={r.id} r={r} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-slate-500">Archiv je zatím prázdný.</div>
-          )}
-        </div>
       </div>
     </RequireAuth>
   );
