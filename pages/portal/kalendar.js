@@ -42,12 +42,28 @@ function badgeColor(label) {
   return "bg-slate-100 text-slate-700";
 }
 
-function publicUrlFromPath(path) {
-  if (!path) return "";
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data?.publicUrl || "";
+function normalizePosterPath(p) {
+  if (!p) return "";
+  let s = String(p);
+
+  // když DB omylem ukládá i "event-posters/..."
+  if (s.startsWith(`${BUCKET}/`)) s = s.slice(BUCKET.length + 1);
+
+  // kdyby někdy bylo uložené celé URL
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+
+  // odstranit případné počáteční lomítko
+  if (s.startsWith("/")) s = s.slice(1);
+
+  return s;
 }
 
+function publicUrlFromPath(path) {
+  const p = normalizePosterPath(path);
+  if (!p) return "";
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(p);
+  return data?.publicUrl || "";
+}
 export default function Kalendar() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
