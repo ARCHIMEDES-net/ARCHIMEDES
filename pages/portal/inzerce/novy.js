@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import RequireAuth from "../../../components/RequireAuth";
@@ -11,12 +11,10 @@ const KIND_OPTIONS = [
   { value: "nabidka", label: "Nabídka" },
   { value: "poptavka", label: "Poptávka" },
   { value: "sluzba", label: "Služba" },
+  { value: "spoluprace", label: "Spolupráce" }, // ✅ nové
   { value: "pozvanka", label: "Pozvánka" },
-  { value: "dobrovolnictvi", label: "Dobrovolnictví" },
-  { value: "ztraty_a_nalezy", label: "Ztráty & nálezy" },
 ];
 
-// ✅ pevný seznam rubrik (můžeš kdykoli rozšířit)
 const CATEGORY_OPTIONS = [
   "Vybavení školy",
   "Učebnice a pomůcky",
@@ -25,11 +23,11 @@ const CATEGORY_OPTIONS = [
   "Sportovní vybavení",
   "Knihy a čtenářský klub",
   "Kultura a akce",
+  "Partnerství", // ✅ nové
   "Volnočasové kroužky",
   "Wellbeing",
   "Senior klub",
   "Komunita a spolky",
-  "Dobrovolnictví",
   "Služby",
   "Ostatní",
 ];
@@ -51,6 +49,16 @@ function helpCls() {
   return "mt-1 text-xs text-slate-500";
 }
 
+function titleFromDescription(desc, kindLabel, category) {
+  const clean = String(desc || "").trim().replace(/\s+/g, " ");
+  const short = clean.slice(0, 80);
+  const prefixParts = [];
+  if (kindLabel) prefixParts.push(kindLabel);
+  if (category) prefixParts.push(category);
+  const prefix = prefixParts.length ? prefixParts.join(" · ") + " — " : "";
+  return (prefix + short).slice(0, 120);
+}
+
 export default function NovyInzerat() {
   const router = useRouter();
 
@@ -68,7 +76,6 @@ export default function NovyInzerat() {
 
   const [files, setFiles] = useState([]);
 
-  // stačí cokoliv (ale ne prázdné)
   const canSubmit = useMemo(() => description.trim().length >= 1, [description]);
 
   async function onSubmit(e) {
@@ -91,12 +98,16 @@ export default function NovyInzerat() {
       return;
     }
 
-    // ✅ důležité: posíláme i 'type' kvůli NOT NULL constraintu
+    const kindLabel = KIND_OPTIONS.find((x) => x.value === kind)?.label || "";
+    const cat = category?.trim() || "";
+
+    // ✅ povinné sloupce ve starém schématu: type + title
     const payload = {
       author_id: user.id,
       kind,
-      type: kind, // <- klíčová oprava
-      category: category?.trim() || null,
+      type: kind, // kvůli NOT NULL sloupci "type"
+      title: titleFromDescription(description, kindLabel, cat), // kvůli NOT NULL sloupci "title"
+      category: cat || null,
       description: description.trim(),
       contact_name: contactName?.trim() || null,
       contact_email: contactEmail?.trim() || null,
@@ -122,7 +133,7 @@ export default function NovyInzerat() {
 
     const postId = post.id;
 
-    // Upload fotek
+    // Upload fotek + záznam do marketplace_attachments
     for (const file of files || []) {
       try {
         const safeName = file.name.replace(/\s+/g, "_");
@@ -140,7 +151,9 @@ export default function NovyInzerat() {
           file_path: path,
           mime_type: file.type || null,
         });
-      } catch (e2) {}
+      } catch {
+        // nechceme shodit celý proces kvůli jedné fotce
+      }
     }
 
     router.push("/portal/inzerce");
@@ -154,9 +167,7 @@ export default function NovyInzerat() {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-semibold">Nový inzerát</h1>
-            <p className="text-slate-600 mt-1">
-              Vyplň typ, rubriku, popis a případně přidej fotky.
-            </p>
+            <p className="text-slate-600 mt-1">Vyplň typ, rubriku, popis a případně přidej fotky.</p>
           </div>
 
           <Link
@@ -168,9 +179,7 @@ export default function NovyInzerat() {
         </div>
 
         {err ? (
-          <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700">
-            {err}
-          </div>
+          <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700">{err}</div>
         ) : null}
 
         <form onSubmit={onSubmit} className="mt-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
@@ -185,6 +194,7 @@ export default function NovyInzerat() {
                     </option>
                   ))}
                 </select>
+                <p className={helpCls()}>Typ se ukládá do sloupců <code>kind</code> a <code>type</code>.</p>
               </div>
 
               <div>
@@ -213,6 +223,7 @@ export default function NovyInzerat() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Napiš stručně co nabízíš / poptáváš, podmínky, cenu, kde, atd."
               />
+              <p className={helpCls()}>Nadpis se vytvoří automaticky z popisu.</p>
             </div>
 
             <div className="mt-5">
@@ -266,7 +277,10 @@ export default function NovyInzerat() {
               {loading ? "Ukládám…" : "Uložit inzerát"}
             </button>
 
-            <Link href="/portal/inzerce" className="px-4 py-2 rounded-xl border border-slate-200 hover:border-slate-300 bg-white">
+            <Link
+              href="/portal/inzerce"
+              className="px-4 py-2 rounded-xl border border-slate-200 hover:border-slate-300 bg-white"
+            >
               Zrušit
             </Link>
           </div>
