@@ -7,12 +7,9 @@ import { supabase } from "../../../lib/supabaseClient";
 const BUCKET = "marketplace";
 
 function typeBadge(type) {
-  if (type === "offer")
-    return "bg-green-100 text-green-800";
-  if (type === "demand")
-    return "bg-blue-100 text-blue-800";
-  if (type === "partnership")
-    return "bg-purple-100 text-purple-800";
+  if (type === "offer") return "bg-green-100 text-green-800";
+  if (type === "demand") return "bg-blue-100 text-blue-800";
+  if (type === "partnership") return "bg-purple-100 text-purple-800";
   return "bg-slate-100 text-slate-700";
 }
 
@@ -28,6 +25,9 @@ export default function Inzerce() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState("");
+
   async function load() {
     setLoading(true);
     setErr("");
@@ -42,6 +42,7 @@ export default function Inzerce() {
         )
       `)
       .eq("status", "active")
+      .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -70,16 +71,30 @@ export default function Inzerce() {
     return data?.publicUrl || null;
   }
 
+  const filtered = useMemo(() => {
+    return rows.filter(row => {
+      const matchesSearch =
+        row.title?.toLowerCase().includes(search.toLowerCase()) ||
+        row.description?.toLowerCase().includes(search.toLowerCase());
+
+      const matchesType =
+        !filterType || row.type === filterType;
+
+      return matchesSearch && matchesType;
+    });
+  }, [rows, search, filterType]);
+
   return (
     <RequireAuth>
       <PortalHeader />
 
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-6">
+
+        <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
           <div>
             <h1 className="text-2xl font-semibold">Inzerce</h1>
             <p className="text-slate-600 mt-1">
-              Nabídky a poptávky v rámci komunity ARCHIMEDES.
+              Komunitní marketplace ARCHIMEDES.
             </p>
           </div>
 
@@ -91,6 +106,28 @@ export default function Inzerce() {
           </Link>
         </div>
 
+        {/* Filtry */}
+        <div className="flex gap-3 mb-6 flex-wrap">
+          <input
+            type="text"
+            placeholder="Vyhledat..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="px-3 py-2 border rounded-xl w-60"
+          />
+
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="px-3 py-2 border rounded-xl"
+          >
+            <option value="">Všechny typy</option>
+            <option value="offer">Nabídka</option>
+            <option value="demand">Poptávka</option>
+            <option value="partnership">Spolupráce</option>
+          </select>
+        </div>
+
         {err && (
           <div className="p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-700">
             {err}
@@ -100,15 +137,16 @@ export default function Inzerce() {
         {loading && <div>Načítám…</div>}
 
         <div className="space-y-4">
-          {rows.map((row) => {
+          {filtered.map((row) => {
             const imgUrl = getImage(row);
 
             return (
               <div
                 key={row.id}
-                className="bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition flex overflow-hidden"
+                className={`bg-white border rounded-2xl shadow-sm hover:shadow-md transition flex overflow-hidden ${
+                  row.is_pinned ? "border-yellow-400" : "border-slate-200"
+                }`}
               >
-                {/* Obrázek */}
                 <div className="w-48 h-40 bg-slate-100 flex items-center justify-center overflow-hidden">
                   {imgUrl ? (
                     <img
@@ -123,9 +161,9 @@ export default function Inzerce() {
                   )}
                 </div>
 
-                {/* Obsah */}
                 <div className="flex-1 p-5 flex flex-col justify-between">
                   <div>
+
                     <div className="flex items-center gap-2 mb-2">
                       <span
                         className={`px-2 py-1 text-xs rounded-full ${typeBadge(
@@ -134,6 +172,12 @@ export default function Inzerce() {
                       >
                         {typeLabel(row.type)}
                       </span>
+
+                      {row.is_pinned && (
+                        <span className="text-xs text-yellow-600 font-medium">
+                          ★ Doporučeno
+                        </span>
+                      )}
 
                       {row.category && (
                         <span className="text-xs text-slate-500">
@@ -153,7 +197,6 @@ export default function Inzerce() {
 
                   <div className="flex justify-between items-center mt-4 text-xs text-slate-500">
                     <span>
-                      Vloženo:{" "}
                       {new Date(row.created_at).toLocaleDateString("cs-CZ")}
                     </span>
 
@@ -170,9 +213,9 @@ export default function Inzerce() {
           })}
         </div>
 
-        {!loading && rows.length === 0 && (
+        {!loading && filtered.length === 0 && (
           <div className="text-slate-500 mt-6">
-            Zatím zde nejsou žádné aktivní inzeráty.
+            Žádné výsledky.
           </div>
         )}
       </div>
