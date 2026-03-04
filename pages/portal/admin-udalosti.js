@@ -7,15 +7,7 @@ import { supabase } from "../../lib/supabaseClient";
 
 const BUCKET = "posters";
 
-function toDateTimeLocalValue(date) {
-  if (!date) return "";
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours()
-  )}:${pad(d.getMinutes())}`;
-}
+/* ---------------- helpers ---------------- */
 
 function safeDate(value) {
   if (!value) return null;
@@ -36,20 +28,14 @@ function formatDateTimeCS(value) {
   });
 }
 
-function publicUrlFromPath(path) {
-  if (!path) return null;
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data?.publicUrl || null;
-}
-
-function normalizeAudienceValue(v) {
-  if (!v) return [];
-  if (Array.isArray(v)) return v;
-  // když je v DB omylem string: "Deváťáci, Komunita"
-  return String(v)
-    .split(",")
-    .map((x) => x.trim())
-    .filter(Boolean);
+function toDateTimeLocalValue(value) {
+  if (!value) return "";
+  const d = safeDate(value);
+  if (!d) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours()
+  )}:${pad(d.getMinutes())}`;
 }
 
 // nastaví nejbližší půlhodinu (local)
@@ -67,15 +53,68 @@ function nextHalfHourLocalValue() {
   )}:${pad(d.getMinutes())}`;
 }
 
-// default cílovka: Komunita → jinak první dostupná → jinak ["Komunita"] (safe)
+function publicUrlFromPath(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data?.publicUrl || null;
+}
+
+/**
+ * Audience může být:
+ * - array: ["Komunita","Deváťáci"]
+ * - string CSV: "Komunita, Deváťáci"
+ * - string JSON: '["Komunita","Deváťáci"]'
+ * - postgres array string: '{Komunita,Deváťáci}' nebo '{"Komunita","Deváťáci"}'
+ */
+function normalizeAudienceValue(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) {
+    return v.map(String).map((x) => x.trim()).filter(Boolean);
+  }
+
+  const s = String(v).trim();
+  if (!s) return [];
+
+  // JSON array string
+  if (s.startsWith("[") && s.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(s);
+      if (Array.isArray(parsed)) {
+        return parsed.map(String).map((x) => x.trim()).filter(Boolean);
+      }
+    } catch (_) {
+      // continue
+    }
+  }
+
+  // Postgres array string
+  if (s.startsWith("{") && s.endsWith("}")) {
+    const inner = s.slice(1, -1).trim();
+    if (!inner) return [];
+    return inner
+      .split(",")
+      .map((x) => x.trim().replace(/^"(.*)"$/, "$1"))
+      .filter(Boolean);
+  }
+
+  // CSV fallback
+  return s
+    .split(",")
+    .map((x) => x.trim().replace(/^"(.*)"$/, "$1"))
+    .filter(Boolean);
+}
+
+// default cílovka: Komunita → jinak první dostupná → jinak []
 function defaultAudience(audienceGroups) {
   const komunita = (audienceGroups || []).find((a) =>
     String(a?.name || "").toLowerCase().includes("komunit")
   );
   if (komunita?.name) return [komunita.name];
   if (audienceGroups?.[0]?.name) return [audienceGroups[0].name];
-  return ["Komunita"];
+  return [];
 }
+
+/* ---------------- component ---------------- */
 
 export default function AdminUdalosti() {
   const [rows, setRows] = useState([]);
@@ -101,9 +140,21 @@ export default function AdminUdalosti() {
     poster_path: "",
   });
 
-  async function loadAll({ clearError = false } = {}) {
+  const categoriesByName = useMemo(() => {
+    const m = new Map();
+    (categories || []).forEach((c) => m.set(c.name, c));
+    return m;
+  }, [categories]);
+
+  const audienceByName = useMemo(() => {
+    const m = new Map();
+    (audienceGroups || []).forEach((a) => m.set(a.name, a));
+    return m;
+  }, [audienceGroups]);
+
+  async function loadAll() {
     setLoading(true);
-    if (clearError) setErr("");
+    setErr("");
 
     const [
       { data: ev, error: evErr },
@@ -117,39 +168,37 @@ export default function AdminUdalosti() {
 
     if (evErr) {
       setErr(evErr.message);
+      setRows([]);
+      setCategories(cats || []);
+      setAudienceGroups(aud || []);
       setLoading(false);
       return;
     }
-
-    // chyby z pomocných tabulek zobrazíme, ale necháme events projít
     if (cErr) setErr((prev) => prev || cErr.message);
     if (aErr) setErr((prev) => prev || aErr.message);
 
     setRows(ev || []);
     setCategories(cats || []);
     setAudienceGroups(aud || []);
-
-    // POZOR: pokud se vše načetlo, smažeme starou chybu (aby tam nevisela po kliknutí na Duplikovat)
-    if (!cErr && !aErr) setErr("");
-
     setLoading(false);
   }
 
   useEffect(() => {
-    loadAll({ clearError: true });
+    loadAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const categoriesByName = useMemo(() => {
-    const m = new Map();
-    (categories || []).forEach((c) => m.set(c.name, c));
-    return m;
-  }, [categories]);
+  // Pojistka: když otevřu NEW dřív než se načtou audienceGroups, doplníme default později
+  useEffect(() => {
+    if (editingId !== "NEW") return;
+    if (!audienceGroups?.length) return;
 
-  const audienceByName = useMemo(() => {
-    const m = new Map();
-    (audienceGroups || []).forEach((a) => m.set(a.name, a));
-    return m;
-  }, [audienceGroups]);
+    setForm((p) => {
+      const curr = Array.isArray(p.audience) ? p.audience : normalizeAudienceValue(p.audience);
+      if (curr.length > 0) return p;
+      return { ...p, audience: defaultAudience(audienceGroups) };
+    });
+  }, [audienceGroups, editingId]);
 
   function resetFormToNew(defaults = {}) {
     setForm({
@@ -177,11 +226,17 @@ export default function AdminUdalosti() {
   function openEdit(row) {
     setErr("");
     setEditingId(row.id);
+
+    // normalize + očistit na existující audience_groups
+    const rawAud = normalizeAudienceValue(row.audience);
+    const cleanedAud = rawAud.filter((name) => audienceByName.has(name));
+    const aud = cleanedAud.length ? cleanedAud : defaultAudience(audienceGroups);
+
     setForm({
       title: row.title || "",
       starts_at: toDateTimeLocalValue(row.starts_at),
       category: row.category || "",
-      audience: normalizeAudienceValue(row.audience),
+      audience: aud,
       full_description: row.full_description || "",
       stream_url: row.stream_url || "",
       worksheet_url: row.worksheet_url || "",
@@ -189,6 +244,7 @@ export default function AdminUdalosti() {
       poster_file: null,
       poster_path: row.poster_path || "",
     });
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -200,11 +256,14 @@ export default function AdminUdalosti() {
 
   function toggleAudience(name) {
     setForm((prev) => {
-      const has = prev.audience.includes(name);
-      return {
-        ...prev,
-        audience: has ? prev.audience.filter((x) => x !== name) : [...prev.audience, name],
-      };
+      const curr = Array.isArray(prev.audience)
+        ? prev.audience
+        : normalizeAudienceValue(prev.audience);
+
+      const has = curr.includes(name);
+      const next = has ? curr.filter((x) => x !== name) : [...curr, name];
+
+      return { ...prev, audience: next };
     });
   }
 
@@ -229,21 +288,28 @@ export default function AdminUdalosti() {
     if (!form.title.trim()) throw new Error("Vyplň název události.");
     if (!form.starts_at) throw new Error("Vyplň datum a čas (starts_at).");
     if (!form.category) throw new Error("Vyber rubriku (category).");
-    if (!categoriesByName.has(form.category))
+    if (!categoriesByName.has(form.category)) {
       throw new Error("Rubrika musí být vybrána ze seznamu (categories).");
+    }
 
-    if (!form.audience || form.audience.length === 0)
+    const audArr = Array.isArray(form.audience)
+      ? form.audience
+      : normalizeAudienceValue(form.audience);
+
+    if (!audArr.length) {
       throw new Error("Vyber alespoň jednu cílovku (audience).");
+    }
 
-    // kontrola, že cílovky jsou z audience_groups
-    for (const a of form.audience) {
-      if (!audienceByName.has(a))
+    for (const a of audArr) {
+      if (!audienceByName.has(a)) {
         throw new Error("Cílovka musí být vybrána ze seznamu (audience_groups).");
+      }
     }
   }
 
   async function save() {
     if (!editingId) return;
+
     setSaving(true);
     setErr("");
 
@@ -252,12 +318,24 @@ export default function AdminUdalosti() {
 
       const startsISO = new Date(form.starts_at).toISOString();
 
+      // audience vždy jako pole stringů + očista na existující
+      let audArr = Array.isArray(form.audience)
+        ? form.audience
+        : normalizeAudienceValue(form.audience);
+
+      audArr = audArr.filter((name) => audienceByName.has(name));
+      if (!audArr.length) audArr = defaultAudience(audienceGroups);
+
+      if (!audArr.length) {
+        throw new Error("Vyber alespoň jednu cílovku (audience).");
+      }
+
       if (editingId === "NEW") {
         const basePayload = {
           title: form.title.trim(),
           starts_at: startsISO,
           category: form.category,
-          audience: form.audience,
+          audience: audArr,
           full_description: form.full_description || "",
           stream_url: form.stream_url || "",
           worksheet_url: form.worksheet_url || "",
@@ -284,7 +362,7 @@ export default function AdminUdalosti() {
           if (upErr) throw new Error(upErr.message);
         }
 
-        await loadAll({ clearError: true });
+        await loadAll();
         closeEdit();
         return;
       }
@@ -295,7 +373,7 @@ export default function AdminUdalosti() {
         title: form.title.trim(),
         starts_at: startsISO,
         category: form.category,
-        audience: form.audience,
+        audience: audArr,
         full_description: form.full_description || "",
         stream_url: form.stream_url || "",
         worksheet_url: form.worksheet_url || "",
@@ -306,10 +384,10 @@ export default function AdminUdalosti() {
       const { error: upErr } = await supabase.from("events").update(payload).eq("id", editingId);
       if (upErr) throw new Error(upErr.message);
 
-      await loadAll({ clearError: true });
+      await loadAll();
       closeEdit();
     } catch (e) {
-      setErr(e.message || "Uložení selhalo.");
+      setErr(e?.message || "Uložení selhalo.");
     } finally {
       setSaving(false);
     }
@@ -324,19 +402,12 @@ export default function AdminUdalosti() {
       if (delErr) throw new Error(delErr.message);
 
       if (row.poster_path) {
-        const { error: rmErr } = await supabase.storage.from(BUCKET).remove([row.poster_path]);
-        if (rmErr) {
-          setErr(
-            (prev) =>
-              prev ||
-              `Pozn.: Událost smazána, ale plakát se nepodařilo odstranit: ${rmErr.message}`
-          );
-        }
+        await supabase.storage.from(BUCKET).remove([row.poster_path]);
       }
 
-      await loadAll({ clearError: true });
+      await loadAll();
     } catch (e) {
-      setErr(e.message || "Mazání selhalo.");
+      setErr(e?.message || "Mazání selhalo.");
     }
   }
 
@@ -345,22 +416,16 @@ export default function AdminUdalosti() {
     setErr("");
 
     try {
-      // 1) vezmi audience z původní události
       let aud = normalizeAudienceValue(row.audience);
-
-      // 2) pokud je prázdné / null / string bez hodnot → bezpečný default
-      if (!aud || aud.length === 0) {
-        aud = defaultAudience(audienceGroups); // typicky ["Komunita"]
-      }
-
-      // 3) rubrika: zachovej, nebo fallback na "Speciál" (existuje v categories)
-      const safeCategory = row.category || "Speciál";
+      aud = aud.filter((name) => audienceByName.has(name));
+      if (!aud.length) aud = defaultAudience(audienceGroups);
+      if (!aud.length) throw new Error("Nelze duplikovat: chybí cílovka (audience).");
 
       const payload = {
         title: row.title ? `${row.title} (kopie)` : "Kopie",
-        starts_at: row.starts_at, // klonujeme datum
-        category: safeCategory,
-        audience: aud, // NIKDY prázdné
+        starts_at: row.starts_at,
+        category: row.category,
+        audience: aud,
         full_description: row.full_description || "",
         stream_url: row.stream_url || "",
         worksheet_url: row.worksheet_url || "",
@@ -371,9 +436,9 @@ export default function AdminUdalosti() {
       const { error } = await supabase.from("events").insert(payload);
       if (error) throw new Error(error.message);
 
-      await loadAll({ clearError: true });
+      await loadAll();
     } catch (e) {
-      setErr(e.message || "Duplikace selhala.");
+      setErr(e?.message || "Duplikace selhala.");
     }
   }
 
@@ -522,7 +587,11 @@ export default function AdminUdalosti() {
               <div style={{ marginBottom: 8 }}>Cílovka (audience)*</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {audienceGroups.map((a) => {
-                  const active = form.audience.includes(a.name);
+                  const activeArr = Array.isArray(form.audience)
+                    ? form.audience
+                    : normalizeAudienceValue(form.audience);
+                  const active = activeArr.includes(a.name);
+
                   return (
                     <button
                       key={a.id ?? a.name}
@@ -532,7 +601,7 @@ export default function AdminUdalosti() {
                         padding: "8px 10px",
                         borderRadius: 999,
                         border: "1px solid rgba(0,0,0,0.18)",
-                        background: active ? "rgba(0,0,0,0.08)" : "white",
+                        background: active ? "rgba(0,0,0,0.10)" : "white",
                         cursor: "pointer",
                       }}
                     >
@@ -542,7 +611,7 @@ export default function AdminUdalosti() {
                 })}
               </div>
               <div style={{ marginTop: 6, fontSize: 12, opacity: 0.7 }}>
-                Pozn.: defaultně je vybrána „Komunita“ (nebo první cílovka), aby to nepadalo na DB constraintu.
+                Pozn.: když se cílovky načítají později, doplní se defaultně „Komunita“ (nebo první cílovka), aby to nikdy nespadlo na DB constraintu.
               </div>
             </div>
 
@@ -671,8 +740,10 @@ export default function AdminUdalosti() {
             <div style={{ display: "grid" }}>
               {rows.map((r) => {
                 const posterUrl = publicUrlFromPath(r.poster_path);
-                const audList = normalizeAudienceValue(r.audience);
-                const audTitles = audList.map((a) => audienceByName.get(a)?.name ?? a).filter(Boolean);
+
+                const audList = normalizeAudienceValue(r.audience)
+                  .filter((name) => audienceByName.has(name));
+                const audTitles = (audList.length ? audList : []).slice(0, 50);
 
                 return (
                   <div
