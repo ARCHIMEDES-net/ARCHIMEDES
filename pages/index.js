@@ -1,11 +1,10 @@
 // pages/index.js
 import Link from "next/link";
-import PublicHeader from "../components/PublicHeader";
 
 export default function Home() {
   return (
     <div style={{ fontFamily: "system-ui", background: "#f6f7fb", minHeight: "100vh" }}>
-      <PublicHeader active="home" />
+      {/* Hlavičku řeší pages/_app.js (PublicHeader) */}
 
       {/* HERO */}
       <div
