@@ -1,3 +1,4 @@
+// components/PublicHeader.js
 import Link from "next/link";
 import { useRouter } from "next/router";
 
@@ -9,7 +10,11 @@ function stripQuery(asPath) {
 
 export default function PublicHeader({ active = "" }) {
   const router = useRouter();
-  const path = stripQuery(router?.asPath || "");
+  const path = router?.pathname || "";
+  const asPath = stripQuery(router?.asPath || "");
+
+  // ✅ Bezpečnostní pojistka: nikdy nezobrazuj veřejnou hlavičku v portálu / na loginu
+  if (path.startsWith("/portal") || path === "/login") return null;
 
   const itemBase = {
     textDecoration: "none",
@@ -20,6 +25,29 @@ export default function PublicHeader({ active = "" }) {
     display: "inline-flex",
     alignItems: "center",
   };
+
+  const activeStyle = {
+    background: "#111827",
+    color: "#fff",
+    border: "1px solid #111827",
+  };
+
+  const inactiveStyle = {
+    background: "transparent",
+    border: "1px solid transparent",
+    opacity: 0.85,
+  };
+
+  const isActive = (key) => {
+    if (active) return active === key;
+    if (key === "home") return asPath === "/";
+    if (key === "program") return asPath === "/program";
+    if (key === "cenik") return asPath === "/cenik";
+    if (key === "poptavka") return asPath === "/poptavka";
+    return false;
+  };
+
+  const navItem = (key) => ({ ...itemBase, ...(isActive(key) ? activeStyle : inactiveStyle) });
 
   return (
     <header
@@ -41,20 +69,36 @@ export default function PublicHeader({ active = "" }) {
           gap: 12,
         }}
       >
-        <Link href="/" style={{ display: "inline-flex", alignItems: "center" }}>
+        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={LOGO_SRC}
             alt="ARCHIMEDES Live"
-            style={{ height: 44 }}
+            style={{ height: 44, width: "auto", display: "block" }}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
           />
         </Link>
 
-        <nav style={{ marginLeft: "auto", display: "flex", gap: 10 }}>
-          <Link href="/" style={itemBase}>Domů</Link>
-          <Link href="/program" style={itemBase}>Program</Link>
-          <Link href="/cenik" style={itemBase}>Ceník</Link>
-          <Link href="/poptavka" style={itemBase}>Poptávka</Link>
-          <Link href="/portal" style={itemBase}>Portál</Link>
+        <nav style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <Link href="/" style={navItem("home")}>Domů</Link>
+          <Link href="/program" style={navItem("program")}>Program</Link>
+          <Link href="/cenik" style={navItem("cenik")}>Ceník</Link>
+          <Link href="/poptavka" style={navItem("poptavka")}>Poptávka</Link>
+
+          <span style={{ width: 1, height: 18, background: "#e5e7eb", margin: "0 2px" }} />
+
+          <Link
+            href="/portal"
+            style={{
+              ...itemBase,
+              border: "1px solid #e5e7eb",
+              background: "#fff",
+            }}
+          >
+            Portál
+          </Link>
         </nav>
       </div>
     </header>
