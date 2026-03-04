@@ -104,12 +104,15 @@ export default function AdminUdalosti() {
     setLoading(true);
     setErr("");
 
-    const [{ data: ev, error: evErr }, { data: cats, error: cErr }, { data: aud, error: aErr }] =
-      await Promise.all([
-        supabase.from("events").select("*").order("created_at", { ascending: false }),
-        supabase.from("categories").select("*").order("sort", { ascending: true }),
-        supabase.from("audience_groups").select("*").order("sort", { ascending: true }),
-      ]);
+    const [
+      { data: ev, error: evErr },
+      { data: cats, error: cErr },
+      { data: aud, error: aErr },
+    ] = await Promise.all([
+      supabase.from("events").select("*").order("created_at", { ascending: false }),
+      supabase.from("categories").select("*").order("sort", { ascending: true }),
+      supabase.from("audience_groups").select("*").order("sort", { ascending: true }),
+    ]);
 
     if (evErr) {
       setErr(evErr.message);
@@ -122,6 +125,10 @@ export default function AdminUdalosti() {
     setRows(ev || []);
     setCategories(cats || []);
     setAudienceGroups(aud || []);
+
+    // po úspěšném načtení nechci zobrazovat starou chybu
+    setErr("");
+
     setLoading(false);
   }
 
@@ -164,36 +171,6 @@ export default function AdminUdalosti() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  
-
-      const defaultAud = defaultAudience(audienceGroups);
-      if (!defaultAud.length) {
-        throw new Error("V audience_groups nemáš žádnou cílovku. Přidej aspoň jednu.");
-      }
-
-      const startsISO = new Date(nextHalfHourLocalValue()).toISOString();
-
-      const payload = {
-        title: "Rychlé vysílání",
-        starts_at: startsISO,
-        category: spec.name,
-        audience: defaultAud,
-        full_description: "",
-        stream_url: "",
-        worksheet_url: "",
-        is_published: true,
-        poster_path: null,
-      };
-
-      const { error } = await supabase.from("events").insert(payload);
-      if (error) throw new Error(error.message);
-
-      await loadAll();
-    } catch (e) {
-      setErr(e.message || "Rychlé vysílání selhalo.");
-    }
-  }
-
   function openEdit(row) {
     setErr("");
     setEditingId(row.id);
@@ -221,7 +198,10 @@ export default function AdminUdalosti() {
   function toggleAudience(name) {
     setForm((prev) => {
       const has = prev.audience.includes(name);
-      return { ...prev, audience: has ? prev.audience.filter((x) => x !== name) : [...prev.audience, name] };
+      return {
+        ...prev,
+        audience: has ? prev.audience.filter((x) => x !== name) : [...prev.audience, name],
+      };
     });
   }
 
@@ -246,10 +226,13 @@ export default function AdminUdalosti() {
     if (!form.title.trim()) throw new Error("Vyplň název události.");
     if (!form.starts_at) throw new Error("Vyplň datum a čas (starts_at).");
     if (!form.category) throw new Error("Vyber rubriku (category).");
-    if (!categoriesByName.has(form.category)) throw new Error("Rubrika musí být vybrána ze seznamu (categories).");
-    if (!form.audience || form.audience.length === 0) throw new Error("Vyber alespoň jednu cílovku (audience).");
+    if (!categoriesByName.has(form.category))
+      throw new Error("Rubrika musí být vybrána ze seznamu (categories).");
+    if (!form.audience || form.audience.length === 0)
+      throw new Error("Vyber alespoň jednu cílovku (audience).");
     for (const a of form.audience) {
-      if (!audienceByName.has(a)) throw new Error("Cílovka musí být vybrána ze seznamu (audience_groups).");
+      if (!audienceByName.has(a))
+        throw new Error("Cílovka musí být vybrána ze seznamu (audience_groups).");
     }
   }
 
@@ -397,8 +380,6 @@ export default function AdminUdalosti() {
             >
               ➕ Nová událost
             </button>
-
-            
           </div>
         </div>
 
