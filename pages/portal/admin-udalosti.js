@@ -45,6 +45,7 @@ function publicUrlFromPath(path) {
 function normalizeAudienceValue(v) {
   if (!v) return [];
   if (Array.isArray(v)) return v;
+  // když je v DB omylem string: "Deváťáci, Komunita"
   return String(v)
     .split(",")
     .map((x) => x.trim())
@@ -66,14 +67,14 @@ function nextHalfHourLocalValue() {
   )}:${pad(d.getMinutes())}`;
 }
 
-// default cílovka: Komunita → jinak první dostupná → jinak []
+// default cílovka: Komunita → jinak první dostupná → jinak ["Komunita"] (safe)
 function defaultAudience(audienceGroups) {
   const komunita = (audienceGroups || []).find((a) =>
     String(a?.name || "").toLowerCase().includes("komunit")
   );
   if (komunita?.name) return [komunita.name];
   if (audienceGroups?.[0]?.name) return [audienceGroups[0].name];
-  return [];
+  return ["Komunita"];
 }
 
 export default function AdminUdalosti() {
@@ -100,9 +101,9 @@ export default function AdminUdalosti() {
     poster_path: "",
   });
 
-  async function loadAll() {
+  async function loadAll({ clearError = false } = {}) {
     setLoading(true);
-    setErr("");
+    if (clearError) setErr("");
 
     const [
       { data: ev, error: evErr },
@@ -119,6 +120,8 @@ export default function AdminUdalosti() {
       setLoading(false);
       return;
     }
+
+    // chyby z pomocných tabulek zobrazíme, ale necháme events projít
     if (cErr) setErr((prev) => prev || cErr.message);
     if (aErr) setErr((prev) => prev || aErr.message);
 
@@ -126,14 +129,14 @@ export default function AdminUdalosti() {
     setCategories(cats || []);
     setAudienceGroups(aud || []);
 
-    // po úspěšném načtení nechci zobrazovat starou chybu
-    setErr("");
+    // POZOR: pokud se vše načetlo, smažeme starou chybu (aby tam nevisela po kliknutí na Duplikovat)
+    if (!cErr && !aErr) setErr("");
 
     setLoading(false);
   }
 
   useEffect(() => {
-    loadAll();
+    loadAll({ clearError: true });
   }, []);
 
   const categoriesByName = useMemo(() => {
@@ -228,8 +231,11 @@ export default function AdminUdalosti() {
     if (!form.category) throw new Error("Vyber rubriku (category).");
     if (!categoriesByName.has(form.category))
       throw new Error("Rubrika musí být vybrána ze seznamu (categories).");
+
     if (!form.audience || form.audience.length === 0)
       throw new Error("Vyber alespoň jednu cílovku (audience).");
+
+    // kontrola, že cílovky jsou z audience_groups
     for (const a of form.audience) {
       if (!audienceByName.has(a))
         throw new Error("Cílovka musí být vybrána ze seznamu (audience_groups).");
@@ -278,7 +284,7 @@ export default function AdminUdalosti() {
           if (upErr) throw new Error(upErr.message);
         }
 
-        await loadAll();
+        await loadAll({ clearError: true });
         closeEdit();
         return;
       }
@@ -300,7 +306,7 @@ export default function AdminUdalosti() {
       const { error: upErr } = await supabase.from("events").update(payload).eq("id", editingId);
       if (upErr) throw new Error(upErr.message);
 
-      await loadAll();
+      await loadAll({ clearError: true });
       closeEdit();
     } catch (e) {
       setErr(e.message || "Uložení selhalo.");
@@ -320,12 +326,15 @@ export default function AdminUdalosti() {
       if (row.poster_path) {
         const { error: rmErr } = await supabase.storage.from(BUCKET).remove([row.poster_path]);
         if (rmErr) {
-          // neblokuj smazání události kvůli storage, ale ukaž zprávu
-          setErr((prev) => prev || `Pozn.: Událost smazána, ale plakát se nepodařilo odstranit: ${rmErr.message}`);
+          setErr(
+            (prev) =>
+              prev ||
+              `Pozn.: Událost smazána, ale plakát se nepodařilo odstranit: ${rmErr.message}`
+          );
         }
       }
 
-      await loadAll();
+      await loadAll({ clearError: true });
     } catch (e) {
       setErr(e.message || "Mazání selhalo.");
     }
@@ -336,14 +345,22 @@ export default function AdminUdalosti() {
     setErr("");
 
     try {
+      // 1) vezmi audience z původní události
       let aud = normalizeAudienceValue(row.audience);
-      if (!aud || aud.length === 0) aud = defaultAudience(audienceGroups);
+
+      // 2) pokud je prázdné / null / string bez hodnot → bezpečný default
+      if (!aud || aud.length === 0) {
+        aud = defaultAudience(audienceGroups); // typicky ["Komunita"]
+      }
+
+      // 3) rubrika: zachovej, nebo fallback na "Speciál" (existuje v categories)
+      const safeCategory = row.category || "Speciál";
 
       const payload = {
         title: row.title ? `${row.title} (kopie)` : "Kopie",
-        starts_at: row.starts_at,
-        category: row.category,
-        audience: aud,
+        starts_at: row.starts_at, // klonujeme datum
+        category: safeCategory,
+        audience: aud, // NIKDY prázdné
         full_description: row.full_description || "",
         stream_url: row.stream_url || "",
         worksheet_url: row.worksheet_url || "",
@@ -354,7 +371,7 @@ export default function AdminUdalosti() {
       const { error } = await supabase.from("events").insert(payload);
       if (error) throw new Error(error.message);
 
-      await loadAll();
+      await loadAll({ clearError: true });
     } catch (e) {
       setErr(e.message || "Duplikace selhala.");
     }
