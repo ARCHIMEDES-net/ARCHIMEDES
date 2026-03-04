@@ -38,7 +38,6 @@ function toDateTimeLocalValue(value) {
   )}:${pad(d.getMinutes())}`;
 }
 
-// nastaví nejbližší půlhodinu (local)
 function nextHalfHourLocalValue() {
   const d = new Date();
   d.setSeconds(0);
@@ -59,13 +58,6 @@ function publicUrlFromPath(path) {
   return data?.publicUrl || null;
 }
 
-/**
- * Audience může být:
- * - array: ["Komunita","Deváťáci"]
- * - string CSV: "Komunita, Deváťáci"
- * - string JSON: '["Komunita","Deváťáci"]'
- * - postgres array string: '{Komunita,Deváťáci}' nebo '{"Komunita","Deváťáci"}'
- */
 function normalizeAudienceValue(v) {
   if (!v) return [];
   if (Array.isArray(v)) {
@@ -82,9 +74,7 @@ function normalizeAudienceValue(v) {
       if (Array.isArray(parsed)) {
         return parsed.map(String).map((x) => x.trim()).filter(Boolean);
       }
-    } catch (_) {
-      // continue
-    }
+    } catch (_) {}
   }
 
   // Postgres array string
@@ -104,7 +94,6 @@ function normalizeAudienceValue(v) {
     .filter(Boolean);
 }
 
-// default cílovka: Komunita → jinak první dostupná → jinak []
 function defaultAudience(audienceGroups) {
   const komunita = (audienceGroups || []).find((a) =>
     String(a?.name || "").toLowerCase().includes("komunit")
@@ -112,6 +101,51 @@ function defaultAudience(audienceGroups) {
   if (komunita?.name) return [komunita.name];
   if (audienceGroups?.[0]?.name) return [audienceGroups[0].name];
   return [];
+}
+
+// v řádku může být buď audience_groups nebo audience (nebo oboje)
+function getRowAudience(row) {
+  return normalizeAudienceValue(row?.audience_groups ?? row?.audience);
+}
+
+// Vrací true, pokud je to chyba typu "neexistuje sloupec"
+function isUnknownColumnError(errMsg, columnName) {
+  const s = String(errMsg || "").toLowerCase();
+  return s.includes("column") && s.includes(columnName.toLowerCase()) && s.includes("does not exist");
+}
+
+// Insert odolný proti názvu sloupce audience vs audience_groups
+async function insertEventWithAudience(payload, audArr) {
+  // 1) zkus audience_groups
+  {
+    const p = { ...payload, audience_groups: audArr };
+    const { data, error } = await supabase.from("events").insert(p).select("id").single();
+    if (!error) return { data, error: null, used: "audience_groups" };
+    if (!isUnknownColumnError(error.message, "audience_groups")) return { data: null, error, used: "audience_groups" };
+  }
+  // 2) fallback audience
+  {
+    const p = { ...payload, audience: audArr };
+    const { data, error } = await supabase.from("events").insert(p).select("id").single();
+    return { data, error, used: "audience" };
+  }
+}
+
+// Update odolný proti názvu sloupce audience vs audience_groups
+async function updateEventWithAudience(id, payload, audArr) {
+  // 1) zkus audience_groups
+  {
+    const p = { ...payload, audience_groups: audArr };
+    const { error } = await supabase.from("events").update(p).eq("id", id);
+    if (!error) return { error: null, used: "audience_groups" };
+    if (!isUnknownColumnError(error.message, "audience_groups")) return { error, used: "audience_groups" };
+  }
+  // 2) fallback audience
+  {
+    const p = { ...payload, audience: audArr };
+    const { error } = await supabase.from("events").update(p).eq("id", id);
+    return { error, used: "audience" };
+  }
 }
 
 /* ---------------- component ---------------- */
@@ -188,7 +222,7 @@ export default function AdminUdalosti() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Pojistka: když otevřu NEW dřív než se načtou audienceGroups, doplníme default později
+  // Pojistka pro NEW: když se audienceGroups načtou pozdě, doplníme default
   useEffect(() => {
     if (editingId !== "NEW") return;
     if (!audienceGroups?.length) return;
@@ -227,8 +261,7 @@ export default function AdminUdalosti() {
     setErr("");
     setEditingId(row.id);
 
-    // normalize + očistit na existující audience_groups
-    const rawAud = normalizeAudienceValue(row.audience);
+    const rawAud = getRowAudience(row);
     const cleanedAud = rawAud.filter((name) => audienceByName.has(name));
     const aud = cleanedAud.length ? cleanedAud : defaultAudience(audienceGroups);
 
@@ -256,13 +289,9 @@ export default function AdminUdalosti() {
 
   function toggleAudience(name) {
     setForm((prev) => {
-      const curr = Array.isArray(prev.audience)
-        ? prev.audience
-        : normalizeAudienceValue(prev.audience);
-
+      const curr = Array.isArray(prev.audience) ? prev.audience : normalizeAudienceValue(prev.audience);
       const has = curr.includes(name);
       const next = has ? curr.filter((x) => x !== name) : [...curr, name];
-
       return { ...prev, audience: next };
     });
   }
@@ -292,13 +321,8 @@ export default function AdminUdalosti() {
       throw new Error("Rubrika musí být vybrána ze seznamu (categories).");
     }
 
-    const audArr = Array.isArray(form.audience)
-      ? form.audience
-      : normalizeAudienceValue(form.audience);
-
-    if (!audArr.length) {
-      throw new Error("Vyber alespoň jednu cílovku (audience).");
-    }
+    const audArr = Array.isArray(form.audience) ? form.audience : normalizeAudienceValue(form.audience);
+    if (!audArr.length) throw new Error("Vyber alespoň jednu cílovku (audience).");
 
     for (const a of audArr) {
       if (!audienceByName.has(a)) {
@@ -318,24 +342,16 @@ export default function AdminUdalosti() {
 
       const startsISO = new Date(form.starts_at).toISOString();
 
-      // audience vždy jako pole stringů + očista na existující
-      let audArr = Array.isArray(form.audience)
-        ? form.audience
-        : normalizeAudienceValue(form.audience);
-
+      let audArr = Array.isArray(form.audience) ? form.audience : normalizeAudienceValue(form.audience);
       audArr = audArr.filter((name) => audienceByName.has(name));
       if (!audArr.length) audArr = defaultAudience(audienceGroups);
-
-      if (!audArr.length) {
-        throw new Error("Vyber alespoň jednu cílovku (audience).");
-      }
+      if (!audArr.length) throw new Error("Vyber alespoň jednu cílovku (audience).");
 
       if (editingId === "NEW") {
         const basePayload = {
           title: form.title.trim(),
           starts_at: startsISO,
           category: form.category,
-          audience: audArr,
           full_description: form.full_description || "",
           stream_url: form.stream_url || "",
           worksheet_url: form.worksheet_url || "",
@@ -343,22 +359,14 @@ export default function AdminUdalosti() {
           poster_path: null,
         };
 
-        const { data: inserted, error: insErr } = await supabase
-          .from("events")
-          .insert(basePayload)
-          .select("id")
-          .single();
-
+        const { data: inserted, error: insErr } = await insertEventWithAudience(basePayload, audArr);
         if (insErr) throw new Error(insErr.message);
 
         const newId = inserted?.id;
         const poster_path = await uploadPosterIfNeeded(newId);
 
         if (poster_path) {
-          const { error: upErr } = await supabase
-            .from("events")
-            .update({ poster_path })
-            .eq("id", newId);
+          const { error: upErr } = await supabase.from("events").update({ poster_path }).eq("id", newId);
           if (upErr) throw new Error(upErr.message);
         }
 
@@ -373,7 +381,6 @@ export default function AdminUdalosti() {
         title: form.title.trim(),
         starts_at: startsISO,
         category: form.category,
-        audience: audArr,
         full_description: form.full_description || "",
         stream_url: form.stream_url || "",
         worksheet_url: form.worksheet_url || "",
@@ -381,7 +388,7 @@ export default function AdminUdalosti() {
         poster_path: poster_path || null,
       };
 
-      const { error: upErr } = await supabase.from("events").update(payload).eq("id", editingId);
+      const { error: upErr } = await updateEventWithAudience(editingId, payload, audArr);
       if (upErr) throw new Error(upErr.message);
 
       await loadAll();
@@ -416,16 +423,14 @@ export default function AdminUdalosti() {
     setErr("");
 
     try {
-      let aud = normalizeAudienceValue(row.audience);
-      aud = aud.filter((name) => audienceByName.has(name));
-      if (!aud.length) aud = defaultAudience(audienceGroups);
-      if (!aud.length) throw new Error("Nelze duplikovat: chybí cílovka (audience).");
+      let audArr = getRowAudience(row).filter((name) => audienceByName.has(name));
+      if (!audArr.length) audArr = defaultAudience(audienceGroups);
+      if (!audArr.length) throw new Error("Nelze duplikovat: chybí cílovka (audience).");
 
-      const payload = {
+      const basePayload = {
         title: row.title ? `${row.title} (kopie)` : "Kopie",
         starts_at: row.starts_at,
         category: row.category,
-        audience: aud,
         full_description: row.full_description || "",
         stream_url: row.stream_url || "",
         worksheet_url: row.worksheet_url || "",
@@ -433,7 +438,7 @@ export default function AdminUdalosti() {
         poster_path: row.poster_path || null,
       };
 
-      const { error } = await supabase.from("events").insert(payload);
+      const { error } = await insertEventWithAudience(basePayload, audArr);
       if (error) throw new Error(error.message);
 
       await loadAll();
@@ -741,9 +746,8 @@ export default function AdminUdalosti() {
               {rows.map((r) => {
                 const posterUrl = publicUrlFromPath(r.poster_path);
 
-                const audList = normalizeAudienceValue(r.audience)
-                  .filter((name) => audienceByName.has(name));
-                const audTitles = (audList.length ? audList : []).slice(0, 50);
+                const audList = getRowAudience(r).filter((name) => audienceByName.has(name));
+                const audTitles = audList.slice(0, 50);
 
                 return (
                   <div
