@@ -644,7 +644,7 @@ export default function AdminUdalosti() {
                           cursor: "pointer",
                         }}
                       >
-                        🧬 Duplikovat TEST
+                        🧬 Duplikovat 
                       </button>
 
                       <button
