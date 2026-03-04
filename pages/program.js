@@ -55,7 +55,9 @@ export default function ProgramPublic() {
     // Na veřejném programu ukazujeme jen publikované
     const { data, error } = await supabase
       .from("events")
-      .select("id,title,starts_at,category,audience,full_description,worksheet_url,poster_path,is_published,created_at")
+      .select(
+        "id,title,starts_at,category,audience,full_description,worksheet_url,poster_path,is_published,created_at"
+      )
       .eq("is_published", true)
       .order("starts_at", { ascending: true });
 
@@ -90,7 +92,9 @@ export default function ProgramPublic() {
         if (!query) return true;
 
         const aud = normalizeAudienceValue(e.audience).join(" ").toLowerCase();
-        const hay = `${e.title || ""} ${e.category || ""} ${aud} ${e.full_description || ""}`.toLowerCase();
+        const hay = `${e.title || ""} ${e.category || ""} ${aud} ${
+          e.full_description || ""
+        }`.toLowerCase();
         return hay.includes(query);
       })
       .sort((a, b) => {
@@ -128,19 +132,53 @@ export default function ProgramPublic() {
           zIndex: 10,
         }}
       >
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "14px 16px", display: "flex", gap: 12, alignItems: "center" }}>
-          <div style={{ fontWeight: 800, fontSize: 18 }}>
-            <span style={{ letterSpacing: 0.2 }}>ARCHIMEDES</span>{" "}
-            <span style={{ background: "#ff2d2d", color: "white", padding: "2px 8px", borderRadius: 8, fontWeight: 900 }}>
-              live
-            </span>
-          </div>
+        <div
+          style={{
+            maxWidth: 1100,
+            margin: "0 auto",
+            padding: "14px 16px",
+            display: "flex",
+            gap: 12,
+            alignItems: "center",
+          }}
+        >
+          {/* LOGO jako v portálu */}
+          <Link
+            href="/"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              textDecoration: "none",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.jpg"
+              alt="archimedes live"
+              style={{ height: 34, width: "auto", display: "block" }}
+            />
+          </Link>
 
-          <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
-            <Link href="/" style={{ textDecoration: "none", color: "black", opacity: 0.8 }}>
+          <div
+            style={{
+              marginLeft: "auto",
+              display: "flex",
+              gap: 10,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <Link
+              href="/"
+              style={{ textDecoration: "none", color: "black", opacity: 0.8 }}
+            >
               Domů
             </Link>
-            <Link href="/portal" style={{ textDecoration: "none", color: "black", opacity: 0.8 }}>
+            <Link
+              href="/portal"
+              style={{ textDecoration: "none", color: "black", opacity: 0.8 }}
+            >
               Portál
             </Link>
             <span style={{ fontWeight: 700 }}>Program</span>
@@ -149,7 +187,15 @@ export default function ProgramPublic() {
       </div>
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px 40px" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginBottom: 14 }}>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 10,
+            alignItems: "center",
+            marginBottom: 14,
+          }}
+        >
           <h1 style={{ margin: 0, fontSize: 26 }}>Program</h1>
           <div style={{ marginLeft: "auto", display: "flex", gap: 10, flexWrap: "wrap" }}>
             <input
@@ -177,7 +223,11 @@ export default function ProgramPublic() {
                 userSelect: "none",
               }}
             >
-              <input type="checkbox" checked={onlyFuture} onChange={(e) => setOnlyFuture(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={onlyFuture}
+                onChange={(e) => setOnlyFuture(e.target.checked)}
+              />
               Jen nadcházející
             </label>
           </div>
@@ -247,7 +297,14 @@ function Section({ title, count, children }) {
         background: "white",
       }}
     >
-      <div style={{ padding: 14, borderBottom: "1px solid rgba(0,0,0,0.08)", display: "flex", gap: 10 }}>
+      <div
+        style={{
+          padding: 14,
+          borderBottom: "1px solid rgba(0,0,0,0.08)",
+          display: "flex",
+          gap: 10,
+        }}
+      >
         <div style={{ fontWeight: 700 }}>{title}</div>
         <div style={{ marginLeft: "auto", opacity: 0.7 }}>{count} položek</div>
       </div>
@@ -286,7 +343,11 @@ function EventCard({ e }) {
       >
         {posterUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img alt="Plakát" src={posterUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img
+            alt="Plakát"
+            src={posterUrl}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
         ) : (
           <span style={{ opacity: 0.6, fontSize: 12 }}>Bez plakátu</span>
         )}
@@ -328,7 +389,9 @@ function EventCard({ e }) {
                 {t}
               </span>
             ))}
-            {aud.length > 8 ? <span style={{ fontSize: 12, opacity: 0.6 }}>+{aud.length - 8}</span> : null}
+            {aud.length > 8 ? (
+              <span style={{ fontSize: 12, opacity: 0.6 }}>+{aud.length - 8}</span>
+            ) : null}
           </div>
         ) : null}
 
