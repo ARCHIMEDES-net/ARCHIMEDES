@@ -36,7 +36,15 @@ export default function PortalIndex() {
       <PortalHeader title="Portál" />
 
       <div style={{ padding: 16, maxWidth: 900, margin: "0 auto" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 12,
+            flexWrap: "wrap",
+          }}
+        >
           <div style={{ fontSize: 14, opacity: 0.75 }}>
             Přístup k obsahu pro registrované.
           </div>
@@ -58,12 +66,24 @@ export default function PortalIndex() {
 
         <div style={{ display: "grid", gap: 10 }}>
           <Section title="Program">
-            <NavLink href="/portal/kalendar" title="Kalendář" desc="Přehled vysílání jako TV program + detail." />
-            <NavLink href="/portal/archiv" title="Archiv" desc="Záznamy, materiály a pracovní listy (postupně doplníme)." />
+            <NavLink
+              href="/portal/kalendar"
+              title="Kalendář"
+              desc="Přehled vysílání jako TV program + detail."
+            />
+            <NavLink
+              href="/portal/archiv"
+              title="Archiv"
+              desc="Záznamy, materiály a pracovní listy (postupně doplníme)."
+            />
           </Section>
 
           <Section title="Komunita">
-            <NavLink href="/portal/inzerce" title="Inzerce" desc="Nabídky, poptávky a partnerství mezi školami a obcemi." />
+            <NavLink
+              href="/portal/inzerce"
+              title="Inzerce"
+              desc="Nabídky, poptávky a partnerství mezi školami a obcemi."
+            />
           </Section>
 
           <Section title="Administrace">
@@ -71,8 +91,21 @@ export default function PortalIndex() {
               <div style={{ padding: 12, opacity: 0.7 }}>Načítám práva…</div>
             ) : isAdmin ? (
               <>
-                <NavLink href="/portal/admin-udalosti" title="Admin – Události" desc="Vkládání, úpravy a správa programu." />
-                <NavLink href="/portal/admin-inzerce" title="Admin – Inzerce" desc="Moderace, TOP, ARCHIMEDES, mazání." />
+                <NavLink
+                  href="/portal/admin-udalosti"
+                  title="Admin – Události"
+                  desc="Vkládání, úpravy a správa programu."
+                />
+                <NavLink
+                  href="/portal/admin-inzerce"
+                  title="Admin – Inzerce"
+                  desc="Moderace, TOP, ARCHIMEDES, mazání."
+                />
+                <NavLink
+                  href="/portal/admin-poptavky"
+                  title="Admin – Poptávky"
+                  desc="Přehled poptávek z veřejného formuláře (export CSV)."
+                />
               </>
             ) : (
               <div style={{ padding: 12, opacity: 0.7 }}>
@@ -112,7 +145,9 @@ function NavLink({ href, title, desc }) {
       }}
     >
       <div style={{ fontWeight: 800 }}>{title}</div>
-      {desc ? <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>{desc}</div> : null}
+      {desc ? (
+        <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>{desc}</div>
+      ) : null}
     </Link>
   );
 }
