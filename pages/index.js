@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div style={{ fontFamily: "system-ui", background: "#f6f7fb", minHeight: "100vh" }}>
-      
+
       {/* HEADER */}
 
       <div style={{
@@ -22,7 +22,7 @@ export default function Home() {
         }}>
           
           <div style={{fontWeight:800,fontSize:18}}>
-            ARCHIMEDES 
+            ARCHIMEDES
             <span style={{
               background:"#ff2d2d",
               color:"white",
@@ -34,26 +34,32 @@ export default function Home() {
             </span>
           </div>
 
-          <div style={{marginLeft:"auto",display:"flex",gap:18}}>
+          <div style={{marginLeft:"auto",display:"flex",gap:20}}>
+
+            <Link href="/">Domů</Link>
 
             <Link href="/program">Program</Link>
+
+            <Link href="/cenik">Ceník</Link>
 
             <Link href="/portal">Portál</Link>
 
           </div>
+
         </div>
       </div>
+
 
       {/* HERO */}
 
       <div style={{
         maxWidth:1100,
         margin:"0 auto",
-        padding:"60px 16px"
+        padding:"70px 16px"
       }}>
         
         <h1 style={{
-          fontSize:42,
+          fontSize:44,
           lineHeight:1.2,
           marginBottom:20
         }}>
@@ -64,33 +70,44 @@ export default function Home() {
         <p style={{
           fontSize:18,
           opacity:0.8,
-          maxWidth:600,
-          marginBottom:30
+          maxWidth:650,
+          marginBottom:32
         }}>
           ARCHIMEDES Live propojuje školy, obce a odborníky.
           Nabízí živé vysílání, komunitní programy a sdílení zkušeností
           mezi školami a městy.
         </p>
 
-        <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
+        <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
 
           <Link href="/program"
             style={{
               background:"black",
               color:"white",
-              padding:"14px 18px",
+              padding:"14px 20px",
               borderRadius:12,
               textDecoration:"none",
               fontWeight:700
             }}
           >
-            Zobrazit program
+            Program vysílání
+          </Link>
+
+          <Link href="/cenik"
+            style={{
+              border:"1px solid rgba(0,0,0,0.2)",
+              padding:"14px 20px",
+              borderRadius:12,
+              textDecoration:"none"
+            }}
+          >
+            Ceník licencí
           </Link>
 
           <Link href="/portal"
             style={{
               border:"1px solid rgba(0,0,0,0.2)",
-              padding:"14px 18px",
+              padding:"14px 20px",
               borderRadius:12,
               textDecoration:"none"
             }}
@@ -102,7 +119,8 @@ export default function Home() {
 
       </div>
 
-      {/* VYSVĚTLENÍ */}
+
+      {/* SEKCE VYSVĚTLENÍ */}
 
       <div style={{
         maxWidth:1100,
@@ -135,6 +153,7 @@ export default function Home() {
 
       </div>
 
+
       {/* CTA */}
 
       <div style={{
@@ -144,11 +163,11 @@ export default function Home() {
         <div style={{
           maxWidth:1100,
           margin:"0 auto",
-          padding:"40px 16px",
+          padding:"50px 16px",
           textAlign:"center"
         }}>
 
-          <h2 style={{marginBottom:10}}>
+          <h2 style={{marginBottom:12}}>
             Podívejte se na nejbližší vysílání
           </h2>
 
@@ -158,12 +177,13 @@ export default function Home() {
               marginTop:10,
               background:"black",
               color:"white",
-              padding:"12px 18px",
-              borderRadius:10,
-              textDecoration:"none"
+              padding:"14px 20px",
+              borderRadius:12,
+              textDecoration:"none",
+              fontWeight:700
             }}
           >
-            Program vysílání
+            Zobrazit program
           </Link>
 
         </div>
@@ -173,11 +193,13 @@ export default function Home() {
   );
 }
 
+
+
 function Card({title,text}) {
   return (
     <div style={{
       background:"white",
-      padding:22,
+      padding:24,
       borderRadius:16,
       border:"1px solid rgba(0,0,0,0.08)"
     }}>
