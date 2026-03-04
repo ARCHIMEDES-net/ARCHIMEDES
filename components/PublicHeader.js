@@ -10,11 +10,11 @@ function stripQuery(asPath) {
 
 export default function PublicHeader({ active = "" }) {
   const router = useRouter();
-  const path = router?.pathname || "";
+  const pathname = router?.pathname || "";
   const asPath = stripQuery(router?.asPath || "");
 
-  // ✅ Bezpečnostní pojistka: nikdy nezobrazuj veřejnou hlavičku v portálu / na loginu
-  if (path.startsWith("/portal") || path === "/login") return null;
+  // ✅ pojistka: veřejná hlavička se nikdy nezobrazí v portálu ani na loginu
+  if (pathname.startsWith("/portal") || pathname === "/login") return null;
 
   const itemBase = {
     textDecoration: "none",
