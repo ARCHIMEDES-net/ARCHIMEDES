@@ -131,7 +131,7 @@ export default function AdminUdalosti() {
       title: "",
       starts_at: nextHalfHourLocalValue(),
       category: "",
-      audience: [],
+      audience: ["Komunita"],
       full_description: "",
       stream_url: "",
       worksheet_url: "",
