@@ -1,12 +1,11 @@
 // pages/index.js
 import Link from "next/link";
-import PortalHeader from "../components/PortalHeader";
+import PublicHeader from "../components/PublicHeader";
 
 export default function Home() {
   return (
     <div style={{ fontFamily: "system-ui", background: "#f6f7fb", minHeight: "100vh" }}>
-      {/* sjednocená hlavička jako v portálu */}
-      <PortalHeader />
+      <PublicHeader active="home" />
 
       {/* HERO */}
       <div
@@ -97,9 +96,7 @@ export default function Home() {
           }}
         >
           <Card title="Pro školy" text="Živé vstupy odborníků, projektové dny, pracovní listy a inspirace pro výuku." />
-
           <Card title="Pro obce" text="Komunitní program, propojení generací a vzdělávací aktivity pro obyvatele." />
-
           <Card title="Pro seniory" text="Online klub, vzdělávání a společné aktivity, které pomáhají předcházet izolaci." />
         </div>
       </div>
