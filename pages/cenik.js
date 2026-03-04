@@ -1,6 +1,5 @@
 // pages/cenik.js
 import Link from "next/link";
-import PortalHeader from "../components/PortalHeader";
 
 function PriceCard({
   title,
@@ -100,8 +99,7 @@ export default function Cenik() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
-      {/* sjednocená hlavička jako v portálu */}
-      <PortalHeader />
+      {/* Hlavičku veřejné části řeší pages/_app.js (PublicHeader) */}
 
       {/* HERO */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 16px" }}>
