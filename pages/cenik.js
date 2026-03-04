@@ -1,5 +1,6 @@
 // pages/cenik.js
 import Link from "next/link";
+import PortalHeader from "../components/PortalHeader";
 
 function PriceCard({
   title,
@@ -19,12 +20,8 @@ function PriceCard({
       style={{
         background: "white",
         borderRadius: 18,
-        border: highlight
-          ? "2px solid rgba(0,0,0,0.85)"
-          : "1px solid rgba(0,0,0,0.10)",
-        boxShadow: highlight
-          ? "0 18px 45px rgba(0,0,0,0.10)"
-          : "0 10px 30px rgba(0,0,0,0.06)",
+        border: highlight ? "2px solid rgba(0,0,0,0.85)" : "1px solid rgba(0,0,0,0.10)",
+        boxShadow: highlight ? "0 18px 45px rgba(0,0,0,0.10)" : "0 10px 30px rgba(0,0,0,0.06)",
         padding: 20,
       }}
     >
@@ -103,54 +100,8 @@ export default function Cenik() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
-      {/* HEADER */}
-      <div
-        style={{
-          background: "white",
-          borderBottom: "1px solid rgba(0,0,0,0.08)",
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1100,
-            margin: "0 auto",
-            padding: "14px 16px",
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-          }}
-        >
-          {/* LOGO jako v portálu */}
-          <Link
-            href="/"
-            style={{ display: "flex", alignItems: "center", textDecoration: "none" }}
-            aria-label="ARCHIMEDES Live"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo.jpg"
-              alt="archimedes live"
-              style={{ height: 34, width: "auto", display: "block" }}
-            />
-          </Link>
-
-          <div style={{ marginLeft: "auto", display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
-            <Link href="/" style={{ textDecoration: "none", color: "black", opacity: 0.8 }}>
-              Domů
-            </Link>
-            <Link href="/program" style={{ textDecoration: "none", color: "black", opacity: 0.8 }}>
-              Program
-            </Link>
-            <span style={{ fontWeight: 800 }}>Ceník</span>
-            <Link href="/portal" style={{ textDecoration: "none", color: "black", opacity: 0.8 }}>
-              Portál
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* sjednocená hlavička jako v portálu */}
+      <PortalHeader />
 
       {/* HERO */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 16px" }}>
