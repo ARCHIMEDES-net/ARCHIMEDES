@@ -17,12 +17,6 @@ function toDateTimeLocalValue(date) {
   )}:${pad(d.getMinutes())}`;
 }
 
-function publicUrlFromPath(path) {
-  if (!path) return null;
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data?.publicUrl || null;
-}
-
 function safeDate(value) {
   if (!value) return null;
   const d = new Date(value);
@@ -42,6 +36,31 @@ function formatDateTimeCS(value) {
   });
 }
 
+function publicUrlFromPath(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data?.publicUrl || null;
+}
+
+function normalizeAudienceValue(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  return String(v)
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+function nextHalfHourLocalValue() {
+  const d = new Date();
+  d.setSeconds(0);
+  d.setMilliseconds(0);
+  const m = d.getMinutes();
+  const add = m === 0 || m === 30 ? 0 : m < 30 ? 30 - m : 60 - m;
+  d.setMinutes(m + add);
+  return toDateTimeLocalValue(d.toISOString());
+}
+
 export default function AdminUdalosti() {
   const [rows, setRows] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -50,8 +69,9 @@ export default function AdminUdalosti() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  // edit modal (inline panel)
-  const [editingId, setEditingId] = useState(null);
+  const [editingId, setEditingId] = useState(null); // uuid nebo "NEW"
+  const [saving, setSaving] = useState(false);
+
   const [form, setForm] = useState({
     title: "",
     starts_at: "",
@@ -60,11 +80,10 @@ export default function AdminUdalosti() {
     full_description: "",
     stream_url: "",
     worksheet_url: "",
-    is_published: true,
+    is_published: false,
     poster_file: null,
     poster_path: "",
   });
-  const [saving, setSaving] = useState(false);
 
   async function loadAll() {
     setLoading(true);
@@ -73,8 +92,8 @@ export default function AdminUdalosti() {
     const [{ data: ev, error: evErr }, { data: cats, error: cErr }, { data: aud, error: aErr }] =
       await Promise.all([
         supabase.from("events").select("*").order("created_at", { ascending: false }),
-        supabase.from("categories").select("*").order("title", { ascending: true }),
-        supabase.from("audience_groups").select("*").order("title", { ascending: true }),
+        supabase.from("categories").select("*").order("sort", { ascending: true }),
+        supabase.from("audience_groups").select("*").order("sort", { ascending: true }),
       ]);
 
     if (evErr) {
@@ -95,26 +114,77 @@ export default function AdminUdalosti() {
     loadAll();
   }, []);
 
-  const categoriesByValue = useMemo(() => {
+  const categoriesByName = useMemo(() => {
     const m = new Map();
-    (categories || []).forEach((c) => m.set(c.value ?? c.slug ?? c.title, c));
+    (categories || []).forEach((c) => m.set(c.name, c));
     return m;
   }, [categories]);
 
-  const audienceByValue = useMemo(() => {
+  const audienceByName = useMemo(() => {
     const m = new Map();
-    (audienceGroups || []).forEach((a) => m.set(a.value ?? a.slug ?? a.title, a));
+    (audienceGroups || []).forEach((a) => m.set(a.name, a));
     return m;
   }, [audienceGroups]);
 
-  function normalizeAudienceValue(v) {
-    if (!v) return [];
-    if (Array.isArray(v)) return v;
-    // pokud je uložené jako text "a,b,c"
-    return String(v)
-      .split(",")
-      .map((x) => x.trim())
-      .filter(Boolean);
+  function resetFormToNew(defaults = {}) {
+    setForm({
+      title: "",
+      starts_at: nextHalfHourLocalValue(),
+      category: "",
+      audience: [],
+      full_description: "",
+      stream_url: "",
+      worksheet_url: "",
+      is_published: false,
+      poster_file: null,
+      poster_path: "",
+      ...defaults,
+    });
+  }
+
+  function openNew() {
+    setEditingId("NEW");
+    resetFormToNew();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function quickBroadcast() {
+    setErr("");
+    try {
+      const spec = categories.find((c) => String(c.name).toLowerCase().includes("speci"));
+      if (!spec) {
+        throw new Error('V rubrikách chybí "Speciál". Přidej do categories položku "Speciál".');
+      }
+
+      const startsISO = new Date(nextHalfHourLocalValue()).toISOString();
+
+      // publikum vybereme defaultně "Komunita", pokud existuje, jinak první dostupnou
+      const komunita = audienceGroups.find((a) => String(a.name).toLowerCase().includes("komunit"));
+      const defaultAud = komunita ? [komunita.name] : audienceGroups[0]?.name ? [audienceGroups[0].name] : [];
+
+      if (!defaultAud.length) {
+        throw new Error("V audience_groups nemáš žádnou cílovku. Přidej aspoň jednu.");
+      }
+
+      const payload = {
+        title: "Rychlé vysílání",
+        starts_at: startsISO,
+        category: spec.name,
+        audience: defaultAud,
+        full_description: "",
+        stream_url: "",
+        worksheet_url: "",
+        is_published: true,
+        poster_path: null,
+      };
+
+      const { error } = await supabase.from("events").insert(payload);
+      if (error) throw new Error(error.message);
+
+      await loadAll();
+    } catch (e) {
+      setErr(e.message || "Rychlé vysílání selhalo.");
+    }
   }
 
   function openEdit(row) {
@@ -127,7 +197,7 @@ export default function AdminUdalosti() {
       full_description: row.full_description || "",
       stream_url: row.stream_url || "",
       worksheet_url: row.worksheet_url || "",
-      is_published: row.is_published !== false,
+      is_published: row.is_published === true,
       poster_file: null,
       poster_path: row.poster_path || "",
     });
@@ -136,26 +206,22 @@ export default function AdminUdalosti() {
 
   function closeEdit() {
     setEditingId(null);
-    setForm({
-      title: "",
-      starts_at: "",
-      category: "",
-      audience: [],
-      full_description: "",
-      stream_url: "",
-      worksheet_url: "",
-      is_published: true,
-      poster_file: null,
-      poster_path: "",
+    resetFormToNew({ starts_at: "" });
+  }
+
+  function toggleAudience(name) {
+    setForm((prev) => {
+      const has = prev.audience.includes(name);
+      return { ...prev, audience: has ? prev.audience.filter((x) => x !== name) : [...prev.audience, name] };
     });
   }
 
-  async function uploadPosterIfNeeded(eventId) {
+  async function uploadPosterIfNeeded(eventIdOrNewId) {
     if (!form.poster_file) return form.poster_path || null;
 
     const file = form.poster_file;
     const ext = file.name.split(".").pop() || "png";
-    const safeName = `${eventId}_${Date.now()}.${ext}`;
+    const safeName = `${eventIdOrNewId}_${Date.now()}.${ext}`;
     const path = `events/${safeName}`;
 
     const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
@@ -167,25 +233,71 @@ export default function AdminUdalosti() {
     return path;
   }
 
-  async function saveEdit() {
+  function validateForm() {
+    if (!form.title.trim()) throw new Error("Vyplň název události.");
+    if (!form.starts_at) throw new Error("Vyplň datum a čas (starts_at).");
+    if (!form.category) throw new Error("Vyber rubriku (category).");
+    if (!categoriesByName.has(form.category)) throw new Error("Rubrika musí být vybrána ze seznamu (categories).");
+    if (!form.audience || form.audience.length === 0) throw new Error("Vyber alespoň jednu cílovku (audience).");
+    // kontrola, že audience jsou ze seznamu
+    for (const a of form.audience) {
+      if (!audienceByName.has(a)) throw new Error("Cílovka musí být vybrána ze seznamu (audience_groups).");
+    }
+  }
+
+  async function save() {
     if (!editingId) return;
     setSaving(true);
     setErr("");
 
     try {
-      if (!form.title.trim()) throw new Error("Vyplň název události.");
-      if (!form.starts_at) throw new Error("Vyplň datum a čas (starts_at).");
-      if (!form.category) throw new Error("Vyber rubriku (category).");
-      if (!form.audience || form.audience.length === 0)
-        throw new Error("Vyber alespoň jednu cílovku (audience).");
+      validateForm();
 
+      const startsISO = new Date(form.starts_at).toISOString();
+
+      if (editingId === "NEW") {
+        // insert
+        const basePayload = {
+          title: form.title.trim(),
+          starts_at: startsISO,
+          category: form.category,
+          audience: form.audience,
+          full_description: form.full_description || "",
+          stream_url: form.stream_url || "",
+          worksheet_url: form.worksheet_url || "",
+          is_published: !!form.is_published,
+          poster_path: null,
+        };
+
+        const { data: inserted, error: insErr } = await supabase
+          .from("events")
+          .insert(basePayload)
+          .select("id")
+          .single();
+
+        if (insErr) throw new Error(insErr.message);
+
+        const newId = inserted?.id;
+        const poster_path = await uploadPosterIfNeeded(newId);
+
+        if (poster_path) {
+          const { error: upErr } = await supabase.from("events").update({ poster_path }).eq("id", newId);
+          if (upErr) throw new Error(upErr.message);
+        }
+
+        await loadAll();
+        closeEdit();
+        return;
+      }
+
+      // update existing
       const poster_path = await uploadPosterIfNeeded(editingId);
 
       const payload = {
         title: form.title.trim(),
-        starts_at: new Date(form.starts_at).toISOString(),
+        starts_at: startsISO,
         category: form.category,
-        audience: form.audience, // DB constraint events_audience_groups_nonempty
+        audience: form.audience,
         full_description: form.full_description || "",
         stream_url: form.stream_url || "",
         worksheet_url: form.worksheet_url || "",
@@ -207,15 +319,13 @@ export default function AdminUdalosti() {
 
   async function deleteEvent(row) {
     if (!confirm(`Smazat událost „${row.title}“?`)) return;
-
     setErr("");
-    // (volitelně) smazání plakátu ze storage – bucket je public, ale write je admin, takže by to mělo jít
+
     try {
       const { error: delErr } = await supabase.from("events").delete().eq("id", row.id);
       if (delErr) throw new Error(delErr.message);
 
       if (row.poster_path) {
-        // neblokovat mazání, když storage delete selže
         await supabase.storage.from(BUCKET).remove([row.poster_path]);
       }
 
@@ -227,8 +337,8 @@ export default function AdminUdalosti() {
 
   async function duplicateEvent(row) {
     if (!confirm("Duplikovat tuto událost?")) return;
-
     setErr("");
+
     try {
       const payload = {
         title: row.title ? `${row.title} (kopie)` : "Kopie",
@@ -238,7 +348,7 @@ export default function AdminUdalosti() {
         full_description: row.full_description || "",
         stream_url: row.stream_url || "",
         worksheet_url: row.worksheet_url || "",
-        is_published: false, // kopii raději jako koncept
+        is_published: false,
         poster_path: row.poster_path || null,
       };
 
@@ -251,12 +361,7 @@ export default function AdminUdalosti() {
     }
   }
 
-  function toggleAudience(val) {
-    setForm((prev) => {
-      const has = prev.audience.includes(val);
-      return { ...prev, audience: has ? prev.audience.filter((x) => x !== val) : [...prev.audience, val] };
-    });
-  }
+  const isEditing = !!editingId;
 
   return (
     <RequireAuth>
@@ -271,6 +376,35 @@ export default function AdminUdalosti() {
           <Link href="/portal/kalendar" style={{ textDecoration: "none" }}>
             Kalendář
           </Link>
+
+          <div style={{ marginLeft: "auto", display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button
+              onClick={openNew}
+              style={{
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: "1px solid rgba(0,0,0,0.18)",
+                background: "black",
+                color: "white",
+                cursor: "pointer",
+              }}
+            >
+              ➕ Nová událost
+            </button>
+
+            <button
+              onClick={quickBroadcast}
+              style={{
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: "1px solid rgba(0,0,0,0.18)",
+                background: "white",
+                cursor: "pointer",
+              }}
+            >
+              🎬 Rychlé vysílání
+            </button>
+          </div>
         </div>
 
         <h1 style={{ margin: "8px 0 14px", fontSize: 22 }}>Admin – události</h1>
@@ -292,7 +426,7 @@ export default function AdminUdalosti() {
         ) : null}
 
         {/* EDIT PANEL */}
-        {editingId ? (
+        {isEditing ? (
           <div
             style={{
               border: "1px solid rgba(0,0,0,0.12)",
@@ -304,15 +438,18 @@ export default function AdminUdalosti() {
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-              <h2 style={{ margin: 0, fontSize: 18 }}>Upravit událost</h2>
+              <h2 style={{ margin: 0, fontSize: 18 }}>
+                {editingId === "NEW" ? "Nová událost" : "Upravit událost"}
+              </h2>
               <button
                 onClick={closeEdit}
+                disabled={saving}
                 style={{
                   padding: "8px 12px",
                   borderRadius: 12,
                   border: "1px solid rgba(0,0,0,0.15)",
                   background: "white",
-                  cursor: "pointer",
+                  cursor: saving ? "not-allowed" : "pointer",
                 }}
               >
                 Zavřít
@@ -347,14 +484,11 @@ export default function AdminUdalosti() {
                   style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,0.18)", background: "white" }}
                 >
                   <option value="">— vyber —</option>
-                  {categories.map((c) => {
-                    const val = c.value ?? c.slug ?? c.title;
-                    return (
-                      <option key={c.id ?? val} value={val}>
-                        {c.title ?? val}
-                      </option>
-                    );
-                  })}
+                  {categories.map((c) => (
+                    <option key={c.id ?? c.name} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
                 </select>
               </label>
 
@@ -375,13 +509,12 @@ export default function AdminUdalosti() {
               <div style={{ marginBottom: 8 }}>Cílovka (audience)*</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {audienceGroups.map((a) => {
-                  const val = a.value ?? a.slug ?? a.title;
-                  const active = form.audience.includes(val);
+                  const active = form.audience.includes(a.name);
                   return (
                     <button
-                      key={a.id ?? val}
+                      key={a.id ?? a.name}
                       type="button"
-                      onClick={() => toggleAudience(val)}
+                      onClick={() => toggleAudience(a.name)}
                       style={{
                         padding: "8px 10px",
                         borderRadius: 999,
@@ -390,7 +523,7 @@ export default function AdminUdalosti() {
                         cursor: "pointer",
                       }}
                     >
-                      {a.title ?? val}
+                      {a.name}
                     </button>
                   );
                 })}
@@ -435,9 +568,7 @@ export default function AdminUdalosti() {
                   accept="image/*"
                   onChange={(e) => setForm((p) => ({ ...p, poster_file: e.target.files?.[0] || null }))}
                 />
-                <small style={{ opacity: 0.7 }}>
-                  Pokud vybereš soubor, přepíše se plakát. Jinak zůstane stávající.
-                </small>
+                <small style={{ opacity: 0.7 }}>Pokud vybereš soubor, přepíše se plakát. Jinak zůstane stávající.</small>
               </label>
 
               <div style={{ display: "grid", gap: 6 }}>
@@ -471,7 +602,7 @@ export default function AdminUdalosti() {
 
             <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
               <button
-                onClick={saveEdit}
+                onClick={save}
                 disabled={saving}
                 style={{
                   padding: "10px 14px",
@@ -482,7 +613,7 @@ export default function AdminUdalosti() {
                   cursor: saving ? "not-allowed" : "pointer",
                 }}
               >
-                {saving ? "Ukládám…" : "Uložit změny"}
+                {saving ? "Ukládám…" : editingId === "NEW" ? "Vytvořit událost" : "Uložit změny"}
               </button>
 
               <button
@@ -527,11 +658,7 @@ export default function AdminUdalosti() {
               {rows.map((r) => {
                 const posterUrl = publicUrlFromPath(r.poster_path);
                 const audList = normalizeAudienceValue(r.audience);
-                const catTitle =
-                  categoriesByValue.get(r.category)?.title ?? r.category ?? "—";
-                const audTitles = audList
-                  .map((a) => audienceByValue.get(a)?.title ?? a)
-                  .filter(Boolean);
+                const audTitles = audList.map((a) => audienceByName.get(a)?.name ?? a).filter(Boolean);
 
                 return (
                   <div
@@ -560,11 +687,7 @@ export default function AdminUdalosti() {
                     >
                       {posterUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          alt="Plakát"
-                          src={posterUrl}
-                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        />
+                        <img alt="Plakát" src={posterUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       ) : (
                         <span style={{ opacity: 0.6, fontSize: 12 }}>Bez plakátu</span>
                       )}
@@ -583,7 +706,7 @@ export default function AdminUdalosti() {
                             opacity: 0.8,
                           }}
                         >
-                          {catTitle}
+                          {r.category || "—"}
                         </span>
                         <span
                           style={{
@@ -600,9 +723,9 @@ export default function AdminUdalosti() {
                       </div>
 
                       <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        {audTitles.slice(0, 6).map((t) => (
+                        {audTitles.slice(0, 8).map((t) => (
                           <span
-                            key={t}
+                            key={`${r.id}-${t}`}
                             style={{
                               fontSize: 12,
                               padding: "2px 8px",
@@ -614,9 +737,7 @@ export default function AdminUdalosti() {
                             {t}
                           </span>
                         ))}
-                        {audTitles.length > 6 ? (
-                          <span style={{ fontSize: 12, opacity: 0.6 }}>+{audTitles.length - 6}</span>
-                        ) : null}
+                        {audTitles.length > 8 ? <span style={{ fontSize: 12, opacity: 0.6 }}>+{audTitles.length - 8}</span> : null}
                       </div>
                     </div>
 
@@ -644,7 +765,7 @@ export default function AdminUdalosti() {
                           cursor: "pointer",
                         }}
                       >
-                        🧬 Duplikovat 
+                        🧬 Duplikovat
                       </button>
 
                       <button
@@ -668,8 +789,7 @@ export default function AdminUdalosti() {
         </div>
 
         <div style={{ marginTop: 14, opacity: 0.7, fontSize: 13 }}>
-          Tip: Pokud se ti po nasazení tlačítko stále jmenuje „Duplikovat“ (bez TEST), tak se nenasazuje
-          aktuální soubor z repa a budeme řešit mismatch deploye na Vercelu.
+          Pozn.: Rubrika i cílovky se ukládají jako texty z <b>categories.name</b> a <b>audience_groups.name</b>.
         </div>
       </div>
     </RequireAuth>
