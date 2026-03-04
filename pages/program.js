@@ -1,6 +1,7 @@
 // pages/program.js
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import PortalHeader from "../components/PortalHeader";
 import { supabase } from "../lib/supabaseClient";
 
 const BUCKET = "posters";
@@ -55,9 +56,7 @@ export default function ProgramPublic() {
     // Na veřejném programu ukazujeme jen publikované
     const { data, error } = await supabase
       .from("events")
-      .select(
-        "id,title,starts_at,category,audience,full_description,worksheet_url,poster_path,is_published,created_at"
-      )
+      .select("id,title,starts_at,category,audience,full_description,worksheet_url,poster_path,is_published,created_at")
       .eq("is_published", true)
       .order("starts_at", { ascending: true });
 
@@ -75,7 +74,6 @@ export default function ProgramPublic() {
     load();
   }, []);
 
-  const now = useMemo(() => new Date(), []); // fixne se pro render; při refreshi se aktualizuje
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
 
@@ -92,9 +90,7 @@ export default function ProgramPublic() {
         if (!query) return true;
 
         const aud = normalizeAudienceValue(e.audience).join(" ").toLowerCase();
-        const hay = `${e.title || ""} ${e.category || ""} ${aud} ${
-          e.full_description || ""
-        }`.toLowerCase();
+        const hay = `${e.title || ""} ${e.category || ""} ${aud} ${e.full_description || ""}`.toLowerCase();
         return hay.includes(query);
       })
       .sort((a, b) => {
@@ -122,81 +118,13 @@ export default function ProgramPublic() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
-      {/* jednoduchá veřejná hlavička */}
-      <div
-        style={{
-          background: "white",
-          borderBottom: "1px solid rgba(0,0,0,0.08)",
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1100,
-            margin: "0 auto",
-            padding: "14px 16px",
-            display: "flex",
-            gap: 12,
-            alignItems: "center",
-          }}
-        >
-          {/* LOGO jako v portálu */}
-          <Link
-            href="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              textDecoration: "none",
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo.jpg"
-              alt="archimedes live"
-              style={{ height: 34, width: "auto", display: "block" }}
-            />
-          </Link>
-
-          <div
-            style={{
-              marginLeft: "auto",
-              display: "flex",
-              gap: 10,
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <Link
-              href="/"
-              style={{ textDecoration: "none", color: "black", opacity: 0.8 }}
-            >
-              Domů
-            </Link>
-            <Link
-              href="/portal"
-              style={{ textDecoration: "none", color: "black", opacity: 0.8 }}
-            >
-              Portál
-            </Link>
-            <span style={{ fontWeight: 700 }}>Program</span>
-          </div>
-        </div>
-      </div>
+      {/* sjednocená hlavička jako v portálu */}
+      <PortalHeader />
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px 40px" }}>
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 10,
-            alignItems: "center",
-            marginBottom: 14,
-          }}
-        >
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginBottom: 14 }}>
           <h1 style={{ margin: 0, fontSize: 26 }}>Program</h1>
+
           <div style={{ marginLeft: "auto", display: "flex", gap: 10, flexWrap: "wrap" }}>
             <input
               value={q}
@@ -210,6 +138,7 @@ export default function ProgramPublic() {
                 background: "white",
               }}
             />
+
             <label
               style={{
                 display: "flex",
@@ -223,11 +152,7 @@ export default function ProgramPublic() {
                 userSelect: "none",
               }}
             >
-              <input
-                type="checkbox"
-                checked={onlyFuture}
-                onChange={(e) => setOnlyFuture(e.target.checked)}
-              />
+              <input type="checkbox" checked={onlyFuture} onChange={(e) => setOnlyFuture(e.target.checked)} />
               Jen nadcházející
             </label>
           </div>
@@ -259,14 +184,12 @@ export default function ProgramPublic() {
           <div style={{ padding: 14, opacity: 0.7 }}>Zatím žádné publikované události.</div>
         ) : (
           <>
-            {/* NADCHÁZEJÍCÍ */}
             <Section title="Nadcházející" count={future.length}>
               {future.map((e) => (
                 <EventCard key={e.id} e={e} />
               ))}
             </Section>
 
-            {/* MINULÉ (volitelně) */}
             {!onlyFuture ? (
               <div style={{ marginTop: 18 }}>
                 <Section title="Proběhlo" count={past.length}>
@@ -297,14 +220,7 @@ function Section({ title, count, children }) {
         background: "white",
       }}
     >
-      <div
-        style={{
-          padding: 14,
-          borderBottom: "1px solid rgba(0,0,0,0.08)",
-          display: "flex",
-          gap: 10,
-        }}
-      >
+      <div style={{ padding: 14, borderBottom: "1px solid rgba(0,0,0,0.08)", display: "flex", gap: 10 }}>
         <div style={{ fontWeight: 700 }}>{title}</div>
         <div style={{ marginLeft: "auto", opacity: 0.7 }}>{count} položek</div>
       </div>
@@ -343,11 +259,7 @@ function EventCard({ e }) {
       >
         {posterUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            alt="Plakát"
-            src={posterUrl}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
+          <img alt="Plakát" src={posterUrl} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (
           <span style={{ opacity: 0.6, fontSize: 12 }}>Bez plakátu</span>
         )}
@@ -389,9 +301,7 @@ function EventCard({ e }) {
                 {t}
               </span>
             ))}
-            {aud.length > 8 ? (
-              <span style={{ fontSize: 12, opacity: 0.6 }}>+{aud.length - 8}</span>
-            ) : null}
+            {aud.length > 8 ? <span style={{ fontSize: 12, opacity: 0.6 }}>+{aud.length - 8}</span> : null}
           </div>
         ) : null}
 
@@ -403,7 +313,6 @@ function EventCard({ e }) {
         ) : null}
 
         <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-          {/* Veřejně: klidně pracovní list, pokud je to OK – jinak smaž */}
           {e.worksheet_url ? (
             <a
               href={e.worksheet_url}
@@ -422,7 +331,6 @@ function EventCard({ e }) {
             </a>
           ) : null}
 
-          {/* CTA do portálu */}
           <Link
             href="/portal"
             style={{
