@@ -1,6 +1,7 @@
 // pages/poptavka.js
 import { useState } from "react";
 import Link from "next/link";
+import PortalHeader from "../components/PortalHeader";
 import { supabase } from "../lib/supabaseClient";
 
 export default function Poptavka() {
@@ -54,10 +55,11 @@ export default function Poptavka() {
         body: JSON.stringify(payload),
       });
 
-      // Make často vrací 200/204. Když vrátí cokoli jiného, ukážeme chybu.
       if (!r.ok) {
         const text = await r.text().catch(() => "");
-        throw new Error(`Make webhook chyba: ${r.status} ${r.statusText}${text ? " – " + text.slice(0, 120) : ""}`);
+        throw new Error(
+          `Make webhook chyba: ${r.status} ${r.statusText}${text ? " – " + text.slice(0, 120) : ""}`
+        );
       }
 
       setOk(true);
@@ -78,52 +80,14 @@ export default function Poptavka() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
-      <div
-        style={{
-          background: "white",
-          borderBottom: "1px solid rgba(0,0,0,0.08)",
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 900,
-            margin: "0 auto",
-            padding: "14px 16px",
-            display: "flex",
-            gap: 12,
-            alignItems: "center",
-          }}
-        >
-         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-  <img
-    src="/logo.jpg"
-    alt="ARCHIMEDES Live"
-    style={{ height: 36, width: "auto", display: "block" }}
-  />
-</Link>
-    <div style={{ marginLeft: "auto", display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <Link href="/" style={{ textDecoration: "none", color: "black", opacity: 0.8 }}>
-              Domů
-            </Link>
-            <Link href="/program" style={{ textDecoration: "none", color: "black", opacity: 0.8 }}>
-              Program
-            </Link>
-            <Link href="/cenik" style={{ textDecoration: "none", color: "black", opacity: 0.8 }}>
-              Ceník
-            </Link>
-            <Link href="/portal" style={{ textDecoration: "none", color: "black", opacity: 0.8 }}>
-              Portál
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* sjednocená hlavička (stejné logo/pozice jako v portálu) */}
+      <PortalHeader />
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "22px 16px 40px" }}>
         <h1 style={{ margin: "6px 0 10px", fontSize: 28 }}>Poptávka licence</h1>
-        <div style={{ opacity: 0.8, marginBottom: 14 }}>Nech nám kontakt. Ozveme se a pošleme přístup / smluvní podklady.</div>
+        <div style={{ opacity: 0.8, marginBottom: 14 }}>
+          Nech nám kontakt. Ozveme se a pošleme přístup / smluvní podklady.
+        </div>
 
         {err ? (
           <div
@@ -155,14 +119,27 @@ export default function Poptavka() {
           </div>
         ) : null}
 
-        <form onSubmit={submit} style={{ background: "white", border: "1px solid rgba(0,0,0,0.10)", borderRadius: 16, padding: 16 }}>
+        <form
+          onSubmit={submit}
+          style={{
+            background: "white",
+            border: "1px solid rgba(0,0,0,0.10)",
+            borderRadius: 16,
+            padding: 16,
+          }}
+        >
           <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr" }}>
             <label style={{ display: "grid", gap: 6 }}>
               <span>Typ licence*</span>
               <select
                 value={form.type}
                 onChange={(e) => set("type", e.target.value)}
-                style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,0.18)", background: "white" }}
+                style={{
+                  padding: 10,
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.18)",
+                  background: "white",
+                }}
               >
                 <option value="obec">Obec</option>
                 <option value="skola">Škola</option>
@@ -172,22 +149,55 @@ export default function Poptavka() {
 
             <label style={{ display: "grid", gap: 6 }}>
               <span>Název obce / školy*</span>
-              <input value={form.organization} onChange={(e) => set("organization", e.target.value)} style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,0.18)" }} />
+              <input
+                value={form.organization}
+                onChange={(e) => set("organization", e.target.value)}
+                style={{
+                  padding: 10,
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.18)",
+                }}
+              />
             </label>
 
             <label style={{ display: "grid", gap: 6 }}>
               <span>Kontaktní osoba*</span>
-              <input value={form.contact_name} onChange={(e) => set("contact_name", e.target.value)} style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,0.18)" }} />
+              <input
+                value={form.contact_name}
+                onChange={(e) => set("contact_name", e.target.value)}
+                style={{
+                  padding: 10,
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.18)",
+                }}
+              />
             </label>
 
             <label style={{ display: "grid", gap: 6 }}>
               <span>E-mail*</span>
-              <input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,0.18)" }} />
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => set("email", e.target.value)}
+                style={{
+                  padding: 10,
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.18)",
+                }}
+              />
             </label>
 
             <label style={{ display: "grid", gap: 6 }}>
               <span>Telefon (volitelné)</span>
-              <input value={form.phone} onChange={(e) => set("phone", e.target.value)} style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,0.18)" }} />
+              <input
+                value={form.phone}
+                onChange={(e) => set("phone", e.target.value)}
+                style={{
+                  padding: 10,
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.18)",
+                }}
+              />
             </label>
 
             <div />
@@ -195,7 +205,17 @@ export default function Poptavka() {
 
           <label style={{ display: "grid", gap: 6, marginTop: 12 }}>
             <span>Poznámka</span>
-            <textarea rows={4} value={form.note} onChange={(e) => set("note", e.target.value)} style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,0.18)", resize: "vertical" }} />
+            <textarea
+              rows={4}
+              value={form.note}
+              onChange={(e) => set("note", e.target.value)}
+              style={{
+                padding: 10,
+                borderRadius: 12,
+                border: "1px solid rgba(0,0,0,0.18)",
+                resize: "vertical",
+              }}
+            />
           </label>
 
           <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
@@ -232,7 +252,9 @@ export default function Poptavka() {
           </div>
         </form>
 
-        <div style={{ marginTop: 14, opacity: 0.7, fontSize: 12 }}>Tip: až budeš chtít, přidáme admin stránku pro přehled poptávek.</div>
+        <div style={{ marginTop: 14, opacity: 0.7, fontSize: 12 }}>
+          Tip: až budeš chtít, přidáme admin stránku pro přehled poptávek.
+        </div>
       </div>
     </div>
   );
