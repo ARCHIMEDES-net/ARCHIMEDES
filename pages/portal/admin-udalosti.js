@@ -405,18 +405,7 @@ export default function AdminUdalosti() {
               ➕ Nová událost
             </button>
 
-            <button
-              onClick={quickBroadcast}
-              style={{
-                padding: "10px 12px",
-                borderRadius: 12,
-                border: "1px solid rgba(0,0,0,0.18)",
-                background: "white",
-                cursor: "pointer",
-              }}
-            >
-              🎬 Rychlé vysílání
-            </button>
+            
           </div>
         </div>
 
