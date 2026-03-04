@@ -306,11 +306,43 @@ export default function AdminUdalosti() {
     }
   }
 
-  async function deleteEvent(row) {
-    if (!confirm(`Smazat událost „${row.title}“?`)) return;
-    setErr("");
+  async function duplicateEvent(row) {
+  if (!confirm("Duplikovat tuto událost?")) return;
+  setErr("");
 
-    try {
+  try {
+
+    let aud = normalizeAudienceValue(row.audience);
+
+    // když je prázdné, vezmeme default
+    if (!aud || aud.length === 0) {
+      aud = defaultAudience(audienceGroups);
+    }
+
+    const payload = {
+      title: row.title ? `${row.title} (kopie)` : "Kopie",
+      starts_at: row.starts_at,
+      category: row.category,
+      audience: aud,
+      full_description: row.full_description || "",
+      stream_url: row.stream_url || "",
+      worksheet_url: row.worksheet_url || "",
+      is_published: false,
+      poster_path: row.poster_path || null,
+    };
+
+    const { error } = await supabase
+      .from("events")
+      .insert(payload);
+
+    if (error) throw new Error(error.message);
+
+    await loadAll();
+
+  } catch (e) {
+    setErr(e.message || "Duplikace selhala.");
+  }
+}    try {
       const { error: delErr } = await supabase.from("events").delete().eq("id", row.id);
       if (delErr) throw new Error(delErr.message);
 
