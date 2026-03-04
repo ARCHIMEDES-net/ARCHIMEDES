@@ -3,15 +3,26 @@ import { useRouter } from "next/router";
 
 const LOGO_SRC = "/logo/archimedes-live.png";
 
+function stripQuery(asPath) {
+  return (asPath || "").split("?")[0];
+}
+
+function isAdminPath(p) {
+  return p === "/portal/admin" || p.startsWith("/portal/admin-") || p.startsWith("/portal/admin/");
+}
+
 function isActivePath(asPath, href) {
   if (!asPath) return false;
-
-  // normalize
-  const p = asPath.split("?")[0];
+  const p = stripQuery(asPath);
 
   // Special: detail události patří pod Program
   if (href === "/portal/kalendar") {
     return p === "/portal/kalendar" || p.startsWith("/portal/udalost/");
+  }
+
+  // Admin "hlavní" položka je aktivní pro celou admin sekci
+  if (href === "/portal/admin-udalosti") {
+    return isAdminPath(p);
   }
 
   if (href === "/portal") return p === "/portal";
@@ -22,6 +33,8 @@ function isActivePath(asPath, href) {
 export default function PortalHeader() {
   const router = useRouter();
   const asPath = router?.asPath || "";
+  const p = stripQuery(asPath);
+  const inAdmin = isAdminPath(p);
 
   const linkBase = {
     textDecoration: "none",
@@ -50,6 +63,37 @@ export default function PortalHeader() {
     return { ...linkBase, ...(active ? activeStyle : inactiveStyle) };
   };
 
+  // Submenu (Admin)
+  const adminLinkBase = {
+    textDecoration: "none",
+    color: "#111827",
+    padding: "7px 10px",
+    borderRadius: 999,
+    fontWeight: 700,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    border: "1px solid #e5e7eb",
+    background: "#fff",
+  };
+
+  const adminActive = {
+    background: "#111827",
+    color: "#fff",
+    border: "1px solid #111827",
+  };
+
+  const adminItems = [
+    { href: "/portal/admin-udalosti", label: "Události" },
+    { href: "/portal/admin-inzerce", label: "Inzerce" },
+    { href: "/portal/admin-poptavky", label: "Poptávky" },
+  ];
+
+  const adminItemStyle = (href) => {
+    const active = stripQuery(asPath) === href || stripQuery(asPath).startsWith(href + "/");
+    return { ...adminLinkBase, ...(active ? adminActive : null) };
+  };
+
   return (
     <header
       style={{
@@ -60,6 +104,7 @@ export default function PortalHeader() {
         borderBottom: "1px solid #e5e7eb",
       }}
     >
+      {/* Top row */}
       <div
         style={{
           maxWidth: 1100,
@@ -117,6 +162,30 @@ export default function PortalHeader() {
           </Link>
         </nav>
       </div>
+
+      {/* Admin submenu row (only in admin section) */}
+      {inAdmin && (
+        <div style={{ borderTop: "1px solid #f3f4f6", background: "#fafafa" }}>
+          <div
+            style={{
+              maxWidth: 1100,
+              margin: "0 auto",
+              padding: "10px 16px",
+              display: "flex",
+              gap: 10,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <span style={{ fontWeight: 800, color: "#111827", marginRight: 6 }}>Admin:</span>
+            {adminItems.map((it) => (
+              <Link key={it.href} href={it.href} style={adminItemStyle(it.href)}>
+                {it.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
