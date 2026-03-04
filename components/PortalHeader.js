@@ -1,7 +1,8 @@
+// components/PortalHeader.js
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-const LOGO_SRC = "/logo/archimedes-live.png";
+const LOGO_SRC = "/logo.jpg";
 
 function stripQuery(asPath) {
   return (asPath || "").split("?")[0];
@@ -15,12 +16,12 @@ function isActivePath(asPath, href) {
   if (!asPath) return false;
   const p = stripQuery(asPath);
 
-  // Special: detail události patří pod Program
+  // Detail události patří pod Program
   if (href === "/portal/kalendar") {
     return p === "/portal/kalendar" || p.startsWith("/portal/udalost/");
   }
 
-  // Admin "hlavní" položka je aktivní pro celou admin sekci
+  // Admin aktivní pro celou admin sekci
   if (href === "/portal/admin-udalosti") {
     return isAdminPath(p);
   }
@@ -30,13 +31,7 @@ function isActivePath(asPath, href) {
   return p === href || p.startsWith(href + "/");
 }
 
-function isActivePublic(asPath, href) {
-  const p = stripQuery(asPath);
-  if (href === "/") return p === "/";
-  return p === href || p.startsWith(href + "/");
-}
-
-export default function PortalHeader({ variant = "portal" }) {
+export default function PortalHeader() {
   const router = useRouter();
   const asPath = router?.asPath || "";
   const p = stripQuery(asPath);
@@ -64,17 +59,12 @@ export default function PortalHeader({ variant = "portal" }) {
     border: "1px solid transparent",
   };
 
-  const navLinkStylePortal = (href) => {
+  const navLinkStyle = (href) => {
     const active = isActivePath(asPath, href);
     return { ...linkBase, ...(active ? activeStyle : inactiveStyle) };
   };
 
-  const navLinkStylePublic = (href) => {
-    const active = isActivePublic(asPath, href);
-    return { ...linkBase, ...(active ? activeStyle : inactiveStyle) };
-  };
-
-  // Submenu (Admin)
+  // Admin submenu
   const adminLinkBase = {
     textDecoration: "none",
     color: "#111827",
@@ -101,12 +91,10 @@ export default function PortalHeader({ variant = "portal" }) {
   ];
 
   const adminItemStyle = (href) => {
-    const sp = stripQuery(asPath);
-    const active = sp === href || sp.startsWith(href + "/");
+    const ap = stripQuery(asPath);
+    const active = ap === href || ap.startsWith(href + "/");
     return { ...adminLinkBase, ...(active ? adminActive : null) };
   };
-
-  const isPortal = variant !== "public";
 
   return (
     <header
@@ -118,7 +106,6 @@ export default function PortalHeader({ variant = "portal" }) {
         borderBottom: "1px solid #e5e7eb",
       }}
     >
-      {/* Top row */}
       <div
         style={{
           maxWidth: 1100,
@@ -130,17 +117,15 @@ export default function PortalHeader({ variant = "portal" }) {
           gap: 12,
         }}
       >
-        {/* Logo */}
         <Link
-          href={isPortal ? "/portal" : "/"}
+          href="/portal"
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: 10,
             textDecoration: "none",
-            minHeight: 44, // aby se to nehýbalo mezi stránkami
           }}
-          aria-label="ARCHIMEDES Live"
+          aria-label="ARCHIMEDES Live – Portál"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -148,64 +133,48 @@ export default function PortalHeader({ variant = "portal" }) {
             alt="ARCHIMEDES Live"
             style={{ height: 44, width: "auto", display: "block" }}
             onError={(e) => {
+              // nehidej celou hlavičku – jen skryj img, ať zůstane text
               e.currentTarget.style.display = "none";
             }}
           />
-
-          {/* Text vedle loga jen v portálu (stejně jako máš teď) */}
-          {isPortal ? <span style={{ fontWeight: 900, color: "#111827" }}>Portál</span> : null}
+          <span style={{ fontWeight: 900, color: "#111827" }}>Portál</span>
         </Link>
 
-        {/* Menu */}
-        {isPortal ? (
-          <nav style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            <Link href="/portal" style={navLinkStylePortal("/portal")}>Portál</Link>
-            <Link href="/portal/kalendar" style={navLinkStylePortal("/portal/kalendar")}>Program</Link>
-            <Link href="/portal/archiv" style={navLinkStylePortal("/portal/archiv")}>Archiv</Link>
-            <Link href="/portal/pracovni-listy" style={navLinkStylePortal("/portal/pracovni-listy")}>Pracovní listy</Link>
-            <Link href="/portal/inzerce" style={navLinkStylePortal("/portal/inzerce")}>Inzerce</Link>
+        <nav style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <Link href="/portal" style={navLinkStyle("/portal")}>
+            Portál
+          </Link>
+          <Link href="/portal/kalendar" style={navLinkStyle("/portal/kalendar")}>
+            Program
+          </Link>
+          <Link href="/portal/archiv" style={navLinkStyle("/portal/archiv")}>
+            Archiv
+          </Link>
+          <Link href="/portal/pracovni-listy" style={navLinkStyle("/portal/pracovni-listy")}>
+            Pracovní listy
+          </Link>
+          <Link href="/portal/inzerce" style={navLinkStyle("/portal/inzerce")}>
+            Inzerce
+          </Link>
 
-            <span style={{ width: 1, height: 18, background: "#e5e7eb", margin: "0 2px" }} />
+          <span style={{ width: 1, height: 18, background: "#e5e7eb", margin: "0 2px" }} />
 
-            <Link
-              href="/portal/admin-udalosti"
-              title="Admin"
-              style={{
-                ...navLinkStylePortal("/portal/admin-udalosti"),
-                border: "1px solid #e5e7eb",
-                background: isActivePath(asPath, "/portal/admin-udalosti") ? "#111827" : "#fff",
-                color: isActivePath(asPath, "/portal/admin-udalosti") ? "#fff" : "#111827",
-              }}
-            >
-              Admin
-            </Link>
-          </nav>
-        ) : (
-          <nav style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            <Link href="/" style={navLinkStylePublic("/")}>Domů</Link>
-            <Link href="/program" style={navLinkStylePublic("/program")}>Program</Link>
-            <Link href="/cenik" style={navLinkStylePublic("/cenik")}>Ceník</Link>
-            <Link href="/poptavka" style={navLinkStylePublic("/poptavka")}>Poptávka</Link>
-
-            <span style={{ width: 1, height: 18, background: "#e5e7eb", margin: "0 2px" }} />
-
-            <Link
-              href="/portal"
-              style={{
-                ...linkBase,
-                border: "1px solid #e5e7eb",
-                background: "#111827",
-                color: "#fff",
-              }}
-            >
-              Portál
-            </Link>
-          </nav>
-        )}
+          <Link
+            href="/portal/admin-udalosti"
+            title="Admin"
+            style={{
+              ...navLinkStyle("/portal/admin-udalosti"),
+              border: "1px solid #e5e7eb",
+              background: isActivePath(asPath, "/portal/admin-udalosti") ? "#111827" : "#fff",
+              color: isActivePath(asPath, "/portal/admin-udalosti") ? "#fff" : "#111827",
+            }}
+          >
+            Admin
+          </Link>
+        </nav>
       </div>
 
-      {/* Admin submenu row (only in admin section) */}
-      {isPortal && inAdmin && (
+      {inAdmin && (
         <div style={{ borderTop: "1px solid #f3f4f6", background: "#fafafa" }}>
           <div
             style={{
