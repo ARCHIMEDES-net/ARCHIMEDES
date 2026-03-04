@@ -1,49 +1,40 @@
-// components/PublicHeader.js
+// components/PortalHeader.js
 import Link from "next/link";
 import { useRouter } from "next/router";
 
 const LOGO_SRC = "/logo.jpg";
 
-function stripQuery(asPath) {
-  return (asPath || "").split("?")[0];
-}
-
-export default function PublicHeader({ active = "" }) {
+export default function PortalHeader({ title = "", onLogout = null }) {
   const router = useRouter();
-  const path = stripQuery(router?.asPath || "");
+  const path = router?.asPath || "";
 
   const itemBase = {
     textDecoration: "none",
-    color: "#111827",
+    color: "#0f172a",
     padding: "8px 10px",
     borderRadius: 10,
-    fontWeight: 700,
+    fontWeight: 800,
     display: "inline-flex",
     alignItems: "center",
+    border: "1px solid transparent",
+    opacity: 0.9,
   };
 
   const activeStyle = {
-    background: "#111827",
+    background: "#0f172a",
     color: "#fff",
-    border: "1px solid #111827",
-  };
-
-  const inactiveStyle = {
-    background: "transparent",
-    border: "1px solid transparent",
-    opacity: 0.85,
+    border: "1px solid #0f172a",
+    opacity: 1,
   };
 
   const isActive = (key) => {
-    if (active) return active === key;
-    if (key === "home") return path === "/";
-    if (key === "program") return path === "/program";
-    if (key === "cenik") return path === "/cenik";
-    if (key === "poptavka") return path === "/poptavka";
+    if (key === "portal") return path === "/portal" || path.startsWith("/portal/");
+    if (key === "program") return path.startsWith("/portal/kalendar");
+    if (key === "admin") return path.startsWith("/portal/admin");
     return false;
   };
 
-  const navItem = (key) => ({ ...itemBase, ...(isActive(key) ? activeStyle : inactiveStyle) });
+  const navItem = (key) => ({ ...itemBase, ...(isActive(key) ? activeStyle : {}) });
 
   return (
     <header
@@ -52,7 +43,7 @@ export default function PublicHeader({ active = "" }) {
         borderBottom: "1px solid rgba(0,0,0,0.08)",
         position: "sticky",
         top: 0,
-        zIndex: 20,
+        zIndex: 30,
       }}
     >
       <div
@@ -65,36 +56,40 @@ export default function PublicHeader({ active = "" }) {
           gap: 12,
         }}
       >
-        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+        <Link href="/portal" style={{ display: "inline-flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={LOGO_SRC}
             alt="ARCHIMEDES Live"
-            style={{ height: 44, width: "auto", display: "block" }}
+            style={{ height: 34, width: "auto", display: "block" }}
             onError={(e) => {
               e.currentTarget.style.display = "none";
             }}
           />
+          {title ? <span style={{ fontWeight: 900, color: "#0f172a" }}>{title}</span> : null}
         </Link>
 
         <nav style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <Link href="/" style={navItem("home")}>Domů</Link>
-          <Link href="/program" style={navItem("program")}>Program</Link>
-          <Link href="/cenik" style={navItem("cenik")}>Ceník</Link>
-          <Link href="/poptavka" style={navItem("poptavka")}>Poptávka</Link>
+          <Link href="/portal" style={navItem("portal")}>Portál</Link>
+          <Link href="/portal/kalendar" style={navItem("program")}>Program</Link>
+          <Link href="/portal/admin-udalosti" style={navItem("admin")}>Admin</Link>
 
-          <span style={{ width: 1, height: 18, background: "#e5e7eb", margin: "0 2px" }} />
-
-          <Link
-            href="/portal"
-            style={{
-              ...itemBase,
-              border: "1px solid #e5e7eb",
-              background: "#fff",
-            }}
-          >
-            Portál
-          </Link>
+          {typeof onLogout === "function" ? (
+            <button
+              onClick={onLogout}
+              style={{
+                marginLeft: 8,
+                padding: "8px 12px",
+                borderRadius: 12,
+                border: "1px solid #e5e7eb",
+                background: "#fff",
+                cursor: "pointer",
+                fontWeight: 800,
+              }}
+            >
+              Odhlásit
+            </button>
+          ) : null}
         </nav>
       </div>
     </header>
