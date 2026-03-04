@@ -7,9 +7,20 @@ export default function App({ Component, pageProps }) {
   const router = useRouter();
   const path = router.pathname || "";
 
-  const isPortal = path.startsWith("/portal");
-  const isAuthPage = path === "/login"; // případně i /logout, pokud ho používáte jako stránku
-  const showPublicHeader = !isPortal && !isAuthPage;
+  // Skryj PublicHeader na portálu + admin stránkách (i kdyby byly v rootu /pages)
+  const isPortalOrAdmin =
+    path.startsWith("/portal") ||
+    path.startsWith("/admin") ||
+    path === "/kalendar" ||
+    path === "/inzerce" ||
+    path === "/archiv" ||
+    path === "/admin-udalosti" ||
+    path === "/admin-inzerce" ||
+    path === "/admin-poptavky";
+
+  const isAuthPage = path === "/login";
+
+  const showPublicHeader = !isPortalOrAdmin && !isAuthPage;
 
   return (
     <>
