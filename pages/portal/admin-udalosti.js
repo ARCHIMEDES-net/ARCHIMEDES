@@ -271,7 +271,10 @@ export default function AdminUdalosti() {
         const poster_path = await uploadPosterIfNeeded(newId);
 
         if (poster_path) {
-          const { error: upErr } = await supabase.from("events").update({ poster_path }).eq("id", newId);
+          const { error: upErr } = await supabase
+            .from("events")
+            .update({ poster_path })
+            .eq("id", newId);
           if (upErr) throw new Error(upErr.message);
         }
 
@@ -306,48 +309,20 @@ export default function AdminUdalosti() {
     }
   }
 
-  async function duplicateEvent(row) {
-  if (!confirm("Duplikovat tuto událost?")) return;
-  setErr("");
+  async function deleteEvent(row) {
+    if (!confirm(`Smazat událost „${row.title}“?`)) return;
+    setErr("");
 
-  try {
-
-    let aud = normalizeAudienceValue(row.audience);
-
-    // když je prázdné, vezmeme default
-    if (!aud || aud.length === 0) {
-      aud = defaultAudience(audienceGroups);
-    }
-
-    const payload = {
-      title: row.title ? `${row.title} (kopie)` : "Kopie",
-      starts_at: row.starts_at,
-      category: row.category,
-      audience: aud,
-      full_description: row.full_description || "",
-      stream_url: row.stream_url || "",
-      worksheet_url: row.worksheet_url || "",
-      is_published: false,
-      poster_path: row.poster_path || null,
-    };
-
-    const { error } = await supabase
-      .from("events")
-      .insert(payload);
-
-    if (error) throw new Error(error.message);
-
-    await loadAll();
-
-  } catch (e) {
-    setErr(e.message || "Duplikace selhala.");
-  }
-}    try {
+    try {
       const { error: delErr } = await supabase.from("events").delete().eq("id", row.id);
       if (delErr) throw new Error(delErr.message);
 
       if (row.poster_path) {
-        await supabase.storage.from(BUCKET).remove([row.poster_path]);
+        const { error: rmErr } = await supabase.storage.from(BUCKET).remove([row.poster_path]);
+        if (rmErr) {
+          // neblokuj smazání události kvůli storage, ale ukaž zprávu
+          setErr((prev) => prev || `Pozn.: Událost smazána, ale plakát se nepodařilo odstranit: ${rmErr.message}`);
+        }
       }
 
       await loadAll();
@@ -361,11 +336,14 @@ export default function AdminUdalosti() {
     setErr("");
 
     try {
+      let aud = normalizeAudienceValue(row.audience);
+      if (!aud || aud.length === 0) aud = defaultAudience(audienceGroups);
+
       const payload = {
         title: row.title ? `${row.title} (kopie)` : "Kopie",
         starts_at: row.starts_at,
         category: row.category,
-        audience: normalizeAudienceValue(row.audience),
+        audience: aud,
         full_description: row.full_description || "",
         stream_url: row.stream_url || "",
         worksheet_url: row.worksheet_url || "",
