@@ -97,13 +97,14 @@ export default function Poptavka() {
             alignItems: "center",
           }}
         >
-          <div style={{ fontWeight: 900, fontSize: 18 }}>
-            ARCHIMEDES{" "}
-            <span style={{ background: "#ff2d2d", color: "white", padding: "2px 8px", borderRadius: 8 }}>
-              live
-            </span>
-          </div>
-          <div style={{ marginLeft: "auto", display: "flex", gap: 12, flexWrap: "wrap" }}>
+         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+  <img
+    src="/logo.jpg"
+    alt="ARCHIMEDES Live"
+    style={{ height: 36, width: "auto", display: "block" }}
+  />
+</Link>
+    <div style={{ marginLeft: "auto", display: "flex", gap: 12, flexWrap: "wrap" }}>
             <Link href="/" style={{ textDecoration: "none", color: "black", opacity: 0.8 }}>
               Domů
             </Link>
