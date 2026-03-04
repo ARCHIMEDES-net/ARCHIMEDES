@@ -21,19 +21,21 @@ export default function Home() {
           alignItems: "center"
         }}>
           
-          <div style={{fontWeight:800,fontSize:18}}>
-            ARCHIMEDES
-            <span style={{
-              background:"#ff2d2d",
-              color:"white",
-              padding:"2px 8px",
-              borderRadius:8,
-              marginLeft:6
-            }}>
-              live
-            </span>
-          </div>
-
+        <Link
+  href="/"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    textDecoration: "none",
+  }}
+>
+  <img
+    src="/logo.jpg"
+    alt="ARCHIMEDES Live"
+    style={{ height: 36, width: "auto", display: "block" }}
+  />
+</Link>
           <div style={{marginLeft:"auto",display:"flex",gap:20}}>
 
             <Link href="/">Domů</Link>
