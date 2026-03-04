@@ -1,30 +1,33 @@
 // components/PortalHeader.js
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { supabase } from "../lib/supabaseClient";
 
 const LOGO_SRC = "/logo.jpg";
 
-export default function PortalHeader({ title = "", onLogout = null }) {
+export default function PortalHeader({ title = "" }) {
   const router = useRouter();
   const path = router?.asPath || "";
 
   const itemBase = {
     textDecoration: "none",
     color: "#0f172a",
-    padding: "8px 10px",
-    borderRadius: 10,
+    padding: "8px 12px",
+    borderRadius: 999,
     fontWeight: 800,
     display: "inline-flex",
     alignItems: "center",
-    border: "1px solid transparent",
-    opacity: 0.9,
+    border: "1px solid #d1d5db",
+    background: "#fff",
+    fontSize: 13,
+    lineHeight: 1,
   };
 
   const activeStyle = {
+    ...itemBase,
     background: "#0f172a",
-    color: "#fff",
     border: "1px solid #0f172a",
-    opacity: 1,
+    color: "#fff",
   };
 
   const isActive = (key) => {
@@ -34,7 +37,12 @@ export default function PortalHeader({ title = "", onLogout = null }) {
     return false;
   };
 
-  const navItem = (key) => ({ ...itemBase, ...(isActive(key) ? activeStyle : {}) });
+  const navItem = (key) => (isActive(key) ? activeStyle : itemBase);
+
+  async function onLogout() {
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
 
   return (
     <header
@@ -74,22 +82,20 @@ export default function PortalHeader({ title = "", onLogout = null }) {
           <Link href="/portal/kalendar" style={navItem("program")}>Program</Link>
           <Link href="/portal/admin-udalosti" style={navItem("admin")}>Admin</Link>
 
-          {typeof onLogout === "function" ? (
-            <button
-              onClick={onLogout}
-              style={{
-                marginLeft: 8,
-                padding: "8px 12px",
-                borderRadius: 12,
-                border: "1px solid #e5e7eb",
-                background: "#fff",
-                cursor: "pointer",
-                fontWeight: 800,
-              }}
-            >
-              Odhlásit
-            </button>
-          ) : null}
+          <button
+            onClick={onLogout}
+            style={{
+              marginLeft: 6,
+              padding: "8px 12px",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb",
+              background: "#fff",
+              cursor: "pointer",
+              fontWeight: 800,
+            }}
+          >
+            Odhlásit
+          </button>
         </nav>
       </div>
     </header>
