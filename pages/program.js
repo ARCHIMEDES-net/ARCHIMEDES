@@ -1,7 +1,6 @@
 // pages/program.js
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import PortalHeader from "../components/PortalHeader";
 import { supabase } from "../lib/supabaseClient";
 
 const BUCKET = "posters";
@@ -118,8 +117,7 @@ export default function ProgramPublic() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
-      {/* sjednocená hlavička jako v portálu */}
-      <PortalHeader />
+      {/* Hlavičku veřejné části řeší pages/_app.js (PublicHeader) */}
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px 40px" }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", marginBottom: 14 }}>
