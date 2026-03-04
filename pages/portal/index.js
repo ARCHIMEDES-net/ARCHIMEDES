@@ -1,5 +1,5 @@
 // pages/portal/index.js
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
@@ -81,9 +81,7 @@ export default function PortalIndex() {
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px 40px" }}>
           {/* Horní intro řádek */}
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "baseline", marginBottom: 14 }}>
-            <div style={{ fontSize: 14, opacity: 0.75 }}>
-              Přístup k obsahu pro registrované.
-            </div>
+            <div style={{ fontSize: 14, opacity: 0.75 }}>Přístup k obsahu pro registrované.</div>
 
             <div style={{ marginLeft: "auto", fontSize: 12, opacity: 0.6 }}>
               Tip: nejčastěji budeš používat <b>Kalendář</b>.
@@ -99,7 +97,7 @@ export default function PortalIndex() {
               alignItems: "start",
             }}
           >
-            {/* LEVÝ SLOUPEC: hlavní dlaždice */}
+            {/* LEVÝ SLOUPEC */}
             <div style={{ display: "grid", gap: 12 }}>
               <div
                 style={{
@@ -206,7 +204,7 @@ export default function PortalIndex() {
               </div>
             </div>
 
-            {/* PRAVÝ SLOUPEC: nejbližší vysílání */}
+            {/* PRAVÝ SLOUPEC */}
             <div
               style={{
                 background: "white",
@@ -220,9 +218,7 @@ export default function PortalIndex() {
                 <div style={{ marginLeft: "auto", fontSize: 12, opacity: 0.6 }}>max. 3</div>
               </div>
 
-              <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>
-                Kompletní seznam je v Kalendáři.
-              </div>
+              <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>Kompletní seznam je v Kalendáři.</div>
 
               {eventsErr ? (
                 <div
@@ -284,7 +280,7 @@ export default function PortalIndex() {
             </div>
           </div>
 
-          {/* RESPONSIVE: na mobilu složíme na jeden sloupec */}
+          {/* RESPONSIVE */}
           <style jsx>{`
             @media (max-width: 980px) {
               div[style*="grid-template-columns: 1.15fr 0.85fr"] {
@@ -298,6 +294,11 @@ export default function PortalIndex() {
   );
 }
 
+/**
+ * ✅ OPRAVA překryvu: dlaždice má dvě řádky:
+ * - nahoře: ikona + (název + badge)
+ * - dole: popis + tlačítko (tlačítko se nikdy nepřekryje)
+ */
 function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
   return (
     <Link
@@ -313,7 +314,8 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
         boxShadow: highlight ? "0 12px 30px rgba(0,0,0,0.08)" : "0 8px 24px rgba(0,0,0,0.04)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      {/* ROW 1 */}
+      <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0 }}>
         <div
           style={{
             width: 36,
@@ -325,14 +327,16 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
             justifyContent: "center",
             background: "rgba(0,0,0,0.02)",
             fontSize: 18,
+            flex: "0 0 auto",
           }}
         >
           {icon}
         </div>
 
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <div style={{ fontWeight: 900 }}>{title}</div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ fontWeight: 900, lineHeight: 1.2 }}>{title}</div>
+
             {note ? (
               <span
                 style={{
@@ -342,14 +346,28 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
                   borderRadius: 999,
                   background: highlight ? "#111827" : "rgba(0,0,0,0.06)",
                   color: highlight ? "white" : "#111827",
+                  whiteSpace: "nowrap",
                 }}
               >
                 {note}
               </span>
             ) : null}
           </div>
+        </div>
+      </div>
+
+      {/* ROW 2 */}
+      <div
+        style={{
+          marginTop: 10,
+          display: "flex",
+          gap: 10,
+          alignItems: "center",
+        }}
+      >
+        <div style={{ minWidth: 0, flex: 1 }}>
           {desc ? (
-            <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2, lineHeight: 1.35 }}>
+            <div style={{ fontSize: 12, opacity: 0.75, lineHeight: 1.35 }}>
               {desc}
             </div>
           ) : null}
@@ -364,6 +382,7 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
             fontWeight: 900,
             fontSize: 13,
             whiteSpace: "nowrap",
+            flex: "0 0 auto",
           }}
         >
           {cta}
@@ -392,7 +411,15 @@ function EventRow({ e }) {
       }}
     >
       <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontWeight: 900, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div
+          style={{
+            fontWeight: 900,
+            fontSize: 14,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
           {title}
         </div>
         <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>
