@@ -51,6 +51,7 @@ function normalizeAudienceValue(v) {
     .filter(Boolean);
 }
 
+// nastaví nejbližší půlhodinu (local)
 function nextHalfHourLocalValue() {
   const d = new Date();
   d.setSeconds(0);
@@ -58,7 +59,21 @@ function nextHalfHourLocalValue() {
   const m = d.getMinutes();
   const add = m === 0 || m === 30 ? 0 : m < 30 ? 30 - m : 60 - m;
   d.setMinutes(m + add);
-  return toDateTimeLocalValue(d.toISOString());
+
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours()
+  )}:${pad(d.getMinutes())}`;
+}
+
+// default cílovka: Komunita → jinak první dostupná → jinak []
+function defaultAudience(audienceGroups) {
+  const komunita = (audienceGroups || []).find((a) =>
+    String(a?.name || "").toLowerCase().includes("komunit")
+  );
+  if (komunita?.name) return [komunita.name];
+  if (audienceGroups?.[0]?.name) return [audienceGroups[0].name];
+  return [];
 }
 
 export default function AdminUdalosti() {
@@ -131,7 +146,7 @@ export default function AdminUdalosti() {
       title: "",
       starts_at: nextHalfHourLocalValue(),
       category: "",
-      audience: ["Komunita"],
+      audience: defaultAudience(audienceGroups),
       full_description: "",
       stream_url: "",
       worksheet_url: "",
@@ -143,6 +158,7 @@ export default function AdminUdalosti() {
   }
 
   function openNew() {
+    setErr("");
     setEditingId("NEW");
     resetFormToNew();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -151,20 +167,18 @@ export default function AdminUdalosti() {
   async function quickBroadcast() {
     setErr("");
     try {
+      // rubrika Speciál
       const spec = categories.find((c) => String(c.name).toLowerCase().includes("speci"));
       if (!spec) {
         throw new Error('V rubrikách chybí "Speciál". Přidej do categories položku "Speciál".');
       }
 
-      const startsISO = new Date(nextHalfHourLocalValue()).toISOString();
-
-      // publikum vybereme defaultně "Komunita", pokud existuje, jinak první dostupnou
-      const komunita = audienceGroups.find((a) => String(a.name).toLowerCase().includes("komunit"));
-      const defaultAud = komunita ? [komunita.name] : audienceGroups[0]?.name ? [audienceGroups[0].name] : [];
-
+      const defaultAud = defaultAudience(audienceGroups);
       if (!defaultAud.length) {
         throw new Error("V audience_groups nemáš žádnou cílovku. Přidej aspoň jednu.");
       }
+
+      const startsISO = new Date(nextHalfHourLocalValue()).toISOString();
 
       const payload = {
         title: "Rychlé vysílání",
@@ -188,6 +202,7 @@ export default function AdminUdalosti() {
   }
 
   function openEdit(row) {
+    setErr("");
     setEditingId(row.id);
     setForm({
       title: row.title || "",
@@ -205,6 +220,7 @@ export default function AdminUdalosti() {
   }
 
   function closeEdit() {
+    setErr("");
     setEditingId(null);
     resetFormToNew({ starts_at: "" });
   }
@@ -239,7 +255,6 @@ export default function AdminUdalosti() {
     if (!form.category) throw new Error("Vyber rubriku (category).");
     if (!categoriesByName.has(form.category)) throw new Error("Rubrika musí být vybrána ze seznamu (categories).");
     if (!form.audience || form.audience.length === 0) throw new Error("Vyber alespoň jednu cílovku (audience).");
-    // kontrola, že audience jsou ze seznamu
     for (const a of form.audience) {
       if (!audienceByName.has(a)) throw new Error("Cílovka musí být vybrána ze seznamu (audience_groups).");
     }
@@ -256,7 +271,6 @@ export default function AdminUdalosti() {
       const startsISO = new Date(form.starts_at).toISOString();
 
       if (editingId === "NEW") {
-        // insert
         const basePayload = {
           title: form.title.trim(),
           starts_at: startsISO,
@@ -290,7 +304,6 @@ export default function AdminUdalosti() {
         return;
       }
 
-      // update existing
       const poster_path = await uploadPosterIfNeeded(editingId);
 
       const payload = {
@@ -481,7 +494,12 @@ export default function AdminUdalosti() {
                 <select
                   value={form.category}
                   onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}
-                  style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,0.18)", background: "white" }}
+                  style={{
+                    padding: 10,
+                    borderRadius: 12,
+                    border: "1px solid rgba(0,0,0,0.18)",
+                    background: "white",
+                  }}
                 >
                   <option value="">— vyber —</option>
                   {categories.map((c) => (
@@ -497,7 +515,12 @@ export default function AdminUdalosti() {
                 <select
                   value={form.is_published ? "1" : "0"}
                   onChange={(e) => setForm((p) => ({ ...p, is_published: e.target.value === "1" }))}
-                  style={{ padding: 10, borderRadius: 12, border: "1px solid rgba(0,0,0,0.18)", background: "white" }}
+                  style={{
+                    padding: 10,
+                    borderRadius: 12,
+                    border: "1px solid rgba(0,0,0,0.18)",
+                    background: "white",
+                  }}
                 >
                   <option value="1">Ano (vidí se v programu)</option>
                   <option value="0">Ne (koncept)</option>
@@ -527,6 +550,9 @@ export default function AdminUdalosti() {
                     </button>
                   );
                 })}
+              </div>
+              <div style={{ marginTop: 6, fontSize: 12, opacity: 0.7 }}>
+                Pozn.: defaultně je vybrána „Komunita“ (nebo první cílovka), aby to nepadalo na DB constraintu.
               </div>
             </div>
 
@@ -644,9 +670,7 @@ export default function AdminUdalosti() {
         >
           <div style={{ padding: 14, borderBottom: "1px solid rgba(0,0,0,0.08)", display: "flex", gap: 10 }}>
             <div style={{ fontWeight: 600 }}>Seznam událostí</div>
-            <div style={{ marginLeft: "auto", opacity: 0.7 }}>
-              {loading ? "Načítám…" : `${rows.length} položek`}
-            </div>
+            <div style={{ marginLeft: "auto", opacity: 0.7 }}>{loading ? "Načítám…" : `${rows.length} položek`}</div>
           </div>
 
           {loading ? (
@@ -678,7 +702,7 @@ export default function AdminUdalosti() {
                         height: 80,
                         borderRadius: 12,
                         overflow: "hidden",
-                        border: "1px solid rgba(0,0,0,0.10)",
+                        border: "1px solid rgba(0,0,0,0.1)",
                         background: "rgba(0,0,0,0.03)",
                         display: "flex",
                         alignItems: "center",
@@ -697,17 +721,19 @@ export default function AdminUdalosti() {
                       <div style={{ display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
                         <div style={{ fontWeight: 700 }}>{r.title || "—"}</div>
                         <div style={{ opacity: 0.7 }}>{formatDateTimeCS(r.starts_at)}</div>
+
                         <span
                           style={{
                             fontSize: 12,
                             padding: "2px 8px",
                             borderRadius: 999,
                             border: "1px solid rgba(0,0,0,0.12)",
-                            opacity: 0.8,
+                            opacity: 0.85,
                           }}
                         >
                           {r.category || "—"}
                         </span>
+
                         <span
                           style={{
                             fontSize: 12,
@@ -730,14 +756,16 @@ export default function AdminUdalosti() {
                               fontSize: 12,
                               padding: "2px 8px",
                               borderRadius: 999,
-                              border: "1px solid rgba(0,0,0,0.10)",
+                              border: "1px solid rgba(0,0,0,0.1)",
                               opacity: 0.8,
                             }}
                           >
                             {t}
                           </span>
                         ))}
-                        {audTitles.length > 8 ? <span style={{ fontSize: 12, opacity: 0.6 }}>+{audTitles.length - 8}</span> : null}
+                        {audTitles.length > 8 ? (
+                          <span style={{ fontSize: 12, opacity: 0.6 }}>+{audTitles.length - 8}</span>
+                        ) : null}
                       </div>
                     </div>
 
