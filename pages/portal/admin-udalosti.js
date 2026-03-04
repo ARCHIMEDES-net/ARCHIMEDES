@@ -164,14 +164,7 @@ export default function AdminUdalosti() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  async function quickBroadcast() {
-    setErr("");
-    try {
-      // rubrika Speciál
-      const spec = categories.find((c) => String(c.name).toLowerCase().includes("speci"));
-      if (!spec) {
-        throw new Error('V rubrikách chybí "Speciál". Přidej do categories položku "Speciál".');
-      }
+  
 
       const defaultAud = defaultAudience(audienceGroups);
       if (!defaultAud.length) {
