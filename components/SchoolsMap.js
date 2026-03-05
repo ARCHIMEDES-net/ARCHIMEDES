@@ -4,9 +4,6 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 
-import "leaflet/dist/leaflet.css";
-import "react-leaflet-cluster/lib/assets/MarkerCluster.css";
-import "react-leaflet-cluster/lib/assets/MarkerCluster.Default.css";
 
 // Oprava ikon (Leaflet v bundlerech často nenajde default assety)
 const DefaultIcon = L.icon({
