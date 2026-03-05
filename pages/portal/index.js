@@ -107,7 +107,7 @@ export default function PortalIndex() {
                   padding: 14,
                 }}
               >
-                <div style={{ fontWeight: 900, marginBottom: 10 }}>Rychlý přístup — TEST 123</div>
+                <div style={{ fontWeight: 900, marginBottom: 10 }}>Rychlý přístup</div>
                 <div
                   style={{
                     display: "grid",
