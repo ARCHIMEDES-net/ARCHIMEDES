@@ -1,31 +1,29 @@
 import Link from "next/link";
 
 /**
- * ARCHIMEDES Live – veřejná homepage (finální kompozice)
+ * ARCHIMEDES Live – Homepage v2 (zpřesnění flow + social proof + úpravy CTA)
  *
- * Média:
- * 1) Vložte fotky do /public/media/ (v repu) s názvy níže (nebo si je přejmenujte a upravte konstanty).
- * 2) Poté se na stránce automaticky zobrazí.
+ * Co je jinak oproti předchozí verzi:
+ * 1) Social proof (čísla + obce/školy) hned po HERO.
+ * 2) Záštity/ocenění přesunuty níže (po vysvětlení produktu).
+ * 3) Sekce "Proč je síť důležitá" dostává vizuál (bez další fotky u "Co tím obec získá").
+ * 4) Odstraněna poznámka o dočasných fotkách (na veřejném webu ji nechceme).
  *
- * Použité soubory (doporučeno):
- * - /public/media/hero-classroom.jpg            (např. DSC05235 (3).jpeg)
- * - /public/media/lesson-closeup.webp           (např. DSC05359.webp)
- * - /public/media/exterior-kids.webp            (např. DSC05394 (2).webp)
- * - /public/media/stem-microscopes.webp         (např. aaa.webp)
- * - /public/media/community-seniors.jpg         (např. DSC09000.jpg)
- * - /public/media/online-session.jpg            (např. DSC09587.jpg)
+ * Média – předpoklad:
+ * Fotky už máte v /public/media a sedí na názvy níže. Když máte jiné názvy,
+ * upravte pouze konstantu MEDIA.
  */
 
 const MEDIA = {
   hero: "/media/hero-classroom.jpg",
-  lesson: "/media/lesson-closeup.webp",
-  exterior: "/media/exterior-kids.webp",
-  stem: "/media/stem-microscopes.webp",
-  seniors: "/media/community-seniors.jpg",
-  online: "/media/online-session.jpg",
+  onehour: "/media/lesson-closeup.webp",      // detail výuky / displej
+  exterior: "/media/exterior-kids.webp",     // exteriér / vstup do učebny
+  stem: "/media/stem-microscopes.webp",      // STEM detail
+  seniors: "/media/community-seniors.jpg",   // komunita / senioři
+  online: "/media/online-session.jpg",       // online přenos
 };
 
-const VIDEO_ID = "j2xTWMnPbiY"; // https://www.youtube.com/watch?v=j2xTWMnPbiY
+const VIDEO_ID = "j2xTWMnPbiY";
 const YT_EMBED = `https://www.youtube-nocookie.com/embed/${VIDEO_ID}?rel=0&modestbranding=1&controls=1`;
 
 function Chip({ children, tone = "soft" }) {
@@ -45,7 +43,7 @@ function Chip({ children, tone = "soft" }) {
   const tones = {
     soft: { background: "rgba(255,255,255,0.9)" },
     dark: { background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.18)", color: "white" },
-    solid: { background: "rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.10)" },
+    solid: { background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.10)" },
   };
 
   return <span style={{ ...base, ...(tones[tone] || tones.soft) }}>{children}</span>;
@@ -79,7 +77,7 @@ function Button({ href, children, variant = "primary" }) {
     gap: 10,
     padding: "12px 16px",
     borderRadius: 14,
-    fontWeight: 700,
+    fontWeight: 750,
     textDecoration: "none",
     transition: "transform 120ms ease, box-shadow 120ms ease",
   };
@@ -108,11 +106,7 @@ function Section({ id, title, kicker, children, alt = false }) {
                 {kicker}
               </div>
             )}
-            {title && (
-              <h2 style={{ fontSize: 30, lineHeight: 1.15, margin: 0 }}>
-                {title}
-              </h2>
-            )}
+            {title && <h2 style={{ fontSize: 30, lineHeight: 1.15, margin: 0 }}>{title}</h2>}
           </div>
         )}
         {children}
@@ -147,16 +141,25 @@ function MediaImage({ src, alt, radius = 18 }) {
   );
 }
 
+function Stat({ value, label }) {
+  return (
+    <div style={{ padding: 16, borderRadius: 16, border: "1px solid rgba(0,0,0,0.10)", background: "rgba(0,0,0,0.02)" }}>
+      <div style={{ fontSize: 26, fontWeight: 900, lineHeight: 1.1 }}>{value}</div>
+      <div style={{ marginTop: 6, fontSize: 13, opacity: 0.75 }}>{label}</div>
+    </div>
+  );
+}
+
 export default function Home() {
   const trust = [
-    { label: "Záštita: Eva Pavlová", group: "Záštity" },
-    { label: "MPO", group: "Záštity" },
-    { label: "MŽP", group: "Záštity" },
-    { label: "MMR", group: "Záštity" },
-    { label: "Finalista: E.ON Energy Globe", group: "Ocenění" },
-    { label: "Finalista: Creative Business Cup", group: "Ocenění" },
-    { label: "Vítěz: Obec 2030", group: "Ocenění" },
-    { label: "UNESCO: Greening Education Partnership", group: "Partnerství" },
+    "Záštita: Eva Pavlová",
+    "MPO",
+    "MŽP",
+    "MMR",
+    "Finalista: E.ON Energy Globe",
+    "Finalista: Creative Business Cup",
+    "Vítěz: Obec 2030",
+    "UNESCO: Greening Education Partnership",
   ];
 
   const sampleProgram = [
@@ -168,18 +171,12 @@ export default function Home() {
     { title: "Smart Cities (deváťáci)", desc: "Město očima mladých + práce s urbanistkou." },
   ];
 
-  const guests = [
-    { title: "Inspirativní hosté", desc: "Vědci, odborníci, sportovci, autoři – vždy s přesahem do praxe." },
-    { title: "Lokální příběhy", desc: "Dobrá praxe z obcí, školy, které sdílí know‑how a výsledky." },
-    { title: "Mezigeneračně", desc: "Programy pro žáky, učitele, rodiče i seniory." },
-  ];
-
   return (
     <div style={{ fontFamily: "system-ui", background: "#f6f7fb", minHeight: "100vh" }}>
       {/* Hlavičku řeší pages/_app.js (PublicHeader) */}
 
       {/* HERO */}
-      <div style={{ padding: "24px 16px 14px" }}>
+      <div style={{ padding: "24px 16px 10px" }}>
         <div style={{ maxWidth: 1120, margin: "0 auto" }}>
           <div
             style={{
@@ -220,7 +217,7 @@ export default function Home() {
 
             {/* Content */}
             <div style={{ position: "relative", padding: "56px 22px" }}>
-              <div style={{ maxWidth: 640 }}>
+              <div style={{ maxWidth: 680 }}>
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
                   <Chip tone="dark"><span style={{ width: 8, height: 8, borderRadius: 999, background: "#2ecc71" }} /> Živý vzdělávací program (ne software)</Chip>
                   <Chip tone="dark">Školy + obce + komunita</Chip>
@@ -236,16 +233,15 @@ export default function Home() {
                   Jednoduše: <b>1 třída → 1 vysílání → 1 pracovní list</b>.
                 </p>
 
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
                   <Button href={`/#hodina`} variant="primary">Podívat se na ukázkovou hodinu</Button>
-                  <Button href="/program" variant="secondary">Prohlédnout program</Button>
                   <Button href="/poptavka" variant="secondary">Domluvit ukázku</Button>
+                  <Button href="/program" variant="secondary">Prohlédnout program</Button>
                 </div>
 
-                {/* Trust in HERO – decent, not shouting */}
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 6, opacity: 0.92 }}>
                   <Chip tone="dark">Záštity & ocenění</Chip>
-                  <Link href="#duvera" style={{ ...{ color: "white", textDecoration: "none", fontWeight: 700 }, opacity: 0.95 }}>
+                  <Link href="#duvera" style={{ color: "white", textDecoration: "none", fontWeight: 800, opacity: 0.95 }}>
                     Detail <span aria-hidden>→</span>
                   </Link>
                 </div>
@@ -253,8 +249,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Quick value chips (outside hero) */}
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
             <Chip>Živé vstupy s hosty</Chip>
             <Chip>Pracovní listy</Chip>
             <Chip>Neveřejný archiv pro předplatitele</Chip>
@@ -264,18 +259,23 @@ export default function Home() {
         </div>
       </div>
 
-      {/* DŮVĚRA */}
-      <Section id="duvera" title="Záštity, ocenění a partnerství" kicker="Důvěra">
-        <Card>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {trust.map((t) => (
-              <Chip key={t.label} tone="solid">{t.label}</Chip>
-            ))}
-          </div>
-          <div style={{ marginTop: 10, fontSize: 13, opacity: 0.72 }}>
-            Na homepage uvádíme stručné shrnutí. Detailní podklady můžeme kdykoliv doplnit na samostatnou stránku.
-          </div>
-        </Card>
+      {/* SOCIAL PROOF – hned po HERO */}
+      <Section id="dukaz" title="ARCHIMEDES Live už funguje v řadě škol a obcí" kicker="Důkaz důvěry" alt>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+          <Stat value="20+" label="učeben ARCHIMEDES" />
+          <Stat value="1 000+" label="zapojených žáků (orientačně)" />
+          <Stat value="2×" label="měsíčně Senior klub" />
+          <Stat value="Obec 2030" label="ocenění projektu" />
+        </div>
+
+        <div style={{ marginTop: 14 }}>
+          <Card>
+            <div style={{ fontWeight: 900, marginBottom: 8 }}>Kde to už běží</div>
+            <div style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.82 }}>
+              Hodonín • Křenov • Bučovice • Frýdek‑Místek • Hradec Králové • (další lokality dle sítě)
+            </div>
+          </Card>
+        </div>
       </Section>
 
       {/* JAK VYPADÁ JEDNA HODINA */}
@@ -289,70 +289,49 @@ export default function Home() {
                 <Chip tone="solid">+ navazující aktivita</Chip>
               </div>
               <div style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, opacity: 0.82 }}>
-                Ukázka videa slouží jako „představa směru“. Později ho snadno vyměníme za vlastní záznam.
+                Jedna jasná logika: <b>1 třída → 1 vysílání → 1 pracovní list</b>.
               </div>
             </div>
 
-            {/* Responsive video */}
             <div style={{ position: "relative", paddingTop: "56.25%", background: "rgba(0,0,0,0.06)" }}>
               <iframe
                 src={YT_EMBED}
                 title="Ukázková hodina – ARCHIMEDES Live"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  border: 0,
-                }}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
               />
             </div>
 
             <div style={{ padding: 16 }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-                <Card style={{ boxShadow: "none", borderRadius: 14, padding: 14, background: "rgba(0,0,0,0.03)" }}>
-                  <div style={{ fontWeight: 800, marginBottom: 6 }}>1) Vysílání</div>
-                  <div style={{ fontSize: 13, opacity: 0.78 }}>Živý host, interakce, otázky v chatu.</div>
-                </Card>
-                <Card style={{ boxShadow: "none", borderRadius: 14, padding: 14, background: "rgba(0,0,0,0.03)" }}>
-                  <div style={{ fontWeight: 800, marginBottom: 6 }}>2) Pracovní list</div>
-                  <div style={{ fontSize: 13, opacity: 0.78 }}>Jedna stránka pro učitele i žáky.</div>
-                </Card>
-                <Card style={{ boxShadow: "none", borderRadius: 14, padding: 14, background: "rgba(0,0,0,0.03)" }}>
-                  <div style={{ fontWeight: 800, marginBottom: 6 }}>3) Aktivita</div>
-                  <div style={{ fontSize: 13, opacity: 0.78 }}>Navazující práce ve třídě / v obci.</div>
-                </Card>
+                {[
+                  ["1) Vysílání", "Živý host, interakce, otázky v chatu."],
+                  ["2) Pracovní list", "Jedna stránka pro učitele i žáky."],
+                  ["3) Aktivita", "Navazující práce ve třídě / v obci."],
+                ].map(([t, d]) => (
+                  <div key={t} style={{ borderRadius: 14, padding: 14, background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}>
+                    <div style={{ fontWeight: 900, marginBottom: 6 }}>{t}</div>
+                    <div style={{ fontSize: 13, opacity: 0.78 }}>{d}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </Card>
 
           <div style={{ display: "grid", gap: 18 }}>
-            <MediaImage src={MEDIA.lesson} alt="Ukázka výuky – práce na interaktivním displeji" />
+            <MediaImage src={MEDIA.onehour} alt="Ukázka výuky – práce na interaktivním displeji" />
             <Card>
               <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 8 }}>Pro koho to je</div>
               <div style={{ fontSize: 14, lineHeight: 1.7, opacity: 0.82 }}>
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
-                  <li><b>Ředitel školy</b> – hledá kvalitní hotový obsah a motivaci pro žáky.</li>
-                  <li><b>Starosta</b> – vidí konkrétní přínos pro obyvatele a komunitu.</li>
+                  <li><b>Ředitel školy</b> – hotový obsah a motivace pro žáky.</li>
+                  <li><b>Starosta</b> – konkrétní přínos pro obyvatele a komunitu.</li>
                   <li><b>Komunita</b> – program pro seniory, rodiče i spolky.</li>
                 </ul>
               </div>
             </Card>
           </div>
-        </div>
-      </Section>
-
-      {/* HOSTÉ */}
-      <Section id="hoste" title="Inspirativní hosté a reálné příběhy" kicker="Obsah">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-          {guests.map((g) => (
-            <Card key={g.title}>
-              <div style={{ fontWeight: 900, marginBottom: 8 }}>{g.title}</div>
-              <div style={{ fontSize: 14, lineHeight: 1.7, opacity: 0.82 }}>{g.desc}</div>
-            </Card>
-          ))}
         </div>
       </Section>
 
@@ -412,7 +391,6 @@ export default function Home() {
               Školy a obce vidí, kde už učebny fungují – a můžou si sdílet zkušenosti. (Mapa je dostupná v portálu.)
             </div>
 
-            {/* Gallery */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               <MediaImage src={MEDIA.exterior} alt="Učebna ARCHIMEDES – exteriér" radius={16} />
               <MediaImage src={MEDIA.hero} alt="Učebna ARCHIMEDES – výuka" radius={16} />
@@ -420,25 +398,28 @@ export default function Home() {
 
             <div style={{ marginTop: 14, display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Button href="/portal/skoly" variant="light">Zobrazit mapu učeben</Button>
-              <Button href="/poptavka" variant="light">Chci učebnu / program</Button>
+              <Button href="/poptavka" variant="light">Chci ukázku / zapojení</Button>
             </div>
           </Card>
 
-          <Card>
-            <div style={{ fontWeight: 900, marginBottom: 10 }}>Proč je síť důležitá</div>
-            <div style={{ fontSize: 14, lineHeight: 1.7, opacity: 0.82 }}>
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                <li>Obce vidí „dobrou praxi“ a reálné fotky.</li>
-                <li>Školy sdílí aktivity, inspiraci a materiály.</li>
-                <li>Buduje se prestiž a dlouhodobá udržitelnost.</li>
-              </ul>
-            </div>
-          </Card>
+          <div style={{ display: "grid", gap: 16 }}>
+            <MediaImage src={MEDIA.online} alt="Ukázka: propojení školy a sítě" radius={18} />
+            <Card>
+              <div style={{ fontWeight: 900, marginBottom: 10 }}>Proč je síť důležitá</div>
+              <div style={{ fontSize: 14, lineHeight: 1.7, opacity: 0.82 }}>
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  <li>Obce vidí „dobrou praxi“ a reálné fotky.</li>
+                  <li>Školy sdílí aktivity, inspiraci a materiály.</li>
+                  <li>Buduje se prestiž a dlouhodobá udržitelnost.</li>
+                </ul>
+              </div>
+            </Card>
+          </div>
         </div>
       </Section>
 
       {/* KOMUNITA */}
-      <Section id="komunita" title="Komunita obce – program i mimo školu" kicker="Dopad">
+      <Section id="komunita" title="Program pro celou obec" kicker="Dopad">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
           <Card>
             <div style={{ fontWeight: 900, marginBottom: 8 }}>Senior klub (2× měsíčně)</div>
@@ -449,17 +430,18 @@ export default function Home() {
           </Card>
 
           <Card>
-            <div style={{ fontWeight: 900, marginBottom: 8 }}>Co tím obec získá</div>
-            <div style={{ fontSize: 14, lineHeight: 1.7, opacity: 0.82 }}>
-              <ul style={{ margin: 0, paddingLeft: 18 }}>
-                <li>Viditelný přínos pro obyvatele a voliče.</li>
-                <li>Program pro děti, dospělé i seniory v jednom.</li>
-                <li>Možnost partnerství, hostů a lokálních témat.</li>
-              </ul>
+            <div style={{ fontWeight: 900, marginBottom: 10 }}>Co tím obec získá</div>
+            <div style={{ fontSize: 14, lineHeight: 1.75, opacity: 0.82 }}>
+              <div style={{ display: "grid", gap: 8 }}>
+                <div>✅ Program pro děti i seniory v jednom</div>
+                <div>✅ Viditelný přínos pro obyvatele (a voliče)</div>
+                <div>✅ Propojení generací a aktivní komunita</div>
+                <div>✅ Prestiž moderní obce + možnost lokálních témat/partnerství</div>
+              </div>
             </div>
             <div style={{ marginTop: 14, display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button href="/poptavka" variant="light">Chci ukázku pro obec</Button>
-              <Button href="/cenik" variant="light">Ceník pro obce</Button>
+              <Button href="/poptavka" variant="light">Domluvit ukázku pro obec</Button>
+              <Button href="/cenik" variant="light">Ceník</Button>
             </div>
           </Card>
         </div>
@@ -469,14 +451,26 @@ export default function Home() {
       <Section id="financovani" title="Financování (OP JAK / šablony)" kicker="Prakticky">
         <Card>
           <div style={{ fontSize: 14, lineHeight: 1.75, opacity: 0.85 }}>
-            U škol je možné řešit financování i přes dotační tituly typu OP JAK a související šablony (podle aktuální výzvy a pravidel školy).
-            My dodáme <b>popis programu</b>, přínosy a podklady – tak, aby to bylo pro školu administrativně snadné.
+            U škol je možné řešit financování i přes dotační tituly typu OP JAK a související šablony
+            (podle aktuální výzvy a pravidel školy). My dodáme <b>popis programu</b>, přínosy a podklady – tak,
+            aby to bylo pro školu administrativně snadné.
           </div>
 
           <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
             <Chip tone="solid">Hotové texty a argumenty</Chip>
             <Chip tone="solid">Ukázková hodina</Chip>
             <Chip tone="solid">Pracovní listy jako výstup</Chip>
+          </div>
+        </Card>
+      </Section>
+
+      {/* ZÁŠTITY/OCENĚNÍ – až tady */}
+      <Section id="duvera" title="Záštity, ocenění a partnerství" kicker="Důvěra" alt>
+        <Card>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {trust.map((t) => (
+              <Chip key={t} tone="solid">{t}</Chip>
+            ))}
           </div>
         </Card>
       </Section>
@@ -510,17 +504,12 @@ export default function Home() {
 
             <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", flexWrap: "wrap" }}>
               <Button href="/poptavka" variant="primary">Domluvit ukázku</Button>
-              <Button href="/portal" variant="secondary">Přejít do portálu</Button>
+              <Button href="/portal" variant="secondary">Prohlédnout portál</Button>
             </div>
-          </div>
-
-          <div style={{ marginTop: 14, fontSize: 12, opacity: 0.65 }}>
-            Pozn.: Fotky jsou nyní použité jako „realný vizuál“ – kdykoliv je vyměníme za finální výběr.
           </div>
         </div>
       </div>
 
-      {/* Mobile fallback */}
       <style jsx global>{`
         @media (max-width: 980px) {
           #__next section > div > div[style*="grid-template-columns: 1.2fr 0.8fr"] {
@@ -531,6 +520,9 @@ export default function Home() {
           }
           #__next section > div > div[style*="repeat(3, 1fr)"] {
             grid-template-columns: 1fr !important;
+          }
+          #__next section > div > div[style*="repeat(4, 1fr)"] {
+            grid-template-columns: 1fr 1fr !important;
           }
           #__next h1 {
             font-size: 38px !important;
