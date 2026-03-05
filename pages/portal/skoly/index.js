@@ -5,13 +5,6 @@ import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
-// Leaflet map components (no SSR)
-const MapContainer = dynamic(() => import("react-leaflet").then((m) => m.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import("react-leaflet").then((m) => m.TileLayer), { ssr: false });
-const Marker = dynamic(() => import("react-leaflet").then((m) => m.Marker), { ssr: false });
-const Popup = dynamic(() => import("react-leaflet").then((m) => m.Popup), { ssr: false });
-const useMap = dynamic(() => import("react-leaflet").then((m) => m.useMap), { ssr: false });
-
 const BUCKET = "schools";
 
 function publicUrlFromPath(path) {
@@ -20,52 +13,21 @@ function publicUrlFromPath(path) {
   return data?.publicUrl || null;
 }
 
-function FitBounds({ points }) {
-  // points: [{lat,lng}]
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const map = useMap();
-  useEffect(() => {
-    if (!map) return;
-
-    const valid = (points || []).filter(
-      (p) => typeof p.lat === "number" && !Number.isNaN(p.lat) && typeof p.lng === "number" && !Number.isNaN(p.lng)
-    );
-
-    if (valid.length === 0) {
-      map.setView([49.8, 15.5], 7); // CZ default
-      return;
-    }
-
-    if (valid.length === 1) {
-      map.setView([valid[0].lat, valid[0].lng], 11);
-      return;
-    }
-
-    // fit bounds
-    const L = require("leaflet");
-    const bounds = L.latLngBounds(valid.map((p) => [p.lat, p.lng]));
-    map.fitBounds(bounds, { padding: [30, 30] });
-  }, [map, points]);
-
-  return null;
-}
-
-function ensureLeafletIcons() {
-  if (typeof window === "undefined") return;
-  const L = require("leaflet");
-  delete L.Icon.Default.prototype._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  });
-}
+// DŮLEŽITÉ: mapa jen na klientovi (jinak Next SSR spadne)
+const SchoolsMap = dynamic(() => import("../../../components/SchoolsMap"), {
+  ssr: false,
+  loading: () => (
+    <div style={{ color: "rgba(0,0,0,0.65)" }}>
+      Načítám mapu…
+    </div>
+  ),
+});
 
 export default function SkolyIndex() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  const [view, setView] = useState("cards"); // cards | map
+  const [view, setView] = useState("cards"); // "cards" | "map"
 
   async function load() {
     setLoading(true);
@@ -94,24 +56,42 @@ export default function SkolyIndex() {
     load();
   }, []);
 
-  useEffect(() => {
-    if (view === "map") ensureLeafletIcons();
-  }, [view]);
-
   const items = useMemo(() => {
-    return (rows || []).map((r) => ({
-      ...r,
-      photo_url: publicUrlFromPath(r.photo_path),
-      lat_num: r.lat === null || r.lat === undefined ? null : Number(r.lat),
-      lng_num: r.lng === null || r.lng === undefined ? null : Number(r.lng),
-    }));
+    return (rows || []).map((r) => {
+      const latNum = r.lat === null || r.lat === undefined ? null : Number(r.lat);
+      const lngNum = r.lng === null || r.lng === undefined ? null : Number(r.lng);
+      return {
+        ...r,
+        photo_url: publicUrlFromPath(r.photo_path),
+        lat: Number.isFinite(latNum) ? latNum : null,
+        lng: Number.isFinite(lngNum) ? lngNum : null,
+      };
+    });
   }, [rows]);
 
-  const mapPoints = useMemo(() => {
-    return (items || [])
-      .filter((r) => typeof r.lat_num === "number" && !Number.isNaN(r.lat_num) && typeof r.lng_num === "number" && !Number.isNaN(r.lng_num))
-      .map((r) => ({ id: r.id, name: r.name, city: r.city, lat: r.lat_num, lng: r.lng_num, photo_url: r.photo_url }));
+  const withCoords = useMemo(() => {
+    return items.filter((r) => typeof r.lat === "number" && typeof r.lng === "number");
   }, [items]);
+
+  function SegButton({ id, label }) {
+    const active = view === id;
+    return (
+      <button
+        onClick={() => setView(id)}
+        style={{
+          border: "1px solid rgba(0,0,0,0.10)",
+          background: active ? "rgba(0,0,0,0.90)" : "white",
+          color: active ? "white" : "rgba(0,0,0,0.85)",
+          padding: "10px 14px",
+          borderRadius: 999,
+          fontWeight: 800,
+          cursor: "pointer",
+        }}
+      >
+        {label}
+      </button>
+    );
+  }
 
   return (
     <RequireAuth>
@@ -125,49 +105,13 @@ export default function SkolyIndex() {
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <div style={{ fontSize: 13, color: "rgba(0,0,0,0.55)" }}>
               Celkem: <b style={{ color: "rgba(0,0,0,0.85)" }}>{items.length}</b>
             </div>
-
-            <div
-              style={{
-                display: "inline-flex",
-                background: "white",
-                border: "1px solid rgba(0,0,0,0.10)",
-                borderRadius: 999,
-                padding: 4,
-                boxShadow: "0 10px 24px rgba(0,0,0,0.06)",
-              }}
-            >
-              <button
-                onClick={() => setView("cards")}
-                style={{
-                  border: "none",
-                  background: view === "cards" ? "rgba(0,0,0,0.90)" : "transparent",
-                  color: view === "cards" ? "white" : "rgba(0,0,0,0.80)",
-                  padding: "8px 12px",
-                  borderRadius: 999,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                Karty
-              </button>
-              <button
-                onClick={() => setView("map")}
-                style={{
-                  border: "none",
-                  background: view === "map" ? "rgba(0,0,0,0.90)" : "transparent",
-                  color: view === "map" ? "white" : "rgba(0,0,0,0.80)",
-                  padding: "8px 12px",
-                  borderRadius: 999,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                Mapa
-              </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <SegButton id="cards" label="Karty" />
+              <SegButton id="map" label="Mapa" />
             </div>
           </div>
         </div>
@@ -197,41 +141,24 @@ export default function SkolyIndex() {
               background: "white",
               border: "1px solid rgba(0,0,0,0.08)",
               borderRadius: 18,
+              padding: 14,
               boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
-              overflow: "hidden",
             }}
           >
-            <div style={{ padding: 14, borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
-              <div style={{ fontSize: 16, fontWeight: 900 }}>Mapa učeben</div>
-              <div style={{ fontSize: 13, color: "rgba(0,0,0,0.65)", marginTop: 4 }}>
-                Zobrazují se jen školy, které mají vyplněné souřadnice (lat/lng).
+            <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 6 }}>Mapa učeben</div>
+            <div style={{ fontSize: 13, color: "rgba(0,0,0,0.65)", marginBottom: 12 }}>
+              Zobrazují se jen školy, které mají vyplněné souřadnice (lat/lng).
+              {" "}
+              Aktuálně: <b>{withCoords.length}</b> z <b>{items.length}</b>.
+            </div>
+
+            {withCoords.length === 0 ? (
+              <div style={{ color: "rgba(0,0,0,0.65)" }}>
+                Zatím nemá žádná škola vyplněné souřadnice.
               </div>
-            </div>
-
-            <div style={{ height: 520, width: "100%" }}>
-              <MapContainer center={[49.8, 15.5]} zoom={7} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
-                <TileLayer
-                  attribution='&copy; OpenStreetMap'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-
-                <FitBounds points={mapPoints} />
-
-                {mapPoints.map((p) => (
-                  <Marker key={p.id} position={[p.lat, p.lng]}>
-                    <Popup>
-                      <div style={{ fontWeight: 800, marginBottom: 6 }}>{p.name || "Škola"}</div>
-                      <div style={{ fontSize: 13, marginBottom: 8 }}>{p.city || ""}</div>
-                      <div>
-                        <a href={`/portal/skoly/${p.id}`} style={{ color: "#0b5fff", fontWeight: 800 }}>
-                          Otevřít detail →
-                        </a>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
-              </MapContainer>
-            </div>
+            ) : (
+              <SchoolsMap items={withCoords} />
+            )}
           </div>
         ) : (
           <div
@@ -273,7 +200,7 @@ export default function SkolyIndex() {
                     </div>
 
                     <div style={{ marginTop: 6, fontSize: 13, color: "rgba(0,0,0,0.62)" }}>
-                      {r.city ? r.city : "—"}
+                      {(r.city ? r.city : "—")}
                       {r.region ? ` • ${r.region}` : ""}
                       {r.country ? ` • ${r.country}` : ""}
                     </div>
@@ -313,7 +240,7 @@ export default function SkolyIndex() {
                           Učebna od {new Date(r.archimedes_since).getFullYear()}
                         </span>
                       ) : null}
-                      {typeof r.lat_num === "number" && typeof r.lng_num === "number" ? (
+                      {typeof r.lat === "number" && typeof r.lng === "number" ? (
                         <span
                           style={{
                             fontSize: 12,
@@ -329,7 +256,7 @@ export default function SkolyIndex() {
                       ) : null}
                     </div>
 
-                    <div style={{ marginTop: 14, fontSize: 13, fontWeight: 800, color: "rgba(0,0,0,0.85)" }}>
+                    <div style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: "rgba(0,0,0,0.85)" }}>
                       Zobrazit detail →
                     </div>
                   </div>
