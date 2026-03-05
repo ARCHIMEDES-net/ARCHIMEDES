@@ -4,7 +4,7 @@ import Link from "next/link";
 
 const MAX_WIDTH = 1120;
 
-// ---- Helpers (no external CSS needed) ----
+// ---------- small utilities ----------
 function useLockBodyScroll(locked) {
   useEffect(() => {
     if (!locked) return;
@@ -16,32 +16,11 @@ function useLockBodyScroll(locked) {
   }, [locked]);
 }
 
-function Section({ id, title, subtitle, children, tone = "light" }) {
-  const dark = tone === "dark";
-  return (
-    <section
-      id={id}
-      style={{
-        padding: "70px 16px",
-        background: dark ? "#0b1220" : "transparent",
-        color: dark ? "white" : "inherit",
-      }}
-    >
-      <div style={{ maxWidth: MAX_WIDTH, margin: "0 auto" }}>
-        {title ? (
-          <h2 style={{ margin: 0, fontSize: 34, letterSpacing: -0.2, lineHeight: 1.15 }}>
-            {title}
-          </h2>
-        ) : null}
-        {subtitle ? (
-          <p style={{ margin: "12px 0 0", maxWidth: 820, opacity: dark ? 0.85 : 0.75, lineHeight: 1.65 }}>
-            {subtitle}
-          </p>
-        ) : null}
-        <div style={{ marginTop: 24 }}>{children}</div>
-      </div>
-    </section>
-  );
+function scrollToId(id) {
+  if (!id) return;
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function Card({ children, tone = "light" }) {
@@ -61,55 +40,31 @@ function Card({ children, tone = "light" }) {
   );
 }
 
-function ButtonLink({ href, children, variant = "primary" }) {
-  const primary = variant === "primary";
+function Section({ id, title, subtitle, children, tone = "light" }) {
+  const dark = tone === "dark";
   return (
-    <Link
-      href={href}
+    <section
+      id={id}
       style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 10,
-        padding: "12px 14px",
-        borderRadius: 14,
-        textDecoration: "none",
-        fontWeight: 800,
-        border: primary ? "1px solid rgba(0,0,0,0.9)" : "1px solid rgba(0,0,0,0.12)",
-        background: primary ? "rgba(0,0,0,0.94)" : "white",
-        color: primary ? "white" : "rgba(0,0,0,0.9)",
-        boxShadow: primary ? "0 16px 42px rgba(0,0,0,0.22)" : "0 10px 26px rgba(0,0,0,0.06)",
+        padding: "72px 16px",
+        background: dark ? "#0b1220" : "transparent",
+        color: dark ? "white" : "inherit",
       }}
     >
-      <span>{children}</span>
-      <span aria-hidden style={{ opacity: 0.9 }}>
-        →
-      </span>
-    </Link>
-  );
-}
-
-function SoftButton({ onClick, children }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 10,
-        padding: "12px 14px",
-        borderRadius: 14,
-        fontWeight: 850,
-        cursor: "pointer",
-        border: "1px solid rgba(0,0,0,0.12)",
-        background: "white",
-        boxShadow: "0 10px 26px rgba(0,0,0,0.06)",
-      }}
-    >
-      <span>{children}</span>
-      <span aria-hidden>→</span>
-    </button>
+      <div style={{ maxWidth: MAX_WIDTH, margin: "0 auto" }}>
+        {title ? (
+          <h2 style={{ margin: 0, fontSize: 34, letterSpacing: -0.2, lineHeight: 1.15 }}>
+            {title}
+          </h2>
+        ) : null}
+        {subtitle ? (
+          <p style={{ margin: "12px 0 0", maxWidth: 860, opacity: dark ? 0.85 : 0.76, lineHeight: 1.65 }}>
+            {subtitle}
+          </p>
+        ) : null}
+        <div style={{ marginTop: 24 }}>{children}</div>
+      </div>
+    </section>
   );
 }
 
@@ -131,6 +86,86 @@ function Pill({ children, tone = "light" }) {
     >
       {children}
     </span>
+  );
+}
+
+function PrimaryLink({ href, children }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
+        padding: "12px 14px",
+        borderRadius: 14,
+        textDecoration: "none",
+        fontWeight: 900,
+        border: "1px solid rgba(0,0,0,0.9)",
+        background: "rgba(0,0,0,0.94)",
+        color: "white",
+        boxShadow: "0 16px 42px rgba(0,0,0,0.22)",
+      }}
+    >
+      <span>{children}</span>
+      <span aria-hidden style={{ opacity: 0.9 }}>
+        →
+      </span>
+    </Link>
+  );
+}
+
+function SecondaryLink({ href, children }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
+        padding: "12px 14px",
+        borderRadius: 14,
+        textDecoration: "none",
+        fontWeight: 900,
+        border: "1px solid rgba(0,0,0,0.12)",
+        background: "white",
+        color: "rgba(0,0,0,0.9)",
+        boxShadow: "0 10px 26px rgba(0,0,0,0.06)",
+      }}
+    >
+      <span>{children}</span>
+      <span aria-hidden style={{ opacity: 0.9 }}>
+        →
+      </span>
+    </Link>
+  );
+}
+
+function SoftButton({ onClick, children, tone = "light" }) {
+  const dark = tone === "dark";
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
+        padding: "10px 12px",
+        borderRadius: 14,
+        fontWeight: 900,
+        cursor: "pointer",
+        border: dark ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(0,0,0,0.12)",
+        background: dark ? "rgba(255,255,255,0.10)" : "white",
+        color: dark ? "white" : "rgba(0,0,0,0.92)",
+        boxShadow: dark ? "none" : "0 10px 26px rgba(0,0,0,0.06)",
+      }}
+    >
+      <span>{children}</span>
+      <span aria-hidden>→</span>
+    </button>
   );
 }
 
@@ -180,7 +215,7 @@ function Modal({ open, title, subtitle, onClose, children }) {
           }}
         >
           <div>
-            <div style={{ fontWeight: 900, fontSize: 16 }}>{title}</div>
+            <div style={{ fontWeight: 950, fontSize: 16 }}>{title}</div>
             {subtitle ? (
               <div style={{ marginTop: 2, opacity: 0.7, fontSize: 13, lineHeight: 1.4 }}>
                 {subtitle}
@@ -194,7 +229,7 @@ function Modal({ open, title, subtitle, onClose, children }) {
               background: "white",
               borderRadius: 12,
               padding: "10px 12px",
-              fontWeight: 850,
+              fontWeight: 900,
               cursor: "pointer",
             }}
           >
@@ -219,8 +254,8 @@ function ProofItem({ title, subtitle, imgUrl, href }) {
     >
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <div style={{ fontWeight: 900 }}>{title}</div>
-          <div style={{ marginTop: 4, opacity: 0.75, lineHeight: 1.5 }}>{subtitle}</div>
+          <div style={{ fontWeight: 950 }}>{title}</div>
+          <div style={{ marginTop: 4, opacity: 0.76, lineHeight: 1.55 }}>{subtitle}</div>
         </div>
         {href ? (
           <a
@@ -230,7 +265,7 @@ function ProofItem({ title, subtitle, imgUrl, href }) {
             style={{
               alignSelf: "center",
               textDecoration: "none",
-              fontWeight: 850,
+              fontWeight: 900,
               borderRadius: 12,
               border: "1px solid rgba(0,0,0,0.12)",
               background: "white",
@@ -264,81 +299,48 @@ function ProofItem({ title, subtitle, imgUrl, href }) {
 
 function Aspect16x9({ children }) {
   return (
-    <div style={{ borderRadius: 18, overflow: "hidden", border: "1px solid rgba(0,0,0,0.08)", background: "white" }}>
+    <div style={{ borderRadius: 22, overflow: "hidden", border: "1px solid rgba(0,0,0,0.08)", background: "white" }}>
       <div style={{ position: "relative", paddingTop: "56.25%", background: "rgba(0,0,0,0.04)" }}>{children}</div>
     </div>
   );
 }
 
-function VideoPlaceholder({ onClick }) {
+function VideoFrame({ embedUrl }) {
   return (
-    <button
-      onClick={onClick}
-      style={{
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        height: "100%",
-        border: 0,
-        cursor: "pointer",
-        background:
-          "linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.30) 35%, rgba(0,0,0,0.10) 100%)",
-        color: "white",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <div style={{ textAlign: "center", padding: 18 }}>
-        <div
-          style={{
-            width: 74,
-            height: 74,
-            borderRadius: 999,
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(255,255,255,0.14)",
-            border: "1px solid rgba(255,255,255,0.22)",
-            fontSize: 28,
-            fontWeight: 900,
-          }}
-          aria-hidden
-        >
-          ▶
-        </div>
-        <div style={{ marginTop: 12, fontWeight: 950, fontSize: 18 }}>Přehrát ukázku hodiny</div>
-        <div style={{ marginTop: 6, opacity: 0.85, lineHeight: 1.6 }}>
-          Sem vložíme krátké video (20–40 s). Zatím je to jen placeholder.
-        </div>
-      </div>
-    </button>
+    <iframe
+      title="Ukázková hodina ARCHIMEDES Live"
+      src={embedUrl}
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
+    />
   );
 }
 
-// ---- Page ----
+function MiniStat({ title, text }) {
+  return (
+    <div style={{ padding: 14, borderRadius: 16, border: "1px solid rgba(0,0,0,0.08)", background: "white" }}>
+      <div style={{ fontWeight: 950 }}>{title}</div>
+      <div style={{ marginTop: 6, opacity: 0.78, lineHeight: 1.55 }}>{text}</div>
+    </div>
+  );
+}
+
+// ---------- page ----------
 export default function Home() {
   const [proofOpen, setProofOpen] = useState(false);
-  const [videoOpen, setVideoOpen] = useState(false);
-  useLockBodyScroll(proofOpen || videoOpen);
+  useLockBodyScroll(proofOpen);
 
-  // TODO: Replace with your real assets (from archimedesoec.com gallery)
+  // Replace later with real assets (from archimedesoec.com gallery)
   const HERO_IMAGE =
     "https://images.unsplash.com/photo-1588072432836-7fb78b4a0b1f?auto=format&fit=crop&w=2400&q=80";
 
-  // TODO: Replace with real YouTube embed (or leave empty to show placeholder)
-  // Example: "https://www.youtube.com/embed/XXXXXXXXXXX"
-  const DEMO_VIDEO_EMBED = "";
+  // YouTube embed for https://www.youtube.com/watch?v=j2xTWMnPbiY
+  const DEMO_VIDEO_EMBED = "https://www.youtube.com/embed/j2xTWMnPbiY";
 
-  const trustRow = useMemo(
-    () => ["Eva Pavlová", "MPO", "MŽP", "MMR", "E.ON Energy Globe", "Creative Business Cup", "UNESCO GEP"],
-    []
-  );
-
-  const trustBadges = useMemo(
+  const valuePills = useMemo(
     () => [
-      "Živý vzdělávací program (ne software)",
+      "Živý program (ne software)",
       "Živé vstupy s hosty",
       "Pracovní listy",
       "Neveřejný archiv pro předplatitele",
@@ -347,6 +349,9 @@ export default function Home() {
     ],
     []
   );
+
+  // Modern web UX: keep trust subtle in HERO, details on click
+  const trustTop3 = useMemo(() => ["Záštity", "Ocenění", "UNESCO partnerství"], []);
 
   const proofItems = useMemo(
     () => [
@@ -404,20 +409,17 @@ export default function Home() {
       {
         title: "Inspirativní hosté",
         text: "Děti potkají lidi z praxe. Krátce, srozumitelně, interaktivně.",
-        img:
-          "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1400&q=80",
+        img: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1400&q=80",
       },
       {
         title: "Pracovní listy",
         text: "Hotové materiály šetří učitelům čas. Hodina má jasný scénář.",
-        img:
-          "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1400&q=80",
+        img: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1400&q=80",
       },
       {
         title: "Živé vysílání",
         text: "Google Meet – jednoduché připojení. Program je živý, ne pasivní.",
-        img:
-          "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&w=1400&q=80",
+        img: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&w=1400&q=80",
       },
     ],
     []
@@ -440,7 +442,7 @@ export default function Home() {
             background: "white",
           }}
         >
-          <div style={{ position: "relative", height: 520 }}>
+          <div style={{ position: "relative", height: 540 }}>
             <img
               src={HERO_IMAGE}
               alt="ARCHIMEDES Live – ukázka výuky"
@@ -451,11 +453,12 @@ export default function Home() {
                 position: "absolute",
                 inset: 0,
                 background:
-                  "linear-gradient(90deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.42) 55%, rgba(0,0,0,0.12) 100%)",
+                  "linear-gradient(90deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.42) 55%, rgba(0,0,0,0.10) 100%)",
               }}
             />
+
             <div style={{ position: "absolute", inset: 0, padding: 22, display: "flex", alignItems: "center" }}>
-              <div style={{ maxWidth: 820 }}>
+              <div style={{ maxWidth: 860 }}>
                 <div
                   style={{
                     display: "inline-flex",
@@ -467,7 +470,7 @@ export default function Home() {
                     border: "1px solid rgba(255,255,255,0.22)",
                     color: "white",
                     fontSize: 13,
-                    fontWeight: 800,
+                    fontWeight: 850,
                     marginBottom: 12,
                   }}
                 >
@@ -479,9 +482,9 @@ export default function Home() {
                   style={{
                     margin: 0,
                     color: "white",
-                    fontSize: 54,
+                    fontSize: 56,
                     lineHeight: 1.04,
-                    letterSpacing: -0.45,
+                    letterSpacing: -0.5,
                     textShadow: "0 10px 40px rgba(0,0,0,0.35)",
                   }}
                 >
@@ -495,7 +498,7 @@ export default function Home() {
                     color: "rgba(255,255,255,0.92)",
                     fontSize: 18,
                     lineHeight: 1.65,
-                    maxWidth: 720,
+                    maxWidth: 740,
                     textShadow: "0 10px 40px rgba(0,0,0,0.30)",
                   }}
                 >
@@ -505,7 +508,7 @@ export default function Home() {
 
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 16 }}>
                   <button
-                    onClick={() => setVideoOpen(true)}
+                    onClick={() => scrollToId("hodina")}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -513,7 +516,7 @@ export default function Home() {
                       gap: 10,
                       padding: "12px 14px",
                       borderRadius: 14,
-                      fontWeight: 900,
+                      fontWeight: 950,
                       border: "1px solid rgba(255,255,255,0.24)",
                       background: "rgba(0,0,0,0.35)",
                       color: "white",
@@ -550,7 +553,7 @@ export default function Home() {
                       padding: "12px 14px",
                       borderRadius: 14,
                       textDecoration: "none",
-                      fontWeight: 900,
+                      fontWeight: 950,
                       border: "1px solid rgba(255,255,255,0.24)",
                       background: "rgba(255,255,255,0.14)",
                       color: "white",
@@ -570,7 +573,7 @@ export default function Home() {
                       padding: "12px 14px",
                       borderRadius: 14,
                       textDecoration: "none",
-                      fontWeight: 900,
+                      fontWeight: 950,
                       border: "1px solid rgba(255,255,255,0.24)",
                       background: "rgba(255,255,255,0.10)",
                       color: "white",
@@ -581,41 +584,44 @@ export default function Home() {
                   </Link>
                 </div>
 
-                {/* Minimal trust: keep it subtle, not "in your face" */}
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16, alignItems: "center" }}>
-                  <span style={{ color: "rgba(255,255,255,0.86)", fontSize: 13, fontWeight: 850 }}>
-                    Záštity a ocenění:
-                  </span>
-                  {trustRow.map((x) => (
+                {/* Trust: modern, minimal. Only 3 pillars + "Detail" */}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    flexWrap: "wrap",
+                    marginTop: 16,
+                    alignItems: "center",
+                  }}
+                >
+                  {trustTop3.map((x) => (
                     <Pill key={x} tone="dark">
                       {x}
                     </Pill>
                   ))}
-                  <div style={{ marginLeft: 6 }}>
-                    <button
-                      onClick={() => setProofOpen(true)}
-                      style={{
-                        border: "1px solid rgba(255,255,255,0.24)",
-                        background: "rgba(255,255,255,0.10)",
-                        color: "white",
-                        borderRadius: 999,
-                        padding: "8px 10px",
-                        fontWeight: 850,
-                        cursor: "pointer",
-                        backdropFilter: "blur(6px)",
-                      }}
-                    >
-                      Podklady →
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => setProofOpen(true)}
+                    style={{
+                      border: "1px solid rgba(255,255,255,0.24)",
+                      background: "rgba(255,255,255,0.10)",
+                      color: "white",
+                      borderRadius: 999,
+                      padding: "8px 10px",
+                      fontWeight: 950,
+                      cursor: "pointer",
+                      backdropFilter: "blur(6px)",
+                    }}
+                  >
+                    Detail →
+                  </button>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Below-hero value pills (keep), but remove any second "trust strip" below */}
+          {/* Below-hero value pills */}
           <div style={{ padding: "14px 18px", display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            {trustBadges.map((t) => (
+            {valuePills.map((t) => (
               <Pill key={t}>{t}</Pill>
             ))}
             <div style={{ marginLeft: "auto" }}>
@@ -625,45 +631,41 @@ export default function Home() {
         </div>
       </div>
 
-      {/* (Removed) Duplicate "Záštity a ocenění" block — was too loud & repetitive */}
-
-      {/* Hour demo */}
+      {/* One-hour demo with real embedded video */}
       <Section
         id="hodina"
         title="Jak vypadá jedna hodina"
-        subtitle="Zde bude krátká ukázka (20–40 s). Teď je připravený reálný vizuál – video jen doplníme."
+        subtitle="Krátká ukázka vysílání v učebně. Tohle je nejrychlejší způsob, jak si udělat jasno."
       >
         <div style={{ maxWidth: MAX_WIDTH, margin: "0 auto" }}>
           <Aspect16x9>
-            {DEMO_VIDEO_EMBED ? (
-              <iframe
-                title="Ukázková hodina ARCHIMEDES Live"
-                src={DEMO_VIDEO_EMBED}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
-              />
-            ) : (
-              <VideoPlaceholder onClick={() => setVideoOpen(true)} />
-            )}
+            <VideoFrame embedUrl={DEMO_VIDEO_EMBED} />
           </Aspect16x9>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 14 }}>
-            <ButtonLink href="/program" variant="primary">
-              Více o programu
-            </ButtonLink>
-            <ButtonLink href="/poptavka" variant="secondary">
-              Chci ukázkovou hodinu
-            </ButtonLink>
+            <PrimaryLink href="/poptavka">Chci ukázkovou hodinu</PrimaryLink>
+            <SecondaryLink href="/program">Prohlédnout program</SecondaryLink>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 12, marginTop: 16 }}>
+            <div style={{ gridColumn: "span 4" }}>
+              <MiniStat title="1 třída" text="Třída se připojí jednoduše přes odkaz. Bez složitostí." />
+            </div>
+            <div style={{ gridColumn: "span 4" }}>
+              <MiniStat title="1 živý vstup" text="Host z praxe – interaktivně, s otázkami a krátkými úkoly." />
+            </div>
+            <div style={{ gridColumn: "span 4" }}>
+              <MiniStat title="1 pracovní list" text="Okamžitá návaznost: aktivita, úkoly a přínos pro učitele." />
+            </div>
           </div>
         </div>
       </Section>
 
-      {/* Feature cards */}
+      {/* Key pillars */}
       <Section
-        id="features"
-        title="Síť učeben ARCHIMEDES"
-        subtitle="Spojení fyzických učeben a živého programu je vaše největší konkurenční výhoda. (Fotky později vyměníme za vaše.)"
+        id="pilire"
+        title="Proč to funguje"
+        subtitle="ARCHIMEDES Live je program. Ne další software. Škole dá hotový obsah – obci dává viditelný přínos pro komunitu."
       >
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
           {featureCards.map((c) => (
@@ -677,11 +679,7 @@ export default function Home() {
                   boxShadow: "0 14px 40px rgba(0,0,0,0.06)",
                 }}
               >
-                <img
-                  src={c.img}
-                  alt={c.title}
-                  style={{ width: "100%", height: 190, objectFit: "cover", display: "block" }}
-                />
+                <img src={c.img} alt={c.title} style={{ width: "100%", height: 190, objectFit: "cover", display: "block" }} />
                 <div style={{ padding: 14 }}>
                   <div style={{ fontWeight: 950, fontSize: 16 }}>{c.title}</div>
                   <div style={{ marginTop: 8, opacity: 0.78, lineHeight: 1.6 }}>{c.text}</div>
@@ -695,22 +693,20 @@ export default function Home() {
       {/* Map + community */}
       <Section
         id="sit"
-        title="Mapa učeben a škol"
-        subtitle="V portálu už máte reálnou mapu (/portal/skoly). Na veřejné homepage stačí teaser + CTA."
+        title="Síť učeben a škol"
+        subtitle="Máte reálnou mapu v portálu (/portal/skoly). Veřejná část ukazuje teaser a příběh, detail je po přihlášení."
       >
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
           <div style={{ gridColumn: "span 7" }}>
             <Card>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div>
-                  <div style={{ fontWeight: 950, fontSize: 16 }}>Síť učeben v ČR</div>
+                  <div style={{ fontWeight: 950, fontSize: 16 }}>Mapa učeben</div>
                   <div style={{ marginTop: 6, opacity: 0.78, lineHeight: 1.6 }}>
-                    Na veřejné části jen teaser a odkaz do portálu.
+                    Přehled učeben a škol zapojených do programu.
                   </div>
                 </div>
-                <ButtonLink href="/portal/skoly" variant="primary">
-                  Zobrazit mapu
-                </ButtonLink>
+                <PrimaryLink href="/portal/skoly">Zobrazit mapu</PrimaryLink>
               </div>
 
               <div
@@ -739,16 +735,16 @@ export default function Home() {
 
           <div style={{ gridColumn: "span 5" }}>
             <Card>
-              <div style={{ fontWeight: 950, fontSize: 16 }}>Komunita</div>
+              <div style={{ fontWeight: 950, fontSize: 16 }}>Komunita obce</div>
               <div style={{ marginTop: 6, opacity: 0.78, lineHeight: 1.6 }}>
                 Program není jen pro školu. Obec získá obsah i pro dospělé, seniory a spolky.
               </div>
 
               <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
                 {[
-                  { t: "Škola", d: "Živé vstupy + pracovní listy + archiv." },
-                  { t: "Obec", d: "Komunitní program a prestiž (síť učeben)." },
-                  { t: "Rodiny a senioři", d: "Vybrané komunitní programy a setkávání." },
+                  { t: "Škola", d: "Živé vstupy + pracovní listy + neveřejný archiv." },
+                  { t: "Obec", d: "Komunitní program a prestiž díky síti učeben." },
+                  { t: "Rodiny a senioři", d: "Vybrané programy a smysluplná setkávání." },
                 ].map((x) => (
                   <div key={x.t} style={{ padding: 12, borderRadius: 16, border: "1px solid rgba(0,0,0,0.08)" }}>
                     <div style={{ fontWeight: 900 }}>{x.t}</div>
@@ -765,7 +761,7 @@ export default function Home() {
       <Section
         id="financovani"
         title="Financování"
-        subtitle="Jednoduchá logika: ředitel řeší obsah pro školu, starosta přínos pro komunitu. V praxi se financování často kombinuje."
+        subtitle="Ředitel řeší obsah pro školu. Starosta řeší přínos pro komunitu. Nejrychlejší je ukázková hodina – pak je rozhodnutí jednoduché."
       >
         <Card>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
@@ -774,7 +770,7 @@ export default function Home() {
               <ul style={{ margin: "10px 0 0", paddingLeft: 18, opacity: 0.82, lineHeight: 1.8 }}>
                 <li>Ředitel: přínos do výuky a ulehčení práce učitelům.</li>
                 <li>Starosta: přínos pro komunitu obce a prestiž.</li>
-                <li>Společně: rychlá ukázková hodina → jasné rozhodnutí.</li>
+                <li>Společně: ukázková hodina → rychlé a jisté rozhodnutí.</li>
               </ul>
             </div>
             <div style={{ gridColumn: "span 5" }}>
@@ -783,12 +779,8 @@ export default function Home() {
                 Domluvíme ukázkovou hodinu. Ukážeme program, materiály a jak to zapojit do školy i obce.
               </div>
               <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <ButtonLink href="/poptavka" variant="primary">
-                  Domluvit ukázku
-                </ButtonLink>
-                <ButtonLink href="/cenik" variant="secondary">
-                  Ceník
-                </ButtonLink>
+                <PrimaryLink href="/poptavka">Domluvit ukázku</PrimaryLink>
+                <SecondaryLink href="/cenik">Ceník</SecondaryLink>
               </div>
             </div>
           </div>
@@ -800,7 +792,7 @@ export default function Home() {
         id="cta"
         tone="dark"
         title="Chcete ukázkovou hodinu?"
-        subtitle="Nejrychlejší způsob, jak to pochopit i rozhodnout: jedna ukázka a máte jasno."
+        subtitle="Nejrychlejší cesta k rozhodnutí: jedna ukázka a máte jasno."
       >
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
           <div style={{ gridColumn: "span 7" }}>
@@ -832,7 +824,7 @@ export default function Home() {
                     padding: "12px 14px",
                     borderRadius: 14,
                     textDecoration: "none",
-                    fontWeight: 900,
+                    fontWeight: 950,
                     border: "1px solid rgba(255,255,255,0.18)",
                     background: "rgba(255,255,255,0.10)",
                     color: "white",
@@ -858,7 +850,7 @@ export default function Home() {
       <Modal
         open={proofOpen}
         onClose={() => setProofOpen(false)}
-        title="Podklady: záštity, ocenění a členství"
+        title="Záštity, ocenění a členství"
         subtitle="Detaily pro důvěryhodnost (dokumenty + odkazy)."
       >
         <div style={{ display: "grid", gap: 14 }}>
@@ -866,50 +858,6 @@ export default function Home() {
             <ProofItem key={it.key} title={it.title} subtitle={it.subtitle} imgUrl={it.imgUrl} href={it.href} />
           ))}
         </div>
-      </Modal>
-
-      {/* Video modal */}
-      <Modal
-        open={videoOpen}
-        onClose={() => setVideoOpen(false)}
-        title="Ukázková hodina"
-        subtitle={DEMO_VIDEO_EMBED ? "Přehrávání ukázky." : "Zatím nemáme vložené video – doplníme později."}
-      >
-        {DEMO_VIDEO_EMBED ? (
-          <Aspect16x9>
-            <iframe
-              title="Ukázková hodina ARCHIMEDES Live"
-              src={DEMO_VIDEO_EMBED}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
-            />
-          </Aspect16x9>
-        ) : (
-          <div
-            style={{
-              padding: 14,
-              borderRadius: 16,
-              border: "1px solid rgba(0,0,0,0.10)",
-              background: "rgba(0,0,0,0.02)",
-            }}
-          >
-            <div style={{ fontWeight: 900 }}>Chybí video URL</div>
-            <div style={{ marginTop: 8, opacity: 0.78, lineHeight: 1.65 }}>
-              Až bude hotové krátké video, vložte sem YouTube embed URL (proměnná <b>DEMO_VIDEO_EMBED</b> nahoře v souboru).
-            </div>
-            <div
-              style={{
-                marginTop: 10,
-                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                fontSize: 12,
-                opacity: 0.8,
-              }}
-            >
-              Příklad: https://www.youtube.com/embed/XXXXXXXXXXX
-            </div>
-          </div>
-        )}
       </Modal>
     </div>
   );
