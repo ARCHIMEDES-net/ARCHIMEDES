@@ -1,4 +1,5 @@
 // pages/index.js
+import { useState } from "react";
 import Link from "next/link";
 
 const MAX_WIDTH = 1100;
@@ -135,13 +136,175 @@ function Pill({ text, tone = "light" }) {
   );
 }
 
+function EndorsementsModal({ open, onClose, items }) {
+  if (!open) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Dokumenty záštit"
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.55)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 16,
+        zIndex: 9999,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(980px, 100%)",
+          maxHeight: "86vh",
+          overflow: "auto",
+          background: "white",
+          borderRadius: 18,
+          border: "1px solid rgba(0,0,0,0.10)",
+          boxShadow: "0 22px 70px rgba(0,0,0,0.35)",
+        }}
+      >
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            background: "white",
+            padding: "14px 16px",
+            borderBottom: "1px solid rgba(0,0,0,0.08)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            zIndex: 1,
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 900, fontSize: 16 }}>Záštity – dokumenty</div>
+            <div style={{ opacity: 0.7, marginTop: 2, fontSize: 13 }}>
+              Náhledy dokumentů záštit uvedených na webu.
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            style={{
+              border: "1px solid rgba(0,0,0,0.12)",
+              background: "white",
+              borderRadius: 12,
+              padding: "10px 12px",
+              fontWeight: 750,
+              cursor: "pointer",
+            }}
+          >
+            Zavřít ✕
+          </button>
+        </div>
+
+        <div style={{ padding: 16, display: "grid", gap: 14 }}>
+          {items.map((it) => (
+            <div
+              key={it.key}
+              style={{
+                border: "1px solid rgba(0,0,0,0.08)",
+                borderRadius: 16,
+                padding: 12,
+                background: "rgba(0,0,0,0.02)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontWeight: 900 }}>{it.title}</div>
+                  <div style={{ opacity: 0.75, marginTop: 4, lineHeight: 1.5 }}>{it.subtitle}</div>
+                </div>
+
+                <a
+                  href={it.imgUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    alignSelf: "center",
+                    textDecoration: "none",
+                    fontWeight: 750,
+                    borderRadius: 12,
+                    border: "1px solid rgba(0,0,0,0.12)",
+                    background: "white",
+                    padding: "10px 12px",
+                    color: "rgba(0,0,0,0.9)",
+                  }}
+                >
+                  Otevřít ve větším →
+                </a>
+              </div>
+
+              <div style={{ marginTop: 10 }}>
+                <img
+                  src={it.imgUrl}
+                  alt={it.alt || it.title}
+                  loading="lazy"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    borderRadius: 14,
+                    border: "1px solid rgba(0,0,0,0.10)",
+                    background: "white",
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ padding: "0 16px 16px", opacity: 0.65, fontSize: 12, lineHeight: 1.6 }}>
+          Tip: Na homepage ukazujeme jen stručné „trust badges“. Detailní skeny jsou v modalu po kliknutí.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
+  const [endorsementsOpen, setEndorsementsOpen] = useState(false);
+
+  const endorsementsDocs = [
+    {
+      key: "mpo",
+      title: "Záštita Ministerstva průmyslu a obchodu (MPO)",
+      subtitle: "Dokument záštity – náhled.",
+      imgUrl:
+        "https://fb18f7b042.clvaw-cdnwnd.com/672ddf20a524990e3e51b0287606f721/200000182-a2f4fa2f53/zastita%20MPO.jpeg?ph=fb18f7b042",
+      alt: "Záštita MPO pro projekt ARCHIMEDES",
+    },
+    {
+      key: "mzp",
+      title: "Záštita Ministerstva životního prostředí (MŽP)",
+      subtitle: "Dokument záštity – náhled.",
+      imgUrl:
+        "https://fb18f7b042.clvaw-cdnwnd.com/672ddf20a524990e3e51b0287606f721/200000256-b95eab95ec/za%CC%81s%CC%8Ctita%20-%20ARCHIMEDES_Stra%CC%81nka_2.jpeg?ph=fb18f7b042",
+      alt: "Záštita MŽP pro projekt ARCHIMEDES",
+    },
+    {
+      key: "mmr",
+      title: "Záštita Ministerstva pro místní rozvoj (MMR)",
+      subtitle: "Dokument záštity – náhled.",
+      imgUrl:
+        "https://fb18f7b042.clvaw-cdnwnd.com/672ddf20a524990e3e51b0287606f721/200000260-cf481cf483/IMG_9784.jpeg?ph=fb18f7b042",
+      alt: "Záštita MMR pro projekt ARCHIMEDES",
+    },
+  ];
+
   const trustBadges = [
-    "Záštity a ocenění",
+    "Záštita Evy Pavlové",
+    "Záštita MPO",
+    "Záštita MŽP",
+    "Záštita MMR",
     "Síť učeben v ČR",
-    "Program pro školy i obce",
     "Hosté z praxe",
-    "Pracovní listy k hodinám",
+    "Pracovní listy",
+    "Živé vstupy",
   ];
 
   const guests = [
@@ -169,13 +332,7 @@ export default function Home() {
       {/* Hlavičku řeší pages/_app.js (PublicHeader) */}
 
       {/* HERO */}
-      <div
-        style={{
-          maxWidth: MAX_WIDTH,
-          margin: "0 auto",
-          padding: "74px 16px 34px",
-        }}
-      >
+      <div style={{ maxWidth: MAX_WIDTH, margin: "0 auto", padding: "74px 16px 34px" }}>
         <div
           style={{
             display: "inline-flex",
@@ -227,27 +384,37 @@ export default function Home() {
         title="Záštity, ocenění a reálné reference"
         subtitle="Krátká sekce pro starostu i ředitele: proč tomu věřit a proč to dává smysl."
       >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(12, 1fr)",
-            gap: 14,
-          }}
-        >
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
           <div style={{ gridColumn: "span 7" }}>
             <Card>
               <div style={{ fontSize: 16, fontWeight: 750, marginBottom: 10 }}>
-                Co školám a obcím dodáváme každý měsíc
+                Rychlé důvody důvěry
               </div>
+
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 {trustBadges.map((t) => (
                   <Pill key={t} text={t} />
                 ))}
               </div>
+
               <div style={{ marginTop: 14, opacity: 0.75, lineHeight: 1.6, fontSize: 15 }}>
-                Důvěru na webu doplníme konkrétními logy záštit a ocenění (viz tvé podklady) a krátkou
-                větou „kde už to běží“.
+                Záštity uvádíme přehledně a bez omáčky. Kdo chce, otevře si dokumenty přímo zde.
               </div>
+
+              <button
+                onClick={() => setEndorsementsOpen(true)}
+                style={{
+                  marginTop: 12,
+                  borderRadius: 14,
+                  padding: "12px 14px",
+                  fontWeight: 850,
+                  cursor: "pointer",
+                  border: "1px solid rgba(0,0,0,0.12)",
+                  background: "white",
+                }}
+              >
+                Zobrazit dokumenty záštit →
+              </button>
             </Card>
           </div>
 
@@ -256,6 +423,7 @@ export default function Home() {
               <div style={{ fontSize: 16, fontWeight: 750, marginBottom: 10 }}>
                 Nejrychlejší cesta k rozhodnutí
               </div>
+
               <div style={{ display: "grid", gap: 10 }}>
                 <div style={{ display: "flex", gap: 10 }}>
                   <div
@@ -325,6 +493,12 @@ export default function Home() {
             </Card>
           </div>
         </div>
+
+        <EndorsementsModal
+          open={endorsementsOpen}
+          onClose={() => setEndorsementsOpen(false)}
+          items={endorsementsDocs}
+        />
       </Section>
 
       {/* JAK FUNGUJE HODINA */}
@@ -332,7 +506,7 @@ export default function Home() {
         id="hodina"
         eyebrow="Jak to funguje"
         title="Jedna hodina v praxi: 1 třída → 1 živý vstup → 1 pracovní list"
-        subtitle="Jednoduché. V kalendáři vyberete vstup, kliknete na odkaz, a po hodině použijete pracovní list. Bez složitostí."
+        subtitle="Jednoduché. V kalendáři vyberete vstup, kliknete na odkaz, a po hodině použijete pracovní list."
       >
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
           <div style={{ gridColumn: "span 4" }}>
@@ -359,10 +533,6 @@ export default function Home() {
               </div>
             </Card>
           </div>
-        </div>
-
-        <div style={{ marginTop: 16, opacity: 0.75 }}>
-          Tip: tuto část můžeme doplnit fotkou / krátkým videem (ukázka obrazovky programu), až vybereš finální vizuál.
         </div>
       </Section>
 
@@ -397,8 +567,8 @@ export default function Home() {
       <Section
         id="program"
         eyebrow="Program"
-        title="Kalendář jako „TV program“ – ale interaktivně"
-        subtitle="Program je přehledný jako televizní program, ale je to živé vzdělávání a komunitní obsah."
+        title="Kalendář jako přehled programu – ale interaktivně"
+        subtitle="Program je přehledný, navazuje na školní výuku a má i komunitní rozměr."
       >
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
           <div style={{ gridColumn: "span 7" }}>
@@ -431,12 +601,20 @@ export default function Home() {
               <div style={{ fontWeight: 850, marginBottom: 10 }}>Co získáte v praxi</div>
               <div style={{ display: "grid", gap: 10 }}>
                 {benefits.map((b) => (
-                  <div key={b.t} style={{ padding: 12, borderRadius: 14, border: "1px solid rgba(0,0,0,0.08)" }}>
+                  <div
+                    key={b.t}
+                    style={{
+                      padding: 12,
+                      borderRadius: 14,
+                      border: "1px solid rgba(0,0,0,0.08)",
+                    }}
+                  >
                     <div style={{ fontWeight: 850 }}>{b.t}</div>
                     <div style={{ marginTop: 6, opacity: 0.78, lineHeight: 1.55 }}>{b.d}</div>
                   </div>
                 ))}
               </div>
+
               <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
                 <ButtonLink href="/program" label="Otevřít program" variant="primary" />
                 <ButtonLink href="/poptavka" label="Chci ukázku" variant="secondary" />
@@ -458,7 +636,7 @@ export default function Home() {
             <Card>
               <div style={{ fontWeight: 850, marginBottom: 8 }}>Proč je archiv důležitý</div>
               <ul style={{ margin: 0, paddingLeft: 18, opacity: 0.8, lineHeight: 1.75 }}>
-                <li>Škola nepřijde o obsah ani při absenci / změně rozvrhu</li>
+                <li>Škola nepřijde o obsah ani při změně rozvrhu</li>
                 <li>Učitel si může udělat „druhou“ hodinu podle potřeby</li>
                 <li>Obec může využít vybrané komunitní záznamy</li>
               </ul>
@@ -468,8 +646,8 @@ export default function Home() {
             <Card>
               <div style={{ fontWeight: 850, marginBottom: 8 }}>Přístup</div>
               <div style={{ opacity: 0.78, lineHeight: 1.6 }}>
-                Archiv je součástí přístupu do portálu pro registrované. Navenek na webu ukazujeme jen ukázku programu,
-                ale samotné záznamy jsou neveřejné.
+                Archiv je součástí přístupu do portálu pro registrované. Navenek ukazujeme jen ukázku programu – záznamy
+                jsou neveřejné.
               </div>
               <div style={{ marginTop: 14 }}>
                 <ButtonLink href="/portal" label="Vstoupit do portálu" variant="secondary" />
@@ -522,11 +700,19 @@ export default function Home() {
         subtitle="Unikátní prvek: propojení fyzických míst s online programem. Dává to důvěru i komunitní rozměr."
       >
         <Card>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
             <div>
               <div style={{ fontWeight: 900, fontSize: 16 }}>Síť učeben / škol</div>
               <div style={{ opacity: 0.78, marginTop: 6, lineHeight: 1.6 }}>
-                V portálu už máte hotovou mapu a databázi škol. Zde na homepage můžeme ukázat „ochutnávku“ + tlačítko do detailu.
+                V portálu už máte hotovou mapu a databázi škol. Zde na homepage ukazujeme přehled a odkaz do detailu.
               </div>
             </div>
             <ButtonLink href="/portal/skoly" label="Zobrazit mapu učeben" variant="primary" />
@@ -543,7 +729,7 @@ export default function Home() {
               lineHeight: 1.6,
             }}
           >
-            Poznámka: Tady můžeme později vložit jednoduchý „preview“ (např. 3 karty škol) nebo statický obrázek mapy.
+            Později sem můžeme dát i preview (např. 3 školy jako karty) nebo statický obrázek mapy.
           </div>
         </Card>
       </Section>
@@ -583,7 +769,7 @@ export default function Home() {
         id="financovani"
         eyebrow="Financování"
         title="Jak to obvykle školy a obce financují"
-        subtitle="Tady necháme jednoduchou, srozumitelnou formulaci. Detailní argumentaci k OP JAK můžeš mít na samostatné stránce."
+        subtitle="Jednoduchá, srozumitelná formulace. Detailní argumentaci můžeme dát na samostatnou stránku."
       >
         <Card>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
