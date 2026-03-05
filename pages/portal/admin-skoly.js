@@ -36,6 +36,34 @@ function safeFileName(name) {
     .replace(/[^a-zA-Z0-9.\-_]/g, "");
 }
 
+function normalizeHttp(url) {
+  const s = String(url || "").trim();
+  if (!s) return "";
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  return `https://${s}`;
+}
+
+function buildGeoQuery(form) {
+  const parts = [];
+  const a = String(form.address || "").trim();
+  const c = String(form.city || "").trim();
+  const r = String(form.region || "").trim();
+  const co = String(form.country || "").trim();
+
+  if (a) parts.push(a);
+  if (c) parts.push(c);
+  if (r) parts.push(r);
+  if (co) parts.push(co);
+
+  // fallback: když není adresa, použij aspoň název školy
+  if (parts.length === 0) {
+    const n = String(form.name || "").trim();
+    if (n) parts.push(n);
+  }
+
+  return parts.join(", ");
+}
+
 const inputStyle = {
   width: "100%",
   padding: "10px 12px",
@@ -127,6 +155,8 @@ export default function AdminSkoly() {
     return publicUrlFromPath(form.photo_path);
   }, [photoPreviewUrl, form.photo_path]);
 
+  const geoQuery = useMemo(() => buildGeoQuery(form), [form]);
+
   function startNew() {
     setEditingId(null);
     setForm(emptyForm());
@@ -176,13 +206,11 @@ export default function AdminSkoly() {
     const ext = safeFileName(photoFile.name);
     const path = `schools/${schoolId}/${Date.now()}-${ext}`;
 
-    const { error: upErr } = await supabase.storage
-      .from(BUCKET)
-      .upload(path, photoFile, {
-        cacheControl: "3600",
-        upsert: true,
-        contentType: photoFile.type || "image/*",
-      });
+    const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, photoFile, {
+      cacheControl: "3600",
+      upsert: true,
+      contentType: photoFile.type || "image/*",
+    });
 
     if (upErr) throw new Error(upErr.message);
     return path;
@@ -193,12 +221,10 @@ export default function AdminSkoly() {
     setErr("");
 
     try {
-      // minimální validace
       if (!String(form.name || "").trim()) {
         throw new Error("Vyplň Název školy.");
       }
 
-      // payload (bez photo_path – řešíme zvlášť po uploadu)
       const payload = {
         name: String(form.name || "").trim(),
         website: String(form.website || "").trim() || null,
@@ -228,12 +254,7 @@ export default function AdminSkoly() {
 
       // 1) INSERT nebo UPDATE základních dat
       if (!editingId) {
-        const { data, error } = await supabase
-          .from("schools")
-          .insert([{ ...payload }])
-          .select("id")
-          .single();
-
+        const { data, error } = await supabase.from("schools").insert([{ ...payload }]).select("id").single();
         if (error) throw new Error(error.message);
         schoolId = data?.id;
         setEditingId(schoolId);
@@ -246,11 +267,7 @@ export default function AdminSkoly() {
       if (photoFile) {
         const photo_path = await uploadPhotoForSchool(schoolId);
 
-        const { error: up2 } = await supabase
-          .from("schools")
-          .update({ photo_path })
-          .eq("id", schoolId);
-
+        const { error: up2 } = await supabase.from("schools").update({ photo_path }).eq("id", schoolId);
         if (up2) throw new Error(up2.message);
 
         setForm((p) => ({ ...p, photo_path }));
@@ -281,6 +298,18 @@ export default function AdminSkoly() {
     }
   }
 
+  function openMapy() {
+    const q = encodeURIComponent(geoQuery || "");
+    window.open(`https://mapy.cz/zakladni?q=${q}`, "_blank", "noopener,noreferrer");
+  }
+
+  function openGoogleMaps() {
+    const q = encodeURIComponent(geoQuery || "");
+    window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, "_blank", "noopener,noreferrer");
+  }
+
+  const websiteHref = useMemo(() => normalizeHttp(form.website), [form.website]);
+
   return (
     <RequireAuth>
       <PortalHeader title="Admin – Školy" />
@@ -310,6 +339,23 @@ export default function AdminSkoly() {
               >
                 ← Zpět do portálu
               </Link>
+
+              {editingId ? (
+                <Link
+                  href={`/portal/skoly/${editingId}`}
+                  style={{
+                    textDecoration: "none",
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(0,0,0,0.18)",
+                    background: "white",
+                    fontWeight: 900,
+                    color: "#111827",
+                  }}
+                >
+                  Zobrazit detail →
+                </Link>
+              ) : null}
 
               <button
                 onClick={startNew}
@@ -374,7 +420,13 @@ export default function AdminSkoly() {
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
               <div style={{ fontWeight: 900 }}>Přidat / upravit školu</div>
               <div style={{ fontSize: 12, opacity: 0.6 }}>
-                {editingId ? <>Editace ID: <b>{editingId}</b></> : "Nový záznam"}
+                {editingId ? (
+                  <>
+                    Editace ID: <b>{editingId}</b>
+                  </>
+                ) : (
+                  "Nový záznam"
+                )}
               </div>
             </div>
 
@@ -383,24 +435,51 @@ export default function AdminSkoly() {
               <div style={{ display: "grid", gap: 12 }}>
                 <div>
                   <div style={labelStyle}>Název školy*</div>
-                  <input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} style={inputStyle} />
+                  <input
+                    value={form.name}
+                    onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                    style={inputStyle}
+                  />
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
                     <div style={labelStyle}>Web školy</div>
-                    <input value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} style={inputStyle} placeholder="https://…" />
+                    <input
+                      value={form.website}
+                      onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))}
+                      style={inputStyle}
+                      placeholder="https://… nebo www…"
+                    />
+                    {websiteHref ? (
+                      <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75 }}>
+                        Odkaz:{" "}
+                        <a href={websiteHref} target="_blank" rel="noreferrer" style={{ fontWeight: 900 }}>
+                          otevřít
+                        </a>
+                      </div>
+                    ) : null}
                   </div>
 
                   <div>
                     <div style={labelStyle}>Typ školy</div>
-                    <input value={form.school_type} onChange={(e) => setForm((p) => ({ ...p, school_type: e.target.value }))} style={inputStyle} placeholder="ZŠ / MŠ / SŠ…" />
+                    <input
+                      value={form.school_type}
+                      onChange={(e) => setForm((p) => ({ ...p, school_type: e.target.value }))}
+                      style={inputStyle}
+                      placeholder="ZŠ / MŠ / SŠ…"
+                    />
                   </div>
                 </div>
 
                 <div>
                   <div style={labelStyle}>Adresa</div>
-                  <input value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} style={inputStyle} placeholder="Ulice, č.p." />
+                  <input
+                    value={form.address}
+                    onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
+                    style={inputStyle}
+                    placeholder="Ulice, č.p."
+                  />
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
@@ -415,6 +494,56 @@ export default function AdminSkoly() {
                   <div>
                     <div style={labelStyle}>Země</div>
                     <input value={form.country} onChange={(e) => setForm((p) => ({ ...p, country: e.target.value }))} style={inputStyle} />
+                  </div>
+                </div>
+
+                {/* GPS helper */}
+                <div
+                  style={{
+                    border: "1px solid rgba(0,0,0,0.08)",
+                    background: "rgba(0,0,0,0.02)",
+                    borderRadius: 14,
+                    padding: 12,
+                  }}
+                >
+                  <div style={{ fontWeight: 900, marginBottom: 6 }}>Pomocník pro GPS</div>
+                  <div style={{ fontSize: 12, opacity: 0.75, lineHeight: 1.35 }}>
+                    Dotaz: <b>{geoQuery || "—"}</b>
+                  </div>
+                  <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <button
+                      onClick={openMapy}
+                      disabled={!geoQuery}
+                      style={{
+                        padding: "8px 10px",
+                        borderRadius: 12,
+                        border: "1px solid rgba(0,0,0,0.18)",
+                        background: "white",
+                        fontWeight: 900,
+                        cursor: geoQuery ? "pointer" : "not-allowed",
+                        opacity: geoQuery ? 1 : 0.6,
+                      }}
+                    >
+                      Otevřít v Mapy.cz →
+                    </button>
+                    <button
+                      onClick={openGoogleMaps}
+                      disabled={!geoQuery}
+                      style={{
+                        padding: "8px 10px",
+                        borderRadius: 12,
+                        border: "1px solid rgba(0,0,0,0.18)",
+                        background: "white",
+                        fontWeight: 900,
+                        cursor: geoQuery ? "pointer" : "not-allowed",
+                        opacity: geoQuery ? 1 : 0.6,
+                      }}
+                    >
+                      Otevřít v Google Maps →
+                    </button>
+                    <div style={{ fontSize: 12, opacity: 0.7, alignSelf: "center" }}>
+                      Tip: z mapy zkopíruj souřadnice do polí Latitude/Longitude.
+                    </div>
                   </div>
                 </div>
 
@@ -455,16 +584,14 @@ export default function AdminSkoly() {
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
-                  <div>
-                    <div style={labelStyle}>Datum otevření učebny</div>
-                    <input
-                      type="date"
-                      value={form.archimedes_since}
-                      onChange={(e) => setForm((p) => ({ ...p, archimedes_since: e.target.value }))}
-                      style={inputStyle}
-                    />
-                  </div>
+                <div>
+                  <div style={labelStyle}>Datum otevření učebny</div>
+                  <input
+                    type="date"
+                    value={form.archimedes_since}
+                    onChange={(e) => setForm((p) => ({ ...p, archimedes_since: e.target.value }))}
+                    style={inputStyle}
+                  />
                 </div>
 
                 <div>
@@ -542,11 +669,7 @@ export default function AdminSkoly() {
                   </div>
 
                   <div style={{ marginTop: 10 }}>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
-                    />
+                    <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} />
                     <div style={{ marginTop: 6, fontSize: 12, opacity: 0.65 }}>
                       Doporučení: JPG/PNG, šířka alespoň 1200 px.
                     </div>
@@ -619,7 +742,11 @@ export default function AdminSkoly() {
                   </thead>
                   <tbody>
                     {rows.map((r) => {
-                      const gpsOk = r.latitude !== null && r.latitude !== undefined && r.longitude !== null && r.longitude !== undefined;
+                      const gpsOk =
+                        r.latitude !== null &&
+                        r.latitude !== undefined &&
+                        r.longitude !== null &&
+                        r.longitude !== undefined;
                       return (
                         <tr key={r.id} style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
                           <td style={{ padding: "10px 8px", fontWeight: 900 }}>{r.name || "—"}</td>
@@ -627,22 +754,54 @@ export default function AdminSkoly() {
                           <td style={{ padding: "10px 8px", opacity: 0.85 }}>{r.region || "—"}</td>
                           <td style={{ padding: "10px 8px" }}>
                             {r.is_published ? (
-                              <span style={{ fontSize: 12, padding: "4px 10px", borderRadius: 999, background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.20)" }}>
+                              <span
+                                style={{
+                                  fontSize: 12,
+                                  padding: "4px 10px",
+                                  borderRadius: 999,
+                                  background: "rgba(16,185,129,0.12)",
+                                  border: "1px solid rgba(16,185,129,0.20)",
+                                }}
+                              >
                                 Publikováno
                               </span>
                             ) : (
-                              <span style={{ fontSize: 12, padding: "4px 10px", borderRadius: 999, background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.10)" }}>
+                              <span
+                                style={{
+                                  fontSize: 12,
+                                  padding: "4px 10px",
+                                  borderRadius: 999,
+                                  background: "rgba(0,0,0,0.04)",
+                                  border: "1px solid rgba(0,0,0,0.10)",
+                                }}
+                              >
                                 Skryté
                               </span>
                             )}
                           </td>
                           <td style={{ padding: "10px 8px" }}>
                             {gpsOk ? (
-                              <span style={{ fontSize: 12, padding: "4px 10px", borderRadius: 999, background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.20)" }}>
+                              <span
+                                style={{
+                                  fontSize: 12,
+                                  padding: "4px 10px",
+                                  borderRadius: 999,
+                                  background: "rgba(59,130,246,0.12)",
+                                  border: "1px solid rgba(59,130,246,0.20)",
+                                }}
+                              >
                                 OK
                               </span>
                             ) : (
-                              <span style={{ fontSize: 12, padding: "4px 10px", borderRadius: 999, background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.10)" }}>
+                              <span
+                                style={{
+                                  fontSize: 12,
+                                  padding: "4px 10px",
+                                  borderRadius: 999,
+                                  background: "rgba(0,0,0,0.04)",
+                                  border: "1px solid rgba(0,0,0,0.10)",
+                                }}
+                              >
                                 Bez GPS
                               </span>
                             )}
