@@ -24,6 +24,7 @@ function FitBounds({ items }) {
     const pts = (items || [])
       .filter((r) => typeof r.lat === "number" && typeof r.lng === "number")
       .map((r) => [r.lat, r.lng]);
+
     if (pts.length === 0) return null;
     return L.latLngBounds(pts);
   }, [items]);
@@ -52,6 +53,19 @@ function normalizeHttp(url) {
   if (!s) return "";
   if (s.startsWith("http://") || s.startsWith("https://")) return s;
   return `https://${s}`;
+}
+
+function pillStyle(bg, border) {
+  return {
+    fontSize: 12,
+    padding: "6px 10px",
+    borderRadius: 999,
+    background: bg,
+    border: `1px solid ${border}`,
+    color: "rgba(0,0,0,0.78)",
+    fontWeight: 800,
+    lineHeight: 1,
+  };
 }
 
 export default function SchoolsMap({ items = [] }) {
@@ -84,59 +98,134 @@ export default function SchoolsMap({ items = [] }) {
 
           {(items || []).map((r) => {
             if (typeof r.lat !== "number" || typeof r.lng !== "number") return null;
+
             const web = normalizeHttp(r.website);
+            const photo = String(r.photo_url || "").trim();
+            const isArch = !!r.has_archimedes_classroom;
 
             return (
               <Marker key={r.id} position={[r.lat, r.lng]}>
-                <Popup>
-                  <div style={{ fontWeight: 900, marginBottom: 6 }}>
-                    {r.name || "Škola"}
-                  </div>
-
-                  <div style={{ fontSize: 13, color: "rgba(0,0,0,0.75)" }}>
-                    {(r.city ? r.city : "")}
-                    {r.region ? `, ${r.region}` : ""}
-                    {r.country ? `, ${r.country}` : ""}
-                  </div>
-
-                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <a
-                      href={`/portal/skoly/${r.id}`}
+                <Popup closeButton={true} autoPan={true} maxWidth={340}>
+                  <div style={{ width: 320 }}>
+                    {/* PHOTO */}
+                    <div
                       style={{
-                        fontSize: 13,
-                        fontWeight: 900,
-                        textDecoration: "none",
-                        padding: "8px 10px",
-                        borderRadius: 12,
-                        border: "1px solid rgba(0,0,0,0.18)",
-                        background: "#111827",
-                        color: "white",
-                        display: "inline-block",
+                        height: 110,
+                        borderRadius: 14,
+                        overflow: "hidden",
+                        background: "rgba(0,0,0,0.06)",
+                        border: "1px solid rgba(0,0,0,0.08)",
                       }}
                     >
-                      Detail →
-                    </a>
+                      {photo ? (
+                        <img
+                          src={photo}
+                          alt={r.name || "Učebna"}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            display: "block",
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 12,
+                            color: "rgba(0,0,0,0.55)",
+                          }}
+                        >
+                          Bez fotky
+                        </div>
+                      )}
+                    </div>
 
-                    {web ? (
-                      <a
-                        href={web}
-                        target="_blank"
-                        rel="noreferrer"
+                    {/* TEXT */}
+                    <div style={{ padding: "10px 2px 2px" }}>
+                      <div
                         style={{
-                          fontSize: 13,
-                          fontWeight: 900,
-                          textDecoration: "none",
-                          padding: "8px 10px",
-                          borderRadius: 12,
-                          border: "1px solid rgba(0,0,0,0.18)",
-                          background: "white",
-                          color: "#111827",
-                          display: "inline-block",
+                          fontWeight: 950,
+                          fontSize: 16,
+                          letterSpacing: -0.2,
+                          color: "rgba(0,0,0,0.90)",
+                          lineHeight: 1.2,
                         }}
                       >
-                        Web →
-                      </a>
-                    ) : null}
+                        {r.name || "Škola"}
+                      </div>
+
+                      <div style={{ marginTop: 4, fontSize: 13, color: "rgba(0,0,0,0.70)" }}>
+                        {r.city ? r.city : "—"}
+                        {r.region ? ` • ${r.region}` : ""}
+                        {r.country ? ` • ${r.country}` : ""}
+                      </div>
+
+                      {/* PILLS */}
+                      <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {isArch ? (
+                          <span style={pillStyle("rgba(16,185,129,0.12)", "rgba(16,185,129,0.22)")}>
+                            ARCHIMEDES
+                          </span>
+                        ) : null}
+
+                        {r.school_type ? (
+                          <span style={pillStyle("rgba(0,0,0,0.04)", "rgba(0,0,0,0.10)")}>
+                            {r.school_type}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {/* CTA BUTTONS */}
+                      <div style={{ marginTop: 12, display: "flex", gap: 10 }}>
+                        <a
+                          href={`/portal/skoly/${r.id}`}
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 950,
+                            textDecoration: "none",
+                            padding: "10px 12px",
+                            borderRadius: 12,
+                            border: "1px solid rgba(0,0,0,0.18)",
+                            background: "#111827",
+                            color: "white",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            minWidth: 92,
+                          }}
+                        >
+                          Detail →
+                        </a>
+
+                        {web ? (
+                          <a
+                            href={web}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 950,
+                              textDecoration: "none",
+                              padding: "10px 12px",
+                              borderRadius: 12,
+                              border: "1px solid rgba(0,0,0,0.18)",
+                              background: "white",
+                              color: "#111827",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              minWidth: 92,
+                            }}
+                          >
+                            Web →
+                          </a>
+                        ) : null}
+                      </div>
+                    </div>
                   </div>
                 </Popup>
               </Marker>
