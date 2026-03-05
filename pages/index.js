@@ -113,7 +113,8 @@ function SoftButton({ onClick, children }) {
   );
 }
 
-function Pill({ children }) {
+function Pill({ children, tone = "light" }) {
+  const dark = tone === "dark";
   return (
     <span
       style={{
@@ -122,9 +123,9 @@ function Pill({ children }) {
         padding: "8px 10px",
         borderRadius: 999,
         fontSize: 13,
-        border: "1px solid rgba(0,0,0,0.10)",
-        background: "rgba(0,0,0,0.04)",
-        opacity: 0.86,
+        border: dark ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(0,0,0,0.10)",
+        background: dark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.04)",
+        opacity: dark ? 0.92 : 0.86,
         whiteSpace: "nowrap",
       }}
     >
@@ -284,30 +285,77 @@ function TrustLogo({ label }) {
   );
 }
 
+function Aspect16x9({ children }) {
+  return (
+    <div style={{ borderRadius: 18, overflow: "hidden", border: "1px solid rgba(0,0,0,0.08)", background: "white" }}>
+      <div style={{ position: "relative", paddingTop: "56.25%", background: "rgba(0,0,0,0.04)" }}>{children}</div>
+    </div>
+  );
+}
+
+function VideoPlaceholder({ onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        border: 0,
+        cursor: "pointer",
+        background:
+          "linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.30) 35%, rgba(0,0,0,0.10) 100%)",
+        color: "white",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div style={{ textAlign: "center", padding: 18 }}>
+        <div
+          style={{
+            width: 74,
+            height: 74,
+            borderRadius: 999,
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(255,255,255,0.14)",
+            border: "1px solid rgba(255,255,255,0.22)",
+            fontSize: 28,
+            fontWeight: 900,
+          }}
+          aria-hidden
+        >
+          ▶
+        </div>
+        <div style={{ marginTop: 12, fontWeight: 950, fontSize: 18 }}>Přehrát ukázku hodiny</div>
+        <div style={{ marginTop: 6, opacity: 0.85, lineHeight: 1.6 }}>
+          Sem vložíme krátké video (20–40 s). Zatím je to jen placeholder.
+        </div>
+      </div>
+    </button>
+  );
+}
+
 // ---- Page ----
 export default function Home() {
   const [proofOpen, setProofOpen] = useState(false);
-  useLockBodyScroll(proofOpen);
+  const [videoOpen, setVideoOpen] = useState(false);
+  useLockBodyScroll(proofOpen || videoOpen);
 
-  // Replace these later with your real assets (from archimedesoec.com gallery)
+  // TODO: Replace with your real assets (from archimedesoec.com gallery)
   const HERO_IMAGE =
     "https://images.unsplash.com/photo-1588072432836-7fb78b4a0b1f?auto=format&fit=crop&w=2400&q=80";
-  const SECTION_BG_IMAGE =
-    "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2400&q=80";
 
-  // Replace with your real YouTube (ukázková hodina). Keep it short (20–40s) if possible.
-  const DEMO_VIDEO_EMBED = "https://www.youtube.com/embed/dQw4w9WgXcQ";
+  // TODO: Replace with real YouTube embed (or leave empty to show placeholder)
+  // Example: "https://www.youtube.com/embed/XXXXXXXXXXX"
+  const DEMO_VIDEO_EMBED = "";
 
   const trustRow = useMemo(
-    () => [
-      "Eva Pavlová",
-      "MPO",
-      "MŽP",
-      "MMR",
-      "E.ON Energy Globe",
-      "Creative Business Cup",
-      "UNESCO GEP",
-    ],
+    () => ["Eva Pavlová", "MPO", "MŽP", "MMR", "E.ON Energy Globe", "Creative Business Cup", "UNESCO GEP"],
     []
   );
 
@@ -367,7 +415,7 @@ export default function Home() {
       {
         key: "unesco",
         title: "Greening Education Partnership (UNESCO)",
-        subtitle: "Základní odkaz na informace (a zmínka na vašem webu).",
+        subtitle: "Základní odkaz + zmínka na vašem webu.",
         href: "https://www.archimedes-net.com/",
       },
     ],
@@ -402,7 +450,7 @@ export default function Home() {
     <div style={{ fontFamily: "system-ui", background: "#f6f7fb", minHeight: "100vh" }}>
       {/* PublicHeader řeší pages/_app.js */}
 
-      {/* HERO with real visual */}
+      {/* HERO with fixed height (prevents cropping and missing title) */}
       <div style={{ padding: "26px 16px 0" }}>
         <div
           style={{
@@ -415,22 +463,30 @@ export default function Home() {
             background: "white",
           }}
         >
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative", height: 520 }}>
             <img
               src={HERO_IMAGE}
               alt="ARCHIMEDES Live – ukázka výuky"
-              style={{ width: "100%", height: "auto", display: "block" }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             />
             <div
               style={{
                 position: "absolute",
                 inset: 0,
                 background:
-                  "linear-gradient(90deg, rgba(0,0,0,0.58) 0%, rgba(0,0,0,0.40) 45%, rgba(0,0,0,0.10) 100%)",
+                  "linear-gradient(90deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.42) 55%, rgba(0,0,0,0.12) 100%)",
               }}
             />
-            <div style={{ position: "absolute", inset: 0, padding: 22, display: "flex", alignItems: "flex-end" }}>
-              <div style={{ maxWidth: 760 }}>
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                padding: 22,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <div style={{ maxWidth: 820 }}>
                 <div
                   style={{
                     display: "inline-flex",
@@ -454,21 +510,22 @@ export default function Home() {
                   style={{
                     margin: 0,
                     color: "white",
-                    fontSize: 52,
-                    lineHeight: 1.05,
-                    letterSpacing: -0.4,
+                    fontSize: 54,
+                    lineHeight: 1.04,
+                    letterSpacing: -0.45,
                     textShadow: "0 10px 40px rgba(0,0,0,0.35)",
                   }}
                 >
-                  ARCHIMEDES Live
+                  archimedes <span style={{ background: "#ef4444", padding: "2px 10px", borderRadius: 10 }}>live</span>
                 </h1>
+
                 <p
                   style={{
                     margin: "12px 0 0",
                     color: "rgba(255,255,255,0.92)",
                     fontSize: 18,
                     lineHeight: 1.65,
-                    maxWidth: 680,
+                    maxWidth: 720,
                     textShadow: "0 10px 40px rgba(0,0,0,0.30)",
                   }}
                 >
@@ -477,8 +534,8 @@ export default function Home() {
                 </p>
 
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 16 }}>
-                  <Link
-                    href="/poptavka"
+                  <button
+                    onClick={() => setVideoOpen(true)}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -486,34 +543,32 @@ export default function Home() {
                       gap: 10,
                       padding: "12px 14px",
                       borderRadius: 14,
-                      textDecoration: "none",
                       fontWeight: 900,
                       border: "1px solid rgba(255,255,255,0.24)",
                       background: "rgba(0,0,0,0.35)",
                       color: "white",
                       boxShadow: "0 18px 50px rgba(0,0,0,0.30)",
                       backdropFilter: "blur(6px)",
+                      cursor: "pointer",
                     }}
                   >
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-                      <span
-                        aria-hidden
-                        style={{
-                          width: 30,
-                          height: 30,
-                          borderRadius: 999,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          background: "rgba(255,255,255,0.14)",
-                          border: "1px solid rgba(255,255,255,0.22)",
-                        }}
-                      >
-                        ▶
-                      </span>
-                      Podívat se na ukázkovou hodinu
+                    <span
+                      aria-hidden
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: 999,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "rgba(255,255,255,0.14)",
+                        border: "1px solid rgba(255,255,255,0.22)",
+                      }}
+                    >
+                      ▶
                     </span>
-                  </Link>
+                    Podívat se na ukázkovou hodinu
+                  </button>
 
                   <Link
                     href="/program"
@@ -534,34 +589,43 @@ export default function Home() {
                   >
                     Prohlédnout program →
                   </Link>
+
+                  <Link
+                    href="/poptavka"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 10,
+                      padding: "12px 14px",
+                      borderRadius: 14,
+                      textDecoration: "none",
+                      fontWeight: 900,
+                      border: "1px solid rgba(255,255,255,0.24)",
+                      background: "rgba(255,255,255,0.10)",
+                      color: "white",
+                      backdropFilter: "blur(6px)",
+                    }}
+                  >
+                    Domluvit ukázku →
+                  </Link>
                 </div>
 
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16, alignItems: "center" }}>
                   <span style={{ color: "rgba(255,255,255,0.88)", fontSize: 13, fontWeight: 850 }}>
                     Záštity a ocenění:
                   </span>
                   {trustRow.map((x) => (
-                    <span
-                      key={x}
-                      style={{
-                        color: "rgba(255,255,255,0.92)",
-                        fontSize: 13,
-                        fontWeight: 800,
-                        padding: "6px 10px",
-                        borderRadius: 999,
-                        background: "rgba(255,255,255,0.14)",
-                        border: "1px solid rgba(255,255,255,0.18)",
-                      }}
-                    >
+                    <Pill key={x} tone="dark">
                       {x}
-                    </span>
+                    </Pill>
                   ))}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Below-hero quick row */}
+          {/* Below-hero quick row (fix alignment + no stray text) */}
           <div style={{ padding: "14px 18px", display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             {trustBadges.map((t) => (
               <Pill key={t}>{t}</Pill>
@@ -573,7 +637,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Trust strip (logos as text placeholders) */}
+      {/* Trust strip */}
       <div style={{ padding: "24px 16px 0" }}>
         <div style={{ maxWidth: MAX_WIDTH, margin: "0 auto" }}>
           <Card>
@@ -590,66 +654,43 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Video / hour demo */}
+      {/* Hour demo (no rickroll) */}
       <Section
         id="hodina"
         title="Jak vypadá jedna hodina"
-        subtitle="Tady bude krátká ukázka (20–40 s). Fotky a video můžeme kdykoliv vyměnit — teď jde o reálný vizuál stránky."
+        subtitle="Zde bude krátká ukázka (20–40 s). Teď je připravený reálný vizuál – video jen doplníme."
       >
-        <div
-          style={{
-            backgroundImage: `url(${SECTION_BG_IMAGE})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            borderRadius: 22,
-            border: "1px solid rgba(0,0,0,0.08)",
-            overflow: "hidden",
-            boxShadow: "0 18px 55px rgba(0,0,0,0.10)",
-          }}
-        >
-          <div
-            style={{
-              padding: 18,
-              background: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.18) 70%, rgba(0,0,0,0.05) 100%)",
-            }}
-          >
-            <div style={{ maxWidth: 980, margin: "0 auto" }}>
-              <div style={{ borderRadius: 18, overflow: "hidden", border: "1px solid rgba(255,255,255,0.18)" }}>
-                <div style={{ position: "relative", paddingTop: "56.25%", background: "rgba(0,0,0,0.25)" }}>
-                  <iframe
-                    title="Ukázková hodina ARCHIMEDES Live"
-                    src={DEMO_VIDEO_EMBED}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      width: "100%",
-                      height: "100%",
-                      border: 0,
-                    }}
-                  />
-                </div>
-              </div>
+        <div style={{ maxWidth: MAX_WIDTH, margin: "0 auto" }}>
+          <Aspect16x9>
+            {DEMO_VIDEO_EMBED ? (
+              <iframe
+                title="Ukázková hodina ARCHIMEDES Live"
+                src={DEMO_VIDEO_EMBED}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
+              />
+            ) : (
+              <VideoPlaceholder onClick={() => setVideoOpen(true)} />
+            )}
+          </Aspect16x9>
 
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 14 }}>
-                <ButtonLink href="/program" variant="primary">
-                  Více o programu
-                </ButtonLink>
-                <ButtonLink href="/poptavka" variant="secondary">
-                  Chci ukázkovou hodinu
-                </ButtonLink>
-              </div>
-            </div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 14 }}>
+            <ButtonLink href="/program" variant="primary">
+              Více o programu
+            </ButtonLink>
+            <ButtonLink href="/poptavka" variant="secondary">
+              Chci ukázkovou hodinu
+            </ButtonLink>
           </div>
         </div>
       </Section>
 
-      {/* Feature cards with real images */}
+      {/* Feature cards */}
       <Section
         id="features"
         title="Síť učeben ARCHIMEDES"
-        subtitle="Spojení fyzických učeben a živého programu je vaše největší konkurenční výhoda. Níže je reálný vizuální styl (fotky později vyměníme za vaše)."
+        subtitle="Spojení fyzických učeben a živého programu je vaše největší konkurenční výhoda. (Fotky později vyměníme za vaše.)"
       >
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
           {featureCards.map((c) => (
@@ -674,11 +715,11 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* Map + community collage */}
+      {/* Map + community */}
       <Section
         id="sit"
         title="Mapa učeben a škol"
-        subtitle="V portálu už máte reálnou mapu (/portal/skoly). Na veřejné homepage stačí atraktivní teaser + CTA."
+        subtitle="V portálu už máte reálnou mapu (/portal/skoly). Na veřejné homepage stačí teaser + CTA."
       >
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
           <div style={{ gridColumn: "span 7" }}>
@@ -687,7 +728,7 @@ export default function Home() {
                 <div>
                   <div style={{ fontWeight: 950, fontSize: 16 }}>Síť učeben v ČR</div>
                   <div style={{ marginTop: 6, opacity: 0.78, lineHeight: 1.6 }}>
-                    Ukázka vizuálu: na veřejné části jen teaser a odkaz do portálu.
+                    Na veřejné části jen teaser a odkaz do portálu.
                   </div>
                 </div>
                 <ButtonLink href="/portal/skoly" variant="primary">
@@ -728,18 +769,9 @@ export default function Home() {
 
               <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
                 {[
-                  {
-                    t: "Škola",
-                    d: "Živé vstupy + pracovní listy + archiv.",
-                  },
-                  {
-                    t: "Obec",
-                    d: "Komunitní program a prestiž (síť učeben).",
-                  },
-                  {
-                    t: "Rodiny a senioři",
-                    d: "Vybrané komunitní programy a setkávání.",
-                  },
+                  { t: "Škola", d: "Živé vstupy + pracovní listy + archiv." },
+                  { t: "Obec", d: "Komunitní program a prestiž (síť učeben)." },
+                  { t: "Rodiny a senioři", d: "Vybrané komunitní programy a setkávání." },
                 ].map((x) => (
                   <div key={x.t} style={{ padding: 12, borderRadius: 16, border: "1px solid rgba(0,0,0,0.08)" }}>
                     <div style={{ fontWeight: 900 }}>{x.t}</div>
@@ -752,7 +784,7 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* Financing (light, non-technical) */}
+      {/* Financing */}
       <Section
         id="financovani"
         title="Financování"
@@ -850,13 +882,43 @@ export default function Home() {
         open={proofOpen}
         onClose={() => setProofOpen(false)}
         title="Podklady: záštity, ocenění a členství"
-        subtitle="Detaily pro důvěryhodnost (dokumenty + odkazy). Fotky a video na homepage můžete kdykoliv vyměnit."
+        subtitle="Detaily pro důvěryhodnost (dokumenty + odkazy)."
       >
         <div style={{ display: "grid", gap: 14 }}>
           {proofItems.map((it) => (
             <ProofItem key={it.key} title={it.title} subtitle={it.subtitle} imgUrl={it.imgUrl} href={it.href} />
           ))}
         </div>
+      </Modal>
+
+      {/* Video modal (fix: no Rickroll; shows placeholder unless you set DEMO_VIDEO_EMBED) */}
+      <Modal
+        open={videoOpen}
+        onClose={() => setVideoOpen(false)}
+        title="Ukázková hodina"
+        subtitle={DEMO_VIDEO_EMBED ? "Přehrávání ukázky." : "Zatím nemáme vložené video – doplníme později."}
+      >
+        {DEMO_VIDEO_EMBED ? (
+          <Aspect16x9>
+            <iframe
+              title="Ukázková hodina ARCHIMEDES Live"
+              src={DEMO_VIDEO_EMBED}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
+            />
+          </Aspect16x9>
+        ) : (
+          <div style={{ padding: 14, borderRadius: 16, border: "1px solid rgba(0,0,0,0.10)", background: "rgba(0,0,0,0.02)" }}>
+            <div style={{ fontWeight: 900 }}>Chybí video URL</div>
+            <div style={{ marginTop: 8, opacity: 0.78, lineHeight: 1.65 }}>
+              Až bude hotové krátké video, vložte sem YouTube embed URL (proměnná <b>DEMO_VIDEO_EMBED</b> nahoře v souboru).
+            </div>
+            <div style={{ marginTop: 10, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", fontSize: 12, opacity: 0.8 }}>
+              Příklad: https://www.youtube.com/embed/XXXXXXXXXXX
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
