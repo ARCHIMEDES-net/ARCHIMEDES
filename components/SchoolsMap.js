@@ -3,7 +3,10 @@ import { useEffect, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
+
 import "leaflet/dist/leaflet.css";
+import "react-leaflet-cluster/lib/assets/MarkerCluster.css";
+import "react-leaflet-cluster/lib/assets/MarkerCluster.Default.css";
 
 // Oprava ikon (Leaflet v bundlerech často nenajde default assety)
 const DefaultIcon = L.icon({
@@ -16,6 +19,7 @@ const DefaultIcon = L.icon({
   shadowSize: [41, 41],
 });
 
+// nastavíme default ikonu pro všechny Markery
 L.Marker.prototype.options.icon = DefaultIcon;
 
 function FitBounds({ items }) {
@@ -60,6 +64,7 @@ function normalizeHttp(url) {
 }
 
 export default function SchoolsMap({ items = [] }) {
+  // fallback start pozice (než se provede fitBounds)
   const startCenter = [49.8, 15.5]; // CZ-ish
   const startZoom = 7;
 
