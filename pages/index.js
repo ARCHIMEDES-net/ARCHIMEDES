@@ -262,29 +262,6 @@ function ProofItem({ title, subtitle, imgUrl, href }) {
   );
 }
 
-function TrustLogo({ label }) {
-  return (
-    <div
-      title={label}
-      style={{
-        minWidth: 110,
-        padding: "10px 12px",
-        borderRadius: 14,
-        border: "1px solid rgba(0,0,0,0.10)",
-        background: "white",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontWeight: 850,
-        fontSize: 13,
-        opacity: 0.92,
-      }}
-    >
-      {label}
-    </div>
-  );
-}
-
 function Aspect16x9({ children }) {
   return (
     <div style={{ borderRadius: 18, overflow: "hidden", border: "1px solid rgba(0,0,0,0.08)", background: "white" }}>
@@ -450,7 +427,7 @@ export default function Home() {
     <div style={{ fontFamily: "system-ui", background: "#f6f7fb", minHeight: "100vh" }}>
       {/* PublicHeader řeší pages/_app.js */}
 
-      {/* HERO with fixed height (prevents cropping and missing title) */}
+      {/* HERO */}
       <div style={{ padding: "26px 16px 0" }}>
         <div
           style={{
@@ -477,15 +454,7 @@ export default function Home() {
                   "linear-gradient(90deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.42) 55%, rgba(0,0,0,0.12) 100%)",
               }}
             />
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                padding: 22,
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
+            <div style={{ position: "absolute", inset: 0, padding: 22, display: "flex", alignItems: "center" }}>
               <div style={{ maxWidth: 820 }}>
                 <div
                   style={{
@@ -516,7 +485,8 @@ export default function Home() {
                     textShadow: "0 10px 40px rgba(0,0,0,0.35)",
                   }}
                 >
-                  archimedes <span style={{ background: "#ef4444", padding: "2px 10px", borderRadius: 10 }}>live</span>
+                  archimedes{" "}
+                  <span style={{ background: "#ef4444", padding: "2px 10px", borderRadius: 10 }}>live</span>
                 </h1>
 
                 <p
@@ -611,8 +581,9 @@ export default function Home() {
                   </Link>
                 </div>
 
+                {/* Minimal trust: keep it subtle, not "in your face" */}
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16, alignItems: "center" }}>
-                  <span style={{ color: "rgba(255,255,255,0.88)", fontSize: 13, fontWeight: 850 }}>
+                  <span style={{ color: "rgba(255,255,255,0.86)", fontSize: 13, fontWeight: 850 }}>
                     Záštity a ocenění:
                   </span>
                   {trustRow.map((x) => (
@@ -620,12 +591,29 @@ export default function Home() {
                       {x}
                     </Pill>
                   ))}
+                  <div style={{ marginLeft: 6 }}>
+                    <button
+                      onClick={() => setProofOpen(true)}
+                      style={{
+                        border: "1px solid rgba(255,255,255,0.24)",
+                        background: "rgba(255,255,255,0.10)",
+                        color: "white",
+                        borderRadius: 999,
+                        padding: "8px 10px",
+                        fontWeight: 850,
+                        cursor: "pointer",
+                        backdropFilter: "blur(6px)",
+                      }}
+                    >
+                      Podklady →
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Below-hero quick row (fix alignment + no stray text) */}
+          {/* Below-hero value pills (keep), but remove any second "trust strip" below */}
           <div style={{ padding: "14px 18px", display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             {trustBadges.map((t) => (
               <Pill key={t}>{t}</Pill>
@@ -637,24 +625,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Trust strip */}
-      <div style={{ padding: "24px 16px 0" }}>
-        <div style={{ maxWidth: MAX_WIDTH, margin: "0 auto" }}>
-          <Card>
-            <div style={{ fontWeight: 950, fontSize: 16, marginBottom: 12 }}>Záštity a ocenění</div>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              {trustRow.map((x) => (
-                <TrustLogo key={x} label={x} />
-              ))}
-            </div>
-            <div style={{ marginTop: 10, opacity: 0.72, lineHeight: 1.6 }}>
-              Na homepage uvádíme stručné shrnutí. Detailní podklady jsou po kliknutí.
-            </div>
-          </Card>
-        </div>
-      </div>
+      {/* (Removed) Duplicate "Záštity a ocenění" block — was too loud & repetitive */}
 
-      {/* Hour demo (no rickroll) */}
+      {/* Hour demo */}
       <Section
         id="hodina"
         title="Jak vypadá jedna hodina"
@@ -704,7 +677,11 @@ export default function Home() {
                   boxShadow: "0 14px 40px rgba(0,0,0,0.06)",
                 }}
               >
-                <img src={c.img} alt={c.title} style={{ width: "100%", height: 190, objectFit: "cover", display: "block" }} />
+                <img
+                  src={c.img}
+                  alt={c.title}
+                  style={{ width: "100%", height: 190, objectFit: "cover", display: "block" }}
+                />
                 <div style={{ padding: 14 }}>
                   <div style={{ fontWeight: 950, fontSize: 16 }}>{c.title}</div>
                   <div style={{ marginTop: 8, opacity: 0.78, lineHeight: 1.6 }}>{c.text}</div>
@@ -891,7 +868,7 @@ export default function Home() {
         </div>
       </Modal>
 
-      {/* Video modal (fix: no Rickroll; shows placeholder unless you set DEMO_VIDEO_EMBED) */}
+      {/* Video modal */}
       <Modal
         open={videoOpen}
         onClose={() => setVideoOpen(false)}
@@ -909,12 +886,26 @@ export default function Home() {
             />
           </Aspect16x9>
         ) : (
-          <div style={{ padding: 14, borderRadius: 16, border: "1px solid rgba(0,0,0,0.10)", background: "rgba(0,0,0,0.02)" }}>
+          <div
+            style={{
+              padding: 14,
+              borderRadius: 16,
+              border: "1px solid rgba(0,0,0,0.10)",
+              background: "rgba(0,0,0,0.02)",
+            }}
+          >
             <div style={{ fontWeight: 900 }}>Chybí video URL</div>
             <div style={{ marginTop: 8, opacity: 0.78, lineHeight: 1.65 }}>
               Až bude hotové krátké video, vložte sem YouTube embed URL (proměnná <b>DEMO_VIDEO_EMBED</b> nahoře v souboru).
             </div>
-            <div style={{ marginTop: 10, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", fontSize: 12, opacity: 0.8 }}>
+            <div
+              style={{
+                marginTop: 10,
+                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                fontSize: 12,
+                opacity: 0.8,
+              }}
+            >
               Příklad: https://www.youtube.com/embed/XXXXXXXXXXX
             </div>
           </div>
