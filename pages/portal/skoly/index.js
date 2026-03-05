@@ -26,6 +26,13 @@ function toNum(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+function safeDate(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
+}
+
 export default function SkolyIndex() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,14 +45,18 @@ export default function SkolyIndex() {
 
     // Bereme obě varianty sloupců:
     //  - lat/lng (původně)
-    //  - latitude/longitude (co máš teď v DB a v adminu)
+    //  - latitude/longitude (aktuálně v DB)
     const { data, error } = await supabase
       .from("schools")
       .select(
         "id,name,city,region,country,website,school_type,short_description,photo_path,has_archimedes_classroom,is_published,archimedes_since,created_at,lat,lng,latitude,longitude"
       )
+      // jen ARCHIMEDES síť (u vás jsou to jen učebny s ARCHIMEDES)
       .eq("has_archimedes_classroom", true)
       .eq("is_published", true)
+      // primárně řadíme podle data otevření učebny (nejnovější nahoře)
+      .order("archimedes_since", { ascending: false })
+      // fallback řazení, když archimedes_since chybí
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -86,6 +97,24 @@ export default function SkolyIndex() {
     return items.filter((r) => typeof r.lat === "number" && typeof r.lng === "number");
   }, [items]);
 
+  // ---- STATISTIKY (marketingově důležité) ----
+  const countriesCount = useMemo(() => {
+    const set = new Set(
+      (items || [])
+        .map((r) => String(r.country || "").trim())
+        .filter(Boolean)
+    );
+    return set.size;
+  }, [items]);
+
+  const newestYear = useMemo(() => {
+    const ds = (items || [])
+      .map((r) => safeDate(r.archimedes_since))
+      .filter(Boolean)
+      .sort((a, b) => b.getTime() - a.getTime());
+    return ds.length ? ds[0].getFullYear() : null;
+  }, [items]);
+
   function SegButton({ id, label }) {
     const active = view === id;
     return (
@@ -103,6 +132,27 @@ export default function SkolyIndex() {
       >
         {label}
       </button>
+    );
+  }
+
+  function StatChip({ label, value, bg, border }) {
+    return (
+      <span
+        style={{
+          fontSize: 12,
+          padding: "6px 10px",
+          borderRadius: 999,
+          background: bg || "rgba(0,0,0,0.04)",
+          border: border || "1px solid rgba(0,0,0,0.08)",
+          color: "rgba(0,0,0,0.75)",
+          fontWeight: 800,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <span style={{ opacity: 0.85 }}>{label}:</span> {value}
+      </span>
     );
   }
 
@@ -127,13 +177,34 @@ export default function SkolyIndex() {
             <div style={{ color: "rgba(0,0,0,0.65)", marginTop: 6, lineHeight: 1.35 }}>
               Přehled škol s učebnou ARCHIMEDES. Slouží jako reference, inspirace a možnost kontaktu.
             </div>
+
+            {/* STATISTIKY */}
+            <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <StatChip label="Učeben" value={items.length} />
+              <StatChip
+                label="S GPS"
+                value={withCoords.length}
+                bg="rgba(59,130,246,0.10)"
+                border="1px solid rgba(59,130,246,0.18)"
+              />
+              <StatChip
+                label="Země"
+                value={countriesCount}
+                bg="rgba(16,185,129,0.10)"
+                border="1px solid rgba(16,185,129,0.18)"
+              />
+              {newestYear ? (
+                <StatChip
+                  label="Nejnovější"
+                  value={newestYear}
+                  bg="rgba(245,158,11,0.12)"
+                  border="1px solid rgba(245,158,11,0.20)"
+                />
+              ) : null}
+            </div>
           </div>
 
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <div style={{ fontSize: 13, color: "rgba(0,0,0,0.55)" }}>
-              Celkem:{" "}
-              <b style={{ color: "rgba(0,0,0,0.85)" }}>{items.length}</b>
-            </div>
             <div style={{ display: "flex", gap: 8 }}>
               <SegButton id="cards" label="Karty" />
               <SegButton id="map" label="Mapa" />
@@ -159,7 +230,9 @@ export default function SkolyIndex() {
         {loading ? (
           <div style={{ color: "rgba(0,0,0,0.65)" }}>Načítám…</div>
         ) : items.length === 0 ? (
-          <div style={{ color: "rgba(0,0,0,0.65)" }}>Zatím zde nejsou žádné publikované školy.</div>
+          <div style={{ color: "rgba(0,0,0,0.65)" }}>
+            Zatím zde nejsou žádné publikované školy.
+          </div>
         ) : view === "map" ? (
           <div
             style={{
@@ -174,8 +247,7 @@ export default function SkolyIndex() {
               Mapa učeben
             </div>
             <div style={{ fontSize: 13, color: "rgba(0,0,0,0.65)", marginBottom: 12 }}>
-              Zobrazují se jen školy, které mají vyplněné souřadnice (GPS).
-              {" "}
+              Zobrazují se jen školy, které mají vyplněné souřadnice (GPS).{" "}
               Aktuálně: <b>{withCoords.length}</b> z <b>{items.length}</b>.
             </div>
 
@@ -200,7 +272,11 @@ export default function SkolyIndex() {
               const hasCoords = typeof r.lat === "number" && typeof r.lng === "number";
 
               return (
-                <Link key={r.id} href={`/portal/skoly/${r.id}`} style={{ textDecoration: "none" }}>
+                <Link
+                  key={r.id}
+                  href={`/portal/skoly/${r.id}`}
+                  style={{ textDecoration: "none" }}
+                >
                   <div
                     style={{
                       background: "white",
@@ -257,7 +333,14 @@ export default function SkolyIndex() {
                       </div>
 
                       {r.short_description ? (
-                        <div style={{ marginTop: 10, fontSize: 13, color: "rgba(0,0,0,0.72)", lineHeight: 1.35 }}>
+                        <div
+                          style={{
+                            marginTop: 10,
+                            fontSize: 13,
+                            color: "rgba(0,0,0,0.72)",
+                            lineHeight: 1.35,
+                          }}
+                        >
                           {r.short_description}
                         </div>
                       ) : null}
@@ -272,6 +355,7 @@ export default function SkolyIndex() {
                               background: "rgba(0,0,0,0.04)",
                               border: "1px solid rgba(0,0,0,0.08)",
                               color: "rgba(0,0,0,0.75)",
+                              fontWeight: 800,
                             }}
                           >
                             {r.school_type}
@@ -287,9 +371,10 @@ export default function SkolyIndex() {
                               background: "rgba(16,185,129,0.10)",
                               border: "1px solid rgba(16,185,129,0.20)",
                               color: "rgba(0,0,0,0.75)",
+                              fontWeight: 800,
                             }}
                           >
-                            Učebna od {new Date(r.archimedes_since).getFullYear()}
+                            Učebna od {safeDate(r.archimedes_since)?.getFullYear()}
                           </span>
                         ) : null}
 
@@ -302,6 +387,7 @@ export default function SkolyIndex() {
                               background: "rgba(59,130,246,0.10)",
                               border: "1px solid rgba(59,130,246,0.20)",
                               color: "rgba(0,0,0,0.75)",
+                              fontWeight: 800,
                             }}
                           >
                             Má souřadnice
@@ -309,7 +395,14 @@ export default function SkolyIndex() {
                         ) : null}
                       </div>
 
-                      <div style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: "rgba(0,0,0,0.85)" }}>
+                      <div
+                        style={{
+                          marginTop: 14,
+                          fontSize: 13,
+                          fontWeight: 800,
+                          color: "rgba(0,0,0,0.85)",
+                        }}
+                      >
                         Zobrazit detail →
                       </div>
                     </div>
