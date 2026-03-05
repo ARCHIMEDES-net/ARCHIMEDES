@@ -4,302 +4,7 @@ import Link from "next/link";
 
 const MAX_WIDTH = 1120;
 
-function Section({ id, eyebrow, title, subtitle, children, tone = "light" }) {
-  const isDark = tone === "dark";
-  return (
-    <section
-      id={id}
-      style={{
-        padding: "72px 16px",
-        background: isDark ? "#0b1220" : "transparent",
-        color: isDark ? "white" : "inherit",
-      }}
-    >
-      <div style={{ maxWidth: MAX_WIDTH, margin: "0 auto" }}>
-        {eyebrow ? (
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "7px 12px",
-              borderRadius: 999,
-              fontSize: 13,
-              letterSpacing: 0.2,
-              background: isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.05)",
-              border: isDark ? "1px solid rgba(255,255,255,0.16)" : "1px solid rgba(0,0,0,0.08)",
-              marginBottom: 14,
-            }}
-          >
-            <span style={{ width: 9, height: 9, borderRadius: 99, background: "#22c55e" }} />
-            <span style={{ opacity: isDark ? 0.9 : 0.8 }}>{eyebrow}</span>
-          </div>
-        ) : null}
-
-        {title ? (
-          <h2
-            style={{
-              fontSize: 36,
-              lineHeight: 1.12,
-              margin: 0,
-              letterSpacing: -0.2,
-            }}
-          >
-            {title}
-          </h2>
-        ) : null}
-
-        {subtitle ? (
-          <p
-            style={{
-              marginTop: 12,
-              marginBottom: 0,
-              maxWidth: 780,
-              fontSize: 17,
-              lineHeight: 1.65,
-              opacity: isDark ? 0.85 : 0.75,
-            }}
-          >
-            {subtitle}
-          </p>
-        ) : null}
-
-        <div style={{ marginTop: 26 }}>{children}</div>
-      </div>
-    </section>
-  );
-}
-
-function Card({ children, tone = "light" }) {
-  const isDark = tone === "dark";
-  return (
-    <div
-      style={{
-        background: isDark ? "rgba(255,255,255,0.06)" : "white",
-        border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(0,0,0,0.08)",
-        borderRadius: 20,
-        padding: 18,
-        boxShadow: isDark ? "none" : "0 14px 40px rgba(0,0,0,0.06)",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function Pill({ text, tone = "light" }) {
-  const isDark = tone === "dark";
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        padding: "8px 10px",
-        borderRadius: 999,
-        fontSize: 13,
-        border: isDark ? "1px solid rgba(255,255,255,0.14)" : "1px solid rgba(0,0,0,0.10)",
-        background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)",
-        opacity: isDark ? 0.92 : 0.86,
-        whiteSpace: "nowrap",
-      }}
-    >
-      {text}
-    </span>
-  );
-}
-
-function ButtonLink({ href, label, variant = "primary" }) {
-  const primary = variant === "primary";
-  return (
-    <Link
-      href={href}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 10,
-        textDecoration: "none",
-        padding: "12px 14px",
-        borderRadius: 14,
-        fontWeight: 750,
-        fontSize: 15,
-        border: primary ? "1px solid rgba(0,0,0,0.88)" : "1px solid rgba(0,0,0,0.12)",
-        background: primary ? "rgba(0,0,0,0.94)" : "white",
-        color: primary ? "white" : "rgba(0,0,0,0.9)",
-        boxShadow: primary ? "0 16px 42px rgba(0,0,0,0.22)" : "0 10px 26px rgba(0,0,0,0.06)",
-      }}
-    >
-      <span>{label}</span>
-      <span aria-hidden style={{ opacity: 0.9 }}>
-        →
-      </span>
-    </Link>
-  );
-}
-
-function SoftButton({ onClick, label }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 10,
-        padding: "12px 14px",
-        borderRadius: 14,
-        fontWeight: 800,
-        cursor: "pointer",
-        border: "1px solid rgba(0,0,0,0.12)",
-        background: "white",
-        color: "rgba(0,0,0,0.9)",
-        boxShadow: "0 10px 26px rgba(0,0,0,0.06)",
-      }}
-    >
-      <span>{label}</span>
-      <span aria-hidden>→</span>
-    </button>
-  );
-}
-
-function Modal({ open, title, subtitle, onClose, children }) {
-  if (!open) return null;
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={title || "Dialog"}
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.56)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-        zIndex: 9999,
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "min(980px, 100%)",
-          maxHeight: "86vh",
-          overflow: "auto",
-          background: "white",
-          borderRadius: 20,
-          border: "1px solid rgba(0,0,0,0.10)",
-          boxShadow: "0 24px 76px rgba(0,0,0,0.36)",
-        }}
-      >
-        <div
-          style={{
-            position: "sticky",
-            top: 0,
-            background: "white",
-            padding: "14px 16px",
-            borderBottom: "1px solid rgba(0,0,0,0.08)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            zIndex: 1,
-          }}
-        >
-          <div>
-            <div style={{ fontWeight: 900, fontSize: 16 }}>{title}</div>
-            {subtitle ? (
-              <div style={{ opacity: 0.7, marginTop: 2, fontSize: 13, lineHeight: 1.4 }}>
-                {subtitle}
-              </div>
-            ) : null}
-          </div>
-
-          <button
-            onClick={onClose}
-            style={{
-              border: "1px solid rgba(0,0,0,0.12)",
-              background: "white",
-              borderRadius: 12,
-              padding: "10px 12px",
-              fontWeight: 800,
-              cursor: "pointer",
-            }}
-          >
-            Zavřít ✕
-          </button>
-        </div>
-
-        <div style={{ padding: 16 }}>{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function ProofGrid({ items }) {
-  return (
-    <div style={{ display: "grid", gap: 14 }}>
-      {items.map((it) => (
-        <div
-          key={it.key}
-          style={{
-            border: "1px solid rgba(0,0,0,0.08)",
-            borderRadius: 18,
-            padding: 12,
-            background: "rgba(0,0,0,0.02)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontWeight: 900 }}>{it.title}</div>
-              <div style={{ opacity: 0.75, marginTop: 4, lineHeight: 1.5 }}>{it.subtitle}</div>
-            </div>
-
-            {it.href ? (
-              <a
-                href={it.href}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  alignSelf: "center",
-                  textDecoration: "none",
-                  fontWeight: 800,
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.12)",
-                  background: "white",
-                  padding: "10px 12px",
-                  color: "rgba(0,0,0,0.9)",
-                }}
-              >
-                Otevřít →
-              </a>
-            ) : null}
-          </div>
-
-          {it.imgUrl ? (
-            <div style={{ marginTop: 10 }}>
-              <img
-                src={it.imgUrl}
-                alt={it.alt || it.title}
-                loading="lazy"
-                style={{
-                  width: "100%",
-                  height: "auto",
-                  borderRadius: 16,
-                  border: "1px solid rgba(0,0,0,0.10)",
-                  background: "white",
-                }}
-              />
-            </div>
-          ) : null}
-        </div>
-      ))}
-    </div>
-  );
-}
-
+// ---- Helpers (no external CSS needed) ----
 function useLockBodyScroll(locked) {
   useEffect(() => {
     if (!locked) return;
@@ -311,468 +16,734 @@ function useLockBodyScroll(locked) {
   }, [locked]);
 }
 
+function Section({ id, title, subtitle, children, tone = "light" }) {
+  const dark = tone === "dark";
+  return (
+    <section
+      id={id}
+      style={{
+        padding: "70px 16px",
+        background: dark ? "#0b1220" : "transparent",
+        color: dark ? "white" : "inherit",
+      }}
+    >
+      <div style={{ maxWidth: MAX_WIDTH, margin: "0 auto" }}>
+        {title ? (
+          <h2 style={{ margin: 0, fontSize: 34, letterSpacing: -0.2, lineHeight: 1.15 }}>
+            {title}
+          </h2>
+        ) : null}
+        {subtitle ? (
+          <p style={{ margin: "12px 0 0", maxWidth: 820, opacity: dark ? 0.85 : 0.75, lineHeight: 1.65 }}>
+            {subtitle}
+          </p>
+        ) : null}
+        <div style={{ marginTop: 24 }}>{children}</div>
+      </div>
+    </section>
+  );
+}
+
+function Card({ children, tone = "light" }) {
+  const dark = tone === "dark";
+  return (
+    <div
+      style={{
+        background: dark ? "rgba(255,255,255,0.06)" : "white",
+        border: dark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(0,0,0,0.08)",
+        borderRadius: 18,
+        padding: 18,
+        boxShadow: dark ? "none" : "0 14px 40px rgba(0,0,0,0.06)",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function ButtonLink({ href, children, variant = "primary" }) {
+  const primary = variant === "primary";
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
+        padding: "12px 14px",
+        borderRadius: 14,
+        textDecoration: "none",
+        fontWeight: 800,
+        border: primary ? "1px solid rgba(0,0,0,0.9)" : "1px solid rgba(0,0,0,0.12)",
+        background: primary ? "rgba(0,0,0,0.94)" : "white",
+        color: primary ? "white" : "rgba(0,0,0,0.9)",
+        boxShadow: primary ? "0 16px 42px rgba(0,0,0,0.22)" : "0 10px 26px rgba(0,0,0,0.06)",
+      }}
+    >
+      <span>{children}</span>
+      <span aria-hidden style={{ opacity: 0.9 }}>
+        →
+      </span>
+    </Link>
+  );
+}
+
+function SoftButton({ onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
+        padding: "12px 14px",
+        borderRadius: 14,
+        fontWeight: 850,
+        cursor: "pointer",
+        border: "1px solid rgba(0,0,0,0.12)",
+        background: "white",
+        boxShadow: "0 10px 26px rgba(0,0,0,0.06)",
+      }}
+    >
+      <span>{children}</span>
+      <span aria-hidden>→</span>
+    </button>
+  );
+}
+
+function Pill({ children }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        padding: "8px 10px",
+        borderRadius: 999,
+        fontSize: 13,
+        border: "1px solid rgba(0,0,0,0.10)",
+        background: "rgba(0,0,0,0.04)",
+        opacity: 0.86,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function Modal({ open, title, subtitle, onClose, children }) {
+  if (!open) return null;
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={title || "Dialog"}
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        padding: 16,
+        background: "rgba(0,0,0,0.56)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(980px, 100%)",
+          maxHeight: "86vh",
+          overflow: "auto",
+          background: "white",
+          borderRadius: 18,
+          border: "1px solid rgba(0,0,0,0.10)",
+          boxShadow: "0 24px 76px rgba(0,0,0,0.36)",
+        }}
+      >
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+            background: "white",
+            padding: "14px 16px",
+            borderBottom: "1px solid rgba(0,0,0,0.08)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 900, fontSize: 16 }}>{title}</div>
+            {subtitle ? (
+              <div style={{ marginTop: 2, opacity: 0.7, fontSize: 13, lineHeight: 1.4 }}>
+                {subtitle}
+              </div>
+            ) : null}
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              border: "1px solid rgba(0,0,0,0.12)",
+              background: "white",
+              borderRadius: 12,
+              padding: "10px 12px",
+              fontWeight: 850,
+              cursor: "pointer",
+            }}
+          >
+            Zavřít ✕
+          </button>
+        </div>
+        <div style={{ padding: 16 }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function ProofItem({ title, subtitle, imgUrl, href }) {
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(0,0,0,0.08)",
+        borderRadius: 16,
+        padding: 12,
+        background: "rgba(0,0,0,0.02)",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <div style={{ fontWeight: 900 }}>{title}</div>
+          <div style={{ marginTop: 4, opacity: 0.75, lineHeight: 1.5 }}>{subtitle}</div>
+        </div>
+        {href ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              alignSelf: "center",
+              textDecoration: "none",
+              fontWeight: 850,
+              borderRadius: 12,
+              border: "1px solid rgba(0,0,0,0.12)",
+              background: "white",
+              padding: "10px 12px",
+              color: "rgba(0,0,0,0.9)",
+            }}
+          >
+            Otevřít →
+          </a>
+        ) : null}
+      </div>
+      {imgUrl ? (
+        <div style={{ marginTop: 10 }}>
+          <img
+            src={imgUrl}
+            alt={title}
+            loading="lazy"
+            style={{
+              width: "100%",
+              height: "auto",
+              borderRadius: 14,
+              border: "1px solid rgba(0,0,0,0.10)",
+              background: "white",
+            }}
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function TrustLogo({ label }) {
+  return (
+    <div
+      title={label}
+      style={{
+        minWidth: 110,
+        padding: "10px 12px",
+        borderRadius: 14,
+        border: "1px solid rgba(0,0,0,0.10)",
+        background: "white",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: 850,
+        fontSize: 13,
+        opacity: 0.92,
+      }}
+    >
+      {label}
+    </div>
+  );
+}
+
+// ---- Page ----
 export default function Home() {
   const [proofOpen, setProofOpen] = useState(false);
   useLockBodyScroll(proofOpen);
 
-  const trustBadges = useMemo(
+  // Replace these later with your real assets (from archimedesoec.com gallery)
+  const HERO_IMAGE =
+    "https://images.unsplash.com/photo-1588072432836-7fb78b4a0b1f?auto=format&fit=crop&w=2400&q=80";
+  const SECTION_BG_IMAGE =
+    "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2400&q=80";
+
+  // Replace with your real YouTube (ukázková hodina). Keep it short (20–40s) if possible.
+  const DEMO_VIDEO_EMBED = "https://www.youtube.com/embed/dQw4w9WgXcQ";
+
+  const trustRow = useMemo(
     () => [
-      "Záštita Evy Pavlové",
-      "Záštita MPO",
-      "Záštita MŽP",
-      "Záštita MMR",
-      "Finalista E.ON Energy Globe",
-      "Creative Business Cup – Miláček publika",
-      "UNESCO – Greening Education Partnership",
-      "Síť učeben v ČR",
-      "Živé vstupy",
-      "Pracovní listy",
-      "Neveřejný archiv pro předplatitele",
+      "Eva Pavlová",
+      "MPO",
+      "MŽP",
+      "MMR",
+      "E.ON Energy Globe",
+      "Creative Business Cup",
+      "UNESCO GEP",
     ],
     []
   );
 
-  // Důkazy: dokumenty záštit jsou ve formě obrázků (z původního webu), ocenění/členství jako odkazy.
-  // Pozn.: v textu homepage neuvádíme žádné časové období, jen fakt, že existují tyto záštity/ocenění/členství.
+  const trustBadges = useMemo(
+    () => [
+      "Živý vzdělávací program (ne software)",
+      "Živé vstupy s hosty",
+      "Pracovní listy",
+      "Neveřejný archiv pro předplatitele",
+      "Síť učeben ARCHIMEDES",
+      "Program pro školu i komunitu obce",
+    ],
+    []
+  );
+
   const proofItems = useMemo(
     () => [
       {
-        key: "zastita-eva",
-        title: "Záštita – Eva Pavlová",
-        subtitle: "Textové potvrzení na webu projektu.",
+        key: "zastita-web",
+        title: "Záštity – přehled na webu projektu",
+        subtitle: "Veřejná stránka s informacemi o záštitách.",
         href: "https://www.archimedes-net.com/zastita/",
       },
       {
-        key: "zastita-mpo",
-        title: "Záštita – Ministerstvo průmyslu a obchodu (MPO)",
+        key: "mpo",
+        title: "Záštita – MPO (dokument)",
         subtitle: "Náhled dokumentu záštity (sken).",
         imgUrl:
           "https://fb18f7b042.clvaw-cdnwnd.com/672ddf20a524990e3e51b0287606f721/200000182-a2f4fa2f53/zastita%20MPO.jpeg?ph=fb18f7b042",
       },
       {
-        key: "zastita-mzp",
-        title: "Záštita – Ministerstvo životního prostředí (MŽP)",
+        key: "mzp",
+        title: "Záštita – MŽP (dokument)",
         subtitle: "Náhled dokumentu záštity (sken).",
         imgUrl:
           "https://fb18f7b042.clvaw-cdnwnd.com/672ddf20a524990e3e51b0287606f721/200000256-b95eab95ec/za%CC%81s%CC%8Ctita%20-%20ARCHIMEDES_Stra%CC%81nka_2.jpeg?ph=fb18f7b042",
       },
       {
-        key: "zastita-mmr",
-        title: "Záštita – Ministerstvo pro místní rozvoj (MMR)",
+        key: "mmr",
+        title: "Záštita – MMR (dokument)",
         subtitle: "Náhled dokumentu záštity (sken).",
         imgUrl:
           "https://fb18f7b042.clvaw-cdnwnd.com/672ddf20a524990e3e51b0287606f721/200000260-cf481cf483/IMG_9784.jpeg?ph=fb18f7b042",
       },
       {
-        key: "award-eon",
+        key: "eon",
         title: "Finalista E.ON Energy Globe",
-        subtitle: "Síť učeben Archimedes – stránka E.ON (minulé ročníky / finalista).",
+        subtitle: "Odkaz na stránku E.ON Energy Globe (minulé ročníky).",
         href: "https://www.eon.cz/energy-globe/minule-rocniky/sit-energeticky-sobestacnych-uceben-archimedes/",
       },
       {
-        key: "award-cbc",
+        key: "cbc",
         title: "Creative Business Cup – Miláček publika",
-        subtitle: "Zmínka v komunikaci CzechInvest k národnímu finále CBC 2023.",
+        subtitle: "Zmínka CzechInvest (národní finále Creative Business Cup).",
         href: "https://www.facebook.com/CzechInvest/posts/601127312058741/",
       },
       {
-        key: "unesco-gep",
+        key: "unesco",
         title: "Greening Education Partnership (UNESCO)",
-        subtitle: "Iniciativa UNESCO + zmínka o členství na webu projektu.",
+        subtitle: "Základní odkaz na informace (a zmínka na vašem webu).",
         href: "https://www.archimedes-net.com/",
       },
     ],
     []
   );
 
-  const personas = useMemo(
+  const featureCards = useMemo(
     () => [
       {
-        title: "Ředitel školy",
-        badge: "Iniciátor",
-        points: [
-          "Hotový měsíční program do výuky (živé vstupy + materiály).",
-          "Učitelé šetří čas, děti získají kontakt s praxí.",
-          "Když se třída nepřipojí živě, pomůže neveřejný archiv.",
-        ],
-        cta: { label: "Chci ukázkovou hodinu", href: "/poptavka" },
+        title: "Inspirativní hosté",
+        text: "Děti potkají lidi z praxe. Krátce, srozumitelně, interaktivně.",
+        img:
+          "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1400&q=80",
       },
       {
-        title: "Starosta / obec",
-        badge: "Často plátce",
-        points: [
-          "Program není jen pro školu – má i komunitní rozměr.",
-          "Prestiž a konkrétní přínos pro obyvatele (děti, rodiče, senioři).",
-          "Síť učeben zvyšuje atraktivitu obce a podporuje spolupráci.",
-        ],
-        cta: { label: "Prohlédnout přínosy pro obec", href: "/program" },
+        title: "Pracovní listy",
+        text: "Hotové materiály šetří učitelům čas. Hodina má jasný scénář.",
+        img:
+          "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1400&q=80",
       },
-    ],
-    []
-  );
-
-  const steps = useMemo(
-    () => [
-      { n: "1", t: "Vyberete událost", d: "V kalendáři programu uvidíte přehled, téma a cílovku." },
-      { n: "2", t: "Živý vstup s hostem", d: "Online (Google Meet) – krátké, svižné, srozumitelné." },
-      { n: "3", t: "Pracovní list", d: "Navazující aktivita a upevnění učiva – připravené materiály." },
-    ],
-    []
-  );
-
-  const programPreview = useMemo(
-    () => [
-      { when: "Týden 1", what: "Živý vstup pro 1. stupeň + pracovní list" },
-      { when: "Týden 2", what: "Živý vstup pro 2. stupeň + pracovní list" },
-      { when: "Týden 3", what: "Komunitní vstup (např. senior / rodiče / wellbeing)" },
-      { when: "Týden 4", what: "Záznamy + inspirace + doplňkové materiály" },
-    ],
-    []
-  );
-
-  const benefitCards = useMemo(
-    () => [
-      { t: "Pro školu", d: "Kvalitní program do výuky bez složité přípravy. Živé vstupy a materiály." },
-      { t: "Pro obec", d: "Smysluplný obsah i pro komunitu. Prestiž a moderní podpora vzdělávání." },
-      { t: "Pro učitele", d: "Pracovní listy a scénáře. Méně stresu, více výsledků." },
-      { t: "Pro děti", d: "Zážitková výuka a kontakt s reálným světem. Motivace a zvídavost." },
+      {
+        title: "Živé vysílání",
+        text: "Google Meet – jednoduché připojení. Program je živý, ne pasivní.",
+        img:
+          "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&w=1400&q=80",
+      },
     ],
     []
   );
 
   return (
     <div style={{ fontFamily: "system-ui", background: "#f6f7fb", minHeight: "100vh" }}>
-      {/* Hlavičku řeší pages/_app.js (PublicHeader) */}
+      {/* PublicHeader řeší pages/_app.js */}
 
-      {/* HERO */}
-      <div style={{ maxWidth: MAX_WIDTH, margin: "0 auto", padding: "78px 16px 42px" }}>
+      {/* HERO with real visual */}
+      <div style={{ padding: "26px 16px 0" }}>
         <div
           style={{
-            display: "inline-flex",
-            gap: 10,
-            alignItems: "center",
-            padding: "8px 12px",
-            borderRadius: 999,
+            maxWidth: MAX_WIDTH,
+            margin: "0 auto",
+            borderRadius: 22,
+            overflow: "hidden",
             border: "1px solid rgba(0,0,0,0.08)",
-            background: "rgba(255,255,255,0.88)",
-            boxShadow: "0 12px 28px rgba(0,0,0,0.05)",
-            marginBottom: 18,
+            boxShadow: "0 24px 70px rgba(0,0,0,0.10)",
+            background: "white",
           }}
         >
-          <span style={{ width: 10, height: 10, borderRadius: 99, background: "#22c55e" }} />
-          <span style={{ fontSize: 13, opacity: 0.78 }}>
-            ARCHIMEDES Live = živý vzdělávací program (ne technologie)
-          </span>
-        </div>
+          <div style={{ position: "relative" }}>
+            <img
+              src={HERO_IMAGE}
+              alt="ARCHIMEDES Live – ukázka výuky"
+              style={{ width: "100%", height: "auto", display: "block" }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(90deg, rgba(0,0,0,0.58) 0%, rgba(0,0,0,0.40) 45%, rgba(0,0,0,0.10) 100%)",
+              }}
+            />
+            <div style={{ position: "absolute", inset: 0, padding: 22, display: "flex", alignItems: "flex-end" }}>
+              <div style={{ maxWidth: 760 }}>
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "8px 12px",
+                    borderRadius: 999,
+                    background: "rgba(255,255,255,0.14)",
+                    border: "1px solid rgba(255,255,255,0.22)",
+                    color: "white",
+                    fontSize: 13,
+                    fontWeight: 800,
+                    marginBottom: 12,
+                  }}
+                >
+                  <span style={{ width: 10, height: 10, borderRadius: 99, background: "#22c55e" }} />
+                  Živý vzdělávací program pro školy a obce (ne software)
+                </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 18, alignItems: "start" }}>
-          <div style={{ gridColumn: "span 7" }}>
-            <h1 style={{ fontSize: 50, lineHeight: 1.05, margin: 0, letterSpacing: -0.35 }}>
-              Živý program pro školy
-              <br />
-              a komunitu obce
-            </h1>
+                <h1
+                  style={{
+                    margin: 0,
+                    color: "white",
+                    fontSize: 52,
+                    lineHeight: 1.05,
+                    letterSpacing: -0.4,
+                    textShadow: "0 10px 40px rgba(0,0,0,0.35)",
+                  }}
+                >
+                  ARCHIMEDES Live
+                </h1>
+                <p
+                  style={{
+                    margin: "12px 0 0",
+                    color: "rgba(255,255,255,0.92)",
+                    fontSize: 18,
+                    lineHeight: 1.65,
+                    maxWidth: 680,
+                    textShadow: "0 10px 40px rgba(0,0,0,0.30)",
+                  }}
+                >
+                  Každý měsíc hotový obsah: <b>živé vstupy s hosty</b>, <b>pracovní listy</b>, komunitní program a
+                  neveřejný archiv pro předplatitele.
+                </p>
 
-            <p style={{ fontSize: 18, lineHeight: 1.7, opacity: 0.8, marginTop: 16, maxWidth: 780 }}>
-              Každý měsíc hotový obsah: <b>živé vstupy s hosty</b>, <b>pracovní listy</b> a{" "}
-              <b>komunitní program</b>. Jednoduše v kalendáři. Když to nejde živě, pomůže{" "}
-              <b>neveřejný archiv pro předplatitele</b>.
-            </p>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 16 }}>
+                  <Link
+                    href="/poptavka"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 10,
+                      padding: "12px 14px",
+                      borderRadius: 14,
+                      textDecoration: "none",
+                      fontWeight: 900,
+                      border: "1px solid rgba(255,255,255,0.24)",
+                      background: "rgba(0,0,0,0.35)",
+                      color: "white",
+                      boxShadow: "0 18px 50px rgba(0,0,0,0.30)",
+                      backdropFilter: "blur(6px)",
+                    }}
+                  >
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                      <span
+                        aria-hidden
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: 999,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: "rgba(255,255,255,0.14)",
+                          border: "1px solid rgba(255,255,255,0.22)",
+                        }}
+                      >
+                        ▶
+                      </span>
+                      Podívat se na ukázkovou hodinu
+                    </span>
+                  </Link>
 
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
-              <ButtonLink href="/poptavka" label="Chci ukázkovou hodinu" variant="primary" />
-              <ButtonLink href="/program" label="Prohlédnout program" variant="secondary" />
-              <ButtonLink href="/cenik" label="Ceník" variant="secondary" />
-            </div>
+                  <Link
+                    href="/program"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 10,
+                      padding: "12px 14px",
+                      borderRadius: 14,
+                      textDecoration: "none",
+                      fontWeight: 900,
+                      border: "1px solid rgba(255,255,255,0.24)",
+                      background: "rgba(255,255,255,0.14)",
+                      color: "white",
+                      backdropFilter: "blur(6px)",
+                    }}
+                  >
+                    Prohlédnout program →
+                  </Link>
+                </div>
 
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 18 }}>
-              <Pill text="1 třída → 1 živý vstup → 1 pracovní list" />
-              <Pill text="Ředitel iniciuje • starosta často platí" />
-              <Pill text="Síť učeben + online program" />
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+                  <span style={{ color: "rgba(255,255,255,0.88)", fontSize: 13, fontWeight: 850 }}>
+                    Záštity a ocenění:
+                  </span>
+                  {trustRow.map((x) => (
+                    <span
+                      key={x}
+                      style={{
+                        color: "rgba(255,255,255,0.92)",
+                        fontSize: 13,
+                        fontWeight: 800,
+                        padding: "6px 10px",
+                        borderRadius: 999,
+                        background: "rgba(255,255,255,0.14)",
+                        border: "1px solid rgba(255,255,255,0.18)",
+                      }}
+                    >
+                      {x}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          <div style={{ gridColumn: "span 5" }}>
-            <Card>
-              <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 8 }}>Rychlý přehled přínosů</div>
-              <div style={{ display: "grid", gap: 10 }}>
-                {benefitCards.map((b) => (
-                  <div
-                    key={b.t}
-                    style={{
-                      padding: 12,
-                      borderRadius: 16,
-                      border: "1px solid rgba(0,0,0,0.08)",
-                      background: "rgba(0,0,0,0.02)",
-                    }}
-                  >
-                    <div style={{ fontWeight: 850 }}>{b.t}</div>
-                    <div style={{ marginTop: 6, opacity: 0.78, lineHeight: 1.55 }}>{b.d}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <a href="#duvera" style={{ textDecoration: "none", fontWeight: 800, opacity: 0.85 }}>
-                  Důvěra a podklady ↓
-                </a>
-                <span style={{ opacity: 0.35 }}>•</span>
-                <a href="#hodina" style={{ textDecoration: "none", fontWeight: 800, opacity: 0.85 }}>
-                  Jak vypadá hodina ↓
-                </a>
-              </div>
-            </Card>
+          {/* Below-hero quick row */}
+          <div style={{ padding: "14px 18px", display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+            {trustBadges.map((t) => (
+              <Pill key={t}>{t}</Pill>
+            ))}
+            <div style={{ marginLeft: "auto" }}>
+              <SoftButton onClick={() => setProofOpen(true)}>Zobrazit podklady</SoftButton>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* DŮVĚRA */}
-      <Section
-        id="duvera"
-        eyebrow="Důvěra"
-        title="Záštity, ocenění a členství, které zvyšují důvěryhodnost"
-        subtitle="Krátké „důkazy“ pro ředitele i starostu. Na webu uvidíte jen shrnutí, detaily jsou po kliknutí."
-      >
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
-          <div style={{ gridColumn: "span 7" }}>
-            <Card>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
-                <div style={{ fontSize: 16, fontWeight: 900 }}>Rychlé důvody důvěry</div>
-                <div style={{ opacity: 0.65, fontSize: 13 }}>bez „marketingové omáčky“</div>
-              </div>
-
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
-                {trustBadges.map((t) => (
-                  <Pill key={t} text={t} />
-                ))}
-              </div>
-
-              <div style={{ marginTop: 14, opacity: 0.75, lineHeight: 1.6, fontSize: 15 }}>
-                Podklady (záštity + ocenění + členství) držíme přehledně na jednom místě.
-              </div>
-
-              <div style={{ marginTop: 12 }}>
-                <SoftButton onClick={() => setProofOpen(true)} label="Zobrazit podklady" />
-              </div>
-            </Card>
-          </div>
-
-          <div style={{ gridColumn: "span 5" }}>
-            <Card>
-              <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 10 }}>Nejrychlejší cesta k rozhodnutí</div>
-
-              <div style={{ display: "grid", gap: 10 }}>
-                {[
-                  { n: "1", t: "Ukázková hodina", d: "Uvidíte reálný průběh a přínos pro školu i obec." },
-                  { n: "2", t: "Volba varianty", d: "Nastavíme podle školy a obce (jednoduše)." },
-                  { n: "3", t: "Přístup do programu", d: "Kalendář + materiály + neveřejný archiv pro předplatitele." },
-                ].map((x) => (
-                  <div key={x.n} style={{ display: "flex", gap: 10 }}>
-                    <div
-                      style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: 10,
-                        background: x.n === "1" ? "rgba(0,0,0,0.92)" : "rgba(0,0,0,0.06)",
-                        color: x.n === "1" ? "white" : "rgba(0,0,0,0.9)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 900,
-                      }}
-                    >
-                      {x.n}
-                    </div>
-                    <div style={{ lineHeight: 1.45 }}>
-                      <b>{x.t}</b>
-                      <div style={{ opacity: 0.75, marginTop: 2 }}>{x.d}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ marginTop: 14 }}>
-                <ButtonLink href="/poptavka" label="Domluvit ukázkovou hodinu" variant="primary" />
-              </div>
-            </Card>
-          </div>
-        </div>
-
-        <Modal
-          open={proofOpen}
-          onClose={() => setProofOpen(false)}
-          title="Podklady: záštity, ocenění a členství"
-          subtitle="Náhledy dokumentů a odkazy na veřejné zdroje. Na homepage zůstává jen stručné shrnutí."
-        >
-          <ProofGrid items={proofItems} />
-          <div style={{ marginTop: 12, opacity: 0.7, fontSize: 12, lineHeight: 1.6 }}>
-            Pozn.: Texty na homepage jsou záměrně stručné a věcné. Neuvádíme časové období.
-          </div>
-        </Modal>
-      </Section>
-
-      {/* PRO KOHO */}
-      <Section
-        id="pro-koho"
-        eyebrow="Pro koho to je"
-        title="Dává to smysl škole i obci"
-        subtitle="Ředitel řeší kvalitu výuky. Starosta řeší přínos pro komunitu. ARCHIMEDES Live spojuje obojí do jednoho programu."
-      >
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
-          {personas.map((p) => (
-            <div key={p.title} style={{ gridColumn: "span 6" }}>
-              <Card>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                  <div style={{ fontWeight: 950, fontSize: 18 }}>{p.title}</div>
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 900,
-                      padding: "7px 10px",
-                      borderRadius: 999,
-                      border: "1px solid rgba(0,0,0,0.10)",
-                      background: "rgba(0,0,0,0.03)",
-                      opacity: 0.85,
-                    }}
-                  >
-                    {p.badge}
-                  </span>
-                </div>
-
-                <ul style={{ margin: "12px 0 0", paddingLeft: 18, lineHeight: 1.75, opacity: 0.82 }}>
-                  {p.points.map((x) => (
-                    <li key={x}>{x}</li>
-                  ))}
-                </ul>
-
-                <div style={{ marginTop: 14 }}>
-                  <ButtonLink href={p.cta.href} label={p.cta.label} variant="secondary" />
-                </div>
-              </Card>
+      {/* Trust strip (logos as text placeholders) */}
+      <div style={{ padding: "24px 16px 0" }}>
+        <div style={{ maxWidth: MAX_WIDTH, margin: "0 auto" }}>
+          <Card>
+            <div style={{ fontWeight: 950, fontSize: 16, marginBottom: 12 }}>Záštity a ocenění</div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {trustRow.map((x) => (
+                <TrustLogo key={x} label={x} />
+              ))}
             </div>
-          ))}
+            <div style={{ marginTop: 10, opacity: 0.72, lineHeight: 1.6 }}>
+              Na homepage uvádíme stručné shrnutí. Detailní podklady jsou po kliknutí.
+            </div>
+          </Card>
         </div>
-      </Section>
+      </div>
 
-      {/* JAK FUNGUJE HODINA */}
+      {/* Video / hour demo */}
       <Section
         id="hodina"
-        eyebrow="Jak to funguje"
-        title="Jedna hodina v praxi"
-        subtitle="Jednoduché a opakovatelné: třída → živý vstup → pracovní list. Bez složitostí."
+        title="Jak vypadá jedna hodina"
+        subtitle="Tady bude krátká ukázka (20–40 s). Fotky a video můžeme kdykoliv vyměnit — teď jde o reálný vizuál stránky."
       >
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
-          {steps.map((s) => (
-            <div key={s.n} style={{ gridColumn: "span 4" }}>
-              <Card>
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                  <div
+        <div
+          style={{
+            backgroundImage: `url(${SECTION_BG_IMAGE})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            borderRadius: 22,
+            border: "1px solid rgba(0,0,0,0.08)",
+            overflow: "hidden",
+            boxShadow: "0 18px 55px rgba(0,0,0,0.10)",
+          }}
+        >
+          <div
+            style={{
+              padding: 18,
+              background: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.18) 70%, rgba(0,0,0,0.05) 100%)",
+            }}
+          >
+            <div style={{ maxWidth: 980, margin: "0 auto" }}>
+              <div style={{ borderRadius: 18, overflow: "hidden", border: "1px solid rgba(255,255,255,0.18)" }}>
+                <div style={{ position: "relative", paddingTop: "56.25%", background: "rgba(0,0,0,0.25)" }}>
+                  <iframe
+                    title="Ukázková hodina ARCHIMEDES Live"
+                    src={DEMO_VIDEO_EMBED}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
                     style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 12,
-                      background: "rgba(0,0,0,0.92)",
-                      color: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 950,
+                      position: "absolute",
+                      inset: 0,
+                      width: "100%",
+                      height: "100%",
+                      border: 0,
                     }}
-                  >
-                    {s.n}
-                  </div>
-                  <div style={{ fontWeight: 950, fontSize: 16 }}>{s.t}</div>
+                  />
                 </div>
-                <div style={{ marginTop: 10, opacity: 0.78, lineHeight: 1.6 }}>{s.d}</div>
-              </Card>
-            </div>
-          ))}
-        </div>
+              </div>
 
-        <div style={{ marginTop: 16, display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <ButtonLink href="/poptavka" label="Chci ukázku" variant="primary" />
-          <ButtonLink href="/program" label="Podívat se na program" variant="secondary" />
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 14 }}>
+                <ButtonLink href="/program" variant="primary">
+                  Více o programu
+                </ButtonLink>
+                <ButtonLink href="/poptavka" variant="secondary">
+                  Chci ukázkovou hodinu
+                </ButtonLink>
+              </div>
+            </div>
+          </div>
         </div>
       </Section>
 
-      {/* HOSTÉ */}
+      {/* Feature cards with real images */}
       <Section
-        id="hoste"
-        eyebrow="Hosté"
-        title="Obsah stojí na lidech z praxe"
-        subtitle="Hosté jsou to, co děti vtáhne. Škola získá kvalitní výuku a obec atraktivní komunitní program."
+        id="features"
+        title="Síť učeben ARCHIMEDES"
+        subtitle="Spojení fyzických učeben a živého programu je vaše největší konkurenční výhoda. Níže je reálný vizuální styl (fotky později vyměníme za vaše)."
       >
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
-          {[
-            { t: "Inspirativní hosté", d: "věda • kultura • řemesla • bezpečnost • wellbeing" },
-            { t: "Odborníci z praxe", d: "krátké a srozumitelné vstupy do výuky" },
-            { t: "Osobnosti pro komunitu", d: "program i pro dospělé a seniory v obci" },
-          ].map((x) => (
-            <div key={x.t} style={{ gridColumn: "span 4" }}>
-              <Card>
-                <div style={{ fontWeight: 950, fontSize: 16 }}>{x.t}</div>
-                <div style={{ marginTop: 8, opacity: 0.78, lineHeight: 1.6 }}>{x.d}</div>
-                <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <Pill text="živě" />
-                  <Pill text="srozumitelně" />
-                  <Pill text="do praxe" />
+          {featureCards.map((c) => (
+            <div key={c.title} style={{ gridColumn: "span 4" }}>
+              <div
+                style={{
+                  borderRadius: 18,
+                  overflow: "hidden",
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  background: "white",
+                  boxShadow: "0 14px 40px rgba(0,0,0,0.06)",
+                }}
+              >
+                <img src={c.img} alt={c.title} style={{ width: "100%", height: 190, objectFit: "cover", display: "block" }} />
+                <div style={{ padding: 14 }}>
+                  <div style={{ fontWeight: 950, fontSize: 16 }}>{c.title}</div>
+                  <div style={{ marginTop: 8, opacity: 0.78, lineHeight: 1.6 }}>{c.text}</div>
                 </div>
-              </Card>
+              </div>
             </div>
           ))}
         </div>
-
-        <div style={{ marginTop: 16, opacity: 0.75 }}>
-          Tady můžeme později doplnit konkrétní jména hostů (6–12) – výrazně to zvedne konverzi.
-        </div>
       </Section>
 
-      {/* PROGRAM */}
+      {/* Map + community collage */}
       <Section
-        id="program"
-        eyebrow="Program"
-        title="Kalendář programu"
-        subtitle="Přehledný jako program – ale je to živé vzdělávání a komunitní obsah."
+        id="sit"
+        title="Mapa učeben a škol"
+        subtitle="V portálu už máte reálnou mapu (/portal/skoly). Na veřejné homepage stačí atraktivní teaser + CTA."
       >
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
           <div style={{ gridColumn: "span 7" }}>
             <Card>
-              <div style={{ fontWeight: 950, marginBottom: 10 }}>Ukázka měsíčního rytmu</div>
-              <div style={{ display: "grid", gap: 10 }}>
-                {programPreview.map((x) => (
-                  <div
-                    key={x.when}
-                    style={{
-                      display: "flex",
-                      gap: 12,
-                      alignItems: "baseline",
-                      padding: 12,
-                      borderRadius: 16,
-                      border: "1px solid rgba(0,0,0,0.08)",
-                      background: "rgba(0,0,0,0.02)",
-                    }}
-                  >
-                    <div style={{ width: 80, fontWeight: 950 }}>{x.when}</div>
-                    <div style={{ opacity: 0.86 }}>{x.what}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontWeight: 950, fontSize: 16 }}>Síť učeben v ČR</div>
+                  <div style={{ marginTop: 6, opacity: 0.78, lineHeight: 1.6 }}>
+                    Ukázka vizuálu: na veřejné části jen teaser a odkaz do portálu.
                   </div>
-                ))}
+                </div>
+                <ButtonLink href="/portal/skoly" variant="primary">
+                  Zobrazit mapu
+                </ButtonLink>
               </div>
 
-              <div style={{ marginTop: 14, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <ButtonLink href="/program" label="Prohlédnout program" variant="primary" />
-                <ButtonLink href="/cenik" label="Ceník" variant="secondary" />
+              <div
+                style={{
+                  marginTop: 14,
+                  borderRadius: 18,
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  overflow: "hidden",
+                  background: "rgba(0,0,0,0.02)",
+                }}
+              >
+                <img
+                  alt="Mapa – teaser"
+                  src="https://images.unsplash.com/photo-1526779259212-939e64788e3c?auto=format&fit=crop&w=2400&q=80"
+                  style={{ width: "100%", height: 300, objectFit: "cover", display: "block" }}
+                />
+              </div>
+
+              <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                {["Hodonín", "Křenov", "Ostrava", "Praha (příprava)"].map((x) => (
+                  <Pill key={x}>{x}</Pill>
+                ))}
               </div>
             </Card>
           </div>
 
           <div style={{ gridColumn: "span 5" }}>
             <Card>
-              <div style={{ fontWeight: 950, marginBottom: 10 }}>Co získáte</div>
-              <div style={{ display: "grid", gap: 10 }}>
-                {benefitCards.map((b) => (
-                  <div key={b.t} style={{ padding: 12, borderRadius: 16, border: "1px solid rgba(0,0,0,0.08)" }}>
-                    <div style={{ fontWeight: 900 }}>{b.t}</div>
-                    <div style={{ marginTop: 6, opacity: 0.78, lineHeight: 1.55 }}>{b.d}</div>
+              <div style={{ fontWeight: 950, fontSize: 16 }}>Komunita</div>
+              <div style={{ marginTop: 6, opacity: 0.78, lineHeight: 1.6 }}>
+                Program není jen pro školu. Obec získá obsah i pro dospělé, seniory a spolky.
+              </div>
+
+              <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+                {[
+                  {
+                    t: "Škola",
+                    d: "Živé vstupy + pracovní listy + archiv.",
+                  },
+                  {
+                    t: "Obec",
+                    d: "Komunitní program a prestiž (síť učeben).",
+                  },
+                  {
+                    t: "Rodiny a senioři",
+                    d: "Vybrané komunitní programy a setkávání.",
+                  },
+                ].map((x) => (
+                  <div key={x.t} style={{ padding: 12, borderRadius: 16, border: "1px solid rgba(0,0,0,0.08)" }}>
+                    <div style={{ fontWeight: 900 }}>{x.t}</div>
+                    <div style={{ marginTop: 6, opacity: 0.78, lineHeight: 1.55 }}>{x.d}</div>
                   </div>
                 ))}
               </div>
@@ -781,184 +752,64 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ARCHIV */}
-      <Section
-        id="archiv"
-        eyebrow="Archiv"
-        title="Záznamy pro předplatitele"
-        subtitle="Když se třída nemůže připojit živě, obsah nezmizí – máte k dispozici neveřejný archiv."
-      >
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
-          <div style={{ gridColumn: "span 6" }}>
-            <Card>
-              <div style={{ fontWeight: 950, marginBottom: 8 }}>Proč je archiv důležitý</div>
-              <ul style={{ margin: 0, paddingLeft: 18, opacity: 0.8, lineHeight: 1.75 }}>
-                <li>Škola nepřijde o obsah při změně rozvrhu</li>
-                <li>Učitel může udělat druhou hodinu podle potřeby</li>
-                <li>Vybrané komunitní vstupy mohou využít i obyvatelé obce</li>
-              </ul>
-            </Card>
-          </div>
-          <div style={{ gridColumn: "span 6" }}>
-            <Card>
-              <div style={{ fontWeight: 950, marginBottom: 8 }}>Jak to funguje</div>
-              <div style={{ opacity: 0.78, lineHeight: 1.6 }}>
-                Archiv je dostupný po přihlášení v portálu. Navenek ukazujeme program a princip, záznamy jsou neveřejné.
-              </div>
-              <div style={{ marginTop: 14 }}>
-                <ButtonLink href="/portal" label="Vstoupit do portálu" variant="secondary" />
-              </div>
-            </Card>
-          </div>
-        </div>
-      </Section>
-
-      {/* PRACOVNÍ LISTY */}
-      <Section
-        id="pracovni-listy"
-        eyebrow="Pracovní listy"
-        title="Materiály, které učiteli šetří čas"
-        subtitle="Ke vstupům dodáváme pracovní listy a navazující aktivity. Učitel má v ruce hotový scénář."
-      >
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
-          {[
-            { t: "Hotové a použitelné", d: "Vhodné pro běžnou hodinu i suplování. Přehledné a srozumitelné." },
-            { t: "Navazuje na živý vstup", d: "Děti si upevní učivo a přenesou ho do praxe." },
-            { t: "Lze archivovat", d: "Škola si tvoří vlastní banku materiálů podle ročníků." },
-          ].map((x) => (
-            <div key={x.t} style={{ gridColumn: "span 4" }}>
-              <Card>
-                <div style={{ fontWeight: 950 }}>{x.t}</div>
-                <div style={{ marginTop: 8, opacity: 0.78, lineHeight: 1.6 }}>{x.d}</div>
-              </Card>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* MAPA / SÍŤ UČEBEN */}
-      <Section
-        id="sit-uceben"
-        eyebrow="Síť učeben"
-        title="Mapa učeben a škol v síti ARCHIMEDES"
-        subtitle="Unikátní prvek: propojení fyzických míst s online programem. Dává to důvěru i komunitní rozměr."
-      >
-        <Card>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontWeight: 950, fontSize: 16 }}>Síť učeben / škol</div>
-              <div style={{ opacity: 0.78, marginTop: 6, lineHeight: 1.6 }}>
-                V portálu už máte mapu a databázi škol. Na homepage stačí přehled + odkaz do detailu.
-              </div>
-            </div>
-            <ButtonLink href="/portal/skoly" label="Zobrazit mapu učeben" variant="primary" />
-          </div>
-
-          <div
-            style={{
-              marginTop: 14,
-              borderRadius: 18,
-              border: "1px dashed rgba(0,0,0,0.18)",
-              background: "rgba(0,0,0,0.02)",
-              padding: 16,
-              opacity: 0.86,
-              lineHeight: 1.6,
-            }}
-          >
-            Později sem můžeme dát preview (3 školy jako karty) nebo statický náhled mapy.
-          </div>
-        </Card>
-      </Section>
-
-      {/* KOMUNITA */}
-      <Section
-        id="komunita"
-        eyebrow="Komunita"
-        title="Program není jen pro školu"
-        subtitle="Obec získá obsah i pro dospělé, seniory a spolky. To je klíčový rozdíl proti čistě školním řešením."
-      >
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
-          <div style={{ gridColumn: "span 6" }}>
-            <Card>
-              <div style={{ fontWeight: 950, marginBottom: 8 }}>Co může obec využít</div>
-              <ul style={{ margin: 0, paddingLeft: 18, opacity: 0.8, lineHeight: 1.75 }}>
-                <li>komunitní online programy (např. senior / rodiče / wellbeing)</li>
-                <li>propojení spolků a místních aktérů</li>
-                <li>síť škol a učeben jako „dobrá praxe“</li>
-              </ul>
-            </Card>
-          </div>
-          <div style={{ gridColumn: "span 6" }}>
-            <Card>
-              <div style={{ fontWeight: 950, marginBottom: 8 }}>Propojení generací</div>
-              <div style={{ opacity: 0.78, lineHeight: 1.6 }}>
-                Jedním předplatným může obec podpořit školu a zároveň nabídnout program i veřejnosti. Vzniká přirozený
-                komunitní efekt – a to je pro starostu silný argument.
-              </div>
-            </Card>
-          </div>
-        </div>
-      </Section>
-
-      {/* FINANCOVÁNÍ */}
+      {/* Financing (light, non-technical) */}
       <Section
         id="financovani"
-        eyebrow="Financování"
-        title="Jak to obvykle školy a obce financují"
-        subtitle="Jednoduchá, srozumitelná formulace. Detailní argumentaci můžeme dát na samostatnou stránku."
+        title="Financování"
+        subtitle="Jednoduchá logika: ředitel řeší obsah pro školu, starosta přínos pro komunitu. V praxi se financování často kombinuje."
       >
         <Card>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
             <div style={{ gridColumn: "span 7" }}>
-              <div style={{ fontWeight: 950, fontSize: 16 }}>Základní logika pro rozhodování</div>
-              <div style={{ marginTop: 10, opacity: 0.8, lineHeight: 1.7 }}>
-                <ul style={{ margin: 0, paddingLeft: 18 }}>
-                  <li>Ředitel řeší přínos pro výuku a učitele (program + materiály).</li>
-                  <li>Starosta řeší přínos pro komunitu (obsah pro obec + prestiž + síť učeben).</li>
-                  <li>Financování často kombinuje školní a obecní rozpočet (podle domluvy v obci).</li>
-                </ul>
-              </div>
+              <div style={{ fontWeight: 950, fontSize: 16 }}>Jak se obvykle rozhoduje</div>
+              <ul style={{ margin: "10px 0 0", paddingLeft: 18, opacity: 0.82, lineHeight: 1.8 }}>
+                <li>Ředitel: přínos do výuky a ulehčení práce učitelům.</li>
+                <li>Starosta: přínos pro komunitu obce a prestiž.</li>
+                <li>Společně: rychlá ukázková hodina → jasné rozhodnutí.</li>
+              </ul>
             </div>
             <div style={{ gridColumn: "span 5" }}>
-              <div style={{ fontWeight: 950, fontSize: 16 }}>Chci to vysvětlit konkrétně</div>
-              <div style={{ marginTop: 10, opacity: 0.8, lineHeight: 1.7 }}>
-                Připravíme krátký call a ukážeme nejčastější modely financování (včetně variant pro školy a obce).
+              <div style={{ fontWeight: 950, fontSize: 16 }}>Chci to vidět naživo</div>
+              <div style={{ marginTop: 10, opacity: 0.82, lineHeight: 1.7 }}>
+                Domluvíme ukázkovou hodinu. Ukážeme program, materiály a jak to zapojit do školy i obce.
               </div>
               <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <ButtonLink href="/poptavka" label="Domluvit konzultaci" variant="primary" />
-                <ButtonLink href="/cenik" label="Ceník" variant="secondary" />
+                <ButtonLink href="/poptavka" variant="primary">
+                  Domluvit ukázku
+                </ButtonLink>
+                <ButtonLink href="/cenik" variant="secondary">
+                  Ceník
+                </ButtonLink>
               </div>
             </div>
           </div>
         </Card>
       </Section>
 
-      {/* CTA – DARK */}
+      {/* Final CTA */}
       <Section
         id="cta"
         tone="dark"
-        eyebrow="Další krok"
         title="Chcete ukázkovou hodinu?"
-        subtitle="Nejrychlejší způsob, jak to uchopit: ukážeme jednu reálnou hodinu, a hned bude jasno, jak to zapadne do školy i obce."
+        subtitle="Nejrychlejší způsob, jak to pochopit i rozhodnout: jedna ukázka a máte jasno."
       >
         <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 14 }}>
           <div style={{ gridColumn: "span 7" }}>
             <Card tone="dark">
               <div style={{ fontWeight: 950, fontSize: 16 }}>Co vám ukážeme</div>
-              <ul style={{ margin: "10px 0 0", paddingLeft: 18, opacity: 0.92, lineHeight: 1.8 }}>
-                <li>jak vypadá živý vstup s hostem</li>
-                <li>jak funguje kalendář programu</li>
-                <li>jak vypadá pracovní list a návaznost</li>
-                <li>jak se do toho zapojí obec a komunita</li>
+              <ul style={{ margin: "10px 0 0", paddingLeft: 18, opacity: 0.92, lineHeight: 1.85 }}>
+                <li>živý vstup s hostem</li>
+                <li>kalendář programu</li>
+                <li>pracovní list a návaznost</li>
+                <li>síť učeben a komunitní rozměr</li>
               </ul>
             </Card>
           </div>
-
           <div style={{ gridColumn: "span 5" }}>
             <Card tone="dark">
               <div style={{ fontWeight: 950, fontSize: 16 }}>Domluvit ukázku</div>
               <div style={{ marginTop: 10, opacity: 0.92, lineHeight: 1.7 }}>
-                Stačí nám napsat. Ozveme se a nastavíme nejvhodnější variantu pro vaši školu a obec.
+                Napište nám. Ozveme se a vybereme variantu pro vaši školu a obec.
               </div>
               <div style={{ marginTop: 14 }}>
                 <Link
@@ -972,7 +823,7 @@ export default function Home() {
                     padding: "12px 14px",
                     borderRadius: 14,
                     textDecoration: "none",
-                    fontWeight: 850,
+                    fontWeight: 900,
                     border: "1px solid rgba(255,255,255,0.18)",
                     background: "rgba(255,255,255,0.10)",
                     color: "white",
@@ -981,19 +832,32 @@ export default function Home() {
                   <span>Chci ukázkovou hodinu</span>
                   <span aria-hidden>→</span>
                 </Link>
-
-                <div style={{ marginTop: 10, fontSize: 13, opacity: 0.75 }}>
-                  Pozn.: V textu nepoužíváme „televize“ – vždy „živý program / živé vstupy“.
-                </div>
+              </div>
+              <div style={{ marginTop: 10, fontSize: 12.5, opacity: 0.75, lineHeight: 1.6 }}>
+                Pozn.: říkáme „živý program / živé vstupy“, ne „televize“.
               </div>
             </Card>
           </div>
         </div>
 
-        <div style={{ textAlign: "center", marginTop: 28, opacity: 0.65, fontSize: 13 }}>
+        <div style={{ textAlign: "center", marginTop: 26, opacity: 0.65, fontSize: 13 }}>
           © {new Date().getFullYear()} ARCHIMEDES Live
         </div>
       </Section>
+
+      {/* Proof modal */}
+      <Modal
+        open={proofOpen}
+        onClose={() => setProofOpen(false)}
+        title="Podklady: záštity, ocenění a členství"
+        subtitle="Detaily pro důvěryhodnost (dokumenty + odkazy). Fotky a video na homepage můžete kdykoliv vyměnit."
+      >
+        <div style={{ display: "grid", gap: 14 }}>
+          {proofItems.map((it) => (
+            <ProofItem key={it.key} title={it.title} subtitle={it.subtitle} imgUrl={it.imgUrl} href={it.href} />
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 }
