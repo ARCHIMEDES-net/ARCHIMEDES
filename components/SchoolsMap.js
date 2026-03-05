@@ -1,8 +1,8 @@
 // components/SchoolsMap.js
 import { useEffect, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 // Oprava ikon (Leaflet v bundlerech často nenajde default assety)
 const DefaultIcon = L.icon({
@@ -24,7 +24,6 @@ function FitBounds({ items }) {
     const pts = (items || [])
       .filter((r) => typeof r.lat === "number" && typeof r.lng === "number")
       .map((r) => [r.lat, r.lng]);
-
     if (pts.length === 0) return null;
     return L.latLngBounds(pts);
   }, [items]);
@@ -42,10 +41,7 @@ function FitBounds({ items }) {
       return;
     }
 
-    map.fitBounds(bounds, {
-      padding: [24, 24],
-      animate: false,
-    });
+    map.fitBounds(bounds, { padding: [24, 24], animate: false });
   }, [bounds, items, map]);
 
   return null;
@@ -86,33 +82,46 @@ export default function SchoolsMap({ items = [] }) {
 
           <FitBounds items={items} />
 
-          <MarkerClusterGroup
-            chunkedLoading
-            showCoverageOnHover={false}
-            spiderfyOnMaxZoom={true}
-            removeOutsideVisibleBounds={true}
-          >
-            {(items || []).map((r) => {
-              if (typeof r.lat !== "number" || typeof r.lng !== "number") return null;
+          {(items || []).map((r) => {
+            if (typeof r.lat !== "number" || typeof r.lng !== "number") return null;
+            const web = normalizeHttp(r.website);
 
-              const web = normalizeHttp(r.website);
+            return (
+              <Marker key={r.id} position={[r.lat, r.lng]}>
+                <Popup>
+                  <div style={{ fontWeight: 900, marginBottom: 6 }}>
+                    {r.name || "Škola"}
+                  </div>
 
-              return (
-                <Marker key={r.id} position={[r.lat, r.lng]}>
-                  <Popup>
-                    <div style={{ fontWeight: 900, marginBottom: 6 }}>
-                      {r.name || "Škola"}
-                    </div>
+                  <div style={{ fontSize: 13, color: "rgba(0,0,0,0.75)" }}>
+                    {(r.city ? r.city : "")}
+                    {r.region ? `, ${r.region}` : ""}
+                    {r.country ? `, ${r.country}` : ""}
+                  </div>
 
-                    <div style={{ fontSize: 13, color: "rgba(0,0,0,0.75)" }}>
-                      {(r.city ? r.city : "")}
-                      {r.region ? `, ${r.region}` : ""}
-                      {r.country ? `, ${r.country}` : ""}
-                    </div>
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <a
+                      href={`/portal/skoly/${r.id}`}
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 900,
+                        textDecoration: "none",
+                        padding: "8px 10px",
+                        borderRadius: 12,
+                        border: "1px solid rgba(0,0,0,0.18)",
+                        background: "#111827",
+                        color: "white",
+                        display: "inline-block",
+                      }}
+                    >
+                      Detail →
+                    </a>
 
-                    <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {web ? (
                       <a
-                        href={`/portal/skoly/${r.id}`}
+                        href={web}
+                        target="_blank"
+                        rel="noreferrer"
                         style={{
                           fontSize: 13,
                           fontWeight: 900,
@@ -120,45 +129,24 @@ export default function SchoolsMap({ items = [] }) {
                           padding: "8px 10px",
                           borderRadius: 12,
                           border: "1px solid rgba(0,0,0,0.18)",
-                          background: "#111827",
-                          color: "white",
+                          background: "white",
+                          color: "#111827",
                           display: "inline-block",
                         }}
                       >
-                        Detail →
+                        Web →
                       </a>
-
-                      {web ? (
-                        <a
-                          href={web}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 900,
-                            textDecoration: "none",
-                            padding: "8px 10px",
-                            borderRadius: 12,
-                            border: "1px solid rgba(0,0,0,0.18)",
-                            background: "white",
-                            color: "#111827",
-                            display: "inline-block",
-                          }}
-                        >
-                          Web →
-                        </a>
-                      ) : null}
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
-          </MarkerClusterGroup>
+                    ) : null}
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
         </MapContainer>
       </div>
 
       <div style={{ marginTop: 10, fontSize: 12, color: "rgba(0,0,0,0.55)" }}>
-        Tip: kolečkem myši přibližuješ/oddaluješ, tažením posouváš mapu. Klik na cluster ho rozbalí.
+        Tip: kolečkem myši přibližuješ/oddaluješ, tažením posouváš mapu.
       </div>
     </div>
   );
