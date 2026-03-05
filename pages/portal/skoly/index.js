@@ -1,3 +1,4 @@
+// pages/portal/skoly/index.js
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -16,12 +17,14 @@ function publicUrlFromPath(path) {
 // DŮLEŽITÉ: mapa jen na klientovi (jinak Next SSR spadne)
 const SchoolsMap = dynamic(() => import("../../../components/SchoolsMap"), {
   ssr: false,
-  loading: () => (
-    <div style={{ color: "rgba(0,0,0,0.65)" }}>
-      Načítám mapu…
-    </div>
-  ),
+  loading: () => <div style={{ color: "rgba(0,0,0,0.65)" }}>Načítám mapu…</div>,
 });
+
+function toNum(v) {
+  if (v === null || v === undefined) return null;
+  const n = typeof v === "number" ? v : Number(String(v).replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
 
 export default function SkolyIndex() {
   const [rows, setRows] = useState([]);
@@ -33,10 +36,13 @@ export default function SkolyIndex() {
     setLoading(true);
     setErr("");
 
+    // Bereme obě varianty sloupců:
+    //  - lat/lng (původně)
+    //  - latitude/longitude (co máš teď v DB a v adminu)
     const { data, error } = await supabase
       .from("schools")
       .select(
-        "id,name,city,region,country,website,school_type,short_description,photo_path,has_archimedes_classroom,is_published,archimedes_since,created_at,lat,lng"
+        "id,name,city,region,country,website,school_type,short_description,photo_path,has_archimedes_classroom,is_published,archimedes_since,created_at,lat,lng,latitude,longitude"
       )
       .eq("has_archimedes_classroom", true)
       .eq("is_published", true)
@@ -58,13 +64,20 @@ export default function SkolyIndex() {
 
   const items = useMemo(() => {
     return (rows || []).map((r) => {
-      const latNum = r.lat === null || r.lat === undefined ? null : Number(r.lat);
-      const lngNum = r.lng === null || r.lng === undefined ? null : Number(r.lng);
+      // sjednocení: preferujeme latitude/longitude, pokud existují, jinak lat/lng
+      const latA = toNum(r.latitude);
+      const lngA = toNum(r.longitude);
+      const latB = toNum(r.lat);
+      const lngB = toNum(r.lng);
+
+      const finalLat = latA !== null ? latA : latB;
+      const finalLng = lngA !== null ? lngA : lngB;
+
       return {
         ...r,
         photo_url: publicUrlFromPath(r.photo_path),
-        lat: Number.isFinite(latNum) ? latNum : null,
-        lng: Number.isFinite(lngNum) ? lngNum : null,
+        lat: finalLat,
+        lng: finalLng,
       };
     });
   }, [rows]);
@@ -96,10 +109,21 @@ export default function SkolyIndex() {
   return (
     <RequireAuth>
       <PortalHeader />
+
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 14px 40px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-end", marginBottom: 14 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            alignItems: "flex-end",
+            marginBottom: 14,
+          }}
+        >
           <div>
-            <h1 style={{ margin: 0, fontSize: 24, letterSpacing: -0.2 }}>Síť učeben ARCHIMEDES</h1>
+            <h1 style={{ margin: 0, fontSize: 24, letterSpacing: -0.2 }}>
+              Síť učeben ARCHIMEDES
+            </h1>
             <div style={{ color: "rgba(0,0,0,0.65)", marginTop: 6, lineHeight: 1.35 }}>
               Přehled škol s učebnou ARCHIMEDES. Slouží jako reference, inspirace a možnost kontaktu.
             </div>
@@ -107,7 +131,8 @@ export default function SkolyIndex() {
 
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <div style={{ fontSize: 13, color: "rgba(0,0,0,0.55)" }}>
-              Celkem: <b style={{ color: "rgba(0,0,0,0.85)" }}>{items.length}</b>
+              Celkem:{" "}
+              <b style={{ color: "rgba(0,0,0,0.85)" }}>{items.length}</b>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <SegButton id="cards" label="Karty" />
@@ -145,9 +170,11 @@ export default function SkolyIndex() {
               boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
             }}
           >
-            <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 6 }}>Mapa učeben</div>
+            <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 6 }}>
+              Mapa učeben
+            </div>
             <div style={{ fontSize: 13, color: "rgba(0,0,0,0.65)", marginBottom: 12 }}>
-              Zobrazují se jen školy, které mají vyplněné souřadnice (lat/lng).
+              Zobrazují se jen školy, které mají vyplněné souřadnice (GPS).
               {" "}
               Aktuálně: <b>{withCoords.length}</b> z <b>{items.length}</b>.
             </div>
@@ -169,100 +196,127 @@ export default function SkolyIndex() {
               marginTop: 10,
             }}
           >
-            {items.map((r) => (
-              <Link key={r.id} href={`/portal/skoly/${r.id}`} style={{ textDecoration: "none" }}>
-                <div
-                  style={{
-                    background: "white",
-                    border: "1px solid rgba(0,0,0,0.08)",
-                    borderRadius: 18,
-                    overflow: "hidden",
-                    boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
-                  }}
-                >
-                  <div style={{ height: 160, background: "rgba(0,0,0,0.04)" }}>
-                    {r.photo_url ? (
-                      <img
-                        src={r.photo_url}
-                        alt={r.name || "Učebna"}
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                      />
-                    ) : (
-                      <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(0,0,0,0.45)", fontSize: 13 }}>
-                        Bez fotky
+            {items.map((r) => {
+              const hasCoords = typeof r.lat === "number" && typeof r.lng === "number";
+
+              return (
+                <Link key={r.id} href={`/portal/skoly/${r.id}`} style={{ textDecoration: "none" }}>
+                  <div
+                    style={{
+                      background: "white",
+                      border: "1px solid rgba(0,0,0,0.08)",
+                      borderRadius: 18,
+                      overflow: "hidden",
+                      boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
+                    }}
+                  >
+                    <div style={{ height: 160, background: "rgba(0,0,0,0.04)" }}>
+                      {r.photo_url ? (
+                        <img
+                          src={r.photo_url}
+                          alt={r.name || "Učebna"}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            display: "block",
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "rgba(0,0,0,0.45)",
+                            fontSize: 13,
+                          }}
+                        >
+                          Bez fotky
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ padding: 14 }}>
+                      <div
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 800,
+                          color: "rgba(0,0,0,0.88)",
+                          lineHeight: 1.25,
+                        }}
+                      >
+                        {r.name || "—"}
                       </div>
-                    )}
-                  </div>
 
-                  <div style={{ padding: 14 }}>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: "rgba(0,0,0,0.88)", lineHeight: 1.25 }}>
-                      {r.name || "—"}
-                    </div>
-
-                    <div style={{ marginTop: 6, fontSize: 13, color: "rgba(0,0,0,0.62)" }}>
-                      {(r.city ? r.city : "—")}
-                      {r.region ? ` • ${r.region}` : ""}
-                      {r.country ? ` • ${r.country}` : ""}
-                    </div>
-
-                    {r.short_description ? (
-                      <div style={{ marginTop: 10, fontSize: 13, color: "rgba(0,0,0,0.72)", lineHeight: 1.35 }}>
-                        {r.short_description}
+                      <div style={{ marginTop: 6, fontSize: 13, color: "rgba(0,0,0,0.62)" }}>
+                        {(r.city ? r.city : "—")}
+                        {r.region ? ` • ${r.region}` : ""}
+                        {r.country ? ` • ${r.country}` : ""}
                       </div>
-                    ) : null}
 
-                    <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      {r.school_type ? (
-                        <span
-                          style={{
-                            fontSize: 12,
-                            padding: "6px 10px",
-                            borderRadius: 999,
-                            background: "rgba(0,0,0,0.04)",
-                            border: "1px solid rgba(0,0,0,0.08)",
-                            color: "rgba(0,0,0,0.75)",
-                          }}
-                        >
-                          {r.school_type}
-                        </span>
+                      {r.short_description ? (
+                        <div style={{ marginTop: 10, fontSize: 13, color: "rgba(0,0,0,0.72)", lineHeight: 1.35 }}>
+                          {r.short_description}
+                        </div>
                       ) : null}
-                      {r.archimedes_since ? (
-                        <span
-                          style={{
-                            fontSize: 12,
-                            padding: "6px 10px",
-                            borderRadius: 999,
-                            background: "rgba(16,185,129,0.10)",
-                            border: "1px solid rgba(16,185,129,0.20)",
-                            color: "rgba(0,0,0,0.75)",
-                          }}
-                        >
-                          Učebna od {new Date(r.archimedes_since).getFullYear()}
-                        </span>
-                      ) : null}
-                      {typeof r.lat === "number" && typeof r.lng === "number" ? (
-                        <span
-                          style={{
-                            fontSize: 12,
-                            padding: "6px 10px",
-                            borderRadius: 999,
-                            background: "rgba(59,130,246,0.10)",
-                            border: "1px solid rgba(59,130,246,0.20)",
-                            color: "rgba(0,0,0,0.75)",
-                          }}
-                        >
-                          Má souřadnice
-                        </span>
-                      ) : null}
-                    </div>
 
-                    <div style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: "rgba(0,0,0,0.85)" }}>
-                      Zobrazit detail →
+                      <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {r.school_type ? (
+                          <span
+                            style={{
+                              fontSize: 12,
+                              padding: "6px 10px",
+                              borderRadius: 999,
+                              background: "rgba(0,0,0,0.04)",
+                              border: "1px solid rgba(0,0,0,0.08)",
+                              color: "rgba(0,0,0,0.75)",
+                            }}
+                          >
+                            {r.school_type}
+                          </span>
+                        ) : null}
+
+                        {r.archimedes_since ? (
+                          <span
+                            style={{
+                              fontSize: 12,
+                              padding: "6px 10px",
+                              borderRadius: 999,
+                              background: "rgba(16,185,129,0.10)",
+                              border: "1px solid rgba(16,185,129,0.20)",
+                              color: "rgba(0,0,0,0.75)",
+                            }}
+                          >
+                            Učebna od {new Date(r.archimedes_since).getFullYear()}
+                          </span>
+                        ) : null}
+
+                        {hasCoords ? (
+                          <span
+                            style={{
+                              fontSize: 12,
+                              padding: "6px 10px",
+                              borderRadius: 999,
+                              background: "rgba(59,130,246,0.10)",
+                              border: "1px solid rgba(59,130,246,0.20)",
+                              color: "rgba(0,0,0,0.75)",
+                            }}
+                          >
+                            Má souřadnice
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <div style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: "rgba(0,0,0,0.85)" }}>
+                        Zobrazit detail →
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
