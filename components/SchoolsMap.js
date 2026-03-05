@@ -1,6 +1,7 @@
 // components/SchoolsMap.js
 import { useEffect, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -42,7 +43,10 @@ function FitBounds({ items }) {
       return;
     }
 
-    map.fitBounds(bounds, { padding: [24, 24], animate: false });
+    map.fitBounds(bounds, {
+      padding: [24, 24],
+      animate: false,
+    });
   }, [bounds, items, map]);
 
   return null;
@@ -53,20 +57,6 @@ function normalizeHttp(url) {
   if (!s) return "";
   if (s.startsWith("http://") || s.startsWith("https://")) return s;
   return `https://${s}`;
-}
-
-function chipStyle(bg, border) {
-  return {
-    fontSize: 12,
-    padding: "5px 10px",
-    borderRadius: 999,
-    background: bg,
-    border,
-    fontWeight: 800,
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-  };
 }
 
 export default function SchoolsMap({ items = [] }) {
@@ -97,133 +87,80 @@ export default function SchoolsMap({ items = [] }) {
 
           <FitBounds items={items} />
 
-          {(items || []).map((r) => {
-            if (typeof r.lat !== "number" || typeof r.lng !== "number") return null;
+          {/* CLUSTERING */}
+          <MarkerClusterGroup
+            chunkedLoading
+            showCoverageOnHover={false}
+            spiderfyOnMaxZoom={true}
+            removeOutsideVisibleBounds={true}
+          >
+            {(items || []).map((r) => {
+              if (typeof r.lat !== "number" || typeof r.lng !== "number") return null;
 
-            const websiteHref = normalizeHttp(r.website);
+              const web = normalizeHttp(r.website);
 
-            return (
-              <Marker key={r.id} position={[r.lat, r.lng]}>
-                <Popup>
-                  <div style={{ width: 260 }}>
-                    {/* foto */}
-                    <div
-                      style={{
-                        width: "100%",
-                        height: 110,
-                        borderRadius: 12,
-                        overflow: "hidden",
-                        background: "rgba(0,0,0,0.06)",
-                        border: "1px solid rgba(0,0,0,0.08)",
-                      }}
-                    >
-                      {r.photo_url ? (
-                        <img
-                          src={r.photo_url}
-                          alt={r.name || "Učebna"}
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            height: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 12,
-                            color: "rgba(0,0,0,0.55)",
-                          }}
-                        >
-                          Bez fotky
-                        </div>
-                      )}
+              return (
+                <Marker key={r.id} position={[r.lat, r.lng]}>
+                  <Popup>
+                    <div style={{ fontWeight: 900, marginBottom: 6 }}>
+                      {r.name || "Škola"}
                     </div>
 
-                    {/* text */}
-                    <div style={{ marginTop: 10 }}>
-                      <div style={{ fontWeight: 900, fontSize: 15, lineHeight: 1.2 }}>
-                        {r.name || "Škola"}
-                      </div>
+                    <div style={{ fontSize: 13, color: "rgba(0,0,0,0.75)" }}>
+                      {(r.city ? r.city : "")}
+                      {r.region ? `, ${r.region}` : ""}
+                      {r.country ? `, ${r.country}` : ""}
+                    </div>
 
-                      <div style={{ marginTop: 4, fontSize: 12, color: "rgba(0,0,0,0.72)", lineHeight: 1.25 }}>
-                        {(r.city ? r.city : "")}
-                        {r.region ? ` • ${r.region}` : ""}
-                        {r.country ? ` • ${r.country}` : ""}
-                      </div>
+                    <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <a
+                        href={`/portal/skoly/${r.id}`}
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 900,
+                          textDecoration: "none",
+                          padding: "8px 10px",
+                          borderRadius: 12,
+                          border: "1px solid rgba(0,0,0,0.18)",
+                          background: "#111827",
+                          color: "white",
+                          display: "inline-block",
+                        }}
+                      >
+                        Detail →
+                      </a>
 
-                      <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        {r.has_archimedes_classroom ? (
-                          <span
-                            style={chipStyle(
-                              "rgba(16,185,129,0.12)",
-                              "1px solid rgba(16,185,129,0.22)"
-                            )}
-                          >
-                            ⭐ ARCHIMEDES
-                          </span>
-                        ) : null}
-                        {r.school_type ? (
-                          <span
-                            style={chipStyle(
-                              "rgba(0,0,0,0.04)",
-                              "1px solid rgba(0,0,0,0.10)"
-                            )}
-                          >
-                            {r.school_type}
-                          </span>
-                        ) : null}
-                      </div>
-
-                      {/* actions */}
-                      <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      {web ? (
                         <a
-                          href={`/portal/skoly/${r.id}`}
+                          href={web}
+                          target="_blank"
+                          rel="noreferrer"
                           style={{
                             fontSize: 13,
                             fontWeight: 900,
                             textDecoration: "none",
                             padding: "8px 10px",
                             borderRadius: 12,
-                            background: "#111827",
-                            color: "white",
+                            border: "1px solid rgba(0,0,0,0.18)",
+                            background: "white",
+                            color: "#111827",
                             display: "inline-block",
                           }}
                         >
-                          Detail →
+                          Web →
                         </a>
-
-                        {websiteHref ? (
-                          <a
-                            href={websiteHref}
-                            target="_blank"
-                            rel="noreferrer"
-                            style={{
-                              fontSize: 13,
-                              fontWeight: 900,
-                              textDecoration: "none",
-                              padding: "8px 10px",
-                              borderRadius: 12,
-                              background: "white",
-                              color: "#111827",
-                              border: "1px solid rgba(0,0,0,0.14)",
-                              display: "inline-block",
-                            }}
-                          >
-                            Web →
-                          </a>
-                        ) : null}
-                      </div>
+                      ) : null}
                     </div>
-                  </div>
-                </Popup>
-              </Marker>
-            );
-          })}
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </MarkerClusterGroup>
         </MapContainer>
       </div>
 
       <div style={{ marginTop: 10, fontSize: 12, color: "rgba(0,0,0,0.55)" }}>
-        Tip: kolečkem myši přibližuješ/oddaluješ, tažením posouváš mapu.
+        Tip: kolečkem myši přibližuješ/oddaluješ, tažením posouváš mapu. Klik na cluster ho rozbalí.
       </div>
     </div>
   );
