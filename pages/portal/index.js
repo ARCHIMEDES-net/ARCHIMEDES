@@ -138,7 +138,13 @@ export default function PortalIndex() {
                     desc="Nabídky, poptávky a partnerství mezi školami a obcemi."
                     cta="Otevřít"
                   />
-
+                      <Tile
+  href="/portal/admin-skoly"
+  icon="🏫"
+  title="Školy"
+  desc="Správa databáze učeben ARCHIMEDES (foto, kontakt, popis, publikace)."
+  cta="Otevřít"
+/>
                   {/* ✅ NOVĚ: Síť učeben */}
                   <Tile
                     href="/portal/skoly"
