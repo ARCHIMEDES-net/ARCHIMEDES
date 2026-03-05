@@ -139,6 +139,15 @@ export default function PortalIndex() {
                     desc="Nabídky, poptávky a partnerství mezi školami a obcemi."
                     cta="Otevřít"
                   />
+
+                  {/* ✅ NOVĚ: Síť učeben */}
+                  <Tile
+                    href="/portal/skoly"
+                    icon="🏫"
+                    title="Síť učeben"
+                    desc="Přehled škol s učebnou ARCHIMEDES + inspirace a kontakt."
+                    cta="Otevřít"
+                  />
                 </div>
               </div>
 
@@ -366,11 +375,7 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
         }}
       >
         <div style={{ minWidth: 0, flex: 1 }}>
-          {desc ? (
-            <div style={{ fontSize: 12, opacity: 0.75, lineHeight: 1.35 }}>
-              {desc}
-            </div>
-          ) : null}
+          {desc ? <div style={{ fontSize: 12, opacity: 0.75, lineHeight: 1.35 }}>{desc}</div> : null}
         </div>
 
         <div
@@ -426,11 +431,7 @@ function EventRow({ e }) {
           {dt}
           {cat ? <span style={{ marginLeft: 8 }}>• {cat}</span> : null}
         </div>
-        {short ? (
-          <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75, lineHeight: 1.35 }}>
-            {short}
-          </div>
-        ) : null}
+        {short ? <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75, lineHeight: 1.35 }}>{short}</div> : null}
       </div>
 
       <Link
