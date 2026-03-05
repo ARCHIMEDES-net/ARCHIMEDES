@@ -12,6 +12,12 @@ function publicUrlFromPath(path) {
   return data?.publicUrl || null;
 }
 
+function shorten(text, max = 120) {
+  if (!text) return "";
+  if (text.length <= max) return text;
+  return text.substring(0, max) + "…";
+}
+
 export default function SkolyIndex() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,16 +60,23 @@ export default function SkolyIndex() {
   return (
     <RequireAuth>
       <PortalHeader />
+
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 14px 40px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-end", marginBottom: 14 }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: 24, letterSpacing: -0.2 }}>Síť učeben ARCHIMEDES</h1>
+            <h1 style={{ margin: 0, fontSize: 24, letterSpacing: -0.2 }}>
+              Síť učeben ARCHIMEDES
+            </h1>
+
             <div style={{ color: "rgba(0,0,0,0.65)", marginTop: 6, lineHeight: 1.35 }}>
-              Přehled škol s učebnou ARCHIMEDES. Slouží jako reference, inspirace a možnost kontaktu.
+              Přehled škol s učebnou ARCHIMEDES. Slouží jako reference,
+              inspirace a možnost kontaktu mezi školami.
             </div>
           </div>
+
           <div style={{ fontSize: 13, color: "rgba(0,0,0,0.55)" }}>
-            Celkem: <b style={{ color: "rgba(0,0,0,0.85)" }}>{items.length}</b>
+            Celkem:{" "}
+            <b style={{ color: "rgba(0,0,0,0.85)" }}>{items.length}</b>
           </div>
         </div>
 
@@ -85,18 +98,24 @@ export default function SkolyIndex() {
         {loading ? (
           <div style={{ color: "rgba(0,0,0,0.65)" }}>Načítám…</div>
         ) : items.length === 0 ? (
-          <div style={{ color: "rgba(0,0,0,0.65)" }}>Zatím zde nejsou žádné publikované školy.</div>
+          <div style={{ color: "rgba(0,0,0,0.65)" }}>
+            Zatím zde nejsou žádné publikované školy.
+          </div>
         ) : (
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: 14,
+              gap: 16,
               marginTop: 10,
             }}
           >
             {items.map((r) => (
-              <Link key={r.id} href={`/portal/skoly/${r.id}`} style={{ textDecoration: "none" }}>
+              <Link
+                key={r.id}
+                href={`/portal/skoly/${r.id}`}
+                style={{ textDecoration: "none" }}
+              >
                 <div
                   style={{
                     background: "white",
@@ -104,41 +123,89 @@ export default function SkolyIndex() {
                     borderRadius: 18,
                     overflow: "hidden",
                     boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
-                    transition: "transform 120ms ease",
+                    transition: "all 0.15s ease",
+                    cursor: "pointer",
                   }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.transform = "translateY(-4px)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.transform = "translateY(0px)")
+                  }
                 >
                   <div style={{ height: 160, background: "rgba(0,0,0,0.04)" }}>
                     {r.photo_url ? (
                       <img
                         src={r.photo_url}
                         alt={r.name || "Učebna"}
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          display: "block",
+                        }}
                       />
                     ) : (
-                      <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(0,0,0,0.45)", fontSize: 13 }}>
+                      <div
+                        style={{
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "rgba(0,0,0,0.45)",
+                          fontSize: 13,
+                        }}
+                      >
                         Bez fotky
                       </div>
                     )}
                   </div>
 
                   <div style={{ padding: 14 }}>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: "rgba(0,0,0,0.88)", lineHeight: 1.25 }}>
+                    <div
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 800,
+                        color: "rgba(0,0,0,0.88)",
+                        lineHeight: 1.25,
+                      }}
+                    >
                       {r.name || "—"}
                     </div>
 
-                    <div style={{ marginTop: 6, fontSize: 13, color: "rgba(0,0,0,0.62)" }}>
-                      {(r.city ? r.city : "—")}
+                    <div
+                      style={{
+                        marginTop: 6,
+                        fontSize: 13,
+                        color: "rgba(0,0,0,0.62)",
+                      }}
+                    >
+                      {r.city || "—"}
                       {r.region ? ` • ${r.region}` : ""}
                       {r.country ? ` • ${r.country}` : ""}
                     </div>
 
                     {r.short_description ? (
-                      <div style={{ marginTop: 10, fontSize: 13, color: "rgba(0,0,0,0.72)", lineHeight: 1.35 }}>
-                        {r.short_description}
+                      <div
+                        style={{
+                          marginTop: 10,
+                          fontSize: 13,
+                          color: "rgba(0,0,0,0.72)",
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {shorten(r.short_description)}
                       </div>
                     ) : null}
 
-                    <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <div
+                      style={{
+                        marginTop: 12,
+                        display: "flex",
+                        gap: 8,
+                        flexWrap: "wrap",
+                      }}
+                    >
                       {r.school_type ? (
                         <span
                           style={{
@@ -147,12 +214,12 @@ export default function SkolyIndex() {
                             borderRadius: 999,
                             background: "rgba(0,0,0,0.04)",
                             border: "1px solid rgba(0,0,0,0.08)",
-                            color: "rgba(0,0,0,0.75)",
                           }}
                         >
                           {r.school_type}
                         </span>
                       ) : null}
+
                       {r.archimedes_since ? (
                         <span
                           style={{
@@ -161,15 +228,22 @@ export default function SkolyIndex() {
                             borderRadius: 999,
                             background: "rgba(16,185,129,0.10)",
                             border: "1px solid rgba(16,185,129,0.20)",
-                            color: "rgba(0,0,0,0.75)",
                           }}
                         >
-                          Učebna od {new Date(r.archimedes_since).getFullYear()}
+                          Učebna od{" "}
+                          {new Date(r.archimedes_since).getFullYear()}
                         </span>
                       ) : null}
                     </div>
 
-                    <div style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: "rgba(0,0,0,0.85)" }}>
+                    <div
+                      style={{
+                        marginTop: 14,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: "rgba(0,0,0,0.85)",
+                      }}
+                    >
                       Zobrazit detail →
                     </div>
                   </div>
