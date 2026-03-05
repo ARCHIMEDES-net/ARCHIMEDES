@@ -108,6 +108,7 @@ export default function PortalIndex() {
                 }}
               >
                 <div style={{ fontWeight: 900, marginBottom: 10 }}>Rychlý přístup</div>
+
                 <div
                   style={{
                     display: "grid",
@@ -138,14 +139,8 @@ export default function PortalIndex() {
                     desc="Nabídky, poptávky a partnerství mezi školami a obcemi."
                     cta="Otevřít"
                   />
-                      <Tile
-  href="/portal/admin-skoly"
-  icon="🏫"
-  title="Školy"
-  desc="Správa databáze učeben ARCHIMEDES (foto, kontakt, popis, publikace)."
-  cta="Otevřít"
-/>
-                  {/* ✅ NOVĚ: Síť učeben */}
+
+                  {/* ✅ Veřejná sekce pro přihlášené: Síť učeben */}
                   <Tile
                     href="/portal/skoly"
                     icon="🏫"
@@ -199,6 +194,15 @@ export default function PortalIndex() {
                       icon="📨"
                       title="Poptávky"
                       desc="Přehled leadů + export CSV."
+                      cta="Otevřít"
+                    />
+
+                    {/* ✅ ADMIN: správa databáze škol */}
+                    <Tile
+                      href="/portal/admin-skoly"
+                      icon="🏫"
+                      title="Školy"
+                      desc="Správa databáze učeben ARCHIMEDES (foto, kontakt, popis, publikace)."
                       cta="Otevřít"
                     />
                   </div>
@@ -308,11 +312,6 @@ export default function PortalIndex() {
   );
 }
 
-/**
- * ✅ OPRAVA překryvu: dlaždice má dvě řádky:
- * - nahoře: ikona + (název + badge)
- * - dole: popis + tlačítko (tlačítko se nikdy nepřekryje)
- */
 function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
   return (
     <Link
@@ -328,7 +327,6 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
         boxShadow: highlight ? "0 12px 30px rgba(0,0,0,0.08)" : "0 8px 24px rgba(0,0,0,0.04)",
       }}
     >
-      {/* ROW 1 */}
       <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0 }}>
         <div
           style={{
@@ -370,7 +368,6 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
         </div>
       </div>
 
-      {/* ROW 2 */}
       <div
         style={{
           marginTop: 10,
