@@ -1,8 +1,5 @@
 // pages/_app.js
 import "leaflet/dist/leaflet.css";
-import "react-leaflet-cluster/lib/assets/MarkerCluster.css";
-import "react-leaflet-cluster/lib/assets/MarkerCluster.Default.css";
-
 import "../styles/globals.css";
 
 import { useRouter } from "next/router";
