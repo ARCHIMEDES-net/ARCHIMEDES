@@ -1,5 +1,6 @@
 // pages/portal/admin-skoly.js
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
@@ -12,423 +13,27 @@ function publicUrlFromPath(path) {
   return data?.publicUrl || null;
 }
 
-function safeYear(dateStr) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
+function toDateInputValue(value) {
+  if (!value) return "";
+  const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
-  return String(d.getFullYear());
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-export default function AdminSkoly() {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [checkingAdmin, setCheckingAdmin] = useState(true);
-
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
-
-  const emptyForm = {
-    id: null,
-    name: "",
-    address: "",
-    city: "",
-    region: "",
-    country: "Česká republika",
-    school_type: "",
-    website: "",
-    contact_name: "",
-    contact_email: "",
-    contact_phone: "",
-    short_description: "",
-    classroom_description: "",
-    classroom_variant: "",
-    archimedes_since: "",
-    has_archimedes_classroom: true,
-    is_published: true,
-    photo_path: "",
-  };
-
-  const [form, setForm] = useState(emptyForm);
-  const [file, setFile] = useState(null);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data, error } = await supabase.rpc("is_admin");
-        if (!error) setIsAdmin(!!data);
-      } catch (e) {
-        // no-op
-      } finally {
-        setCheckingAdmin(false);
-      }
-    })();
-  }, []);
-
-  async function load() {
-    setLoading(true);
-    setErr("");
-
-    const { data, error } = await supabase
-      .from("schools")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      setErr(error.message);
-      setLoading(false);
-      return;
-    }
-
-    setRows(data || []);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  function setField(key, value) {
-    setForm((f) => ({ ...f, [key]: value }));
-  }
-
-  function startCreate() {
-    setForm(emptyForm);
-    setFile(null);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function startEdit(r) {
-    setForm({
-      ...emptyForm,
-      ...r,
-      id: r.id,
-      archimedes_since: r.archimedes_since ? String(r.archimedes_since).slice(0, 10) : "",
-      photo_path: r.photo_path || "",
-    });
-    setFile(null);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  async function uploadPhotoForId(id) {
-    if (!file) return null;
-
-    const ext = (file.name || "jpg").split(".").pop()?.toLowerCase() || "jpg";
-    const path = `schools/${id}-${Date.now()}.${ext}`;
-
-    const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-      upsert: false,
-      cacheControl: "3600",
-      contentType: file.type || undefined,
-    });
-
-    if (error) throw new Error(error.message);
-    return path;
-  }
-
-  async function save() {
-    if (!form.name?.trim()) {
-      alert("Vyplň název školy.");
-      return;
-    }
-    if (!isAdmin) {
-      alert("Nemáš admin oprávnění.");
-      return;
-    }
-
-    setSaving(true);
-    setErr("");
-
-    try {
-      const payload = {
-        name: form.name?.trim() || null,
-        address: form.address?.trim() || null,
-        city: form.city?.trim() || null,
-        region: form.region?.trim() || null,
-        country: form.country?.trim() || null,
-        school_type: form.school_type?.trim() || null,
-        website: form.website?.trim() || null,
-        contact_name: form.contact_name?.trim() || null,
-        contact_email: form.contact_email?.trim() || null,
-        contact_phone: form.contact_phone?.trim() || null,
-        short_description: form.short_description?.trim() || null,
-        classroom_description: form.classroom_description?.trim() || null,
-        classroom_variant: form.classroom_variant?.trim() || null,
-        archimedes_since: form.archimedes_since ? form.archimedes_since : null,
-        has_archimedes_classroom: !!form.has_archimedes_classroom,
-        is_published: !!form.is_published,
-      };
-
-      let schoolId = form.id;
-
-      if (!schoolId) {
-        const { data, error } = await supabase.from("schools").insert([payload]).select("*").single();
-        if (error) throw new Error(error.message);
-        schoolId = data.id;
-        setForm((f) => ({ ...f, id: schoolId }));
-      } else {
-        const { error } = await supabase.from("schools").update(payload).eq("id", schoolId);
-        if (error) throw new Error(error.message);
-      }
-
-      // upload fotky (pokud je vybraná)
-      if (file) {
-        const path = await uploadPhotoForId(schoolId);
-        const { error } = await supabase.from("schools").update({ photo_path: path }).eq("id", schoolId);
-        if (error) throw new Error(error.message);
-        setField("photo_path", path);
-        setFile(null);
-      }
-
-      await load();
-      alert("Uloženo.");
-    } catch (e) {
-      setErr(e?.message || "Nepodařilo se uložit.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function remove(id) {
-    if (!isAdmin) return alert("Nemáš admin oprávnění.");
-    if (!confirm("Opravdu smazat školu?")) return;
-
-    const { error } = await supabase.from("schools").delete().eq("id", id);
-    if (error) return alert(error.message);
-    load();
-  }
-
-  async function togglePublished(r) {
-    if (!isAdmin) return alert("Nemáš admin oprávnění.");
-    const { error } = await supabase.from("schools").update({ is_published: !r.is_published }).eq("id", r.id);
-    if (error) return alert(error.message);
-    load();
-  }
-
-  const items = useMemo(() => {
-    return (rows || []).map((r) => ({
-      ...r,
-      photo_url: publicUrlFromPath(r.photo_path),
-    }));
-  }, [rows]);
-
-  return (
-    <RequireAuth>
-      <PortalHeader title="Admin – Školy" />
-
-      <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px 40px" }}>
-          {checkingAdmin ? (
-            <div style={{ background: "white", borderRadius: 18, padding: 14, border: "1px solid rgba(0,0,0,0.08)" }}>
-              Načítám oprávnění…
-            </div>
-          ) : !isAdmin ? (
-            <div style={{ background: "white", borderRadius: 18, padding: 14, border: "1px solid rgba(0,0,0,0.08)" }}>
-              Tato stránka je dostupná jen správcům.
-            </div>
-          ) : (
-            <>
-              {/* FORM */}
-              <div
-                style={{
-                  background: "white",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  borderRadius: 18,
-                  padding: 14,
-                }}
-              >
-                <div style={{ display: "flex", gap: 10, alignItems: "baseline" }}>
-                  <div style={{ fontWeight: 900, fontSize: 16 }}>
-                    {form.id ? "Upravit školu" : "Přidat školu"}
-                  </div>
-                  <div style={{ marginLeft: "auto", fontSize: 12, opacity: 0.65 }}>
-                    {form.id ? `ID: ${form.id}` : ""}
-                  </div>
-                </div>
-
-                {err ? (
-                  <div
-                    style={{
-                      marginTop: 10,
-                      background: "#fff3f3",
-                      border: "1px solid #ffd0d0",
-                      padding: 12,
-                      borderRadius: 12,
-                      color: "#8a1f1f",
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    Chyba: {err}
-                  </div>
-                ) : null}
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
-                  <Field label="Název školy *">
-                    <input value={form.name} onChange={(e) => setField("name", e.target.value)} style={inputStyle} />
-                  </Field>
-
-                  <Field label="Web školy">
-                    <input value={form.website || ""} onChange={(e) => setField("website", e.target.value)} style={inputStyle} />
-                  </Field>
-
-                  <Field label="Adresa">
-                    <input value={form.address || ""} onChange={(e) => setField("address", e.target.value)} style={inputStyle} />
-                  </Field>
-
-                  <Field label="Město">
-                    <input value={form.city || ""} onChange={(e) => setField("city", e.target.value)} style={inputStyle} />
-                  </Field>
-
-                  <Field label="Kraj">
-                    <input value={form.region || ""} onChange={(e) => setField("region", e.target.value)} style={inputStyle} />
-                  </Field>
-
-                  <Field label="Typ školy">
-                    <input value={form.school_type || ""} onChange={(e) => setField("school_type", e.target.value)} style={inputStyle} />
-                  </Field>
-
-                  <Field label="Kontaktní osoba">
-                    <input value={form.contact_name || ""} onChange={(e) => setField("contact_name", e.target.value)} style={inputStyle} />
-                  </Field>
-
-                  <Field label="Telefon">
-                    <input value={form.contact_phone || ""} onChange={(e) => setField("contact_phone", e.target.value)} style={inputStyle} />
-                  </Field>
-
-                  <Field label="Email">
-                    <input value={form.contact_email || ""} onChange={(e) => setField("contact_email", e.target.value)} style={inputStyle} />
-                  </Field>
-
-                  <Field label="Učebna od (datum)">
-                    <input type="date" value={form.archimedes_since || ""} onChange={(e) => setField("archimedes_since", e.target.value)} style={inputStyle} />
-                  </Field>
-
-                  <Field label="Krátký popis školy (1–2 věty)" wide>
-                    <textarea value={form.short_description || ""} onChange={(e) => setField("short_description", e.target.value)} style={textareaStyle} />
-                  </Field>
-
-                  <Field label="Popis učebny (volný text)" wide>
-                    <textarea value={form.classroom_description || ""} onChange={(e) => setField("classroom_description", e.target.value)} style={textareaStyle} />
-                  </Field>
-
-                  <Field label="Fotka učebny">
-                    <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-                    {form.photo_path ? (
-                      <div style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}>
-                        Aktuální: <code>{form.photo_path}</code>
-                      </div>
-                    ) : null}
-                  </Field>
-
-                  <Field label="Nastavení">
-                    <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}>
-                      <input type="checkbox" checked={!!form.has_archimedes_classroom} onChange={(e) => setField("has_archimedes_classroom", e.target.checked)} />
-                      Má učebnu ARCHIMEDES
-                    </label>
-                    <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, marginTop: 6 }}>
-                      <input type="checkbox" checked={!!form.is_published} onChange={(e) => setField("is_published", e.target.checked)} />
-                      Publikovat v síti učeben
-                    </label>
-                  </Field>
-                </div>
-
-                <div style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
-                  <button onClick={save} disabled={saving} style={primaryBtn}>
-                    {saving ? "Ukládám…" : "Uložit"}
-                  </button>
-                  <button onClick={startCreate} style={secondaryBtn}>
-                    Nový záznam
-                  </button>
-                  {form.id ? (
-                    <a
-                      href={`/portal/skoly/${form.id}`}
-                      style={{ ...secondaryBtn, display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}
-                    >
-                      Náhled →
-                    </a>
-                  ) : null}
-                </div>
-              </div>
-
-              {/* LIST */}
-              <div style={{ marginTop: 12, background: "white", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 18, padding: 14 }}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                  <div style={{ fontWeight: 900 }}>Seznam škol</div>
-                  <div style={{ marginLeft: "auto", fontSize: 12, opacity: 0.65 }}>Celkem: {items.length}</div>
-                </div>
-
-                {loading ? <div style={{ marginTop: 10, opacity: 0.7 }}>Načítám…</div> : null}
-
-                <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-                  {items.map((r) => (
-                    <div key={r.id} style={{ border: "1px solid rgba(0,0,0,0.10)", borderRadius: 16, padding: 12, display: "flex", gap: 12 }}>
-                      <div style={{ width: 110, height: 78, borderRadius: 14, overflow: "hidden", background: "rgba(0,0,0,0.05)", flex: "0 0 auto" }}>
-                        {r.photo_url ? (
-                          <img src={r.photo_url} alt={r.name || "Škola"} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                        ) : (
-                          <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, opacity: 0.6 }}>
-                            Bez fotky
-                          </div>
-                        )}
-                      </div>
-
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontWeight: 900, fontSize: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name || "—"}</span>
-                          {r.is_published ? (
-                            <span style={{ fontSize: 11, fontWeight: 900, padding: "2px 8px", borderRadius: 999, background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.22)" }}>
-                              Publikováno
-                            </span>
-                          ) : (
-                            <span style={{ fontSize: 11, fontWeight: 900, padding: "2px 8px", borderRadius: 999, background: "rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.10)" }}>
-                              Skryto
-                            </span>
-                          )}
-                        </div>
-
-                        <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>
-                          {(r.city || "—")}
-                          {r.region ? ` • ${r.region}` : ""}
-                          {r.archimedes_since ? ` • učebna od ${safeYear(r.archimedes_since)}` : ""}
-                        </div>
-
-                        {r.short_description ? (
-                          <div style={{ fontSize: 12, opacity: 0.75, marginTop: 6, lineHeight: 1.35 }}>
-                            {r.short_description}
-                          </div>
-                        ) : null}
-
-                        <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-                          <button onClick={() => startEdit(r)} style={secondaryBtn}>Upravit</button>
-                          <button onClick={() => togglePublished(r)} style={secondaryBtn}>
-                            {r.is_published ? "Skrýt" : "Publikovat"}
-                          </button>
-                          <button onClick={() => remove(r.id)} style={dangerBtn}>Smazat</button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {(!loading && items.length === 0) ? (
-                    <div style={{ opacity: 0.7 }}>Zatím žádné školy.</div>
-                  ) : null}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </RequireAuth>
-  );
+function toNumOrNull(v) {
+  if (v === null || v === undefined) return null;
+  const s = String(v).trim().replace(",", ".");
+  if (!s) return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
 }
 
-function Field({ label, children, wide }) {
-  return (
-    <div style={{ gridColumn: wide ? "1 / -1" : "auto" }}>
-      <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>{label}</div>
-      {children}
-    </div>
-  );
+function safeFileName(name) {
+  return String(name || "file")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-zA-Z0-9.\-_]/g, "");
 }
 
 const inputStyle = {
@@ -436,47 +41,638 @@ const inputStyle = {
   padding: "10px 12px",
   borderRadius: 12,
   border: "1px solid rgba(0,0,0,0.14)",
+  background: "white",
   outline: "none",
-  background: "white",
 };
 
-const textareaStyle = {
-  width: "100%",
-  minHeight: 90,
-  padding: "10px 12px",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.14)",
-  outline: "none",
-  background: "white",
-  resize: "vertical",
-};
+const labelStyle = { fontSize: 12, opacity: 0.7, marginBottom: 6 };
 
-const primaryBtn = {
-  padding: "10px 12px",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.18)",
-  background: "#111827",
-  color: "white",
-  fontWeight: 900,
-  cursor: "pointer",
-};
+function emptyForm() {
+  return {
+    name: "",
+    website: "",
+    address: "",
+    city: "",
+    region: "",
+    country: "Česká republika",
+    school_type: "",
+    contact_name: "",
+    contact_phone: "",
+    contact_email: "",
+    archimedes_since: "",
 
-const secondaryBtn = {
-  padding: "10px 12px",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.18)",
-  background: "white",
-  color: "#111827",
-  fontWeight: 900,
-  cursor: "pointer",
-};
+    short_description: "",
+    classroom_description: "",
 
-const dangerBtn = {
-  padding: "10px 12px",
-  borderRadius: 12,
-  border: "1px solid rgba(185,28,28,0.35)",
-  background: "rgba(185,28,28,0.10)",
-  color: "#7f1d1d",
-  fontWeight: 900,
-  cursor: "pointer",
-};
+    latitude: "",
+    longitude: "",
+
+    has_archimedes_classroom: true,
+    is_published: true,
+
+    photo_path: "",
+  };
+}
+
+export default function AdminSkoly() {
+  const [rows, setRows] = useState([]);
+  const [loadingList, setLoadingList] = useState(true);
+  const [err, setErr] = useState("");
+
+  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState(emptyForm());
+
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
+
+  async function load() {
+    setLoadingList(true);
+    setErr("");
+
+    const { data, error } = await supabase
+      .from("schools")
+      .select(
+        "id,name,website,address,city,region,country,school_type,contact_name,contact_phone,contact_email,archimedes_since,short_description,classroom_description,latitude,longitude,has_archimedes_classroom,is_published,photo_path,created_at"
+      )
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      setErr(error.message);
+      setLoadingList(false);
+      return;
+    }
+
+    setRows(data || []);
+    setLoadingList(false);
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  // když vybereš foto → lokální preview
+  useEffect(() => {
+    if (!photoFile) {
+      setPhotoPreviewUrl("");
+      return;
+    }
+    const url = URL.createObjectURL(photoFile);
+    setPhotoPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photoFile]);
+
+  const selectedPhotoUrl = useMemo(() => {
+    if (photoPreviewUrl) return photoPreviewUrl;
+    return publicUrlFromPath(form.photo_path);
+  }, [photoPreviewUrl, form.photo_path]);
+
+  function startNew() {
+    setEditingId(null);
+    setForm(emptyForm());
+    setPhotoFile(null);
+    setPhotoPreviewUrl("");
+    setErr("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function openRow(r) {
+    setErr("");
+    setEditingId(r.id);
+
+    setForm({
+      name: r.name || "",
+      website: r.website || "",
+      address: r.address || "",
+      city: r.city || "",
+      region: r.region || "",
+      country: r.country || "Česká republika",
+      school_type: r.school_type || "",
+      contact_name: r.contact_name || "",
+      contact_phone: r.contact_phone || "",
+      contact_email: r.contact_email || "",
+      archimedes_since: toDateInputValue(r.archimedes_since),
+
+      short_description: r.short_description || "",
+      classroom_description: r.classroom_description || "",
+
+      latitude: r.latitude ?? "",
+      longitude: r.longitude ?? "",
+
+      has_archimedes_classroom: !!r.has_archimedes_classroom,
+      is_published: !!r.is_published,
+
+      photo_path: r.photo_path || "",
+    });
+
+    setPhotoFile(null);
+    setPhotoPreviewUrl("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function uploadPhotoForSchool(schoolId) {
+    if (!photoFile) return null;
+
+    const ext = safeFileName(photoFile.name);
+    const path = `schools/${schoolId}/${Date.now()}-${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from(BUCKET)
+      .upload(path, photoFile, {
+        cacheControl: "3600",
+        upsert: true,
+        contentType: photoFile.type || "image/*",
+      });
+
+    if (upErr) throw new Error(upErr.message);
+    return path;
+  }
+
+  async function save() {
+    setSaving(true);
+    setErr("");
+
+    try {
+      // minimální validace
+      if (!String(form.name || "").trim()) {
+        throw new Error("Vyplň Název školy.");
+      }
+
+      // payload (bez photo_path – řešíme zvlášť po uploadu)
+      const payload = {
+        name: String(form.name || "").trim(),
+        website: String(form.website || "").trim() || null,
+        address: String(form.address || "").trim() || null,
+        city: String(form.city || "").trim() || null,
+        region: String(form.region || "").trim() || null,
+        country: String(form.country || "").trim() || null,
+        school_type: String(form.school_type || "").trim() || null,
+
+        contact_name: String(form.contact_name || "").trim() || null,
+        contact_phone: String(form.contact_phone || "").trim() || null,
+        contact_email: String(form.contact_email || "").trim() || null,
+
+        archimedes_since: form.archimedes_since ? new Date(form.archimedes_since).toISOString() : null,
+
+        short_description: String(form.short_description || "").trim() || null,
+        classroom_description: String(form.classroom_description || "").trim() || null,
+
+        latitude: toNumOrNull(form.latitude),
+        longitude: toNumOrNull(form.longitude),
+
+        has_archimedes_classroom: !!form.has_archimedes_classroom,
+        is_published: !!form.is_published,
+      };
+
+      let schoolId = editingId;
+
+      // 1) INSERT nebo UPDATE základních dat
+      if (!editingId) {
+        const { data, error } = await supabase
+          .from("schools")
+          .insert([{ ...payload }])
+          .select("id")
+          .single();
+
+        if (error) throw new Error(error.message);
+        schoolId = data?.id;
+        setEditingId(schoolId);
+      } else {
+        const { error } = await supabase.from("schools").update(payload).eq("id", editingId);
+        if (error) throw new Error(error.message);
+      }
+
+      // 2) Upload fotky (pokud je vybraná)
+      if (photoFile) {
+        const photo_path = await uploadPhotoForSchool(schoolId);
+
+        const { error: up2 } = await supabase
+          .from("schools")
+          .update({ photo_path })
+          .eq("id", schoolId);
+
+        if (up2) throw new Error(up2.message);
+
+        setForm((p) => ({ ...p, photo_path }));
+        setPhotoFile(null);
+        setPhotoPreviewUrl("");
+      }
+
+      await load();
+    } catch (e) {
+      setErr(e?.message || "Nepodařilo se uložit školu.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function removeSchool(id) {
+    if (!confirm("Opravdu smazat tuto školu?")) return;
+
+    setErr("");
+    try {
+      const { error } = await supabase.from("schools").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+
+      if (editingId === id) startNew();
+      await load();
+    } catch (e) {
+      setErr(e?.message || "Nepodařilo se smazat školu.");
+    }
+  }
+
+  return (
+    <RequireAuth>
+      <PortalHeader title="Admin – Školy" />
+
+      <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px 40px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: 22 }}>Admin – Školy</div>
+              <div style={{ fontSize: 13, opacity: 0.7, marginTop: 4 }}>
+                Databáze škol s učebnou ARCHIMEDES (interně spravovaná).
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+              <Link
+                href="/portal"
+                style={{
+                  textDecoration: "none",
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.18)",
+                  background: "white",
+                  fontWeight: 900,
+                  color: "#111827",
+                }}
+              >
+                ← Zpět do portálu
+              </Link>
+
+              <button
+                onClick={startNew}
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.18)",
+                  background: "white",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                Nový záznam
+              </button>
+
+              <button
+                onClick={save}
+                disabled={saving}
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.18)",
+                  background: "#111827",
+                  color: "white",
+                  fontWeight: 900,
+                  cursor: saving ? "not-allowed" : "pointer",
+                  opacity: saving ? 0.7 : 1,
+                }}
+              >
+                {saving ? "Ukládám…" : "Uložit"}
+              </button>
+            </div>
+          </div>
+
+          {err ? (
+            <div
+              style={{
+                marginTop: 12,
+                background: "#fff3f3",
+                border: "1px solid #ffd0d0",
+                padding: 12,
+                borderRadius: 12,
+                color: "#8a1f1f",
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              Chyba: {err}
+            </div>
+          ) : null}
+
+          {/* FORM */}
+          <div
+            style={{
+              marginTop: 14,
+              background: "white",
+              border: "1px solid rgba(0,0,0,0.08)",
+              borderRadius: 18,
+              padding: 14,
+              boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
+              <div style={{ fontWeight: 900 }}>Přidat / upravit školu</div>
+              <div style={{ fontSize: 12, opacity: 0.6 }}>
+                {editingId ? <>Editace ID: <b>{editingId}</b></> : "Nový záznam"}
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 14, marginTop: 12 }}>
+              {/* left */}
+              <div style={{ display: "grid", gap: 12 }}>
+                <div>
+                  <div style={labelStyle}>Název školy*</div>
+                  <input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} style={inputStyle} />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <div style={labelStyle}>Web školy</div>
+                    <input value={form.website} onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))} style={inputStyle} placeholder="https://…" />
+                  </div>
+
+                  <div>
+                    <div style={labelStyle}>Typ školy</div>
+                    <input value={form.school_type} onChange={(e) => setForm((p) => ({ ...p, school_type: e.target.value }))} style={inputStyle} placeholder="ZŠ / MŠ / SŠ…" />
+                  </div>
+                </div>
+
+                <div>
+                  <div style={labelStyle}>Adresa</div>
+                  <input value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} style={inputStyle} placeholder="Ulice, č.p." />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                  <div>
+                    <div style={labelStyle}>Město</div>
+                    <input value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} style={inputStyle} />
+                  </div>
+                  <div>
+                    <div style={labelStyle}>Kraj</div>
+                    <input value={form.region} onChange={(e) => setForm((p) => ({ ...p, region: e.target.value }))} style={inputStyle} />
+                  </div>
+                  <div>
+                    <div style={labelStyle}>Země</div>
+                    <input value={form.country} onChange={(e) => setForm((p) => ({ ...p, country: e.target.value }))} style={inputStyle} />
+                  </div>
+                </div>
+
+                {/* GPS */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <div style={labelStyle}>Latitude (GPS)</div>
+                    <input
+                      value={form.latitude ?? ""}
+                      onChange={(e) => setForm((p) => ({ ...p, latitude: e.target.value }))}
+                      style={inputStyle}
+                      placeholder="např. 49.12345"
+                    />
+                  </div>
+                  <div>
+                    <div style={labelStyle}>Longitude (GPS)</div>
+                    <input
+                      value={form.longitude ?? ""}
+                      onChange={(e) => setForm((p) => ({ ...p, longitude: e.target.value }))}
+                      style={inputStyle}
+                      placeholder="např. 17.23456"
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                  <div>
+                    <div style={labelStyle}>Kontaktní osoba</div>
+                    <input value={form.contact_name} onChange={(e) => setForm((p) => ({ ...p, contact_name: e.target.value }))} style={inputStyle} />
+                  </div>
+                  <div>
+                    <div style={labelStyle}>Telefon</div>
+                    <input value={form.contact_phone} onChange={(e) => setForm((p) => ({ ...p, contact_phone: e.target.value }))} style={inputStyle} />
+                  </div>
+                  <div>
+                    <div style={labelStyle}>Email</div>
+                    <input value={form.contact_email} onChange={(e) => setForm((p) => ({ ...p, contact_email: e.target.value }))} style={inputStyle} />
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
+                  <div>
+                    <div style={labelStyle}>Datum otevření učebny</div>
+                    <input
+                      type="date"
+                      value={form.archimedes_since}
+                      onChange={(e) => setForm((p) => ({ ...p, archimedes_since: e.target.value }))}
+                      style={inputStyle}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div style={labelStyle}>Krátký popis školy</div>
+                  <textarea
+                    value={form.short_description}
+                    onChange={(e) => setForm((p) => ({ ...p, short_description: e.target.value }))}
+                    style={{ ...inputStyle, minHeight: 90, resize: "vertical" }}
+                    placeholder="Stručně: čím je škola zajímavá…"
+                  />
+                </div>
+
+                <div>
+                  <div style={labelStyle}>Popis učebny (text)</div>
+                  <textarea
+                    value={form.classroom_description}
+                    onChange={(e) => setForm((p) => ({ ...p, classroom_description: e.target.value }))}
+                    style={{ ...inputStyle, minHeight: 110, resize: "vertical", whiteSpace: "pre-wrap" }}
+                    placeholder="Např. základní / voda / kuchyň / dílna / 3D tisk / specifika…"
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
+                  <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 800 }}>
+                    <input
+                      type="checkbox"
+                      checked={!!form.has_archimedes_classroom}
+                      onChange={(e) => setForm((p) => ({ ...p, has_archimedes_classroom: e.target.checked }))}
+                    />
+                    Má učebnu ARCHIMEDES
+                  </label>
+
+                  <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 800 }}>
+                    <input
+                      type="checkbox"
+                      checked={!!form.is_published}
+                      onChange={(e) => setForm((p) => ({ ...p, is_published: e.target.checked }))}
+                    />
+                    Publikovat v síti učeben
+                  </label>
+                </div>
+              </div>
+
+              {/* right */}
+              <div style={{ display: "grid", gap: 12 }}>
+                <div>
+                  <div style={{ fontWeight: 900, marginBottom: 8 }}>Fotka učebny</div>
+
+                  <div
+                    style={{
+                      height: 220,
+                      borderRadius: 16,
+                      border: "1px solid rgba(0,0,0,0.10)",
+                      background: "rgba(0,0,0,0.03)",
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {selectedPhotoUrl ? (
+                      <img
+                        src={selectedPhotoUrl}
+                        alt="Fotka učebny"
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      />
+                    ) : (
+                      <div style={{ fontSize: 13, opacity: 0.7, padding: 12, textAlign: "center" }}>
+                        Zatím bez fotky.
+                        <div style={{ marginTop: 6, fontSize: 12 }}>
+                          Vyber soubor níže a klikni <b>Uložit</b>.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ marginTop: 10 }}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+                    />
+                    <div style={{ marginTop: 6, fontSize: 12, opacity: 0.65 }}>
+                      Doporučení: JPG/PNG, šířka alespoň 1200 px.
+                    </div>
+                  </div>
+
+                  {editingId ? (
+                    <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>
+                      Tip: detail školy je na{" "}
+                      <Link href={`/portal/skoly/${editingId}`} style={{ fontWeight: 900 }}>
+                        /portal/skoly/{editingId}
+                      </Link>
+                    </div>
+                  ) : null}
+                </div>
+
+                {editingId ? (
+                  <button
+                    onClick={() => removeSchool(editingId)}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: 12,
+                      border: "1px solid rgba(220,38,38,0.35)",
+                      background: "rgba(220,38,38,0.08)",
+                      fontWeight: 900,
+                      cursor: "pointer",
+                      color: "rgba(120,20,20,0.95)",
+                    }}
+                  >
+                    Smazat školu
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {/* LIST */}
+          <div
+            style={{
+              marginTop: 14,
+              background: "white",
+              border: "1px solid rgba(0,0,0,0.08)",
+              borderRadius: 18,
+              padding: 14,
+              boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
+              <div style={{ fontWeight: 900 }}>Seznam škol</div>
+              <div style={{ fontSize: 12, opacity: 0.65 }}>
+                Celkem: <b>{rows.length}</b>
+              </div>
+            </div>
+
+            {loadingList ? (
+              <div style={{ marginTop: 10, opacity: 0.7 }}>Načítám…</div>
+            ) : rows.length === 0 ? (
+              <div style={{ marginTop: 10, opacity: 0.7 }}>Zatím žádné školy.</div>
+            ) : (
+              <div style={{ marginTop: 10, overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ textAlign: "left" }}>
+                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Název</th>
+                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Město</th>
+                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Kraj</th>
+                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Publikace</th>
+                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>GPS</th>
+                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => {
+                      const gpsOk = r.latitude !== null && r.latitude !== undefined && r.longitude !== null && r.longitude !== undefined;
+                      return (
+                        <tr key={r.id} style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                          <td style={{ padding: "10px 8px", fontWeight: 900 }}>{r.name || "—"}</td>
+                          <td style={{ padding: "10px 8px", opacity: 0.85 }}>{r.city || "—"}</td>
+                          <td style={{ padding: "10px 8px", opacity: 0.85 }}>{r.region || "—"}</td>
+                          <td style={{ padding: "10px 8px" }}>
+                            {r.is_published ? (
+                              <span style={{ fontSize: 12, padding: "4px 10px", borderRadius: 999, background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.20)" }}>
+                                Publikováno
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: 12, padding: "4px 10px", borderRadius: 999, background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.10)" }}>
+                                Skryté
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ padding: "10px 8px" }}>
+                            {gpsOk ? (
+                              <span style={{ fontSize: 12, padding: "4px 10px", borderRadius: 999, background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.20)" }}>
+                                OK
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: 12, padding: "4px 10px", borderRadius: 999, background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.10)" }}>
+                                Bez GPS
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ padding: "10px 8px", textAlign: "right" }}>
+                            <button
+                              onClick={() => openRow(r)}
+                              style={{
+                                padding: "8px 10px",
+                                borderRadius: 12,
+                                border: "1px solid rgba(0,0,0,0.18)",
+                                background: "#111827",
+                                color: "white",
+                                fontWeight: 900,
+                                cursor: "pointer",
+                              }}
+                            >
+                              Otevřít
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </RequireAuth>
+  );
+}
