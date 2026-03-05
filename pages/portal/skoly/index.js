@@ -1,16 +1,16 @@
-// pages/portal/skoly/index.js
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
-// Leaflet komponenty načteme jen na klientovi (Next.js SSR safe)
+// Leaflet map components (no SSR)
 const MapContainer = dynamic(() => import("react-leaflet").then((m) => m.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import("react-leaflet").then((m) => m.TileLayer), { ssr: false });
 const Marker = dynamic(() => import("react-leaflet").then((m) => m.Marker), { ssr: false });
 const Popup = dynamic(() => import("react-leaflet").then((m) => m.Popup), { ssr: false });
+const useMap = dynamic(() => import("react-leaflet").then((m) => m.useMap), { ssr: false });
 
 const BUCKET = "schools";
 
@@ -20,26 +20,57 @@ function publicUrlFromPath(path) {
   return data?.publicUrl || null;
 }
 
-function safeNum(v) {
-  if (v === null || v === undefined) return null;
-  const n = Number(v);
-  if (Number.isNaN(n)) return null;
-  return n;
+function FitBounds({ points }) {
+  // points: [{lat,lng}]
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const map = useMap();
+  useEffect(() => {
+    if (!map) return;
+
+    const valid = (points || []).filter(
+      (p) => typeof p.lat === "number" && !Number.isNaN(p.lat) && typeof p.lng === "number" && !Number.isNaN(p.lng)
+    );
+
+    if (valid.length === 0) {
+      map.setView([49.8, 15.5], 7); // CZ default
+      return;
+    }
+
+    if (valid.length === 1) {
+      map.setView([valid[0].lat, valid[0].lng], 11);
+      return;
+    }
+
+    // fit bounds
+    const L = require("leaflet");
+    const bounds = L.latLngBounds(valid.map((p) => [p.lat, p.lng]));
+    map.fitBounds(bounds, { padding: [30, 30] });
+  }, [map, points]);
+
+  return null;
+}
+
+function ensureLeafletIcons() {
+  if (typeof window === "undefined") return;
+  const L = require("leaflet");
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  });
 }
 
 export default function SkolyIndex() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-
-  const [view, setView] = useState("cards"); // "cards" | "map"
-  const mapRef = useRef(null);
+  const [view, setView] = useState("cards"); // cards | map
 
   async function load() {
     setLoading(true);
     setErr("");
 
-    // ⚠️ Důležité: načítáme i lat/lng
     const { data, error } = await supabase
       .from("schools")
       .select(
@@ -63,49 +94,24 @@ export default function SkolyIndex() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (view === "map") ensureLeafletIcons();
+  }, [view]);
+
   const items = useMemo(() => {
     return (rows || []).map((r) => ({
       ...r,
       photo_url: publicUrlFromPath(r.photo_path),
-      lat: safeNum(r.lat),
-      lng: safeNum(r.lng),
+      lat_num: r.lat === null || r.lat === undefined ? null : Number(r.lat),
+      lng_num: r.lng === null || r.lng === undefined ? null : Number(r.lng),
     }));
   }, [rows]);
 
-  const mapItems = useMemo(() => {
-    // Do mapy dáme jen ty, co mají souřadnice
-    return (items || []).filter((r) => r.lat !== null && r.lng !== null);
+  const mapPoints = useMemo(() => {
+    return (items || [])
+      .filter((r) => typeof r.lat_num === "number" && !Number.isNaN(r.lat_num) && typeof r.lng_num === "number" && !Number.isNaN(r.lng_num))
+      .map((r) => ({ id: r.id, name: r.name, city: r.city, lat: r.lat_num, lng: r.lng_num, photo_url: r.photo_url }));
   }, [items]);
-
-  // ✅ OPRAVA “malého čtverečku”:
-  // Když přepnu na mapu, Leaflet si musí přepočítat velikost.
-  useEffect(() => {
-    if (view !== "map") return;
-
-    const t = setTimeout(() => {
-      const map = mapRef.current;
-      if (!map) return;
-
-      try {
-        map.invalidateSize();
-
-        // Auto zoom na značky
-        if (mapItems.length >= 2) {
-          const bounds = mapItems.map((r) => [r.lat, r.lng]);
-          map.fitBounds(bounds, { padding: [30, 30] });
-        } else if (mapItems.length === 1) {
-          map.setView([mapItems[0].lat, mapItems[0].lng], 12);
-        } else {
-          // default CZ
-          map.setView([49.8, 15.5], 7);
-        }
-      } catch (e) {
-        // no-op
-      }
-    }, 80);
-
-    return () => clearTimeout(t);
-  }, [view, mapItems]);
 
   return (
     <RequireAuth>
@@ -119,7 +125,7 @@ export default function SkolyIndex() {
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ fontSize: 13, color: "rgba(0,0,0,0.55)" }}>
               Celkem: <b style={{ color: "rgba(0,0,0,0.85)" }}>{items.length}</b>
             </div>
@@ -127,24 +133,23 @@ export default function SkolyIndex() {
             <div
               style={{
                 display: "inline-flex",
-                borderRadius: 999,
-                border: "1px solid rgba(0,0,0,0.12)",
                 background: "white",
+                border: "1px solid rgba(0,0,0,0.10)",
+                borderRadius: 999,
                 padding: 4,
-                gap: 4,
+                boxShadow: "0 10px 24px rgba(0,0,0,0.06)",
               }}
             >
               <button
                 onClick={() => setView("cards")}
                 style={{
-                  border: 0,
-                  cursor: "pointer",
+                  border: "none",
+                  background: view === "cards" ? "rgba(0,0,0,0.90)" : "transparent",
+                  color: view === "cards" ? "white" : "rgba(0,0,0,0.80)",
                   padding: "8px 12px",
                   borderRadius: 999,
-                  background: view === "cards" ? "#111827" : "transparent",
-                  color: view === "cards" ? "white" : "#111827",
                   fontWeight: 800,
-                  fontSize: 13,
+                  cursor: "pointer",
                 }}
               >
                 Karty
@@ -152,14 +157,13 @@ export default function SkolyIndex() {
               <button
                 onClick={() => setView("map")}
                 style={{
-                  border: 0,
-                  cursor: "pointer",
+                  border: "none",
+                  background: view === "map" ? "rgba(0,0,0,0.90)" : "transparent",
+                  color: view === "map" ? "white" : "rgba(0,0,0,0.80)",
                   padding: "8px 12px",
                   borderRadius: 999,
-                  background: view === "map" ? "#111827" : "transparent",
-                  color: view === "map" ? "white" : "#111827",
                   fontWeight: 800,
-                  fontSize: 13,
+                  cursor: "pointer",
                 }}
               >
                 Mapa
@@ -185,48 +189,41 @@ export default function SkolyIndex() {
 
         {loading ? (
           <div style={{ color: "rgba(0,0,0,0.65)" }}>Načítám…</div>
+        ) : items.length === 0 ? (
+          <div style={{ color: "rgba(0,0,0,0.65)" }}>Zatím zde nejsou žádné publikované školy.</div>
         ) : view === "map" ? (
           <div
             style={{
               background: "white",
               border: "1px solid rgba(0,0,0,0.08)",
               borderRadius: 18,
-              overflow: "hidden",
               boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
+              overflow: "hidden",
             }}
           >
-            <div style={{ padding: 14 }}>
+            <div style={{ padding: 14, borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
               <div style={{ fontSize: 16, fontWeight: 900 }}>Mapa učeben</div>
-              <div style={{ marginTop: 6, fontSize: 12, color: "rgba(0,0,0,0.65)" }}>
+              <div style={{ fontSize: 13, color: "rgba(0,0,0,0.65)", marginTop: 4 }}>
                 Zobrazují se jen školy, které mají vyplněné souřadnice (lat/lng).
               </div>
             </div>
 
-            {/* ✅ DŮLEŽITÉ: pevná výška kontejneru */}
             <div style={{ height: 520, width: "100%" }}>
-              <MapContainer
-                center={[49.8, 15.5]}
-                zoom={7}
-                style={{ height: "100%", width: "100%" }}
-                whenCreated={(map) => {
-                  mapRef.current = map;
-                }}
-              >
+              <MapContainer center={[49.8, 15.5]} zoom={7} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
                 <TileLayer
                   attribution='&copy; OpenStreetMap'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
-                {mapItems.map((r) => (
-                  <Marker key={r.id} position={[r.lat, r.lng]}>
+                <FitBounds points={mapPoints} />
+
+                {mapPoints.map((p) => (
+                  <Marker key={p.id} position={[p.lat, p.lng]}>
                     <Popup>
-                      <div style={{ fontWeight: 900, marginBottom: 6 }}>{r.name}</div>
-                      <div style={{ fontSize: 12, opacity: 0.8 }}>
-                        {(r.city ? r.city : "—")}
-                        {r.region ? ` • ${r.region}` : ""}
-                      </div>
-                      <div style={{ marginTop: 10 }}>
-                        <a href={`/portal/skoly/${r.id}`} style={{ fontWeight: 900 }}>
+                      <div style={{ fontWeight: 800, marginBottom: 6 }}>{p.name || "Škola"}</div>
+                      <div style={{ fontSize: 13, marginBottom: 8 }}>{p.city || ""}</div>
+                      <div>
+                        <a href={`/portal/skoly/${p.id}`} style={{ color: "#0b5fff", fontWeight: 800 }}>
                           Otevřít detail →
                         </a>
                       </div>
@@ -236,8 +233,6 @@ export default function SkolyIndex() {
               </MapContainer>
             </div>
           </div>
-        ) : items.length === 0 ? (
-          <div style={{ color: "rgba(0,0,0,0.65)" }}>Zatím zde nejsou žádné publikované školy.</div>
         ) : (
           <div
             style={{
@@ -256,7 +251,6 @@ export default function SkolyIndex() {
                     borderRadius: 18,
                     overflow: "hidden",
                     boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
-                    transition: "transform 120ms ease",
                   }}
                 >
                   <div style={{ height: 160, background: "rgba(0,0,0,0.04)" }}>
@@ -267,16 +261,7 @@ export default function SkolyIndex() {
                         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                       />
                     ) : (
-                      <div
-                        style={{
-                          height: "100%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "rgba(0,0,0,0.45)",
-                          fontSize: 13,
-                        }}
-                      >
+                      <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(0,0,0,0.45)", fontSize: 13 }}>
                         Bez fotky
                       </div>
                     )}
@@ -288,7 +273,7 @@ export default function SkolyIndex() {
                     </div>
 
                     <div style={{ marginTop: 6, fontSize: 13, color: "rgba(0,0,0,0.62)" }}>
-                      {(r.city ? r.city : "—")}
+                      {r.city ? r.city : "—"}
                       {r.region ? ` • ${r.region}` : ""}
                       {r.country ? ` • ${r.country}` : ""}
                     </div>
@@ -328,9 +313,7 @@ export default function SkolyIndex() {
                           Učebna od {new Date(r.archimedes_since).getFullYear()}
                         </span>
                       ) : null}
-
-                      {/* malý štítek, jestli má souřadnice */}
-                      {r.lat !== null && r.lng !== null ? (
+                      {typeof r.lat_num === "number" && typeof r.lng_num === "number" ? (
                         <span
                           style={{
                             fontSize: 12,
@@ -341,12 +324,12 @@ export default function SkolyIndex() {
                             color: "rgba(0,0,0,0.75)",
                           }}
                         >
-                          má bod na mapě
+                          Má souřadnice
                         </span>
                       ) : null}
                     </div>
 
-                    <div style={{ marginTop: 14, fontSize: 13, fontWeight: 700, color: "rgba(0,0,0,0.85)" }}>
+                    <div style={{ marginTop: 14, fontSize: 13, fontWeight: 800, color: "rgba(0,0,0,0.85)" }}>
                       Zobrazit detail →
                     </div>
                   </div>
