@@ -14,6 +14,19 @@ function publicUrlFromPath(path) {
   return data?.publicUrl || null;
 }
 
+function normalizeHttp(url) {
+  const s = String(url || "").trim();
+  if (!s) return "";
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  return `https://${s}`;
+}
+
+function toNum(v) {
+  if (v === null || v === undefined) return null;
+  const n = typeof v === "number" ? v : Number(String(v).replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
 export default function SchoolDetail() {
   const router = useRouter();
   const { id } = router.query;
@@ -24,6 +37,7 @@ export default function SchoolDetail() {
 
   useEffect(() => {
     if (!id) return;
+
     (async () => {
       setLoading(true);
       setErr("");
@@ -41,7 +55,7 @@ export default function SchoolDetail() {
       }
 
       if (!data) {
-        setErr("Škola nebyla nalezena nebo není publikovaná.");
+        setErr("Škola nebyla nalezena.");
         setLoading(false);
         return;
       }
@@ -53,6 +67,23 @@ export default function SchoolDetail() {
 
   const photoUrl = useMemo(() => publicUrlFromPath(row?.photo_path), [row?.photo_path]);
 
+  // GPS: primárně latitude/longitude, fallback lat/lng (kdyby v DB existovalo staré schéma)
+  const lat = useMemo(() => {
+    const a = toNum(row?.latitude);
+    if (a !== null) return a;
+    return toNum(row?.lat);
+  }, [row?.latitude, row?.lat]);
+
+  const lng = useMemo(() => {
+    const a = toNum(row?.longitude);
+    if (a !== null) return a;
+    return toNum(row?.lng);
+  }, [row?.longitude, row?.lng]);
+
+  const hasCoords = typeof lat === "number" && typeof lng === "number";
+
+  const websiteHref = useMemo(() => normalizeHttp(row?.website), [row?.website]);
+
   return (
     <RequireAuth>
       <PortalHeader title="Síť učeben" />
@@ -60,7 +91,10 @@ export default function SchoolDetail() {
       <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto", padding: "18px 16px 40px" }}>
           <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12 }}>
-            <Link href="/portal/skoly" style={{ textDecoration: "none", fontWeight: 800, color: "#111827" }}>
+            <Link
+              href="/portal/skoly"
+              style={{ textDecoration: "none", fontWeight: 800, color: "#111827" }}
+            >
               ← Zpět na seznam
             </Link>
           </div>
@@ -91,20 +125,54 @@ export default function SchoolDetail() {
             >
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr" }}>
                 <div style={{ padding: 14 }}>
-                  <div style={{ fontWeight: 900, fontSize: 22, lineHeight: 1.15 }}>{row?.name}</div>
+                  <div style={{ fontWeight: 900, fontSize: 22, lineHeight: 1.15 }}>
+                    {row?.name || "—"}
+                  </div>
+
                   <div style={{ marginTop: 6, fontSize: 13, opacity: 0.75 }}>
                     {(row?.address ? row.address + ", " : "")}
                     {row?.city || ""}
                     {row?.region ? ` • ${row.region}` : ""}
+                    {row?.country ? ` • ${row.country}` : ""}
                   </div>
 
                   <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
-                    {row?.website ? (
-                      <a href={row.website} target="_blank" rel="noreferrer" style={{ fontWeight: 800 }}>
+                    {/* web školy */}
+                    {websiteHref ? (
+                      <a
+                        href={websiteHref}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ fontWeight: 800 }}
+                      >
                         Web školy →
                       </a>
                     ) : null}
 
+                    {/* mapy */}
+                    {hasCoords ? (
+                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        <a
+                          href={`https://mapy.cz/zakladni?x=${lng}&y=${lat}&z=16&source=coor&id=${lat}%2C${lng}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ fontWeight: 800 }}
+                        >
+                          Otevřít v Mapy.cz →
+                        </a>
+
+                        <a
+                          href={`https://www.google.com/maps?q=${lat},${lng}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ fontWeight: 800 }}
+                        >
+                          Otevřít v Google Maps →
+                        </a>
+                      </div>
+                    ) : null}
+
+                    {/* kontakt */}
                     {row?.contact_name || row?.contact_email || row?.contact_phone ? (
                       <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)", paddingTop: 10 }}>
                         <div style={{ fontWeight: 900, marginBottom: 6 }}>Kontakt</div>
@@ -114,6 +182,7 @@ export default function SchoolDetail() {
                       </div>
                     ) : null}
 
+                    {/* o škole */}
                     {row?.short_description ? (
                       <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)", paddingTop: 10 }}>
                         <div style={{ fontWeight: 900, marginBottom: 6 }}>O škole</div>
@@ -121,6 +190,7 @@ export default function SchoolDetail() {
                       </div>
                     ) : null}
 
+                    {/* popis učebny */}
                     {row?.classroom_description ? (
                       <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)", paddingTop: 10 }}>
                         <div style={{ fontWeight: 900, marginBottom: 6 }}>Popis učebny</div>
@@ -132,7 +202,13 @@ export default function SchoolDetail() {
                   </div>
                 </div>
 
-                <div style={{ background: "rgba(0,0,0,0.03)", minHeight: 320, position: "relative" }}>
+                <div
+                  style={{
+                    background: "rgba(0,0,0,0.03)",
+                    minHeight: 320,
+                    position: "relative",
+                  }}
+                >
                   {photoUrl ? (
                     <img
                       src={photoUrl}
