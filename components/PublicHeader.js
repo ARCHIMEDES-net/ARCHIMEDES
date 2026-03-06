@@ -1,4 +1,3 @@
-// components/PublicHeader.js
 import Link from "next/link";
 import { useRouter } from "next/router";
 
@@ -42,8 +41,10 @@ export default function PublicHeader({ active = "" }) {
     if (active) return active === key;
     if (key === "home") return asPath === "/";
     if (key === "program") return asPath === "/program";
+    if (key === "ucebna") return asPath === "/#ucebna";
     if (key === "cenik") return asPath === "/cenik";
     if (key === "poptavka") return asPath === "/poptavka";
+    if (key === "kontakt") return asPath === "/kontakt";
     return false;
   };
 
@@ -119,6 +120,10 @@ export default function PublicHeader({ active = "" }) {
 
           <Link href="/poptavka" style={navItem("poptavka")}>
             Poptávka
+          </Link>
+
+          <Link href="/kontakt" style={navItem("kontakt")}>
+            Kontakt
           </Link>
 
           <span
