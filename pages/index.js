@@ -30,17 +30,6 @@ const marqueeRow2 = [
   "Frýdek-Místek",
 ];
 
-const places = [
-  "Hodonín",
-  "Křenov",
-  "Bučovice",
-  "Frýdek-Místek",
-  "Mikulov",
-  "Chrudim",
-  "Louny",
-  "Hlinsko",
-];
-
 const schoolBenefits = [
   "hosté z praxe a inspirativní témata",
   "připravené podklady pro učitele a žáky",
@@ -174,12 +163,27 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="placesCard">
-              <div className="placesTitle">Kde to už běží</div>
-              <div className="placesList">
-                {places.map((place) => (
-                  <span key={place}>{place}</span>
-                ))}
+            <div className="marqueeBlock">
+              <div className="marqueeTitle">Síť učeben ARCHIMEDES</div>
+
+              <div className="marqueeWrap">
+                <div className="marqueeTrack">
+                  {[...marqueeRow1, ...marqueeRow1].map((place, i) => (
+                    <span key={`row1-${place}-${i}`} className="marqueeItem">
+                      {place}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="marqueeWrap reverse">
+                <div className="marqueeTrack marqueeTrackReverse">
+                  {[...marqueeRow2, ...marqueeRow2].map((place, i) => (
+                    <span key={`row2-${place}-${i}`} className="marqueeItem">
+                      {place}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -309,54 +313,28 @@ export default function Home() {
         </section>
 
         <section id="sit" className="section sectionAlt">
-          <div className="container">
-            <div className="sectionIntro">
+          <div className="container networkSection">
+            <div className="networkText">
               <div className="eyebrow">Síť učeben ARCHIMEDES</div>
-              <h2>Program už funguje ve školách a obcích po celé České republice</h2>
-            </div>
+              <h2>Program je napojený na reálná místa a skutečné školy</h2>
+              <p className="sectionLead">
+                ARCHIMEDES Live stojí na fyzické síti učeben a zkušenostech škol
+                a obcí, které už program využívají.
+              </p>
 
-            <div className="marqueeWrap">
-              <div className="marqueeTrack">
-                {[...marqueeRow1, ...marqueeRow1].map((place, i) => (
-                  <span key={`row1-${place}-${i}`} className="marqueeItem">
-                    {place}
-                  </span>
-                ))}
+              <div className="inlineCtas">
+                <Link href="/ukazka" className="btn btnGhost">
+                  Chci ukázku / zapojení
+                </Link>
               </div>
             </div>
 
-            <div className="marqueeWrap reverse">
-              <div className="marqueeTrack marqueeTrackReverse">
-                {[...marqueeRow2, ...marqueeRow2].map((place, i) => (
-                  <span key={`row2-${place}-${i}`} className="marqueeItem">
-                    {place}
-                  </span>
-                ))}
+            <div className="networkPhotos">
+              <div className="networkPhoto left">
+                <span>Učebna ARCHIMEDES</span>
               </div>
-            </div>
-
-            <div className="networkSection">
-              <div className="networkText">
-                <h2>Program je napojený na reálná místa a skutečné školy</h2>
-                <p className="sectionLead">
-                  ARCHIMEDES Live stojí na fyzické síti učeben a zkušenostech škol
-                  a obcí, které už program využívají.
-                </p>
-
-                <div className="inlineCtas">
-                  <Link href="/ukazka" className="btn btnGhost">
-                    Chci ukázku / zapojení
-                  </Link>
-                </div>
-              </div>
-
-              <div className="networkPhotos">
-                <div className="networkPhoto left">
-                  <span>Učebna ARCHIMEDES</span>
-                </div>
-                <div className="networkPhoto right">
-                  <span>Živý program</span>
-                </div>
+              <div className="networkPhoto right">
+                <span>Živý program</span>
               </div>
             </div>
           </div>
@@ -648,13 +626,12 @@ export default function Home() {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: 18px;
-          margin-bottom: 18px;
+          margin-bottom: 22px;
         }
 
         .trustCard,
         .themeCard,
         .benefitCard,
-        .placesCard,
         .bigVisualCard,
         .financingCard,
         .stepCard {
@@ -679,30 +656,18 @@ export default function Home() {
           color: #4b5563;
         }
 
-        .placesCard {
-          padding: 24px;
+        .marqueeBlock {
+          background: white;
+          border: 1px solid rgba(17, 24, 39, 0.08);
+          border-radius: 22px;
+          padding: 22px;
         }
 
-        .placesTitle {
+        .marqueeTitle {
           font-size: 20px;
           font-weight: 700;
           margin-bottom: 14px;
-        }
-
-        .placesList {
-          display: flex;
-          gap: 12px;
-          flex-wrap: wrap;
-        }
-
-        .placesList span {
-          display: inline-flex;
-          align-items: center;
-          padding: 10px 14px;
-          border-radius: 999px;
-          background: #f3f4f6;
           color: #111827;
-          font-size: 15px;
         }
 
         .splitSection {
@@ -874,10 +839,9 @@ export default function Home() {
         .marqueeWrap {
           position: relative;
           overflow: hidden;
-          margin-top: 18px;
           border-radius: 18px;
-          background: white;
-          border: 1px solid rgba(17, 24, 39, 0.08);
+          background: #f8fafc;
+          border: 1px solid rgba(17, 24, 39, 0.06);
         }
 
         .marqueeWrap.reverse {
@@ -889,7 +853,7 @@ export default function Home() {
           content: "";
           position: absolute;
           top: 0;
-          width: 80px;
+          width: 72px;
           height: 100%;
           z-index: 2;
           pointer-events: none;
@@ -897,12 +861,12 @@ export default function Home() {
 
         .marqueeWrap:before {
           left: 0;
-          background: linear-gradient(to right, #eef1f7 0%, rgba(238, 241, 247, 0) 100%);
+          background: linear-gradient(to right, #ffffff 0%, rgba(255,255,255,0) 100%);
         }
 
         .marqueeWrap:after {
           right: 0;
-          background: linear-gradient(to left, #eef1f7 0%, rgba(238, 241, 247, 0) 100%);
+          background: linear-gradient(to left, #ffffff 0%, rgba(255,255,255,0) 100%);
         }
 
         .marqueeTrack {
@@ -929,7 +893,7 @@ export default function Home() {
           align-items: center;
           padding: 10px 16px;
           border-radius: 999px;
-          background: #f3f4f6;
+          background: #eef1f7;
           color: #111827;
           font-size: 15px;
           white-space: nowrap;
@@ -940,7 +904,6 @@ export default function Home() {
           grid-template-columns: 1fr 1fr;
           gap: 26px;
           align-items: center;
-          margin-top: 36px;
         }
 
         .networkText {
@@ -1147,11 +1110,11 @@ export default function Home() {
           .trustCard,
           .themeCard,
           .benefitCard,
-          .placesCard,
           .bigVisualCard,
           .financingCard,
           .stepCard,
-          .finalCta {
+          .finalCta,
+          .marqueeBlock {
             padding-left: 20px;
             padding-right: 20px;
           }
