@@ -1,13 +1,39 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 
-function getHashParams() {
-  if (typeof window === "undefined") return new URLSearchParams();
-  const hash = window.location.hash?.startsWith("#")
-    ? window.location.hash.substring(1)
-    : window.location.hash || "";
-  return new URLSearchParams(hash);
+function readAuthParams() {
+  if (typeof window === "undefined") {
+    return {
+      code: "",
+      tokenHash: "",
+      type: "",
+      accessTokenInHash: false,
+      errorCode: "",
+      errorDescription: "",
+    };
+  }
+
+  const search = new URLSearchParams(window.location.search);
+  const hash = new URLSearchParams(
+    window.location.hash?.startsWith("#")
+      ? window.location.hash.slice(1)
+      : window.location.hash || ""
+  );
+
+  return {
+    code: search.get("code") || "",
+    tokenHash: search.get("token_hash") || "",
+    type: search.get("type") || hash.get("type") || "",
+    accessTokenInHash: !!hash.get("access_token"),
+    errorCode: hash.get("error_code") || search.get("error_code") || "",
+    errorDescription:
+      hash.get("error_description") || search.get("error_description") || "",
+  };
+}
+
+function isInviteOrRecoveryType(type) {
+  return type === "invite" || type === "recovery";
 }
 
 export default function Login() {
@@ -26,30 +52,53 @@ export default function Login() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const inviteOrRecoveryInHash = useMemo(() => {
-    const params = getHashParams();
-    const type = params.get("type");
-    const hasAccessToken = !!params.get("access_token");
-    return hasAccessToken || type === "invite" || type === "recovery";
-  }, []);
-
   useEffect(() => {
     let mounted = true;
 
     async function init() {
+      if (!router.isReady) return;
+
       setCheckingSession(true);
       setError("");
       setMessage("");
 
       try {
-        const hashParams = getHashParams();
-        const errorCode = hashParams.get("error_code");
-        const errorDescription = hashParams.get("error_description");
+        const {
+          code,
+          tokenHash,
+          type,
+          accessTokenInHash,
+          errorCode,
+          errorDescription,
+        } = readAuthParams();
 
         if (errorCode) {
           throw new Error(
-            decodeURIComponent(errorDescription || "Přihlášení se nepodařilo.")
+            decodeURIComponent(
+              errorDescription || "Emailový odkaz je neplatný nebo vypršel."
+            )
           );
+        }
+
+        const inviteOrRecovery =
+          isInviteOrRecoveryType(type) || accessTokenInHash;
+
+        // 1) PKCE flow: /login?code=...
+        if (code) {
+          const { error: exchangeError } =
+            await supabase.auth.exchangeCodeForSession(code);
+
+          if (exchangeError) throw exchangeError;
+        }
+
+        // 2) token_hash flow: /login?token_hash=...&type=invite|recovery
+        if (tokenHash && isInviteOrRecoveryType(type)) {
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type,
+          });
+
+          if (verifyError) throw verifyError;
         }
 
         const {
@@ -59,24 +108,20 @@ export default function Login() {
         if (!mounted) return;
 
         if (session?.user) {
-          if (inviteOrRecoveryInHash) {
+          if (inviteOrRecovery) {
             setMode("set-password");
             setMessage("Dokončete registraci nastavením svého hesla.");
           } else {
             router.replace("/portal");
             return;
           }
-        } else if (inviteOrRecoveryInHash) {
-          setMode("set-password");
-          setMessage(
-            "Pokud jste přišli z pozvánky, nastavte si nyní heslo. Když by se formulář nenačetl správně, otevřete odkaz z e-mailu znovu."
-          );
         } else {
           setMode("login");
         }
       } catch (e) {
         if (!mounted) return;
         setError(e.message || "Nepodařilo se načíst přihlášení.");
+        setMode("login");
       } finally {
         if (mounted) setCheckingSession(false);
       }
@@ -89,14 +134,25 @@ export default function Login() {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
-      if (session?.user && (inviteOrRecoveryInHash || event === "PASSWORD_RECOVERY")) {
+      if (event === "PASSWORD_RECOVERY" && session?.user) {
         setMode("set-password");
-        setMessage("Dokončete registraci nastavením svého hesla.");
+        setMessage("Nastavte si nové heslo.");
         setCheckingSession(false);
         return;
       }
 
-      if (session?.user && !inviteOrRecoveryInHash) {
+      if (session?.user) {
+        const { type, accessTokenInHash } = readAuthParams();
+        const inviteOrRecovery =
+          isInviteOrRecoveryType(type) || accessTokenInHash;
+
+        if (inviteOrRecovery) {
+          setMode("set-password");
+          setMessage("Dokončete registraci nastavením svého hesla.");
+          setCheckingSession(false);
+          return;
+        }
+
         router.replace("/portal");
       }
     });
@@ -105,7 +161,7 @@ export default function Login() {
       mounted = false;
       subscription?.unsubscribe();
     };
-  }, [inviteOrRecoveryInHash, router]);
+  }, [router]);
 
   async function handleLogin(e) {
     e.preventDefault();
