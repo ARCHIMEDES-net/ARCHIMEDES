@@ -1,6 +1,7 @@
 // components/PortalHeader.js
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 const LOGO_SRC = "/logo.jpg";
@@ -8,6 +9,45 @@ const LOGO_SRC = "/logo.jpg";
 export default function PortalHeader({ title = "" }) {
   const router = useRouter();
   const path = router?.asPath || "";
+
+  const [isSchoolAdmin, setIsSchoolAdmin] = useState(false);
+  const [loadingRole, setLoadingRole] = useState(true);
+
+  useEffect(() => {
+    loadRole();
+  }, []);
+
+  async function loadRole() {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setIsSchoolAdmin(false);
+        setLoadingRole(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        setIsSchoolAdmin(false);
+        setLoadingRole(false);
+        return;
+      }
+
+      setIsSchoolAdmin(data?.role === "school_admin");
+    } catch (e) {
+      setIsSchoolAdmin(false);
+    } finally {
+      setLoadingRole(false);
+    }
+  }
 
   const itemBase = {
     textDecoration: "none",
@@ -31,8 +71,10 @@ export default function PortalHeader({ title = "" }) {
   };
 
   const isActive = (key) => {
-    if (key === "portal") return path === "/portal" || path.startsWith("/portal/");
+    if (key === "portal") return path === "/portal" || path === "/portal/";
     if (key === "program") return path.startsWith("/portal/kalendar");
+    if (key === "profil") return path.startsWith("/portal/muj-profil");
+    if (key === "uzivatele") return path.startsWith("/portal/uzivatele");
     if (key === "admin") return path.startsWith("/portal/admin");
     return false;
   };
@@ -64,7 +106,15 @@ export default function PortalHeader({ title = "" }) {
           gap: 12,
         }}
       >
-        <Link href="/portal" style={{ display: "inline-flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+        <Link
+          href="/portal"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 10,
+            textDecoration: "none",
+          }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={LOGO_SRC}
@@ -74,13 +124,43 @@ export default function PortalHeader({ title = "" }) {
               e.currentTarget.style.display = "none";
             }}
           />
-          {title ? <span style={{ fontWeight: 900, color: "#0f172a" }}>{title}</span> : null}
+          {title ? (
+            <span style={{ fontWeight: 900, color: "#0f172a" }}>{title}</span>
+          ) : null}
         </Link>
 
-        <nav style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <Link href="/portal" style={navItem("portal")}>Portál</Link>
-          <Link href="/portal/kalendar" style={navItem("program")}>Program</Link>
-          <Link href="/portal/admin-udalosti" style={navItem("admin")}>Admin</Link>
+        <nav
+          style={{
+            marginLeft: "auto",
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <Link href="/portal" style={navItem("portal")}>
+            Portál
+          </Link>
+
+          <Link href="/portal/kalendar" style={navItem("program")}>
+            Program
+          </Link>
+
+          <Link href="/portal/muj-profil" style={navItem("profil")}>
+            Můj profil
+          </Link>
+
+          {!loadingRole && isSchoolAdmin ? (
+            <Link href="/portal/uzivatele" style={navItem("uzivatele")}>
+              Uživatelé školy
+            </Link>
+          ) : null}
+
+          {!loadingRole && isSchoolAdmin ? (
+            <Link href="/portal/admin-udalosti" style={navItem("admin")}>
+              Admin
+            </Link>
+          ) : null}
 
           <button
             onClick={onLogout}
