@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
@@ -48,6 +49,8 @@ function normalizeOptions(rows, fallback, preferredKeys = []) {
 }
 
 export default function MujProfilPage() {
+  const router = useRouter();
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -228,7 +231,11 @@ export default function MujProfilPage() {
         if (insertCatError) throw insertCatError;
       }
 
-      setMessage("Profil byl uložen.");
+      setMessage("Profil byl uložen. Přesměrovávám do portálu...");
+
+      setTimeout(() => {
+        router.push("/portal");
+      }, 800);
     } catch (e) {
       setError(e.message || "Uložení se nepodařilo.");
     } finally {
