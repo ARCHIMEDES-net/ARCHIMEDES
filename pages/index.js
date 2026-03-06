@@ -103,13 +103,13 @@ export default function Home() {
               </p>
 
               <div className="heroCtas">
-                <Link href="/ukazka" className="heroBtn heroBtnPrimary">
+                <Link href="/ukazka" className="heroBtn heroBtnGreen">
                   Domluvit ukázku programu
                 </Link>
-                <Link href="/program" className="heroBtn heroBtnSecondary">
+                <Link href="/program" className="heroBtn heroBtnGlass">
                   Prohlédnout program
                 </Link>
-                <Link href="/cenik" className="heroBtn heroBtnSecondary">
+                <Link href="/cenik" className="heroBtn heroBtnGlass">
                   Ceník a financování
                 </Link>
               </div>
@@ -663,45 +663,72 @@ export default function Home() {
           flex-wrap: wrap;
         }
 
-     .heroBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 52px;
-  padding: 0 20px;
-  border-radius: 16px;
-  text-decoration: none;
-  font-size: 16px;
-  font-weight: 700;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-  white-space: nowrap;
-}
+        .heroBtn {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 52px;
+          padding: 0 20px;
+          border-radius: 16px;
+          text-decoration: none;
+          font-size: 16px;
+          font-weight: 700;
+          white-space: nowrap;
+          transition:
+            transform 0.18s ease,
+            box-shadow 0.18s ease,
+            background 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease;
+          cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+        }
 
-.heroBtn:hover {
-  transform: translateY(-1px);
-}
+        .heroBtn:hover {
+          transform: translateY(-2px);
+        }
 
-.heroBtnGreen {
-  background: rgba(16, 185, 129, 0.18);
-  color: #ffffff;
-  border: 1px solid rgba(16, 185, 129, 0.38);
-  box-shadow: 0 10px 24px rgba(16, 185, 129, 0.18);
-}
+        .heroBtn:focus-visible {
+          outline: 2px solid rgba(255, 255, 255, 0.8);
+          outline-offset: 2px;
+        }
 
-.heroBtnGreen:hover {
-  background: rgba(16, 185, 129, 0.24);
-}
+        .heroBtnGreen {
+          color: #ffffff;
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          border: 1px solid rgba(16, 185, 129, 0.92);
+          box-shadow:
+            0 12px 28px rgba(16, 185, 129, 0.28),
+            inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
 
-.heroBtnDark {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(4px);
-}
+        .heroBtnGreen:hover {
+          background: linear-gradient(135deg, #12c48b 0%, #0b9d71 100%);
+          border-color: rgba(16, 185, 129, 1);
+          box-shadow:
+            0 16px 34px rgba(16, 185, 129, 0.32),
+            inset 0 1px 0 rgba(255, 255, 255, 0.14);
+        }
 
-.heroBtnDark:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
+        .heroBtnGlass {
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          backdrop-filter: blur(8px);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.08),
+            0 8px 22px rgba(15, 23, 42, 0.16);
+        }
+
+        .heroBtnGlass:hover {
+          background: rgba(255, 255, 255, 0.14);
+          border-color: rgba(255, 255, 255, 0.24);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.12),
+            0 12px 28px rgba(15, 23, 42, 0.22);
+        }
+
         .microTrust {
           display: flex;
           gap: 18px;
@@ -1479,6 +1506,10 @@ export default function Home() {
 
           .finalCtaWrap {
             padding-bottom: 72px;
+          }
+
+          .heroBtn {
+            width: 100%;
           }
         }
       `}</style>
