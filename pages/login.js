@@ -217,6 +217,23 @@ export default function Login() {
 
       if (error) throw error;
 
+      const {
+        data: { user },
+        error: getUserError,
+      } = await supabase.auth.getUser();
+
+      if (getUserError) throw getUserError;
+      if (!user?.id) {
+        throw new Error("Nepodařilo se dohledat přihlášeného uživatele.");
+      }
+
+      const { error: profileUpdateError } = await supabase
+        .from("profiles")
+        .update({ must_set_password: false })
+        .eq("id", user.id);
+
+      if (profileUpdateError) throw profileUpdateError;
+
       setMessage("Heslo bylo nastaveno. Přesměrovávám do portálu...");
       setTimeout(() => {
         router.push("/portal/muj-profil");
