@@ -30,7 +30,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Chybí schoolId." });
     }
 
-    const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL || "https://archimedes-5ai5.vercel.app"}/login`;
+    const redirectTo = `${
+      process.env.NEXT_PUBLIC_SITE_URL || "https://archimedes-5ai5.vercel.app"
+    }/login`;
 
     const { data: invitedUser, error: inviteError } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(cleanEmail, {
@@ -64,6 +66,7 @@ export default async function handler(req, res) {
           role: cleanRole,
           school_id: cleanSchoolId,
           is_active: true,
+          must_set_password: true,
         },
         { onConflict: "id" }
       );
