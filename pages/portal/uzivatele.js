@@ -86,45 +86,29 @@ export default function UzivateleSkolyPage() {
       if (!newEmail.trim()) throw new Error("Vyplňte e-mail.");
       if (!newFullName.trim()) throw new Error("Vyplňte jméno a příjmení.");
 
-      const cleanEmail = newEmail.trim().toLowerCase();
-
-      const temporaryPassword =
-        "Archimedes123!";
-
-      const { data: createdAuthUser, error: createAuthError } =
-        await supabase.auth.admin.createUser({
-          email: cleanEmail,
-          password: temporaryPassword,
-          email_confirm: true,
-        });
-
-      if (createAuthError) {
-        throw createAuthError;
-      }
-
-      const createdUserId = createdAuthUser?.user?.id;
-      if (!createdUserId) throw new Error("Nepodařilo se získat ID nového uživatele.");
-
-      const { error: profileInsertError } = await supabase.from("profiles").upsert(
-        {
-          id: createdUserId,
-          email: cleanEmail,
-          full_name: newFullName.trim(),
-          role: newRole,
-          school_id: schoolId,
-          is_active: true,
+      const response = await fetch("/api/invite-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        { onConflict: "id" }
-      );
+        body: JSON.stringify({
+          email: newEmail.trim().toLowerCase(),
+          fullName: newFullName.trim(),
+          role: newRole,
+          schoolId,
+        }),
+      });
 
-      if (profileInsertError) throw profileInsertError;
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.error || "Nepodařilo se vytvořit uživatele.");
+      }
 
       setNewEmail("");
       setNewFullName("");
       setNewRole("teacher");
-      setMessage(
-        `Uživatel byl vytvořen. Dočasné heslo je: ${temporaryPassword}`
-      );
+      setMessage("Pozvánka byla odeslána a uživatel byl přidán.");
 
       await loadAll();
     } catch (e) {
@@ -341,7 +325,7 @@ export default function UzivateleSkolyPage() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {saving ? "Vytvářím…" : "Přidat uživatele"}
+                    {saving ? "Odesílám…" : "Přidat uživatele"}
                   </button>
                 </div>
               </div>
