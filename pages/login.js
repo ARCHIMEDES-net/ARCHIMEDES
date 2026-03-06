@@ -121,7 +121,7 @@ export default function Login() {
 
       if (error) throw error;
 
-      router.push("/portal/muj-profil");
+      router.push("/portal");
     } catch (e) {
       setError(e.message || "Přihlášení se nepodařilo.");
       setMessage("");
