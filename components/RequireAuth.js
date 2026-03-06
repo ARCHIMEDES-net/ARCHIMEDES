@@ -1,4 +1,3 @@
-// components/RequireAuth.js
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
@@ -26,11 +25,17 @@ export default function RequireAuth({ children }) {
 
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("id, full_name")
+          .select("id, full_name, must_set_password")
           .eq("id", user.id)
           .maybeSingle();
 
-        if (profileError) {
+        if (profileError || !profile) {
+          router.replace("/login");
+          return;
+        }
+
+        // 1) nově pozvaný uživatel musí nejdřív nastavit heslo
+        if (profile.must_set_password) {
           router.replace("/login");
           return;
         }
@@ -64,16 +69,13 @@ export default function RequireAuth({ children }) {
         const profileComplete = hasFullName && hasAudience && hasCategory;
         const isProfilePage = pathname === "/portal/muj-profil";
 
+        // 2) profil není dokončený -> přesměrovat na Můj profil
         if (!profileComplete && !isProfilePage) {
           router.replace("/portal/muj-profil");
           return;
         }
 
-        if (profileComplete && isProfilePage) {
-          // profil už je hotový, stránku ale necháme přístupnou,
-          // takže zde nic nepřesměrováváme
-        }
-
+        // 3) profil je dokončený -> portál je přístupný
         if (mounted) setChecking(false);
       } catch (_e) {
         router.replace("/login");
