@@ -83,7 +83,7 @@ export default function Login() {
         const inviteOrRecovery =
           isInviteOrRecoveryType(type) || accessTokenInHash;
 
-        // 1) PKCE flow: /login?code=...
+        // PKCE flow: /login?code=...
         if (code) {
           const { error: exchangeError } =
             await supabase.auth.exchangeCodeForSession(code);
@@ -91,7 +91,7 @@ export default function Login() {
           if (exchangeError) throw exchangeError;
         }
 
-        // 2) token_hash flow: /login?token_hash=...&type=invite|recovery
+        // token_hash flow: /login?token_hash=...&type=invite|recovery
         if (tokenHash && isInviteOrRecoveryType(type)) {
           const { error: verifyError } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
@@ -320,6 +320,7 @@ export default function Login() {
                   padding: "12px 14px",
                   borderRadius: 12,
                   border: "1px solid rgba(0,0,0,0.15)",
+                  boxSizing: "border-box",
                 }}
               />
             </div>
@@ -337,6 +338,7 @@ export default function Login() {
                   padding: "12px 14px",
                   borderRadius: 12,
                   border: "1px solid rgba(0,0,0,0.15)",
+                  boxSizing: "border-box",
                 }}
               />
             </div>
@@ -373,6 +375,7 @@ export default function Login() {
                   padding: "12px 14px",
                   borderRadius: 12,
                   border: "1px solid rgba(0,0,0,0.15)",
+                  boxSizing: "border-box",
                 }}
               />
             </div>
@@ -390,6 +393,7 @@ export default function Login() {
                   padding: "12px 14px",
                   borderRadius: 12,
                   border: "1px solid rgba(0,0,0,0.15)",
+                  boxSizing: "border-box",
                 }}
               />
             </div>
