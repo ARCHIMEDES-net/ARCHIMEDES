@@ -13,7 +13,7 @@ export default function PublicHeader({ active = "" }) {
   const pathname = router?.pathname || "";
   const asPath = stripQuery(router?.asPath || "");
 
-  // ✅ pojistka: veřejná hlavička se nikdy nezobrazí v portálu ani na loginu
+  // veřejná hlavička se nikdy nezobrazí v portálu ani na loginu
   if (pathname.startsWith("/portal") || pathname === "/login") return null;
 
   const itemBase = {
@@ -47,7 +47,10 @@ export default function PublicHeader({ active = "" }) {
     return false;
   };
 
-  const navItem = (key) => ({ ...itemBase, ...(isActive(key) ? activeStyle : inactiveStyle) });
+  const navItem = (key) => ({
+    ...itemBase,
+    ...(isActive(key) ? activeStyle : inactiveStyle),
+  });
 
   return (
     <header
@@ -69,7 +72,15 @@ export default function PublicHeader({ active = "" }) {
           gap: 12,
         }}
       >
-        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+        <Link
+          href="/"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 10,
+            textDecoration: "none",
+          }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={LOGO_SRC}
@@ -81,13 +92,43 @@ export default function PublicHeader({ active = "" }) {
           />
         </Link>
 
-        <nav style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <Link href="/" style={navItem("home")}>Domů</Link>
-          <Link href="/program" style={navItem("program")}>Program</Link>
-          <Link href="/cenik" style={navItem("cenik")}>Ceník</Link>
-          <Link href="/poptavka" style={navItem("poptavka")}>Poptávka</Link>
+        <nav
+          style={{
+            marginLeft: "auto",
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <Link href="/" style={navItem("home")}>
+            Domů
+          </Link>
 
-          <span style={{ width: 1, height: 18, background: "#e5e7eb", margin: "0 2px" }} />
+          <Link href="/program" style={navItem("program")}>
+            Program
+          </Link>
+
+          <Link href="/#ucebna" style={navItem("ucebna")}>
+            Učebna
+          </Link>
+
+          <Link href="/cenik" style={navItem("cenik")}>
+            Ceník
+          </Link>
+
+          <Link href="/poptavka" style={navItem("poptavka")}>
+            Poptávka
+          </Link>
+
+          <span
+            style={{
+              width: 1,
+              height: 18,
+              background: "#e5e7eb",
+              margin: "0 2px",
+            }}
+          />
 
           <Link
             href="/portal"
