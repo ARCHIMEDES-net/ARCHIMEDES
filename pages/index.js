@@ -103,13 +103,13 @@ export default function Home() {
               </p>
 
               <div className="heroCtas">
-                <Link href="/ukazka" className="btn btnPrimary">
+                <Link href="/ukazka" className="heroBtn heroBtnPrimary">
                   Domluvit ukázku programu
                 </Link>
-                <Link href="/program" className="btn btnGhostLight">
+                <Link href="/program" className="heroBtn heroBtnSecondary">
                   Prohlédnout program
                 </Link>
-                <Link href="/cenik" className="btn btnGhostLight">
+                <Link href="/cenik" className="heroBtn heroBtnSecondary">
                   Ceník a financování
                 </Link>
               </div>
@@ -661,6 +661,36 @@ export default function Home() {
           display: flex;
           gap: 12px;
           flex-wrap: wrap;
+        }
+
+        .heroBtn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 52px;
+          padding: 0 20px;
+          border-radius: 14px;
+          text-decoration: none;
+          font-size: 16px;
+          font-weight: 700;
+          transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        .heroBtn:hover {
+          transform: translateY(-1px);
+        }
+
+        .heroBtnPrimary {
+          background: #ffffff;
+          color: #111827;
+          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+        }
+
+        .heroBtnSecondary {
+          background: rgba(255, 255, 255, 0.1);
+          color: #ffffff;
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          backdrop-filter: blur(4px);
         }
 
         .microTrust {
