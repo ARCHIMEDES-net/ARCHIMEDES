@@ -15,8 +15,7 @@ export default async function handler(req, res) {
 
     const cleanEmail = String(email || "").trim().toLowerCase();
     const cleanFullName = String(fullName || "").trim();
-    const cleanRole =
-      role === "school_admin" ? "school_admin" : "teacher";
+    const cleanRole = role === "school_admin" ? "school_admin" : "teacher";
     const cleanSchoolId = String(schoolId || "").trim();
 
     if (!cleanEmail) {
@@ -31,8 +30,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Chybí schoolId." });
     }
 
+    const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL || "https://archimedes-5ai5.vercel.app"}/login`;
+
     const { data: invitedUser, error: inviteError } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(cleanEmail, {
+        redirectTo,
         data: {
           full_name: cleanFullName,
           role: cleanRole,
