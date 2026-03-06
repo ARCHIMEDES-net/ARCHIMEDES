@@ -7,12 +7,35 @@ const trustItems = [
   { value: "Obec 2030", label: "vítěz soutěže" },
 ];
 
+const marqueePlaces = [
+  "Hodonín",
+  "Hovorany",
+  "Moravský Krumlov",
+  "Luže",
+  "BVV Brno",
+  "Ratíškovice",
+  "Radvanice",
+  "Dašice",
+  "Mikulov",
+  "Křenov",
+  "Louny",
+  "Čejč",
+  "Hlinsko",
+  "Chrudim",
+  "Žabčice",
+  "Bučovice",
+  "Frýdek-Místek",
+];
+
 const places = [
   "Hodonín",
   "Křenov",
   "Bučovice",
   "Frýdek-Místek",
-  "Hradec Králové",
+  "Mikulov",
+  "Chrudim",
+  "Louny",
+  "Hlinsko",
 ];
 
 const schoolBenefits = [
@@ -82,8 +105,8 @@ export default function Home() {
               <h1>Každý měsíc nový program pro školu i komunitu obce</h1>
 
               <p className="heroLead">
-                Živé vstupy s hosty, pracovní listy pro žáky a program pro komunitu.
-                Jednoduchá logika: <strong>1 třída → 1 vysílání → 1 pracovní list.</strong>
+                Živé vstupy s hosty, pracovní listy pro žáky a program pro komunitu obce.
+                Hotový program, který může škola i obec hned využít.
               </p>
 
               <div className="heroCtas">
@@ -180,8 +203,8 @@ export default function Home() {
                   <div>
                     <h3>Pracovní list pro žáky</h3>
                     <p>
-                      Jedna přehledná stránka pro učitele i žáky. Jasný rámec, žádné
-                      složité přípravy navíc.
+                      Jedna přehledná stránka pro učitele i žáky. Jasný rámec,
+                      žádné složité přípravy navíc.
                     </p>
                   </div>
                 </div>
@@ -214,8 +237,8 @@ export default function Home() {
                   <div className="visualPill">+ navazující aktivita</div>
                 </div>
                 <div className="bigVisualBottom">
-                  Učitel nezíská další složitý systém. Získá hotový program, který může
-                  hned použít.
+                  Učitel nezíská další složitý systém. Získá hotový program,
+                  který může hned použít.
                 </div>
               </div>
             </div>
@@ -228,8 +251,8 @@ export default function Home() {
               <div className="eyebrow">Pro školu</div>
               <h2>Program pro moderní výuku</h2>
               <p className="sectionLead">
-                Každý měsíc nový obsah, který pomáhá učitelům a dává žákům kontakt
-                s reálným světem.
+                Každý měsíc nový obsah, který pomáhá učitelům a dává žákům
+                kontakt s reálným světem.
               </p>
               <ul className="checkList">
                 {schoolBenefits.map((item) => (
@@ -334,30 +357,54 @@ export default function Home() {
         </section>
 
         <section className="section">
-          <div className="container splitSection">
-            <div className="splitText">
+          <div className="container">
+            <div className="sectionIntro">
               <div className="eyebrow">Síť učeben ARCHIMEDES</div>
-              <h2>Program je napojený na reálná místa a skutečné školy</h2>
-              <p className="sectionLead">
-                ARCHIMEDES Live stojí na fyzické síti učeben a zkušenostech škol
-                a obcí, které už program využívají.
-              </p>
+              <h2>Program už funguje ve školách a obcích po celé České republice</h2>
+            </div>
 
-              <div className="placesList spacious">
-                {places.map((place) => (
-                  <span key={place}>{place}</span>
+            <div className="marqueeWrap">
+              <div className="marqueeTrack">
+                {[...marqueePlaces, ...marqueePlaces].map((place, i) => (
+                  <span key={`row1-${place}-${i}`} className="marqueeItem">
+                    {place}
+                  </span>
                 ))}
-              </div>
-
-              <div className="inlineCtas">
-                <Link href="/poptavka" className="btn btnGhost">
-                  Chci ukázku / zapojení
-                </Link>
               </div>
             </div>
 
-            <div className="splitVisual">
-              <div className="networkMock">
+            <div className="marqueeWrap reverse">
+              <div className="marqueeTrack marqueeTrackReverse">
+                {[...marqueePlaces, ...marqueePlaces].map((place, i) => (
+                  <span key={`row2-${place}-${i}`} className="marqueeItem">
+                    {place}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="networkSection">
+              <div className="networkText">
+                <h2>Program je napojený na reálná místa a skutečné školy</h2>
+                <p className="sectionLead">
+                  ARCHIMEDES Live stojí na fyzické síti učeben a zkušenostech škol
+                  a obcí, které už program využívají.
+                </p>
+
+                <div className="placesList spacious">
+                  {places.map((place) => (
+                    <span key={place}>{place}</span>
+                  ))}
+                </div>
+
+                <div className="inlineCtas">
+                  <Link href="/ukazka" className="btn btnGhost">
+                    Chci ukázku / zapojení
+                  </Link>
+                </div>
+              </div>
+
+              <div className="networkPhotos">
                 <div className="networkPhoto left">
                   <span>Učebna ARCHIMEDES</span>
                 </div>
@@ -575,20 +622,26 @@ export default function Home() {
             linear-gradient(rgba(0,0,0,0.24), rgba(0,0,0,0.28)),
             url("/media/hero-classroom.jpg"),
             linear-gradient(135deg, #334155 0%, #0f172a 100%);
+          background-size: cover;
+          background-position: center;
         }
 
         .heroPhotoSmall {
           background:
             linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.22)),
-            url("/media/worksheet.jpg"),
+            url("/media/lesson-closeup.webp"),
             linear-gradient(135deg, #475569 0%, #111827 100%);
+          background-size: cover;
+          background-position: center;
         }
 
         .heroPhotoSmall.alt {
           background:
             linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.22)),
-            url("/media/senior-club.jpg"),
+            url("/media/community-seniors.jpg"),
             linear-gradient(135deg, #475569 0%, #111827 100%);
+          background-size: cover;
+          background-position: center;
         }
 
         .visualLabel {
@@ -921,8 +974,85 @@ export default function Home() {
           line-height: 1.6;
         }
 
-        .networkMock {
-          width: 100%;
+        .marqueeWrap {
+          position: relative;
+          overflow: hidden;
+          margin-top: 18px;
+          border-radius: 18px;
+          background: white;
+          border: 1px solid rgba(17, 24, 39, 0.08);
+        }
+
+        .marqueeWrap.reverse {
+          margin-top: 14px;
+        }
+
+        .marqueeWrap:before,
+        .marqueeWrap:after {
+          content: "";
+          position: absolute;
+          top: 0;
+          width: 80px;
+          height: 100%;
+          z-index: 2;
+          pointer-events: none;
+        }
+
+        .marqueeWrap:before {
+          left: 0;
+          background: linear-gradient(to right, #f6f7fb 0%, rgba(246, 247, 251, 0) 100%);
+        }
+
+        .marqueeWrap:after {
+          right: 0;
+          background: linear-gradient(to left, #f6f7fb 0%, rgba(246, 247, 251, 0) 100%);
+        }
+
+        .marqueeTrack {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          width: max-content;
+          padding: 18px 0;
+          animation: marqueeMove 36s linear infinite;
+        }
+
+        .marqueeTrackReverse {
+          animation: marqueeMoveReverse 40s linear infinite;
+        }
+
+        .marqueeWrap:hover .marqueeTrack,
+        .marqueeWrap:hover .marqueeTrackReverse {
+          animation-play-state: paused;
+        }
+
+        .marqueeItem {
+          flex: 0 0 auto;
+          display: inline-flex;
+          align-items: center;
+          padding: 10px 16px;
+          border-radius: 999px;
+          background: #f3f4f6;
+          color: #111827;
+          font-size: 15px;
+          white-space: nowrap;
+        }
+
+        .networkSection {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 26px;
+          align-items: center;
+          margin-top: 36px;
+        }
+
+        .networkText {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+
+        .networkPhotos {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 16px;
@@ -939,12 +1069,14 @@ export default function Home() {
           color: white;
           font-weight: 600;
           font-size: 16px;
+          background-size: cover;
+          background-position: center;
         }
 
         .networkPhoto.left {
           background:
             linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.3)),
-            url("/media/classroom-exterior.jpg"),
+            url("/media/exterior-kids.webp"),
             linear-gradient(135deg, #475569 0%, #111827 100%);
           background-size: cover;
           background-position: center;
@@ -953,7 +1085,7 @@ export default function Home() {
         .networkPhoto.right {
           background:
             linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.3)),
-            url("/media/live-program.jpg"),
+            url("/media/online-session.jpg"),
             linear-gradient(135deg, #475569 0%, #111827 100%);
           background-size: cover;
           background-position: center;
@@ -972,6 +1104,9 @@ export default function Home() {
           grid-template-columns: 1.2fr auto;
           gap: 20px;
           align-items: center;
+          background: white;
+          border: 1px solid rgba(17, 24, 39, 0.08);
+          border-radius: 22px;
         }
 
         .badgeRow {
@@ -1059,6 +1194,24 @@ export default function Home() {
           border: 1px solid rgba(255, 255, 255, 0.26);
         }
 
+        @keyframes marqueeMove {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+
+        @keyframes marqueeMoveReverse {
+          0% {
+            transform: translateX(-50%);
+          }
+          100% {
+            transform: translateX(0);
+          }
+        }
+
         @media (max-width: 1080px) {
           h1 {
             font-size: 46px;
@@ -1072,7 +1225,8 @@ export default function Home() {
           .splitSection,
           .twoCards,
           .financingCard,
-          .finalCta {
+          .finalCta,
+          .networkSection {
             grid-template-columns: 1fr;
           }
 
@@ -1124,7 +1278,7 @@ export default function Home() {
           .trustGrid,
           .themeGrid,
           .heroPhotoGrid,
-          .networkMock {
+          .networkPhotos {
             grid-template-columns: 1fr;
           }
 
