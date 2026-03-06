@@ -3,7 +3,7 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
-const AUDIENCES = [
+const FALLBACK_AUDIENCES = [
   "1. stupeň",
   "2. stupeň",
   "deváťáci",
@@ -13,7 +13,7 @@ const AUDIENCES = [
   "komunita",
 ];
 
-const CATEGORIES = [
+const FALLBACK_CATEGORIES = [
   "Science ON",
   "Smart City Club",
   "Kariérní poradenství",
@@ -24,6 +24,28 @@ const CATEGORIES = [
   "Komunita",
   "Mezinárodní propojení",
 ];
+
+function normalizeOptions(rows, fallback, preferredKeys = []) {
+  if (!Array.isArray(rows) || rows.length === 0) return fallback;
+
+  const values = rows
+    .map((row) => {
+      for (const key of preferredKeys) {
+        if (row && row[key] != null && String(row[key]).trim()) {
+          return String(row[key]).trim();
+        }
+      }
+
+      const firstStringValue = Object.values(row || {}).find(
+        (v) => typeof v === "string" && v.trim()
+      );
+
+      return firstStringValue ? String(firstStringValue).trim() : null;
+    })
+    .filter(Boolean);
+
+  return values.length > 0 ? Array.from(new Set(values)) : fallback;
+}
 
 export default function MujProfilPage() {
   const [loading, setLoading] = useState(true);
@@ -36,6 +58,9 @@ export default function MujProfilPage() {
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState("");
   const [schoolId, setSchoolId] = useState(null);
+
+  const [audienceOptions, setAudienceOptions] = useState(FALLBACK_AUDIENCES);
+  const [categoryOptions, setCategoryOptions] = useState(FALLBACK_CATEGORIES);
 
   const [selectedAudiences, setSelectedAudiences] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -61,36 +86,68 @@ export default function MujProfilPage() {
       setUserId(user.id);
       setEmail(user.email || "");
 
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, email, full_name, role, school_id")
-        .eq("id", user.id)
-        .maybeSingle();
+      const [
+        profileRes,
+        audPrefRes,
+        catPrefRes,
+        audienceOptionsRes,
+        categoryOptionsRes,
+      ] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, email, full_name, role, school_id")
+          .eq("id", user.id)
+          .maybeSingle(),
 
-      if (profileError) throw profileError;
+        supabase
+          .from("user_audience_preferences")
+          .select("audience_slug")
+          .eq("user_id", user.id),
 
+        supabase
+          .from("user_category_preferences")
+          .select("category_slug")
+          .eq("user_id", user.id),
+
+        supabase
+          .from("audience_groups")
+          .select("*")
+          .order("created_at", { ascending: true }),
+
+        supabase
+          .from("categories")
+          .select("*")
+          .order("created_at", { ascending: true }),
+      ]);
+
+      if (profileRes.error) throw profileRes.error;
+      if (audPrefRes.error) throw audPrefRes.error;
+      if (catPrefRes.error) throw catPrefRes.error;
+
+      const profile = profileRes.data;
       if (profile) {
         setFullName(profile.full_name || "");
         setRole(profile.role || "");
         setSchoolId(profile.school_id || null);
       }
 
-      const { data: audRows, error: audError } = await supabase
-        .from("user_audience_preferences")
-        .select("audience_slug")
-        .eq("user_id", user.id);
+      setSelectedAudiences((audPrefRes.data || []).map((x) => x.audience_slug));
+      setSelectedCategories((catPrefRes.data || []).map((x) => x.category_slug));
 
-      if (audError) throw audError;
+      const normalizedAudiences = normalizeOptions(
+        audienceOptionsRes.data,
+        FALLBACK_AUDIENCES,
+        ["name", "title", "label", "slug"]
+      );
 
-      const { data: catRows, error: catError } = await supabase
-        .from("user_category_preferences")
-        .select("category_slug")
-        .eq("user_id", user.id);
+      const normalizedCategories = normalizeOptions(
+        categoryOptionsRes.data,
+        FALLBACK_CATEGORIES,
+        ["name", "title", "label", "slug"]
+      );
 
-      if (catError) throw catError;
-
-      setSelectedAudiences((audRows || []).map((x) => x.audience_slug));
-      setSelectedCategories((catRows || []).map((x) => x.category_slug));
+      setAudienceOptions(normalizedAudiences);
+      setCategoryOptions(normalizedCategories);
     } catch (e) {
       setError(e.message || "Nepodařilo se načíst profil.");
     } finally {
@@ -307,7 +364,7 @@ export default function MujProfilPage() {
                 <div>
                   <div style={{ marginBottom: 10, fontWeight: 600 }}>Zajímají mě cílovky</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    {AUDIENCES.map((item) => {
+                    {audienceOptions.map((item) => {
                       const active = selectedAudiences.includes(item);
                       return (
                         <button
@@ -337,7 +394,7 @@ export default function MujProfilPage() {
                 <div>
                   <div style={{ marginBottom: 10, fontWeight: 600 }}>Zajímají mě rubriky</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    {CATEGORIES.map((item) => {
+                    {categoryOptions.map((item) => {
                       const active = selectedCategories.includes(item);
                       return (
                         <button
