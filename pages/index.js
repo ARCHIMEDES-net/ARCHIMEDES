@@ -663,36 +663,45 @@ export default function Home() {
           flex-wrap: wrap;
         }
 
-        .heroBtn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 52px;
-          padding: 0 20px;
-          border-radius: 14px;
-          text-decoration: none;
-          font-size: 16px;
-          font-weight: 700;
-          transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-        }
+     .heroBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 20px;
+  border-radius: 16px;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 700;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
 
-        .heroBtn:hover {
-          transform: translateY(-1px);
-        }
+.heroBtn:hover {
+  transform: translateY(-1px);
+}
 
-        .heroBtnPrimary {
-          background: #ffffff;
-          color: #111827;
-          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
-        }
+.heroBtnGreen {
+  background: rgba(16, 185, 129, 0.18);
+  color: #ffffff;
+  border: 1px solid rgba(16, 185, 129, 0.38);
+  box-shadow: 0 10px 24px rgba(16, 185, 129, 0.18);
+}
 
-        .heroBtnSecondary {
-          background: rgba(255, 255, 255, 0.1);
-          color: #ffffff;
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          backdrop-filter: blur(4px);
-        }
+.heroBtnGreen:hover {
+  background: rgba(16, 185, 129, 0.24);
+}
 
+.heroBtnDark {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(4px);
+}
+
+.heroBtnDark:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
         .microTrust {
           display: flex;
           gap: 18px;
