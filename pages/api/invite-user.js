@@ -6,68 +6,77 @@ const supabaseAdmin = createClient(
 );
 
 export default async function handler(req, res) {
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
+    const { email, fullName, role, schoolId } = req.body || {};
 
-    const { email, fullName, role, schoolId } = req.body;
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    const cleanFullName = String(fullName || "").trim();
+    const cleanRole =
+      role === "school_admin" ? "school_admin" : "teacher";
+    const cleanSchoolId = String(schoolId || "").trim();
 
-    if (!email) {
-      return res.status(400).json({ error: "Email chybí" });
+    if (!cleanEmail) {
+      return res.status(400).json({ error: "Vyplňte e-mail." });
     }
 
-    if (!schoolId) {
-      return res.status(400).json({ error: "schoolId chybí" });
+    if (!cleanFullName) {
+      return res.status(400).json({ error: "Vyplňte jméno a příjmení." });
     }
 
-    const { data: newUser, error: createUserError } =
-      await supabaseAdmin.auth.admin.createUser({
-        email: email,
-        email_confirm: false,
-        user_metadata: {
-          invited: true
-        }
+    if (!cleanSchoolId) {
+      return res.status(400).json({ error: "Chybí schoolId." });
+    }
+
+    const { data: invitedUser, error: inviteError } =
+      await supabaseAdmin.auth.admin.inviteUserByEmail(cleanEmail, {
+        data: {
+          full_name: cleanFullName,
+          role: cleanRole,
+          school_id: cleanSchoolId,
+        },
       });
 
-    if (createUserError) {
-      return res.status(500).json({ error: createUserError.message });
+    if (inviteError) {
+      return res.status(400).json({ error: inviteError.message });
     }
 
-    const userId = newUser.user.id;
+    const invitedUserId = invitedUser?.user?.id;
+
+    if (!invitedUserId) {
+      return res
+        .status(500)
+        .json({ error: "Nepodařilo se získat ID pozvaného uživatele." });
+    }
 
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
-      .insert({
-        id: userId,
-        email: email,
-        full_name: fullName,
-        role: role || "teacher",
-        school_id: schoolId,
-        is_active: true
-      });
+      .upsert(
+        {
+          id: invitedUserId,
+          email: cleanEmail,
+          full_name: cleanFullName,
+          role: cleanRole,
+          school_id: cleanSchoolId,
+          is_active: true,
+        },
+        { onConflict: "id" }
+      );
 
     if (profileError) {
-      return res.status(500).json({ error: profileError.message });
+      return res.status(400).json({ error: profileError.message });
     }
 
-    await supabaseAdmin.auth.admin.generateLink({
-      type: "invite",
-      email: email
-    });
-
     return res.status(200).json({
-      success: true
+      success: true,
+      message: "Pozvánka byla odeslána.",
     });
-
   } catch (err) {
-
     return res.status(500).json({
-      error: err.message
+      error: err.message || "Serverová chyba.",
     });
-
   }
-
 }
