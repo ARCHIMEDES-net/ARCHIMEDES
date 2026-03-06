@@ -7,7 +7,7 @@ const trustItems = [
   { value: "Obec 2030", label: "vítěz soutěže" },
 ];
 
-const marqueePlaces = [
+const marqueeRow1 = [
   "Hodonín",
   "Hovorany",
   "Moravský Krumlov",
@@ -17,6 +17,9 @@ const marqueePlaces = [
   "Radvanice",
   "Dašice",
   "Mikulov",
+];
+
+const marqueeRow2 = [
   "Křenov",
   "Louny",
   "Čejč",
@@ -40,7 +43,7 @@ const places = [
 
 const schoolBenefits = [
   "hosté z praxe a inspirativní témata",
-  "pracovní listy připravené pro učitele",
+  "připravené podklady pro učitele a žáky",
   "archiv vysílání pro další použití",
   "jednoduché zapojení do výuky",
 ];
@@ -106,7 +109,8 @@ export default function Home() {
 
               <p className="heroLead">
                 Živé vstupy s hosty, pracovní listy pro žáky a program pro komunitu obce.
-                Hotový program, který může škola i obec hned využít.
+                <br />
+                Každý měsíc nový obsah, který může škola i obec hned využít.
               </p>
 
               <div className="heroCtas">
@@ -149,6 +153,7 @@ export default function Home() {
             <a href="#skola" className="anchorChip">Pro školu</a>
             <a href="#obec" className="anchorChip">Pro obec</a>
             <a href="#program" className="anchorChip">Program</a>
+            <a href="#sit" className="anchorChip">Síť učeben</a>
             <a href="#financovani" className="anchorChip">Financování</a>
           </div>
         </section>
@@ -201,10 +206,9 @@ export default function Home() {
                 <div className="stepCard">
                   <div className="stepNo">2</div>
                   <div>
-                    <h3>Pracovní list pro žáky</h3>
+                    <h3>Připravené podklady pro učitele a žáky</h3>
                     <p>
-                      Jedna přehledná stránka pro učitele i žáky. Jasný rámec,
-                      žádné složité přípravy navíc.
+                      Materiály k tématu, které mohou učitelé okamžitě použít ve výuce.
                     </p>
                   </div>
                 </div>
@@ -220,12 +224,6 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-
-              <div className="inlineCtas">
-                <Link href="/ukazka" className="btn btnPrimary">
-                  Podívat se na ukázkovou hodinu
-                </Link>
-              </div>
             </div>
 
             <div className="splitVisual">
@@ -233,8 +231,8 @@ export default function Home() {
                 <div className="bigVisualTop">Ukázka živé hodiny</div>
                 <div className="bigVisualBody">
                   <div className="visualPill">20–40 min živě</div>
-                  <div className="visualPill">+ pracovní list</div>
-                  <div className="visualPill">+ navazující aktivita</div>
+                  <div className="visualPill">podklady pro výuku</div>
+                  <div className="visualPill">navazující aktivita</div>
                 </div>
                 <div className="bigVisualBottom">
                   Učitel nezíská další složitý systém. Získá hotový program,
@@ -310,53 +308,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section sectionAlt">
-          <div className="container splitSection">
-            <div className="splitText">
-              <div className="eyebrow">Ukázka programu</div>
-              <h2>Chcete vidět, jak program funguje v praxi?</h2>
-              <p className="sectionLead">
-                Během krátké online ukázky vám představíme jednu hodinu programu,
-                pracovní list pro žáky a prostředí portálu.
-              </p>
-
-              <div className="miniInfoRow">
-                <span className="infoPill">20 minut</span>
-                <span className="infoPill">online setkání</span>
-                <span className="infoPill">pro školy i obce</span>
-              </div>
-
-              <div className="quoteBox">
-                <strong>Stačí jedna ukázka a rychle uvidíte,</strong> jak může vypadat
-                moderní výuka a program pro komunitu obce.
-              </div>
-
-              <Link href="/ukazka" className="btn btnPrimary">
-                Domluvit ukázku programu
-              </Link>
-            </div>
-
-            <div className="splitVisual">
-              <div className="ctaPreviewCard">
-                <div className="previewTitle">Co během ukázky uvidíte</div>
-                <div className="previewItem">
-                  <strong>Ukázka živé hodiny</strong>
-                  <span>vstup s hostem a práce s pracovním listem</span>
-                </div>
-                <div className="previewItem">
-                  <strong>Portál pro školy</strong>
-                  <span>program vysílání, archiv hodin a pracovní listy</span>
-                </div>
-                <div className="previewItem">
-                  <strong>Zapojení školy nebo obce</strong>
-                  <span>možnosti využití programu ve výuce i komunitě</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="section">
+        <section id="sit" className="section sectionAlt">
           <div className="container">
             <div className="sectionIntro">
               <div className="eyebrow">Síť učeben ARCHIMEDES</div>
@@ -365,7 +317,7 @@ export default function Home() {
 
             <div className="marqueeWrap">
               <div className="marqueeTrack">
-                {[...marqueePlaces, ...marqueePlaces].map((place, i) => (
+                {[...marqueeRow1, ...marqueeRow1].map((place, i) => (
                   <span key={`row1-${place}-${i}`} className="marqueeItem">
                     {place}
                   </span>
@@ -375,7 +327,7 @@ export default function Home() {
 
             <div className="marqueeWrap reverse">
               <div className="marqueeTrack marqueeTrackReverse">
-                {[...marqueePlaces, ...marqueePlaces].map((place, i) => (
+                {[...marqueeRow2, ...marqueeRow2].map((place, i) => (
                   <span key={`row2-${place}-${i}`} className="marqueeItem">
                     {place}
                   </span>
@@ -390,12 +342,6 @@ export default function Home() {
                   ARCHIMEDES Live stojí na fyzické síti učeben a zkušenostech škol
                   a obcí, které už program využívají.
                 </p>
-
-                <div className="placesList spacious">
-                  {places.map((place) => (
-                    <span key={place}>{place}</span>
-                  ))}
-                </div>
 
                 <div className="inlineCtas">
                   <Link href="/ukazka" className="btn btnGhost">
@@ -416,7 +362,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="financovani" className="section sectionAlt">
+        <section id="financovani" className="section">
           <div className="container">
             <div className="financingCard">
               <div>
@@ -447,7 +393,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section">
+        <section className="section sectionAlt">
           <div className="container">
             <div className="sectionIntro">
               <div className="eyebrow">Důvěra</div>
@@ -471,7 +417,7 @@ export default function Home() {
               <h2>Chcete ukázku pro školu nebo obec?</h2>
               <p>
                 Během krátké online schůzky ukážeme jednu hodinu programu,
-                pracovní list a prostředí portálu.
+                podklady pro výuku a prostředí portálu.
               </p>
             </div>
 
@@ -566,10 +512,10 @@ export default function Home() {
         }
 
         .heroLead {
-          font-size: 21px;
-          line-height: 1.6;
+          font-size: 20px;
+          line-height: 1.75;
           color: rgba(255, 255, 255, 0.92);
-          max-width: 640px;
+          max-width: 650px;
           margin: 0 0 26px;
         }
 
@@ -710,7 +656,6 @@ export default function Home() {
         .benefitCard,
         .placesCard,
         .bigVisualCard,
-        .ctaPreviewCard,
         .financingCard,
         .stepCard {
           background: white;
@@ -760,13 +705,9 @@ export default function Home() {
           font-size: 15px;
         }
 
-        .placesList.spacious {
-          margin: 22px 0 26px;
-        }
-
         .splitSection {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 1.05fr 0.95fr;
           gap: 26px;
           align-items: start;
         }
@@ -828,8 +769,7 @@ export default function Home() {
 
         .bigVisualCard {
           width: 100%;
-          min-height: 100%;
-          padding: 24px;
+          padding: 26px;
           background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
         }
 
@@ -931,49 +871,6 @@ export default function Home() {
           flex-wrap: wrap;
         }
 
-        .quoteBox {
-          padding: 20px 22px;
-          background: white;
-          border: 1px solid rgba(17, 24, 39, 0.08);
-          border-radius: 18px;
-          font-size: 18px;
-          line-height: 1.7;
-          color: #374151;
-        }
-
-        .ctaPreviewCard {
-          width: 100%;
-          padding: 26px;
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-        }
-
-        .previewTitle {
-          font-size: 22px;
-          font-weight: 700;
-          margin-bottom: 4px;
-        }
-
-        .previewItem {
-          padding: 16px 0;
-          border-top: 1px solid rgba(17, 24, 39, 0.08);
-          display: flex;
-          flex-direction: column;
-          gap: 5px;
-        }
-
-        .previewItem strong {
-          font-size: 18px;
-          color: #111827;
-        }
-
-        .previewItem span {
-          font-size: 16px;
-          color: #4b5563;
-          line-height: 1.6;
-        }
-
         .marqueeWrap {
           position: relative;
           overflow: hidden;
@@ -1000,12 +897,12 @@ export default function Home() {
 
         .marqueeWrap:before {
           left: 0;
-          background: linear-gradient(to right, #f6f7fb 0%, rgba(246, 247, 251, 0) 100%);
+          background: linear-gradient(to right, #eef1f7 0%, rgba(238, 241, 247, 0) 100%);
         }
 
         .marqueeWrap:after {
           right: 0;
-          background: linear-gradient(to left, #f6f7fb 0%, rgba(246, 247, 251, 0) 100%);
+          background: linear-gradient(to left, #eef1f7 0%, rgba(238, 241, 247, 0) 100%);
         }
 
         .marqueeTrack {
@@ -1014,11 +911,11 @@ export default function Home() {
           gap: 14px;
           width: max-content;
           padding: 18px 0;
-          animation: marqueeMove 36s linear infinite;
+          animation: marqueeMove 34s linear infinite;
         }
 
         .marqueeTrackReverse {
-          animation: marqueeMoveReverse 40s linear infinite;
+          animation: marqueeMoveReverse 36s linear infinite;
         }
 
         .marqueeWrap:hover .marqueeTrack,
@@ -1252,7 +1149,6 @@ export default function Home() {
           .benefitCard,
           .placesCard,
           .bigVisualCard,
-          .ctaPreviewCard,
           .financingCard,
           .stepCard,
           .finalCta {
@@ -1270,8 +1166,7 @@ export default function Home() {
 
           .heroLead,
           .sectionLead,
-          p,
-          .quoteBox {
+          p {
             font-size: 16px;
           }
 
