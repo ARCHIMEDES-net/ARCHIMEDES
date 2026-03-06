@@ -396,11 +396,8 @@ export default function Home() {
               </div>
 
               <div className="inlineCtas">
-                <Link href="/ukazka" className="btn btnPrimary">
-                  Prohlédnout vzorovou učebnu
-                </Link>
-                <Link href="/poptavka" className="btn btnGhost">
-                  Potřebuji poradit s výběrem
+                <Link href="/poptavka" className="btn btnPrimary">
+                  Mám zájem o učebnu
                 </Link>
               </div>
             </div>
