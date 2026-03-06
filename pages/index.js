@@ -1,531 +1,1158 @@
 import Link from "next/link";
 
-/**
- * ARCHIMEDES Live – Homepage v2 (zpřesnění flow + social proof + úpravy CTA)
- *
- * Co je jinak oproti předchozí verzi:
- * 1) Social proof (čísla + obce/školy) hned po HERO.
- * 2) Záštity/ocenění přesunuty níže (po vysvětlení produktu).
- * 3) Sekce "Proč je síť důležitá" dostává vizuál (bez další fotky u "Co tím obec získá").
- * 4) Odstraněna poznámka o dočasných fotkách (na veřejném webu ji nechceme).
- *
- * Média – předpoklad:
- * Fotky už máte v /public/media a sedí na názvy níže. Když máte jiné názvy,
- * upravte pouze konstantu MEDIA.
- */
+const trustItems = [
+  { value: "20+", label: "učeben ARCHIMEDES" },
+  { value: "1 000+", label: "zapojených žáků v síti" },
+  { value: "2×", label: "měsíčně Senior klub" },
+  { value: "Obec 2030", label: "vítěz soutěže" },
+];
 
-const MEDIA = {
-  hero: "/media/hero-classroom.jpg",
-  onehour: "/media/lesson-closeup.webp",      // detail výuky / displej
-  exterior: "/media/exterior-kids.webp",     // exteriér / vstup do učebny
-  stem: "/media/stem-microscopes.webp",      // STEM detail
-  seniors: "/media/community-seniors.jpg",   // komunita / senioři
-  online: "/media/online-session.jpg",       // online přenos
-};
+const places = [
+  "Hodonín",
+  "Křenov",
+  "Bučovice",
+  "Frýdek-Místek",
+  "Hradec Králové",
+];
 
-const VIDEO_ID = "j2xTWMnPbiY";
-const YT_EMBED = `https://www.youtube-nocookie.com/embed/${VIDEO_ID}?rel=0&modestbranding=1&controls=1`;
+const schoolBenefits = [
+  "hosté z praxe a inspirativní témata",
+  "pracovní listy připravené pro učitele",
+  "archiv vysílání pro další použití",
+  "jednoduché zapojení do výuky",
+];
 
-function Chip({ children, tone = "soft" }) {
-  const base = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "8px 12px",
-    borderRadius: 999,
-    border: "1px solid rgba(0,0,0,0.10)",
-    fontSize: 13,
-    lineHeight: 1,
-    whiteSpace: "nowrap",
-    userSelect: "none",
-  };
+const municipalityBenefits = [
+  "program pro děti i seniory",
+  "smysluplný obsah pro komunitu obce",
+  "propojení generací a místních aktivit",
+  "viditelný přínos pro obyvatele i vedení obce",
+];
 
-  const tones = {
-    soft: { background: "rgba(255,255,255,0.9)" },
-    dark: { background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.18)", color: "white" },
-    solid: { background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.10)" },
-  };
+const themes = [
+  {
+    title: "Přírodověda & technologie",
+    text: "Živý vstup s expertem a pracovní list pro žáky.",
+  },
+  {
+    title: "Wellbeing pro žáky",
+    text: "Krátké rutiny, psychohygiena a práce s emocemi.",
+  },
+  {
+    title: "Kariérní poradenství jinak",
+    text: "Inspirace, profese a dovednosti budoucnosti.",
+  },
+  {
+    title: "Čtenářský klub",
+    text: "Děti i dospělí – kniha měsíce a host programu.",
+  },
+  {
+    title: "Senior klub",
+    text: "Dvakrát měsíčně – prevence izolace a aktivní komunita.",
+  },
+  {
+    title: "Smart Cities (deváťáci)",
+    text: "Město očima mladých a práce s urbanistkou.",
+  },
+];
 
-  return <span style={{ ...base, ...(tones[tone] || tones.soft) }}>{children}</span>;
-}
-
-function Button({ href, children, variant = "primary" }) {
-  const styles = {
-    primary: {
-      background: "rgba(0,0,0,0.92)",
-      color: "white",
-      border: "1px solid rgba(0,0,0,0.92)",
-      boxShadow: "0 14px 30px rgba(0,0,0,0.18)",
-    },
-    secondary: {
-      background: "rgba(255,255,255,0.14)",
-      color: "white",
-      border: "1px solid rgba(255,255,255,0.30)",
-    },
-    light: {
-      background: "white",
-      color: "rgba(0,0,0,0.90)",
-      border: "1px solid rgba(0,0,0,0.12)",
-      boxShadow: "0 10px 24px rgba(0,0,0,0.08)",
-    },
-  };
-
-  const common = {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    padding: "12px 16px",
-    borderRadius: 14,
-    fontWeight: 750,
-    textDecoration: "none",
-    transition: "transform 120ms ease, box-shadow 120ms ease",
-  };
-
-  return (
-    <Link
-      href={href}
-      style={{ ...common, ...(styles[variant] || styles.primary) }}
-      onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-1px)")}
-      onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0px)")}
-    >
-      {children}
-      <span aria-hidden style={{ opacity: 0.9 }}>→</span>
-    </Link>
-  );
-}
-
-function Section({ id, title, kicker, children, alt = false }) {
-  return (
-    <section id={id} style={{ padding: "54px 16px", background: alt ? "white" : "transparent" }}>
-      <div style={{ maxWidth: 1120, margin: "0 auto" }}>
-        {(kicker || title) && (
-          <div style={{ marginBottom: 18 }}>
-            {kicker && (
-              <div style={{ fontSize: 13, letterSpacing: 0.4, textTransform: "uppercase", opacity: 0.7, marginBottom: 8 }}>
-                {kicker}
-              </div>
-            )}
-            {title && <h2 style={{ fontSize: 30, lineHeight: 1.15, margin: 0 }}>{title}</h2>}
-          </div>
-        )}
-        {children}
-      </div>
-    </section>
-  );
-}
-
-function Card({ children, style }) {
-  return (
-    <div
-      style={{
-        background: "white",
-        borderRadius: 18,
-        border: "1px solid rgba(0,0,0,0.10)",
-        boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
-        padding: 18,
-        ...style,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function MediaImage({ src, alt, radius = 18 }) {
-  return (
-    <div style={{ borderRadius: radius, overflow: "hidden", border: "1px solid rgba(0,0,0,0.10)", background: "rgba(0,0,0,0.03)" }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-    </div>
-  );
-}
-
-function Stat({ value, label }) {
-  return (
-    <div style={{ padding: 16, borderRadius: 16, border: "1px solid rgba(0,0,0,0.10)", background: "rgba(0,0,0,0.02)" }}>
-      <div style={{ fontSize: 26, fontWeight: 900, lineHeight: 1.1 }}>{value}</div>
-      <div style={{ marginTop: 6, fontSize: 13, opacity: 0.75 }}>{label}</div>
-    </div>
-  );
-}
+const badges = [
+  "Záštita: Eva Pavlová",
+  "MPO",
+  "MŽP",
+  "MMR",
+  "UNESCO: Greening Education Partnership",
+  "Finalista: E.ON Energy Globe",
+  "Finalista: Creative Business Cup",
+  "Vítěz: Obec 2030",
+];
 
 export default function Home() {
-  const trust = [
-    "Záštita: Eva Pavlová",
-    "MPO",
-    "MŽP",
-    "MMR",
-    "Finalista: E.ON Energy Globe",
-    "Finalista: Creative Business Cup",
-    "Vítěz: Obec 2030",
-    "UNESCO: Greening Education Partnership",
-  ];
-
-  const sampleProgram = [
-    { title: "Přírodověda & technologie", desc: "Živý vstup s expertem + pracovní list." },
-    { title: "Wellbeing pro žáky", desc: "Krátké rutiny, psychohygiena, práce s emocemi." },
-    { title: "Kariérní poradenství jinak", desc: "Inspirace, profese, dovednosti budoucnosti." },
-    { title: "Čtenářský klub", desc: "Děti i dospělí – kniha měsíce + host." },
-    { title: "Senior klub", desc: "Dvakrát měsíčně – prevence izolace, aktivní komunita." },
-    { title: "Smart Cities (deváťáci)", desc: "Město očima mladých + práce s urbanistkou." },
-  ];
-
   return (
-    <div style={{ fontFamily: "system-ui", background: "#f6f7fb", minHeight: "100vh" }}>
-      {/* Hlavičku řeší pages/_app.js (PublicHeader) */}
+    <div className="page">
+      <main>
+        <section className="container hero">
+          <div className="heroCard">
+            <div className="heroContent">
+              <div className="chipRow">
+                <span className="chip chipDark">Živý vzdělávací program</span>
+                <span className="chip">Školy + obce + komunita</span>
+              </div>
 
-      {/* HERO */}
-      <div style={{ padding: "24px 16px 10px" }}>
-        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
-          <div
-            style={{
-              position: "relative",
-              borderRadius: 24,
-              overflow: "hidden",
-              border: "1px solid rgba(0,0,0,0.10)",
-              boxShadow: "0 22px 55px rgba(0,0,0,0.12)",
-              background: "rgba(0,0,0,0.06)",
-              minHeight: 520,
-            }}
-          >
-            {/* Background image */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={MEDIA.hero}
-              alt="Ukázka výuky v učebně ARCHIMEDES"
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                filter: "saturate(1.05) contrast(1.02)",
-                transform: "scale(1.03)",
-              }}
-            />
+              <h1>Každý měsíc nový program pro školu i komunitu obce</h1>
 
-            {/* Overlay */}
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(90deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.55) 38%, rgba(0,0,0,0.20) 70%, rgba(0,0,0,0.12) 100%)",
-              }}
-            />
+              <p className="heroLead">
+                Živé vstupy s hosty, pracovní listy pro žáky a program pro komunitu.
+                Jednoduchá logika: <strong>1 třída → 1 vysílání → 1 pracovní list.</strong>
+              </p>
 
-            {/* Content */}
-            <div style={{ position: "relative", padding: "56px 22px" }}>
-              <div style={{ maxWidth: 680 }}>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
-                  <Chip tone="dark"><span style={{ width: 8, height: 8, borderRadius: 999, background: "#2ecc71" }} /> Živý vzdělávací program (ne software)</Chip>
-                  <Chip tone="dark">Školy + obce + komunita</Chip>
+              <div className="heroCtas">
+                <Link href="/ukazka" className="btn btnPrimary">
+                  Domluvit ukázku programu
+                </Link>
+                <Link href="/program" className="btn btnGhostLight">
+                  Prohlédnout program
+                </Link>
+                <Link href="/cenik" className="btn btnGhostLight">
+                  Ceník a financování
+                </Link>
+              </div>
+
+              <div className="microTrust">
+                <span>20+ učeben</span>
+                <span>1 000+ žáků v síti</span>
+                <span>Vítěz soutěže Obec 2030</span>
+              </div>
+            </div>
+
+            <div className="heroVisual">
+              <div className="heroPhoto heroPhotoMain">
+                <div className="visualLabel">Ukázka živé hodiny</div>
+              </div>
+              <div className="heroPhotoGrid">
+                <div className="heroPhoto heroPhotoSmall">
+                  <div className="visualLabel">Pracovní listy</div>
                 </div>
-
-                <h1 style={{ fontSize: 46, lineHeight: 1.08, margin: "0 0 14px", color: "white" }}>
-                  Každý měsíc hotový obsah <br />
-                  pro školu i komunitu obce
-                </h1>
-
-                <p style={{ fontSize: 18, lineHeight: 1.6, margin: "0 0 22px", color: "rgba(255,255,255,0.88)" }}>
-                  Živé vstupy s hosty, pracovní listy, komunitní program a neveřejný archiv pro předplatitele.
-                  Jednoduše: <b>1 třída → 1 vysílání → 1 pracovní list</b>.
-                </p>
-
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
-                  <Button href={`/#hodina`} variant="primary">Podívat se na ukázkovou hodinu</Button>
-                  <Button href="/poptavka" variant="secondary">Domluvit ukázku</Button>
-                  <Button href="/program" variant="secondary">Prohlédnout program</Button>
-                </div>
-
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 6, opacity: 0.92 }}>
-                  <Chip tone="dark">Záštity & ocenění</Chip>
-                  <Link href="#duvera" style={{ color: "white", textDecoration: "none", fontWeight: 800, opacity: 0.95 }}>
-                    Detail <span aria-hidden>→</span>
-                  </Link>
+                <div className="heroPhoto heroPhotoSmall alt">
+                  <div className="visualLabel">Program pro obec</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
-            <Chip>Živé vstupy s hosty</Chip>
-            <Chip>Pracovní listy</Chip>
-            <Chip>Neveřejný archiv pro předplatitele</Chip>
-            <Chip>Síť učeben ARCHIMEDES</Chip>
-            <Chip>Komunitní program</Chip>
+          <div className="anchorChips">
+            <a href="#duvera" className="anchorChip">Důvěra</a>
+            <a href="#hodina" className="anchorChip">Jak funguje hodina</a>
+            <a href="#skola" className="anchorChip">Pro školu</a>
+            <a href="#obec" className="anchorChip">Pro obec</a>
+            <a href="#program" className="anchorChip">Program</a>
+            <a href="#financovani" className="anchorChip">Financování</a>
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* SOCIAL PROOF – hned po HERO */}
-      <Section id="dukaz" title="ARCHIMEDES Live už funguje v řadě škol a obcí" kicker="Důkaz důvěry" alt>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
-          <Stat value="20+" label="učeben ARCHIMEDES" />
-          <Stat value="1 000+" label="zapojených žáků (orientačně)" />
-          <Stat value="2×" label="měsíčně Senior klub" />
-          <Stat value="Obec 2030" label="ocenění projektu" />
-        </div>
-
-        <div style={{ marginTop: 14 }}>
-          <Card>
-            <div style={{ fontWeight: 900, marginBottom: 8 }}>Kde to už běží</div>
-            <div style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.82 }}>
-              Hodonín • Křenov • Bučovice • Frýdek‑Místek • Hradec Králové • (další lokality dle sítě)
-            </div>
-          </Card>
-        </div>
-      </Section>
-
-      {/* JAK VYPADÁ JEDNA HODINA */}
-      <Section id="hodina" title="Jak vypadá jedna hodina" kicker="Game‑changer">
-        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 18, alignItems: "stretch" }}>
-          <Card style={{ padding: 0, overflow: "hidden" }}>
-            <div style={{ padding: 18, borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <Chip tone="solid">20–40 min živě</Chip>
-                <Chip tone="solid">+ pracovní list</Chip>
-                <Chip tone="solid">+ navazující aktivita</Chip>
-              </div>
-              <div style={{ marginTop: 10, fontSize: 14, lineHeight: 1.6, opacity: 0.82 }}>
-                Jedna jasná logika: <b>1 třída → 1 vysílání → 1 pracovní list</b>.
-              </div>
+        <section id="duvera" className="section sectionAlt">
+          <div className="container">
+            <div className="sectionIntro">
+              <div className="eyebrow">Důkaz důvěry</div>
+              <h2>ARCHIMEDES Live už funguje v řadě škol a obcí</h2>
             </div>
 
-            <div style={{ position: "relative", paddingTop: "56.25%", background: "rgba(0,0,0,0.06)" }}>
-              <iframe
-                src={YT_EMBED}
-                title="Ukázková hodina – ARCHIMEDES Live"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
-              />
+            <div className="trustGrid">
+              {trustItems.map((item) => (
+                <div key={item.label} className="trustCard">
+                  <div className="trustValue">{item.value}</div>
+                  <div className="trustLabel">{item.label}</div>
+                </div>
+              ))}
             </div>
 
-            <div style={{ padding: 16 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-                {[
-                  ["1) Vysílání", "Živý host, interakce, otázky v chatu."],
-                  ["2) Pracovní list", "Jedna stránka pro učitele i žáky."],
-                  ["3) Aktivita", "Navazující práce ve třídě / v obci."],
-                ].map(([t, d]) => (
-                  <div key={t} style={{ borderRadius: 14, padding: 14, background: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}>
-                    <div style={{ fontWeight: 900, marginBottom: 6 }}>{t}</div>
-                    <div style={{ fontSize: 13, opacity: 0.78 }}>{d}</div>
-                  </div>
+            <div className="placesCard">
+              <div className="placesTitle">Kde to už běží</div>
+              <div className="placesList">
+                {places.map((place) => (
+                  <span key={place}>{place}</span>
                 ))}
               </div>
             </div>
-          </Card>
-
-          <div style={{ display: "grid", gap: 18 }}>
-            <MediaImage src={MEDIA.onehour} alt="Ukázka výuky – práce na interaktivním displeji" />
-            <Card>
-              <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 8 }}>Pro koho to je</div>
-              <div style={{ fontSize: 14, lineHeight: 1.7, opacity: 0.82 }}>
-                <ul style={{ margin: 0, paddingLeft: 18 }}>
-                  <li><b>Ředitel školy</b> – hotový obsah a motivace pro žáky.</li>
-                  <li><b>Starosta</b> – konkrétní přínos pro obyvatele a komunitu.</li>
-                  <li><b>Komunita</b> – program pro seniory, rodiče i spolky.</li>
-                </ul>
-              </div>
-            </Card>
           </div>
-        </div>
-      </Section>
+        </section>
 
-      {/* PROGRAM */}
-      <Section id="program" title="Program – ukázka tematických bloků" kicker="Každý měsíc hotový obsah" alt>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-          {sampleProgram.map((p) => (
-            <Card key={p.title}>
-              <div style={{ fontWeight: 900, marginBottom: 8 }}>{p.title}</div>
-              <div style={{ fontSize: 14, lineHeight: 1.7, opacity: 0.82 }}>{p.desc}</div>
-            </Card>
-          ))}
-        </div>
+        <section id="hodina" className="section">
+          <div className="container splitSection">
+            <div className="splitText">
+              <div className="eyebrow">Jak to funguje</div>
+              <h2>Jedna hodina. Jasná struktura. Reálný výstup.</h2>
 
-        <div style={{ marginTop: 18, display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <Button href="/program" variant="light">Zobrazit celý program</Button>
-          <Button href="/cenik" variant="light">Kolik to stojí</Button>
-        </div>
-      </Section>
+              <div className="stepList">
+                <div className="stepCard">
+                  <div className="stepNo">1</div>
+                  <div>
+                    <h3>Živý vstup s hostem</h3>
+                    <p>
+                      20–40 minut živého programu. Odborník z praxe, konkrétní téma,
+                      možnost zapojení a dotazů.
+                    </p>
+                  </div>
+                </div>
 
-      {/* ARCHIV + PRACOVNÍ LISTY */}
-      <Section id="archiv" title="Archiv a pracovní listy" kicker="Pro předplatitele">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-          <Card>
-            <div style={{ fontWeight: 900, marginBottom: 8 }}>Neveřejný archiv</div>
-            <div style={{ fontSize: 14, lineHeight: 1.7, opacity: 0.82, marginBottom: 12 }}>
-              Všechny záznamy přehledně na jednom místě – dostupné jen registrovaným školám/obcím.
-            </div>
-            <MediaImage src={MEDIA.online} alt="Online přenos ve třídě / v komunitě" radius={16} />
-            <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <Chip tone="solid">Záznamy</Chip>
-              <Chip tone="solid">Filtry</Chip>
-              <Chip tone="solid">Sdílení pro tým</Chip>
-            </div>
-          </Card>
+                <div className="stepCard">
+                  <div className="stepNo">2</div>
+                  <div>
+                    <h3>Pracovní list pro žáky</h3>
+                    <p>
+                      Jedna přehledná stránka pro učitele i žáky. Jasný rámec, žádné
+                      složité přípravy navíc.
+                    </p>
+                  </div>
+                </div>
 
-          <Card>
-            <div style={{ fontWeight: 900, marginBottom: 8 }}>Pracovní listy</div>
-            <div style={{ fontSize: 14, lineHeight: 1.7, opacity: 0.82, marginBottom: 12 }}>
-              Ke každé hodině připravený pracovní list – učitel má jasný scénář a žáci konkrétní úkol.
-            </div>
-            <MediaImage src={MEDIA.stem} alt="Pracovní listy a návazné aktivity (STEM)" radius={16} />
-            <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <Chip tone="solid">1–2 stránky</Chip>
-              <Chip tone="solid">PDF</Chip>
-              <Chip tone="solid">Rychlé použití</Chip>
-            </div>
-          </Card>
-        </div>
-      </Section>
-
-      {/* SÍŤ UČEBEN */}
-      <Section id="sit" title="Síť učeben ARCHIMEDES" kicker="Mapa & inspirace" alt>
-        <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 16 }}>
-          <Card>
-            <div style={{ fontSize: 14, lineHeight: 1.7, opacity: 0.82, marginBottom: 12 }}>
-              Školy a obce vidí, kde už učebny fungují – a můžou si sdílet zkušenosti. (Mapa je dostupná v portálu.)
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <MediaImage src={MEDIA.exterior} alt="Učebna ARCHIMEDES – exteriér" radius={16} />
-              <MediaImage src={MEDIA.hero} alt="Učebna ARCHIMEDES – výuka" radius={16} />
-            </div>
-
-            <div style={{ marginTop: 14, display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button href="/portal/skoly" variant="light">Zobrazit mapu učeben</Button>
-              <Button href="/poptavka" variant="light">Chci ukázku / zapojení</Button>
-            </div>
-          </Card>
-
-          <div style={{ display: "grid", gap: 16 }}>
-            <MediaImage src={MEDIA.online} alt="Ukázka: propojení školy a sítě" radius={18} />
-            <Card>
-              <div style={{ fontWeight: 900, marginBottom: 10 }}>Proč je síť důležitá</div>
-              <div style={{ fontSize: 14, lineHeight: 1.7, opacity: 0.82 }}>
-                <ul style={{ margin: 0, paddingLeft: 18 }}>
-                  <li>Obce vidí „dobrou praxi“ a reálné fotky.</li>
-                  <li>Školy sdílí aktivity, inspiraci a materiály.</li>
-                  <li>Buduje se prestiž a dlouhodobá udržitelnost.</li>
-                </ul>
+                <div className="stepCard">
+                  <div className="stepNo">3</div>
+                  <div>
+                    <h3>Navazující aktivita</h3>
+                    <p>
+                      Krátká práce ve třídě nebo v komunitě. Program nekončí videem,
+                      ale pokračuje v reálné činnosti.
+                    </p>
+                  </div>
+                </div>
               </div>
-            </Card>
-          </div>
-        </div>
-      </Section>
 
-      {/* KOMUNITA */}
-      <Section id="komunita" title="Program pro celou obec" kicker="Dopad">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
-          <Card>
-            <div style={{ fontWeight: 900, marginBottom: 8 }}>Senior klub (2× měsíčně)</div>
-            <div style={{ fontSize: 14, lineHeight: 1.7, opacity: 0.82, marginBottom: 12 }}>
-              Smysluplný pravidelný program, prevence izolace, propojení generací a „živé dění“ v obci.
-            </div>
-            <MediaImage src={MEDIA.seniors} alt="Senior klub – komunitní setkání" radius={16} />
-          </Card>
-
-          <Card>
-            <div style={{ fontWeight: 900, marginBottom: 10 }}>Co tím obec získá</div>
-            <div style={{ fontSize: 14, lineHeight: 1.75, opacity: 0.82 }}>
-              <div style={{ display: "grid", gap: 8 }}>
-                <div>✅ Program pro děti i seniory v jednom</div>
-                <div>✅ Viditelný přínos pro obyvatele (a voliče)</div>
-                <div>✅ Propojení generací a aktivní komunita</div>
-                <div>✅ Prestiž moderní obce + možnost lokálních témat/partnerství</div>
+              <div className="inlineCtas">
+                <Link href="/ukazka" className="btn btnPrimary">
+                  Podívat se na ukázkovou hodinu
+                </Link>
               </div>
             </div>
-            <div style={{ marginTop: 14, display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Button href="/poptavka" variant="light">Domluvit ukázku pro obec</Button>
-              <Button href="/cenik" variant="light">Ceník</Button>
+
+            <div className="splitVisual">
+              <div className="bigVisualCard">
+                <div className="bigVisualTop">Ukázka živé hodiny</div>
+                <div className="bigVisualBody">
+                  <div className="visualPill">20–40 min živě</div>
+                  <div className="visualPill">+ pracovní list</div>
+                  <div className="visualPill">+ navazující aktivita</div>
+                </div>
+                <div className="bigVisualBottom">
+                  Učitel nezíská další složitý systém. Získá hotový program, který může
+                  hned použít.
+                </div>
+              </div>
             </div>
-          </Card>
-        </div>
-      </Section>
-
-      {/* FINANCOVÁNÍ */}
-      <Section id="financovani" title="Financování (OP JAK / šablony)" kicker="Prakticky">
-        <Card>
-          <div style={{ fontSize: 14, lineHeight: 1.75, opacity: 0.85 }}>
-            U škol je možné řešit financování i přes dotační tituly typu OP JAK a související šablony
-            (podle aktuální výzvy a pravidel školy). My dodáme <b>popis programu</b>, přínosy a podklady – tak,
-            aby to bylo pro školu administrativně snadné.
           </div>
+        </section>
 
-          <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <Chip tone="solid">Hotové texty a argumenty</Chip>
-            <Chip tone="solid">Ukázková hodina</Chip>
-            <Chip tone="solid">Pracovní listy jako výstup</Chip>
+        <section id="skola" className="section sectionAlt">
+          <div className="container twoCards">
+            <div className="benefitCard">
+              <div className="eyebrow">Pro školu</div>
+              <h2>Program pro moderní výuku</h2>
+              <p className="sectionLead">
+                Každý měsíc nový obsah, který pomáhá učitelům a dává žákům kontakt
+                s reálným světem.
+              </p>
+              <ul className="checkList">
+                {schoolBenefits.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              <Link href="/ukazka" className="btn btnPrimary">
+                Domluvit ukázku pro školu
+              </Link>
+            </div>
+
+            <div id="obec" className="benefitCard">
+              <div className="eyebrow">Pro obec</div>
+              <h2>Program pro celou komunitu obce</h2>
+              <p className="sectionLead">
+                ARCHIMEDES Live není jen pro školu. Přináší také pravidelný obsah
+                pro seniory, komunitu a společné aktivity v obci.
+              </p>
+              <ul className="checkList">
+                {municipalityBenefits.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              <Link href="/ukazka" className="btn btnPrimary">
+                Domluvit ukázku pro obec
+              </Link>
+            </div>
           </div>
-        </Card>
-      </Section>
+        </section>
 
-      {/* ZÁŠTITY/OCENĚNÍ – až tady */}
-      <Section id="duvera" title="Záštity, ocenění a partnerství" kicker="Důvěra" alt>
-        <Card>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {trust.map((t) => (
-              <Chip key={t} tone="solid">{t}</Chip>
-            ))}
+        <section id="program" className="section">
+          <div className="container">
+            <div className="sectionIntro">
+              <div className="eyebrow">Každý měsíc hotový obsah</div>
+              <h2>Ukázka tematických bloků programu</h2>
+            </div>
+
+            <div className="themeGrid">
+              {themes.map((item) => (
+                <div key={item.title} className="themeCard">
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="inlineCtas centerCtas">
+              <Link href="/program" className="btn btnPrimary">
+                Zobrazit celý program
+              </Link>
+              <Link href="/ukazka" className="btn btnGhost">
+                Domluvit ukázku programu
+              </Link>
+            </div>
           </div>
-        </Card>
-      </Section>
+        </section>
 
-      {/* CTA */}
-      <div style={{ padding: "10px 16px 56px" }}>
-        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
-          <div
-            style={{
-              borderRadius: 24,
-              border: "1px solid rgba(0,0,0,0.10)",
-              background: "linear-gradient(135deg, rgba(0,0,0,0.92), rgba(0,0,0,0.78))",
-              color: "white",
-              padding: "26px 20px",
-              boxShadow: "0 22px 55px rgba(0,0,0,0.14)",
-              display: "grid",
-              gridTemplateColumns: "1.2fr 0.8fr",
-              gap: 18,
-              alignItems: "center",
-            }}
-          >
+        <section className="section sectionAlt">
+          <div className="container splitSection">
+            <div className="splitText">
+              <div className="eyebrow">Ukázka programu</div>
+              <h2>Chcete vidět, jak program funguje v praxi?</h2>
+              <p className="sectionLead">
+                Během krátké online ukázky vám představíme jednu hodinu programu,
+                pracovní list pro žáky a prostředí portálu.
+              </p>
+
+              <div className="miniInfoRow">
+                <span className="infoPill">20 minut</span>
+                <span className="infoPill">online setkání</span>
+                <span className="infoPill">pro školy i obce</span>
+              </div>
+
+              <div className="quoteBox">
+                <strong>Stačí jedna ukázka a rychle uvidíte,</strong> jak může vypadat
+                moderní výuka a program pro komunitu obce.
+              </div>
+
+              <Link href="/ukazka" className="btn btnPrimary">
+                Domluvit ukázku programu
+              </Link>
+            </div>
+
+            <div className="splitVisual">
+              <div className="ctaPreviewCard">
+                <div className="previewTitle">Co během ukázky uvidíte</div>
+                <div className="previewItem">
+                  <strong>Ukázka živé hodiny</strong>
+                  <span>vstup s hostem a práce s pracovním listem</span>
+                </div>
+                <div className="previewItem">
+                  <strong>Portál pro školy</strong>
+                  <span>program vysílání, archiv hodin a pracovní listy</span>
+                </div>
+                <div className="previewItem">
+                  <strong>Zapojení školy nebo obce</strong>
+                  <span>možnosti využití programu ve výuce i komunitě</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container splitSection">
+            <div className="splitText">
+              <div className="eyebrow">Síť učeben ARCHIMEDES</div>
+              <h2>Program je napojený na reálná místa a skutečné školy</h2>
+              <p className="sectionLead">
+                ARCHIMEDES Live stojí na fyzické síti učeben a zkušenostech škol
+                a obcí, které už program využívají.
+              </p>
+
+              <div className="placesList spacious">
+                {places.map((place) => (
+                  <span key={place}>{place}</span>
+                ))}
+              </div>
+
+              <div className="inlineCtas">
+                <Link href="/poptavka" className="btn btnGhost">
+                  Chci ukázku / zapojení
+                </Link>
+              </div>
+            </div>
+
+            <div className="splitVisual">
+              <div className="networkMock">
+                <div className="networkPhoto left">
+                  <span>Učebna ARCHIMEDES</span>
+                </div>
+                <div className="networkPhoto right">
+                  <span>Živý program</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="financovani" className="section sectionAlt">
+          <div className="container">
+            <div className="financingCard">
+              <div>
+                <div className="eyebrow">Prakticky</div>
+                <h2>Financování programu pro školy i obce</h2>
+                <p className="sectionLead">
+                  U škol je možné řešit financování i přes dotační tituly typu OP JAK
+                  a související šablony. Připravíme popis programu, přínosy a podklady,
+                  aby bylo řešení administrativně co nejjednodušší.
+                </p>
+
+                <div className="miniInfoRow">
+                  <span className="infoPill">hotové texty a argumenty</span>
+                  <span className="infoPill">ukázková hodina</span>
+                  <span className="infoPill">pracovní listy jako výstup</span>
+                </div>
+              </div>
+
+              <div className="financingCtas">
+                <Link href="/cenik" className="btn btnPrimary">
+                  Ceník a financování
+                </Link>
+                <Link href="/ukazka" className="btn btnGhost">
+                  Domluvit ukázku
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container">
+            <div className="sectionIntro">
+              <div className="eyebrow">Důvěra</div>
+              <h2>Záštity, ocenění a partnerství</h2>
+            </div>
+
+            <div className="badgeRow">
+              {badges.map((badge) => (
+                <span key={badge} className="badge">
+                  {badge}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="container finalCtaWrap">
+          <div className="finalCta">
             <div>
-              <div style={{ fontSize: 13, letterSpacing: 0.4, textTransform: "uppercase", opacity: 0.75 }}>Další krok</div>
-              <div style={{ fontSize: 28, fontWeight: 900, lineHeight: 1.15, marginTop: 6 }}>
-                Chcete ukázku pro školu nebo obec?
-              </div>
-              <div style={{ marginTop: 10, fontSize: 15, lineHeight: 1.7, opacity: 0.88 }}>
-                Zabere to pár minut – ukážeme jednu hodinu, pracovní list a jak vypadá portál.
-              </div>
+              <div className="eyebrow eyebrowLight">Další krok</div>
+              <h2>Chcete ukázku pro školu nebo obec?</h2>
+              <p>
+                Během krátké online schůzky ukážeme jednu hodinu programu,
+                pracovní list a prostředí portálu.
+              </p>
             </div>
 
-            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", flexWrap: "wrap" }}>
-              <Button href="/poptavka" variant="primary">Domluvit ukázku</Button>
-              <Button href="/portal" variant="secondary">Prohlédnout portál</Button>
+            <div className="finalCtaButtons">
+              <Link href="/ukazka" className="btn btnWhite">
+                Domluvit ukázku programu
+              </Link>
+              <Link href="/program" className="btn btnOutlineLight">
+                Prohlédnout program
+              </Link>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
 
-      <style jsx global>{`
-        @media (max-width: 980px) {
-          #__next section > div > div[style*="grid-template-columns: 1.2fr 0.8fr"] {
-            grid-template-columns: 1fr !important;
+      <style jsx>{`
+        .page {
+          background: #f6f7fb;
+          color: #111827;
+          min-height: 100vh;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .container {
+          max-width: 1100px;
+          margin: 0 auto;
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+
+        .section {
+          padding: 84px 0;
+        }
+
+        .sectionAlt {
+          background: #eef1f7;
+        }
+
+        .hero {
+          padding-top: 34px;
+          padding-bottom: 34px;
+        }
+
+        .heroCard {
+          display: grid;
+          grid-template-columns: 1.1fr 0.9fr;
+          gap: 22px;
+          align-items: stretch;
+          background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
+          border-radius: 28px;
+          overflow: hidden;
+          min-height: 560px;
+          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+        }
+
+        .heroContent {
+          padding: 36px 34px 34px;
+          color: white;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .chipRow {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          margin-bottom: 18px;
+        }
+
+        .chip {
+          display: inline-flex;
+          align-items: center;
+          padding: 9px 14px;
+          border-radius: 999px;
+          font-size: 14px;
+          background: rgba(255, 255, 255, 0.14);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          color: rgba(255, 255, 255, 0.95);
+        }
+
+        .chipDark {
+          background: rgba(16, 185, 129, 0.18);
+          border-color: rgba(16, 185, 129, 0.32);
+        }
+
+        h1 {
+          font-size: 56px;
+          line-height: 1.05;
+          margin: 0 0 18px;
+          letter-spacing: -0.03em;
+        }
+
+        .heroLead {
+          font-size: 21px;
+          line-height: 1.6;
+          color: rgba(255, 255, 255, 0.92);
+          max-width: 640px;
+          margin: 0 0 26px;
+        }
+
+        .heroCtas,
+        .inlineCtas,
+        .financingCtas,
+        .finalCtaButtons {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .microTrust {
+          display: flex;
+          gap: 18px;
+          flex-wrap: wrap;
+          margin-top: 24px;
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.78);
+        }
+
+        .heroVisual {
+          background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+          padding: 22px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .heroPhotoGrid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          flex: 1;
+        }
+
+        .heroPhoto {
+          position: relative;
+          border-radius: 22px;
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background-size: cover;
+          background-position: center;
+          min-height: 180px;
+        }
+
+        .heroPhotoMain {
+          min-height: 320px;
+          background:
+            linear-gradient(rgba(0,0,0,0.24), rgba(0,0,0,0.28)),
+            url("/media/hero-classroom.jpg"),
+            linear-gradient(135deg, #334155 0%, #0f172a 100%);
+        }
+
+        .heroPhotoSmall {
+          background:
+            linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.22)),
+            url("/media/worksheet.jpg"),
+            linear-gradient(135deg, #475569 0%, #111827 100%);
+        }
+
+        .heroPhotoSmall.alt {
+          background:
+            linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.22)),
+            url("/media/senior-club.jpg"),
+            linear-gradient(135deg, #475569 0%, #111827 100%);
+        }
+
+        .visualLabel {
+          position: absolute;
+          left: 14px;
+          bottom: 14px;
+          display: inline-flex;
+          padding: 8px 12px;
+          background: rgba(15, 23, 42, 0.72);
+          color: white;
+          border-radius: 999px;
+          font-size: 13px;
+          backdrop-filter: blur(6px);
+        }
+
+        .anchorChips {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          margin-top: 18px;
+        }
+
+        .anchorChip {
+          padding: 10px 14px;
+          border-radius: 999px;
+          background: white;
+          color: #374151;
+          text-decoration: none;
+          font-size: 14px;
+          border: 1px solid rgba(17, 24, 39, 0.08);
+        }
+
+        .sectionIntro {
+          margin-bottom: 30px;
+        }
+
+        .eyebrow {
+          font-size: 13px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #6b7280;
+          margin-bottom: 10px;
+          font-weight: 600;
+        }
+
+        .eyebrowLight {
+          color: rgba(255, 255, 255, 0.72);
+        }
+
+        h2 {
+          font-size: 42px;
+          line-height: 1.12;
+          letter-spacing: -0.02em;
+          margin: 0;
+        }
+
+        .trustGrid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 18px;
+          margin-bottom: 18px;
+        }
+
+        .trustCard,
+        .themeCard,
+        .benefitCard,
+        .placesCard,
+        .bigVisualCard,
+        .ctaPreviewCard,
+        .financingCard,
+        .stepCard {
+          background: white;
+          border: 1px solid rgba(17, 24, 39, 0.08);
+          border-radius: 22px;
+        }
+
+        .trustCard {
+          padding: 22px;
+        }
+
+        .trustValue {
+          font-size: 42px;
+          font-weight: 700;
+          line-height: 1;
+          margin-bottom: 8px;
+        }
+
+        .trustLabel {
+          font-size: 16px;
+          color: #4b5563;
+        }
+
+        .placesCard {
+          padding: 24px;
+        }
+
+        .placesTitle {
+          font-size: 20px;
+          font-weight: 700;
+          margin-bottom: 14px;
+        }
+
+        .placesList {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .placesList span {
+          display: inline-flex;
+          align-items: center;
+          padding: 10px 14px;
+          border-radius: 999px;
+          background: #f3f4f6;
+          color: #111827;
+          font-size: 15px;
+        }
+
+        .placesList.spacious {
+          margin: 22px 0 26px;
+        }
+
+        .splitSection {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 26px;
+          align-items: start;
+        }
+
+        .splitText {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+
+        .splitVisual {
+          display: flex;
+        }
+
+        .stepList {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .stepCard {
+          padding: 20px;
+          display: grid;
+          grid-template-columns: 56px 1fr;
+          gap: 16px;
+        }
+
+        .stepNo {
+          width: 56px;
+          height: 56px;
+          border-radius: 18px;
+          background: #111827;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          font-weight: 700;
+        }
+
+        h3 {
+          margin: 0 0 8px;
+          font-size: 24px;
+          line-height: 1.2;
+        }
+
+        p {
+          margin: 0;
+          font-size: 17px;
+          line-height: 1.7;
+          color: #4b5563;
+        }
+
+        .sectionLead {
+          font-size: 19px;
+          line-height: 1.75;
+          color: #4b5563;
+        }
+
+        .bigVisualCard {
+          width: 100%;
+          min-height: 100%;
+          padding: 24px;
+          background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .bigVisualTop {
+          font-size: 14px;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: #6b7280;
+          margin-bottom: 16px;
+          font-weight: 600;
+        }
+
+        .bigVisualBody {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          margin-bottom: 18px;
+        }
+
+        .visualPill,
+        .infoPill {
+          display: inline-flex;
+          align-items: center;
+          padding: 10px 14px;
+          border-radius: 999px;
+          background: #f3f4f6;
+          color: #111827;
+          font-size: 14px;
+        }
+
+        .bigVisualBottom {
+          font-size: 18px;
+          line-height: 1.7;
+          color: #374151;
+          margin-top: 12px;
+        }
+
+        .twoCards {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 22px;
+        }
+
+        .benefitCard {
+          padding: 28px;
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+
+        .checkList {
+          list-style: none;
+          padding: 0;
+          margin: 0 0 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .checkList li {
+          position: relative;
+          padding-left: 28px;
+          font-size: 17px;
+          color: #374151;
+          line-height: 1.6;
+        }
+
+        .checkList li:before {
+          content: "✓";
+          position: absolute;
+          left: 0;
+          top: 0;
+          color: #10b981;
+          font-weight: 700;
+        }
+
+        .themeGrid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 18px;
+        }
+
+        .themeCard {
+          padding: 24px;
+        }
+
+        .themeCard p {
+          font-size: 16px;
+        }
+
+        .centerCtas {
+          justify-content: center;
+          margin-top: 28px;
+        }
+
+        .miniInfoRow {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .quoteBox {
+          padding: 20px 22px;
+          background: white;
+          border: 1px solid rgba(17, 24, 39, 0.08);
+          border-radius: 18px;
+          font-size: 18px;
+          line-height: 1.7;
+          color: #374151;
+        }
+
+        .ctaPreviewCard {
+          width: 100%;
+          padding: 26px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .previewTitle {
+          font-size: 22px;
+          font-weight: 700;
+          margin-bottom: 4px;
+        }
+
+        .previewItem {
+          padding: 16px 0;
+          border-top: 1px solid rgba(17, 24, 39, 0.08);
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .previewItem strong {
+          font-size: 18px;
+          color: #111827;
+        }
+
+        .previewItem span {
+          font-size: 16px;
+          color: #4b5563;
+          line-height: 1.6;
+        }
+
+        .networkMock {
+          width: 100%;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+
+        .networkPhoto {
+          min-height: 340px;
+          border-radius: 22px;
+          overflow: hidden;
+          position: relative;
+          display: flex;
+          align-items: end;
+          padding: 16px;
+          color: white;
+          font-weight: 600;
+          font-size: 16px;
+        }
+
+        .networkPhoto.left {
+          background:
+            linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.3)),
+            url("/media/classroom-exterior.jpg"),
+            linear-gradient(135deg, #475569 0%, #111827 100%);
+          background-size: cover;
+          background-position: center;
+        }
+
+        .networkPhoto.right {
+          background:
+            linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.3)),
+            url("/media/live-program.jpg"),
+            linear-gradient(135deg, #475569 0%, #111827 100%);
+          background-size: cover;
+          background-position: center;
+        }
+
+        .networkPhoto span {
+          display: inline-flex;
+          padding: 8px 12px;
+          border-radius: 999px;
+          background: rgba(15, 23, 42, 0.68);
+        }
+
+        .financingCard {
+          padding: 28px;
+          display: grid;
+          grid-template-columns: 1.2fr auto;
+          gap: 20px;
+          align-items: center;
+        }
+
+        .badgeRow {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .badge {
+          display: inline-flex;
+          align-items: center;
+          padding: 10px 14px;
+          border-radius: 999px;
+          background: #f3f4f6;
+          border: 1px solid rgba(17, 24, 39, 0.08);
+          font-size: 14px;
+          color: #374151;
+        }
+
+        .finalCtaWrap {
+          padding-top: 0;
+          padding-bottom: 96px;
+        }
+
+        .finalCta {
+          background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
+          border-radius: 28px;
+          padding: 36px;
+          color: white;
+          display: grid;
+          grid-template-columns: 1.1fr auto;
+          gap: 20px;
+          align-items: center;
+          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+        }
+
+        .finalCta p {
+          color: rgba(255, 255, 255, 0.82);
+          margin-top: 12px;
+        }
+
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 48px;
+          padding: 0 18px;
+          border-radius: 14px;
+          text-decoration: none;
+          font-size: 16px;
+          font-weight: 600;
+          transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        .btn:hover {
+          transform: translateY(-1px);
+        }
+
+        .btnPrimary {
+          background: #111827;
+          color: white;
+          box-shadow: 0 10px 24px rgba(17, 24, 39, 0.16);
+        }
+
+        .btnGhost {
+          background: white;
+          color: #111827;
+          border: 1px solid rgba(17, 24, 39, 0.12);
+        }
+
+        .btnGhostLight {
+          background: rgba(255, 255, 255, 0.1);
+          color: white;
+          border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+
+        .btnWhite {
+          background: white;
+          color: #111827;
+        }
+
+        .btnOutlineLight {
+          background: transparent;
+          color: white;
+          border: 1px solid rgba(255, 255, 255, 0.26);
+        }
+
+        @media (max-width: 1080px) {
+          h1 {
+            font-size: 46px;
           }
-          #__next section > div > div[style*="grid-template-columns: 1fr 1fr"] {
-            grid-template-columns: 1fr !important;
+
+          h2 {
+            font-size: 36px;
           }
-          #__next section > div > div[style*="repeat(3, 1fr)"] {
-            grid-template-columns: 1fr !important;
+
+          .heroCard,
+          .splitSection,
+          .twoCards,
+          .financingCard,
+          .finalCta {
+            grid-template-columns: 1fr;
           }
-          #__next section > div > div[style*="repeat(4, 1fr)"] {
-            grid-template-columns: 1fr 1fr !important;
+
+          .trustGrid,
+          .themeGrid {
+            grid-template-columns: repeat(2, 1fr);
           }
-          #__next h1 {
-            font-size: 38px !important;
+        }
+
+        @media (max-width: 720px) {
+          .hero {
+            padding-top: 20px;
+          }
+
+          .heroCard {
+            min-height: auto;
+          }
+
+          .heroContent,
+          .heroVisual,
+          .trustCard,
+          .themeCard,
+          .benefitCard,
+          .placesCard,
+          .bigVisualCard,
+          .ctaPreviewCard,
+          .financingCard,
+          .stepCard,
+          .finalCta {
+            padding-left: 20px;
+            padding-right: 20px;
+          }
+
+          h1 {
+            font-size: 36px;
+          }
+
+          h2 {
+            font-size: 30px;
+          }
+
+          .heroLead,
+          .sectionLead,
+          p,
+          .quoteBox {
+            font-size: 16px;
+          }
+
+          .trustGrid,
+          .themeGrid,
+          .heroPhotoGrid,
+          .networkMock {
+            grid-template-columns: 1fr;
+          }
+
+          .heroPhotoMain {
+            min-height: 220px;
+          }
+
+          .heroPhotoSmall,
+          .networkPhoto {
+            min-height: 180px;
+          }
+
+          .stepCard {
+            grid-template-columns: 1fr;
+          }
+
+          .stepNo {
+            width: 48px;
+            height: 48px;
+            font-size: 20px;
+          }
+
+          .section {
+            padding: 64px 0;
+          }
+
+          .finalCtaWrap {
+            padding-bottom: 72px;
           }
         }
       `}</style>
