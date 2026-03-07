@@ -59,8 +59,9 @@ export default function MujProfilPage() {
   const [userId, setUserId] = useState(null);
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState("");
-  const [schoolId, setSchoolId] = useState(null);
+  const [roleInOrg, setRoleInOrg] = useState("");
+  const [organizationId, setOrganizationId] = useState(null);
+  const [organizationName, setOrganizationName] = useState("");
 
   const [audienceOptions, setAudienceOptions] = useState(FALLBACK_AUDIENCES);
   const [categoryOptions, setCategoryOptions] = useState(FALLBACK_CATEGORIES);
@@ -91,6 +92,7 @@ export default function MujProfilPage() {
 
       const [
         profileRes,
+        membershipRes,
         audPrefRes,
         catPrefRes,
         audienceOptionsRes,
@@ -98,8 +100,15 @@ export default function MujProfilPage() {
       ] = await Promise.all([
         supabase
           .from("profiles")
-          .select("id, email, full_name, role, school_id")
+          .select("id, email, full_name, is_active")
           .eq("id", user.id)
+          .maybeSingle(),
+
+        supabase
+          .from("organization_members")
+          .select("organization_id, role_in_org, status")
+          .eq("user_id", user.id)
+          .eq("status", "active")
           .maybeSingle(),
 
         supabase
@@ -124,14 +133,32 @@ export default function MujProfilPage() {
       ]);
 
       if (profileRes.error) throw profileRes.error;
+      if (membershipRes.error) throw membershipRes.error;
       if (audPrefRes.error) throw audPrefRes.error;
       if (catPrefRes.error) throw catPrefRes.error;
 
       const profile = profileRes.data;
       if (profile) {
         setFullName(profile.full_name || "");
-        setRole(profile.role || "");
-        setSchoolId(profile.school_id || null);
+      }
+
+      const membership = membershipRes.data;
+      if (membership) {
+        setOrganizationId(membership.organization_id || null);
+        setRoleInOrg(membership.role_in_org || "");
+      }
+
+      if (membership?.organization_id) {
+        const { data: org, error: orgError } = await supabase
+          .from("organizations")
+          .select("id, name")
+          .eq("id", membership.organization_id)
+          .maybeSingle();
+
+        if (orgError) throw orgError;
+        if (org) {
+          setOrganizationName(org.name || "");
+        }
       }
 
       setSelectedAudiences((audPrefRes.data || []).map((x) => x.audience_slug));
@@ -166,6 +193,12 @@ export default function MujProfilPage() {
     }
   }
 
+  function roleLabel(value) {
+    if (value === "organization_admin") return "Administrátor organizace";
+    if (value === "platform_admin") return "Správce platformy";
+    return "Člen organizace";
+  }
+
   async function handleSave(e) {
     e.preventDefault();
     setSaving(true);
@@ -175,16 +208,15 @@ export default function MujProfilPage() {
     try {
       if (!userId) throw new Error("Chybí userId.");
       if (!fullName.trim()) throw new Error("Vyplňte jméno.");
-      if (!schoolId) throw new Error("Uživatel není přiřazen ke škole.");
+      if (!organizationId) throw new Error("Uživatel není přiřazen k organizaci.");
 
       const { error: profileError } = await supabase.from("profiles").upsert(
         {
           id: userId,
           email,
           full_name: fullName.trim(),
-          role: role || "teacher",
-          school_id: schoolId,
           is_active: true,
+          must_set_password: false,
         },
         { onConflict: "id" }
       );
@@ -352,11 +384,29 @@ export default function MujProfilPage() {
 
                 <div>
                   <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                    Organizace
+                  </label>
+                  <input
+                    type="text"
+                    value={organizationName || "—"}
+                    disabled
+                    style={{
+                      width: "100%",
+                      padding: "12px 14px",
+                      borderRadius: 12,
+                      border: "1px solid rgba(0,0,0,0.15)",
+                      background: "#f3f4f6",
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
                     Role
                   </label>
                   <input
                     type="text"
-                    value={role === "school_admin" ? "Administrátor školy" : "Uživatel školy"}
+                    value={roleLabel(roleInOrg)}
                     disabled
                     style={{
                       width: "100%",
