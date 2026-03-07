@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const trustItems = [
-  { value: "20+", label: "učeben ARCHIMEDES" },
+  { value: "20+", label: "učeben ARCHIMEDES®" },
   { value: "1 000+", label: "zapojených žáků v síti" },
   { value: "2×", label: "měsíčně Senior klub" },
   { value: "Obec 2030", label: "vítěz soutěže" },
@@ -237,7 +237,7 @@ export default function Home() {
             </div>
 
             <div className="marqueeBlock">
-              <div className="marqueeTitle">Síť učeben ARCHIMEDES</div>
+              <div className="marqueeTitle">Síť učeben ARCHIMEDES®</div>
 
               <div className="marqueeWrap">
                 <div className="marqueeTrack">
@@ -310,16 +310,28 @@ export default function Home() {
             </div>
 
             <div className="splitVisual">
-              <div className="bigVisualCard">
-                <div className="bigVisualTop">Jak vypadá jedna hodina</div>
-                <div className="bigVisualBody">
-                  <div className="visualPill">20–40 min živě</div>
-                  <div className="visualPill">pracovní listy</div>
-                  <div className="visualPill">navazující aktivita</div>
+              <div className="visualColumn">
+                <div className="bigVisualCard">
+                  <div className="bigVisualTop">Jak vypadá jedna hodina</div>
+                  <div className="bigVisualBody">
+                    <div className="visualPill">20–40 min živě</div>
+                    <div className="visualPill">pracovní listy</div>
+                    <div className="visualPill">navazující aktivita</div>
+                  </div>
+                  <div className="bigVisualBottom">
+                    Učitel nezíská další složitý systém. Získá hotový program,
+                    který může hned použít.
+                  </div>
                 </div>
-                <div className="bigVisualBottom">
-                  Učitel nezíská další složitý systém. Získá hotový program,
-                  který může hned použít.
+
+                <div className="videoPlaceholderCard">
+                  <div className="videoPlaceholderTop">Ukázkové video</div>
+                  <div className="videoPlaceholderBox">
+                    <div className="playCircle">▶</div>
+                    <div className="videoPlaceholderText">
+                      Zde bude vložené prezentační video programu
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -416,14 +428,14 @@ export default function Home() {
           <div className="container">
             <div className="classroomTeaser">
               <div className="classroomTeaserPhoto">
-                <div className="visualLabel">Venkovní učebna ARCHIMEDES</div>
+                <div className="visualLabel">Venkovní učebna ARCHIMEDES®</div>
               </div>
 
               <div className="classroomTeaserText">
                 <div className="eyebrow">Rozšíření ekosystému</div>
-                <h2>Vedle živého programu může obec nebo škola získat i vlastní prostor ARCHIMEDES</h2>
+                <h2>Celoroční multifunkční venkovní učebna a komunitní centrum ARCHIMEDES®</h2>
                 <p className="sectionLead">
-                  Venkovní učebna ARCHIMEDES rozšiřuje celý program do fyzického prostoru.
+                  Venkovní učebna ARCHIMEDES® rozšiřuje celý program do fyzického prostoru.
                   Vzniká místo pro výuku, čtenářské kluby, seniorské aktivity, komunitní setkávání,
                   workshopy i kulturní program během roku.
                 </p>
@@ -450,7 +462,7 @@ export default function Home() {
         <section id="sit" className="section sectionAlt">
           <div className="container networkSection">
             <div className="networkText">
-              <div className="eyebrow">Síť učeben ARCHIMEDES</div>
+              <div className="eyebrow">Síť učeben ARCHIMEDES®</div>
               <h2>Program je napojený na reálná místa a skutečné školy</h2>
               <p className="sectionLead">
                 ARCHIMEDES Live stojí na fyzické síti učeben a zkušenostech škol
@@ -466,7 +478,7 @@ export default function Home() {
 
             <div className="networkPhotos">
               <div className="networkPhoto left">
-                <span>Učebna ARCHIMEDES</span>
+                <span>Učebna ARCHIMEDES®</span>
               </div>
               <div className="networkPhoto right">
                 <span>Živý program</span>
@@ -672,8 +684,7 @@ export default function Home() {
         }
 
         .inlineCtas,
-        .financingCtas,
-        .finalCtaButtons {
+        .financingCtas {
           display: flex;
           gap: 12px;
           flex-wrap: wrap;
@@ -763,6 +774,9 @@ export default function Home() {
         }
 
         .anchorChip {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           padding: 10px 14px;
           border-radius: 999px;
           background: white;
@@ -770,14 +784,22 @@ export default function Home() {
           text-decoration: none;
           font-size: 14px;
           border: 1px solid rgba(17, 24, 39, 0.08);
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .anchorChip:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 20px rgba(17, 24, 39, 0.08);
         }
 
         .anchorChipSenior {
           background: linear-gradient(135deg, #10b981, #059669);
           color: #ffffff;
           font-weight: 700;
-          border: 1px solid rgba(16,185,129,0.9);
-          box-shadow: 0 10px 24px rgba(16,185,129,0.22);
+          border: 1px solid rgba(16,185,129,0.95);
+          box-shadow: 0 10px 24px rgba(16,185,129,0.24);
+          padding-left: 16px;
+          padding-right: 16px;
         }
 
         .sectionIntro {
@@ -815,6 +837,7 @@ export default function Home() {
         .themeCard,
         .benefitCard,
         .bigVisualCard,
+        .videoPlaceholderCard,
         .financingCard,
         .stepCard,
         .classroomTeaser,
@@ -867,6 +890,13 @@ export default function Home() {
 
         .splitVisual {
           display: flex;
+        }
+
+        .visualColumn {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
         }
 
         .stepList {
@@ -938,7 +968,8 @@ export default function Home() {
           background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
         }
 
-        .bigVisualTop {
+        .bigVisualTop,
+        .videoPlaceholderTop {
           font-size: 14px;
           text-transform: uppercase;
           letter-spacing: 0.08em;
@@ -970,6 +1001,46 @@ export default function Home() {
           line-height: 1.7;
           color: #374151;
           margin-top: 12px;
+        }
+
+        .videoPlaceholderCard {
+          padding: 26px;
+          background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .videoPlaceholderBox {
+          min-height: 260px;
+          border-radius: 18px;
+          border: 2px dashed rgba(17, 24, 39, 0.12);
+          background: linear-gradient(135deg, #e9eef7 0%, #f8fafc 100%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          text-align: center;
+        }
+
+        .playCircle {
+          width: 72px;
+          height: 72px;
+          border-radius: 999px;
+          background: #111827;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 28px;
+          margin-bottom: 16px;
+          box-shadow: 0 12px 24px rgba(17, 24, 39, 0.16);
+          padding-left: 4px;
+        }
+
+        .videoPlaceholderText {
+          font-size: 17px;
+          color: #374151;
+          line-height: 1.6;
+          max-width: 320px;
         }
 
         .audienceGrid3 {
@@ -1273,17 +1344,6 @@ export default function Home() {
           box-shadow: 0 10px 24px rgba(16,185,129,0.2);
         }
 
-        .btnWhite {
-          background: white;
-          color: #111827;
-        }
-
-        .btnOutlineLight {
-          background: transparent;
-          color: white;
-          border: 1px solid rgba(255, 255, 255, 0.26);
-        }
-
         @keyframes marqueeMove {
           0% {
             transform: translateX(0);
@@ -1342,6 +1402,7 @@ export default function Home() {
           .themeCard,
           .benefitCard,
           .bigVisualCard,
+          .videoPlaceholderCard,
           .financingCard,
           .stepCard,
           .finalCta,
@@ -1362,7 +1423,8 @@ export default function Home() {
 
           .heroLead,
           .sectionLead,
-          p {
+          p,
+          .videoPlaceholderText {
             font-size: 16px;
           }
 
@@ -1380,6 +1442,10 @@ export default function Home() {
           .heroPhotoSmall,
           .networkPhoto,
           .classroomTeaserPhoto {
+            min-height: 220px;
+          }
+
+          .videoPlaceholderBox {
             min-height: 220px;
           }
 
