@@ -62,6 +62,7 @@ export default function MujProfilPage() {
   const [roleInOrg, setRoleInOrg] = useState("");
   const [organizationId, setOrganizationId] = useState(null);
   const [organizationName, setOrganizationName] = useState("");
+  const [organizationJoinCode, setOrganizationJoinCode] = useState("");
 
   const [audienceOptions, setAudienceOptions] = useState(FALLBACK_AUDIENCES);
   const [categoryOptions, setCategoryOptions] = useState(FALLBACK_CATEGORIES);
@@ -151,13 +152,14 @@ export default function MujProfilPage() {
       if (membership?.organization_id) {
         const { data: org, error: orgError } = await supabase
           .from("organizations")
-          .select("id, name")
+          .select("id, name, join_code")
           .eq("id", membership.organization_id)
           .maybeSingle();
 
         if (orgError) throw orgError;
         if (org) {
           setOrganizationName(org.name || "");
+          setOrganizationJoinCode(org.join_code || "");
         }
       }
 
@@ -398,6 +400,32 @@ export default function MujProfilPage() {
                       background: "#f3f4f6",
                     }}
                   />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                    Kód organizace
+                  </label>
+                  <input
+                    type="text"
+                    value={organizationJoinCode || "—"}
+                    disabled
+                    style={{
+                      width: "100%",
+                      padding: "12px 14px",
+                      borderRadius: 12,
+                      border: "1px solid rgba(0,0,0,0.15)",
+                      background: "#f3f4f6",
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                      letterSpacing: "0.02em",
+                    }}
+                  />
+                  {roleInOrg === "organization_admin" ? (
+                    <div style={{ marginTop: 8, color: "rgba(0,0,0,0.6)", fontSize: 14 }}>
+                      Tento kód můžete poslat kolegům. Připojí se přes stránku{" "}
+                      <strong>/join</strong>.
+                    </div>
+                  ) : null}
                 </div>
 
                 <div>
