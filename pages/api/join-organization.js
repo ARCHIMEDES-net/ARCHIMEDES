@@ -52,6 +52,21 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "Tato organizace není aktivní." });
     }
 
+    const { count: activeMembersCount, error: countError } = await supabaseAdmin
+      .from("organization_members")
+      .select("*", { count: "exact", head: true })
+      .eq("organization_id", organization.id)
+      .eq("status", "active");
+
+    if (countError) {
+      return res.status(400).json({
+        error: `Nepodařilo se ověřit členství organizace: ${countError.message}`,
+      });
+    }
+
+    const assignedRole =
+      (activeMembersCount || 0) === 0 ? "organization_admin" : "member";
+
     const { data: createdUser, error: createUserError } =
       await supabaseAdmin.auth.admin.createUser({
         email: cleanEmail,
@@ -113,7 +128,7 @@ export default async function handler(req, res) {
         {
           organization_id: organization.id,
           user_id: userId,
-          role_in_org: "member",
+          role_in_org: assignedRole,
           status: "active",
         },
         { onConflict: "user_id,organization_id" }
@@ -128,7 +143,11 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       organizationName: organization.name,
-      message: "Účet byl vytvořen a uživatel byl připojen do organizace.",
+      assignedRole,
+      message:
+        assignedRole === "organization_admin"
+          ? "Účet byl vytvořen a uživatel se stal prvním správcem organizace."
+          : "Účet byl vytvořen a uživatel byl připojen do organizace.",
     });
   } catch (err) {
     return res.status(500).json({
