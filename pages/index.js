@@ -44,6 +44,13 @@ const municipalityBenefits = [
   "viditelný přínos pro obyvatele i vedení obce",
 ];
 
+const seniorBenefits = [
+  "pravidelný Senior klub 2× měsíčně",
+  "bezpečné a srozumitelné online prostředí",
+  "setkávání, inspirace a prevence izolace",
+  "možnost zapojení i přes obec nebo školu",
+];
+
 const themes = [
   {
     title: "Přírodověda & technologie",
@@ -94,23 +101,84 @@ export default function Home() {
                 <span className="chip">Školy + obce + komunita</span>
               </div>
 
-              <h1>Každý měsíc nový program pro školu i komunitu obce</h1>
+              <h1>
+                Každý měsíc nový
+                <br />
+                program pro školu
+                <br />
+                i komunitu obce
+              </h1>
 
               <p className="heroLead">
                 Živé vstupy s hosty, pracovní listy pro žáky a pravidelný obsah
                 pro školu, seniory i komunitní život obce.
               </p>
 
-              <div className="heroCtas">
-                <Link href="/ukazka" className="btn btnHeroPrimary">
+              <div
+                style={{
+                  display: "flex",
+                  gap: "14px",
+                  flexWrap: "wrap",
+                  marginTop: "10px",
+                }}
+              >
+                <Link
+                  href="/ukazka"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "14px 22px",
+                    borderRadius: "14px",
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    textDecoration: "none",
+                    color: "#ffffff",
+                    background: "linear-gradient(135deg,#10b981,#059669)",
+                    boxShadow: "0 10px 25px rgba(16,185,129,0.35)",
+                    border: "1px solid rgba(16,185,129,0.9)",
+                  }}
+                >
                   Domluvit ukázku programu
                 </Link>
 
-                <Link href="/program" className="btn btnHeroSecondary">
+                <Link
+                  href="/program"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "14px 22px",
+                    borderRadius: "14px",
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    color: "#ffffff",
+                    background: "rgba(255,255,255,0.12)",
+                    border: "1px solid rgba(255,255,255,0.22)",
+                    backdropFilter: "blur(6px)",
+                  }}
+                >
                   Prohlédnout program
                 </Link>
 
-                <Link href="/cenik" className="btn btnHeroSecondary">
+                <Link
+                  href="/cenik"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "14px 22px",
+                    borderRadius: "14px",
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    color: "#ffffff",
+                    background: "rgba(255,255,255,0.12)",
+                    border: "1px solid rgba(255,255,255,0.22)",
+                    backdropFilter: "blur(6px)",
+                  }}
+                >
                   Ceník a financování
                 </Link>
               </div>
@@ -145,6 +213,10 @@ export default function Home() {
             <a href="#ucebna" className="anchorChip">Učebna</a>
             <a href="#sit" className="anchorChip">Síť učeben</a>
             <a href="#financovani" className="anchorChip">Financování</a>
+
+            <Link href="/poptavka" className="anchorChip anchorChipSenior">
+              SENIOŘI – registrace / zájem
+            </Link>
           </div>
         </section>
 
@@ -152,7 +224,7 @@ export default function Home() {
           <div className="container">
             <div className="sectionIntro">
               <div className="eyebrow">Důkaz důvěry</div>
-              <h2>ARCHIMEDES Live už funguje v řadě škol a obcí</h2>
+              <h2>ARCHIMEDES Live už propojuje konkrétní školy, obce i komunity</h2>
             </div>
 
             <div className="trustGrid">
@@ -229,6 +301,12 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+
+              <div className="hourNoteCard">
+                <strong>Výsledek?</strong> Škola i obec dostanou hotový obsah,
+                který se dá okamžitě využít bez složité přípravy a bez další zátěže
+                pro pedagogy nebo koordinátory.
+              </div>
             </div>
 
             <div className="splitVisual">
@@ -249,7 +327,7 @@ export default function Home() {
         </section>
 
         <section id="komu" className="section sectionAlt">
-          <div className="container twoCards">
+          <div className="container audienceGrid3">
             <div id="skola" className="benefitCard">
               <div className="eyebrow">Pro školu</div>
               <h2>Program pro moderní výuku</h2>
@@ -281,6 +359,23 @@ export default function Home() {
               </ul>
               <Link href="/ukazka" className="btn btnPrimary">
                 Domluvit ukázku pro obec
+              </Link>
+            </div>
+
+            <div id="seniori" className="benefitCard seniorCard">
+              <div className="eyebrow">Pro seniory</div>
+              <h2>Bezpečný a smysluplný program pro aktivní seniory</h2>
+              <p className="sectionLead">
+                Senior klub je součástí ARCHIMEDES Live. Nabízí pravidelná setkání,
+                inspiraci, prevenci izolace a jednoduchý způsob, jak být součástí dění.
+              </p>
+              <ul className="checkList">
+                {seniorBenefits.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              <Link href="/poptavka" className="btn btnSenior">
+                Chci informace pro seniory
               </Link>
             </div>
           </div>
@@ -326,17 +421,17 @@ export default function Home() {
 
               <div className="classroomTeaserText">
                 <div className="eyebrow">Rozšíření ekosystému</div>
-                <h2>ARCHIMEDES může být i reálným místem pro výuku a komunitu</h2>
+                <h2>Vedle živého programu může obec nebo škola získat i vlastní prostor ARCHIMEDES</h2>
                 <p className="sectionLead">
-                  Vedle živého programu nabízíme také venkovní učebnu ARCHIMEDES.
-                  Ve spojení s ARCHIMEDES Live vzniká prostor pro výuku, čtenářské
-                  kluby, setkávání komunity, seniorský program i kulturní akce.
+                  Venkovní učebna ARCHIMEDES rozšiřuje celý program do fyzického prostoru.
+                  Vzniká místo pro výuku, čtenářské kluby, seniorské aktivity, komunitní setkávání,
+                  workshopy i kulturní program během roku.
                 </p>
 
                 <div className="miniInfoRow">
                   <span className="infoPill">3 varianty učebny</span>
                   <span className="infoPill">celoroční využití</span>
-                  <span className="infoPill">výuka + komunita</span>
+                  <span className="infoPill">škola + obec + komunita</span>
                 </div>
 
                 <div className="inlineCtas">
@@ -439,11 +534,50 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="finalCtaButtons">
-              <Link href="/ukazka" className="btn btnWhite">
+            <div
+              style={{
+                display: "flex",
+                gap: "14px",
+                flexWrap: "wrap",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Link
+                href="/ukazka"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: "48px",
+                  padding: "0 18px",
+                  borderRadius: "14px",
+                  textDecoration: "none",
+                  fontSize: "16px",
+                  fontWeight: 700,
+                  color: "#111827",
+                  background: "#ffffff",
+                }}
+              >
                 Domluvit ukázku programu
               </Link>
-              <Link href="/program" className="btn btnOutlineLight">
+
+              <Link
+                href="/program"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: "48px",
+                  padding: "0 18px",
+                  borderRadius: "14px",
+                  textDecoration: "none",
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "#ffffff",
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.26)",
+                }}
+              >
                 Prohlédnout program
               </Link>
             </div>
@@ -537,7 +671,6 @@ export default function Home() {
           margin: 0 0 24px;
         }
 
-        .heroCtas,
         .inlineCtas,
         .financingCtas,
         .finalCtaButtons {
@@ -626,6 +759,7 @@ export default function Home() {
           gap: 10px;
           flex-wrap: wrap;
           margin-top: 18px;
+          align-items: center;
         }
 
         .anchorChip {
@@ -636,6 +770,14 @@ export default function Home() {
           text-decoration: none;
           font-size: 14px;
           border: 1px solid rgba(17, 24, 39, 0.08);
+        }
+
+        .anchorChipSenior {
+          background: linear-gradient(135deg, #10b981, #059669);
+          color: #ffffff;
+          font-weight: 700;
+          border: 1px solid rgba(16,185,129,0.9);
+          box-shadow: 0 10px 24px rgba(16,185,129,0.22);
         }
 
         .sectionIntro {
@@ -676,7 +818,8 @@ export default function Home() {
         .financingCard,
         .stepCard,
         .classroomTeaser,
-        .marqueeBlock {
+        .marqueeBlock,
+        .hourNoteCard {
           background: white;
           border: 1px solid rgba(17, 24, 39, 0.08);
           border-radius: 22px;
@@ -752,6 +895,19 @@ export default function Home() {
           font-weight: 700;
         }
 
+        .hourNoteCard {
+          padding: 20px 22px;
+          font-size: 17px;
+          line-height: 1.7;
+          color: #374151;
+          background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .hourNoteCard strong {
+          color: #111827;
+          margin-right: 6px;
+        }
+
         h3 {
           margin: 0 0 8px;
           font-size: 24px;
@@ -816,9 +972,9 @@ export default function Home() {
           margin-top: 12px;
         }
 
-        .twoCards {
+        .audienceGrid3 {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: repeat(3, 1fr);
           gap: 22px;
         }
 
@@ -827,6 +983,11 @@ export default function Home() {
           display: flex;
           flex-direction: column;
           gap: 18px;
+        }
+
+        .seniorCard {
+          background: linear-gradient(180deg, #ffffff 0%, #f3fbf8 100%);
+          border: 1px solid rgba(16,185,129,0.2);
         }
 
         .checkList {
@@ -1106,6 +1267,12 @@ export default function Home() {
           border: 1px solid rgba(17, 24, 39, 0.12);
         }
 
+        .btnSenior {
+          background: linear-gradient(135deg, #10b981, #059669);
+          color: white;
+          box-shadow: 0 10px 24px rgba(16,185,129,0.2);
+        }
+
         .btnWhite {
           background: white;
           color: #111827;
@@ -1115,20 +1282,6 @@ export default function Home() {
           background: transparent;
           color: white;
           border: 1px solid rgba(255, 255, 255, 0.26);
-        }
-
-        .btnHeroPrimary {
-          color: #ffffff;
-          background: linear-gradient(135deg, #10b981, #059669);
-          box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
-          border: 1px solid rgba(16, 185, 129, 0.9);
-        }
-
-        .btnHeroSecondary {
-          color: #ffffff;
-          background: rgba(255, 255, 255, 0.12);
-          border: 1px solid rgba(255, 255, 255, 0.22);
-          backdrop-filter: blur(6px);
         }
 
         @keyframes marqueeMove {
@@ -1160,7 +1313,7 @@ export default function Home() {
 
           .heroCard,
           .splitSection,
-          .twoCards,
+          .audienceGrid3,
           .classroomTeaser,
           .financingCard,
           .finalCta,
@@ -1193,7 +1346,8 @@ export default function Home() {
           .stepCard,
           .finalCta,
           .marqueeBlock,
-          .classroomTeaserText {
+          .classroomTeaserText,
+          .hourNoteCard {
             padding-left: 20px;
             padding-right: 20px;
           }
