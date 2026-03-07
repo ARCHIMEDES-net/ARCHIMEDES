@@ -13,9 +13,20 @@ export default function PortalHeader({ title = "" }) {
   const [isOrgAdmin, setIsOrgAdmin] = useState(false);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [loadingRole, setLoadingRole] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     loadRole();
+  }, []);
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 760);
+    }
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   async function loadRole() {
@@ -71,10 +82,13 @@ export default function PortalHeader({ title = "" }) {
     fontWeight: 800,
     display: "inline-flex",
     alignItems: "center",
+    justifyContent: "center",
     border: "1px solid #d1d5db",
     background: "#fff",
     fontSize: 13,
     lineHeight: 1,
+    minHeight: 40,
+    whiteSpace: "nowrap",
   };
 
   const activeStyle = {
@@ -82,6 +96,18 @@ export default function PortalHeader({ title = "" }) {
     background: "#0f172a",
     border: "1px solid #0f172a",
     color: "#fff",
+  };
+
+  const logoutButtonStyle = {
+    padding: "8px 12px",
+    borderRadius: 12,
+    border: "1px solid #e5e7eb",
+    background: "#fff",
+    cursor: "pointer",
+    fontWeight: 800,
+    fontSize: 13,
+    minHeight: 40,
+    whiteSpace: "nowrap",
   };
 
   const isActive = (key) => {
@@ -116,40 +142,85 @@ export default function PortalHeader({ title = "" }) {
           margin: "0 auto",
           padding: "10px 16px",
           display: "flex",
-          alignItems: "center",
-          gap: 12,
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobile ? "flex-start" : "center",
+          justifyContent: "space-between",
+          gap: isMobile ? 12 : 16,
         }}
       >
-        <Link
-          href="/portal"
+        <div
           style={{
-            display: "inline-flex",
+            display: "flex",
             alignItems: "center",
-            gap: 10,
-            textDecoration: "none",
+            minWidth: 0,
+            width: isMobile ? "100%" : "auto",
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={LOGO_SRC}
-            alt="ARCHIMEDES Live"
-            style={{ height: 34, width: "auto", display: "block" }}
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
+          <Link
+            href="/portal"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              textDecoration: "none",
+              flexShrink: 0,
+              minWidth: 0,
             }}
-          />
-          {title ? (
-            <span style={{ fontWeight: 900, color: "#0f172a" }}>{title}</span>
-          ) : null}
-        </Link>
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={LOGO_SRC}
+              alt="ARCHIMEDES Live"
+              style={{
+                display: "block",
+                height: "auto",
+                width: isMobile ? 150 : 170,
+                maxWidth: "100%",
+                objectFit: "contain",
+                flexShrink: 0,
+              }}
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+
+            {!isMobile && title ? (
+              <span
+                style={{
+                  fontWeight: 900,
+                  color: "#0f172a",
+                  lineHeight: 1.1,
+                }}
+              >
+                {title}
+              </span>
+            ) : null}
+          </Link>
+        </div>
+
+        {isMobile && title ? (
+          <div
+            style={{
+              width: "100%",
+              fontWeight: 900,
+              color: "#0f172a",
+              lineHeight: 1.15,
+              marginTop: -2,
+            }}
+          >
+            {title}
+          </div>
+        ) : null}
 
         <nav
           style={{
-            marginLeft: "auto",
             display: "flex",
+            flexWrap: "wrap",
             gap: 10,
             alignItems: "center",
-            flexWrap: "wrap",
+            justifyContent: isMobile ? "flex-start" : "flex-end",
+            width: isMobile ? "100%" : "auto",
+            marginLeft: isMobile ? 0 : "auto",
           }}
         >
           <Link href="/portal" style={navItem("portal")}>
@@ -176,18 +247,7 @@ export default function PortalHeader({ title = "" }) {
             </Link>
           ) : null}
 
-          <button
-            onClick={onLogout}
-            style={{
-              marginLeft: 6,
-              padding: "8px 12px",
-              borderRadius: 12,
-              border: "1px solid #e5e7eb",
-              background: "#fff",
-              cursor: "pointer",
-              fontWeight: 800,
-            }}
-          >
+          <button onClick={onLogout} style={logoutButtonStyle}>
             Odhlásit
           </button>
         </nav>
