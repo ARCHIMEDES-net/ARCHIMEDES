@@ -205,18 +205,22 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="anchorChips">
-            <a href="#duvera" className="anchorChip">Důvěra</a>
-            <a href="#hodina" className="anchorChip">Jak funguje hodina</a>
-            <a href="#komu" className="anchorChip">Pro koho</a>
-            <a href="#program" className="anchorChip">Program</a>
-            <a href="#ucebna" className="anchorChip">Učebna</a>
-            <a href="#sit" className="anchorChip">Síť učeben</a>
-            <a href="#financovani" className="anchorChip">Financování</a>
+          <div className="anchorArea">
+            <div className="anchorChips">
+              <a href="#duvera" className="anchorChip">Důvěra</a>
+              <a href="#hodina" className="anchorChip">Jak funguje hodina</a>
+              <a href="#komu" className="anchorChip">Pro koho</a>
+              <a href="#program" className="anchorChip">Program</a>
+              <a href="#ucebna" className="anchorChip">Učebna</a>
+              <a href="#sit" className="anchorChip">Síť učeben</a>
+              <a href="#financovani" className="anchorChip">Financování</a>
+            </div>
 
-            <Link href="/poptavka" className="anchorChip anchorChipSenior">
-              SENIOŘI – registrace / zájem
-            </Link>
+            <div className="seniorCtaRow">
+              <Link href="/poptavka" className="seniorCtaButton">
+                Senior klub – registrace / zájem
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -765,11 +769,14 @@ export default function Home() {
           backdrop-filter: blur(6px);
         }
 
+        .anchorArea {
+          margin-top: 18px;
+        }
+
         .anchorChips {
           display: flex;
           gap: 10px;
           flex-wrap: wrap;
-          margin-top: 18px;
           align-items: center;
         }
 
@@ -792,14 +799,32 @@ export default function Home() {
           box-shadow: 0 8px 20px rgba(17, 24, 39, 0.08);
         }
 
-        .anchorChipSenior {
+        .seniorCtaRow {
+          margin-top: 14px;
+          display: flex;
+          justify-content: flex-start;
+        }
+
+        .seniorCtaButton {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 13px 20px;
+          border-radius: 999px;
           background: linear-gradient(135deg, #10b981, #059669);
           color: #ffffff;
-          font-weight: 700;
-          border: 1px solid rgba(16,185,129,0.95);
-          box-shadow: 0 10px 24px rgba(16,185,129,0.24);
-          padding-left: 16px;
-          padding-right: 16px;
+          text-decoration: none;
+          font-size: 15px;
+          font-weight: 800;
+          border: 2px solid rgba(5, 150, 105, 0.95);
+          box-shadow: 0 12px 26px rgba(16, 185, 129, 0.28);
+          white-space: nowrap;
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .seniorCtaButton:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 14px 30px rgba(16, 185, 129, 0.34);
         }
 
         .sectionIntro {
@@ -1465,6 +1490,16 @@ export default function Home() {
 
           .finalCtaWrap {
             padding-bottom: 72px;
+          }
+
+          .seniorCtaRow {
+            justify-content: stretch;
+          }
+
+          .seniorCtaButton {
+            width: 100%;
+            white-space: normal;
+            text-align: center;
           }
         }
       `}</style>
