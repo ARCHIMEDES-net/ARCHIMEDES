@@ -52,6 +52,19 @@ export default function Login() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
+  async function getProfileMustSetPassword(userId) {
+    if (!userId) return null;
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("must_set_password")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.must_set_password ?? null;
+  }
+
   useEffect(() => {
     let mounted = true;
 
@@ -108,13 +121,27 @@ export default function Login() {
         if (!mounted) return;
 
         if (session?.user) {
-          if (inviteOrRecovery) {
+          const mustSetPassword = await getProfileMustSetPassword(session.user.id);
+
+          if (!mounted) return;
+
+          // Hlavní rozhodnutí: pokud profil říká, že má uživatel nastavit heslo,
+          // vždy zobrazíme set-password, bez ohledu na to, co zrovna zůstalo v URL.
+          if (mustSetPassword === true) {
             setMode("set-password");
             setMessage("Dokončete registraci nastavením svého hesla.");
-          } else {
-            router.replace("/portal");
             return;
           }
+
+          // Recovery flow bez must_set_password
+          if (inviteOrRecovery) {
+            setMode("set-password");
+            setMessage("Nastavte si nové heslo.");
+            return;
+          }
+
+          router.replace("/portal");
+          return;
         } else {
           setMode("login");
         }
@@ -142,18 +169,33 @@ export default function Login() {
       }
 
       if (session?.user) {
-        const { type, accessTokenInHash } = readAuthParams();
-        const inviteOrRecovery =
-          isInviteOrRecoveryType(type) || accessTokenInHash;
+        try {
+          const mustSetPassword = await getProfileMustSetPassword(session.user.id);
 
-        if (inviteOrRecovery) {
-          setMode("set-password");
-          setMessage("Dokončete registraci nastavením svého hesla.");
-          setCheckingSession(false);
-          return;
+          if (!mounted) return;
+
+          if (mustSetPassword === true) {
+            setMode("set-password");
+            setMessage("Dokončete registraci nastavením svého hesla.");
+            setCheckingSession(false);
+            return;
+          }
+
+          const { type, accessTokenInHash } = readAuthParams();
+          const inviteOrRecovery =
+            isInviteOrRecoveryType(type) || accessTokenInHash;
+
+          if (inviteOrRecovery) {
+            setMode("set-password");
+            setMessage("Nastavte si nové heslo.");
+            setCheckingSession(false);
+            return;
+          }
+
+          router.replace("/portal");
+        } catch (_e) {
+          router.replace("/login");
         }
-
-        router.replace("/portal");
       }
     });
 
