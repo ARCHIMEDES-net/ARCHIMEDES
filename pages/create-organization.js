@@ -20,12 +20,16 @@ export default function CreateOrganizationPage() {
   const [orgType, setOrgType] = useState("school");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [createdOrganizationName, setCreatedOrganizationName] = useState("");
+  const [createdJoinCode, setCreatedJoinCode] = useState("");
+  const [copyMessage, setCopyMessage] = useState("");
 
   async function handleCreate(e) {
     e.preventDefault();
     setError("");
-    setMessage("");
+    setCopyMessage("");
+    setCreatedOrganizationName("");
+    setCreatedJoinCode("");
     setLoading(true);
 
     try {
@@ -57,21 +61,28 @@ export default function CreateOrganizationPage() {
         throw new Error(result?.error || "Nepodařilo se vytvořit organizaci.");
       }
 
-      setMessage(
-        result?.joinCode
-          ? `Organizace byla vytvořena. Kód organizace: ${result.joinCode}`
-          : "Organizace byla vytvořena."
-      );
-
-      setTimeout(() => {
-        router.push("/portal/uzivatele");
-      }, 900);
+      setCreatedOrganizationName(result?.organizationName || organizationName);
+      setCreatedJoinCode(result?.joinCode || "");
     } catch (e) {
       setError(e.message || "Chyba při vytváření organizace.");
     } finally {
       setLoading(false);
     }
   }
+
+  async function handleCopyCode() {
+    try {
+      if (!createdJoinCode) return;
+      await navigator.clipboard.writeText(createdJoinCode);
+      setCopyMessage("Kód organizace byl zkopírován.");
+      setTimeout(() => setCopyMessage(""), 1800);
+    } catch (_e) {
+      setCopyMessage("Kód zkopírujte ručně.");
+      setTimeout(() => setCopyMessage(""), 1800);
+    }
+  }
+
+  const createdSuccessfully = !!createdJoinCode;
 
   return (
     <main
@@ -112,85 +123,171 @@ export default function CreateOrganizationPage() {
           </div>
         ) : null}
 
-        {message ? (
+        {createdSuccessfully ? (
           <div
             style={{
-              marginBottom: 16,
-              padding: 12,
-              borderRadius: 12,
+              marginBottom: 18,
+              padding: 18,
+              borderRadius: 16,
               background: "#eefaf0",
               color: "#166534",
               border: "1px solid #cfe8d3",
             }}
           >
-            {message}
-          </div>
-        ) : null}
-
-        <form onSubmit={handleCreate}>
-          <div style={{ display: "grid", gap: 16 }}>
-            <div>
-              <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                Název organizace
-              </label>
-              <input
-                type="text"
-                value={organizationName}
-                onChange={(e) => setOrganizationName(e.target.value)}
-                placeholder="Např. ZŠ Hodonín nebo Senior klub Křenov"
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.15)",
-                  background: "#fff",
-                }}
-              />
+            <div style={{ fontWeight: 800, marginBottom: 6 }}>
+              Organizace byla úspěšně vytvořena.
             </div>
 
-            <div>
-              <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                Typ organizace
-              </label>
-              <select
-                value={orgType}
-                onChange={(e) => setOrgType(e.target.value)}
+            {createdOrganizationName ? (
+              <div style={{ marginBottom: 10 }}>
+                Organizace: <strong>{createdOrganizationName}</strong>
+              </div>
+            ) : null}
+
+            <div style={{ fontSize: 14, color: "rgba(0,0,0,0.65)", marginBottom: 6 }}>
+              Kód organizace
+            </div>
+
+            <div
+              style={{
+                fontSize: 24,
+                fontWeight: 800,
+                letterSpacing: "0.05em",
+                fontFamily:
+                  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                marginBottom: 12,
+                color: "#111827",
+              }}
+            >
+              {createdJoinCode}
+            </div>
+
+            <div style={{ color: "rgba(0,0,0,0.68)", marginBottom: 14 }}>
+              Tento kód můžete poslat kolegům. Připojí se přes stránku <strong>/join</strong>.
+            </div>
+
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={handleCopyCode}
                 style={{
-                  width: "100%",
-                  padding: "12px 14px",
+                  padding: "11px 14px",
                   borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.15)",
+                  border: "1px solid rgba(0,0,0,0.12)",
                   background: "#fff",
+                  color: "#111827",
+                  fontWeight: 700,
+                  cursor: "pointer",
                 }}
               >
-                {ORG_TYPES.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+                Zkopírovat kód
+              </button>
 
-            <div style={{ paddingTop: 6 }}>
               <button
-                type="submit"
-                disabled={loading}
+                type="button"
+                onClick={() => router.push("/portal/uzivatele")}
                 style={{
-                  padding: "12px 18px",
+                  padding: "11px 14px",
                   borderRadius: 12,
                   border: "none",
                   background: "#111827",
                   color: "#fff",
                   fontWeight: 700,
-                  cursor: loading ? "default" : "pointer",
-                  opacity: loading ? 0.7 : 1,
+                  cursor: "pointer",
                 }}
               >
-                {loading ? "Vytvářím..." : "Vytvořit organizaci"}
+                Pokračovat do správy uživatelů
               </button>
             </div>
+
+            {copyMessage ? (
+              <div style={{ marginTop: 10, fontSize: 14, color: "#166534" }}>
+                {copyMessage}
+              </div>
+            ) : null}
           </div>
-        </form>
+        ) : null}
+
+        {!createdSuccessfully ? (
+          <form onSubmit={handleCreate}>
+            <div style={{ display: "grid", gap: 16 }}>
+              <div>
+                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                  Název organizace
+                </label>
+                <input
+                  type="text"
+                  value={organizationName}
+                  onChange={(e) => setOrganizationName(e.target.value)}
+                  placeholder="Např. ZŠ Hodonín nebo Senior klub Křenov"
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(0,0,0,0.15)",
+                    background: "#fff",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                  Typ organizace
+                </label>
+                <select
+                  value={orgType}
+                  onChange={(e) => setOrgType(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(0,0,0,0.15)",
+                    background: "#fff",
+                  }}
+                >
+                  {ORG_TYPES.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div
+                style={{
+                  padding: 14,
+                  borderRadius: 14,
+                  background: "#f8fafc",
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  color: "rgba(0,0,0,0.68)",
+                  fontSize: 14,
+                }}
+              >
+                Po vytvoření získáte vlastní <strong>kód organizace</strong>, který můžete poslat
+                kolegům. Vy se automaticky stanete <strong>administrátorem organizace</strong>.
+              </div>
+
+              <div style={{ paddingTop: 6 }}>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    padding: "12px 18px",
+                    borderRadius: 12,
+                    border: "none",
+                    background: "#111827",
+                    color: "#fff",
+                    fontWeight: 700,
+                    cursor: loading ? "default" : "pointer",
+                    opacity: loading ? 0.7 : 1,
+                  }}
+                >
+                  {loading ? "Vytvářím..." : "Vytvořit organizaci"}
+                </button>
+              </div>
+            </div>
+          </form>
+        ) : null}
 
         <div style={{ marginTop: 18, color: "rgba(0,0,0,0.6)" }}>
           Máte kód organizace? <Link href="/join">Připojte se ke stávající organizaci</Link>
