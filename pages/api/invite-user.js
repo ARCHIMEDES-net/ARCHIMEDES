@@ -5,14 +5,8 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-function getSiteUrl() {
-  const raw =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.SITE_URL ||
-    "https://www.archimedeslive.com";
-
-  return raw.replace(/\/+$/, "");
-}
+const SITE_URL = "https://www.archimedeslive.com";
+const REDIRECT_TO = `${SITE_URL}/login`;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -39,12 +33,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Chybí schoolId." });
     }
 
-    const siteUrl = getSiteUrl();
-    const redirectTo = `${siteUrl}/login`;
-
     const { data: invitedUser, error: inviteError } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(cleanEmail, {
-        redirectTo,
+        redirectTo: REDIRECT_TO,
         data: {
           full_name: cleanFullName,
           role: cleanRole,
