@@ -40,17 +40,15 @@ export default function PortalIndex() {
 
   useEffect(() => {
     (async () => {
-      // 1) admin práva
       try {
         const { data, error } = await supabase.rpc("is_admin");
         if (!error) setIsAdmin(!!data);
-      } catch (e) {
+      } catch (_e) {
         // no-op
       } finally {
         setCheckingAdmin(false);
       }
 
-      // 2) nejbližší vysílání (publikované + budoucí)
       try {
         setEventsErr("");
         const nowIso = new Date().toISOString();
@@ -78,103 +76,259 @@ export default function PortalIndex() {
       <PortalHeader title="Portál" />
 
       <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px 40px" }}>
-          {/* Horní intro řádek */}
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "baseline", marginBottom: 14 }}>
-            <div style={{ fontSize: 14, opacity: 0.75 }}>Přístup k obsahu pro registrované.</div>
+        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "24px 16px 48px" }}>
+          {/* HERO / intro */}
+          <section
+            style={{
+              background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
+              border: "1px solid rgba(15,23,42,0.08)",
+              borderRadius: 24,
+              padding: "22px 22px 20px",
+              boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
+              marginBottom: 18,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                gap: 16,
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ minWidth: 0, flex: "1 1 520px" }}>
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "6px 10px",
+                    borderRadius: 999,
+                    background: "rgba(15,23,42,0.06)",
+                    color: "#0f172a",
+                    fontSize: 12,
+                    fontWeight: 800,
+                    marginBottom: 12,
+                  }}
+                >
+                  ARCHIMEDES Live
+                </div>
 
-            <div style={{ marginLeft: "auto", fontSize: 12, opacity: 0.6 }}>
-              Tip: nejčastěji budeš používat <b>Kalendář</b>.
+                <h1
+                  style={{
+                    margin: 0,
+                    fontSize: 34,
+                    lineHeight: 1.08,
+                    color: "#0f172a",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  Vaše pracovní plocha
+                  <br />
+                  pro živý program
+                </h1>
+
+                <p
+                  style={{
+                    margin: "14px 0 0",
+                    fontSize: 16,
+                    lineHeight: 1.55,
+                    color: "rgba(15,23,42,0.72)",
+                    maxWidth: 760,
+                  }}
+                >
+                  Tady najdete nejrychlejší přístup do programu, archivu, inzerce i sítě učeben.
+                  Nejčastěji budete pracovat s kalendářem vysílání a navazujícími materiály.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(130px, 1fr))",
+                  gap: 10,
+                  flex: "0 1 320px",
+                  width: "100%",
+                  maxWidth: 320,
+                }}
+              >
+                <StatCard value="1" label="místo pro vstup do programu" />
+                <StatCard value="3" label="nejbližší vysílání v přehledu" />
+                <StatCard value="4" label="hlavní sekce rychlého přístupu" />
+                <StatCard value="24/7" label="přístup pro registrované" />
+              </div>
+            </div>
+          </section>
+
+          {/* top info row */}
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              alignItems: "center",
+              marginBottom: 18,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 14,
+                color: "rgba(15,23,42,0.72)",
+              }}
+            >
+              Přístup k obsahu pro registrované.
+            </div>
+
+            <div
+              style={{
+                marginLeft: "auto",
+                fontSize: 13,
+                color: "rgba(15,23,42,0.62)",
+              }}
+            >
+              Tip: nejčastěji budete používat <b>Kalendář</b>.
             </div>
           </div>
 
-          {/* DASHBOARD GRID */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1.15fr 0.85fr",
-              gap: 14,
-              alignItems: "start",
-            }}
-          >
-            {/* LEVÝ SLOUPEC */}
-            <div style={{ display: "grid", gap: 12 }}>
-              <div
+          {/* main grid */}
+          <div className="portal-main-grid">
+            {/* left */}
+            <div style={{ display: "grid", gap: 16 }}>
+              <section
                 style={{
                   background: "white",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  borderRadius: 18,
-                  padding: 14,
+                  border: "1px solid rgba(15,23,42,0.08)",
+                  borderRadius: 24,
+                  padding: 18,
+                  boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
                 }}
               >
-                <div style={{ fontWeight: 900, marginBottom: 10 }}>Rychlý přístup</div>
-
                 <div
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-                    gap: 10,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    marginBottom: 14,
                   }}
                 >
+                  <div>
+                    <div style={{ fontSize: 30, fontWeight: 900, lineHeight: 1.05, color: "#0f172a" }}>
+                      Rychlý přístup
+                    </div>
+                    <div style={{ marginTop: 6, fontSize: 14, color: "rgba(15,23,42,0.68)" }}>
+                      Nejrychlejší cesta k tomu, co budete používat nejčastěji.
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/portal/kalendar"
+                    style={{
+                      textDecoration: "none",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "12px 16px",
+                      borderRadius: 14,
+                      background: "#0f172a",
+                      color: "white",
+                      fontWeight: 900,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Otevřít kalendář
+                  </Link>
+                </div>
+
+                <div className="tiles-grid">
                   <Tile
                     href="/portal/kalendar"
                     icon="🗓️"
                     title="Kalendář"
-                    desc="Přehled vysílání jako TV program + detail."
+                    desc="Přehled vysílání, detail programu a nejsnazší vstup do živého obsahu."
                     cta="Otevřít"
                     highlight
                     note="Doporučeno"
+                    large
                   />
+
                   <Tile
                     href="/portal/archiv"
                     icon="📚"
                     title="Archiv"
-                    desc="Záznamy, materiály a pracovní listy (postupně doplníme)."
+                    desc="Záznamy, materiály a pracovní listy. Postupně zde bude přibývat další obsah."
                     cta="Otevřít"
                   />
+
                   <Tile
                     href="/portal/inzerce"
                     icon="📌"
                     title="Inzerce"
-                    desc="Nabídky, poptávky a partnerství mezi školami a obcemi."
+                    desc="Nabídky, poptávky a partnerství mezi školami, obcemi a dalšími členy sítě."
                     cta="Otevřít"
                   />
 
-                  {/* ✅ Veřejná sekce pro přihlášené: Síť učeben */}
                   <Tile
                     href="/portal/skoly"
                     icon="🏫"
                     title="Síť učeben"
-                    desc="Přehled škol s učebnou ARCHIMEDES + inspirace a kontakt."
+                    desc="Přehled škol s učebnou ARCHIMEDES, inspirace z praxe a kontakty."
                     cta="Otevřít"
                   />
                 </div>
-              </div>
+              </section>
 
-              {/* ADMIN jen pro správce */}
-              <div
+              <section
                 style={{
                   background: "white",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  borderRadius: 18,
-                  padding: 14,
+                  border: "1px solid rgba(15,23,42,0.08)",
+                  borderRadius: 24,
+                  padding: 18,
+                  boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
                 }}
               >
-                <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
-                  <div style={{ fontWeight: 900 }}>Administrace</div>
-                  <div style={{ fontSize: 12, opacity: 0.6 }}>vidí jen správci</div>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    marginBottom: 14,
+                  }}
+                >
+                  <div style={{ fontSize: 26, fontWeight: 900, lineHeight: 1.05, color: "#0f172a" }}>
+                    Administrace
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 800,
+                      padding: "4px 10px",
+                      borderRadius: 999,
+                      background: "rgba(15,23,42,0.06)",
+                      color: "rgba(15,23,42,0.72)",
+                    }}
+                  >
+                    vidí jen správci
+                  </div>
                 </div>
 
                 {checkingAdmin ? (
-                  <div style={{ padding: 12, opacity: 0.7 }}>Načítám práva…</div>
-                ) : isAdmin ? (
                   <div
                     style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-                      gap: 10,
+                      padding: 14,
+                      borderRadius: 16,
+                      border: "1px dashed rgba(15,23,42,0.18)",
+                      background: "rgba(15,23,42,0.02)",
+                      color: "rgba(15,23,42,0.70)",
                     }}
                   >
+                    Načítám práva…
+                  </div>
+                ) : isAdmin ? (
+                  <div className="tiles-grid admin-grid">
                     <Tile
                       href="/portal/admin-udalosti"
                       icon="🛠️"
@@ -186,66 +340,93 @@ export default function PortalIndex() {
                       href="/portal/admin-inzerce"
                       icon="✅"
                       title="Inzerce"
-                      desc="Moderace, TOP, ARCHIMEDES, mazání."
+                      desc="Moderace, TOP, ARCHIMEDES a správa příspěvků."
                       cta="Otevřít"
                     />
                     <Tile
                       href="/portal/admin-poptavky"
                       icon="📨"
                       title="Poptávky"
-                      desc="Přehled leadů + export CSV."
+                      desc="Přehled leadů a export do CSV."
                       cta="Otevřít"
                     />
-
-                    {/* ✅ ADMIN: správa databáze škol */}
                     <Tile
                       href="/portal/admin-skoly"
                       icon="🏫"
                       title="Školy"
-                      desc="Správa databáze učeben ARCHIMEDES (foto, kontakt, popis, publikace)."
+                      desc="Správa databáze učeben, fotek, kontaktů a publikace."
                       cta="Otevřít"
                     />
                   </div>
                 ) : (
                   <div
                     style={{
-                      padding: 12,
-                      borderRadius: 14,
-                      border: "1px dashed rgba(0,0,0,0.18)",
-                      opacity: 0.75,
-                      background: "rgba(0,0,0,0.02)",
+                      padding: 16,
+                      borderRadius: 16,
+                      border: "1px dashed rgba(15,23,42,0.18)",
+                      background: "rgba(15,23,42,0.02)",
+                      color: "rgba(15,23,42,0.72)",
+                      fontSize: 15,
                     }}
                   >
                     Administrace je dostupná jen správcům.
                   </div>
                 )}
-              </div>
+              </section>
             </div>
 
-            {/* PRAVÝ SLOUPEC */}
-            <div
+            {/* right */}
+            <aside
               style={{
                 background: "white",
-                border: "1px solid rgba(0,0,0,0.08)",
-                borderRadius: 18,
-                padding: 14,
+                border: "1px solid rgba(15,23,42,0.08)",
+                borderRadius: 24,
+                padding: 18,
+                boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
+                position: "relative",
               }}
             >
-              <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                <div style={{ fontWeight: 900 }}>Nejbližší vysílání</div>
-                <div style={{ marginLeft: "auto", fontSize: 12, opacity: 0.6 }}>max. 3</div>
-              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 12,
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 28, fontWeight: 900, lineHeight: 1.05, color: "#0f172a" }}>
+                    Nejbližší vysílání
+                  </div>
+                  <div style={{ marginTop: 6, fontSize: 14, color: "rgba(15,23,42,0.68)" }}>
+                    Přehled nejbližších publikovaných událostí.
+                  </div>
+                </div>
 
-              <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>Kompletní seznam je v Kalendáři.</div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 800,
+                    padding: "6px 10px",
+                    borderRadius: 999,
+                    background: "rgba(15,23,42,0.06)",
+                    color: "rgba(15,23,42,0.72)",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  max. 3
+                </div>
+              </div>
 
               {eventsErr ? (
                 <div
                   style={{
-                    marginTop: 10,
+                    marginTop: 14,
                     background: "#fff3f3",
                     border: "1px solid #ffd0d0",
-                    padding: 12,
-                    borderRadius: 12,
+                    padding: 14,
+                    borderRadius: 14,
                     color: "#8a1f1f",
                     whiteSpace: "pre-wrap",
                   }}
@@ -257,12 +438,13 @@ export default function PortalIndex() {
               {!eventsErr && !hasEvents ? (
                 <div
                   style={{
-                    marginTop: 12,
-                    padding: 12,
-                    borderRadius: 14,
-                    border: "1px solid rgba(0,0,0,0.08)",
-                    background: "rgba(0,0,0,0.02)",
-                    opacity: 0.75,
+                    marginTop: 14,
+                    padding: 16,
+                    borderRadius: 16,
+                    border: "1px dashed rgba(15,23,42,0.18)",
+                    background: "rgba(15,23,42,0.02)",
+                    color: "rgba(15,23,42,0.72)",
+                    fontSize: 15,
                   }}
                 >
                   Zatím nejsou naplánované publikované události.
@@ -270,7 +452,7 @@ export default function PortalIndex() {
               ) : null}
 
               {hasEvents ? (
-                <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+                <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
                   {nextEvents.map((e) => (
                     <EventRow key={e.id} e={e} />
                   ))}
@@ -281,28 +463,52 @@ export default function PortalIndex() {
                 href="/portal/kalendar"
                 style={{
                   display: "inline-flex",
-                  marginTop: 12,
+                  marginTop: 16,
                   textDecoration: "none",
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.18)",
-                  background: "#111827",
+                  padding: "14px 16px",
+                  borderRadius: 16,
+                  border: "1px solid rgba(15,23,42,0.18)",
+                  background: "#0f172a",
                   color: "white",
                   fontWeight: 900,
                   justifyContent: "center",
                   width: "100%",
+                  fontSize: 16,
                 }}
               >
                 Otevřít kalendář
               </Link>
-            </div>
+            </aside>
           </div>
 
-          {/* RESPONSIVE */}
           <style jsx>{`
-            @media (max-width: 980px) {
-              div[style*="grid-template-columns: 1.15fr 0.85fr"] {
-                grid-template-columns: 1fr !important;
+            .portal-main-grid {
+              display: grid;
+              grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.9fr);
+              gap: 18px;
+              align-items: start;
+            }
+
+            .tiles-grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 14px;
+            }
+
+            .admin-grid {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            @media (max-width: 1080px) {
+              .portal-main-grid {
+                grid-template-columns: 1fr;
+              }
+            }
+
+            @media (max-width: 760px) {
+              .tiles-grid,
+              .admin-grid {
+                grid-template-columns: 1fr;
               }
             }
           `}</style>
@@ -312,7 +518,42 @@ export default function PortalIndex() {
   );
 }
 
-function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
+function StatCard({ value, label }) {
+  return (
+    <div
+      style={{
+        background: "white",
+        border: "1px solid rgba(15,23,42,0.08)",
+        borderRadius: 18,
+        padding: "14px 14px 12px",
+        boxShadow: "0 8px 24px rgba(15,23,42,0.04)",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 24,
+          fontWeight: 900,
+          lineHeight: 1,
+          color: "#0f172a",
+        }}
+      >
+        {value}
+      </div>
+      <div
+        style={{
+          marginTop: 8,
+          fontSize: 12,
+          lineHeight: 1.4,
+          color: "rgba(15,23,42,0.68)",
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note, large = false }) {
   return (
     <Link
       href={href}
@@ -320,25 +561,29 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
         display: "block",
         textDecoration: "none",
         color: "#0f172a",
-        borderRadius: 16,
-        border: highlight ? "2px solid rgba(15,23,42,0.85)" : "1px solid rgba(0,0,0,0.10)",
-        background: "white",
-        padding: 14,
-        boxShadow: highlight ? "0 12px 30px rgba(0,0,0,0.08)" : "0 8px 24px rgba(0,0,0,0.04)",
+        borderRadius: 20,
+        border: highlight ? "2px solid rgba(15,23,42,0.92)" : "1px solid rgba(15,23,42,0.10)",
+        background: highlight ? "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)" : "white",
+        padding: large ? 18 : 16,
+        boxShadow: highlight
+          ? "0 16px 36px rgba(15,23,42,0.08)"
+          : "0 10px 28px rgba(15,23,42,0.05)",
+        minHeight: large ? 210 : 190,
+        transition: "transform 0.16s ease, box-shadow 0.16s ease",
       }}
     >
-      <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0 }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "center", minWidth: 0 }}>
         <div
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 12,
-            border: "1px solid rgba(0,0,0,0.10)",
+            width: large ? 52 : 46,
+            height: large ? 52 : 46,
+            borderRadius: 16,
+            border: "1px solid rgba(15,23,42,0.10)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(0,0,0,0.02)",
-            fontSize: 18,
+            background: "rgba(15,23,42,0.03)",
+            fontSize: large ? 24 : 22,
             flex: "0 0 auto",
           }}
         >
@@ -347,17 +592,25 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
 
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <div style={{ fontWeight: 900, lineHeight: 1.2 }}>{title}</div>
+            <div
+              style={{
+                fontWeight: 900,
+                lineHeight: 1.15,
+                fontSize: large ? 18 : 16,
+              }}
+            >
+              {title}
+            </div>
 
             {note ? (
               <span
                 style={{
                   fontSize: 11,
                   fontWeight: 900,
-                  padding: "2px 8px",
+                  padding: "4px 9px",
                   borderRadius: 999,
-                  background: highlight ? "#111827" : "rgba(0,0,0,0.06)",
-                  color: highlight ? "white" : "#111827",
+                  background: highlight ? "#0f172a" : "rgba(15,23,42,0.06)",
+                  color: highlight ? "white" : "#0f172a",
                   whiteSpace: "nowrap",
                 }}
               >
@@ -370,26 +623,40 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
 
       <div
         style={{
-          marginTop: 10,
+          marginTop: 16,
           display: "flex",
-          gap: 10,
-          alignItems: "center",
+          flexDirection: "column",
+          gap: 16,
+          height: "calc(100% - 64px)",
         }}
       >
         <div style={{ minWidth: 0, flex: 1 }}>
-          {desc ? <div style={{ fontSize: 12, opacity: 0.75, lineHeight: 1.35 }}>{desc}</div> : null}
+          {desc ? (
+            <div
+              style={{
+                fontSize: large ? 15 : 14,
+                opacity: 0.76,
+                lineHeight: 1.5,
+              }}
+            >
+              {desc}
+            </div>
+          ) : null}
         </div>
 
         <div
           style={{
-            padding: "9px 12px",
-            borderRadius: 12,
-            background: highlight ? "#111827" : "rgba(0,0,0,0.06)",
-            color: highlight ? "white" : "#111827",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            alignSelf: "flex-start",
+            padding: "11px 14px",
+            borderRadius: 14,
+            background: highlight ? "#0f172a" : "rgba(15,23,42,0.06)",
+            color: highlight ? "white" : "#0f172a",
             fontWeight: 900,
-            fontSize: 13,
+            fontSize: 14,
             whiteSpace: "nowrap",
-            flex: "0 0 auto",
           }}
         >
           {cta}
@@ -404,49 +671,70 @@ function EventRow({ e }) {
   const dt = formatDateTimeCS(e?.starts_at);
   const cat = e?.category ? String(e.category) : "";
   const desc = stripHtml(e?.full_description || "");
-  const short = desc ? (desc.length > 90 ? desc.slice(0, 90) + "…" : desc) : "";
+  const short = desc ? (desc.length > 115 ? desc.slice(0, 115) + "…" : desc) : "";
 
   return (
     <div
       style={{
-        border: "1px solid rgba(0,0,0,0.10)",
-        borderRadius: 16,
-        padding: 12,
+        border: "1px solid rgba(15,23,42,0.10)",
+        borderRadius: 18,
+        padding: 14,
         display: "flex",
-        alignItems: "center",
-        gap: 12,
+        alignItems: "flex-start",
+        gap: 14,
+        background: "linear-gradient(180deg, #ffffff 0%, #fbfcff 100%)",
       }}
     >
       <div style={{ minWidth: 0, flex: 1 }}>
         <div
           style={{
             fontWeight: 900,
-            fontSize: 14,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
+            fontSize: 16,
+            lineHeight: 1.25,
+            color: "#0f172a",
           }}
         >
           {title}
         </div>
-        <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>
+
+        <div
+          style={{
+            fontSize: 13,
+            color: "rgba(15,23,42,0.70)",
+            marginTop: 5,
+            lineHeight: 1.45,
+          }}
+        >
           {dt}
           {cat ? <span style={{ marginLeft: 8 }}>• {cat}</span> : null}
         </div>
-        {short ? <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75, lineHeight: 1.35 }}>{short}</div> : null}
+
+        {short ? (
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 13,
+              color: "rgba(15,23,42,0.72)",
+              lineHeight: 1.5,
+            }}
+          >
+            {short}
+          </div>
+        ) : null}
       </div>
 
       <Link
         href="/portal/kalendar"
         style={{
           textDecoration: "none",
-          padding: "10px 12px",
-          borderRadius: 12,
-          border: "1px solid rgba(0,0,0,0.18)",
-          background: "#111827",
+          padding: "11px 14px",
+          borderRadius: 14,
+          border: "1px solid rgba(15,23,42,0.18)",
+          background: "#0f172a",
           color: "white",
           fontWeight: 900,
           whiteSpace: "nowrap",
+          flex: "0 0 auto",
         }}
       >
         Otevřít
