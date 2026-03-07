@@ -10,6 +10,7 @@ export default function UzivateleSkolyPage() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [organizationId, setOrganizationId] = useState(null);
   const [organizationName, setOrganizationName] = useState("");
+  const [organizationJoinCode, setOrganizationJoinCode] = useState("");
 
   const [rows, setRows] = useState([]);
   const [error, setError] = useState("");
@@ -51,7 +52,7 @@ export default function UzivateleSkolyPage() {
 
       const { data: organization, error: organizationError } = await supabase
         .from("organizations")
-        .select("id, name")
+        .select("id, name, join_code")
         .eq("id", membership.organization_id)
         .maybeSingle();
 
@@ -60,6 +61,7 @@ export default function UzivateleSkolyPage() {
 
       setOrganizationId(organization.id);
       setOrganizationName(organization.name || "");
+      setOrganizationJoinCode(organization.join_code || "");
 
       const admin = membership.role_in_org === "organization_admin";
       setIsOrgAdmin(admin);
@@ -267,9 +269,42 @@ export default function UzivateleSkolyPage() {
             </p>
 
             {organizationName ? (
-              <p style={{ marginTop: 0, color: "rgba(0,0,0,0.55)" }}>
+              <p style={{ marginTop: 0, marginBottom: 8, color: "rgba(0,0,0,0.55)" }}>
                 Organizace: <strong>{organizationName}</strong>
               </p>
+            ) : null}
+
+            {organizationJoinCode ? (
+              <div
+                style={{
+                  marginTop: 0,
+                  marginBottom: 16,
+                  padding: 14,
+                  borderRadius: 14,
+                  background: "#f8fafc",
+                  border: "1px solid rgba(0,0,0,0.08)",
+                }}
+              >
+                <div style={{ fontSize: 14, color: "rgba(0,0,0,0.6)", marginBottom: 6 }}>
+                  Kód organizace
+                </div>
+                <div
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 700,
+                    letterSpacing: "0.04em",
+                    fontFamily:
+                      "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                    marginBottom: 8,
+                  }}
+                >
+                  {organizationJoinCode}
+                </div>
+                <div style={{ fontSize: 14, color: "rgba(0,0,0,0.62)" }}>
+                  Kolegové se mohou připojit sami přes stránku <strong>/join</strong> pomocí tohoto kódu,
+                  nebo jim můžete poslat pozvánku e-mailem níže.
+                </div>
+              </div>
             ) : null}
 
             {error ? (
