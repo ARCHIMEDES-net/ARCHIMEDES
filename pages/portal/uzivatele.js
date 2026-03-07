@@ -6,9 +6,10 @@ import { supabase } from "../../lib/supabaseClient";
 export default function UzivateleSkolyPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [isSchoolAdmin, setIsSchoolAdmin] = useState(false);
+  const [isOrgAdmin, setIsOrgAdmin] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [schoolId, setSchoolId] = useState(null);
+  const [organizationId, setOrganizationId] = useState(null);
+  const [organizationName, setOrganizationName] = useState("");
 
   const [rows, setRows] = useState([]);
   const [error, setError] = useState("");
@@ -16,7 +17,7 @@ export default function UzivateleSkolyPage() {
 
   const [newEmail, setNewEmail] = useState("");
   const [newFullName, setNewFullName] = useState("");
-  const [newRole, setNewRole] = useState("teacher");
+  const [newRole, setNewRole] = useState("member");
 
   useEffect(() => {
     loadAll();
@@ -38,19 +39,30 @@ export default function UzivateleSkolyPage() {
 
       setCurrentUserId(user.id);
 
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, role, school_id")
-        .eq("id", user.id)
+      const { data: membership, error: membershipError } = await supabase
+        .from("organization_members")
+        .select("organization_id, role_in_org, status")
+        .eq("user_id", user.id)
+        .eq("status", "active")
         .maybeSingle();
 
-      if (profileError) throw profileError;
-      if (!profile) throw new Error("Profil uživatele nebyl nalezen.");
-      if (!profile.school_id) throw new Error("Uživatel není přiřazen ke škole.");
+      if (membershipError) throw membershipError;
+      if (!membership) throw new Error("Uživatel není přiřazen k žádné organizaci.");
 
-      const admin = profile.role === "school_admin";
-      setIsSchoolAdmin(admin);
-      setSchoolId(profile.school_id);
+      const { data: organization, error: organizationError } = await supabase
+        .from("organizations")
+        .select("id, name")
+        .eq("id", membership.organization_id)
+        .maybeSingle();
+
+      if (organizationError) throw organizationError;
+      if (!organization) throw new Error("Organizace uživatele nebyla nalezena.");
+
+      setOrganizationId(organization.id);
+      setOrganizationName(organization.name || "");
+
+      const admin = membership.role_in_org === "organization_admin";
+      setIsOrgAdmin(admin);
 
       if (!admin) {
         setRows([]);
@@ -58,17 +70,40 @@ export default function UzivateleSkolyPage() {
         return;
       }
 
-      const { data: users, error: usersError } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, role, is_active, created_at")
-        .eq("school_id", profile.school_id)
+      const { data: members, error: membersError } = await supabase
+        .from("organization_members")
+        .select("user_id, role_in_org, status, created_at")
+        .eq("organization_id", organization.id)
         .order("created_at", { ascending: false });
 
-      if (usersError) throw usersError;
+      if (membersError) throw membersError;
 
-      setRows(users || []);
+      const userIds = (members || []).map((m) => m.user_id);
+
+      let profilesById = {};
+      if (userIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, full_name, email, is_active")
+          .in("id", userIds);
+
+        if (profilesError) throw profilesError;
+
+        profilesById = Object.fromEntries((profiles || []).map((p) => [p.id, p]));
+      }
+
+      const mergedRows = (members || []).map((m) => ({
+        id: m.user_id,
+        full_name: profilesById[m.user_id]?.full_name || "",
+        email: profilesById[m.user_id]?.email || "",
+        is_active: m.status === "active",
+        role_in_org: m.role_in_org,
+        created_at: m.created_at,
+      }));
+
+      setRows(mergedRows);
     } catch (e) {
-      setError(e.message || "Nepodařilo se načíst uživatele školy.");
+      setError(e.message || "Nepodařilo se načíst uživatele organizace.");
     } finally {
       setLoading(false);
     }
@@ -81,8 +116,14 @@ export default function UzivateleSkolyPage() {
     setMessage("");
 
     try {
-      if (!isSchoolAdmin) throw new Error("Tuto akci může provádět jen administrátor školy.");
-      if (!schoolId) throw new Error("Chybí school_id.");
+      if (!isOrgAdmin) {
+        throw new Error("Tuto akci může provádět jen administrátor organizace.");
+      }
+
+      if (!currentUserId) {
+        throw new Error("Chybí identita přihlášeného uživatele.");
+      }
+
       if (!newEmail.trim()) throw new Error("Vyplňte e-mail.");
       if (!newFullName.trim()) throw new Error("Vyplňte jméno a příjmení.");
 
@@ -95,7 +136,7 @@ export default function UzivateleSkolyPage() {
           email: newEmail.trim().toLowerCase(),
           fullName: newFullName.trim(),
           role: newRole,
-          schoolId,
+          inviterUserId: currentUserId,
         }),
       });
 
@@ -107,8 +148,8 @@ export default function UzivateleSkolyPage() {
 
       setNewEmail("");
       setNewFullName("");
-      setNewRole("teacher");
-      setMessage("Pozvánka byla odeslána a uživatel byl přidán.");
+      setNewRole("member");
+      setMessage("Pozvánka byla odeslána a uživatel byl přidán do organizace.");
 
       await loadAll();
     } catch (e) {
@@ -123,12 +164,22 @@ export default function UzivateleSkolyPage() {
     setMessage("");
 
     try {
-      const { error: updateError } = await supabase
+      const nextStatus = row.is_active ? "inactive" : "active";
+
+      const { error: updateMembershipError } = await supabase
+        .from("organization_members")
+        .update({ status: nextStatus })
+        .eq("organization_id", organizationId)
+        .eq("user_id", row.id);
+
+      if (updateMembershipError) throw updateMembershipError;
+
+      const { error: updateProfileError } = await supabase
         .from("profiles")
         .update({ is_active: !row.is_active })
         .eq("id", row.id);
 
-      if (updateError) throw updateError;
+      if (updateProfileError) throw updateProfileError;
 
       setMessage(
         row.is_active
@@ -143,8 +194,8 @@ export default function UzivateleSkolyPage() {
   }
 
   function roleLabel(value) {
-    if (value === "school_admin") return "Administrátor školy";
-    return "Uživatel školy";
+    if (value === "organization_admin") return "Administrátor organizace";
+    return "Člen organizace";
   }
 
   if (loading) {
@@ -153,14 +204,14 @@ export default function UzivateleSkolyPage() {
         <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
           <PortalHeader />
           <main style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 16px" }}>
-            Načítám uživatele školy…
+            Načítám uživatele organizace…
           </main>
         </div>
       </RequireAuth>
     );
   }
 
-  if (!isSchoolAdmin) {
+  if (!isOrgAdmin) {
     return (
       <RequireAuth>
         <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
@@ -175,10 +226,15 @@ export default function UzivateleSkolyPage() {
                 border: "1px solid rgba(0,0,0,0.08)",
               }}
             >
-              <h1 style={{ marginTop: 0 }}>Uživatelé školy</h1>
-              <p style={{ color: "rgba(0,0,0,0.7)", marginBottom: 0 }}>
-                Tato sekce je dostupná pouze administrátorovi školy.
+              <h1 style={{ marginTop: 0 }}>Uživatelé organizace</h1>
+              <p style={{ color: "rgba(0,0,0,0.7)", marginBottom: 8 }}>
+                Tato sekce je dostupná pouze administrátorovi organizace.
               </p>
+              {organizationName ? (
+                <p style={{ color: "rgba(0,0,0,0.55)", marginBottom: 0 }}>
+                  Vaše organizace: <strong>{organizationName}</strong>
+                </p>
+              ) : null}
             </div>
           </main>
         </div>
@@ -203,12 +259,18 @@ export default function UzivateleSkolyPage() {
             }}
           >
             <h1 style={{ marginTop: 0, marginBottom: 8, fontSize: 32 }}>
-              Uživatelé školy
+              Uživatelé organizace
             </h1>
 
             <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)" }}>
-              Zde může administrátor školy vytvářet a spravovat přístupy pro učitele.
+              Zde může administrátor organizace vytvářet a spravovat přístupy pro další uživatele.
             </p>
+
+            {organizationName ? (
+              <p style={{ marginTop: 0, color: "rgba(0,0,0,0.55)" }}>
+                Organizace: <strong>{organizationName}</strong>
+              </p>
+            ) : null}
 
             {error ? (
               <div
@@ -246,7 +308,7 @@ export default function UzivateleSkolyPage() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1.2fr 1.2fr 0.9fr auto",
+                  gridTemplateColumns: "1.2fr 1.2fr 1fr auto",
                   gap: 12,
                   alignItems: "end",
                 }}
@@ -304,8 +366,8 @@ export default function UzivateleSkolyPage() {
                       background: "#fff",
                     }}
                   >
-                    <option value="teacher">Uživatel školy</option>
-                    <option value="school_admin">Administrátor školy</option>
+                    <option value="member">Člen organizace</option>
+                    <option value="organization_admin">Administrátor organizace</option>
                   </select>
                 </div>
 
@@ -375,7 +437,7 @@ export default function UzivateleSkolyPage() {
                       ) : null}
                     </td>
                     <td style={{ padding: "12px 10px" }}>{row.email || "—"}</td>
-                    <td style={{ padding: "12px 10px" }}>{roleLabel(row.role)}</td>
+                    <td style={{ padding: "12px 10px" }}>{roleLabel(row.role_in_org)}</td>
                     <td style={{ padding: "12px 10px" }}>
                       {row.is_active ? "Aktivní" : "Neaktivní"}
                     </td>
