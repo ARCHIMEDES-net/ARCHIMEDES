@@ -21,7 +21,16 @@ export default function App({ Component, pageProps }) {
 
   const isPortal = pathname.startsWith("/portal");
   const isAuthPage = pathname === "/login";
-  const showPublicHeader = !isPortal && !isAuthPage;
+  const isWelcomePage = pathname === "/welcome";
+  const isCreateOrganizationPage = pathname === "/create-organization";
+  const isJoinPage = pathname === "/join";
+
+  const showPublicHeader =
+    !isPortal &&
+    !isAuthPage &&
+    !isWelcomePage &&
+    !isCreateOrganizationPage &&
+    !isJoinPage;
 
   const active = activeKeyFromPath(pathname);
 
