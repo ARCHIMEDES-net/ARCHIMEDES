@@ -8,20 +8,18 @@ const trustItems = [
 ];
 
 const marqueeRow1 = [
+  "Hodonín",
+  "Hovorany",
+  "Moravský Krumlov",
+  "Luže",
   "BVV Brno",
   "Ratíškovice",
   "Radvanice",
   "Dašice",
   "Mikulov",
-  "Hodonín",
-  "Hovorany",
-  "Moravský Krumlov",
-  "Luže",
 ];
 
 const marqueeRow2 = [
-  "Křenov",
-  "Frýdek-Místek",
   "Křenov",
   "Louny",
   "Čejč",
@@ -29,6 +27,7 @@ const marqueeRow2 = [
   "Chrudim",
   "Žabčice",
   "Bučovice",
+  "Frýdek-Místek",
 ];
 
 const schoolBenefits = [
@@ -111,14 +110,15 @@ export default function Home() {
               </h1>
 
               <p className="heroLead">
-                Živé vstupy s hosty, pracovní listy pro žáky a pravidelný obsah
-                pro školu, seniory i komunitní život obce.
-                <br />
-                <br />
                 <strong>
-                  ARCHIMEDES® spojuje stavbu a program do jednoho řešení
-                  pro školu i obec.
+                  Každý měsíc hotový vzdělávací program pro školu
+                  <br />
+                  a komunitu obce.
                 </strong>
+                <br />
+                <br />
+                ARCHIMEDES® spojuje stavbu a program do jednoho řešení
+                pro školu i obec.
               </p>
 
               <div
@@ -168,26 +168,11 @@ export default function Home() {
                 >
                   Prohlédnout program
                 </Link>
+              </div>
 
-                <Link
-                  href="/cenik"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "14px 22px",
-                    borderRadius: "14px",
-                    fontSize: "16px",
-                    fontWeight: 600,
-                    textDecoration: "none",
-                    color: "#ffffff",
-                    background: "rgba(255,255,255,0.12)",
-                    border: "1px solid rgba(255,255,255,0.22)",
-                    backdropFilter: "blur(6px)",
-                  }}
-                >
-                  Ceník a financování
-                </Link>
+              <div className="heroNote">
+                Ukázka trvá 20 minut a uvidíte konkrétní hodinu programu
+                i pracovní listy pro žáky.
               </div>
 
               <div className="microTrust">
@@ -237,11 +222,8 @@ export default function Home() {
               <a href="#financovani" className="anchorChip">
                 Financování
               </a>
-            </div>
-
-            <div className="seniorCtaRow">
-              <Link href="/poptavka" className="seniorCtaButton">
-                Senior klub – registrace / zájem
+              <Link href="/poptavka" className="anchorChip">
+                Senior klub
               </Link>
             </div>
           </div>
@@ -256,6 +238,10 @@ export default function Home() {
                 <br />
                 i komunity
               </h2>
+              <p className="sectionIntroText">
+                Program ARCHIMEDES Live už využívají školy a obce
+                v celé České republice.
+              </p>
             </div>
 
             <div className="trustGrid">
@@ -297,7 +283,11 @@ export default function Home() {
           <div className="container splitSection">
             <div className="splitText">
               <div className="eyebrow">Jak to funguje</div>
-              <h2>Jedna hodina. Jasná struktura. Reálný výstup.</h2>
+              <h2>Jak vypadá jedna hodina programu ARCHIMEDES Live</h2>
+              <p className="sectionLead sectionLeadTight">
+                Učitel dostane připravený program, který může okamžitě použít
+                ve výuce.
+              </p>
 
               <div className="stepList">
                 <div className="stepCard">
@@ -530,7 +520,12 @@ export default function Home() {
             <div className="financingCard">
               <div>
                 <div className="eyebrow">Prakticky</div>
-                <h2>Financování programu pro školy i obce</h2>
+                <h2>
+                  Financování programu
+                  <br />
+                  pro školy i obce
+                </h2>
+
                 <p className="sectionLead">
                   U škol je možné řešit financování i přes dotační tituly typu
                   OP JAK a související šablony. Připravíme popis programu,
@@ -720,7 +715,15 @@ export default function Home() {
           line-height: 1.75;
           color: rgba(255, 255, 255, 0.92);
           max-width: 650px;
-          margin: 0 0 24px;
+          margin: 0 0 8px;
+        }
+
+        .heroNote {
+          margin-top: 14px;
+          font-size: 15px;
+          color: rgba(255, 255, 255, 0.75);
+          max-width: 620px;
+          line-height: 1.6;
         }
 
         .inlineCtas,
@@ -836,36 +839,16 @@ export default function Home() {
           box-shadow: 0 8px 20px rgba(17, 24, 39, 0.08);
         }
 
-        .seniorCtaRow {
-          margin-top: 14px;
-          display: flex;
-          justify-content: flex-start;
-        }
-
-        .seniorCtaButton {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 13px 20px;
-          border-radius: 999px;
-          background: linear-gradient(135deg, #10b981, #059669);
-          color: #ffffff;
-          text-decoration: none;
-          font-size: 15px;
-          font-weight: 800;
-          border: 2px solid rgba(5, 150, 105, 0.95);
-          box-shadow: 0 12px 26px rgba(16, 185, 129, 0.28);
-          white-space: nowrap;
-          transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        .seniorCtaButton:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 14px 30px rgba(16, 185, 129, 0.34);
-        }
-
         .sectionIntro {
           margin-bottom: 30px;
+        }
+
+        .sectionIntroText {
+          font-size: 18px;
+          color: #4b5563;
+          margin-top: 14px;
+          max-width: 720px;
+          line-height: 1.7;
         }
 
         .eyebrow {
@@ -1017,6 +1000,12 @@ export default function Home() {
           font-size: 19px;
           line-height: 1.75;
           color: #4b5563;
+        }
+
+        .sectionLeadTight {
+          margin-top: -6px;
+          margin-bottom: 4px;
+          max-width: 760px;
         }
 
         .programLead {
@@ -1492,7 +1481,8 @@ export default function Home() {
           .heroLead,
           .sectionLead,
           p,
-          .videoPlaceholderText {
+          .videoPlaceholderText,
+          .sectionIntroText {
             font-size: 16px;
           }
 
@@ -1533,16 +1523,6 @@ export default function Home() {
 
           .finalCtaWrap {
             padding-bottom: 72px;
-          }
-
-          .seniorCtaRow {
-            justify-content: stretch;
-          }
-
-          .seniorCtaButton {
-            width: 100%;
-            white-space: normal;
-            text-align: center;
           }
         }
       `}</style>
