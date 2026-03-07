@@ -15,6 +15,7 @@ export default function UzivateleSkolyPage() {
   const [rows, setRows] = useState([]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [copyMessage, setCopyMessage] = useState("");
 
   const [newEmail, setNewEmail] = useState("");
   const [newFullName, setNewFullName] = useState("");
@@ -28,6 +29,7 @@ export default function UzivateleSkolyPage() {
     setLoading(true);
     setError("");
     setMessage("");
+    setCopyMessage("");
 
     try {
       const {
@@ -195,6 +197,18 @@ export default function UzivateleSkolyPage() {
     }
   }
 
+  async function handleCopyCode() {
+    try {
+      if (!organizationJoinCode) return;
+      await navigator.clipboard.writeText(organizationJoinCode);
+      setCopyMessage("Kód organizace byl zkopírován.");
+      setTimeout(() => setCopyMessage(""), 1800);
+    } catch (_e) {
+      setCopyMessage("Kód zkopírujte ručně.");
+      setTimeout(() => setCopyMessage(""), 1800);
+    }
+  }
+
   function roleLabel(value) {
     if (value === "organization_admin") return "Administrátor organizace";
     return "Člen organizace";
@@ -300,12 +314,52 @@ export default function UzivateleSkolyPage() {
                 >
                   {organizationJoinCode}
                 </div>
-                <div style={{ fontSize: 14, color: "rgba(0,0,0,0.62)" }}>
-                  Kolegové se mohou připojit sami přes stránku <strong>/join</strong> pomocí tohoto kódu,
-                  nebo jim můžete poslat pozvánku e-mailem níže.
+
+                <div style={{ fontSize: 14, color: "rgba(0,0,0,0.62)", marginBottom: 12 }}>
+                  Kolegové se mohou připojit sami přes stránku <strong>/join</strong> pomocí tohoto
+                  kódu, nebo jim můžete poslat pozvánku e-mailem níže.
                 </div>
+
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={handleCopyCode}
+                    style={{
+                      padding: "10px 14px",
+                      borderRadius: 12,
+                      border: "1px solid rgba(0,0,0,0.12)",
+                      background: "#fff",
+                      color: "#111827",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Zkopírovat kód
+                  </button>
+                </div>
+
+                {copyMessage ? (
+                  <div style={{ marginTop: 10, fontSize: 14, color: "#166534" }}>
+                    {copyMessage}
+                  </div>
+                ) : null}
               </div>
             ) : null}
+
+            <div
+              style={{
+                marginBottom: 16,
+                padding: 14,
+                borderRadius: 14,
+                background: "#f8fafc",
+                border: "1px solid rgba(0,0,0,0.08)",
+                color: "rgba(0,0,0,0.68)",
+                fontSize: 14,
+              }}
+            >
+              Doporučený postup: nejprve pošlete kolegům <strong>kód organizace</strong> a až když
+              budete potřebovat, využijte pozvánku e-mailem pro konkrétního uživatele.
+            </div>
 
             {error ? (
               <div
@@ -356,7 +410,7 @@ export default function UzivateleSkolyPage() {
                     type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="ucitel@skola.cz"
+                    placeholder="uzivatel@organizace.cz"
                     style={{
                       width: "100%",
                       padding: "12px 14px",
