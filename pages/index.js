@@ -97,76 +97,20 @@ export default function Home() {
               <h1>Každý měsíc nový program pro školu i komunitu obce</h1>
 
               <p className="heroLead">
-                Živé vstupy s hosty, pracovní listy pro žáky a program pro komunitu obce.
-                <br />
-                Každý měsíc nový obsah, který může škola i obec hned využít.
+                Živé vstupy s hosty, pracovní listy pro žáky a pravidelný obsah
+                pro školu, seniory i komunitní život obce.
               </p>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: "14px",
-                  flexWrap: "wrap",
-                  marginTop: "10px",
-                }}
-              >
-                <Link
-                  href="/ukazka"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "14px 22px",
-                    borderRadius: "14px",
-                    fontSize: "16px",
-                    fontWeight: 700,
-                    textDecoration: "none",
-                    color: "#ffffff",
-                    background: "linear-gradient(135deg,#10b981,#059669)",
-                    boxShadow: "0 10px 25px rgba(16,185,129,0.35)",
-                    border: "1px solid rgba(16,185,129,0.9)",
-                  }}
-                >
+              <div className="heroCtas">
+                <Link href="/ukazka" className="btn btnHeroPrimary">
                   Domluvit ukázku programu
                 </Link>
 
-                <Link
-                  href="/program"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "14px 22px",
-                    borderRadius: "14px",
-                    fontSize: "16px",
-                    fontWeight: 600,
-                    textDecoration: "none",
-                    color: "#ffffff",
-                    background: "rgba(255,255,255,0.12)",
-                    border: "1px solid rgba(255,255,255,0.22)",
-                    backdropFilter: "blur(6px)",
-                  }}
-                >
+                <Link href="/program" className="btn btnHeroSecondary">
                   Prohlédnout program
                 </Link>
 
-                <Link
-                  href="/cenik"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "14px 22px",
-                    borderRadius: "14px",
-                    fontSize: "16px",
-                    fontWeight: 600,
-                    textDecoration: "none",
-                    color: "#ffffff",
-                    background: "rgba(255,255,255,0.12)",
-                    border: "1px solid rgba(255,255,255,0.22)",
-                    backdropFilter: "blur(6px)",
-                  }}
-                >
+                <Link href="/cenik" className="btn btnHeroSecondary">
                   Ceník a financování
                 </Link>
               </div>
@@ -196,10 +140,9 @@ export default function Home() {
           <div className="anchorChips">
             <a href="#duvera" className="anchorChip">Důvěra</a>
             <a href="#hodina" className="anchorChip">Jak funguje hodina</a>
-            <a href="#ucebna" className="anchorChip">Učebna</a>
-            <a href="#skola" className="anchorChip">Pro školu</a>
-            <a href="#obec" className="anchorChip">Pro obec</a>
+            <a href="#komu" className="anchorChip">Pro koho</a>
             <a href="#program" className="anchorChip">Program</a>
+            <a href="#ucebna" className="anchorChip">Učebna</a>
             <a href="#sit" className="anchorChip">Síť učeben</a>
             <a href="#financovani" className="anchorChip">Financování</a>
           </div>
@@ -259,8 +202,8 @@ export default function Home() {
                   <div>
                     <h3>Živý vstup s hostem</h3>
                     <p>
-                      20–40 minut živého programu. Odborník z praxe, konkrétní téma,
-                      možnost zapojení a dotazů.
+                      20–40 minut živého programu. Odborník z praxe, konkrétní téma
+                      a možnost zapojení i dotazů.
                     </p>
                   </div>
                 </div>
@@ -280,7 +223,7 @@ export default function Home() {
                   <div>
                     <h3>Navazující aktivita</h3>
                     <p>
-                      Krátká práce ve třídě nebo v komunitě. Program nekončí videem,
+                      Krátká práce ve třídě nebo v komunitě. Program nekončí přenosem,
                       ale pokračuje v reálné činnosti.
                     </p>
                   </div>
@@ -290,10 +233,10 @@ export default function Home() {
 
             <div className="splitVisual">
               <div className="bigVisualCard">
-                <div className="bigVisualTop">Ukázka živé hodiny</div>
+                <div className="bigVisualTop">Jak vypadá jedna hodina</div>
                 <div className="bigVisualBody">
                   <div className="visualPill">20–40 min živě</div>
-                  <div className="visualPill">podklady pro výuku</div>
+                  <div className="visualPill">pracovní listy</div>
                   <div className="visualPill">navazující aktivita</div>
                 </div>
                 <div className="bigVisualBottom">
@@ -305,165 +248,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="ucebna" className="section">
-          <div className="container classroomSection">
-            <div className="sectionIntro">
-              <div className="eyebrow">Venkovní učebna ARCHIMEDES</div>
-              <h2>Budova, která propojuje přírodu, technologie a komunitní život</h2>
-              <p className="sectionLead classroomLead">
-                ARCHIMEDES není jen online program. Je to také certifikovaný systém venkovních učeben
-                o rozměru 6,5 × 10 m, navržený pro moderní školství, komunitní aktivity i celoroční využití.
-              </p>
-            </div>
-
-            <div className="classroomHeroGrid">
-              <div className="classroomPhotoMain">
-                <div className="visualLabel">Venkovní učebna ARCHIMEDES</div>
-              </div>
-
-              <div className="classroomInfoCard">
-                <h3>Prostor, který inspiruje</h3>
-                <p>
-                  Přeneste výuku ven, aniž byste slevili z komfortu a technologických možností klasické třídy.
-                  Učebna ARCHIMEDES vytváří prostředí pro výuku, workshopy, promítání, čtenářské kluby,
-                  setkávání komunity i program pro seniory.
-                </p>
-
-                <div className="miniInfoRow">
-                  <span className="infoPill">6,5 × 10 m</span>
-                  <span className="infoPill">chytré pódium</span>
-                  <span className="infoPill">výuka + komunita</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="classroomModes">
-              <div className="modeCard">
-                <div className="eyebrow">Variabilita interiéru</div>
-                <h3>Režim Auditorium</h3>
-                <p>
-                  Vysunutím schodu vznikne kaskádovité sezení pro přednášky, prezentace, promítání,
-                  čtení nebo debaty.
-                </p>
-              </div>
-
-              <div className="modeCard">
-                <div className="eyebrow">Variabilita interiéru</div>
-                <h3>Režim Volná plocha</h3>
-                <p>
-                  Zasunutím schodu pod pódium získáte otevřený prostor pro pohybové aktivity,
-                  tvoření, dílny nebo skupinovou práci.
-                </p>
-              </div>
-            </div>
-
-            <div className="sectionIntro classroomVariantsIntro">
-              <div className="eyebrow">Vyberte si svou variantu</div>
-              <h2>Tři modely podle míry otevřenosti a celoročního využití</h2>
-            </div>
-
-            <div className="variantGrid">
-              <div className="variantCard">
-                <div className="variantIcon">🌿</div>
-                <h3>ARCHIMEDES OPTIMAL</h3>
-                <p className="variantSubtitle">Svoboda v otevřenosti</p>
-                <p>
-                  Celodřevěná zateplená konstrukce s maximálním kontaktem s okolím. V teplých měsících
-                  lze učebnu téměř zcela otevřít a proměnit ji ve vzdušný altán.
-                </p>
-                <ul className="checkList compactList">
-                  <li>posuvné dveře a okenice do skrytých kapes</li>
-                  <li>ideální pro jaro až podzim</li>
-                  <li>silný kontakt s okolní přírodou</li>
-                </ul>
-              </div>
-
-              <div className="variantCard">
-                <div className="variantIcon">❄️</div>
-                <h3>ARCHIMEDES OPTIMAL+</h3>
-                <p className="variantSubtitle">Komfort za každého počasí</p>
-                <p>
-                  Zlatá střední cesta mezi otevřeností a tepelným komfortem. Vhodná pro plnohodnotné
-                  zimní využití při zachování přírodního vzhledu dřeva.
-                </p>
-                <ul className="checkList compactList">
-                  <li>výborné izolační vlastnosti</li>
-                  <li>PVC okna, HS portály nebo francouzská okna</li>
-                  <li>celoroční provoz s rozumnými náklady</li>
-                </ul>
-              </div>
-
-              <div className="variantCard">
-                <div className="variantIcon">🏢</div>
-                <h3>ARCHIMEDES PREMIUM</h3>
-                <p className="variantSubtitle">Standard trvalé stavby</p>
-                <p>
-                  Plně zateplená učebna pro intenzivní a každodenní využití po celý rok – bez kompromisů.
-                  Stabilní, odolný a energeticky efektivní prostor.
-                </p>
-                <ul className="checkList compactList">
-                  <li>sendvičová skladba stěn</li>
-                  <li>moderní fasáda, interiér se dřevem</li>
-                  <li>maximální odolnost a energetická efektivita</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="classroomFeatures">
-              <div className="featureCard">
-                <h3>Modul WC a technické zázemí</h3>
-                <p>
-                  Každou variantu lze rozšířit o sociální zázemí, bezbariérové WC a technický sklad.
-                  Modul vizuálně navazuje na hlavní stavbu.
-                </p>
-              </div>
-
-              <div className="featureCard">
-                <h3>Digitální srdce výuky</h3>
-                <p>
-                  Interaktivní panel, videobar, projektor, Wi-Fi konektivita, kvalitní osvětlení
-                  i technologie pro živé pozorování přírody.
-                </p>
-              </div>
-
-              <div className="featureCard">
-                <h3>Udržitelný ekosystém</h3>
-                <p>
-                  Zelená stěna, vyvýšené záhony, retenční nádrž, ptačí budky, mobiliář
-                  a další prvky, které učí už samotným fungováním prostoru.
-                </p>
-              </div>
-            </div>
-
-            <div className="classroomPlatformCard">
-              <div>
-                <div className="eyebrow">Více než budova</div>
-                <h2>ARCHIMEDES jako živá platforma</h2>
-                <p className="sectionLead">
-                  Učebna ARCHIMEDES není jen stavba na zahradě. Ve spojení s ARCHIMEDES Live
-                  se stává živým vzdělávacím a komunitním centrem pro školu i obec.
-                </p>
-              </div>
-
-              <div className="miniInfoRow">
-                <span className="infoPill">online vysílání pro školy</span>
-                <span className="infoPill">senior kluby a čtenářské kroužky</span>
-                <span className="infoPill">kariérní poradenství</span>
-                <span className="infoPill">metodická podpora pedagogů</span>
-              </div>
-
-              <div className="inlineCtas">
-                <Link href="/poptavka" className="btn btnPrimary">
-                  Mám zájem o učebnu
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="skola" className="section sectionAlt">
+        <section id="komu" className="section sectionAlt">
           <div className="container twoCards">
-            <div className="benefitCard">
+            <div id="skola" className="benefitCard">
               <div className="eyebrow">Pro školu</div>
               <h2>Program pro moderní výuku</h2>
               <p className="sectionLead">
@@ -504,6 +291,10 @@ export default function Home() {
             <div className="sectionIntro">
               <div className="eyebrow">Každý měsíc hotový obsah</div>
               <h2>Ukázka tematických bloků programu</h2>
+              <p className="sectionLead programLead">
+                Program je připraven tak, aby byl použitelný pro výuku i pro
+                komunitní život obce. Každý blok má jasný obsah a konkrétní využití.
+              </p>
             </div>
 
             <div className="themeGrid">
@@ -522,6 +313,41 @@ export default function Home() {
               <Link href="/ukazka" className="btn btnGhost">
                 Domluvit ukázku programu
               </Link>
+            </div>
+          </div>
+        </section>
+
+        <section id="ucebna" className="section">
+          <div className="container">
+            <div className="classroomTeaser">
+              <div className="classroomTeaserPhoto">
+                <div className="visualLabel">Venkovní učebna ARCHIMEDES</div>
+              </div>
+
+              <div className="classroomTeaserText">
+                <div className="eyebrow">Rozšíření ekosystému</div>
+                <h2>ARCHIMEDES může být i reálným místem pro výuku a komunitu</h2>
+                <p className="sectionLead">
+                  Vedle živého programu nabízíme také venkovní učebnu ARCHIMEDES.
+                  Ve spojení s ARCHIMEDES Live vzniká prostor pro výuku, čtenářské
+                  kluby, setkávání komunity, seniorský program i kulturní akce.
+                </p>
+
+                <div className="miniInfoRow">
+                  <span className="infoPill">3 varianty učebny</span>
+                  <span className="infoPill">celoroční využití</span>
+                  <span className="infoPill">výuka + komunita</span>
+                </div>
+
+                <div className="inlineCtas">
+                  <Link href="/ucebna" className="btn btnPrimary">
+                    Více o učebně
+                  </Link>
+                  <Link href="/poptavka" className="btn btnGhost">
+                    Mám zájem o učebnu
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -708,7 +534,7 @@ export default function Home() {
           line-height: 1.75;
           color: rgba(255, 255, 255, 0.92);
           max-width: 650px;
-          margin: 0 0 26px;
+          margin: 0 0 24px;
         }
 
         .heroCtas,
@@ -849,11 +675,8 @@ export default function Home() {
         .bigVisualCard,
         .financingCard,
         .stepCard,
-        .classroomInfoCard,
-        .modeCard,
-        .variantCard,
-        .featureCard,
-        .classroomPlatformCard {
+        .classroomTeaser,
+        .marqueeBlock {
           background: white;
           border: 1px solid rgba(17, 24, 39, 0.08);
           border-radius: 22px;
@@ -876,9 +699,6 @@ export default function Home() {
         }
 
         .marqueeBlock {
-          background: white;
-          border: 1px solid rgba(17, 24, 39, 0.08);
-          border-radius: 22px;
           padding: 22px;
         }
 
@@ -951,6 +771,11 @@ export default function Home() {
           color: #4b5563;
         }
 
+        .programLead {
+          max-width: 760px;
+          margin-top: 14px;
+        }
+
         .bigVisualCard {
           width: 100%;
           padding: 26px;
@@ -989,109 +814,6 @@ export default function Home() {
           line-height: 1.7;
           color: #374151;
           margin-top: 12px;
-        }
-
-        .classroomSection {
-          display: flex;
-          flex-direction: column;
-          gap: 28px;
-        }
-
-        .classroomLead {
-          max-width: 820px;
-        }
-
-        .classroomHeroGrid {
-          display: grid;
-          grid-template-columns: 1.15fr 0.85fr;
-          gap: 22px;
-          align-items: stretch;
-        }
-
-        .classroomPhotoMain {
-          min-height: 380px;
-          border-radius: 24px;
-          overflow: hidden;
-          position: relative;
-          background:
-            linear-gradient(rgba(0,0,0,0.16), rgba(0,0,0,0.26)),
-            url("/media/exterior-kids.webp"),
-            linear-gradient(135deg, #475569 0%, #111827 100%);
-          background-size: cover;
-          background-position: center;
-          border: 1px solid rgba(17, 24, 39, 0.08);
-        }
-
-        .classroomInfoCard {
-          padding: 26px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          gap: 16px;
-        }
-
-        .classroomModes {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 18px;
-        }
-
-        .modeCard {
-          padding: 24px;
-        }
-
-        .classroomVariantsIntro {
-          margin-top: 8px;
-        }
-
-        .variantGrid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 18px;
-        }
-
-        .variantCard {
-          padding: 24px;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .variantIcon {
-          font-size: 28px;
-          line-height: 1;
-        }
-
-        .variantSubtitle {
-          font-size: 15px;
-          font-weight: 600;
-          color: #6b7280;
-        }
-
-        .compactList {
-          gap: 10px;
-          margin-top: 4px;
-        }
-
-        .compactList li {
-          font-size: 15px;
-        }
-
-        .classroomFeatures {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 18px;
-        }
-
-        .featureCard {
-          padding: 24px;
-        }
-
-        .classroomPlatformCard {
-          padding: 28px;
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
         }
 
         .twoCards {
@@ -1156,6 +878,32 @@ export default function Home() {
           display: flex;
           gap: 10px;
           flex-wrap: wrap;
+        }
+
+        .classroomTeaser {
+          display: grid;
+          grid-template-columns: 0.95fr 1.05fr;
+          gap: 22px;
+          overflow: hidden;
+        }
+
+        .classroomTeaserPhoto {
+          min-height: 360px;
+          position: relative;
+          background:
+            linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.28)),
+            url("/media/exterior-kids.webp"),
+            linear-gradient(135deg, #475569 0%, #111827 100%);
+          background-size: cover;
+          background-position: center;
+        }
+
+        .classroomTeaserText {
+          padding: 28px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 18px;
         }
 
         .marqueeWrap {
@@ -1287,7 +1035,6 @@ export default function Home() {
           gap: 20px;
           align-items: center;
           background: white;
-          border: 1px solid rgba(17, 24, 39, 0.08);
           border-radius: 22px;
         }
 
@@ -1359,12 +1106,6 @@ export default function Home() {
           border: 1px solid rgba(17, 24, 39, 0.12);
         }
 
-        .btnGhostLight {
-          background: rgba(255, 255, 255, 0.1);
-          color: white;
-          border: 1px solid rgba(255, 255, 255, 0.16);
-        }
-
         .btnWhite {
           background: white;
           color: #111827;
@@ -1374,6 +1115,20 @@ export default function Home() {
           background: transparent;
           color: white;
           border: 1px solid rgba(255, 255, 255, 0.26);
+        }
+
+        .btnHeroPrimary {
+          color: #ffffff;
+          background: linear-gradient(135deg, #10b981, #059669);
+          box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
+          border: 1px solid rgba(16, 185, 129, 0.9);
+        }
+
+        .btnHeroSecondary {
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(255, 255, 255, 0.22);
+          backdrop-filter: blur(6px);
         }
 
         @keyframes marqueeMove {
@@ -1405,11 +1160,8 @@ export default function Home() {
 
           .heroCard,
           .splitSection,
-          .classroomHeroGrid,
-          .classroomModes,
-          .variantGrid,
-          .classroomFeatures,
           .twoCards,
+          .classroomTeaser,
           .financingCard,
           .finalCta,
           .networkSection {
@@ -1441,11 +1193,7 @@ export default function Home() {
           .stepCard,
           .finalCta,
           .marqueeBlock,
-          .classroomInfoCard,
-          .modeCard,
-          .variantCard,
-          .featureCard,
-          .classroomPlatformCard {
+          .classroomTeaserText {
             padding-left: 20px;
             padding-right: 20px;
           }
@@ -1477,7 +1225,7 @@ export default function Home() {
 
           .heroPhotoSmall,
           .networkPhoto,
-          .classroomPhotoMain {
+          .classroomTeaserPhoto {
             min-height: 220px;
           }
 
