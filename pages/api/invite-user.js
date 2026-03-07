@@ -5,6 +5,15 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+function getSiteUrl() {
+  const raw =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.SITE_URL ||
+    "https://www.archimedeslive.com";
+
+  return raw.replace(/\/+$/, "");
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -30,9 +39,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Chybí schoolId." });
     }
 
-    const redirectTo = `${
-      process.env.NEXT_PUBLIC_SITE_URL || "https://archimedes-5ai5.vercel.app"
-    }/login`;
+    const siteUrl = getSiteUrl();
+    const redirectTo = `${siteUrl}/login`;
 
     const { data: invitedUser, error: inviteError } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(cleanEmail, {
