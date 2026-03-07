@@ -10,7 +10,8 @@ export default function PortalHeader({ title = "" }) {
   const router = useRouter();
   const path = router?.asPath || "";
 
-  const [isSchoolAdmin, setIsSchoolAdmin] = useState(false);
+  const [isOrgAdmin, setIsOrgAdmin] = useState(false);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [loadingRole, setLoadingRole] = useState(true);
 
   useEffect(() => {
@@ -24,26 +25,39 @@ export default function PortalHeader({ title = "" }) {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        setIsSchoolAdmin(false);
+        setIsOrgAdmin(false);
+        setIsPlatformAdmin(false);
         setLoadingRole(false);
         return;
       }
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
+      const { data: membership, error: membershipError } = await supabase
+        .from("organization_members")
+        .select("role_in_org, status")
+        .eq("user_id", user.id)
+        .eq("status", "active")
         .maybeSingle();
 
-      if (error) {
-        setIsSchoolAdmin(false);
-        setLoadingRole(false);
-        return;
+      if (!membershipError && membership?.role_in_org === "organization_admin") {
+        setIsOrgAdmin(true);
+      } else {
+        setIsOrgAdmin(false);
       }
 
-      setIsSchoolAdmin(data?.role === "school_admin");
-    } catch (e) {
-      setIsSchoolAdmin(false);
+      const { data: platformAdminRow, error: platformAdminError } = await supabase
+        .from("platform_admins")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!platformAdminError && platformAdminRow?.user_id) {
+        setIsPlatformAdmin(true);
+      } else {
+        setIsPlatformAdmin(false);
+      }
+    } catch (_e) {
+      setIsOrgAdmin(false);
+      setIsPlatformAdmin(false);
     } finally {
       setLoadingRole(false);
     }
@@ -146,17 +160,17 @@ export default function PortalHeader({ title = "" }) {
             Program
           </Link>
 
+          {!loadingRole && isOrgAdmin ? (
+            <Link href="/portal/uzivatele" style={navItem("uzivatele")}>
+              Uživatelé
+            </Link>
+          ) : null}
+
           <Link href="/portal/muj-profil" style={navItem("profil")}>
             Můj profil
           </Link>
 
-          {!loadingRole && isSchoolAdmin ? (
-            <Link href="/portal/uzivatele" style={navItem("uzivatele")}>
-              Uživatelé školy
-            </Link>
-          ) : null}
-
-          {!loadingRole && isSchoolAdmin ? (
+          {!loadingRole && isPlatformAdmin ? (
             <Link href="/portal/admin-udalosti" style={navItem("admin")}>
               Admin
             </Link>
