@@ -1,8 +1,43 @@
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/router";
+import { supabase } from "../lib/supabaseClient";
 import RequireAuth from "../components/RequireAuth";
 import PortalHeader from "../components/PortalHeader";
 
 export default function WelcomePage() {
+  const router = useRouter();
+  const [savingIndividual, setSavingIndividual] = useState(false);
+  const [error, setError] = useState("");
+
+  async function continueAsIndividual() {
+    setSavingIndividual(true);
+    setError("");
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) throw new Error("Uživatel není přihlášen.");
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ user_type: "individual" })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      router.push("/portal");
+    } catch (e) {
+      setError(e.message || "Nepodařilo se pokračovat jako jednotlivec.");
+    } finally {
+      setSavingIndividual(false);
+    }
+  }
+
   return (
     <RequireAuth>
       <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
@@ -26,6 +61,21 @@ export default function WelcomePage() {
             <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)" }}>
               Vyberte si způsob, který vám nejlépe vyhovuje.
             </p>
+
+            {error ? (
+              <div
+                style={{
+                  marginTop: 16,
+                  padding: 12,
+                  borderRadius: 12,
+                  background: "#fff1f1",
+                  color: "#a40000",
+                  border: "1px solid #f2c9c9",
+                }}
+              >
+                {error}
+              </div>
+            ) : null}
           </div>
 
           <div
@@ -114,8 +164,10 @@ export default function WelcomePage() {
                 Používejte ARCHIMEDES Live bez organizace.
               </p>
 
-              <Link
-                href="/portal"
+              <button
+                type="button"
+                onClick={continueAsIndividual}
+                disabled={savingIndividual}
                 style={{
                   display: "inline-block",
                   marginTop: 10,
@@ -123,12 +175,14 @@ export default function WelcomePage() {
                   borderRadius: 12,
                   background: "#111827",
                   color: "#fff",
-                  textDecoration: "none",
                   fontWeight: 700,
+                  border: "none",
+                  cursor: savingIndividual ? "default" : "pointer",
+                  opacity: savingIndividual ? 0.7 : 1,
                 }}
               >
-                Pokračovat
-              </Link>
+                {savingIndividual ? "Pokračuji..." : "Pokračovat"}
+              </button>
             </div>
           </div>
         </main>
