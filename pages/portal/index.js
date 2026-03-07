@@ -1,5 +1,5 @@
 // pages/portal/index.js
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
@@ -38,6 +38,10 @@ export default function PortalIndex() {
   const [nextEvents, setNextEvents] = useState([]);
   const [eventsErr, setEventsErr] = useState("");
 
+  const [loadingProfileType, setLoadingProfileType] = useState(true);
+  const [dashboardType, setDashboardType] = useState("default");
+  const [organizationName, setOrganizationName] = useState("");
+
   useEffect(() => {
     (async () => {
       try {
@@ -66,10 +70,73 @@ export default function PortalIndex() {
       } catch (e) {
         setEventsErr(e?.message || "Nepodařilo se načíst nejbližší vysílání.");
       }
+
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) throw userError;
+        if (!user) {
+          setDashboardType("default");
+          setLoadingProfileType(false);
+          return;
+        }
+
+        const [{ data: profile, error: profileError }, { data: membership, error: membershipError }] =
+          await Promise.all([
+            supabase
+              .from("profiles")
+              .select("id, user_type")
+              .eq("id", user.id)
+              .maybeSingle(),
+
+            supabase
+              .from("organization_members")
+              .select("organization_id, status")
+              .eq("user_id", user.id)
+              .eq("status", "active")
+              .maybeSingle(),
+          ]);
+
+        if (profileError) throw profileError;
+        if (membershipError) throw membershipError;
+
+        if (membership?.organization_id) {
+          const { data: org, error: orgError } = await supabase
+            .from("organizations")
+            .select("id, name, type")
+            .eq("id", membership.organization_id)
+            .maybeSingle();
+
+          if (orgError) throw orgError;
+
+          setOrganizationName(org?.name || "");
+
+          if (org?.type === "school") {
+            setDashboardType("school");
+          } else if (org?.type === "municipality") {
+            setDashboardType("municipality");
+          } else {
+            setDashboardType("organization");
+          }
+        } else if (profile?.user_type === "individual") {
+          setDashboardType("individual");
+        } else {
+          setDashboardType("default");
+        }
+      } catch (_e) {
+        setDashboardType("default");
+      } finally {
+        setLoadingProfileType(false);
+      }
     })();
   }, []);
 
   const hasEvents = nextEvents && nextEvents.length > 0;
+
+  const dashboard = useMemo(() => getDashboardConfig(dashboardType, organizationName), [dashboardType, organizationName]);
 
   return (
     <RequireAuth>
@@ -77,7 +144,6 @@ export default function PortalIndex() {
 
       <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto", padding: "24px 16px 48px" }}>
-          {/* HERO / intro */}
           <section
             style={{
               background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
@@ -112,7 +178,7 @@ export default function PortalIndex() {
                     marginBottom: 12,
                   }}
                 >
-                  ARCHIMEDES Live
+                  {dashboard.badge}
                 </div>
 
                 <h1
@@ -124,9 +190,9 @@ export default function PortalIndex() {
                     letterSpacing: "-0.02em",
                   }}
                 >
-                  Vaše pracovní plocha
+                  {dashboard.heroTitleLine1}
                   <br />
-                  pro živý program
+                  {dashboard.heroTitleLine2}
                 </h1>
 
                 <p
@@ -138,8 +204,7 @@ export default function PortalIndex() {
                     maxWidth: 760,
                   }}
                 >
-                  Tady najdete nejrychlejší přístup do programu, archivu, inzerce i sítě učeben.
-                  Nejčastěji budete pracovat s kalendářem vysílání a navazujícími materiály.
+                  {loadingProfileType ? "Načítám prostředí portálu…" : dashboard.heroText}
                 </p>
               </div>
 
@@ -153,15 +218,13 @@ export default function PortalIndex() {
                   maxWidth: 320,
                 }}
               >
-                <StatCard value="1" label="místo pro vstup do programu" />
-                <StatCard value="3" label="nejbližší vysílání v přehledu" />
-                <StatCard value="4" label="hlavní sekce rychlého přístupu" />
-                <StatCard value="24/7" label="přístup pro registrované" />
+                {dashboard.stats.map((item) => (
+                  <StatCard key={`${item.value}-${item.label}`} value={item.value} label={item.label} />
+                ))}
               </div>
             </div>
           </section>
 
-          {/* top info row */}
           <div
             style={{
               display: "flex",
@@ -187,13 +250,11 @@ export default function PortalIndex() {
                 color: "rgba(15,23,42,0.62)",
               }}
             >
-              Tip: nejčastěji budete používat <b>Kalendář</b>.
+              Tip: nejčastěji budete používat <b>{dashboard.tipBold}</b>.
             </div>
           </div>
 
-          {/* main grid */}
           <div className="portal-main-grid">
-            {/* left */}
             <div style={{ display: "grid", gap: 16 }}>
               <section
                 style={{
@@ -216,15 +277,15 @@ export default function PortalIndex() {
                 >
                   <div>
                     <div style={{ fontSize: 30, fontWeight: 900, lineHeight: 1.05, color: "#0f172a" }}>
-                      Rychlý přístup
+                      {dashboard.quickTitle}
                     </div>
                     <div style={{ marginTop: 6, fontSize: 14, color: "rgba(15,23,42,0.68)" }}>
-                      Nejrychlejší cesta k tomu, co budete používat nejčastěji.
+                      {dashboard.quickSubtitle}
                     </div>
                   </div>
 
                   <Link
-                    href="/portal/kalendar"
+                    href={dashboard.primaryCtaHref}
                     style={{
                       textDecoration: "none",
                       display: "inline-flex",
@@ -238,45 +299,24 @@ export default function PortalIndex() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    Otevřít kalendář
+                    {dashboard.primaryCtaLabel}
                   </Link>
                 </div>
 
                 <div className="tiles-grid">
-                  <Tile
-                    href="/portal/kalendar"
-                    icon="🗓️"
-                    title="Kalendář"
-                    desc="Přehled vysílání, detail programu a nejsnazší vstup do živého obsahu."
-                    cta="Otevřít"
-                    highlight
-                    note="Doporučeno"
-                    large
-                  />
-
-                  <Tile
-                    href="/portal/archiv"
-                    icon="📚"
-                    title="Archiv"
-                    desc="Záznamy, materiály a pracovní listy. Postupně zde bude přibývat další obsah."
-                    cta="Otevřít"
-                  />
-
-                  <Tile
-                    href="/portal/inzerce"
-                    icon="📌"
-                    title="Inzerce"
-                    desc="Nabídky, poptávky a partnerství mezi školami, obcemi a dalšími členy sítě."
-                    cta="Otevřít"
-                  />
-
-                  <Tile
-                    href="/portal/skoly"
-                    icon="🏫"
-                    title="Síť učeben"
-                    desc="Přehled škol s učebnou ARCHIMEDES, inspirace z praxe a kontakty."
-                    cta="Otevřít"
-                  />
+                  {dashboard.tiles.map((tile, idx) => (
+                    <Tile
+                      key={`${tile.href}-${tile.title}`}
+                      href={tile.href}
+                      icon={tile.icon}
+                      title={tile.title}
+                      desc={tile.desc}
+                      cta={tile.cta || "Otevřít"}
+                      highlight={!!tile.highlight}
+                      note={tile.note}
+                      large={idx === 0}
+                    />
+                  ))}
                 </div>
               </section>
 
@@ -375,7 +415,6 @@ export default function PortalIndex() {
               </section>
             </div>
 
-            {/* right */}
             <aside
               style={{
                 background: "white",
@@ -478,6 +517,30 @@ export default function PortalIndex() {
               >
                 Otevřít kalendář
               </Link>
+
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: 14,
+                  borderRadius: 16,
+                  background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
+                  border: "1px solid rgba(15,23,42,0.08)",
+                }}
+              >
+                <div style={{ fontWeight: 900, fontSize: 16, color: "#0f172a" }}>
+                  {dashboard.sideBoxTitle}
+                </div>
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontSize: 14,
+                    lineHeight: 1.5,
+                    color: "rgba(15,23,42,0.70)",
+                  }}
+                >
+                  {dashboard.sideBoxText}
+                </div>
+              </div>
             </aside>
           </div>
 
@@ -516,6 +579,232 @@ export default function PortalIndex() {
       </div>
     </RequireAuth>
   );
+}
+
+function getDashboardConfig(type, organizationName = "") {
+  const orgLabel = organizationName ? ` pro ${organizationName}` : "";
+
+  if (type === "school") {
+    return {
+      badge: "ARCHIMEDES Live • škola",
+      heroTitleLine1: "Vaše pracovní plocha",
+      heroTitleLine2: "pro školní program",
+      heroText:
+        `Tady najdete živý program pro výuku, přístup do archivu, pracovní materiály a inspiraci ze sítě učeben${orgLabel}.`,
+      tipBold: "Kalendář",
+      quickTitle: "Rychlý přístup pro školu",
+      quickSubtitle: "Nejrychlejší vstup do vysílání, záznamů a návazných materiálů.",
+      primaryCtaLabel: "Otevřít kalendář",
+      primaryCtaHref: "/portal/kalendar",
+      sideBoxTitle: "Doporučený další krok",
+      sideBoxText:
+        "Začněte kalendářem. Odtud se nejrychleji dostanete k živému programu a následně i k navazujícím materiálům.",
+      stats: [
+        { value: "1", label: "hlavní vstup do programu" },
+        { value: "3", label: "nejbližší vysílání v přehledu" },
+        { value: "4", label: "klíčové sekce pro školu" },
+        { value: "24/7", label: "přístup pro registrované" },
+      ],
+      tiles: [
+        {
+          href: "/portal/kalendar",
+          icon: "🗓️",
+          title: "Kalendář",
+          desc: "Přehled vysílání, detail programu a nejsnazší vstup do živého obsahu.",
+          cta: "Otevřít",
+          highlight: true,
+          note: "Doporučeno",
+        },
+        {
+          href: "/portal/archiv",
+          icon: "📚",
+          title: "Archiv",
+          desc: "Záznamy, materiály a pracovní listy. Postupně zde bude přibývat další obsah.",
+          cta: "Otevřít",
+        },
+        {
+          href: "/portal/skoly",
+          icon: "🏫",
+          title: "Síť učeben",
+          desc: "Přehled škol s učebnou ARCHIMEDES, inspirace z praxe a kontakty.",
+          cta: "Otevřít",
+        },
+        {
+          href: "/portal/inzerce",
+          icon: "📌",
+          title: "Inzerce",
+          desc: "Nabídky, poptávky a partnerství mezi školami, obcemi a dalšími členy sítě.",
+          cta: "Otevřít",
+        },
+      ],
+    };
+  }
+
+  if (type === "municipality") {
+    return {
+      badge: "ARCHIMEDES Live • obec",
+      heroTitleLine1: "Vaše pracovní plocha",
+      heroTitleLine2: "pro obec a komunitu",
+      heroText:
+        `Tady najdete živý program pro komunitu, přístup k vysílání, inspiraci ze sítě učeben i prostor pro spolupráci${orgLabel}.`,
+      tipBold: "Kalendář",
+      quickTitle: "Rychlý přístup pro obec",
+      quickSubtitle: "Nejrychlejší vstup do programu, komunitního obsahu a spolupráce.",
+      primaryCtaLabel: "Otevřít kalendář",
+      primaryCtaHref: "/portal/kalendar",
+      sideBoxTitle: "Doporučený další krok",
+      sideBoxText:
+        "Sledujte nejbližší vysílání a poté projděte síť učeben a inzerci. Právě tam často vznikají nové kontakty a inspirace.",
+      stats: [
+        { value: "1", label: "místo pro vstup do programu" },
+        { value: "3", label: "nejbližší vysílání v přehledu" },
+        { value: "4", label: "hlavní sekce pro obec" },
+        { value: "live", label: "program pro školu i komunitu" },
+      ],
+      tiles: [
+        {
+          href: "/portal/kalendar",
+          icon: "🗓️",
+          title: "Kalendář",
+          desc: "Přehled živého programu, detail událostí a nejsnazší vstup do vysílání.",
+          cta: "Otevřít",
+          highlight: true,
+          note: "Doporučeno",
+        },
+        {
+          href: "/portal/inzerce",
+          icon: "📌",
+          title: "Inzerce",
+          desc: "Nabídky, poptávky a partnerství mezi obcemi, školami a dalšími členy sítě.",
+          cta: "Otevřít",
+        },
+        {
+          href: "/portal/skoly",
+          icon: "🏫",
+          title: "Síť učeben",
+          desc: "Přehled realizací, inspirace z praxe a kontakty na zapojené školy a obce.",
+          cta: "Otevřít",
+        },
+        {
+          href: "/portal/archiv",
+          icon: "📚",
+          title: "Archiv",
+          desc: "Záznamy a materiály k programu, ke kterým se můžete kdykoliv vracet.",
+          cta: "Otevřít",
+        },
+      ],
+    };
+  }
+
+  if (type === "individual") {
+    return {
+      badge: "ARCHIMEDES Live • jednotlivec",
+      heroTitleLine1: "Vaše pracovní plocha",
+      heroTitleLine2: "pro osobní přístup",
+      heroText:
+        "Tady najdete živý program, záznamy, komunitní obsah a další sekce, které můžete využívat i bez organizace.",
+      tipBold: "Kalendář",
+      quickTitle: "Rychlý přístup",
+      quickSubtitle: "Nejrychlejší cesta k programu, záznamům a dalšímu obsahu.",
+      primaryCtaLabel: "Otevřít kalendář",
+      primaryCtaHref: "/portal/kalendar",
+      sideBoxTitle: "Doporučený další krok",
+      sideBoxText:
+        "Začněte kalendářem a poté projděte archiv. Pokud vás zaujme síť učeben nebo spolupráce, pokračujte do inzerce.",
+      stats: [
+        { value: "1", label: "místo pro vstup do programu" },
+        { value: "3", label: "nejbližší vysílání v přehledu" },
+        { value: "4", label: "hlavní sekce rychlého přístupu" },
+        { value: "24/7", label: "přístup pro registrované" },
+      ],
+      tiles: [
+        {
+          href: "/portal/kalendar",
+          icon: "🗓️",
+          title: "Kalendář",
+          desc: "Přehled vysílání, detail programu a nejsnazší vstup do živého obsahu.",
+          cta: "Otevřít",
+          highlight: true,
+          note: "Doporučeno",
+        },
+        {
+          href: "/portal/archiv",
+          icon: "📚",
+          title: "Archiv",
+          desc: "Záznamy, materiály a další obsah, ke kterému se můžete vracet.",
+          cta: "Otevřít",
+        },
+        {
+          href: "/portal/inzerce",
+          icon: "📌",
+          title: "Inzerce",
+          desc: "Nabídky, poptávky a partnerství mezi členy sítě.",
+          cta: "Otevřít",
+        },
+        {
+          href: "/portal/skoly",
+          icon: "🏫",
+          title: "Síť učeben",
+          desc: "Přehled škol s učebnou ARCHIMEDES, inspirace z praxe a kontakty.",
+          cta: "Otevřít",
+        },
+      ],
+    };
+  }
+
+  return {
+    badge: "ARCHIMEDES Live",
+    heroTitleLine1: "Vaše pracovní plocha",
+    heroTitleLine2: "pro živý program",
+    heroText:
+      "Tady najdete nejrychlejší přístup do programu, archivu, inzerce i sítě učeben. Nejčastěji budete pracovat s kalendářem vysílání a navazujícími materiály.",
+    tipBold: "Kalendář",
+    quickTitle: "Rychlý přístup",
+    quickSubtitle: "Nejrychlejší cesta k tomu, co budete používat nejčastěji.",
+    primaryCtaLabel: "Otevřít kalendář",
+    primaryCtaHref: "/portal/kalendar",
+    sideBoxTitle: "Doporučený další krok",
+    sideBoxText:
+      "Začněte kalendářem. Odtud se nejrychleji dostanete k živému programu a následně i k dalším sekcím portálu.",
+    stats: [
+      { value: "1", label: "místo pro vstup do programu" },
+      { value: "3", label: "nejbližší vysílání v přehledu" },
+      { value: "4", label: "hlavní sekce rychlého přístupu" },
+      { value: "24/7", label: "přístup pro registrované" },
+    ],
+    tiles: [
+      {
+        href: "/portal/kalendar",
+        icon: "🗓️",
+        title: "Kalendář",
+        desc: "Přehled vysílání, detail programu a nejsnazší vstup do živého obsahu.",
+        cta: "Otevřít",
+        highlight: true,
+        note: "Doporučeno",
+      },
+      {
+        href: "/portal/archiv",
+        icon: "📚",
+        title: "Archiv",
+        desc: "Záznamy, materiály a pracovní listy. Postupně zde bude přibývat další obsah.",
+        cta: "Otevřít",
+      },
+      {
+        href: "/portal/inzerce",
+        icon: "📌",
+        title: "Inzerce",
+        desc: "Nabídky, poptávky a partnerství mezi školami, obcemi a dalšími členy sítě.",
+        cta: "Otevřít",
+      },
+      {
+        href: "/portal/skoly",
+        icon: "🏫",
+        title: "Síť učeben",
+        desc: "Přehled škol s učebnou ARCHIMEDES, inspirace z praxe a kontakty.",
+        cta: "Otevřít",
+      },
+    ],
+  };
 }
 
 function StatCard({ value, label }) {
