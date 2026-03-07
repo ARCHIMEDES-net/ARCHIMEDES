@@ -141,6 +141,8 @@ export default function MujProfilPage() {
       const profile = profileRes.data;
       if (profile) {
         setFullName(profile.full_name || "");
+      } else {
+        setFullName("");
       }
 
       const membership = membershipRes.data;
@@ -160,6 +162,7 @@ export default function MujProfilPage() {
           .maybeSingle();
 
         if (orgError) throw orgError;
+
         if (org) {
           setOrganizationName(org.name || "");
           setOrganizationJoinCode(org.join_code || "");
@@ -221,16 +224,18 @@ export default function MujProfilPage() {
       if (!userId) throw new Error("Chybí userId.");
       if (!fullName.trim()) throw new Error("Vyplňte jméno.");
 
-      const { error: profileError } = await supabase.from("profiles").upsert(
-        {
-          id: userId,
-          email,
-          full_name: fullName.trim(),
-          is_active: true,
-          must_set_password: false,
-        },
-        { onConflict: "id" }
-      );
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            id: userId,
+            email,
+            full_name: fullName.trim(),
+            is_active: true,
+            must_set_password: false,
+          },
+          { onConflict: "id" }
+        );
 
       if (profileError) throw profileError;
 
@@ -274,12 +279,13 @@ export default function MujProfilPage() {
         if (insertCatError) throw insertCatError;
       }
 
-      const { data: membershipAfterSave, error: membershipAfterSaveError } = await supabase
-        .from("organization_members")
-        .select("organization_id")
-        .eq("user_id", userId)
-        .eq("status", "active")
-        .maybeSingle();
+      const { data: membershipAfterSave, error: membershipAfterSaveError } =
+        await supabase
+          .from("organization_members")
+          .select("organization_id")
+          .eq("user_id", userId)
+          .eq("status", "active")
+          .maybeSingle();
 
       if (membershipAfterSaveError) throw membershipAfterSaveError;
 
