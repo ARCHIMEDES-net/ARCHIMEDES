@@ -147,6 +147,9 @@ export default function MujProfilPage() {
       if (membership) {
         setOrganizationId(membership.organization_id || null);
         setRoleInOrg(membership.role_in_org || "");
+      } else {
+        setOrganizationId(null);
+        setRoleInOrg("");
       }
 
       if (membership?.organization_id) {
@@ -160,7 +163,13 @@ export default function MujProfilPage() {
         if (org) {
           setOrganizationName(org.name || "");
           setOrganizationJoinCode(org.join_code || "");
+        } else {
+          setOrganizationName("");
+          setOrganizationJoinCode("");
         }
+      } else {
+        setOrganizationName("");
+        setOrganizationJoinCode("");
       }
 
       setSelectedAudiences((audPrefRes.data || []).map((x) => x.audience_slug));
@@ -198,6 +207,7 @@ export default function MujProfilPage() {
   function roleLabel(value) {
     if (value === "organization_admin") return "Administrátor organizace";
     if (value === "platform_admin") return "Správce platformy";
+    if (!value) return "Jednotlivec";
     return "Člen organizace";
   }
 
@@ -210,7 +220,6 @@ export default function MujProfilPage() {
     try {
       if (!userId) throw new Error("Chybí userId.");
       if (!fullName.trim()) throw new Error("Vyplňte jméno.");
-      if (!organizationId) throw new Error("Uživatel není přiřazen k organizaci.");
 
       const { error: profileError } = await supabase.from("profiles").upsert(
         {
@@ -265,10 +274,25 @@ export default function MujProfilPage() {
         if (insertCatError) throw insertCatError;
       }
 
-      setMessage("Profil byl uložen. Přesměrovávám do portálu...");
+      const { data: membershipAfterSave, error: membershipAfterSaveError } = await supabase
+        .from("organization_members")
+        .select("organization_id")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (membershipAfterSaveError) throw membershipAfterSaveError;
+
+      const hasOrganization = !!membershipAfterSave?.organization_id;
+
+      setMessage(
+        hasOrganization
+          ? "Profil byl uložen. Přesměrovávám do portálu..."
+          : "Profil byl uložen. Přesměrovávám na výběr dalšího kroku..."
+      );
 
       setTimeout(() => {
-        router.push("/portal");
+        router.push(hasOrganization ? "/portal" : "/welcome");
       }, 800);
     } catch (e) {
       setError(e.message || "Uložení se nepodařilo.");
@@ -390,7 +414,7 @@ export default function MujProfilPage() {
                   </label>
                   <input
                     type="text"
-                    value={organizationName || "—"}
+                    value={organizationName || "Nejste zatím přiřazen k organizaci"}
                     disabled
                     style={{
                       width: "100%",
@@ -416,7 +440,8 @@ export default function MujProfilPage() {
                       borderRadius: 12,
                       border: "1px solid rgba(0,0,0,0.15)",
                       background: "#f3f4f6",
-                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                      fontFamily:
+                        "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                       letterSpacing: "0.02em",
                     }}
                   />
