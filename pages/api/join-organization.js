@@ -34,7 +34,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Vyplňte kód organizace." });
     }
 
-    // 1) Najít organizaci podle join_code
     const { data: organization, error: orgError } = await supabaseAdmin
       .from("organizations")
       .select("id, name, status")
@@ -53,7 +52,6 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "Tato organizace není aktivní." });
     }
 
-    // 2) Vytvořit uživatele
     const { data: createdUser, error: createUserError } =
       await supabaseAdmin.auth.admin.createUser({
         email: cleanEmail,
@@ -74,7 +72,6 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Nepodařilo se vytvořit uživatele." });
     }
 
-    // 3) Profil
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .upsert(
@@ -89,10 +86,27 @@ export default async function handler(req, res) {
       );
 
     if (profileError) {
-      return res.status(400).json({ error: profileError.message });
+      return res
+        .status(400)
+        .json({ error: `Profil se nepodařilo uložit: ${profileError.message}` });
     }
 
-    // 4) Členství v organizaci
+    const { data: savedProfile, error: savedProfileError } = await supabaseAdmin
+      .from("profiles")
+      .select("id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (savedProfileError) {
+      return res
+        .status(400)
+        .json({ error: `Profil nelze ověřit: ${savedProfileError.message}` });
+    }
+
+    if (!savedProfile) {
+      return res.status(500).json({ error: "Profil nebyl po vytvoření nalezen." });
+    }
+
     const { error: membershipError } = await supabaseAdmin
       .from("organization_members")
       .upsert(
@@ -106,7 +120,9 @@ export default async function handler(req, res) {
       );
 
     if (membershipError) {
-      return res.status(400).json({ error: membershipError.message });
+      return res
+        .status(400)
+        .json({ error: `Členství se nepodařilo uložit: ${membershipError.message}` });
     }
 
     return res.status(200).json({
