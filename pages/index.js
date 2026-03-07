@@ -2,24 +2,26 @@ import Link from "next/link";
 
 const trustItems = [
   { value: "20+", label: "učeben ARCHIMEDES®" },
-  { value: "1 000+", label: "zapojených žáků v síti" },
+  { value: "1000+", label: "zapojených žáků v síti" },
   { value: "2×", label: "měsíčně Senior klub" },
   { value: "Obec 2030", label: "vítěz soutěže" },
 ];
 
 const marqueeRow1 = [
-  "Hodonín",
-  "Hovorany",
-  "Moravský Krumlov",
-  "Luže",
   "BVV Brno",
   "Ratíškovice",
   "Radvanice",
   "Dašice",
   "Mikulov",
+  "Hodonín",
+  "Hovorany",
+  "Moravský Krumlov",
+  "Luže",
 ];
 
 const marqueeRow2 = [
+  "Křenov",
+  "Frýdek-Místek",
   "Křenov",
   "Louny",
   "Čejč",
@@ -27,7 +29,6 @@ const marqueeRow2 = [
   "Chrudim",
   "Žabčice",
   "Bučovice",
-  "Frýdek-Místek",
 ];
 
 const schoolBenefits = [
@@ -112,6 +113,12 @@ export default function Home() {
               <p className="heroLead">
                 Živé vstupy s hosty, pracovní listy pro žáky a pravidelný obsah
                 pro školu, seniory i komunitní život obce.
+                <br />
+                <br />
+                <strong>
+                  ARCHIMEDES® spojuje stavbu a program do jednoho řešení
+                  pro školu i obec.
+                </strong>
               </p>
 
               <div
@@ -185,7 +192,7 @@ export default function Home() {
 
               <div className="microTrust">
                 <span>20+ učeben</span>
-                <span>1 000+ žáků v síti</span>
+                <span>1000+ žáků v síti</span>
                 <span>Vítěz soutěže Obec 2030</span>
               </div>
             </div>
@@ -194,10 +201,12 @@ export default function Home() {
               <div className="heroPhoto heroPhotoMain">
                 <div className="visualLabel">Ukázka živé hodiny</div>
               </div>
+
               <div className="heroPhotoGrid">
                 <div className="heroPhoto heroPhotoSmall">
                   <div className="visualLabel">Pracovní listy</div>
                 </div>
+
                 <div className="heroPhoto heroPhotoSmall alt">
                   <div className="visualLabel">Program pro obec</div>
                 </div>
@@ -207,13 +216,27 @@ export default function Home() {
 
           <div className="anchorArea">
             <div className="anchorChips">
-              <a href="#duvera" className="anchorChip">Důvěra</a>
-              <a href="#hodina" className="anchorChip">Jak funguje hodina</a>
-              <a href="#komu" className="anchorChip">Pro koho</a>
-              <a href="#program" className="anchorChip">Program</a>
-              <a href="#ucebna" className="anchorChip">Učebna</a>
-              <a href="#sit" className="anchorChip">Síť učeben</a>
-              <a href="#financovani" className="anchorChip">Financování</a>
+              <a href="#duvera" className="anchorChip">
+                Důvěra
+              </a>
+              <a href="#hodina" className="anchorChip">
+                Jak funguje hodina
+              </a>
+              <a href="#komu" className="anchorChip">
+                Pro koho
+              </a>
+              <a href="#program" className="anchorChip">
+                Program
+              </a>
+              <a href="#ucebna" className="anchorChip">
+                Učebna
+              </a>
+              <a href="#sit" className="anchorChip">
+                Síť učeben
+              </a>
+              <a href="#financovani" className="anchorChip">
+                Financování
+              </a>
             </div>
 
             <div className="seniorCtaRow">
@@ -228,7 +251,11 @@ export default function Home() {
           <div className="container">
             <div className="sectionIntro">
               <div className="eyebrow">Důkaz důvěry</div>
-              <h2>ARCHIMEDES Live už propojuje konkrétní školy, obce i komunity</h2>
+              <h2>
+                ARCHIMEDES Live už propojuje konkrétní školy, obce
+                <br />
+                i komunity
+              </h2>
             </div>
 
             <div className="trustGrid">
@@ -278,8 +305,8 @@ export default function Home() {
                   <div>
                     <h3>Živý vstup s hostem</h3>
                     <p>
-                      20–40 minut živého programu. Odborník z praxe, konkrétní téma
-                      a možnost zapojení i dotazů.
+                      20–40 minut živého programu. Odborník z praxe, konkrétní
+                      téma a možnost zapojení i dotazů.
                     </p>
                   </div>
                 </div>
@@ -289,7 +316,8 @@ export default function Home() {
                   <div>
                     <h3>Připravené podklady pro učitele a žáky</h3>
                     <p>
-                      Materiály k tématu, které mohou učitelé okamžitě použít ve výuce.
+                      Materiály k tématu, které mohou učitelé okamžitě použít ve
+                      výuce.
                     </p>
                   </div>
                 </div>
@@ -299,8 +327,8 @@ export default function Home() {
                   <div>
                     <h3>Navazující aktivita</h3>
                     <p>
-                      Krátká práce ve třídě nebo v komunitě. Program nekončí přenosem,
-                      ale pokračuje v reálné činnosti.
+                      Krátká práce ve třídě nebo v komunitě. Program nekončí
+                      přenosem, ale pokračuje v reálné činnosti.
                     </p>
                   </div>
                 </div>
@@ -308,8 +336,8 @@ export default function Home() {
 
               <div className="hourNoteCard">
                 <strong>Výsledek?</strong> Škola i obec dostanou hotový obsah,
-                který se dá okamžitě využít bez složité přípravy a bez další zátěže
-                pro pedagogy nebo koordinátory.
+                který se dá okamžitě využít bez složité přípravy a bez další
+                zátěže pro pedagogy nebo koordinátory.
               </div>
             </div>
 
@@ -356,7 +384,7 @@ export default function Home() {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
-              <Link href="/ukazka" className="btn btnPrimary">
+              <Link href="/ukazka" className="btn btnPrimaryDark">
                 Domluvit ukázku pro školu
               </Link>
             </div>
@@ -365,15 +393,15 @@ export default function Home() {
               <div className="eyebrow">Pro obec</div>
               <h2>Program pro celou komunitu obce</h2>
               <p className="sectionLead">
-                ARCHIMEDES Live není jen pro školu. Přináší také pravidelný obsah
-                pro seniory, komunitu a společné aktivity v obci.
+                ARCHIMEDES Live není jen pro školu. Přináší také pravidelný
+                obsah pro seniory, komunitu a společné aktivity v obci.
               </p>
               <ul className="checkList">
                 {municipalityBenefits.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
-              <Link href="/ukazka" className="btn btnPrimary">
+              <Link href="/ukazka" className="btn btnPrimaryDark">
                 Domluvit ukázku pro obec
               </Link>
             </div>
@@ -382,8 +410,9 @@ export default function Home() {
               <div className="eyebrow">Pro seniory</div>
               <h2>Bezpečný a smysluplný program pro aktivní seniory</h2>
               <p className="sectionLead">
-                Senior klub je součástí ARCHIMEDES Live. Nabízí pravidelná setkání,
-                inspiraci, prevenci izolace a jednoduchý způsob, jak být součástí dění.
+                Senior klub je součástí ARCHIMEDES Live. Nabízí pravidelná
+                setkání, inspiraci, prevenci izolace a jednoduchý způsob, jak
+                být součástí dění.
               </p>
               <ul className="checkList">
                 {seniorBenefits.map((item) => (
@@ -404,7 +433,8 @@ export default function Home() {
               <h2>Ukázka tematických bloků programu</h2>
               <p className="sectionLead programLead">
                 Program je připraven tak, aby byl použitelný pro výuku i pro
-                komunitní život obce. Každý blok má jasný obsah a konkrétní využití.
+                komunitní život obce. Každý blok má jasný obsah a konkrétní
+                využití.
               </p>
             </div>
 
@@ -418,7 +448,7 @@ export default function Home() {
             </div>
 
             <div className="inlineCtas centerCtas">
-              <Link href="/program" className="btn btnPrimary">
+              <Link href="/program" className="btn btnPrimaryDark">
                 Zobrazit celý program
               </Link>
               <Link href="/ukazka" className="btn btnGhost">
@@ -437,11 +467,15 @@ export default function Home() {
 
               <div className="classroomTeaserText">
                 <div className="eyebrow">Rozšíření ekosystému</div>
-                <h2>Celoroční multifunkční venkovní učebna a komunitní centrum ARCHIMEDES®</h2>
+                <h2>
+                  Celoroční multifunkční venkovní učebna a komunitní centrum
+                  ARCHIMEDES®
+                </h2>
                 <p className="sectionLead">
-                  Venkovní učebna ARCHIMEDES® rozšiřuje celý program do fyzického prostoru.
-                  Vzniká místo pro výuku, čtenářské kluby, seniorské aktivity, komunitní setkávání,
-                  workshopy i kulturní program během roku.
+                  Venkovní učebna ARCHIMEDES® rozšiřuje celý program do fyzického
+                  prostoru. Vzniká místo pro výuku, čtenářské kluby, seniorské
+                  aktivity, komunitní setkávání, workshopy i kulturní program
+                  během roku.
                 </p>
 
                 <div className="miniInfoRow">
@@ -451,7 +485,7 @@ export default function Home() {
                 </div>
 
                 <div className="inlineCtas">
-                  <Link href="/ucebna" className="btn btnPrimary">
+                  <Link href="/ucebna" className="btn btnPrimaryDark">
                     Více o učebně
                   </Link>
                   <Link href="/poptavka" className="btn btnGhost">
@@ -498,9 +532,10 @@ export default function Home() {
                 <div className="eyebrow">Prakticky</div>
                 <h2>Financování programu pro školy i obce</h2>
                 <p className="sectionLead">
-                  U škol je možné řešit financování i přes dotační tituly typu OP JAK
-                  a související šablony. Připravíme popis programu, přínosy a podklady,
-                  aby bylo řešení administrativně co nejjednodušší.
+                  U škol je možné řešit financování i přes dotační tituly typu
+                  OP JAK a související šablony. Připravíme popis programu,
+                  přínosy a podklady, aby bylo řešení administrativně co
+                  nejjednodušší.
                 </p>
 
                 <div className="miniInfoRow">
@@ -511,7 +546,7 @@ export default function Home() {
               </div>
 
               <div className="financingCtas">
-                <Link href="/cenik" className="btn btnPrimary">
+                <Link href="/cenik" className="btn btnPrimaryDark">
                   Ceník a financování
                 </Link>
                 <Link href="/ukazka" className="btn btnGhost">
@@ -606,7 +641,8 @@ export default function Home() {
           background: #f6f7fb;
           color: #111827;
           min-height: 100vh;
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+            sans-serif;
         }
 
         .container {
@@ -704,7 +740,11 @@ export default function Home() {
         }
 
         .heroVisual {
-          background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+          background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.04),
+            rgba(255, 255, 255, 0.02)
+          );
           padding: 22px;
           display: flex;
           flex-direction: column;
@@ -730,8 +770,7 @@ export default function Home() {
 
         .heroPhotoMain {
           min-height: 320px;
-          background:
-            linear-gradient(rgba(0,0,0,0.24), rgba(0,0,0,0.28)),
+          background: linear-gradient(rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.28)),
             url("/media/hero-classroom.jpg"),
             linear-gradient(135deg, #334155 0%, #0f172a 100%);
           background-size: cover;
@@ -739,8 +778,7 @@ export default function Home() {
         }
 
         .heroPhotoSmall {
-          background:
-            linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.22)),
+          background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.22)),
             url("/media/lesson-closeup.webp"),
             linear-gradient(135deg, #475569 0%, #111827 100%);
           background-size: cover;
@@ -748,8 +786,7 @@ export default function Home() {
         }
 
         .heroPhotoSmall.alt {
-          background:
-            linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.22)),
+          background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.22)),
             url("/media/community-seniors.jpg"),
             linear-gradient(135deg, #475569 0%, #111827 100%);
           background-size: cover;
@@ -1083,7 +1120,7 @@ export default function Home() {
 
         .seniorCard {
           background: linear-gradient(180deg, #ffffff 0%, #f3fbf8 100%);
-          border: 1px solid rgba(16,185,129,0.2);
+          border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
         .checkList {
@@ -1147,8 +1184,7 @@ export default function Home() {
         .classroomTeaserPhoto {
           min-height: 360px;
           position: relative;
-          background:
-            linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.28)),
+          background: linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.28)),
             url("/media/exterior-kids.webp"),
             linear-gradient(135deg, #475569 0%, #111827 100%);
           background-size: cover;
@@ -1188,12 +1224,20 @@ export default function Home() {
 
         .marqueeWrap:before {
           left: 0;
-          background: linear-gradient(to right, #ffffff 0%, rgba(255,255,255,0) 100%);
+          background: linear-gradient(
+            to right,
+            #ffffff 0%,
+            rgba(255, 255, 255, 0) 100%
+          );
         }
 
         .marqueeWrap:after {
           right: 0;
-          background: linear-gradient(to left, #ffffff 0%, rgba(255,255,255,0) 100%);
+          background: linear-gradient(
+            to left,
+            #ffffff 0%,
+            rgba(255, 255, 255, 0) 100%
+          );
         }
 
         .marqueeTrack {
@@ -1261,8 +1305,7 @@ export default function Home() {
         }
 
         .networkPhoto.left {
-          background:
-            linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.3)),
+          background: linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.3)),
             url("/media/exterior-kids.webp"),
             linear-gradient(135deg, #475569 0%, #111827 100%);
           background-size: cover;
@@ -1270,8 +1313,7 @@ export default function Home() {
         }
 
         .networkPhoto.right {
-          background:
-            linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.3)),
+          background: linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.3)),
             url("/media/online-session.jpg"),
             linear-gradient(135deg, #475569 0%, #111827 100%);
           background-size: cover;
@@ -1344,14 +1386,15 @@ export default function Home() {
           text-decoration: none;
           font-size: 16px;
           font-weight: 600;
-          transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+          transition: transform 0.15s ease, box-shadow 0.15s ease,
+            background 0.15s ease;
         }
 
         .btn:hover {
           transform: translateY(-1px);
         }
 
-        .btnPrimary {
+        .btnPrimaryDark {
           background: #111827;
           color: white;
           box-shadow: 0 10px 24px rgba(17, 24, 39, 0.16);
@@ -1366,7 +1409,7 @@ export default function Home() {
         .btnSenior {
           background: linear-gradient(135deg, #10b981, #059669);
           color: white;
-          box-shadow: 0 10px 24px rgba(16,185,129,0.2);
+          box-shadow: 0 10px 24px rgba(16, 185, 129, 0.2);
         }
 
         @keyframes marqueeMove {
