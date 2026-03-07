@@ -34,7 +34,6 @@ export default function RequireAuth({ children }) {
           return;
         }
 
-        // 1) nově pozvaný uživatel musí nejdřív nastavit heslo
         if (profile.must_set_password) {
           router.replace("/login");
           return;
@@ -67,15 +66,17 @@ export default function RequireAuth({ children }) {
         const hasCategory = Array.isArray(catRows) && catRows.length > 0;
 
         const profileComplete = hasFullName && hasAudience && hasCategory;
-        const isProfilePage = pathname === "/portal/muj-profil";
 
-        // 2) profil není dokončený -> přesměrovat na Můj profil
-        if (!profileComplete && !isProfilePage) {
+        const isProfilePage = pathname === "/portal/muj-profil";
+        const isUsersPage = pathname === "/portal/uzivatele";
+
+        // Umožníme vstup na profil a na správu uživatelů i tehdy,
+        // když ještě nejsou vyplněné preference.
+        if (!profileComplete && !isProfilePage && !isUsersPage) {
           router.replace("/portal/muj-profil");
           return;
         }
 
-        // 3) profil je dokončený -> portál je přístupný
         if (mounted) setChecking(false);
       } catch (_e) {
         router.replace("/login");
