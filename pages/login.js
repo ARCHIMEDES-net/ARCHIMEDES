@@ -64,22 +64,26 @@ export default function Login() {
   async function getProfileMustSetPassword(userId) {
     if (!userId) return null;
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("must_set_password")
-      .eq("id", userId)
-      .maybeSingle();
+    const { data, error } = await withTimeout(
+      supabase
+        .from("profiles")
+        .select("must_set_password")
+        .eq("id", userId)
+        .maybeSingle(),
+      10000,
+      "Načtení profilu"
+    );
 
     if (error) throw error;
     return data?.must_set_password ?? null;
   }
 
   useEffect(() => {
+    if (!router.isReady) return;
+
     let mounted = true;
 
     async function init() {
-      if (!router.isReady) return;
-
       setCheckingSession(true);
       setError("");
       setMessage("");
@@ -106,24 +110,35 @@ export default function Login() {
           isInviteOrRecoveryType(type) || accessTokenInHash;
 
         if (code) {
-          const { error: exchangeError } =
-            await supabase.auth.exchangeCodeForSession(code);
+          const { error: exchangeError } = await withTimeout(
+            supabase.auth.exchangeCodeForSession(code),
+            10000,
+            "Výměna kódu za relaci"
+          );
 
           if (exchangeError) throw exchangeError;
         }
 
         if (tokenHash && isInviteOrRecoveryType(type)) {
-          const { error: verifyError } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type,
-          });
+          const { error: verifyError } = await withTimeout(
+            supabase.auth.verifyOtp({
+              token_hash: tokenHash,
+              type,
+            }),
+            10000,
+            "Ověření odkazu"
+          );
 
           if (verifyError) throw verifyError;
         }
 
         const {
           data: { session },
-        } = await supabase.auth.getSession();
+        } = await withTimeout(
+          supabase.auth.getSession(),
+          10000,
+          "Načtení relace"
+        );
 
         if (!mounted) return;
 
@@ -146,9 +161,9 @@ export default function Login() {
 
           router.replace("/portal");
           return;
-        } else {
-          setMode("login");
         }
+
+        setMode("login");
       } catch (e) {
         if (!mounted) return;
         setError(e.message || "Nepodařilo se načíst přihlášení.");
@@ -197,9 +212,13 @@ export default function Login() {
           }
 
           router.replace("/portal");
-        } catch (_e) {
-          router.replace("/login");
+        } catch (e) {
+          setError(e.message || "Nepodařilo se ověřit stav přihlášení.");
+          setCheckingSession(false);
         }
+      } else {
+        setMode("login");
+        setCheckingSession(false);
       }
     });
 
@@ -207,7 +226,7 @@ export default function Login() {
       mounted = false;
       subscription?.unsubscribe();
     };
-  }, [router]);
+  }, [router.isReady]);
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -216,10 +235,14 @@ export default function Login() {
     setMessage("Přihlašuji...");
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+      const { error } = await withTimeout(
+        supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        }),
+        10000,
+        "Přihlášení"
+      );
 
       if (error) throw error;
 
@@ -263,7 +286,7 @@ export default function Login() {
         supabase.auth.updateUser({
           password: newPassword,
         }),
-        15000,
+        30000,
         "Aktualizace hesla"
       );
 
