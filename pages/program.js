@@ -1,4 +1,3 @@
-
 // pages/program.js
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -183,11 +182,53 @@ export default function ProgramPublic() {
                 <span>program pro komunitu</span>
               </div>
 
-              <div className="heroCtas">
-                <Link href="/ukazka" className="btn btnPrimary">
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  flexWrap: "wrap",
+                  marginTop: "24px",
+                }}
+              >
+                <Link
+                  href="/ukazka"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "48px",
+                    padding: "0 18px",
+                    borderRadius: "14px",
+                    textDecoration: "none",
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    color: "#ffffff",
+                    background: "linear-gradient(135deg,#10b981,#059669)",
+                    boxShadow: "0 10px 24px rgba(16,185,129,0.22)",
+                    border: "1px solid rgba(16,185,129,0.9)",
+                  }}
+                >
                   Domluvit ukázku programu
                 </Link>
-                <Link href="/cenik" className="btn btnGhostDark">
+
+                <Link
+                  href="/cenik"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "48px",
+                    padding: "0 18px",
+                    borderRadius: "14px",
+                    textDecoration: "none",
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    color: "#ffffff",
+                    background: "rgba(255,255,255,0.10)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    backdropFilter: "blur(6px)",
+                  }}
+                >
                   Ceník a financování
                 </Link>
               </div>
@@ -295,9 +336,7 @@ export default function ProgramPublic() {
               </div>
             </div>
 
-            {err ? (
-              <div className="errorBox">Chyba: {err}</div>
-            ) : null}
+            {err ? <div className="errorBox">Chyba: {err}</div> : null}
 
             {loading ? (
               <div className="stateBox">Načítám…</div>
@@ -340,11 +379,50 @@ export default function ProgramPublic() {
               </p>
             </div>
 
-            <div className="finalCtaButtons">
-              <Link href="/ukazka" className="btn btnWhite">
+            <div
+              style={{
+                display: "flex",
+                gap: "14px",
+                flexWrap: "wrap",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Link
+                href="/ukazka"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: "48px",
+                  padding: "0 18px",
+                  borderRadius: "14px",
+                  textDecoration: "none",
+                  fontSize: "16px",
+                  fontWeight: 700,
+                  color: "#111827",
+                  background: "#ffffff",
+                }}
+              >
                 Domluvit ukázku programu
               </Link>
-              <Link href="/portal" className="btn btnOutlineLight">
+
+              <Link
+                href="/portal"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: "48px",
+                  padding: "0 18px",
+                  borderRadius: "14px",
+                  textDecoration: "none",
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "#ffffff",
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.26)",
+                }}
+              >
                 Vstoupit do portálu
               </Link>
             </div>
@@ -460,15 +538,6 @@ export default function ProgramPublic() {
           font-size: 14px;
         }
 
-        .heroCtas,
-        .finalCtaButtons,
-        .inlineRow {
-          display: flex;
-          gap: 12px;
-          flex-wrap: wrap;
-          margin-top: 24px;
-        }
-
         .heroInfoCard {
           background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
           border-left: 1px solid rgba(255, 255, 255, 0.06);
@@ -549,9 +618,7 @@ export default function ProgramPublic() {
 
         .audienceCard,
         .blockCard,
-        .sectionBox,
         .eventSection,
-        .eventCard,
         .finalCta {
           background: white;
           border: 1px solid rgba(17, 24, 39, 0.08);
@@ -647,28 +714,30 @@ export default function ProgramPublic() {
 
         .eventSectionBody {
           display: grid;
+          gap: 0;
         }
 
         .eventCard {
           display: grid;
-          grid-template-columns: 160px 1fr;
+          grid-template-columns: 110px 1fr;
           gap: 14px;
-          padding: 16px;
-          border-radius: 0;
-          border: 0;
+          padding: 14px 16px;
           border-top: 1px solid rgba(0, 0, 0, 0.06);
+          align-items: start;
+          background: white;
         }
 
         .posterWrap {
-          width: 160px;
-          height: 102px;
-          border-radius: 16px;
+          width: 110px;
+          height: 74px;
+          border-radius: 14px;
           overflow: hidden;
           border: 1px solid rgba(0, 0, 0, 0.1);
           background: rgba(0, 0, 0, 0.03);
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-shrink: 0;
         }
 
         .posterPlaceholder {
@@ -695,7 +764,7 @@ export default function ProgramPublic() {
 
         .eventTitle {
           font-weight: 800;
-          font-size: 17px;
+          font-size: 16px;
         }
 
         .eventDate {
@@ -733,53 +802,6 @@ export default function ProgramPublic() {
           display: flex;
           gap: 10px;
           flex-wrap: wrap;
-        }
-
-        .btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 48px;
-          padding: 0 18px;
-          border-radius: 14px;
-          text-decoration: none;
-          font-size: 16px;
-          font-weight: 700;
-          transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-        }
-
-        .btn:hover {
-          transform: translateY(-1px);
-        }
-
-        .btnPrimary {
-          background: linear-gradient(135deg, #10b981, #059669);
-          color: white;
-          box-shadow: 0 10px 24px rgba(16, 185, 129, 0.22);
-          border: 1px solid rgba(16, 185, 129, 0.9);
-        }
-
-        .btnGhostDark {
-          background: rgba(255, 255, 255, 0.1);
-          color: white;
-          border: 1px solid rgba(255, 255, 255, 0.18);
-        }
-
-        .btnGhost {
-          background: white;
-          color: #111827;
-          border: 1px solid rgba(17, 24, 39, 0.12);
-        }
-
-        .btnWhite {
-          background: white;
-          color: #111827;
-        }
-
-        .btnOutlineLight {
-          background: transparent;
-          color: white;
-          border: 1px solid rgba(255, 255, 255, 0.26);
         }
 
         .actionLink {
@@ -887,7 +909,7 @@ export default function ProgramPublic() {
 
           .posterWrap {
             width: 100%;
-            height: 180px;
+            height: 170px;
           }
 
           .searchInput {
@@ -943,7 +965,6 @@ function EventCard({ e }) {
         <div className="eventTop">
           <div className="eventTitle">{e.title || "—"}</div>
           <div className="eventDate">{formatDateTimeCS(e.starts_at)}</div>
-
           {e.category ? <span className="chipSmall">{e.category}</span> : null}
         </div>
 
@@ -960,8 +981,8 @@ function EventCard({ e }) {
 
         {e.full_description ? (
           <div className="desc">
-            {String(e.full_description).slice(0, 220)}
-            {String(e.full_description).length > 220 ? "…" : ""}
+            {String(e.full_description).slice(0, 180)}
+            {String(e.full_description).length > 180 ? "…" : ""}
           </div>
         ) : null}
 
