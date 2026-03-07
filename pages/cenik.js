@@ -258,7 +258,7 @@ export default function Cenik() {
                     letterSpacing: "-0.02em",
                   }}
                 >
-                  2 800 Kč / měsíc dává smysl právě proto, že zahrnuje vše důležité
+                  Jedna licence pro školu, komunitu i seniory v obci
                 </h2>
 
                 <p
@@ -269,9 +269,10 @@ export default function Cenik() {
                     color: "rgba(255,255,255,0.82)",
                   }}
                 >
-                  Balíček <strong>Obec</strong> spojuje licenci pro školu, program
-                  pro komunitu a Senior klub. Obec tak získává kompletní živý program
-                  pro více cílových skupin, ne jen jednu samostatnou službu.
+                  Balíček <strong>Obec</strong> spojuje program pro školu,
+                  komunitu i seniory do jedné licence. Obec tak získává
+                  pravidelný živý program, který může využít více generací
+                  obyvatel.
                 </p>
               </div>
 
@@ -317,7 +318,7 @@ export default function Cenik() {
               badge="Doporučeno"
               price="2 800 Kč"
               period="/ měsíc"
-              subtitle="Kompletní program pro školu i komunitu obce."
+              subtitle="Jedna licence pro celou obec – školu, komunitu i seniory."
               items={[
                 "přístup k měsíčnímu programu",
                 "program pro školu, komunitu i seniory",
@@ -325,7 +326,7 @@ export default function Cenik() {
                 "archiv a vzdělávací materiály",
                 "jedna doporučená licence pro obec",
               ]}
-              ctaLabel="Chci licenci"
+              ctaLabel="Mám zájem o licenci"
               ctaHref="/poptavka"
               secondaryLabel="Program"
               secondaryHref="/program"
@@ -337,14 +338,14 @@ export default function Cenik() {
               badge="ZŠ / SŠ"
               price="2 000 Kč"
               period="/ měsíc"
-              subtitle="Pro školy a vzdělávací instituce."
+              subtitle="Program pro školy připravený tak, aby ho učitel mohl využít bez složité přípravy."
               items={[
                 "živé vstupy odborníků",
                 "projektové dny a tematické bloky",
                 "pracovní listy",
                 "archiv vysílání",
               ]}
-              ctaLabel="Chci licenci"
+              ctaLabel="Mám zájem o licenci"
               ctaHref="/poptavka"
               secondaryLabel="Program"
               secondaryHref="/program"
@@ -362,7 +363,7 @@ export default function Cenik() {
                 "wellbeing programy",
                 "komunitní setkání a inspirace",
               ]}
-              ctaLabel="Chci Komunitu"
+              ctaLabel="Mám zájem o program"
               ctaHref="/poptavka"
               secondaryLabel="Program"
               secondaryHref="/program"
@@ -380,7 +381,7 @@ export default function Cenik() {
                 "digitální vzdělávání",
                 "komunitní setkání",
               ]}
-              ctaLabel="Chci Senior klub"
+              ctaLabel="Mám zájem o Senior klub"
               ctaHref="/poptavka"
               secondaryLabel="Program"
               secondaryHref="/program"
@@ -414,9 +415,9 @@ export default function Cenik() {
                 color: "rgba(17,24,39,0.72)",
               }}
             >
-              Samostatné licence dávají smysl tam, kde chce organizace řešit jen jednu
-              cílovou skupinu. Doporučená varianta <strong>Obec</strong> je nastavena
-              pro starosty a vedení obcí, kteří chtějí získat jeden srozumitelný balíček
+              Samostatné licence dávají smysl tam, kde chce organizace řešit pouze jednu
+              cílovou skupinu. Doporučená varianta <strong>Obec</strong> je určena
+              pro starosty a vedení obcí, kteří chtějí jeden srozumitelný balíček
               pro školu, komunitu i seniory.
             </p>
           </div>
