@@ -61,22 +61,71 @@ export default function RequireAuth({ children }) {
           return;
         }
 
+        const { data: membership, error: membershipError } = await supabase
+          .from("organization_members")
+          .select("organization_id, role_in_org, status")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .maybeSingle();
+
+        if (membershipError) {
+          router.replace("/login");
+          return;
+        }
+
         const hasFullName = !!profile?.full_name?.trim();
         const hasAudience = Array.isArray(audRows) && audRows.length > 0;
         const hasCategory = Array.isArray(catRows) && catRows.length > 0;
 
         const profileComplete = hasFullName && hasAudience && hasCategory;
+        const hasOrganization = !!membership?.organization_id;
+        const isOrgAdmin = membership?.role_in_org === "organization_admin";
 
         const isProfilePage = pathname === "/portal/muj-profil";
         const isUsersPage = pathname === "/portal/uzivatele";
+        const isWelcomePage = pathname === "/welcome";
+        const isCreateOrganizationPage = pathname === "/create-organization";
+        const isJoinPage = pathname === "/join";
+        const isPortalPage =
+          pathname === "/portal" ||
+          pathname.startsWith("/portal/");
 
-        // Umožníme vstup na profil a na správu uživatelů i tehdy,
-        // když ještě nejsou vyplněné preference.
+        // 1) Profil není dokončený:
+        // pustíme uživatele jen na profil a na správu uživatelů,
+        // aby se admin organizace nezasekl.
         if (!profileComplete && !isProfilePage && !isUsersPage) {
           router.replace("/portal/muj-profil");
           return;
         }
 
+        // 2) Admin organizace může na správu uživatelů i tehdy,
+        // když ještě nemá úplně hotový profil.
+        if (isUsersPage && !isOrgAdmin) {
+          router.replace("/portal");
+          return;
+        }
+
+        // 3) Uživatel bez organizace:
+        // může být jednotlivec, nebo si může organizaci vytvořit / připojit.
+        // Proto ho nepřesměrováváme násilně z portálu pryč.
+        // Jen mu dovolíme přístup i na welcome/create-organization/join.
+        if (!hasOrganization) {
+          if (
+            isWelcomePage ||
+            isCreateOrganizationPage ||
+            isJoinPage ||
+            isProfilePage ||
+            isPortalPage
+          ) {
+            if (mounted) setChecking(false);
+            return;
+          }
+
+          if (mounted) setChecking(false);
+          return;
+        }
+
+        // 4) Uživatel s organizací jde normálně dál.
         if (mounted) setChecking(false);
       } catch (_e) {
         router.replace("/login");
