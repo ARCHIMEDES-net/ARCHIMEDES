@@ -47,12 +47,10 @@ function buildGeoQuery(form) {
   const parts = [];
   const a = String(form.address || "").trim();
   const c = String(form.city || "").trim();
-  const r = String(form.region || "").trim();
   const co = String(form.country || "").trim();
 
   if (a) parts.push(a);
   if (c) parts.push(c);
-  if (r) parts.push(r);
   if (co) parts.push(co);
 
   // fallback: když není adresa, použij aspoň název školy
@@ -81,7 +79,6 @@ function emptyForm() {
     website: "",
     address: "",
     city: "",
-    region: "",
     country: "Česká republika",
     school_type: "",
     contact_name: "",
@@ -121,7 +118,7 @@ export default function AdminSkoly() {
     const { data, error } = await supabase
       .from("schools")
       .select(
-        "id,name,website,address,city,region,country,school_type,contact_name,contact_phone,contact_email,archimedes_since,short_description,classroom_description,latitude,longitude,has_archimedes_classroom,is_published,photo_path,created_at"
+        "id,name,website,address,city,country,school_type,contact_name,contact_phone,contact_email,archimedes_since,short_description,classroom_description,latitude,longitude,has_archimedes_classroom,is_published,photo_path,created_at"
       )
       .order("created_at", { ascending: false });
 
@@ -139,7 +136,6 @@ export default function AdminSkoly() {
     load();
   }, []);
 
-  // když vybereš foto → lokální preview
   useEffect(() => {
     if (!photoFile) {
       setPhotoPreviewUrl("");
@@ -175,7 +171,6 @@ export default function AdminSkoly() {
       website: r.website || "",
       address: r.address || "",
       city: r.city || "",
-      region: r.region || "",
       country: r.country || "Česká republika",
       school_type: r.school_type || "",
       contact_name: r.contact_name || "",
@@ -230,7 +225,6 @@ export default function AdminSkoly() {
         website: String(form.website || "").trim() || null,
         address: String(form.address || "").trim() || null,
         city: String(form.city || "").trim() || null,
-        region: String(form.region || "").trim() || null,
         country: String(form.country || "").trim() || null,
         school_type: String(form.school_type || "").trim() || null,
 
@@ -252,7 +246,6 @@ export default function AdminSkoly() {
 
       let schoolId = editingId;
 
-      // 1) INSERT nebo UPDATE základních dat
       if (!editingId) {
         const { data, error } = await supabase.from("schools").insert([{ ...payload }]).select("id").single();
         if (error) throw new Error(error.message);
@@ -263,7 +256,6 @@ export default function AdminSkoly() {
         if (error) throw new Error(error.message);
       }
 
-      // 2) Upload fotky (pokud je vybraná)
       if (photoFile) {
         const photo_path = await uploadPhotoForSchool(schoolId);
 
@@ -406,7 +398,6 @@ export default function AdminSkoly() {
             </div>
           ) : null}
 
-          {/* FORM */}
           <div
             style={{
               marginTop: 14,
@@ -431,7 +422,6 @@ export default function AdminSkoly() {
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 14, marginTop: 12 }}>
-              {/* left */}
               <div style={{ display: "grid", gap: 12 }}>
                 <div>
                   <div style={labelStyle}>Název školy*</div>
@@ -482,22 +472,25 @@ export default function AdminSkoly() {
                   />
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
-                    <div style={labelStyle}>Město</div>
-                    <input value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} style={inputStyle} />
-                  </div>
-                  <div>
-                    <div style={labelStyle}>Kraj</div>
-                    <input value={form.region} onChange={(e) => setForm((p) => ({ ...p, region: e.target.value }))} style={inputStyle} />
+                    <div style={labelStyle}>Město / obec</div>
+                    <input
+                      value={form.city}
+                      onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
+                      style={inputStyle}
+                    />
                   </div>
                   <div>
                     <div style={labelStyle}>Země</div>
-                    <input value={form.country} onChange={(e) => setForm((p) => ({ ...p, country: e.target.value }))} style={inputStyle} />
+                    <input
+                      value={form.country}
+                      onChange={(e) => setForm((p) => ({ ...p, country: e.target.value }))}
+                      style={inputStyle}
+                    />
                   </div>
                 </div>
 
-                {/* GPS helper */}
                 <div
                   style={{
                     border: "1px solid rgba(0,0,0,0.08)",
@@ -547,7 +540,6 @@ export default function AdminSkoly() {
                   </div>
                 </div>
 
-                {/* GPS */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <div>
                     <div style={labelStyle}>Latitude (GPS)</div>
@@ -572,15 +564,27 @@ export default function AdminSkoly() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
                   <div>
                     <div style={labelStyle}>Kontaktní osoba</div>
-                    <input value={form.contact_name} onChange={(e) => setForm((p) => ({ ...p, contact_name: e.target.value }))} style={inputStyle} />
+                    <input
+                      value={form.contact_name}
+                      onChange={(e) => setForm((p) => ({ ...p, contact_name: e.target.value }))}
+                      style={inputStyle}
+                    />
                   </div>
                   <div>
                     <div style={labelStyle}>Telefon</div>
-                    <input value={form.contact_phone} onChange={(e) => setForm((p) => ({ ...p, contact_phone: e.target.value }))} style={inputStyle} />
+                    <input
+                      value={form.contact_phone}
+                      onChange={(e) => setForm((p) => ({ ...p, contact_phone: e.target.value }))}
+                      style={inputStyle}
+                    />
                   </div>
                   <div>
                     <div style={labelStyle}>Email</div>
-                    <input value={form.contact_email} onChange={(e) => setForm((p) => ({ ...p, contact_email: e.target.value }))} style={inputStyle} />
+                    <input
+                      value={form.contact_email}
+                      onChange={(e) => setForm((p) => ({ ...p, contact_email: e.target.value }))}
+                      style={inputStyle}
+                    />
                   </div>
                 </div>
 
@@ -635,7 +639,6 @@ export default function AdminSkoly() {
                 </div>
               </div>
 
-              {/* right */}
               <div style={{ display: "grid", gap: 12 }}>
                 <div>
                   <div style={{ fontWeight: 900, marginBottom: 8 }}>Fotka učebny</div>
@@ -705,7 +708,6 @@ export default function AdminSkoly() {
             </div>
           </div>
 
-          {/* LIST */}
           <div
             style={{
               marginTop: 14,
@@ -733,8 +735,8 @@ export default function AdminSkoly() {
                   <thead>
                     <tr style={{ textAlign: "left" }}>
                       <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Název</th>
-                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Město</th>
-                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Kraj</th>
+                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Město / obec</th>
+                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Země</th>
                       <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Publikace</th>
                       <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>GPS</th>
                       <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}></th>
@@ -747,11 +749,12 @@ export default function AdminSkoly() {
                         r.latitude !== undefined &&
                         r.longitude !== null &&
                         r.longitude !== undefined;
+
                       return (
                         <tr key={r.id} style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
                           <td style={{ padding: "10px 8px", fontWeight: 900 }}>{r.name || "—"}</td>
                           <td style={{ padding: "10px 8px", opacity: 0.85 }}>{r.city || "—"}</td>
-                          <td style={{ padding: "10px 8px", opacity: 0.85 }}>{r.region || "—"}</td>
+                          <td style={{ padding: "10px 8px", opacity: 0.85 }}>{r.country || "—"}</td>
                           <td style={{ padding: "10px 8px" }}>
                             {r.is_published ? (
                               <span
