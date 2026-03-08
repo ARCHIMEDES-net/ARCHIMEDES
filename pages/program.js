@@ -1,4 +1,3 @@
-// pages/program.js
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../lib/supabaseClient";
@@ -182,53 +181,12 @@ export default function ProgramPublic() {
                 <span>program pro komunitu</span>
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  flexWrap: "wrap",
-                  marginTop: "24px",
-                }}
-              >
-                <Link
-                  href="/ukazka"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: "48px",
-                    padding: "0 18px",
-                    borderRadius: "14px",
-                    textDecoration: "none",
-                    fontSize: "16px",
-                    fontWeight: 700,
-                    color: "#ffffff",
-                    background: "linear-gradient(135deg,#10b981,#059669)",
-                    boxShadow: "0 10px 24px rgba(16,185,129,0.22)",
-                    border: "1px solid rgba(16,185,129,0.9)",
-                  }}
-                >
+              <div className="heroButtons">
+                <Link href="/poptavka" className="btn btnPrimary">
                   Domluvit ukázku programu
                 </Link>
 
-                <Link
-                  href="/cenik"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: "48px",
-                    padding: "0 18px",
-                    borderRadius: "14px",
-                    textDecoration: "none",
-                    fontSize: "16px",
-                    fontWeight: 600,
-                    color: "#ffffff",
-                    background: "rgba(255,255,255,0.10)",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    backdropFilter: "blur(6px)",
-                  }}
-                >
+                <Link href="/cenik" className="btn btnGhostLight">
                   Ceník a financování
                 </Link>
               </div>
@@ -379,50 +337,12 @@ export default function ProgramPublic() {
               </p>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                gap: "14px",
-                flexWrap: "wrap",
-                justifyContent: "flex-end",
-              }}
-            >
-              <Link
-                href="/ukazka"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minHeight: "48px",
-                  padding: "0 18px",
-                  borderRadius: "14px",
-                  textDecoration: "none",
-                  fontSize: "16px",
-                  fontWeight: 700,
-                  color: "#111827",
-                  background: "#ffffff",
-                }}
-              >
+            <div className="finalButtons">
+              <Link href="/poptavka" className="btn btnWhite">
                 Domluvit ukázku programu
               </Link>
 
-              <Link
-                href="/portal"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minHeight: "48px",
-                  padding: "0 18px",
-                  borderRadius: "14px",
-                  textDecoration: "none",
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  color: "#ffffff",
-                  background: "transparent",
-                  border: "1px solid rgba(255,255,255,0.26)",
-                }}
-              >
+              <Link href="/portal" className="btn btnOutlineLight">
                 Vstoupit do portálu
               </Link>
             </div>
@@ -471,6 +391,66 @@ export default function ProgramPublic() {
         .heroText {
           padding: 36px 34px;
           color: white;
+        }
+
+        .heroButtons {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-top: 24px;
+        }
+
+        .finalButtons {
+          display: flex;
+          gap: 14px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 48px;
+          padding: 0 18px;
+          border-radius: 14px;
+          text-decoration: none;
+          font-size: 16px;
+          transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+        }
+
+        .btn:hover {
+          transform: translateY(-2px);
+        }
+
+        .btnPrimary {
+          font-weight: 700;
+          color: #ffffff;
+          background: linear-gradient(135deg, #10b981, #059669);
+          box-shadow: 0 10px 24px rgba(16, 185, 129, 0.22);
+          border: 1px solid rgba(16, 185, 129, 0.9);
+        }
+
+        .btnGhostLight {
+          font-weight: 600;
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          backdrop-filter: blur(6px);
+        }
+
+        .btnWhite {
+          font-weight: 700;
+          color: #111827;
+          background: #ffffff;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btnOutlineLight {
+          font-weight: 600;
+          color: #ffffff;
+          background: transparent;
+          border: 1px solid rgba(255, 255, 255, 0.26);
         }
 
         .eyebrow {
@@ -954,7 +934,6 @@ function EventCard({ e }) {
     <div className="eventCard">
       <div className="posterWrap">
         {posterUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img alt="Plakát" src={posterUrl} className="posterImg" />
         ) : (
           <span className="posterPlaceholder">Bez plakátu</span>
