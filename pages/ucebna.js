@@ -1,10 +1,9 @@
-import Link from "next/link";
+import Button from "../components/Button";
 
 export default function Ucebna() {
   return (
     <div className="page">
       <main>
-        {/* HERO */}
         <section className="section heroSection">
           <div className="heroGrid">
             <div>
@@ -19,13 +18,10 @@ export default function Ucebna() {
               </p>
 
               <div className="heroButtons">
-                <a href="#varianty" className="btnPrimary">
-                  Prohlédnout varianty učebny
-                </a>
-
-                <Link href="/poptavka" className="btnSecondary">
+                <Button href="/ucebna#varianty">Prohlédnout varianty učebny</Button>
+                <Button href="/poptavka" variant="secondary">
                   Navštívit vzorovou učebnu
-                </Link>
+                </Button>
               </div>
 
               <div className="heroNote">
@@ -37,7 +33,6 @@ export default function Ucebna() {
           </div>
         </section>
 
-        {/* JAK UČEBNA FUNGUJE */}
         <section className="section">
           <h2 className="sectionTitle">Jak učebna funguje během dne</h2>
 
@@ -46,17 +41,14 @@ export default function Ucebna() {
               title="Dopoledne"
               text="Výuka školy, projektové dny a vzdělávací programy."
             />
-
             <UseBlock
               title="Odpoledne"
               text="Kroužky, polytechnika, kreativní dílny."
             />
-
             <UseBlock
               title="Večer"
               text="Přednášky, komunitní setkání a kulturní program."
             />
-
             <UseBlock
               title="Senioři"
               text="Digitální vzdělávání a komunitní aktivity."
@@ -64,7 +56,6 @@ export default function Ucebna() {
           </div>
         </section>
 
-        {/* VARIANTY */}
         <section id="varianty" className="section">
           <h2 className="sectionTitle">Varianty učeben ARCHIMEDES®</h2>
 
@@ -74,13 +65,11 @@ export default function Ucebna() {
               subtitle="Svoboda v otevřenosti"
               text="Celodřevěná konstrukce s posuvnými stěnami, která umožňuje maximální propojení s okolní přírodou."
             />
-
             <Variant
               title="ARCHIMEDES OPTIMAL+"
               subtitle="Komfort za každého počasí"
               text="Vylepšená izolace a energetická efektivita při zachování přírodního vzhledu."
             />
-
             <Variant
               title="ARCHIMEDES PREMIUM"
               subtitle="Standard trvalé stavby"
@@ -89,7 +78,6 @@ export default function Ucebna() {
           </div>
         </section>
 
-        {/* FINANCOVÁNÍ */}
         <section className="section">
           <h2 className="sectionTitle">Cena a financování</h2>
 
@@ -100,7 +88,6 @@ export default function Ucebna() {
           </p>
         </section>
 
-        {/* REFERENCE */}
         <section className="section lastSection">
           <h2 className="sectionTitle">Příklad realizace</h2>
 
@@ -119,9 +106,7 @@ export default function Ucebna() {
           </div>
 
           <div className="referenceBtnWrap">
-            <Link href="/poptavka" className="btnPrimary">
-              Nezávazně probrat projekt učebny
-            </Link>
+            <Button href="/poptavka">Nezávazně probrat projekt učebny</Button>
           </div>
         </section>
       </main>
@@ -181,28 +166,8 @@ export default function Ucebna() {
           flex-wrap: wrap;
         }
 
-        .btnPrimary,
-        .btnSecondary {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
+        .heroButtons :global(a) {
           min-height: 50px;
-          padding: 14px 20px;
-          border-radius: 14px;
-          text-decoration: none;
-          font-weight: 700;
-          text-align: center;
-        }
-
-        .btnPrimary {
-          background: #111827;
-          color: white;
-        }
-
-        .btnSecondary {
-          border: 1px solid rgba(0, 0, 0, 0.18);
-          color: #111827;
-          background: white;
         }
 
         .heroNote {
@@ -326,10 +291,8 @@ export default function Ucebna() {
             flex-direction: column;
           }
 
-          .btnPrimary,
-          .btnSecondary {
+          .heroButtons :global(a) {
             width: 100%;
-            box-sizing: border-box;
           }
 
           .heroPhoto {
@@ -356,7 +319,7 @@ export default function Ucebna() {
             padding: 20px;
           }
 
-          .referenceBtnWrap .btnPrimary {
+          .referenceBtnWrap :global(a) {
             width: 100%;
           }
 
