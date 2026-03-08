@@ -38,12 +38,41 @@ export default function WelcomePage() {
     }
   }
 
+  const cardStyle = {
+    background: "#fff",
+    borderRadius: 20,
+    padding: 22,
+    border: "1px solid rgba(0,0,0,0.08)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+    display: "flex",
+    flexDirection: "column",
+    minHeight: 220,
+  };
+
+  const primaryLinkStyle = {
+    display: "inline-block",
+    marginTop: 14,
+    padding: "11px 15px",
+    borderRadius: 12,
+    background: "#111827",
+    color: "#fff",
+    textDecoration: "none",
+    fontWeight: 700,
+  };
+
+  const secondaryTextStyle = {
+    marginTop: 10,
+    fontSize: 14,
+    lineHeight: 1.5,
+    color: "rgba(0,0,0,0.58)",
+  };
+
   return (
     <RequireAuth>
       <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
         <PortalHeader />
 
-        <main style={{ maxWidth: 980, margin: "0 auto", padding: "40px 16px" }}>
+        <main style={{ maxWidth: 1040, margin: "0 auto", padding: "40px 16px 56px" }}>
           <div
             style={{
               background: "#fff",
@@ -54,18 +83,43 @@ export default function WelcomePage() {
               marginBottom: 22,
             }}
           >
-            <h1 style={{ marginTop: 0, marginBottom: 8, fontSize: 34 }}>
-              Jak chcete ARCHIMEDES Live používat?
+            <h1 style={{ marginTop: 0, marginBottom: 10, fontSize: 34, lineHeight: 1.15 }}>
+              Vítejte v ARCHIMEDES Live
             </h1>
 
-            <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)" }}>
-              Vyberte si způsob, který vám nejlépe vyhovuje.
+            <p
+              style={{
+                marginTop: 0,
+                marginBottom: 10,
+                color: "rgba(0,0,0,0.72)",
+                fontSize: 17,
+                lineHeight: 1.6,
+                maxWidth: 820,
+              }}
+            >
+              Ještě nejste přiřazeni ke škole, obci ani jiné organizaci. Vyberte,
+              jak chcete v ARCHIMEDES Live pokračovat.
+            </p>
+
+            <p
+              style={{
+                marginTop: 0,
+                marginBottom: 0,
+                color: "rgba(0,0,0,0.58)",
+                fontSize: 15,
+                lineHeight: 1.6,
+                maxWidth: 860,
+              }}
+            >
+              Přístup do portálu je určen pro registrované organizace, jejich členy
+              a vybrané jednotlivce. Pokud si nejste jistí správnou volbou, můžete
+              jednoduše odeslat žádost o přístup.
             </p>
 
             {error ? (
               <div
                 style={{
-                  marginTop: 16,
+                  marginTop: 18,
                   padding: 12,
                   borderRadius: 12,
                   background: "#fff1f1",
@@ -81,108 +135,108 @@ export default function WelcomePage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
               gap: 18,
             }}
           >
-            <div
-              style={{
-                background: "#fff",
-                borderRadius: 20,
-                padding: 22,
-                border: "1px solid rgba(0,0,0,0.08)",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-              }}
-            >
-              <h2 style={{ marginTop: 0 }}>Mám kód organizace</h2>
+            <div style={cardStyle}>
+              <h2 style={{ marginTop: 0, marginBottom: 10, fontSize: 24 }}>
+                Připojit se k organizaci
+              </h2>
 
-              <p style={{ color: "rgba(0,0,0,0.65)" }}>
-                Připojte se ke škole, obci, senior klubu nebo jiné organizaci.
+              <p style={{ color: "rgba(0,0,0,0.68)", lineHeight: 1.6, margin: 0 }}>
+                Máte kód školy, obce, spolku nebo jiné organizace? Připojte se k již
+                existujícímu účtu.
               </p>
 
-              <Link
-                href="/join"
-                style={{
-                  display: "inline-block",
-                  marginTop: 10,
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  background: "#111827",
-                  color: "#fff",
-                  textDecoration: "none",
-                  fontWeight: 700,
-                }}
-              >
-                Připojit se ke stávající organizaci
-              </Link>
+              <div style={{ marginTop: "auto" }}>
+                <Link href="/join" style={primaryLinkStyle}>
+                  Připojit se
+                </Link>
+
+                <div style={secondaryTextStyle}>
+                  Vhodné pro členy školy, obce, senior klubu nebo partnerské organizace.
+                </div>
+              </div>
             </div>
 
-            <div
-              style={{
-                background: "#fff",
-                borderRadius: 20,
-                padding: 22,
-                border: "1px solid rgba(0,0,0,0.08)",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-              }}
-            >
-              <h2 style={{ marginTop: 0 }}>Chci vytvořit organizaci</h2>
-
-              <p style={{ color: "rgba(0,0,0,0.65)" }}>
-                Založte školu, obec, senior klub nebo jinou organizaci.
-              </p>
-
-              <Link
-                href="/create-organization"
-                style={{
-                  display: "inline-block",
-                  marginTop: 10,
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  background: "#111827",
-                  color: "#fff",
-                  textDecoration: "none",
-                  fontWeight: 700,
-                }}
-              >
+            <div style={cardStyle}>
+              <h2 style={{ marginTop: 0, marginBottom: 10, fontSize: 24 }}>
                 Vytvořit organizaci
-              </Link>
-            </div>
+              </h2>
 
-            <div
-              style={{
-                background: "#fff",
-                borderRadius: 20,
-                padding: 22,
-                border: "1px solid rgba(0,0,0,0.08)",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-              }}
-            >
-              <h2 style={{ marginTop: 0 }}>Pokračovat jako jednotlivec</h2>
-
-              <p style={{ color: "rgba(0,0,0,0.65)" }}>
-                Používejte ARCHIMEDES Live bez organizace.
+              <p style={{ color: "rgba(0,0,0,0.68)", lineHeight: 1.6, margin: 0 }}>
+                Jste oprávněný zástupce školy, obce nebo jiné organizace a chcete
+                založit vlastní přístup?
               </p>
 
-              <button
-                type="button"
-                onClick={continueAsIndividual}
-                disabled={savingIndividual}
-                style={{
-                  display: "inline-block",
-                  marginTop: 10,
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  background: "#111827",
-                  color: "#fff",
-                  fontWeight: 700,
-                  border: "none",
-                  cursor: savingIndividual ? "default" : "pointer",
-                  opacity: savingIndividual ? 0.7 : 1,
-                }}
-              >
-                {savingIndividual ? "Pokračuji..." : "Pokračovat"}
-              </button>
+              <div style={{ marginTop: "auto" }}>
+                <Link href="/create-organization" style={primaryLinkStyle}>
+                  Vytvořit organizaci
+                </Link>
+
+                <div style={secondaryTextStyle}>
+                  Tato volba je určena zejména pro školy, obce, spolky a partnery.
+                </div>
+              </div>
+            </div>
+
+            <div style={cardStyle}>
+              <h2 style={{ marginTop: 0, marginBottom: 10, fontSize: 24 }}>
+                Pokračovat jako jednotlivec
+              </h2>
+
+              <p style={{ color: "rgba(0,0,0,0.68)", lineHeight: 1.6, margin: 0 }}>
+                Individuální přístup je určen pro vybrané uživatele, hosty,
+                moderátory, odborníky nebo partnery bez organizačního účtu.
+              </p>
+
+              <div style={{ marginTop: "auto" }}>
+                <button
+                  type="button"
+                  onClick={continueAsIndividual}
+                  disabled={savingIndividual}
+                  style={{
+                    display: "inline-block",
+                    marginTop: 14,
+                    padding: "11px 15px",
+                    borderRadius: 12,
+                    background: "#111827",
+                    color: "#fff",
+                    fontWeight: 700,
+                    border: "none",
+                    cursor: savingIndividual ? "default" : "pointer",
+                    opacity: savingIndividual ? 0.7 : 1,
+                  }}
+                >
+                  {savingIndividual ? "Pokračuji..." : "Pokračovat"}
+                </button>
+
+                <div style={secondaryTextStyle}>
+                  Rozsah obsahu se může lišit od přístupu školy nebo obce.
+                </div>
+              </div>
+            </div>
+
+            <div style={cardStyle}>
+              <h2 style={{ marginTop: 0, marginBottom: 10, fontSize: 24 }}>
+                Požádat o přístup
+              </h2>
+
+              <p style={{ color: "rgba(0,0,0,0.68)", lineHeight: 1.6, margin: 0 }}>
+                Nejste si jistí, jaký typ přístupu je pro vás správný? Pošlete nám
+                krátkou žádost a ozveme se vám s dalším postupem.
+              </p>
+
+              <div style={{ marginTop: "auto" }}>
+                <Link href="/zadost-o-pristup" style={primaryLinkStyle}>
+                  Odeslat žádost
+                </Link>
+
+                <div style={secondaryTextStyle}>
+                  Vhodné pro nové školy, obce, zájemce o licenci i individuální dotazy.
+                </div>
+              </div>
             </div>
           </div>
         </main>
