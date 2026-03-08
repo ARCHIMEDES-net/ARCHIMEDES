@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 
@@ -62,6 +62,10 @@ export default function Login() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // DŮLEŽITÉ: když jsme v recovery/invite flow, nedovolíme návrat do loginu
+  // dřív, než uživatel heslo skutečně nastaví nebo než flow selže.
+  const passwordFlowLockedRef = useRef(false);
+
   async function getProfileMustSetPassword(userId) {
     if (!userId) return null;
 
@@ -114,6 +118,10 @@ export default function Login() {
         const inviteOrRecovery =
           isInviteOrRecoveryType(type) || accessTokenInHash;
 
+        if (inviteOrRecovery) {
+          passwordFlowLockedRef.current = true;
+        }
+
         if (code) {
           const { error: exchangeError } = await withTimeout(
             supabase.auth.exchangeCodeForSession(code),
@@ -151,9 +159,12 @@ export default function Login() {
           if (!mounted) return;
 
           if (mustSetPassword === true || inviteOrRecovery) {
+            passwordFlowLockedRef.current = true;
             setMode("set-password");
             setMessage(
-              mustSetPassword === true
+              type === "recovery"
+                ? "Nastavte si nové heslo."
+                : mustSetPassword === true
                 ? "Dokončete registraci nastavením svého hesla."
                 : "Nastavte si nové heslo."
             );
@@ -165,10 +176,21 @@ export default function Login() {
           return;
         }
 
+        // Když nemáme session, ale jsme v reset flow, stále držíme formulář
+        // pro nové heslo. Někdy se session dotáhne až o chvilku později.
+        if (inviteOrRecovery) {
+          passwordFlowLockedRef.current = true;
+          setMode("set-password");
+          setMessage("Nastavte si nové heslo.");
+          setCheckingSession(false);
+          return;
+        }
+
         setMode(router.query.reset === "1" ? "reset-password" : "login");
       } catch (e) {
         if (!mounted) return;
         setError(e.message || "Nepodařilo se načíst přihlášení.");
+        passwordFlowLockedRef.current = false;
         setMode("login");
       } finally {
         if (mounted) setCheckingSession(false);
@@ -180,16 +202,23 @@ export default function Login() {
     const timeoutId = setTimeout(() => {
       if (!mounted) return;
       setCheckingSession(false);
-      setMode("login");
-      setError((prev) => prev || "");
+
+      if (!passwordFlowLockedRef.current) {
+        setMode(router.query.reset === "1" ? "reset-password" : "login");
+      }
     }, 12000);
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
+      const { type, accessTokenInHash } = readAuthParams();
+      const inviteOrRecovery =
+        isInviteOrRecoveryType(type) || accessTokenInHash;
+
       if (event === "PASSWORD_RECOVERY" && session?.user) {
+        passwordFlowLockedRef.current = true;
         setMode("set-password");
         setMessage("Nastavte si nové heslo.");
         setCheckingSession(false);
@@ -197,18 +226,24 @@ export default function Login() {
       }
 
       if (event === "SIGNED_IN" && session?.user) {
-        const { type, accessTokenInHash } = readAuthParams();
-        const inviteOrRecovery =
-          isInviteOrRecoveryType(type) || accessTokenInHash;
-
-        if (inviteOrRecovery) {
+        if (inviteOrRecovery || passwordFlowLockedRef.current) {
+          passwordFlowLockedRef.current = true;
           setMode("set-password");
-          setMessage("Nastavte si nové heslo.");
+          setMessage(type === "recovery" ? "Nastavte si nové heslo." : "Dokončete registraci nastavením svého hesla.");
           setCheckingSession(false);
           return;
         }
 
         router.replace("/portal");
+        return;
+      }
+
+      // DŮLEŽITÉ:
+      // pokud jsme v reset/invite flow, ignorujeme přepnutí do loginu
+      // a držíme formulář pro nové heslo.
+      if ((event === "SIGNED_OUT" || !session) && passwordFlowLockedRef.current) {
+        setMode("set-password");
+        setCheckingSession(false);
         return;
       }
 
@@ -344,7 +379,12 @@ export default function Login() {
         "Aktualizace profilu"
       );
 
+      passwordFlowLockedRef.current = false;
       setMessage("Heslo bylo nastaveno. Přesměrovávám do portálu...");
+
+      if (typeof window !== "undefined") {
+        window.history.replaceState({}, "", "/login");
+      }
 
       setTimeout(() => {
         router.replace("/portal/muj-profil");
@@ -394,7 +434,7 @@ export default function Login() {
       >
         <h1 style={{ marginTop: 0, marginBottom: 8, fontSize: 30 }}>
           {mode === "set-password"
-            ? "Dokončení registrace"
+            ? "Nastavení nového hesla"
             : mode === "reset-password"
             ? "Zapomenuté heslo"
             : "Přihlášení"}
@@ -402,7 +442,7 @@ export default function Login() {
 
         <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)", lineHeight: 1.6 }}>
           {mode === "set-password"
-            ? "Nastavte si své heslo pro vstup do ARCHIMEDES Live."
+            ? "Zadejte nové heslo pro vstup do ARCHIMEDES Live."
             : mode === "reset-password"
             ? "Zadejte svůj e-mail a pošleme vám odkaz pro nastavení nového hesla."
             : "Přihlaste se do svého účtu ARCHIMEDES Live."}
