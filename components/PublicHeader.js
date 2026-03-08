@@ -15,7 +15,6 @@ export default function PublicHeader({ active = "" }) {
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // veřejná hlavička se nikdy nezobrazí v portálu ani na loginu
   if (pathname.startsWith("/portal") || pathname === "/login") return null;
 
   useEffect(() => {
@@ -32,7 +31,6 @@ export default function PublicHeader({ active = "" }) {
     alignItems: "center",
     justifyContent: "center",
     minHeight: 40,
-    transition: "all 0.15s ease",
   };
 
   const activeStyle = {
@@ -51,7 +49,7 @@ export default function PublicHeader({ active = "" }) {
     if (active) return active === key;
     if (key === "home") return asPath === "/";
     if (key === "program") return asPath === "/program";
-    if (key === "ucebna") return asPath === "/#ucebna";
+    if (key === "ucebna") return asPath === "/ucebna";
     if (key === "cenik") return asPath === "/cenik";
     if (key === "poptavka") return asPath === "/poptavka";
     if (key === "kontakt") return asPath === "/kontakt";
@@ -61,17 +59,6 @@ export default function PublicHeader({ active = "" }) {
   const navItem = (key) => ({
     ...itemBase,
     ...(isActive(key) ? activeStyle : inactiveStyle),
-  });
-
-  const mobileItem = (key, extra = {}) => ({
-    ...itemBase,
-    ...(isActive(key) ? activeStyle : inactiveStyle),
-    width: "100%",
-    justifyContent: "flex-start",
-    padding: "12px 14px",
-    borderRadius: 14,
-    fontSize: 16,
-    ...extra,
   });
 
   return (
@@ -89,211 +76,70 @@ export default function PublicHeader({ active = "" }) {
           maxWidth: 1100,
           margin: "0 auto",
           padding: "10px 16px",
+          display: "flex",
+          alignItems: "center",
         }}
       >
-        <div
+        <Link
+          href="/"
           style={{
-            display: "flex",
+            display: "inline-flex",
             alignItems: "center",
-            gap: 12,
+            gap: 10,
+            textDecoration: "none",
           }}
         >
-          <Link
-            href="/"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
-              textDecoration: "none",
-              flex: "0 0 auto",
-            }}
-            onClick={() => setMobileOpen(false)}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={LOGO_SRC}
-              alt="ARCHIMEDES Live"
-              style={{ height: 44, width: "auto", display: "block" }}
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-            />
+          <img
+            src={LOGO_SRC}
+            alt="ARCHIMEDES Live"
+            style={{ height: 44 }}
+          />
+        </Link>
+
+        <nav
+          style={{
+            marginLeft: "auto",
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+          }}
+        >
+          <Link href="/" style={navItem("home")}>
+            Domů
           </Link>
 
-          <nav
-            className="desktopNav"
+          <Link href="/program" style={navItem("program")}>
+            Program
+          </Link>
+
+          <Link href="/ucebna" style={navItem("ucebna")}>
+            Učebna
+          </Link>
+
+          <Link href="/cenik" style={navItem("cenik")}>
+            Ceník
+          </Link>
+
+          <Link href="/poptavka" style={navItem("poptavka")}>
+            Poptávka
+          </Link>
+
+          <Link href="/kontakt" style={navItem("kontakt")}>
+            Kontakt
+          </Link>
+
+          <Link
+            href="/portal"
             style={{
-              marginLeft: "auto",
-              display: "flex",
-              gap: 10,
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <Link href="/" style={navItem("home")}>
-              Domů
-            </Link>
-
-            <Link href="/program" style={navItem("program")}>
-              Program
-            </Link>
-
-            <Link href="/#ucebna" style={navItem("ucebna")}>
-              Učebna
-            </Link>
-
-            <Link href="/cenik" style={navItem("cenik")}>
-              Ceník
-            </Link>
-
-            <Link href="/poptavka" style={navItem("poptavka")}>
-              Poptávka
-            </Link>
-
-            <Link href="/kontakt" style={navItem("kontakt")}>
-              Kontakt
-            </Link>
-
-            <span
-              style={{
-                width: 1,
-                height: 18,
-                background: "#e5e7eb",
-                margin: "0 2px",
-              }}
-            />
-
-            <Link
-              href="/portal"
-              style={{
-                ...itemBase,
-                border: "1px solid #e5e7eb",
-                background: "#fff",
-              }}
-            >
-              Portál
-            </Link>
-          </nav>
-
-          <button
-            type="button"
-            className="mobileMenuButton"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-expanded={mobileOpen}
-            aria-label="Otevřít menu"
-            style={{
-              marginLeft: "auto",
-              display: "none",
-              alignItems: "center",
-              justifyContent: "center",
-              minWidth: 48,
-              height: 44,
-              borderRadius: 12,
+              ...itemBase,
               border: "1px solid #e5e7eb",
               background: "#fff",
-              color: "#111827",
-              fontWeight: 700,
-              fontSize: 15,
-              cursor: "pointer",
             }}
           >
-            {mobileOpen ? "Zavřít" : "Menu"}
-          </button>
-        </div>
-
-        {mobileOpen ? (
-          <div
-            className="mobileMenu"
-            style={{
-              display: "none",
-              paddingTop: 12,
-            }}
-          >
-            <nav
-              style={{
-                display: "grid",
-                gap: 10,
-              }}
-            >
-              <Link
-                href="/"
-                style={mobileItem("home")}
-                onClick={() => setMobileOpen(false)}
-              >
-                Domů
-              </Link>
-
-              <Link
-                href="/program"
-                style={mobileItem("program")}
-                onClick={() => setMobileOpen(false)}
-              >
-                Program
-              </Link>
-
-              <Link
-                href="/#ucebna"
-                style={mobileItem("ucebna")}
-                onClick={() => setMobileOpen(false)}
-              >
-                Učebna
-              </Link>
-
-              <Link
-                href="/cenik"
-                style={mobileItem("cenik")}
-                onClick={() => setMobileOpen(false)}
-              >
-                Ceník
-              </Link>
-
-              <Link
-                href="/poptavka"
-                style={mobileItem("poptavka")}
-                onClick={() => setMobileOpen(false)}
-              >
-                Poptávka
-              </Link>
-
-              <Link
-                href="/kontakt"
-                style={mobileItem("kontakt")}
-                onClick={() => setMobileOpen(false)}
-              >
-                Kontakt
-              </Link>
-
-              <Link
-                href="/portal"
-                style={mobileItem("", {
-                  border: "1px solid #e5e7eb",
-                  background: "#fff",
-                  color: "#111827",
-                })}
-                onClick={() => setMobileOpen(false)}
-              >
-                Portál
-              </Link>
-            </nav>
-          </div>
-        ) : null}
+            Portál
+          </Link>
+        </nav>
       </div>
-
-      <style jsx>{`
-        @media (max-width: 860px) {
-          .desktopNav {
-            display: none !important;
-          }
-
-          .mobileMenuButton {
-            display: inline-flex !important;
-          }
-
-          .mobileMenu {
-            display: block !important;
-          }
-        }
-      `}</style>
     </header>
   );
 }
