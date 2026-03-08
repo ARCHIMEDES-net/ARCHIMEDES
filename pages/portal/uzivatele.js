@@ -1,3 +1,4 @@
+// pages/portal/uzivatele.js
 import { useEffect, useState } from "react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
