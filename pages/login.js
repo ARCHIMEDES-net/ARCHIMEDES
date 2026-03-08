@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
@@ -356,7 +357,7 @@ export default function Login() {
     >
       <div
         style={{
-          maxWidth: 520,
+          maxWidth: 560,
           margin: "0 auto",
           background: "#fff",
           borderRadius: 20,
@@ -369,7 +370,7 @@ export default function Login() {
           {mode === "set-password" ? "Dokončení registrace" : "Přihlášení"}
         </h1>
 
-        <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)" }}>
+        <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)", lineHeight: 1.6 }}>
           {mode === "set-password"
             ? "Nastavte si své heslo pro vstup do ARCHIMEDES Live."
             : "Přihlaste se do svého účtu ARCHIMEDES Live."}
@@ -463,60 +464,139 @@ export default function Login() {
             </button>
           </form>
         ) : (
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: 14 }}>
-              <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                E-mail
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.15)",
-                  boxSizing: "border-box",
-                }}
-              />
-            </div>
+          <>
+            <form onSubmit={handleLogin}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(0,0,0,0.15)",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
 
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                Heslo
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.15)",
-                  boxSizing: "border-box",
-                }}
-              />
-            </div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                  Heslo
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(0,0,0,0.15)",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
 
-            <button
-              type="submit"
-              disabled={saving}
+              <div style={{ marginBottom: 18 }}>
+                <Link
+                  href="/login?reset=1"
+                  style={{
+                    color: "#111827",
+                    textDecoration: "underline",
+                    fontSize: 14,
+                  }}
+                >
+                  Zapomenuté heslo
+                </Link>
+              </div>
+
+              <button
+                type="submit"
+                disabled={saving}
+                style={{
+                  padding: "12px 18px",
+                  borderRadius: 12,
+                  border: "none",
+                  background: "#111827",
+                  color: "#fff",
+                  fontWeight: 700,
+                  cursor: saving ? "default" : "pointer",
+                  opacity: saving ? 0.7 : 1,
+                }}
+              >
+                {saving ? "Přihlašuji…" : "Přihlásit se"}
+              </button>
+            </form>
+
+            <div
               style={{
-                padding: "12px 18px",
-                borderRadius: 12,
-                border: "none",
-                background: "#111827",
-                color: "#fff",
-                fontWeight: 700,
-                cursor: saving ? "default" : "pointer",
-                opacity: saving ? 0.7 : 1,
+                marginTop: 24,
+                paddingTop: 18,
+                borderTop: "1px solid rgba(0,0,0,0.08)",
               }}
             >
-              {saving ? "Přihlašuji…" : "Přihlásit se"}
-            </button>
-          </form>
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>
+                Nemáte přístup do portálu?
+              </div>
+
+              <p
+                style={{
+                  marginTop: 0,
+                  marginBottom: 12,
+                  color: "rgba(0,0,0,0.65)",
+                  lineHeight: 1.6,
+                }}
+              >
+                Pokud jste nová škola, obec, partner nebo si nejste jistí správným
+                typem přístupu, vyplňte krátkou žádost nebo se připojte ke stávající
+                organizaci.
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 10,
+                }}
+              >
+                <Link
+                  href="/zadost-o-pristup"
+                  style={{
+                    display: "inline-block",
+                    padding: "10px 14px",
+                    borderRadius: 12,
+                    background: "#111827",
+                    color: "#fff",
+                    textDecoration: "none",
+                    fontWeight: 700,
+                  }}
+                >
+                  Požádat o přístup
+                </Link>
+
+                <Link
+                  href="/join"
+                  style={{
+                    display: "inline-block",
+                    padding: "10px 14px",
+                    borderRadius: 12,
+                    background: "#fff",
+                    color: "#111827",
+                    textDecoration: "none",
+                    fontWeight: 700,
+                    border: "1px solid rgba(0,0,0,0.12)",
+                  }}
+                >
+                  Připojit se k organizaci
+                </Link>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
