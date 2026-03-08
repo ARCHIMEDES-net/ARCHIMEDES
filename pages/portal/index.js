@@ -99,7 +99,7 @@ export default function PortalIndex() {
 
           supabase
             .from("organization_members")
-            .select("organization_id, status, role")
+            .select("organization_id, status, role_in_org")
             .eq("user_id", user.id)
             .eq("status", "active")
             .maybeSingle(),
@@ -108,7 +108,7 @@ export default function PortalIndex() {
         if (profileError) throw profileError;
         if (membershipError) throw membershipError;
 
-        setMembershipRole(membership?.role || "");
+        setMembershipRole(membership?.role_in_org || "");
 
         if (membership?.organization_id) {
           const { data: org, error: orgError } = await supabase
