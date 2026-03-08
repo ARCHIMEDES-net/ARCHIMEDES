@@ -113,7 +113,7 @@ export default function PortalIndex() {
         if (membership?.organization_id) {
           const { data: org, error: orgError } = await supabase
             .from("organizations")
-            .select("id, name, type, join_code")
+            .select("id, name, join_code")
             .eq("id", membership.organization_id)
             .maybeSingle();
 
@@ -122,13 +122,9 @@ export default function PortalIndex() {
           setOrganizationName(org?.name || "");
           setOrganizationCode(org?.join_code || "");
 
-          if (org?.type === "school") {
-            setDashboardType("school");
-          } else if (org?.type === "municipality") {
-            setDashboardType("municipality");
-          } else {
-            setDashboardType("organization");
-          }
+          // Pro onboarding a běžný provoz stačí vědět, že uživatel je v organizaci.
+          // Typ organizace teď nenačítáme, protože právě ten způsoboval pád do default režimu.
+          setDashboardType("organization");
         } else if (profile?.user_type === "individual") {
           setDashboardType("individual");
         } else {
@@ -143,6 +139,7 @@ export default function PortalIndex() {
   }, []);
 
   const hasEvents = nextEvents && nextEvents.length > 0;
+
   const dashboard = useMemo(
     () => getDashboardConfig(dashboardType, organizationName),
     [dashboardType, organizationName]
@@ -814,131 +811,20 @@ export default function PortalIndex() {
 function getDashboardConfig(type, organizationName = "") {
   const orgLabel = organizationName ? ` pro ${organizationName}` : "";
 
-  if (type === "school") {
+  if (type === "organization") {
     return {
-      badge: "ARCHIMEDES Live • škola",
+      badge: "ARCHIMEDES Live • organizace",
       heroTitleLine1: "Vaše pracovní plocha",
-      heroTitleLine2: "pro školní program",
-      heroText: `Tady najdete živý program pro výuku, přístup do archivu, pracovní materiály a inspiraci ze sítě učeben${orgLabel}.`,
-      tipBold: "Kalendář",
-      quickTitle: "Rychlý přístup pro školu",
-      quickSubtitle: "Nejrychlejší vstup do vysílání, záznamů a návazných materiálů.",
-      primaryCtaLabel: "Otevřít kalendář",
-      primaryCtaHref: "/portal/kalendar",
-      sideBoxTitle: "Doporučený další krok",
-      sideBoxText:
-        "Začněte kalendářem. Odtud se nejrychleji dostanete k živému programu a následně i k navazujícím materiálům.",
-      stats: [
-        { value: "1", label: "hlavní vstup do programu" },
-        { value: "3", label: "nejbližší vysílání v přehledu" },
-        { value: "4", label: "klíčové sekce pro školu" },
-        { value: "24/7", label: "přístup pro registrované" },
-      ],
-      tiles: [
-        {
-          href: "/portal/kalendar",
-          icon: "🗓️",
-          title: "Kalendář",
-          desc: "Přehled vysílání, detail programu a nejsnazší vstup do živého obsahu.",
-          cta: "Otevřít",
-          highlight: true,
-          note: "Doporučeno",
-        },
-        {
-          href: "/portal/archiv",
-          icon: "📚",
-          title: "Archiv",
-          desc: "Záznamy, materiály a pracovní listy. Postupně zde bude přibývat další obsah.",
-          cta: "Otevřít",
-        },
-        {
-          href: "/portal/skoly",
-          icon: "🏫",
-          title: "Síť učeben",
-          desc: "Přehled škol s učebnou ARCHIMEDES, inspirace z praxe a kontakty.",
-          cta: "Otevřít",
-        },
-        {
-          href: "/portal/inzerce",
-          icon: "📌",
-          title: "Inzerce",
-          desc: "Nabídky, poptávky a partnerství mezi školami, obcemi a dalšími členy sítě.",
-          cta: "Otevřít",
-        },
-      ],
-    };
-  }
-
-  if (type === "municipality") {
-    return {
-      badge: "ARCHIMEDES Live • obec",
-      heroTitleLine1: "Vaše pracovní plocha",
-      heroTitleLine2: "pro obec a komunitu",
-      heroText: `Tady najdete živý program pro komunitu, přístup k vysílání, inspiraci ze sítě učeben i prostor pro spolupráci${orgLabel}.`,
-      tipBold: "Kalendář",
-      quickTitle: "Rychlý přístup pro obec",
-      quickSubtitle: "Nejrychlejší vstup do programu, komunitního obsahu a spolupráce.",
-      primaryCtaLabel: "Otevřít kalendář",
-      primaryCtaHref: "/portal/kalendar",
-      sideBoxTitle: "Doporučený další krok",
-      sideBoxText:
-        "Sledujte nejbližší vysílání a poté projděte síť učeben a inzerci. Právě tam často vznikají nové kontakty a inspirace.",
-      stats: [
-        { value: "1", label: "místo pro vstup do programu" },
-        { value: "3", label: "nejbližší vysílání v přehledu" },
-        { value: "4", label: "hlavní sekce pro obec" },
-        { value: "live", label: "program pro školu i komunitu" },
-      ],
-      tiles: [
-        {
-          href: "/portal/kalendar",
-          icon: "🗓️",
-          title: "Kalendář",
-          desc: "Přehled živého programu, detail událostí a nejsnazší vstup do vysílání.",
-          cta: "Otevřít",
-          highlight: true,
-          note: "Doporučeno",
-        },
-        {
-          href: "/portal/inzerce",
-          icon: "📌",
-          title: "Inzerce",
-          desc: "Nabídky, poptávky a partnerství mezi obcemi, školami a dalšími členy sítě.",
-          cta: "Otevřít",
-        },
-        {
-          href: "/portal/skoly",
-          icon: "🏫",
-          title: "Síť učeben",
-          desc: "Přehled realizací, inspirace z praxe a kontakty na zapojené školy a obce.",
-          cta: "Otevřít",
-        },
-        {
-          href: "/portal/archiv",
-          icon: "📚",
-          title: "Archiv",
-          desc: "Záznamy a materiály k programu, ke kterým se můžete kdykoliv vracet.",
-          cta: "Otevřít",
-        },
-      ],
-    };
-  }
-
-  if (type === "individual") {
-    return {
-      badge: "ARCHIMEDES Live • jednotlivec",
-      heroTitleLine1: "Vaše pracovní plocha",
-      heroTitleLine2: "pro osobní přístup",
-      heroText:
-        "Tady najdete živý program, záznamy, komunitní obsah a další sekce, které můžete využívat i bez organizace.",
+      heroTitleLine2: "pro živý program",
+      heroText: `Tady najdete přístup k programu, záznamům, spolupráci i síti učeben${orgLabel}.`,
       tipBold: "Kalendář",
       quickTitle: "Rychlý přístup",
-      quickSubtitle: "Nejrychlejší cesta k programu, záznamům a dalšímu obsahu.",
+      quickSubtitle: "Nejrychlejší cesta k programu a dalším sekcím portálu.",
       primaryCtaLabel: "Otevřít kalendář",
       primaryCtaHref: "/portal/kalendar",
       sideBoxTitle: "Doporučený další krok",
       sideBoxText:
-        "Začněte kalendářem a poté projděte archiv. Pokud vás zaujme síť učeben nebo spolupráce, pokračujte do inzerce.",
+        "Začněte kalendářem a podle potřeby přejděte do dalších sekcí portálu.",
       stats: [
         { value: "1", label: "místo pro vstup do programu" },
         { value: "3", label: "nejbližší vysílání v přehledu" },
@@ -980,20 +866,21 @@ function getDashboardConfig(type, organizationName = "") {
     };
   }
 
-  if (type === "organization") {
+  if (type === "individual") {
     return {
-      badge: "ARCHIMEDES Live • organizace",
+      badge: "ARCHIMEDES Live • jednotlivec",
       heroTitleLine1: "Vaše pracovní plocha",
-      heroTitleLine2: "pro živý program",
-      heroText: `Tady najdete přístup k programu, záznamům, spolupráci i síti učeben${orgLabel}.`,
+      heroTitleLine2: "pro osobní přístup",
+      heroText:
+        "Tady najdete živý program, záznamy, komunitní obsah a další sekce, které můžete využívat i bez organizace.",
       tipBold: "Kalendář",
       quickTitle: "Rychlý přístup",
-      quickSubtitle: "Nejrychlejší cesta k programu a dalším sekcím portálu.",
+      quickSubtitle: "Nejrychlejší cesta k programu, záznamům a dalšímu obsahu.",
       primaryCtaLabel: "Otevřít kalendář",
       primaryCtaHref: "/portal/kalendar",
       sideBoxTitle: "Doporučený další krok",
       sideBoxText:
-        "Začněte kalendářem a podle potřeby přejděte do dalších sekcí portálu.",
+        "Začněte kalendářem a poté projděte archiv. Pokud vás zaujme síť učeben nebo spolupráce, pokračujte do inzerce.",
       stats: [
         { value: "1", label: "místo pro vstup do programu" },
         { value: "3", label: "nejbližší vysílání v přehledu" },
