@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-function SectionButton({ href, label, primary = false }) {
+function CTAButton({ href, label, primary = false }) {
   return (
     <Link
       href={href}
@@ -8,22 +8,20 @@ function SectionButton({ href, label, primary = false }) {
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        minHeight: 46,
-        padding: "0 18px",
+        minHeight: 48,
+        padding: "0 20px",
         borderRadius: 14,
         textDecoration: "none",
         fontWeight: 700,
-        fontSize: 15,
-        lineHeight: 1,
-        transition: "all 0.18s ease",
-        background: primary ? "#0f172a" : "#ffffff",
-        color: primary ? "#ffffff" : "#0f172a",
-        border: primary
-          ? "1px solid #0f172a"
-          : "1px solid rgba(15,23,42,0.12)",
+        fontSize: 16,
+        boxSizing: "border-box",
+        background: primary ? "#111827" : "#ffffff",
+        color: primary ? "#ffffff" : "#111827",
+        border: primary ? "1px solid #111827" : "1px solid rgba(17,24,39,0.14)",
         boxShadow: primary
-          ? "0 10px 24px rgba(15,23,42,0.18)"
-          : "0 8px 20px rgba(15,23,42,0.06)",
+          ? "0 10px 22px rgba(17,24,39,0.16)"
+          : "0 8px 18px rgba(17,24,39,0.06)",
+        transition: "transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease",
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = "translateY(-2px)";
@@ -42,18 +40,19 @@ function StatCard({ value, label }) {
     <div
       style={{
         background: "#ffffff",
-        borderRadius: 18,
-        padding: "20px 18px",
-        border: "1px solid rgba(15,23,42,0.08)",
-        boxShadow: "0 10px 24px rgba(15,23,42,0.06)",
+        borderRadius: 22,
+        padding: 24,
+        border: "1px solid rgba(17,24,39,0.08)",
+        boxShadow: "0 10px 30px rgba(17,24,39,0.06)",
       }}
     >
       <div
         style={{
-          fontSize: 28,
+          fontSize: 30,
           fontWeight: 800,
-          color: "#0f172a",
-          marginBottom: 6,
+          lineHeight: 1.05,
+          color: "#111827",
+          marginBottom: 8,
         }}
       >
         {value}
@@ -61,8 +60,8 @@ function StatCard({ value, label }) {
       <div
         style={{
           fontSize: 15,
-          color: "rgba(15,23,42,0.72)",
-          lineHeight: 1.45,
+          lineHeight: 1.5,
+          color: "#4b5563",
         }}
       >
         {label}
@@ -71,60 +70,128 @@ function StatCard({ value, label }) {
   );
 }
 
-function ProgramCard({ image, title, text, href }) {
+function ProgramPill({ children }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        padding: "10px 14px",
+        borderRadius: 999,
+        background: "rgba(255,255,255,0.12)",
+        border: "1px solid rgba(255,255,255,0.14)",
+        color: "rgba(255,255,255,0.94)",
+        fontSize: 14,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function FeatureCard({ image, title, text, href }) {
   return (
     <div
       style={{
         background: "#ffffff",
         borderRadius: 24,
         overflow: "hidden",
-        border: "1px solid rgba(15,23,42,0.08)",
-        boxShadow: "0 16px 40px rgba(15,23,42,0.08)",
+        border: "1px solid rgba(17,24,39,0.08)",
+        boxShadow: "0 16px 40px rgba(17,24,39,0.08)",
       }}
     >
       <img
         src={image}
         alt={title}
         style={{
+          display: "block",
           width: "100%",
           height: 220,
           objectFit: "cover",
-          display: "block",
         }}
       />
+
       <div style={{ padding: 22 }}>
         <h3
           style={{
             margin: "0 0 10px",
             fontSize: 24,
             lineHeight: 1.2,
-            color: "#0f172a",
+            color: "#111827",
           }}
         >
           {title}
         </h3>
+
         <p
           style={{
             margin: "0 0 18px",
             fontSize: 16,
             lineHeight: 1.65,
-            color: "rgba(15,23,42,0.78)",
+            color: "#4b5563",
           }}
         >
           {text}
         </p>
-        <SectionButton href={href} label="Zjistit více" />
+
+        <CTAButton href={href} label="Zjistit více" />
       </div>
     </div>
   );
 }
 
-function FeatureRow({
+function SectionIntro({ eyebrow, title, text }) {
+  return (
+    <div style={{ maxWidth: 760, marginBottom: 28 }}>
+      <div
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          padding: "8px 12px",
+          borderRadius: 999,
+          background: "rgba(16,185,129,0.12)",
+          color: "#047857",
+          fontWeight: 700,
+          fontSize: 13,
+          marginBottom: 14,
+        }}
+      >
+        {eyebrow}
+      </div>
+
+      <h2
+        style={{
+          margin: "0 0 12px",
+          fontSize: 40,
+          lineHeight: 1.15,
+          color: "#111827",
+        }}
+      >
+        {title}
+      </h2>
+
+      {text ? (
+        <p
+          style={{
+            margin: 0,
+            fontSize: 17,
+            lineHeight: 1.75,
+            color: "#4b5563",
+          }}
+        >
+          {text}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function SplitSection({
   image,
   eyebrow,
   title,
   text,
-  bullets = [],
+  bullets,
   primaryCta,
   secondaryCta,
   reverse = false,
@@ -134,50 +201,48 @@ function FeatureRow({
       style={{
         display: "grid",
         gridTemplateColumns: "1.05fr 1fr",
-        gap: 28,
+        gap: 30,
         alignItems: "center",
       }}
     >
       <div style={{ order: reverse ? 2 : 1 }}>
         <img
           src={image}
-          alt={title}
+          alt={typeof title === "string" ? title : "ARCHIMEDES Live"}
           style={{
             width: "100%",
-            height: 420,
+            height: 430,
             objectFit: "cover",
             borderRadius: 28,
             display: "block",
-            boxShadow: "0 20px 48px rgba(15,23,42,0.12)",
+            boxShadow: "0 20px 48px rgba(17,24,39,0.12)",
           }}
         />
       </div>
 
       <div style={{ order: reverse ? 1 : 2 }}>
-        {eyebrow ? (
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "8px 12px",
-              borderRadius: 999,
-              background: "rgba(16,185,129,0.12)",
-              color: "#047857",
-              fontWeight: 700,
-              fontSize: 13,
-              marginBottom: 14,
-            }}
-          >
-            {eyebrow}
-          </div>
-        ) : null}
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "8px 12px",
+            borderRadius: 999,
+            background: "rgba(16,185,129,0.12)",
+            color: "#047857",
+            fontWeight: 700,
+            fontSize: 13,
+            marginBottom: 14,
+          }}
+        >
+          {eyebrow}
+        </div>
 
         <h2
           style={{
             margin: "0 0 14px",
             fontSize: 38,
             lineHeight: 1.16,
-            color: "#0f172a",
+            color: "#111827",
           }}
         >
           {title}
@@ -188,57 +253,44 @@ function FeatureRow({
             margin: "0 0 16px",
             fontSize: 17,
             lineHeight: 1.75,
-            color: "rgba(15,23,42,0.78)",
+            color: "#4b5563",
           }}
         >
           {text}
         </p>
 
-        {bullets.length > 0 ? (
-          <div style={{ marginBottom: 22 }}>
-            {bullets.map((item) => (
-              <div
-                key={item}
+        <div style={{ marginBottom: 22 }}>
+          {bullets.map((item) => (
+            <div
+              key={item}
+              style={{
+                display: "flex",
+                gap: 10,
+                alignItems: "flex-start",
+                marginBottom: 10,
+                color: "#111827",
+                lineHeight: 1.55,
+                fontSize: 16,
+              }}
+            >
+              <span
                 style={{
-                  display: "flex",
-                  gap: 10,
-                  alignItems: "flex-start",
-                  marginBottom: 10,
-                  color: "#0f172a",
-                  lineHeight: 1.55,
-                  fontSize: 16,
+                  width: 8,
+                  height: 8,
+                  borderRadius: 999,
+                  background: "#10b981",
+                  marginTop: 9,
+                  flex: "0 0 auto",
                 }}
-              >
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 999,
-                    background: "#10b981",
-                    marginTop: 9,
-                    flex: "0 0 auto",
-                  }}
-                />
-                <span>{item}</span>
-              </div>
-            ))}
-          </div>
-        ) : null}
+              />
+              <span>{item}</span>
+            </div>
+          ))}
+        </div>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-          {primaryCta ? (
-            <SectionButton
-              href={primaryCta.href}
-              label={primaryCta.label}
-              primary
-            />
-          ) : null}
-          {secondaryCta ? (
-            <SectionButton
-              href={secondaryCta.href}
-              label={secondaryCta.label}
-            />
-          ) : null}
+          <CTAButton href={primaryCta.href} label={primaryCta.label} primary />
+          <CTAButton href={secondaryCta.href} label={secondaryCta.label} />
         </div>
       </div>
     </div>
@@ -250,16 +302,16 @@ export default function Home() {
     <div
       style={{
         fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-        background: "#f6f8fb",
-        color: "#0f172a",
+        background: "#f6f7fb",
+        color: "#111827",
+        minHeight: "100vh",
       }}
     >
-      {/* HERO */}
       <section
         style={{
           maxWidth: 1180,
           margin: "0 auto",
-          padding: "56px 16px 30px",
+          padding: "56px 16px 28px",
         }}
       >
         <div
@@ -289,29 +341,30 @@ export default function Home() {
 
             <h1
               style={{
-                fontSize: 54,
-                lineHeight: 1.08,
                 margin: "0 0 18px",
-                letterSpacing: "-0.02em",
+                fontSize: 54,
+                lineHeight: 1.06,
+                letterSpacing: "-0.03em",
+                color: "#111827",
               }}
             >
-              ARCHIMEDES Live je program
+              Živá vzdělávací platforma
               <br />
-              pro školy a komunitu obce
+              pro školy a obce
             </h1>
 
             <p
               style={{
+                margin: "0 0 22px",
                 fontSize: 19,
                 lineHeight: 1.72,
-                color: "rgba(15,23,42,0.78)",
-                maxWidth: 680,
-                margin: "0 0 24px",
+                color: "#4b5563",
+                maxWidth: 700,
               }}
             >
-              Pravidelný živý obsah, inspirativní hosté, pracovní listy,
-              komunitní programy a síť učeben ARCHIMEDES®. Jedna obec získá
-              program pro děti, pedagogy, rodiče, seniory i místní komunitu.
+              Pravidelný živý obsah, inspirativní hosté, pracovní listy, komunitní
+              programy a síť učeben ARCHIMEDES®. Jedna obec získá program pro děti,
+              pedagogy, rodiče, seniory i místní komunitu.
             </p>
 
             <div
@@ -322,9 +375,9 @@ export default function Home() {
                 marginBottom: 26,
               }}
             >
-              <SectionButton href="/poptavka" label="Chci ukázku programu" primary />
-              <SectionButton href="/program" label="Prohlédnout program" />
-              <SectionButton href="/ucebna" label="Učebna ARCHIMEDES®" />
+              <CTAButton href="/poptavka" label="Chci ukázku programu" primary />
+              <CTAButton href="/program" label="Prohlédnout program" />
+              <CTAButton href="/ucebna" label="Učebna ARCHIMEDES®" />
             </div>
 
             <div
@@ -334,16 +387,16 @@ export default function Home() {
                 gap: 14,
               }}
             >
-              <StatCard value="20+" label="učeben ARCHIMEDES® v síti" />
+              <StatCard value="20+" label="učeben ARCHIMEDES®" />
               <StatCard value="2×" label="měsíčně Senior klub" />
-              <StatCard value="Obec 2030" label="oceněná dobrá praxe" />
+              <StatCard value="Obec 2030" label="vítěz soutěže" />
               <StatCard value="Živě" label="hosté, program a komunita" />
             </div>
           </div>
 
           <div>
             <img
-              src="/ucebna.jpg"
+              src="/ucebna2.webp"
               alt="Učebna ARCHIMEDES"
               style={{
                 width: "100%",
@@ -351,14 +404,13 @@ export default function Home() {
                 objectFit: "cover",
                 borderRadius: 32,
                 display: "block",
-                boxShadow: "0 24px 56px rgba(15,23,42,0.16)",
+                boxShadow: "0 24px 56px rgba(17,24,39,0.16)",
               }}
             />
           </div>
         </div>
       </section>
 
-      {/* DUVERA */}
       <section
         style={{
           maxWidth: 1180,
@@ -370,9 +422,9 @@ export default function Home() {
           style={{
             background: "#ffffff",
             borderRadius: 26,
-            padding: "24px 24px",
-            border: "1px solid rgba(15,23,42,0.08)",
-            boxShadow: "0 12px 30px rgba(15,23,42,0.06)",
+            padding: 24,
+            border: "1px solid rgba(17,24,39,0.08)",
+            boxShadow: "0 12px 30px rgba(17,24,39,0.06)",
           }}
         >
           <div
@@ -385,25 +437,24 @@ export default function Home() {
               marginBottom: 10,
             }}
           >
-            Důvěra a zkušenost
+            Důkaz důvěry
           </div>
           <p
             style={{
               margin: 0,
               fontSize: 18,
               lineHeight: 1.7,
-              color: "rgba(15,23,42,0.82)",
+              color: "#4b5563",
             }}
           >
-            ARCHIMEDES Live navazuje na síť reálně fungujících učeben
-            ARCHIMEDES®, propojuje konkrétní školy, obce i komunity a přináší
-            pravidelný program, který je srozumitelný pro ředitele školy,
-            starostu i veřejnost.
+            ARCHIMEDES Live propojuje konkrétní školy, obce i komunity a navazuje
+            na síť reálně fungujících učeben ARCHIMEDES®. Program propojuje učebnu,
+            živé hosty, pracovní listy a navazující aktivity do srozumitelného
+            řešení pro ředitele školy i starostu.
           </p>
         </div>
       </section>
 
-      {/* JAK VYPADA JEDNA HODINA */}
       <section
         style={{
           maxWidth: 1180,
@@ -411,7 +462,7 @@ export default function Home() {
           padding: "46px 16px",
         }}
       >
-        <FeatureRow
+        <SplitSection
           image="/vyuka.jpeg"
           eyebrow="Jak vypadá jedna hodina s ARCHIMEDES®"
           title={
@@ -432,7 +483,6 @@ export default function Home() {
         />
       </section>
 
-      {/* PROGRAMOVE BLOKY */}
       <section
         style={{
           maxWidth: 1180,
@@ -440,47 +490,17 @@ export default function Home() {
           padding: "18px 16px 20px",
         }}
       >
-        <div style={{ maxWidth: 760, marginBottom: 24 }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "8px 12px",
-              borderRadius: 999,
-              background: "rgba(16,185,129,0.12)",
-              color: "#047857",
-              fontWeight: 700,
-              fontSize: 13,
-              marginBottom: 14,
-            }}
-          >
-            Program pro různé cílové skupiny
-          </div>
-
-          <h2
-            style={{
-              margin: "0 0 12px",
-              fontSize: 40,
-              lineHeight: 1.15,
-            }}
-          >
-            Jedna licence, více přínosů
-            <br />
-            pro školu i obec
-          </h2>
-
-          <p
-            style={{
-              margin: 0,
-              fontSize: 17,
-              lineHeight: 1.75,
-              color: "rgba(15,23,42,0.78)",
-            }}
-          >
-            ARCHIMEDES Live není jen vysílání. Je to živý program, který umí
-            propojit děti, pedagogy, rodiče, seniory i místní komunitu.
-          </p>
-        </div>
+        <SectionIntro
+          eyebrow="Program pro různé cílové skupiny"
+          title={
+            <>
+              Jedna licence, více přínosů
+              <br />
+              pro školu i obec
+            </>
+          }
+          text="ARCHIMEDES Live není jen vysílání. Je to živý program, který umí propojit děti, pedagogy, rodiče, seniory i místní komunitu."
+        />
 
         <div
           style={{
@@ -489,30 +509,29 @@ export default function Home() {
             gap: 22,
           }}
         >
-          <ProgramCard
+          <FeatureCard
             image="/ctenarsky.jpg"
             title="Čtenářský klub"
             text="Setkávání nad knihami, inspirativní hosté, doporučené tituly a prostor pro děti i dospělé. Program, který podporuje čtenářství i komunitní život."
             href="/program"
           />
 
-          <ProgramCard
+          <FeatureCard
             image="/senior.jpg"
             title="Senior klub"
             text="Pravidelný program pro seniory, který pomáhá proti izolaci, přináší nové podněty a dává obci smysluplnou službu pro starší generaci."
             href="/program"
           />
 
-          <ProgramCard
+          <FeatureCard
             image="/smart.jpg"
             title="Smart City klub"
-            text="Program pro deváťáky a mladé lidi, kteří chtějí přemýšlet o městě, veřejném prostoru a budoucnosti místa, kde žijí."
+            text="Program pro deváťáky a mladé lidi, kteří chtějí přemýšlet o městě, obci a veřejném prostoru očima mladé generace."
             href="/program"
           />
         </div>
       </section>
 
-      {/* DETI A HOSTE */}
       <section
         style={{
           maxWidth: 1180,
@@ -520,7 +539,7 @@ export default function Home() {
           padding: "54px 16px 24px",
         }}
       >
-        <FeatureRow
+        <SplitSection
           image="/deti.jpg"
           eyebrow="Program pro školy"
           title={
@@ -548,7 +567,7 @@ export default function Home() {
           padding: "12px 16px 34px",
         }}
       >
-        <FeatureRow
+        <SplitSection
           image="/hoste.jpg"
           eyebrow="Hosté a inspirace"
           title={
@@ -558,7 +577,7 @@ export default function Home() {
               důvěryhodnost i tah
             </>
           }
-          text="Hosté z vědy, kultury, veřejného života i odborné praxe pomáhají dělat z programu něco, co obec skutečně odliší. Právě pravidelná kvalita obsahu je důvod, proč má ARCHIMEDES Live dlouhodobý smysl."
+          text="Hosté z vědy, kultury a odborné praxe pomáhají dělat z programu něco, co obec skutečně odliší. Právě pravidelná kvalita obsahu je důvod, proč má ARCHIMEDES Live dlouhodobý smysl."
           bullets={[
             "Osobnosti z Akademie věd, kultury a odborné praxe",
             "Formát srozumitelný pro děti i dospělé",
@@ -570,7 +589,6 @@ export default function Home() {
         />
       </section>
 
-      {/* KOMUNITA */}
       <section
         style={{
           maxWidth: 1180,
@@ -578,7 +596,7 @@ export default function Home() {
           padding: "18px 16px 54px",
         }}
       >
-        <FeatureRow
+        <SplitSection
           image="/komunita.jpg"
           eyebrow="Přínos pro obec"
           title={
@@ -599,7 +617,6 @@ export default function Home() {
         />
       </section>
 
-      {/* CTA */}
       <section
         style={{
           maxWidth: 1180,
@@ -613,7 +630,7 @@ export default function Home() {
               "linear-gradient(135deg, rgba(16,185,129,0.14) 0%, rgba(59,130,246,0.12) 100%)",
             borderRadius: 30,
             padding: "34px 28px",
-            border: "1px solid rgba(15,23,42,0.08)",
+            border: "1px solid rgba(17,24,39,0.08)",
           }}
         >
           <h2
@@ -621,7 +638,7 @@ export default function Home() {
               margin: "0 0 12px",
               fontSize: 38,
               lineHeight: 1.14,
-              color: "#0f172a",
+              color: "#111827",
             }}
           >
             Chcete vidět, jak může ARCHIMEDES Live
@@ -634,19 +651,18 @@ export default function Home() {
               margin: "0 0 22px",
               fontSize: 17,
               lineHeight: 1.75,
-              color: "rgba(15,23,42,0.78)",
+              color: "#4b5563",
               maxWidth: 820,
             }}
           >
             Nejlepší první krok je ukázková hodina nebo krátká online prezentace.
-            Během ní rychle uvidíte, jak program funguje pro školu, obec i
-            komunitu.
+            Během ní rychle uvidíte, jak program funguje pro školu, obec i komunitu.
           </p>
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-            <SectionButton href="/poptavka" label="Chci ukázkovou hodinu" primary />
-            <SectionButton href="/cenik" label="Zobrazit ceník" />
-            <SectionButton href="/program" label="Projít program" />
+            <CTAButton href="/poptavka" label="Chci ukázkovou hodinu" primary />
+            <CTAButton href="/cenik" label="Zobrazit ceník" />
+            <CTAButton href="/program" label="Projít program" />
           </div>
         </div>
       </section>
