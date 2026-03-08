@@ -1,24 +1,54 @@
 import Link from "next/link";
 
+const trustItems = [
+  { value: "20+", label: "učeben ARCHIMEDES" },
+  { value: "1 000+", label: "zapojených žáků v síti" },
+  { value: "2×", label: "měsíčně Senior klub" },
+  { value: "Obec 2030", label: "vítěz soutěže" },
+];
+
+const marqueeRow1 = [
+  "Hodonín",
+  "Hovorany",
+  "Moravský Krumlov",
+  "Luže",
+  "BVV Brno",
+  "Ratíškovice",
+  "Radvanice",
+  "Dašice",
+  "Mikulov",
+];
+
+const marqueeRow2 = [
+  "Křenov",
+  "Louny",
+  "Čejč",
+  "Hlinsko",
+  "Chrudim",
+  "Kyjov",
+  "Dubňany",
+  "Frýdek‑Místek",
+  "Bučovice",
+];
+
 export default function Home() {
   return (
-    <div style={{ background: "#f6f7fb", minHeight: "100vh", fontFamily: "system-ui" }}>
-
+    <div style={{ fontFamily: "system-ui", background: "#f6f7fb", minHeight: "100vh" }}>
+      
       {/* HERO */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 16px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "70px 16px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 40, alignItems: "center" }}>
 
           <div>
-            <h1 style={{ fontSize: 44, lineHeight: 1.2, marginBottom: 16 }}>
-              Živý vzdělávací program a moderní učebny
+            <h1 style={{ fontSize: 44, lineHeight: 1.2, marginBottom: 20 }}>
+              Živý vzdělávací program
               <br />
               pro školy a obce
             </h1>
 
             <p style={{ fontSize: 18, opacity: 0.8, marginBottom: 20 }}>
               ARCHIMEDES Live propojuje školy, obce a špičkové odborníky.
-              Součástí projektu je také moderní venkovní učebna ARCHIMEDES,
-              která slouží pro výuku, komunitní program a živé vysílání.
+              Žáci se učí od vědců, spisovatelů, sportovců a odborníků z praxe – živě.
             </p>
 
             <ul style={{ lineHeight: 1.8 }}>
@@ -38,135 +68,71 @@ export default function Home() {
             </div>
           </div>
 
-          <div style={placeholderBig}>
-            FOTKA / VIDEO
-          </div>
-        </div>
-      </div>
-
-      {/* DŮVĚRA */}
-      <div style={{ background: "white", borderTop: "1px solid rgba(0,0,0,0.08)" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 16px" }}>
-
-          <h2 style={{ textAlign: "center", marginBottom: 30 }}>Důvěra</h2>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 20 }}>
-            <div style={card}>20+ učeben ARCHIMEDES</div>
-            <div style={card}>1000+ zapojených žáků</div>
-            <div style={card}>2× měsíčně Senior klub</div>
-            <div style={card}>vítěz soutěže Obec 2030</div>
+          <div style={heroImage}>
+            FOTO / VIDEO
           </div>
 
         </div>
       </div>
 
-      {/* UČEBNA */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 16px" }}>
+      {/* TRUST */}
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 16px" }}>
+        <div style={{ textAlign: "center", marginBottom: 30, opacity: 0.7 }}>
+          Důvěra
+        </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "center" }}>
-
-          <div style={placeholderBig}>
-            FOTKA UČEBNY
-          </div>
-
-          <div>
-            <h2>Moderní učebna ARCHIMEDES</h2>
-
-            <p style={{ opacity: 0.8 }}>
-              Venkovní učebna ARCHIMEDES je prostor pro moderní výuku,
-              komunitní setkávání i živé vysílání ARCHIMEDES Live.
-            </p>
-
-            <ul style={{ lineHeight: 1.8 }}>
-              <li>výuka venku po celý rok</li>
-              <li>prostor pro komunitní program</li>
-              <li>místo pro živé vzdělávací vysílání</li>
-            </ul>
-
-            <Link href="/ucebna" style={{ ...btnPrimary, marginTop: 20, display: "inline-block" }}>
-              Více o učebně
-            </Link>
-          </div>
-
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16 }}>
+          {trustItems.map((item) => (
+            <div key={item.label} style={trustCard}>
+              <div style={{ fontWeight: 700, fontSize: 22 }}>{item.value}</div>
+              <div style={{ fontSize: 14, opacity: 0.8 }}>{item.label}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* PROGRAM */}
-      <div style={{ background: "white", borderTop: "1px solid rgba(0,0,0,0.08)" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 16px" }}>
-
-          <h2 style={{ textAlign: "center", marginBottom: 30 }}>Program</h2>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 20 }}>
-            <div style={card}>Science ON</div>
-            <div style={card}>Smart City klub</div>
-            <div style={card}>Čtenářský klub</div>
-            <div style={card}>Senior klub</div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* HOSTÉ */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 16px" }}>
-
-        <h2 style={{ textAlign: "center", marginBottom: 30 }}>Hosté programu</h2>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 20 }}>
-          <div style={placeholder}>HOST</div>
-          <div style={placeholder}>HOST</div>
-          <div style={placeholder}>HOST</div>
-          <div style={placeholder}>HOST</div>
-        </div>
-
-      </div>
-
-      {/* PARTNEŘI */}
-      <div style={{ background: "white", borderTop: "1px solid rgba(0,0,0,0.08)" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 16px" }}>
-
-          <h2 style={{ textAlign: "center", marginBottom: 30 }}>Partneři projektu</h2>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 20 }}>
-            <div style={logo}>LOGO</div>
-            <div style={logo}>LOGO</div>
-            <div style={logo}>LOGO</div>
-            <div style={logo}>LOGO</div>
-            <div style={logo}>LOGO</div>
-            <div style={logo}>LOGO</div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* MÉDIA */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 16px" }}>
-
-        <h2 style={{ textAlign: "center", marginBottom: 30 }}>Média</h2>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 20 }}>
-          <div style={logo}>LOGO</div>
-          <div style={logo}>LOGO</div>
-          <div style={logo}>LOGO</div>
-          <div style={logo}>LOGO</div>
-        </div>
+      {/* MARQUEE CITIES */}
+      <div style={{ overflow: "hidden", padding: "40px 0" }}>
+        
+        <Marquee items={marqueeRow1} direction="left" />
+        <Marquee items={marqueeRow2} direction="right" />
 
       </div>
 
       {/* CTA */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 16px", textAlign: "center" }}>
+        <h2 style={{ marginBottom: 20 }}>Zapojte svou školu nebo obec</h2>
 
-        <h2>Zapojte svou školu nebo obec</h2>
-
-        <Link href="/poptavka" style={{ ...btnPrimary, marginTop: 20, display: "inline-block" }}>
+        <Link href="/poptavka" style={btnPrimary}>
           Chci více informací
         </Link>
-
       </div>
 
     </div>
   );
 }
+
+
+function Marquee({ items, direction }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 20,
+        justifyContent: "center",
+        marginBottom: 12,
+        flexWrap: "wrap",
+      }}
+    >
+      {items.map((city) => (
+        <div key={city} style={cityBadge}>
+          {city}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 const btnPrimary = {
   padding: "12px 20px",
@@ -186,25 +152,7 @@ const btnSecondary = {
   color: "#111827",
 };
 
-const card = {
-  background: "#f9fafb",
-  padding: 20,
-  borderRadius: 12,
-  textAlign: "center",
-  fontWeight: 600,
-};
-
-const placeholder = {
-  background: "#e5e7eb",
-  height: 160,
-  borderRadius: 12,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontWeight: 700,
-};
-
-const placeholderBig = {
+const heroImage = {
   background: "#e5e7eb",
   height: 260,
   borderRadius: 14,
@@ -214,12 +162,17 @@ const placeholderBig = {
   fontWeight: 700,
 };
 
-const logo = {
+const trustCard = {
   background: "#f3f4f6",
-  height: 70,
-  borderRadius: 10,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontWeight: 700,
+  padding: 18,
+  borderRadius: 12,
+  textAlign: "center",
+};
+
+const cityBadge = {
+  padding: "10px 16px",
+  background: "white",
+  borderRadius: 999,
+  boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
+  fontWeight: 600,
 };
