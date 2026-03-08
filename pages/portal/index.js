@@ -41,6 +41,9 @@ export default function PortalIndex() {
   const [loadingProfileType, setLoadingProfileType] = useState(true);
   const [dashboardType, setDashboardType] = useState("default");
   const [organizationName, setOrganizationName] = useState("");
+  const [organizationCode, setOrganizationCode] = useState("");
+  const [membershipRole, setMembershipRole] = useState("");
+  const [copiedCode, setCopiedCode] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -84,35 +87,40 @@ export default function PortalIndex() {
           return;
         }
 
-        const [{ data: profile, error: profileError }, { data: membership, error: membershipError }] =
-          await Promise.all([
-            supabase
-              .from("profiles")
-              .select("id, user_type")
-              .eq("id", user.id)
-              .maybeSingle(),
+        const [
+          { data: profile, error: profileError },
+          { data: membership, error: membershipError },
+        ] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("id, user_type")
+            .eq("id", user.id)
+            .maybeSingle(),
 
-            supabase
-              .from("organization_members")
-              .select("organization_id, status")
-              .eq("user_id", user.id)
-              .eq("status", "active")
-              .maybeSingle(),
-          ]);
+          supabase
+            .from("organization_members")
+            .select("organization_id, status, role")
+            .eq("user_id", user.id)
+            .eq("status", "active")
+            .maybeSingle(),
+        ]);
 
         if (profileError) throw profileError;
         if (membershipError) throw membershipError;
 
+        setMembershipRole(membership?.role || "");
+
         if (membership?.organization_id) {
           const { data: org, error: orgError } = await supabase
             .from("organizations")
-            .select("id, name, type")
+            .select("id, name, type, join_code")
             .eq("id", membership.organization_id)
             .maybeSingle();
 
           if (orgError) throw orgError;
 
           setOrganizationName(org?.name || "");
+          setOrganizationCode(org?.join_code || "");
 
           if (org?.type === "school") {
             setDashboardType("school");
@@ -135,8 +143,26 @@ export default function PortalIndex() {
   }, []);
 
   const hasEvents = nextEvents && nextEvents.length > 0;
+  const dashboard = useMemo(
+    () => getDashboardConfig(dashboardType, organizationName),
+    [dashboardType, organizationName]
+  );
 
-  const dashboard = useMemo(() => getDashboardConfig(dashboardType, organizationName), [dashboardType, organizationName]);
+  const showGettingStarted =
+    !loadingProfileType &&
+    !!organizationName &&
+    membershipRole === "organization_admin";
+
+  async function handleCopyOrganizationCode() {
+    if (!organizationCode) return;
+    try {
+      await navigator.clipboard.writeText(organizationCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 1800);
+    } catch (_e) {
+      // no-op
+    }
+  }
 
   return (
     <RequireAuth>
@@ -224,6 +250,203 @@ export default function PortalIndex() {
               </div>
             </div>
           </section>
+
+          {showGettingStarted ? (
+            <section
+              style={{
+                background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
+                border: "1px solid rgba(15,23,42,0.08)",
+                borderRadius: 24,
+                padding: 18,
+                boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
+                marginBottom: 18,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  gap: 14,
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  flexWrap: "wrap",
+                  marginBottom: 16,
+                }}
+              >
+                <div style={{ minWidth: 0, flex: "1 1 520px" }}>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "6px 10px",
+                      borderRadius: 999,
+                      background: "rgba(15,23,42,0.06)",
+                      color: "#0f172a",
+                      fontSize: 12,
+                      fontWeight: 800,
+                      marginBottom: 10,
+                    }}
+                  >
+                    Začínáme
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 28,
+                      fontWeight: 900,
+                      lineHeight: 1.08,
+                      color: "#0f172a",
+                    }}
+                  >
+                    Jak zapojit školu do portálu
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 8,
+                      fontSize: 15,
+                      lineHeight: 1.6,
+                      color: "rgba(15,23,42,0.72)",
+                      maxWidth: 760,
+                    }}
+                  >
+                    Jste správce organizace{organizationName ? ` pro ${organizationName}` : ""}. Níže je
+                    doporučený postup, jak připojit další učitele a rychle začít portál používat.
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    minWidth: 280,
+                    flex: "0 1 360px",
+                    background: "white",
+                    border: "1px solid rgba(15,23,42,0.10)",
+                    borderRadius: 18,
+                    padding: 14,
+                    boxShadow: "0 10px 28px rgba(15,23,42,0.04)",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: "rgba(15,23,42,0.64)",
+                      marginBottom: 8,
+                    }}
+                  >
+                    Kód školy / organizace
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div
+                      style={{
+                        flex: "1 1 180px",
+                        minHeight: 48,
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "0 14px",
+                        borderRadius: 14,
+                        background: "#f8fafc",
+                        border: "1px solid rgba(15,23,42,0.10)",
+                        fontSize: 18,
+                        fontWeight: 900,
+                        color: "#0f172a",
+                        letterSpacing: "0.01em",
+                      }}
+                    >
+                      {organizationCode || "Kód není k dispozici"}
+                    </div>
+
+                    <button
+                      onClick={handleCopyOrganizationCode}
+                      disabled={!organizationCode}
+                      style={{
+                        border: "none",
+                        cursor: organizationCode ? "pointer" : "not-allowed",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "12px 16px",
+                        borderRadius: 14,
+                        background: organizationCode ? "#0f172a" : "rgba(15,23,42,0.16)",
+                        color: "white",
+                        fontWeight: 900,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {copiedCode ? "Zkopírováno" : "Kopírovat"}
+                    </button>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 10,
+                      fontSize: 13,
+                      lineHeight: 1.5,
+                      color: "rgba(15,23,42,0.64)",
+                    }}
+                  >
+                    Tento kód pošlete učitelům. Po registraci zvolí možnost <b>Připojit se ke stávající organizaci</b>.
+                  </div>
+                </div>
+              </div>
+
+              <div className="onboarding-grid">
+                <OnboardingStep
+                  number="1"
+                  title="Pošlete učitelům přístup"
+                  text="Pošlete jim odkaz na přihlášení a kód školy. To je nejrychlejší způsob zapojení více lidí najednou."
+                  footer={
+                    <div
+                      style={{
+                        marginTop: 10,
+                        padding: 12,
+                        borderRadius: 14,
+                        background: "#f8fafc",
+                        border: "1px solid rgba(15,23,42,0.08)",
+                        fontSize: 13,
+                        lineHeight: 1.55,
+                        color: "#0f172a",
+                      }}
+                    >
+                      <b>Login:</b> archimedeslive.com/login
+                      <br />
+                      <b>Kód školy:</b> {organizationCode || "—"}
+                    </div>
+                  }
+                />
+
+                <OnboardingStep
+                  number="2"
+                  title="Učitelé se sami připojí"
+                  text="Učitel si vytvoří účet, přihlásí se a na obrazovce Welcome zvolí připojení ke stávající organizaci."
+                />
+
+                <OnboardingStep
+                  number="3"
+                  title="Začněte kalendářem"
+                  text="Nejrychlejší vstup do programu je přes kalendář. Odtud se dostanete k živému vysílání i detailu programu."
+                  actionHref="/portal/kalendar"
+                  actionLabel="Otevřít kalendář"
+                />
+
+                <OnboardingStep
+                  number="4"
+                  title="Spravujte uživatele"
+                  text="Na stránce Uživatelé uvidíte aktivní členy školy. Jednotlivé e-mailové pozvánky používejte jen když je to opravdu potřeba."
+                  actionHref="/portal/uzivatele"
+                  actionLabel="Otevřít uživatele"
+                />
+              </div>
+            </section>
+          ) : null}
 
           <div
             style={{
@@ -562,6 +785,12 @@ export default function PortalIndex() {
               grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
+            .onboarding-grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 14px;
+            }
+
             @media (max-width: 1080px) {
               .portal-main-grid {
                 grid-template-columns: 1fr;
@@ -570,7 +799,8 @@ export default function PortalIndex() {
 
             @media (max-width: 760px) {
               .tiles-grid,
-              .admin-grid {
+              .admin-grid,
+              .onboarding-grid {
                 grid-template-columns: 1fr;
               }
             }
@@ -589,8 +819,7 @@ function getDashboardConfig(type, organizationName = "") {
       badge: "ARCHIMEDES Live • škola",
       heroTitleLine1: "Vaše pracovní plocha",
       heroTitleLine2: "pro školní program",
-      heroText:
-        `Tady najdete živý program pro výuku, přístup do archivu, pracovní materiály a inspiraci ze sítě učeben${orgLabel}.`,
+      heroText: `Tady najdete živý program pro výuku, přístup do archivu, pracovní materiály a inspiraci ze sítě učeben${orgLabel}.`,
       tipBold: "Kalendář",
       quickTitle: "Rychlý přístup pro školu",
       quickSubtitle: "Nejrychlejší vstup do vysílání, záznamů a návazných materiálů.",
@@ -645,8 +874,7 @@ function getDashboardConfig(type, organizationName = "") {
       badge: "ARCHIMEDES Live • obec",
       heroTitleLine1: "Vaše pracovní plocha",
       heroTitleLine2: "pro obec a komunitu",
-      heroText:
-        `Tady najdete živý program pro komunitu, přístup k vysílání, inspiraci ze sítě učeben i prostor pro spolupráci${orgLabel}.`,
+      heroText: `Tady najdete živý program pro komunitu, přístup k vysílání, inspiraci ze sítě učeben i prostor pro spolupráci${orgLabel}.`,
       tipBold: "Kalendář",
       quickTitle: "Rychlý přístup pro obec",
       quickSubtitle: "Nejrychlejší vstup do programu, komunitního obsahu a spolupráce.",
@@ -711,6 +939,61 @@ function getDashboardConfig(type, organizationName = "") {
       sideBoxTitle: "Doporučený další krok",
       sideBoxText:
         "Začněte kalendářem a poté projděte archiv. Pokud vás zaujme síť učeben nebo spolupráce, pokračujte do inzerce.",
+      stats: [
+        { value: "1", label: "místo pro vstup do programu" },
+        { value: "3", label: "nejbližší vysílání v přehledu" },
+        { value: "4", label: "hlavní sekce rychlého přístupu" },
+        { value: "24/7", label: "přístup pro registrované" },
+      ],
+      tiles: [
+        {
+          href: "/portal/kalendar",
+          icon: "🗓️",
+          title: "Kalendář",
+          desc: "Přehled vysílání, detail programu a nejsnazší vstup do živého obsahu.",
+          cta: "Otevřít",
+          highlight: true,
+          note: "Doporučeno",
+        },
+        {
+          href: "/portal/archiv",
+          icon: "📚",
+          title: "Archiv",
+          desc: "Záznamy, materiály a další obsah, ke kterému se můžete vracet.",
+          cta: "Otevřít",
+        },
+        {
+          href: "/portal/inzerce",
+          icon: "📌",
+          title: "Inzerce",
+          desc: "Nabídky, poptávky a partnerství mezi členy sítě.",
+          cta: "Otevřít",
+        },
+        {
+          href: "/portal/skoly",
+          icon: "🏫",
+          title: "Síť učeben",
+          desc: "Přehled škol s učebnou ARCHIMEDES, inspirace z praxe a kontakty.",
+          cta: "Otevřít",
+        },
+      ],
+    };
+  }
+
+  if (type === "organization") {
+    return {
+      badge: "ARCHIMEDES Live • organizace",
+      heroTitleLine1: "Vaše pracovní plocha",
+      heroTitleLine2: "pro živý program",
+      heroText: `Tady najdete přístup k programu, záznamům, spolupráci i síti učeben${orgLabel}.`,
+      tipBold: "Kalendář",
+      quickTitle: "Rychlý přístup",
+      quickSubtitle: "Nejrychlejší cesta k programu a dalším sekcím portálu.",
+      primaryCtaLabel: "Otevřít kalendář",
+      primaryCtaHref: "/portal/kalendar",
+      sideBoxTitle: "Doporučený další krok",
+      sideBoxText:
+        "Začněte kalendářem a podle potřeby přejděte do dalších sekcí portálu.",
       stats: [
         { value: "1", label: "místo pro vstup do programu" },
         { value: "3", label: "nejbližší vysílání v přehledu" },
@@ -1028,6 +1311,82 @@ function EventRow({ e }) {
       >
         Otevřít
       </Link>
+    </div>
+  );
+}
+
+function OnboardingStep({ number, title, text, actionHref, actionLabel, footer }) {
+  return (
+    <div
+      style={{
+        background: "white",
+        border: "1px solid rgba(15,23,42,0.10)",
+        borderRadius: 20,
+        padding: 16,
+        boxShadow: "0 10px 28px rgba(15,23,42,0.04)",
+      }}
+    >
+      <div
+        style={{
+          width: 34,
+          height: 34,
+          borderRadius: 999,
+          background: "#0f172a",
+          color: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: 900,
+          fontSize: 15,
+          marginBottom: 12,
+        }}
+      >
+        {number}
+      </div>
+
+      <div
+        style={{
+          fontSize: 18,
+          fontWeight: 900,
+          lineHeight: 1.2,
+          color: "#0f172a",
+        }}
+      >
+        {title}
+      </div>
+
+      <div
+        style={{
+          marginTop: 8,
+          fontSize: 14,
+          lineHeight: 1.6,
+          color: "rgba(15,23,42,0.72)",
+        }}
+      >
+        {text}
+      </div>
+
+      {footer || null}
+
+      {actionHref && actionLabel ? (
+        <Link
+          href={actionHref}
+          style={{
+            marginTop: 14,
+            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "12px 14px",
+            borderRadius: 14,
+            background: "#0f172a",
+            color: "white",
+            fontWeight: 900,
+          }}
+        >
+          {actionLabel}
+        </Link>
+      ) : null}
     </div>
   );
 }
