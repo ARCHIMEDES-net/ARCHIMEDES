@@ -65,18 +65,22 @@ export default function Login() {
   async function getProfileMustSetPassword(userId) {
     if (!userId) return null;
 
-    const { data, error } = await withTimeout(
-      supabase
-        .from("profiles")
-        .select("must_set_password")
-        .eq("id", userId)
-        .maybeSingle(),
-      10000,
-      "Načtení profilu"
-    );
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from("profiles")
+          .select("must_set_password")
+          .eq("id", userId)
+          .maybeSingle(),
+        8000,
+        "Načtení profilu"
+      );
 
-    if (error) throw error;
-    return data?.must_set_password ?? null;
+      if (error) throw error;
+      return data?.must_set_password ?? null;
+    } catch {
+      return null;
+    }
   }
 
   useEffect(() => {
@@ -116,7 +120,6 @@ export default function Login() {
             10000,
             "Výměna kódu za relaci"
           );
-
           if (exchangeError) throw exchangeError;
         }
 
@@ -129,7 +132,6 @@ export default function Login() {
             10000,
             "Ověření odkazu"
           );
-
           if (verifyError) throw verifyError;
         }
 
@@ -137,7 +139,7 @@ export default function Login() {
           data: { session },
         } = await withTimeout(
           supabase.auth.getSession(),
-          10000,
+          8000,
           "Načtení relace"
         );
 
@@ -148,15 +150,14 @@ export default function Login() {
 
           if (!mounted) return;
 
-          if (mustSetPassword === true) {
+          if (mustSetPassword === true || inviteOrRecovery) {
             setMode("set-password");
-            setMessage("Dokončete registraci nastavením svého hesla.");
-            return;
-          }
-
-          if (inviteOrRecovery) {
-            setMode("set-password");
-            setMessage("Nastavte si nové heslo.");
+            setMessage(
+              mustSetPassword === true
+                ? "Dokončete registraci nastavením svého hesla."
+                : "Nastavte si nové heslo."
+            );
+            setCheckingSession(false);
             return;
           }
 
@@ -164,11 +165,7 @@ export default function Login() {
           return;
         }
 
-        if (router.query.reset === "1") {
-          setMode("reset-password");
-        } else {
-          setMode("login");
-        }
+        setMode(router.query.reset === "1" ? "reset-password" : "login");
       } catch (e) {
         if (!mounted) return;
         setError(e.message || "Nepodařilo se načíst přihlášení.");
@@ -180,9 +177,16 @@ export default function Login() {
 
     init();
 
+    const timeoutId = setTimeout(() => {
+      if (!mounted) return;
+      setCheckingSession(false);
+      setMode("login");
+      setError((prev) => prev || "");
+    }, 12000);
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
 
       if (event === "PASSWORD_RECOVERY" && session?.user) {
@@ -192,43 +196,31 @@ export default function Login() {
         return;
       }
 
-      if (session?.user) {
-        try {
-          const mustSetPassword = await getProfileMustSetPassword(session.user.id);
+      if (event === "SIGNED_IN" && session?.user) {
+        const { type, accessTokenInHash } = readAuthParams();
+        const inviteOrRecovery =
+          isInviteOrRecoveryType(type) || accessTokenInHash;
 
-          if (!mounted) return;
-
-          if (mustSetPassword === true) {
-            setMode("set-password");
-            setMessage("Dokončete registraci nastavením svého hesla.");
-            setCheckingSession(false);
-            return;
-          }
-
-          const { type, accessTokenInHash } = readAuthParams();
-          const inviteOrRecovery =
-            isInviteOrRecoveryType(type) || accessTokenInHash;
-
-          if (inviteOrRecovery) {
-            setMode("set-password");
-            setMessage("Nastavte si nové heslo.");
-            setCheckingSession(false);
-            return;
-          }
-
-          router.replace("/portal");
-        } catch (e) {
-          setError(e.message || "Nepodařilo se ověřit stav přihlášení.");
+        if (inviteOrRecovery) {
+          setMode("set-password");
+          setMessage("Nastavte si nové heslo.");
           setCheckingSession(false);
+          return;
         }
-      } else {
-        setMode(router.query.reset === "1" ? "reset-password" : "login");
+
+        router.replace("/portal");
+        return;
+      }
+
+      if (event === "SIGNED_OUT") {
+        setMode("login");
         setCheckingSession(false);
       }
     });
 
     return () => {
       mounted = false;
+      clearTimeout(timeoutId);
       subscription?.unsubscribe();
     };
   }, [router.isReady, router.query.reset]);
@@ -250,7 +242,6 @@ export default function Login() {
       );
 
       if (error) throw error;
-
       router.push("/portal");
     } catch (e) {
       setError(e.message || "Přihlášení se nepodařilo.");
@@ -306,7 +297,11 @@ export default function Login() {
 
       const {
         data: { session },
-      } = await withTimeout(supabase.auth.getSession(), 10000, "Načtení relace");
+      } = await withTimeout(
+        supabase.auth.getSession(),
+        10000,
+        "Načtení relace"
+      );
 
       if (!session?.user) {
         throw new Error(
@@ -326,21 +321,21 @@ export default function Login() {
 
       if (updateUserError) throw updateUserError;
 
-      setMessage("Načítám uživatele...");
-
       const {
         data: { user },
         error: getUserError,
-      } = await withTimeout(supabase.auth.getUser(), 10000, "Načtení uživatele");
+      } = await withTimeout(
+        supabase.auth.getUser(),
+        10000,
+        "Načtení uživatele"
+      );
 
       if (getUserError) throw getUserError;
       if (!user?.id) {
         throw new Error("Nepodařilo se dohledat přihlášeného uživatele.");
       }
 
-      setMessage("Aktualizuji profil...");
-
-      const { error: profileUpdateError } = await withTimeout(
+      await withTimeout(
         supabase
           .from("profiles")
           .update({ must_set_password: false })
@@ -348,8 +343,6 @@ export default function Login() {
         10000,
         "Aktualizace profilu"
       );
-
-      if (profileUpdateError) throw profileUpdateError;
 
       setMessage("Heslo bylo nastaveno. Přesměrovávám do portálu...");
 
