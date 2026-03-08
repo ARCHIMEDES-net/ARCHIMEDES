@@ -49,7 +49,7 @@ function withTimeout(promise, ms, label) {
 export default function Login() {
   const router = useRouter();
 
-  const [mode, setMode] = useState("login"); // login | set-password
+  const [mode, setMode] = useState("login"); // login | set-password | reset-password
   const [checkingSession, setCheckingSession] = useState(true);
 
   const [email, setEmail] = useState("");
@@ -164,7 +164,11 @@ export default function Login() {
           return;
         }
 
-        setMode("login");
+        if (router.query.reset === "1") {
+          setMode("reset-password");
+        } else {
+          setMode("login");
+        }
       } catch (e) {
         if (!mounted) return;
         setError(e.message || "Nepodařilo se načíst přihlášení.");
@@ -218,7 +222,7 @@ export default function Login() {
           setCheckingSession(false);
         }
       } else {
-        setMode("login");
+        setMode(router.query.reset === "1" ? "reset-password" : "login");
         setCheckingSession(false);
       }
     });
@@ -227,7 +231,7 @@ export default function Login() {
       mounted = false;
       subscription?.unsubscribe();
     };
-  }, [router.isReady]);
+  }, [router.isReady, router.query.reset]);
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -256,6 +260,35 @@ export default function Login() {
     }
   }
 
+  async function handleResetPassword(e) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      if (!email || !email.trim()) {
+        throw new Error("Zadejte e-mail.");
+      }
+
+      const { error } = await withTimeout(
+        supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${window.location.origin}/login`,
+        }),
+        10000,
+        "Odeslání reset e-mailu"
+      );
+
+      if (error) throw error;
+
+      setMessage("Na váš e-mail byl odeslán odkaz pro nastavení nového hesla.");
+    } catch (e) {
+      setError(e.message || "Nepodařilo se odeslat reset hesla.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleSetPassword(e) {
     e.preventDefault();
     setSaving(true);
@@ -277,7 +310,7 @@ export default function Login() {
 
       if (!session?.user) {
         throw new Error(
-          "Relace z pozvánky nebyla nalezena. Otevřete prosím odkaz z e-mailu znovu."
+          "Relace z pozvánky nebo resetu nebyla nalezena. Otevřete prosím odkaz z e-mailu znovu."
         );
       }
 
@@ -367,12 +400,18 @@ export default function Login() {
         }}
       >
         <h1 style={{ marginTop: 0, marginBottom: 8, fontSize: 30 }}>
-          {mode === "set-password" ? "Dokončení registrace" : "Přihlášení"}
+          {mode === "set-password"
+            ? "Dokončení registrace"
+            : mode === "reset-password"
+            ? "Zapomenuté heslo"
+            : "Přihlášení"}
         </h1>
 
         <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)", lineHeight: 1.6 }}>
           {mode === "set-password"
             ? "Nastavte si své heslo pro vstup do ARCHIMEDES Live."
+            : mode === "reset-password"
+            ? "Zadejte svůj e-mail a pošleme vám odkaz pro nastavení nového hesla."
             : "Přihlaste se do svého účtu ARCHIMEDES Live."}
         </p>
 
@@ -463,6 +502,65 @@ export default function Login() {
               {saving ? "Ukládám…" : "Nastavit heslo a pokračovat"}
             </button>
           </form>
+        ) : mode === "reset-password" ? (
+          <form onSubmit={handleResetPassword}>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+                E-mail
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px 14px",
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.15)",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={saving}
+              style={{
+                padding: "12px 18px",
+                borderRadius: 12,
+                border: "none",
+                background: "#111827",
+                color: "#fff",
+                fontWeight: 700,
+                cursor: saving ? "default" : "pointer",
+                opacity: saving ? 0.7 : 1,
+              }}
+            >
+              {saving ? "Odesílám…" : "Odeslat odkaz pro nové heslo"}
+            </button>
+
+            <div style={{ marginTop: 14 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("login");
+                  setError("");
+                  setMessage("");
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  color: "#111827",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                  fontSize: 14,
+                }}
+              >
+                Zpět na přihlášení
+              </button>
+            </div>
+          </form>
         ) : (
           <>
             <form onSubmit={handleLogin}>
@@ -503,16 +601,25 @@ export default function Login() {
               </div>
 
               <div style={{ marginBottom: 18 }}>
-                <Link
-                  href="/login?reset=1"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("reset-password");
+                    setError("");
+                    setMessage("");
+                  }}
                   style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
                     color: "#111827",
                     textDecoration: "underline",
+                    cursor: "pointer",
                     fontSize: 14,
                   }}
                 >
                   Zapomenuté heslo
-                </Link>
+                </button>
               </div>
 
               <button
