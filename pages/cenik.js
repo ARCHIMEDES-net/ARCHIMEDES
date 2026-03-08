@@ -1,50 +1,4 @@
-import Link from "next/link";
-
-function PriceButton({ href, label, primary, compact }) {
-  return (
-    <Link
-      href={href}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 48,
-        padding: "0 20px",
-        borderRadius: 14,
-        textDecoration: "none",
-        fontWeight: 700,
-        fontSize: 16,
-        boxSizing: "border-box",
-        width: compact ? "100%" : "auto",
-        background: primary ? "#111827" : "white",
-        color: primary ? "white" : "#111827",
-        border: primary ? "1px solid #111827" : "1px solid rgba(17,24,39,0.14)",
-        transition: "transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = primary
-          ? "0 10px 22px rgba(0,0,0,0.18)"
-          : "0 8px 18px rgba(0,0,0,0.12)";
-        if (primary) e.currentTarget.style.background = "#1f2937";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "none";
-        if (primary) e.currentTarget.style.background = "#111827";
-      }}
-      onMouseDown={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 4px 10px rgba(0,0,0,0.2)";
-      }}
-      onMouseUp={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-      }}
-    >
-      {label}
-    </Link>
-  );
-}
+import Button from "../components/Button";
 
 function PriceCard({
   title,
@@ -184,17 +138,14 @@ function PriceCard({
           flexDirection: compact ? "column" : "row",
         }}
       >
-        <PriceButton
-          href={ctaHref}
-          label={ctaLabel}
-          primary
-          compact={compact}
-        />
-        <PriceButton
-          href={secondaryHref}
-          label={secondaryLabel}
-          compact={compact}
-        />
+        <div style={{ width: compact ? "100%" : "auto" }}>
+          <Button href={ctaHref}>{ctaLabel}</Button>
+        </div>
+        <div style={{ width: compact ? "100%" : "auto" }}>
+          <Button href={secondaryHref} variant="secondary">
+            {secondaryLabel}
+          </Button>
+        </div>
       </div>
 
       <div
