@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Button from "../components/Button";
+import { supabase } from "../lib/supabaseClient";
 
 const LICENSE_OPTIONS = [
   { value: "obec", label: "Obec" },
@@ -19,8 +20,9 @@ function normalizeLicenseType(value) {
     ["senior", "seniori", "senior-klub", "senior_klub", "senior klub"].includes(
       v
     )
-  )
+  ) {
     return "senior";
+  }
 
   return "obec";
 }
@@ -59,34 +61,67 @@ export default function Poptavka() {
     setMessage("");
 
     try {
-      if (!contactName.trim()) {
+      const trimmedContactName = contactName.trim();
+      const trimmedOrganization = organization.trim();
+      const trimmedAddress = address.trim();
+      const trimmedEmail = email.trim();
+      const trimmedPhone = phone.trim();
+      const trimmedNote = note.trim();
+
+      if (!trimmedContactName) {
         throw new Error("Vyplňte prosím jméno a příjmení kontaktní osoby.");
       }
 
-      if (!organization.trim()) {
+      if (!trimmedOrganization) {
         throw new Error("Vyplňte prosím název obce, školy nebo organizace.");
       }
 
-      if (!address.trim()) {
+      if (!trimmedAddress) {
         throw new Error("Vyplňte prosím adresu.");
       }
 
-      if (!email.trim()) {
+      if (!trimmedEmail) {
         throw new Error("Vyplňte prosím e-mail.");
       }
 
-      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
       if (!emailOk) {
         throw new Error("Zadejte prosím platný e-mail.");
       }
 
-      if (phone.trim() && phone.trim().length < 6) {
+      if (trimmedPhone && trimmedPhone.length < 6) {
         throw new Error("Telefon je příliš krátký.");
       }
 
+      const payload = {
+        license_type: licenseType,
+        contact_name: trimmedContactName,
+        organization: trimmedOrganization,
+        address: trimmedAddress,
+        email: trimmedEmail,
+        phone: trimmedPhone || null,
+        message: trimmedNote || null,
+        status: "new",
+      };
+
+      const { error: insertError } = await supabase
+        .from("access_requests")
+        .insert([payload]);
+
+      if (insertError) {
+        throw new Error(insertError.message || "Poptávku se nepodařilo uložit.");
+      }
+
       setMessage(
-        `Poptávka pro licenci „${selectedLicenseLabel}“ je připravena. Po napojení odesílání se budou ukládat údaje včetně kontaktní osoby a adresy prvního administrátora.`
+        `Děkujeme. Poptávka pro licenci „${selectedLicenseLabel}“ byla úspěšně odeslána. Ozveme se vám co nejdříve.`
       );
+
+      setContactName("");
+      setOrganization("");
+      setAddress("");
+      setEmail("");
+      setPhone("");
+      setNote("");
     } catch (e2) {
       setError(e2.message || "Poptávku se nepodařilo odeslat.");
     } finally {
