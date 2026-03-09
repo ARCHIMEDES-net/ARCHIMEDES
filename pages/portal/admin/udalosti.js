@@ -11,7 +11,6 @@ const RUBRICS = [
   { key: "senior", label: "Senior Klub", titlePrefix: "Senior Klub – ", aud: ["Senioři"] },
   { key: "wellbeing", label: "Wellbeing", titlePrefix: "Wellbeing – ", aud: ["Wellbeing"] },
 
-  // v materiálech a na stránkách máte konkrétně tyto názvy:
   { key: "science_on", label: "Science On", titlePrefix: "Science On – ", aud: ["2. stupeň"] },
   { key: "czexpats", label: "Czexpats in Science", titlePrefix: "Czexpats in Science – ", aud: ["2. stupeň"] },
   { key: "smart_city", label: "Smart City Klub", titlePrefix: "Smart City Klub – ", aud: ["2. stupeň", "Smart Cities"] },
@@ -126,16 +125,12 @@ export default function AdminUdalosti() {
 
   const [rows, setRows] = useState([]);
 
-  // form
   const [editingId, setEditingId] = useState(null);
 
   const [rubricKey, setRubricKey] = useState("");
   const [title, setTitle] = useState("");
   const [startsAtLocal, setStartsAtLocal] = useState("");
 
-  // Ukládáme obojí:
-  // - audience (text) kvůli zobrazení
-  // - audience_groups (array) kvůli DB constraintu
   const [audienceText, setAudienceText] = useState("");
   const [audienceSelected, setAudienceSelected] = useState([]);
 
@@ -145,29 +140,24 @@ export default function AdminUdalosti() {
   const [posterUrl, setPosterUrl] = useState("");
   const [isPublished, setIsPublished] = useState(true);
 
-  // sync: checkboxy -> text
   useEffect(() => {
     if (Array.isArray(audienceSelected)) {
       setAudienceText(joinAudience(audienceSelected));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audienceSelected]);
 
-  // sync: text -> checkboxy (když někdo upraví ručně)
   useEffect(() => {
     const parsed = splitAudience(audienceText);
     const a = JSON.stringify(parsed);
     const b = JSON.stringify(audienceSelected);
     if (a !== b) setAudienceSelected(parsed);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audienceText]);
+  }, [audienceText, audienceSelected]);
 
   async function loadEvents() {
     setLoading(true);
     setError("");
     setInfo("");
 
-    // audience_groups načítáme, ať umíme editovat i staré záznamy
     const { data, error } = await supabase
       .from("events")
       .select(
@@ -224,10 +214,8 @@ export default function AdminUdalosti() {
     setTitle(normalizeText(r.title));
     setStartsAtLocal(toDatetimeLocalValue(r.starts_at));
 
-    // primárně bereme audience_groups (array), když je, jinak odvodíme z textu
     const groups = Array.isArray(r.audience_groups) ? r.audience_groups.map(String) : [];
     const audText = normalizeText(r.audience);
-
     const finalGroups = groups.length ? groups : splitAudience(audText);
 
     setAudienceSelected(finalGroups);
@@ -264,8 +252,6 @@ export default function AdminUdalosti() {
 
     if (!t) return "Vyplň název události.";
     if (!startsAtLocal || !dt) return "Vyplň datum a čas (start).";
-
-    // tady hlídáme přesně to, co chce DB constraint
     if (!Array.isArray(audienceSelected) || audienceSelected.length === 0) {
       return "Vyber alespoň jednu cílovku (audience_groups nesmí být prázdné).";
     }
@@ -339,13 +325,8 @@ export default function AdminUdalosti() {
     const payload = {
       title: title.trim(),
       starts_at: startsAt.toISOString(),
-
-      // text pro přehled a kompatibilitu
       audience: audienceText.trim() || joinAudience(groups),
-
-      // array pro DB constraint
       audience_groups: groups,
-
       full_description: (fullDescription || "").trim(),
       stream_url: normalizeUrl(streamUrl),
       worksheet_url: normalizeUrl(worksheetUrl),
@@ -445,7 +426,6 @@ export default function AdminUdalosti() {
               </div>
             </div>
 
-            {/* RUBRIKY */}
             <div style={{ marginTop: 12 }}>
               <div style={{ fontWeight: 800, marginBottom: 8 }}>Rubriky</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -490,7 +470,6 @@ export default function AdminUdalosti() {
               </div>
 
               <div style={grid2}>
-                {/* CÍLOVKA – checkbox “tabulka” */}
                 <Field label="Cílovka (audience_groups) *">
                   <div style={{ display: "grid", gap: 10 }}>
                     <div style={audGrid}>
@@ -515,7 +494,6 @@ export default function AdminUdalosti() {
                       })}
                     </div>
 
-                    {/* Textové pole zůstává (pro rychlou úpravu/poznámku), ale DB se řídí audience_groups */}
                     <input
                       value={audienceText}
                       onChange={(e) => setAudienceText(e.target.value)}
@@ -603,7 +581,6 @@ export default function AdminUdalosti() {
           </div>
         </section>
 
-        {/* LIST */}
         <section style={{ marginTop: 16 }}>
           <div style={card}>
             <h2 style={{ marginTop: 0 }}>Seznam událostí</h2>
@@ -664,6 +641,18 @@ export default function AdminUdalosti() {
                                 Upravit
                               </button>
 
+                              <Link
+                                href={`/portal/admin/vysilani/${r.id}`}
+                                style={{
+                                  ...btnSecondary,
+                                  textDecoration: "none",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                Vysílání
+                              </Link>
+
                               <button type="button" style={btnSecondary} onClick={() => togglePublished(r.id, published)}>
                                 {published ? "Skrýt" : "Publikovat"}
                               </button>
@@ -706,9 +695,6 @@ export default function AdminUdalosti() {
   );
 }
 
-/* =========================
-   UI helpers/styles
-========================= */
 function Field({ label, children }) {
   return (
     <div>
