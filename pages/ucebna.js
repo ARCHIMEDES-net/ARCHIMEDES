@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const heroImg = "/otevrena.jpg";
+const heroImg = "/otevrena-hero.webp";
 const natureImg = "/ucebnavprirode.webp";
 const classImg = "/detivetride.webp";
 const guestsImg = "/hoste.jpg";
