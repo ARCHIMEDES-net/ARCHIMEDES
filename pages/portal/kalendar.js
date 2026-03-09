@@ -28,7 +28,10 @@ function normalizeAudience(aud) {
   if (Array.isArray(aud)) return aud.filter(Boolean).map(String);
   const s = String(aud).trim();
   if (!s) return [];
-  return s.split(",").map((x) => x.trim()).filter(Boolean);
+  return s
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
 }
 
 function badgeColor(label) {
@@ -107,7 +110,25 @@ function getBroadcastBadge(row, now = new Date()) {
   const status = getSessionStatus(row);
   const streamUrl = getStreamUrl(row);
 
-  if (!streamUrl || !start) return null;
+  if (!start) return null;
+
+  if (status === "draft") {
+    return {
+      label: "Vysílání rozpracováno",
+      className: "bg-amber-100 text-amber-700 border border-amber-200",
+      dotClassName: "bg-amber-500",
+    };
+  }
+
+  if (status === "finished") {
+    return {
+      label: "Dokončeno",
+      className: "bg-blue-100 text-blue-700 border border-blue-200",
+      dotClassName: "bg-blue-500",
+    };
+  }
+
+  if (!streamUrl) return null;
 
   const liveFrom = new Date(start.getTime() - 5 * 60 * 1000);
   const liveUntil = new Date(start.getTime() + 2 * 60 * 60 * 1000);
@@ -128,19 +149,11 @@ function getBroadcastBadge(row, now = new Date()) {
     };
   }
 
-  if (status === "draft") {
+  if (status === "scheduled") {
     return {
-      label: "Vysílání rozpracováno",
-      className: "bg-amber-100 text-amber-700 border border-amber-200",
-      dotClassName: "bg-amber-500",
-    };
-  }
-
-  if (status === "finished") {
-    return {
-      label: "Dokončeno",
-      className: "bg-blue-100 text-blue-700 border border-blue-200",
-      dotClassName: "bg-blue-500",
+      label: "Vysílání připraveno",
+      className: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+      dotClassName: "bg-emerald-500",
     };
   }
 
@@ -176,6 +189,70 @@ function JoinButton({ row }) {
     >
       ▶ Vstoupit do vysílání
     </a>
+  );
+}
+
+function EventCard({ row, compact = false }) {
+  const posterUrl = row.poster_path ? publicUrlFromPath(row.poster_path) : "";
+  const start = getEffectiveStart(row);
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+      <div className="flex gap-4 items-start">
+        {posterUrl ? (
+          <div
+            className={`${
+              compact ? "w-[120px]" : "w-[140px]"
+            } shrink-0 border border-slate-200 rounded-2xl overflow-hidden bg-slate-50`}
+          >
+            <img
+              src={posterUrl}
+              alt="Plakát"
+              className="w-full h-auto"
+              loading="lazy"
+            />
+          </div>
+        ) : null}
+
+        <div className="flex-1 min-w-[260px]">
+          <div className="text-sm text-slate-500">
+            {start ? formatDateTimeCS(start) : "Bez data"}
+          </div>
+
+          <div className="text-lg font-semibold mt-1">{row.title}</div>
+
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+            {row.category ? (
+              <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700">
+                {row.category}
+              </span>
+            ) : null}
+
+            {normalizeAudience(row.audience_groups).map((a, i) => (
+              <span
+                key={i}
+                className={`px-2 py-1 rounded-full ${badgeColor(a)}`}
+              >
+                {a}
+              </span>
+            ))}
+
+            <BroadcastBadge row={row} />
+          </div>
+
+          <div className="mt-4 flex gap-2 flex-wrap">
+            <Link
+              href={`/portal/udalost/${row.id}`}
+              className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
+            >
+              Detail
+            </Link>
+
+            <JoinButton row={row} />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -222,7 +299,9 @@ export default function Kalendar() {
       .in("event_id", eventIds);
 
     if (!sessionsError && Array.isArray(sessionsData)) {
-      sessionsMap = Object.fromEntries(sessionsData.map((s) => [s.event_id, s]));
+      sessionsMap = Object.fromEntries(
+        sessionsData.map((s) => [s.event_id, s])
+      );
     }
 
     const merged = baseRows.map((row) => ({
@@ -240,18 +319,26 @@ export default function Kalendar() {
 
   const now = new Date();
 
-  const upcoming = useMemo(() => {
+  const visibleRows = useMemo(() => {
     return rows.filter((r) => {
       const d = getEffectiveStart(r);
       if (!d) return false;
 
-      const keepUntil = new Date(d.getTime() + 4 * 60 * 60 * 1000);
+      const keepUntil = new Date(d.getTime() + 24 * 60 * 60 * 1000);
       return keepUntil >= now;
     });
   }, [rows, now]);
 
-  const nextOne = upcoming[0] || null;
-  const later = upcoming.slice(1);
+  const sortedRows = useMemo(() => {
+    return [...visibleRows].sort((a, b) => {
+      const da = getEffectiveStart(a)?.getTime() || 0;
+      const db = getEffectiveStart(b)?.getTime() || 0;
+      return da - db;
+    });
+  }, [visibleRows]);
+
+  const nextOne = sortedRows[0] || null;
+  const later = sortedRows.slice(1);
 
   return (
     <RequireAuth>
@@ -261,7 +348,9 @@ export default function Kalendar() {
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-semibold">Program</h1>
-            <p className="text-slate-600 mt-1">Přehled živého vysílání a archivu.</p>
+            <p className="text-slate-600 mt-1">
+              Přehled živého vysílání a archivu.
+            </p>
           </div>
 
           <button
@@ -283,60 +372,7 @@ export default function Kalendar() {
               </div>
 
               {nextOne ? (
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
-                  <div className="flex gap-4 items-start">
-                    {nextOne.poster_path ? (
-                      <div className="w-[140px] shrink-0 border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
-                        <img
-                          src={publicUrlFromPath(nextOne.poster_path)}
-                          alt="Plakát"
-                          className="w-full h-auto"
-                          loading="lazy"
-                        />
-                      </div>
-                    ) : null}
-
-                    <div className="flex-1 min-w-[260px]">
-                      <div className="text-sm text-slate-500">
-                        {getEffectiveStart(nextOne)
-                          ? formatDateTimeCS(getEffectiveStart(nextOne))
-                          : "Bez data"}
-                      </div>
-
-                      <div className="text-lg font-semibold mt-1">{nextOne.title}</div>
-
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                        {nextOne.category ? (
-                          <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700">
-                            {nextOne.category}
-                          </span>
-                        ) : null}
-
-                        {normalizeAudience(nextOne.audience_groups).map((a, i) => (
-                          <span
-                            key={i}
-                            className={`px-2 py-1 rounded-full ${badgeColor(a)}`}
-                          >
-                            {a}
-                          </span>
-                        ))}
-
-                        <BroadcastBadge row={nextOne} />
-                      </div>
-
-                      <div className="mt-4 flex gap-2 flex-wrap">
-                        <Link
-                          href={`/portal/udalost/${nextOne.id}`}
-                          className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
-                        >
-                          Detail
-                        </Link>
-
-                        <JoinButton row={nextOne} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <EventCard row={nextOne} />
               ) : (
                 <div className="text-slate-600">Žádné nadcházející vysílání.</div>
               )}
@@ -349,72 +385,14 @@ export default function Kalendar() {
 
               {later.length ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {later.map((r) => {
-                    const posterUrl = r.poster_path ? publicUrlFromPath(r.poster_path) : "";
-
-                    return (
-                      <div
-                        key={r.id}
-                        className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5"
-                      >
-                        <div className="flex gap-4 items-start">
-                          {posterUrl ? (
-                            <div className="w-[120px] shrink-0 border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
-                              <img
-                                src={posterUrl}
-                                alt="Plakát"
-                                className="w-full h-auto"
-                                loading="lazy"
-                              />
-                            </div>
-                          ) : null}
-
-                          <div className="flex-1">
-                            <div className="text-sm text-slate-500">
-                              {getEffectiveStart(r)
-                                ? formatDateTimeCS(getEffectiveStart(r))
-                                : "Bez data"}
-                            </div>
-
-                            <div className="text-lg font-semibold mt-1">{r.title}</div>
-
-                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                              {r.category ? (
-                                <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700">
-                                  {r.category}
-                                </span>
-                              ) : null}
-
-                              {normalizeAudience(r.audience_groups).map((a, i) => (
-                                <span
-                                  key={i}
-                                  className={`px-2 py-1 rounded-full ${badgeColor(a)}`}
-                                >
-                                  {a}
-                                </span>
-                              ))}
-
-                              <BroadcastBadge row={r} />
-                            </div>
-
-                            <div className="mt-4 flex gap-2 flex-wrap">
-                              <Link
-                                href={`/portal/udalost/${r.id}`}
-                                className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
-                              >
-                                Detail
-                              </Link>
-
-                              <JoinButton row={r} />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {later.map((r) => (
+                    <EventCard key={r.id} row={r} compact />
+                  ))}
                 </div>
               ) : (
-                <div className="text-slate-600">Žádné další nadcházející vysílání.</div>
+                <div className="text-slate-600">
+                  Žádné další nadcházející vysílání.
+                </div>
               )}
             </div>
           </div>
