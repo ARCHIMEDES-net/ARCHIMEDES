@@ -75,7 +75,15 @@ function getStreamUrl(row) {
 }
 
 function getSessionStatus(row) {
-  return normalizeSessionStatus(row?.broadcast_session?.status || "");
+  return normalizeSessionStatus(
+    row?.broadcast_session?.status ||
+      row?.broadcast_session?.broadcast_status ||
+      ""
+  );
+}
+
+function getEffectiveStart(row) {
+  return safeDate(row?.broadcast_session?.starts_at || row?.starts_at);
 }
 
 function shouldShowJoinButton(row, now = new Date()) {
@@ -85,7 +93,7 @@ function shouldShowJoinButton(row, now = new Date()) {
   const status = getSessionStatus(row);
   if (status !== "scheduled") return false;
 
-  const start = safeDate(row?.broadcast_session?.starts_at || row?.starts_at);
+  const start = getEffectiveStart(row);
   if (!start) return false;
 
   const openFrom = new Date(start.getTime() - 15 * 60 * 1000);
@@ -95,7 +103,7 @@ function shouldShowJoinButton(row, now = new Date()) {
 }
 
 function getBroadcastBadge(row, now = new Date()) {
-  const start = safeDate(row?.broadcast_session?.starts_at || row?.starts_at);
+  const start = getEffectiveStart(row);
   const status = getSessionStatus(row);
   const streamUrl = getStreamUrl(row);
 
@@ -209,7 +217,7 @@ export default function Kalendar() {
     const { data: sessionsData, error: sessionsError } = await supabase
       .from("broadcast_sessions")
       .select(
-        "id,event_id,status,viewer_url,recording_url,recording_status,moderator_name,guest_1_name,guest_2_name,guest_3_name,guest_4_name,guest_5_name,notes_internal,starts_at"
+        "id,event_id,status,broadcast_status,viewer_url,recording_url,recording_status,moderator_name,guest_1_name,guest_2_name,guest_3_name,guest_4_name,guest_5_name,notes_internal,starts_at"
       )
       .in("event_id", eventIds);
 
@@ -234,8 +242,11 @@ export default function Kalendar() {
 
   const upcoming = useMemo(() => {
     return rows.filter((r) => {
-      const d = safeDate(r.broadcast_session?.starts_at || r.starts_at);
-      return d && d >= now;
+      const d = getEffectiveStart(r);
+      if (!d) return false;
+
+      const keepUntil = new Date(d.getTime() + 4 * 60 * 60 * 1000);
+      return keepUntil >= now;
     });
   }, [rows, now]);
 
@@ -287,10 +298,8 @@ export default function Kalendar() {
 
                     <div className="flex-1 min-w-[260px]">
                       <div className="text-sm text-slate-500">
-                        {nextOne.broadcast_session?.starts_at || nextOne.starts_at
-                          ? formatDateTimeCS(
-                              new Date(nextOne.broadcast_session?.starts_at || nextOne.starts_at)
-                            )
+                        {getEffectiveStart(nextOne)
+                          ? formatDateTimeCS(getEffectiveStart(nextOne))
                           : "Bez data"}
                       </div>
 
@@ -362,10 +371,8 @@ export default function Kalendar() {
 
                           <div className="flex-1">
                             <div className="text-sm text-slate-500">
-                              {r.broadcast_session?.starts_at || r.starts_at
-                                ? formatDateTimeCS(
-                                    new Date(r.broadcast_session?.starts_at || r.starts_at)
-                                  )
+                              {getEffectiveStart(r)
+                                ? formatDateTimeCS(getEffectiveStart(r))
                                 : "Bez data"}
                             </div>
 
