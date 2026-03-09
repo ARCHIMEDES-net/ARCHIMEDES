@@ -1,14 +1,18 @@
 // components/PortalHeader.js
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 const LOGO_SRC = "/logo.jpg";
 
+function normalizePath(value = "") {
+  return (value || "").split("?")[0].split("#")[0];
+}
+
 export default function PortalHeader({ title = "" }) {
   const router = useRouter();
-  const path = router?.asPath || "";
+  const path = useMemo(() => normalizePath(router?.asPath || ""), [router?.asPath]);
 
   const [isOrgAdmin, setIsOrgAdmin] = useState(false);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
@@ -16,7 +20,65 @@ export default function PortalHeader({ title = "" }) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    let alive = true;
+
+    async function loadRole() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!alive) return;
+
+        if (!user) {
+          setIsOrgAdmin(false);
+          setIsPlatformAdmin(false);
+          setLoadingRole(false);
+          return;
+        }
+
+        const { data: membership, error: membershipError } = await supabase
+          .from("organization_members")
+          .select("role_in_org, status")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .maybeSingle();
+
+        if (!alive) return;
+
+        if (!membershipError && membership?.role_in_org === "organization_admin") {
+          setIsOrgAdmin(true);
+        } else {
+          setIsOrgAdmin(false);
+        }
+
+        const { data: platformAdminRow, error: platformAdminError } = await supabase
+          .from("platform_admins")
+          .select("user_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (!alive) return;
+
+        if (!platformAdminError && platformAdminRow?.user_id) {
+          setIsPlatformAdmin(true);
+        } else {
+          setIsPlatformAdmin(false);
+        }
+      } catch (_e) {
+        if (!alive) return;
+        setIsOrgAdmin(false);
+        setIsPlatformAdmin(false);
+      } finally {
+        if (alive) setLoadingRole(false);
+      }
+    }
+
     loadRole();
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -28,51 +90,6 @@ export default function PortalHeader({ title = "" }) {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  async function loadRole() {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        setIsOrgAdmin(false);
-        setIsPlatformAdmin(false);
-        setLoadingRole(false);
-        return;
-      }
-
-      const { data: membership, error: membershipError } = await supabase
-        .from("organization_members")
-        .select("role_in_org, status")
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .maybeSingle();
-
-      if (!membershipError && membership?.role_in_org === "organization_admin") {
-        setIsOrgAdmin(true);
-      } else {
-        setIsOrgAdmin(false);
-      }
-
-      const { data: platformAdminRow, error: platformAdminError } = await supabase
-        .from("platform_admins")
-        .select("user_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (!platformAdminError && platformAdminRow?.user_id) {
-        setIsPlatformAdmin(true);
-      } else {
-        setIsPlatformAdmin(false);
-      }
-    } catch (_e) {
-      setIsOrgAdmin(false);
-      setIsPlatformAdmin(false);
-    } finally {
-      setLoadingRole(false);
-    }
-  }
 
   const itemBase = {
     textDecoration: "none",
@@ -89,6 +106,7 @@ export default function PortalHeader({ title = "" }) {
     lineHeight: 1,
     minHeight: 40,
     whiteSpace: "nowrap",
+    boxSizing: "border-box",
   };
 
   const activeStyle = {
@@ -96,6 +114,11 @@ export default function PortalHeader({ title = "" }) {
     background: "#0f172a",
     border: "1px solid #0f172a",
     color: "#fff",
+  };
+
+  const publicWebStyle = {
+    ...itemBase,
+    background: "#f8fafc",
   };
 
   const logoutButtonStyle = {
@@ -108,6 +131,8 @@ export default function PortalHeader({ title = "" }) {
     fontSize: 13,
     minHeight: 40,
     whiteSpace: "nowrap",
+    color: "#0f172a",
+    boxSizing: "border-box",
   };
 
   const isActive = (key) => {
@@ -122,8 +147,11 @@ export default function PortalHeader({ title = "" }) {
   const navItem = (key) => (isActive(key) ? activeStyle : itemBase);
 
   async function onLogout() {
-    await supabase.auth.signOut();
-    router.push("/login");
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      router.push("/login");
+    }
   }
 
   return (
@@ -247,7 +275,11 @@ export default function PortalHeader({ title = "" }) {
             </Link>
           ) : null}
 
-          <button onClick={onLogout} style={logoutButtonStyle}>
+          <Link href="/" style={publicWebStyle}>
+            Veřejný web
+          </Link>
+
+          <button onClick={onLogout} style={logoutButtonStyle} type="button">
             Odhlásit
           </button>
         </nav>
