@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import RequireAuth from "../../../../components/RequireAuth";
@@ -29,12 +29,33 @@ function toDateTimeLocalValue(date) {
   )}:${pad(d.getMinutes())}`;
 }
 
+function formatDateTimeCZ(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("cs-CZ", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function normalizeUrl(url) {
+  const v = String(url || "").trim();
+  if (!v) return "";
+  if (v.startsWith("http://") || v.startsWith("https://")) return v;
+  return `https://${v}`;
+}
+
 export default function AdminVysilaniDetailPage() {
   const router = useRouter();
   const { eventId } = router.query;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [copyInfo, setCopyInfo] = useState("");
 
   const [eventRow, setEventRow] = useState(null);
   const [sessionId, setSessionId] = useState("");
@@ -62,14 +83,17 @@ export default function AdminVysilaniDetailPage() {
   }, [router.isReady, eventId]);
 
   async function ensureSessionExists() {
-    const { data: existing, error: existingError } = await supabase
+    const { data, error } = await supabase
       .from("broadcast_sessions")
       .select("*")
       .eq("event_id", eventId)
-      .maybeSingle();
+      .limit(1);
 
-    if (existingError) throw existingError;
-    if (existing) return existing;
+    if (error) throw error;
+
+    if (Array.isArray(data) && data.length > 0) {
+      return data[0];
+    }
 
     const { data: created, error: createError } = await supabase
       .from("broadcast_sessions")
@@ -92,6 +116,7 @@ export default function AdminVysilaniDetailPage() {
     setLoading(true);
     setError("");
     setMessage("");
+    setCopyInfo("");
 
     try {
       const { data: eventData, error: eventError } = await supabase
@@ -114,7 +139,7 @@ export default function AdminVysilaniDetailPage() {
       setGuest3Name(session.guest_3_name || "");
       setGuest4Name(session.guest_4_name || "");
       setGuest5Name(session.guest_5_name || "");
-      setViewerUrl(session.viewer_url || "");
+      setViewerUrl(session.viewer_url || eventData.stream_url || "");
       setRecordingUrl(session.recording_url || "");
       setRecordingStatus(session.recording_status || "none");
       setNotesInternal(session.notes_internal || "");
@@ -131,13 +156,17 @@ export default function AdminVysilaniDetailPage() {
     setSaving(true);
     setError("");
     setMessage("");
+    setCopyInfo("");
 
     try {
       if (!sessionId) {
         throw new Error("Chybí session pro tuto událost.");
       }
 
-      if (!viewerUrl.trim()) {
+      const normalizedViewerUrl = normalizeUrl(viewerUrl);
+      const normalizedRecordingUrl = normalizeUrl(recordingUrl);
+
+      if (!normalizedViewerUrl) {
         throw new Error("Vyplňte prosím Google Meet odkaz.");
       }
 
@@ -150,8 +179,8 @@ export default function AdminVysilaniDetailPage() {
         guest_3_name: guest3Name.trim() || null,
         guest_4_name: guest4Name.trim() || null,
         guest_5_name: guest5Name.trim() || null,
-        viewer_url: viewerUrl.trim(),
-        recording_url: recordingUrl.trim() || null,
+        viewer_url: normalizedViewerUrl,
+        recording_url: normalizedRecordingUrl || null,
         recording_status: recordingStatus,
         notes_internal: notesInternal.trim() || null,
         starts_at: startsAt ? new Date(startsAt).toISOString() : null,
@@ -165,13 +194,112 @@ export default function AdminVysilaniDetailPage() {
 
       if (updateError) throw updateError;
 
-      setMessage("Vysílání bylo uloženo.");
+      const eventPatch = {
+        stream_url: normalizedViewerUrl,
+      };
+
+      if (startsAt) {
+        eventPatch.starts_at = new Date(startsAt).toISOString();
+      }
+
+      const { error: eventUpdateError } = await supabase
+        .from("events")
+        .update(eventPatch)
+        .eq("id", eventId);
+
+      if (eventUpdateError) throw eventUpdateError;
+
+      setViewerUrl(normalizedViewerUrl);
+      setRecordingUrl(normalizedRecordingUrl);
+      setMessage("Vysílání bylo uloženo a odkaz se propsal do události.");
     } catch (e) {
       setError(e.message || "Vysílání se nepodařilo uložit.");
     } finally {
       setSaving(false);
     }
   }
+
+  async function handleCopyMeetLink() {
+    try {
+      const normalizedViewerUrl = normalizeUrl(viewerUrl);
+      if (!normalizedViewerUrl) {
+        setError("Nejprve vyplňte Google Meet odkaz.");
+        return;
+      }
+
+      await navigator.clipboard.writeText(normalizedViewerUrl);
+      setCopyInfo("Google Meet odkaz byl zkopírován.");
+    } catch (_e) {
+      setCopyInfo("Odkaz zkopírujte ručně.");
+    }
+  }
+
+  async function handleCopyProductionSummary() {
+    try {
+      const normalizedViewerUrl = normalizeUrl(viewerUrl);
+      const guestLines = [
+        guest1Name.trim(),
+        guest2Name.trim(),
+        guest3Name.trim(),
+        guest4Name.trim(),
+        guest5Name.trim(),
+      ].filter(Boolean);
+
+      const summary = [
+        `Událost: ${eventRow?.title || "Bez názvu"}`,
+        `Začátek: ${startsAt ? formatDateTimeCZ(new Date(startsAt).toISOString()) : "—"}`,
+        `Moderátor: ${moderatorName.trim() || "—"}`,
+        `Hosté: ${guestLines.length ? guestLines.join(", ") : "—"}`,
+        `Google Meet: ${normalizedViewerUrl || "—"}`,
+        `Stav vysílání: ${
+          STATUS_OPTIONS.find((s) => s.value === status)?.label || status || "—"
+        }`,
+        notesInternal.trim() ? `Interní poznámka: ${notesInternal.trim()}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      await navigator.clipboard.writeText(summary);
+      setCopyInfo("Produkční shrnutí bylo zkopírováno.");
+    } catch (_e) {
+      setCopyInfo("Shrnutí zkopírujte ručně.");
+    }
+  }
+
+  const normalizedViewerUrl = useMemo(() => normalizeUrl(viewerUrl), [viewerUrl]);
+
+  const statusBadge = useMemo(() => {
+    if (!normalizedViewerUrl) {
+      return {
+        label: "⚠ Vysílání nenastaveno",
+        color: "#92400e",
+        bg: "#fff7ed",
+        border: "#fed7aa",
+      };
+    }
+    if (status === "scheduled") {
+      return {
+        label: "🟢 Vysílání připraveno",
+        color: "#166534",
+        bg: "#eefaf0",
+        border: "#cfe8d3",
+      };
+    }
+    if (status === "finished") {
+      return {
+        label: "✅ Dokončeno",
+        color: "#1d4ed8",
+        bg: "#eff6ff",
+        border: "#bfdbfe",
+      };
+    }
+    return {
+      label: "🟡 Vysílání rozpracováno",
+      color: "#854d0e",
+      bg: "#fefce8",
+      border: "#fde68a",
+    };
+  }, [normalizedViewerUrl, status]);
 
   const inputStyle = {
     width: "100%",
@@ -206,7 +334,7 @@ export default function AdminVysilaniDetailPage() {
         <main style={{ maxWidth: 980, margin: "0 auto", padding: "34px 16px 60px" }}>
           <div style={{ marginBottom: 18 }}>
             <Link
-              href="/portal/admin-udalosti"
+              href="/portal/admin/udalosti"
               style={{
                 display: "inline-flex",
                 textDecoration: "none",
@@ -221,7 +349,7 @@ export default function AdminVysilaniDetailPage() {
             <h1 style={{ margin: "0 0 8px 0", fontSize: 34 }}>Správa vysílání</h1>
 
             <p style={{ margin: 0, color: "rgba(0,0,0,0.68)", lineHeight: 1.6 }}>
-              Jednoduchá technická karta vysílání pro Google Meet, moderátora a až 5 hostů.
+              Produkční karta vysílání pro Google Meet, moderátora a až 5 hostů.
             </p>
           </div>
 
@@ -242,11 +370,26 @@ export default function AdminVysilaniDetailPage() {
               <div style={{ fontWeight: 800, fontSize: 20, color: "#111827" }}>
                 {eventRow.title || "Bez názvu"}
               </div>
-              {eventRow.starts_at ? (
-                <div style={{ marginTop: 6, color: "rgba(0,0,0,0.66)" }}>
-                  Plánovaný čas: {new Date(eventRow.starts_at).toLocaleString("cs-CZ")}
-                </div>
-              ) : null}
+              <div style={{ marginTop: 6, color: "rgba(0,0,0,0.66)" }}>
+                Plánovaný čas: {eventRow.starts_at ? formatDateTimeCZ(eventRow.starts_at) : "—"}
+              </div>
+
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  marginTop: 10,
+                  padding: "6px 10px",
+                  borderRadius: 999,
+                  background: statusBadge.bg,
+                  color: statusBadge.color,
+                  border: `1px solid ${statusBadge.border}`,
+                  fontSize: 13,
+                  fontWeight: 700,
+                }}
+              >
+                {statusBadge.label}
+              </div>
             </div>
           ) : null}
 
@@ -280,6 +423,21 @@ export default function AdminVysilaniDetailPage() {
             </div>
           ) : null}
 
+          {copyInfo ? (
+            <div
+              style={{
+                marginBottom: 16,
+                padding: 12,
+                borderRadius: 12,
+                background: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                color: "#1d4ed8",
+              }}
+            >
+              {copyInfo}
+            </div>
+          ) : null}
+
           <div
             style={{
               background: "#fff",
@@ -292,198 +450,209 @@ export default function AdminVysilaniDetailPage() {
             {loading ? (
               <div>Načítám…</div>
             ) : (
-              <form onSubmit={handleSave}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 16,
-                  }}
-                >
-                  <div>
-                    <label style={labelStyle}>Stav vysílání</label>
-                    <select
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      style={inputStyle}
-                    >
-                      {STATUS_OPTIONS.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Začátek vysílání</label>
-                    <input
-                      type="datetime-local"
-                      value={startsAt}
-                      onChange={(e) => setStartsAt(e.target.value)}
-                      style={inputStyle}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Moderátor</label>
-                    <input
-                      type="text"
-                      value={moderatorName}
-                      onChange={(e) => setModeratorName(e.target.value)}
-                      style={inputStyle}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Google Meet odkaz*</label>
-                    <input
-                      type="text"
-                      value={viewerUrl}
-                      onChange={(e) => setViewerUrl(e.target.value)}
-                      placeholder="https://meet.google.com/..."
-                      style={inputStyle}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Host 1</label>
-                    <input
-                      type="text"
-                      value={guest1Name}
-                      onChange={(e) => setGuest1Name(e.target.value)}
-                      style={inputStyle}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Host 2</label>
-                    <input
-                      type="text"
-                      value={guest2Name}
-                      onChange={(e) => setGuest2Name(e.target.value)}
-                      style={inputStyle}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Host 3</label>
-                    <input
-                      type="text"
-                      value={guest3Name}
-                      onChange={(e) => setGuest3Name(e.target.value)}
-                      style={inputStyle}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Host 4</label>
-                    <input
-                      type="text"
-                      value={guest4Name}
-                      onChange={(e) => setGuest4Name(e.target.value)}
-                      style={inputStyle}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Host 5</label>
-                    <input
-                      type="text"
-                      value={guest5Name}
-                      onChange={(e) => setGuest5Name(e.target.value)}
-                      style={inputStyle}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Stav záznamu</label>
-                    <select
-                      value={recordingStatus}
-                      onChange={(e) => setRecordingStatus(e.target.value)}
-                      style={inputStyle}
-                    >
-                      {RECORDING_STATUS_OPTIONS.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div style={{ gridColumn: "1 / -1" }}>
-                    <label style={labelStyle}>Odkaz na záznam</label>
-                    <input
-                      type="text"
-                      value={recordingUrl}
-                      onChange={(e) => setRecordingUrl(e.target.value)}
-                      placeholder="https://..."
-                      style={inputStyle}
-                    />
-                  </div>
-
-                  <div style={{ gridColumn: "1 / -1" }}>
-                    <label style={labelStyle}>Interní poznámka</label>
-                    <textarea
-                      value={notesInternal}
-                      onChange={(e) => setNotesInternal(e.target.value)}
-                      rows={5}
-                      style={{
-                        ...inputStyle,
-                        minHeight: 130,
-                        padding: 14,
-                        resize: "vertical",
-                      }}
-                      placeholder="Technické poznámky, instrukce pro moderátora, pořadí hostů apod."
-                    />
-                  </div>
-                </div>
-
+              <>
                 <div
                   style={{
                     display: "flex",
-                    gap: 12,
+                    gap: 10,
                     flexWrap: "wrap",
-                    marginTop: 20,
+                    marginBottom: 18,
                   }}
                 >
                   <button
-                    type="submit"
-                    disabled={saving}
-                    style={{
-                      minHeight: 48,
-                      padding: "0 18px",
-                      borderRadius: 12,
-                      border: "none",
-                      background: "#111827",
-                      color: "#fff",
-                      fontWeight: 700,
-                      cursor: saving ? "default" : "pointer",
-                      opacity: saving ? 0.7 : 1,
+                    type="button"
+                    onClick={() => {
+                      if (!normalizedViewerUrl) {
+                        setError("Nejprve vyplňte Google Meet odkaz.");
+                        return;
+                      }
+                      window.open(normalizedViewerUrl, "_blank", "noopener,noreferrer");
                     }}
+                    style={btnPrimary}
                   >
-                    {saving ? "Ukládám..." : "Uložit vysílání"}
+                    Otevřít Google Meet
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={loadData}
-                    disabled={loading}
-                    style={{
-                      minHeight: 48,
-                      padding: "0 18px",
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.12)",
-                      background: "#fff",
-                      color: "#111827",
-                      fontWeight: 700,
-                      cursor: loading ? "default" : "pointer",
-                    }}
-                  >
-                    Obnovit
+                  <button type="button" onClick={handleCopyMeetLink} style={btnSecondary}>
+                    Zkopírovat Meet odkaz
+                  </button>
+
+                  <button type="button" onClick={handleCopyProductionSummary} style={btnSecondary}>
+                    Zkopírovat produkční shrnutí
                   </button>
                 </div>
-              </form>
+
+                <form onSubmit={handleSave}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 16,
+                    }}
+                  >
+                    <div>
+                      <label style={labelStyle}>Stav vysílání</label>
+                      <select
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value)}
+                        style={inputStyle}
+                      >
+                        {STATUS_OPTIONS.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Začátek vysílání</label>
+                      <input
+                        type="datetime-local"
+                        value={startsAt}
+                        onChange={(e) => setStartsAt(e.target.value)}
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Moderátor</label>
+                      <input
+                        type="text"
+                        value={moderatorName}
+                        onChange={(e) => setModeratorName(e.target.value)}
+                        style={inputStyle}
+                        placeholder="Např. Simona Nováková"
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Google Meet odkaz*</label>
+                      <input
+                        type="text"
+                        value={viewerUrl}
+                        onChange={(e) => setViewerUrl(e.target.value)}
+                        placeholder="https://meet.google.com/..."
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Host 1</label>
+                      <input
+                        type="text"
+                        value={guest1Name}
+                        onChange={(e) => setGuest1Name(e.target.value)}
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Host 2</label>
+                      <input
+                        type="text"
+                        value={guest2Name}
+                        onChange={(e) => setGuest2Name(e.target.value)}
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Host 3</label>
+                      <input
+                        type="text"
+                        value={guest3Name}
+                        onChange={(e) => setGuest3Name(e.target.value)}
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Host 4</label>
+                      <input
+                        type="text"
+                        value={guest4Name}
+                        onChange={(e) => setGuest4Name(e.target.value)}
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Host 5</label>
+                      <input
+                        type="text"
+                        value={guest5Name}
+                        onChange={(e) => setGuest5Name(e.target.value)}
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Stav záznamu</label>
+                      <select
+                        value={recordingStatus}
+                        onChange={(e) => setRecordingStatus(e.target.value)}
+                        style={inputStyle}
+                      >
+                        {RECORDING_STATUS_OPTIONS.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      <label style={labelStyle}>Odkaz na záznam</label>
+                      <input
+                        type="text"
+                        value={recordingUrl}
+                        onChange={(e) => setRecordingUrl(e.target.value)}
+                        placeholder="https://..."
+                        style={inputStyle}
+                      />
+                    </div>
+
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      <label style={labelStyle}>Interní poznámka</label>
+                      <textarea
+                        value={notesInternal}
+                        onChange={(e) => setNotesInternal(e.target.value)}
+                        rows={5}
+                        style={{
+                          ...inputStyle,
+                          minHeight: 130,
+                          padding: 14,
+                          resize: "vertical",
+                        }}
+                        placeholder="Technické poznámky, instrukce pro moderátora, pořadí hostů apod."
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 12,
+                      flexWrap: "wrap",
+                      marginTop: 20,
+                    }}
+                  >
+                    <button type="submit" disabled={saving} style={btnPrimary}>
+                      {saving ? "Ukládám..." : "Uložit vysílání"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={loadData}
+                      disabled={loading}
+                      style={btnSecondary}
+                    >
+                      Obnovit
+                    </button>
+                  </div>
+                </form>
+              </>
             )}
           </div>
         </main>
@@ -491,3 +660,25 @@ export default function AdminVysilaniDetailPage() {
     </RequireAuth>
   );
 }
+
+const btnPrimary = {
+  minHeight: 48,
+  padding: "0 18px",
+  borderRadius: 12,
+  border: "none",
+  background: "#111827",
+  color: "#fff",
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const btnSecondary = {
+  minHeight: 48,
+  padding: "0 18px",
+  borderRadius: 12,
+  border: "1px solid rgba(0,0,0,0.12)",
+  background: "#fff",
+  color: "#111827",
+  fontWeight: 700,
+  cursor: "pointer",
+};
