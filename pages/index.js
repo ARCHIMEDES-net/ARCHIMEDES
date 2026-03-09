@@ -421,7 +421,7 @@ export default function Home() {
             </div>
 
             <div className="programGrid">
-              <ProgramCard title="Science ON" text="Živá věda, pokusy a hosté z odborné praxe." img={kidsImg} />
+              <ProgramCard title="Science ON" text="Živá věda, pokusy a hosté z odborné praxe." img="/media/stem-microscopes.webp" />
               <ProgramCard title="Smart City klub" text="Jak přemýšlet o městě, obci a prostoru kolem nás." img={communityImg} />
               <ProgramCard title="Čtenářský klub" text="Autoři, knihy a společné čtenářské zážitky." img={guestImg} />
               <ProgramCard title="Senior klub" text="Pravidelný program pro starší generaci a komunitní propojení." img="/senior.jpg" />
