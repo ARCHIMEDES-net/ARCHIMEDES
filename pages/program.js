@@ -205,6 +205,15 @@ export default function ProgramPublic() {
                     background: "linear-gradient(135deg,#10b981,#059669)",
                     boxShadow: "0 10px 24px rgba(16,185,129,0.22)",
                     border: "1px solid rgba(16,185,129,0.9)",
+                    transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 14px 28px rgba(16,185,129,0.28)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 10px 24px rgba(16,185,129,0.22)";
                   }}
                 >
                   Domluvit ukázku programu
@@ -226,6 +235,17 @@ export default function ProgramPublic() {
                     background: "rgba(255,255,255,0.10)",
                     border: "1px solid rgba(255,255,255,0.18)",
                     backdropFilter: "blur(6px)",
+                    transition: "transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 10px 22px rgba(15,23,42,0.18)";
+                    e.currentTarget.style.background = "rgba(255,255,255,0.16)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                    e.currentTarget.style.background = "rgba(255,255,255,0.10)";
                   }}
                 >
                   Ceník a financování
@@ -401,6 +421,15 @@ export default function ProgramPublic() {
                   color: "#111827",
                   background: "#ffffff",
                   border: "1px solid rgba(255,255,255,0.2)",
+                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 12px 26px rgba(0,0,0,0.16)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
               >
                 Domluvit ukázku programu
@@ -421,6 +450,17 @@ export default function ProgramPublic() {
                   color: "#ffffff",
                   background: "transparent",
                   border: "1px solid rgba(255,255,255,0.26)",
+                  transition: "transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+                  e.currentTarget.style.boxShadow = "0 10px 22px rgba(0,0,0,0.16)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
               >
                 Vstoupit do portálu
