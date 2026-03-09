@@ -60,76 +60,32 @@ function publicUrlFromPath(path) {
   return data?.publicUrl || "";
 }
 
-function normalizeBroadcastStatus(value) {
+function normalizeSessionStatus(value) {
   const s = String(value || "").trim().toLowerCase();
 
-  if (
-    [
-      "ready",
-      "prepared",
-      "pripraveno",
-      "připraveno",
-    ].includes(s)
-  ) {
-    return "ready";
-  }
-
-  if (
-    [
-      "live",
-      "on_air",
-      "onair",
-      "vysilame",
-      "vysíláme",
-    ].includes(s)
-  ) {
-    return "live";
-  }
-
-  if (
-    [
-      "draft",
-      "working",
-      "rozpracovano",
-      "rozpracováno",
-    ].includes(s)
-  ) {
-    return "draft";
-  }
-
-  if (
-    [
-      "done",
-      "finished",
-      "completed",
-      "dokonceno",
-      "dokončeno",
-    ].includes(s)
-  ) {
-    return "done";
-  }
+  if (s === "scheduled") return "scheduled";
+  if (s === "finished") return "finished";
+  if (s === "draft") return "draft";
 
   return "unset";
 }
 
 function getStreamUrl(row) {
-  return row?.stream_url || row?.broadcast_session?.meet_link || "";
+  return row?.broadcast_session?.viewer_url || row?.stream_url || "";
 }
 
-function getBroadcastStatus(row) {
-  return normalizeBroadcastStatus(
-    row?.broadcast_session?.broadcast_status || row?.broadcast_status || ""
-  );
+function getSessionStatus(row) {
+  return normalizeSessionStatus(row?.broadcast_session?.status || "");
 }
 
 function shouldShowJoinButton(row, now = new Date()) {
   const streamUrl = getStreamUrl(row);
   if (!streamUrl) return false;
 
-  const status = getBroadcastStatus(row);
-  if (!["ready", "live"].includes(status)) return false;
+  const status = getSessionStatus(row);
+  if (status !== "scheduled") return false;
 
-  const start = safeDate(row?.starts_at);
+  const start = safeDate(row?.broadcast_session?.starts_at || row?.starts_at);
   if (!start) return false;
 
   const openFrom = new Date(start.getTime() - 15 * 60 * 1000);
@@ -139,15 +95,16 @@ function shouldShowJoinButton(row, now = new Date()) {
 }
 
 function getBroadcastBadge(row, now = new Date()) {
-  const start = safeDate(row?.starts_at);
-  const status = getBroadcastStatus(row);
+  const start = safeDate(row?.broadcast_session?.starts_at || row?.starts_at);
+  const status = getSessionStatus(row);
+  const streamUrl = getStreamUrl(row);
 
-  if (!start) return null;
+  if (!streamUrl || !start) return null;
 
   const liveFrom = new Date(start.getTime() - 5 * 60 * 1000);
   const liveUntil = new Date(start.getTime() + 2 * 60 * 60 * 1000);
 
-  if (status === "live" || (status === "ready" && now >= liveFrom && now <= liveUntil)) {
+  if (status === "scheduled" && now >= liveFrom && now <= liveUntil) {
     return {
       label: "Právě vysíláme",
       className: "bg-red-100 text-red-700 border border-red-200",
@@ -155,11 +112,27 @@ function getBroadcastBadge(row, now = new Date()) {
     };
   }
 
-  if (shouldShowJoinButton(row, now)) {
+  if (status === "scheduled" && shouldShowJoinButton(row, now)) {
     return {
       label: "Vysílání připraveno",
       className: "bg-emerald-100 text-emerald-700 border border-emerald-200",
       dotClassName: "bg-emerald-500",
+    };
+  }
+
+  if (status === "draft") {
+    return {
+      label: "Vysílání rozpracováno",
+      className: "bg-amber-100 text-amber-700 border border-amber-200",
+      dotClassName: "bg-amber-500",
+    };
+  }
+
+  if (status === "finished") {
+    return {
+      label: "Dokončeno",
+      className: "bg-blue-100 text-blue-700 border border-blue-200",
+      dotClassName: "bg-blue-500",
     };
   }
 
@@ -236,14 +209,12 @@ export default function Kalendar() {
     const { data: sessionsData, error: sessionsError } = await supabase
       .from("broadcast_sessions")
       .select(
-        "id,event_id,meet_link,broadcast_status,recording_status,recording_url,moderator,internal_notes"
+        "id,event_id,status,viewer_url,recording_url,recording_status,moderator_name,guest_1_name,guest_2_name,guest_3_name,guest_4_name,guest_5_name,notes_internal,starts_at"
       )
       .in("event_id", eventIds);
 
     if (!sessionsError && Array.isArray(sessionsData)) {
-      sessionsMap = Object.fromEntries(
-        sessionsData.map((s) => [s.event_id, s])
-      );
+      sessionsMap = Object.fromEntries(sessionsData.map((s) => [s.event_id, s]));
     }
 
     const merged = baseRows.map((row) => ({
@@ -263,10 +234,10 @@ export default function Kalendar() {
 
   const upcoming = useMemo(() => {
     return rows.filter((r) => {
-      const d = safeDate(r.starts_at);
+      const d = safeDate(r.broadcast_session?.starts_at || r.starts_at);
       return d && d >= now;
     });
-  }, [rows]);
+  }, [rows, now]);
 
   const nextOne = upcoming[0] || null;
   const later = upcoming.slice(1);
@@ -279,9 +250,7 @@ export default function Kalendar() {
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-semibold">Program</h1>
-            <p className="text-slate-600 mt-1">
-              Přehled živého vysílání a archivu.
-            </p>
+            <p className="text-slate-600 mt-1">Přehled živého vysílání a archivu.</p>
           </div>
 
           <button
@@ -307,7 +276,6 @@ export default function Kalendar() {
                   <div className="flex gap-4 items-start">
                     {nextOne.poster_path ? (
                       <div className="w-[140px] shrink-0 border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={publicUrlFromPath(nextOne.poster_path)}
                           alt="Plakát"
@@ -319,14 +287,14 @@ export default function Kalendar() {
 
                     <div className="flex-1 min-w-[260px]">
                       <div className="text-sm text-slate-500">
-                        {nextOne.starts_at
-                          ? formatDateTimeCS(new Date(nextOne.starts_at))
+                        {nextOne.broadcast_session?.starts_at || nextOne.starts_at
+                          ? formatDateTimeCS(
+                              new Date(nextOne.broadcast_session?.starts_at || nextOne.starts_at)
+                            )
                           : "Bez data"}
                       </div>
 
-                      <div className="text-lg font-semibold mt-1">
-                        {nextOne.title}
-                      </div>
+                      <div className="text-lg font-semibold mt-1">{nextOne.title}</div>
 
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                         {nextOne.category ? (
@@ -373,9 +341,7 @@ export default function Kalendar() {
               {later.length ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {later.map((r) => {
-                    const posterUrl = r.poster_path
-                      ? publicUrlFromPath(r.poster_path)
-                      : "";
+                    const posterUrl = r.poster_path ? publicUrlFromPath(r.poster_path) : "";
 
                     return (
                       <div
@@ -385,7 +351,6 @@ export default function Kalendar() {
                         <div className="flex gap-4 items-start">
                           {posterUrl ? (
                             <div className="w-[120px] shrink-0 border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={posterUrl}
                                 alt="Plakát"
@@ -397,14 +362,14 @@ export default function Kalendar() {
 
                           <div className="flex-1">
                             <div className="text-sm text-slate-500">
-                              {r.starts_at
-                                ? formatDateTimeCS(new Date(r.starts_at))
+                              {r.broadcast_session?.starts_at || r.starts_at
+                                ? formatDateTimeCS(
+                                    new Date(r.broadcast_session?.starts_at || r.starts_at)
+                                  )
                                 : "Bez data"}
                             </div>
 
-                            <div className="text-lg font-semibold mt-1">
-                              {r.title}
-                            </div>
+                            <div className="text-lg font-semibold mt-1">{r.title}</div>
 
                             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                               {r.category ? (
