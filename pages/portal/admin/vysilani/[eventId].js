@@ -7,7 +7,8 @@ import { supabase } from "../../../../lib/supabaseClient";
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Rozpracováno" },
-  { value: "scheduled", label: "Naplánováno" },
+  { value: "scheduled", label: "Připraveno" },
+  { value: "live", label: "Právě vysíláme" },
   { value: "finished", label: "Dokončeno" },
 ];
 
@@ -277,6 +278,7 @@ export default function AdminVysilaniDetailPage() {
         border: "#fed7aa",
       };
     }
+
     if (status === "scheduled") {
       return {
         label: "🟢 Vysílání připraveno",
@@ -285,6 +287,16 @@ export default function AdminVysilaniDetailPage() {
         border: "#cfe8d3",
       };
     }
+
+    if (status === "live") {
+      return {
+        label: "🔴 Právě vysíláme",
+        color: "#b91c1c",
+        bg: "#fef2f2",
+        border: "#fecaca",
+      };
+    }
+
     if (status === "finished") {
       return {
         label: "✅ Dokončeno",
@@ -293,6 +305,7 @@ export default function AdminVysilaniDetailPage() {
         border: "#bfdbfe",
       };
     }
+
     return {
       label: "🟡 Vysílání rozpracováno",
       color: "#854d0e",
