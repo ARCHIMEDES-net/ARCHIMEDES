@@ -86,7 +86,11 @@ function getSessionStatus(row) {
 }
 
 function getEffectiveStart(row) {
-  return safeDate(row?.broadcast_session?.starts_at || row?.starts_at);
+  return safeDate(
+    row?.broadcast_session?.starts_at ||
+      row?.starts_at ||
+      row?.event?.starts_at
+  );
 }
 
 function shouldShowJoinButton(row, now = new Date()) {
@@ -110,8 +114,6 @@ function getBroadcastBadge(row, now = new Date()) {
   const status = getSessionStatus(row);
   const streamUrl = getStreamUrl(row);
 
-  if (!start) return null;
-
   if (status === "draft") {
     return {
       label: "Vysílání rozpracováno",
@@ -128,6 +130,7 @@ function getBroadcastBadge(row, now = new Date()) {
     };
   }
 
+  if (!start) return null;
   if (!streamUrl) return null;
 
   const liveFrom = new Date(start.getTime() - 5 * 60 * 1000);
@@ -307,6 +310,7 @@ export default function Kalendar() {
     const merged = baseRows.map((row) => ({
       ...row,
       broadcast_session: sessionsMap[row.id] || null,
+      event: row,
     }));
 
     setRows(merged);
