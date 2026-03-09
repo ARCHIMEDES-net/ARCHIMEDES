@@ -61,7 +61,9 @@ export default function ZadostPristupPage() {
       }
 
       if (!trimmedOrganization) {
-        throw new Error("Vyplňte prosím název školy, obce nebo organizace.");
+        throw new Error(
+          "Vyplňte prosím školu, obec, organizaci nebo místo, kde chcete ARCHIMEDES Live využít."
+        );
       }
 
       if (!trimmedAddress) {
@@ -119,6 +121,13 @@ export default function ZadostPristupPage() {
     fontSize: 15,
     boxSizing: "border-box",
     background: "#fff",
+  };
+
+  const helperStyle = {
+    marginTop: 6,
+    fontSize: 13,
+    color: "rgba(0,0,0,0.62)",
+    lineHeight: 1.5,
   };
 
   return (
@@ -230,15 +239,20 @@ export default function ZadostPristupPage() {
               <label
                 style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
               >
-                Název školy / obce / organizace*
+                Škola / obec / organizace / místo zájmu*
               </label>
               <input
                 name="organization"
                 required
                 value={form.organization}
                 onChange={updateField}
+                placeholder="Např. ZŠ Hodonín, Obec Křenov, Hodonín, komunita v Bučovicích..."
                 style={fieldStyle}
               />
+              <div style={helperStyle}>
+                Pokud zatím nežádáte za konkrétní organizaci, napište prosím obec,
+                město nebo stručně popište, kde chcete ARCHIMEDES Live využít.
+              </div>
             </div>
 
             <div>
@@ -275,8 +289,11 @@ export default function ZadostPristupPage() {
                 <option value="spolek">Spolek</option>
                 <option value="senior-klub">Senior klub</option>
                 <option value="partner">Partner</option>
-                <option value="jine">Jiné</option>
+                <option value="jine">Jiné / zatím neurčeno</option>
               </select>
+              <div style={helperStyle}>
+                Pokud zatím nevystupujete za konkrétní organizaci, zvolte „Jiné / zatím neurčeno“.
+              </div>
             </div>
 
             <div>
@@ -291,6 +308,7 @@ export default function ZadostPristupPage() {
                 value={form.message}
                 onChange={updateField}
                 style={{ ...fieldStyle, resize: "vertical" }}
+                placeholder="Můžete doplnit, pro koho o přístup usilujete, koho chcete zapojit nebo v jaké fázi zájmu jste."
               />
             </div>
 
