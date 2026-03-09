@@ -29,7 +29,9 @@ export default function Poptavka() {
   const router = useRouter();
 
   const [licenseType, setLicenseType] = useState("obec");
+  const [contactName, setContactName] = useState("");
   const [organization, setOrganization] = useState("");
+  const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
@@ -57,8 +59,16 @@ export default function Poptavka() {
     setMessage("");
 
     try {
+      if (!contactName.trim()) {
+        throw new Error("Vyplňte prosím jméno a příjmení kontaktní osoby.");
+      }
+
       if (!organization.trim()) {
-        throw new Error("Vyplňte prosím název obce nebo školy.");
+        throw new Error("Vyplňte prosím název obce, školy nebo organizace.");
+      }
+
+      if (!address.trim()) {
+        throw new Error("Vyplňte prosím adresu.");
       }
 
       if (!email.trim()) {
@@ -70,8 +80,12 @@ export default function Poptavka() {
         throw new Error("Zadejte prosím platný e-mail.");
       }
 
+      if (phone.trim() && phone.trim().length < 6) {
+        throw new Error("Telefon je příliš krátký.");
+      }
+
       setMessage(
-        `Poptávka pro licenci „${selectedLicenseLabel}“ je připravena. Po napojení odesílání se bude ukládat a posílat automaticky.`
+        `Poptávka pro licenci „${selectedLicenseLabel}“ je připravena. Po napojení odesílání se budou ukládat údaje včetně kontaktní osoby a adresy prvního administrátora.`
       );
     } catch (e2) {
       setError(e2.message || "Poptávku se nepodařilo odeslat.");
@@ -180,7 +194,18 @@ export default function Poptavka() {
                 </div>
 
                 <div>
-                  <label className="fieldLabel">Název obce / školy*</label>
+                  <label className="fieldLabel">Jméno a příjmení*</label>
+
+                  <input
+                    type="text"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    style={inputStyle}
+                  />
+                </div>
+
+                <div>
+                  <label className="fieldLabel">Název obce / školy / organizace*</label>
 
                   <input
                     type="text"
@@ -197,6 +222,18 @@ export default function Poptavka() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    style={inputStyle}
+                  />
+                </div>
+
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label className="fieldLabel">Adresa*</label>
+
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Ulice, číslo popisné, město, PSČ"
                     style={inputStyle}
                   />
                 </div>
@@ -233,6 +270,22 @@ export default function Poptavka() {
                     fontFamily: "inherit",
                   }}
                 />
+              </div>
+
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: "12px 14px",
+                  borderRadius: 14,
+                  background: "#f8fafc",
+                  border: "1px solid rgba(17,24,39,0.08)",
+                  color: "rgba(17,24,39,0.72)",
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                }}
+              >
+                U organizací slouží tyto údaje pro prvního administrátora přístupu.
+                U dalších členů organizace už nebude nutné adresu znovu vyplňovat.
               </div>
 
               <div className="actionRow">
