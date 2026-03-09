@@ -40,19 +40,31 @@ const AUDIENCE_OPTIONS = [
   "Speciál",
 ];
 
+const FILTER_OPTIONS = [
+  { key: "all", label: "Vše" },
+  { key: "Senioři", label: "Senior klub" },
+  { key: "Čtenářský klub – děti", label: "Čtenářský klub – děti" },
+  { key: "Čtenářský klub – dospělí", label: "Čtenářský klub – dospělí" },
+  { key: "Filmový klub", label: "Filmový klub" },
+  { key: "Smart Cities", label: "Smart City" },
+  { key: "Wellbeing", label: "Wellbeing" },
+  { key: "Speciál", label: "Speciál" },
+];
+
+/* =========================
+   Helpers
+========================= */
 function splitAudience(value) {
   return (value || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
 }
+
 function joinAudience(list) {
   return (list || []).join(", ");
 }
 
-/* =========================
-   Helpers
-========================= */
 function pad2(n) {
   return String(n).padStart(2, "0");
 }
@@ -112,6 +124,50 @@ function makePosterPath(file) {
   return `${ym}/${Date.now()}-${rand}.${ext}`;
 }
 
+function detectBroadcastState(row) {
+  const status = row?.broadcast_status || "";
+  const viewerUrl = normalizeText(row?.broadcast_viewer_url);
+  const recordingUrl = normalizeText(row?.broadcast_recording_url);
+
+  if (!status && !viewerUrl && !recordingUrl) {
+    return {
+      key: "missing",
+      label: "⚠ Vysílání nenastaveno",
+      color: "#92400e",
+      bg: "#fff7ed",
+      border: "#fed7aa",
+    };
+  }
+
+  if (status === "scheduled" || viewerUrl) {
+    return {
+      key: "ready",
+      label: "🟢 Vysílání připraveno",
+      color: "#166534",
+      bg: "#eefaf0",
+      border: "#cfe8d3",
+    };
+  }
+
+  if (status === "finished" || recordingUrl) {
+    return {
+      key: "finished",
+      label: "✅ Proběhlo / má záznam",
+      color: "#1d4ed8",
+      bg: "#eff6ff",
+      border: "#bfdbfe",
+    };
+  }
+
+  return {
+    key: "draft",
+    label: "🟡 Vysílání rozpracováno",
+    color: "#854d0e",
+    bg: "#fefce8",
+    border: "#fde68a",
+  };
+}
+
 /* =========================
    Page
 ========================= */
@@ -124,8 +180,10 @@ export default function AdminUdalosti() {
   const [info, setInfo] = useState("");
 
   const [rows, setRows] = useState([]);
+  const [filterKey, setFilterKey] = useState("all");
 
   const [editingId, setEditingId] = useState(null);
+  const [lastSavedEventId, setLastSavedEventId] = useState("");
 
   const [rubricKey, setRubricKey] = useState("");
   const [title, setTitle] = useState("");
@@ -161,7 +219,25 @@ export default function AdminUdalosti() {
     const { data, error } = await supabase
       .from("events")
       .select(
-        "id,title,starts_at,audience,audience_groups,full_description,stream_url,worksheet_url,poster_url,is_published,created_at"
+        `
+          id,
+          title,
+          starts_at,
+          audience,
+          audience_groups,
+          full_description,
+          stream_url,
+          worksheet_url,
+          poster_url,
+          is_published,
+          created_at,
+          broadcast_sessions (
+            id,
+            status,
+            viewer_url,
+            recording_url
+          )
+        `
       )
       .order("starts_at", { ascending: false });
 
@@ -169,7 +245,18 @@ export default function AdminUdalosti() {
       setError(error.message || "Chyba načítání událostí.");
       setRows([]);
     } else {
-      setRows(Array.isArray(data) ? data : []);
+      const normalized = Array.isArray(data)
+        ? data.map((row) => {
+            const session = Array.isArray(row.broadcast_sessions) ? row.broadcast_sessions[0] : null;
+            return {
+              ...row,
+              broadcast_status: session?.status || "",
+              broadcast_viewer_url: session?.viewer_url || "",
+              broadcast_recording_url: session?.recording_url || "",
+            };
+          })
+        : [];
+      setRows(normalized);
     }
 
     setLoading(false);
@@ -179,9 +266,20 @@ export default function AdminUdalosti() {
     loadEvents();
   }, []);
 
-  const sortedRows = useMemo(() => {
+  const filteredRows = useMemo(() => {
     const copy = Array.isArray(rows) ? [...rows] : [];
-    copy.sort((a, b) => {
+
+    const filtered =
+      filterKey === "all"
+        ? copy
+        : copy.filter((row) => {
+            const groups = Array.isArray(row.audience_groups)
+              ? row.audience_groups.map(String)
+              : splitAudience(normalizeText(row.audience));
+            return groups.includes(filterKey);
+          });
+
+    filtered.sort((a, b) => {
       const ta = a?.starts_at ? new Date(a.starts_at).getTime() : 0;
       const tb = b?.starts_at ? new Date(b.starts_at).getTime() : 0;
       if (tb !== ta) return tb - ta;
@@ -189,11 +287,13 @@ export default function AdminUdalosti() {
       const cb = b?.created_at ? new Date(b.created_at).getTime() : 0;
       return cb - ca;
     });
-    return copy;
-  }, [rows]);
+
+    return filtered;
+  }, [rows, filterKey]);
 
   function resetForm() {
     setEditingId(null);
+    setLastSavedEventId("");
     setRubricKey("");
     setTitle("");
     setStartsAtLocal("");
@@ -210,6 +310,7 @@ export default function AdminUdalosti() {
 
   function fillFormFromRow(r) {
     setEditingId(r.id);
+    setLastSavedEventId(r.id);
     setRubricKey("");
     setTitle(normalizeText(r.title));
     setStartsAtLocal(toDatetimeLocalValue(r.starts_at));
@@ -337,18 +438,44 @@ export default function AdminUdalosti() {
     setSaving(true);
 
     try {
+      let savedId = editingId || "";
+
       if (editingId) {
         const { error } = await supabase.from("events").update(payload).eq("id", editingId);
         if (error) throw error;
         setInfo("Událost byla upravena.");
       } else {
-        const { error } = await supabase.from("events").insert(payload);
+        const { data, error } = await supabase
+          .from("events")
+          .insert(payload)
+          .select("id")
+          .single();
         if (error) throw error;
+        savedId = data?.id || "";
         setInfo("Událost byla vytvořena.");
       }
 
+      if (savedId) {
+        setLastSavedEventId(savedId);
+      }
+
       await loadEvents();
-      resetForm();
+
+      if (editingId) {
+        setEditingId(savedId || editingId);
+      } else {
+        setEditingId(null);
+        setRubricKey("");
+        setTitle("");
+        setStartsAtLocal("");
+        setAudienceText("");
+        setAudienceSelected([]);
+        setFullDescription("");
+        setStreamUrl("");
+        setWorksheetUrl("");
+        setPosterUrl("");
+        setIsPublished(true);
+      }
     } catch (err) {
       setError(err?.message || "Chyba při ukládání.");
     } finally {
@@ -368,7 +495,9 @@ export default function AdminUdalosti() {
       if (error) throw error;
       setInfo("Událost byla smazána.");
       await loadEvents();
-      if (editingId === id) resetForm();
+      if (editingId === id || lastSavedEventId === id) {
+        resetForm();
+      }
     } catch (err) {
       setError(err?.message || "Chyba při mazání.");
     }
@@ -408,7 +537,32 @@ export default function AdminUdalosti() {
             <b>Chyba:</b> {error}
           </div>
         ) : null}
-        {info ? <div style={infoBox}>{info}</div> : null}
+
+        {info ? (
+          <div style={infoBox}>
+            <div>{info}</div>
+
+            {lastSavedEventId ? (
+              <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <Link
+                  href={`/portal/admin/vysilani/${lastSavedEventId}`}
+                  style={{
+                    ...btnPrimary,
+                    textDecoration: "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                  }}
+                >
+                  Nastavit vysílání
+                </Link>
+
+                <button type="button" onClick={() => setLastSavedEventId("")} style={btnSecondary}>
+                  Zavřít
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         <section style={{ marginTop: 16 }}>
           <div style={card}>
@@ -583,20 +737,52 @@ export default function AdminUdalosti() {
 
         <section style={{ marginTop: 16 }}>
           <div style={card}>
-            <h2 style={{ marginTop: 0 }}>Seznam událostí</h2>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 12,
+                flexWrap: "wrap",
+                alignItems: "center",
+              }}
+            >
+              <h2 style={{ marginTop: 0, marginBottom: 0 }}>Seznam událostí</h2>
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {FILTER_OPTIONS.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => setFilterKey(item.key)}
+                    style={{
+                      padding: "8px 10px",
+                      borderRadius: 999,
+                      border: filterKey === item.key ? "1px solid #111827" : "1px solid #e5e7eb",
+                      background: filterKey === item.key ? "#111827" : "white",
+                      color: filterKey === item.key ? "white" : "#111827",
+                      cursor: "pointer",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {loading ? <p>Načítám…</p> : null}
-            {!loading && sortedRows.length === 0 ? (
-              <p style={{ margin: 0, color: "#6b7280" }}>Zatím žádné události.</p>
+            {!loading && filteredRows.length === 0 ? (
+              <p style={{ margin: "12px 0 0", color: "#6b7280" }}>Pro tento filtr zatím žádné události.</p>
             ) : null}
 
-            {!loading && sortedRows.length > 0 ? (
-              <div style={{ display: "grid", gap: 12 }}>
-                {sortedRows.map((r) => {
+            {!loading && filteredRows.length > 0 ? (
+              <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
+                {filteredRows.map((r) => {
                   const published = r.is_published !== false;
                   const stream = normalizeText(r.stream_url);
                   const worksheet = normalizeText(r.worksheet_url);
                   const poster = normalizeText(r.poster_url);
+                  const broadcastState = detectBroadcastState(r);
 
                   return (
                     <div key={r.id} style={rowCard}>
@@ -633,6 +819,23 @@ export default function AdminUdalosti() {
                                     <b style={{ color: "#991b1b" }}>skryto</b>
                                   )}
                                 </span>
+                              </div>
+
+                              <div
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  marginTop: 8,
+                                  padding: "6px 10px",
+                                  borderRadius: 999,
+                                  background: broadcastState.bg,
+                                  color: broadcastState.color,
+                                  border: `1px solid ${broadcastState.border}`,
+                                  fontSize: 13,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {broadcastState.label}
                               </div>
                             </div>
 
