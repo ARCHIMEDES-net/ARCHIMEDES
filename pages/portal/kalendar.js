@@ -28,10 +28,7 @@ function normalizeAudience(aud) {
   if (Array.isArray(aud)) return aud.filter(Boolean).map(String);
   const s = String(aud).trim();
   if (!s) return [];
-  return s
-    .split(",")
-    .map((x) => x.trim())
-    .filter(Boolean);
+  return s.split(",").map((x) => x.trim()).filter(Boolean);
 }
 
 function badgeColor(label) {
@@ -63,6 +60,12 @@ function publicUrlFromPath(path) {
   return data?.publicUrl || "";
 }
 
+function normalizeSession(session) {
+  if (!session) return null;
+  if (Array.isArray(session)) return session[0] || null;
+  return session;
+}
+
 function normalizeSessionStatus(value) {
   const s = String(value || "").trim().toLowerCase();
 
@@ -73,24 +76,25 @@ function normalizeSessionStatus(value) {
   return "unset";
 }
 
+function getSession(row) {
+  return normalizeSession(row?.broadcast_sessions || row?.broadcast_session || null);
+}
+
 function getStreamUrl(row) {
-  return row?.broadcast_session?.viewer_url || row?.stream_url || "";
+  const session = getSession(row);
+  return session?.viewer_url || row?.stream_url || "";
 }
 
 function getSessionStatus(row) {
+  const session = getSession(row);
   return normalizeSessionStatus(
-    row?.broadcast_session?.status ||
-      row?.broadcast_session?.broadcast_status ||
-      ""
+    session?.status || session?.broadcast_status || ""
   );
 }
 
 function getEffectiveStart(row) {
-  return safeDate(
-    row?.broadcast_session?.starts_at ||
-      row?.starts_at ||
-      row?.event?.starts_at
-  );
+  const session = getSession(row);
+  return safeDate(session?.starts_at || row?.starts_at);
 }
 
 function shouldShowJoinButton(row, now = new Date()) {
@@ -130,8 +134,7 @@ function getBroadcastBadge(row, now = new Date()) {
     };
   }
 
-  if (!start) return null;
-  if (!streamUrl) return null;
+  if (!start || !streamUrl) return null;
 
   const liveFrom = new Date(start.getTime() - 5 * 60 * 1000);
   const liveUntil = new Date(start.getTime() + 2 * 60 * 60 * 1000);
@@ -141,14 +144,6 @@ function getBroadcastBadge(row, now = new Date()) {
       label: "Právě vysíláme",
       className: "bg-red-100 text-red-700 border border-red-200",
       dotClassName: "bg-red-500",
-    };
-  }
-
-  if (status === "scheduled" && shouldShowJoinButton(row, now)) {
-    return {
-      label: "Vysílání připraveno",
-      className: "bg-emerald-100 text-emerald-700 border border-emerald-200",
-      dotClassName: "bg-emerald-500",
     };
   }
 
@@ -268,52 +263,46 @@ export default function Kalendar() {
     setLoading(true);
     setErr("");
 
-    const { data: eventsData, error: eventsError } = await supabase
+    const { data, error } = await supabase
       .from("events")
-      .select(
-        "id,title,category,audience_groups,starts_at,stream_url,worksheet_url,is_published,poster_path"
-      )
+      .select(`
+        id,
+        title,
+        category,
+        audience_groups,
+        starts_at,
+        stream_url,
+        worksheet_url,
+        is_published,
+        poster_path,
+        broadcast_sessions (
+          id,
+          event_id,
+          status,
+          viewer_url,
+          recording_url,
+          recording_status,
+          moderator_name,
+          guest_1_name,
+          guest_2_name,
+          guest_3_name,
+          guest_4_name,
+          guest_5_name,
+          notes_internal,
+          starts_at
+        )
+      `)
       .eq("is_published", true)
       .order("starts_at", { ascending: true });
 
-    if (eventsError) {
-      setErr(eventsError.message);
-      setLoading(false);
-      return;
-    }
-
-    const baseRows = eventsData || [];
-
-    if (!baseRows.length) {
+    if (error) {
+      setErr(error.message);
       setRows([]);
       setLoading(false);
       return;
     }
 
-    const eventIds = baseRows.map((r) => r.id).filter(Boolean);
-
-    let sessionsMap = {};
-
-    const { data: sessionsData, error: sessionsError } = await supabase
-      .from("broadcast_sessions")
-      .select(
-        "id,event_id,status,broadcast_status,viewer_url,recording_url,recording_status,moderator_name,guest_1_name,guest_2_name,guest_3_name,guest_4_name,guest_5_name,notes_internal,starts_at"
-      )
-      .in("event_id", eventIds);
-
-    if (!sessionsError && Array.isArray(sessionsData)) {
-      sessionsMap = Object.fromEntries(
-        sessionsData.map((s) => [s.event_id, s])
-      );
-    }
-
-    const merged = baseRows.map((row) => ({
-      ...row,
-      broadcast_session: sessionsMap[row.id] || null,
-      event: row,
-    }));
-
-    setRows(merged);
+    setRows(data || []);
     setLoading(false);
   }
 
