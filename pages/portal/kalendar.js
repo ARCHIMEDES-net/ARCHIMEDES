@@ -5,6 +5,7 @@ import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
 const BUCKET = "posters";
+
 function safeDate(value) {
   if (!value) return null;
   const d = new Date(value);
@@ -45,13 +46,8 @@ function normalizePosterPath(p) {
   if (!p) return "";
   let s = String(p);
 
-  // když DB omylem ukládá i "event-posters/..."
   if (s.startsWith(`${BUCKET}/`)) s = s.slice(BUCKET.length + 1);
-
-  // kdyby někdy bylo uložené celé URL
   if (s.startsWith("http://") || s.startsWith("https://")) return s;
-
-  // odstranit případné počáteční lomítko
   if (s.startsWith("/")) s = s.slice(1);
 
   return s;
@@ -63,6 +59,145 @@ function publicUrlFromPath(path) {
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(p);
   return data?.publicUrl || "";
 }
+
+function normalizeBroadcastStatus(value) {
+  const s = String(value || "").trim().toLowerCase();
+
+  if (
+    [
+      "ready",
+      "prepared",
+      "pripraveno",
+      "připraveno",
+    ].includes(s)
+  ) {
+    return "ready";
+  }
+
+  if (
+    [
+      "live",
+      "on_air",
+      "onair",
+      "vysilame",
+      "vysíláme",
+    ].includes(s)
+  ) {
+    return "live";
+  }
+
+  if (
+    [
+      "draft",
+      "working",
+      "rozpracovano",
+      "rozpracováno",
+    ].includes(s)
+  ) {
+    return "draft";
+  }
+
+  if (
+    [
+      "done",
+      "finished",
+      "completed",
+      "dokonceno",
+      "dokončeno",
+    ].includes(s)
+  ) {
+    return "done";
+  }
+
+  return "unset";
+}
+
+function getStreamUrl(row) {
+  return row?.stream_url || row?.broadcast_session?.meet_link || "";
+}
+
+function getBroadcastStatus(row) {
+  return normalizeBroadcastStatus(
+    row?.broadcast_session?.broadcast_status || row?.broadcast_status || ""
+  );
+}
+
+function shouldShowJoinButton(row, now = new Date()) {
+  const streamUrl = getStreamUrl(row);
+  if (!streamUrl) return false;
+
+  const status = getBroadcastStatus(row);
+  if (!["ready", "live"].includes(status)) return false;
+
+  const start = safeDate(row?.starts_at);
+  if (!start) return false;
+
+  const openFrom = new Date(start.getTime() - 15 * 60 * 1000);
+  const openUntil = new Date(start.getTime() + 4 * 60 * 60 * 1000);
+
+  return now >= openFrom && now <= openUntil;
+}
+
+function getBroadcastBadge(row, now = new Date()) {
+  const start = safeDate(row?.starts_at);
+  const status = getBroadcastStatus(row);
+
+  if (!start) return null;
+
+  const liveFrom = new Date(start.getTime() - 5 * 60 * 1000);
+  const liveUntil = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+
+  if (status === "live" || (status === "ready" && now >= liveFrom && now <= liveUntil)) {
+    return {
+      label: "Právě vysíláme",
+      className: "bg-red-100 text-red-700 border border-red-200",
+      dotClassName: "bg-red-500",
+    };
+  }
+
+  if (shouldShowJoinButton(row, now)) {
+    return {
+      label: "Vysílání připraveno",
+      className: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+      dotClassName: "bg-emerald-500",
+    };
+  }
+
+  return null;
+}
+
+function BroadcastBadge({ row }) {
+  const badge = getBroadcastBadge(row);
+  if (!badge) return null;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${badge.className}`}
+    >
+      <span className={`w-2 h-2 rounded-full ${badge.dotClassName}`} />
+      {badge.label}
+    </span>
+  );
+}
+
+function JoinButton({ row }) {
+  if (!shouldShowJoinButton(row)) return null;
+
+  const href = getStreamUrl(row);
+  if (!href) return null;
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-medium"
+    >
+      ▶ Vstoupit do vysílání
+    </a>
+  );
+}
+
 export default function Kalendar() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,19 +207,51 @@ export default function Kalendar() {
     setLoading(true);
     setErr("");
 
-    const { data, error } = await supabase
+    const { data: eventsData, error: eventsError } = await supabase
       .from("events")
-      .select("id,title,category,audience_groups,starts_at,stream_url,worksheet_url,is_published,poster_path")
+      .select(
+        "id,title,category,audience_groups,starts_at,stream_url,worksheet_url,is_published,poster_path"
+      )
       .eq("is_published", true)
       .order("starts_at", { ascending: true });
 
-    if (error) {
-      setErr(error.message);
+    if (eventsError) {
+      setErr(eventsError.message);
       setLoading(false);
       return;
     }
 
-    setRows(data || []);
+    const baseRows = eventsData || [];
+
+    if (!baseRows.length) {
+      setRows([]);
+      setLoading(false);
+      return;
+    }
+
+    const eventIds = baseRows.map((r) => r.id).filter(Boolean);
+
+    let sessionsMap = {};
+
+    const { data: sessionsData, error: sessionsError } = await supabase
+      .from("broadcast_sessions")
+      .select(
+        "id,event_id,meet_link,broadcast_status,recording_status,recording_url,moderator,internal_notes"
+      )
+      .in("event_id", eventIds);
+
+    if (!sessionsError && Array.isArray(sessionsData)) {
+      sessionsMap = Object.fromEntries(
+        sessionsData.map((s) => [s.event_id, s])
+      );
+    }
+
+    const merged = baseRows.map((row) => ({
+      ...row,
+      broadcast_session: sessionsMap[row.id] || null,
+    }));
+
+    setRows(merged);
     setLoading(false);
   }
 
@@ -176,6 +343,8 @@ export default function Kalendar() {
                             {a}
                           </span>
                         ))}
+
+                        <BroadcastBadge row={nextOne} />
                       </div>
 
                       <div className="mt-4 flex gap-2 flex-wrap">
@@ -186,16 +355,7 @@ export default function Kalendar() {
                           Detail
                         </Link>
 
-                        {nextOne.stream_url ? (
-                          <a
-                            href={nextOne.stream_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
-                          >
-                            ▶ Odkaz na vysílání
-                          </a>
-                        ) : null}
+                        <JoinButton row={nextOne} />
                       </div>
                     </div>
                   </div>
@@ -216,6 +376,7 @@ export default function Kalendar() {
                     const posterUrl = r.poster_path
                       ? publicUrlFromPath(r.poster_path)
                       : "";
+
                     return (
                       <div
                         key={r.id}
@@ -260,6 +421,8 @@ export default function Kalendar() {
                                   {a}
                                 </span>
                               ))}
+
+                              <BroadcastBadge row={r} />
                             </div>
 
                             <div className="mt-4 flex gap-2 flex-wrap">
@@ -270,16 +433,7 @@ export default function Kalendar() {
                                 Detail
                               </Link>
 
-                              {r.stream_url ? (
-                                <a
-                                  href={r.stream_url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
-                                >
-                                  ▶ Odkaz na vysílání
-                                </a>
-                              ) : null}
+                              <JoinButton row={r} />
                             </div>
                           </div>
                         </div>
