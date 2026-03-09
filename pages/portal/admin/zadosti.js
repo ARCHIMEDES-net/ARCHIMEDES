@@ -17,25 +17,12 @@ function formatDate(value) {
   return d.toLocaleString("cs-CZ");
 }
 
-function mapLicenseTypeToOrgType(value) {
-  const v = String(value || "").toLowerCase().trim();
-
-  if (["skola", "škola", "school"].includes(v)) return "school";
-  if (["obec", "mesto", "město", "municipality"].includes(v)) return "municipality";
-  if (["senior", "senior-klub", "senior klub"].includes(v)) return "senior_club";
-
-  return "community_center";
-}
-
-function makeJoinCode() {
-  return "ORG-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
 export default function AdminZadostiPage() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creatingOrgId, setCreatingOrgId] = useState("");
   const [savingId, setSavingId] = useState("");
+  const [invitingId, setInvitingId] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -45,6 +32,8 @@ export default function AdminZadostiPage() {
 
   async function loadRows() {
     setLoading(true);
+    setError("");
+    setMessage("");
 
     const { data, error } = await supabase
       .from("access_requests")
@@ -63,6 +52,8 @@ export default function AdminZadostiPage() {
 
   async function updateStatus(id, status) {
     setSavingId(id);
+    setError("");
+    setMessage("");
 
     const { error } = await supabase
       .from("access_requests")
@@ -75,15 +66,15 @@ export default function AdminZadostiPage() {
       return;
     }
 
-    setRows((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status } : r))
-    );
-
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    setMessage("Stav žádosti byl uložen.");
     setSavingId("");
   }
 
   async function createOrganizationFromRequest(row) {
     setCreatingOrgId(row.id);
+    setError("");
+    setMessage("");
 
     try {
       if (row.organization_id) {
@@ -91,79 +82,106 @@ export default function AdminZadostiPage() {
         return;
       }
 
-      const joinCode = makeJoinCode();
+      const response = await fetch("/api/admin/create-organization-from-request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          requestId: row.id,
+          organizationName: row.organization,
+          licenseType: row.license_type,
+        }),
+      });
 
-      const { data: org, error: orgError } = await supabase
-        .from("organizations")
-        .insert({
-          name: row.organization,
-          org_type: mapLicenseTypeToOrgType(row.license_type),
-          status: "active",
-          join_code: joinCode,
-        })
-        .select()
-        .single();
+      const result = await response.json();
 
-      if (orgError) throw orgError;
-
-      await supabase
-        .from("access_requests")
-        .update({ organization_id: org.id })
-        .eq("id", row.id);
+      if (!response.ok) {
+        throw new Error(result?.error || "Nepodařilo se vytvořit organizaci.");
+      }
 
       setRows((prev) =>
         prev.map((r) =>
-          r.id === row.id ? { ...r, organization_id: org.id } : r
+          r.id === row.id
+            ? {
+                ...r,
+                organization_id: result.organization?.id || r.organization_id,
+              }
+            : r
         )
       );
 
-      setMessage(`Organizace "${org.name}" byla vytvořena.`);
+      setMessage(
+        `Organizace „${result.organization?.name || row.organization}“ byla vytvořena.`
+      );
     } catch (e) {
-      setError("Nepodařilo se vytvořit organizaci.");
+      setError(e.message || "Nepodařilo se vytvořit organizaci.");
+    } finally {
+      setCreatingOrgId("");
     }
-
-    setCreatingOrgId("");
   }
 
   async function inviteOrganizationAdmin(row) {
-    if (!row.organization_id) {
-      alert("Nejdříve vytvoř organizaci.");
-      return;
+    setInvitingId(row.id);
+    setError("");
+    setMessage("");
+
+    try {
+      if (!row.organization_id) {
+        throw new Error("Nejdříve vytvoř organizaci.");
+      }
+
+      const email = window.prompt(
+        "Zadej e-mail skutečného administrátora organizace:",
+        row.admin_invited_email || row.email || ""
+      );
+
+      if (!email) return;
+
+      const trimmedEmail = email.trim().toLowerCase();
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
+
+      if (!emailOk) {
+        throw new Error("Zadej platný e-mail administrátora.");
+      }
+
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: trimmedEmail,
+        options: {
+          emailRedirectTo: "https://archimedeslive.com/login",
+        },
+      });
+
+      if (otpError) {
+        throw new Error(otpError.message || "Pozvánku se nepodařilo odeslat.");
+      }
+
+      const { error: updateError } = await supabase
+        .from("access_requests")
+        .update({
+          admin_invited_email: trimmedEmail,
+        })
+        .eq("id", row.id);
+
+      if (updateError) {
+        throw new Error(
+          updateError.message ||
+            "Pozvánka odešla, ale nepodařilo se uložit e-mail administrátora."
+        );
+      }
+
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === row.id ? { ...r, admin_invited_email: trimmedEmail } : r
+        )
+      );
+
+      setMessage(`Pozvánka administrátorovi byla odeslána na ${trimmedEmail}.`);
+    } catch (e) {
+      setError(e.message || "Pozvánku se nepodařilo odeslat.");
+    } finally {
+      setInvitingId("");
     }
-
-    const email = prompt(
-      "Zadej e-mail administrátora:",
-      row.admin_invited_email || row.email || ""
-    );
-
-    if (!email) return;
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: "https://archimedeslive.com/login",
-      },
-    });
-
-    if (error) {
-      alert("Pozvánku se nepodařilo odeslat.");
-      return;
-    }
-
-    await supabase
-      .from("access_requests")
-      .update({
-        admin_invited_email: email,
-      })
-      .eq("id", row.id);
-
-    setRows((prev) =>
-      prev.map((r) =>
-        r.id === row.id ? { ...r, admin_invited_email: email } : r
-      )
-    );
-
-    setMessage(`Pozvánka odeslána na ${email}`);
   }
 
   const actionButtonStyle = {
@@ -175,89 +193,292 @@ export default function AdminZadostiPage() {
     cursor: "pointer",
   };
 
+  const thStyle = {
+    textAlign: "left",
+    padding: "12px 10px",
+    borderBottom: "1px solid rgba(0,0,0,0.08)",
+    fontSize: 14,
+  };
+
+  const tdStyle = {
+    padding: "12px 10px",
+    borderBottom: "1px solid rgba(0,0,0,0.06)",
+    verticalAlign: "top",
+    fontSize: 14,
+  };
+
   return (
     <RequireAuth>
       <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
         <PortalHeader title="Admin • žádosti" />
 
-        <main style={{ maxWidth: 1200, margin: "0 auto", padding: 40 }}>
-          <h1>Žádosti o přístup</h1>
+        <main style={{ maxWidth: 1240, margin: "0 auto", padding: 40 }}>
+          <h1 style={{ marginTop: 0, marginBottom: 10 }}>Žádosti o přístup</h1>
 
-          {error && <div style={{ color: "red" }}>{error}</div>}
-          {message && <div style={{ color: "green" }}>{message}</div>}
+          <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)", maxWidth: 900 }}>
+            Přehled zájemců o vstup do ARCHIMEDES Live. Z této stránky můžeš měnit
+            stav žádosti, vytvořit organizaci a pozvat konkrétního administrátora.
+          </p>
 
-          <table style={{ width: "100%", marginTop: 20 }}>
-            <thead>
-              <tr>
-                <th>Datum</th>
-                <th>Jméno</th>
-                <th>Organizace</th>
-                <th>Email</th>
-                <th>Stav</th>
-                <th>Akce</th>
-              </tr>
-            </thead>
+          {error ? (
+            <div
+              style={{
+                color: "#a40000",
+                background: "#fff1f1",
+                border: "1px solid #f2c9c9",
+                borderRadius: 10,
+                padding: 12,
+                marginBottom: 16,
+              }}
+            >
+              {error}
+            </div>
+          ) : null}
 
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id}>
-                  <td>{formatDate(row.created_at)}</td>
+          {message ? (
+            <div
+              style={{
+                color: "#166534",
+                background: "#eefaf0",
+                border: "1px solid #cfe8d3",
+                borderRadius: 10,
+                padding: 12,
+                marginBottom: 16,
+              }}
+            >
+              {message}
+            </div>
+          ) : null}
 
-                  <td>{row.contact_name}</td>
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 18,
+              border: "1px solid rgba(0,0,0,0.08)",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                padding: 14,
+                borderBottom: "1px solid rgba(0,0,0,0.08)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ fontWeight: 700 }}>Celkem žádostí: {rows.length}</div>
 
-                  <td>{row.organization}</td>
+              <button
+                type="button"
+                onClick={loadRows}
+                disabled={loading}
+                style={{
+                  ...actionButtonStyle,
+                  opacity: loading ? 0.7 : 1,
+                  cursor: loading ? "default" : "pointer",
+                }}
+              >
+                {loading ? "Načítám..." : "Obnovit"}
+              </button>
+            </div>
 
-                  <td>{row.email}</td>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={thStyle}>Datum</th>
+                    <th style={thStyle}>Jméno</th>
+                    <th style={thStyle}>Organizace</th>
+                    <th style={thStyle}>E-mail</th>
+                    <th style={thStyle}>Telefon</th>
+                    <th style={thStyle}>Stav</th>
+                    <th style={thStyle}>Akce</th>
+                  </tr>
+                </thead>
 
-                  <td>
-                    <select
-                      value={row.status || "new"}
-                      disabled={savingId === row.id}
-                      onChange={(e) =>
-                        updateStatus(row.id, e.target.value)
-                      }
-                    >
-                      {STATUS_OPTIONS.map((s) => (
-                        <option key={s.value} value={s.value}>
-                          {s.label}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td style={tdStyle} colSpan={7}>
+                        Načítám…
+                      </td>
+                    </tr>
+                  ) : null}
 
-                  <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <button
-                        style={actionButtonStyle}
-                        onClick={() => createOrganizationFromRequest(row)}
-                        disabled={row.organization_id}
-                      >
-                        {row.organization_id
-                          ? "Organizace existuje"
-                          : "Vytvořit organizaci"}
-                      </button>
+                  {!loading && rows.length === 0 ? (
+                    <tr>
+                      <td style={tdStyle} colSpan={7}>
+                        Zatím žádné žádosti.
+                      </td>
+                    </tr>
+                  ) : null}
 
-                      <button
-                        style={actionButtonStyle}
-                        onClick={() => inviteOrganizationAdmin(row)}
-                        disabled={!row.organization_id}
-                      >
-                        {row.admin_invited_email
-                          ? "Pozvat znovu admina"
-                          : "Pozvat administrátora"}
-                      </button>
+                  {rows.map((row) => (
+                    <tr key={row.id}>
+                      <td style={tdStyle}>{formatDate(row.created_at)}</td>
 
-                      {row.admin_invited_email && (
-                        <div style={{ fontSize: 12 }}>
-                          Pozvánka: {row.admin_invited_email}
+                      <td style={tdStyle}>
+                        <div style={{ fontWeight: 700 }}>{row.contact_name || "—"}</div>
+                        {row.address ? (
+                          <div style={{ marginTop: 6, color: "rgba(0,0,0,0.62)" }}>
+                            {row.address}
+                          </div>
+                        ) : null}
+                        {row.message ? (
+                          <div
+                            style={{
+                              marginTop: 6,
+                              color: "rgba(0,0,0,0.62)",
+                              whiteSpace: "pre-wrap",
+                              maxWidth: 260,
+                            }}
+                          >
+                            {row.message}
+                          </div>
+                        ) : null}
+                      </td>
+
+                      <td style={tdStyle}>
+                        {row.organization || "—"}
+                        <div style={{ marginTop: 8 }}>
+                          {row.organization_id ? (
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                minHeight: 28,
+                                padding: "0 10px",
+                                borderRadius: 999,
+                                background: "#eefaf0",
+                                color: "#166534",
+                                border: "1px solid #cfe8d3",
+                                fontSize: 12,
+                                fontWeight: 700,
+                              }}
+                            >
+                              Organizace vytvořena
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                minHeight: 28,
+                                padding: "0 10px",
+                                borderRadius: 999,
+                                background: "#f8fafc",
+                                color: "#475569",
+                                border: "1px solid #e2e8f0",
+                                fontSize: 12,
+                                fontWeight: 700,
+                              }}
+                            >
+                              Bez organizace
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      </td>
+
+                      <td style={tdStyle}>
+                        {row.email ? (
+                          <a href={`mailto:${row.email}`} style={{ color: "#111827" }}>
+                            {row.email}
+                          </a>
+                        ) : (
+                          "—"
+                        )}
+
+                        {row.admin_invited_email ? (
+                          <div style={{ marginTop: 8, fontSize: 12, color: "rgba(0,0,0,0.6)" }}>
+                            Pozvánka: {row.admin_invited_email}
+                          </div>
+                        ) : null}
+                      </td>
+
+                      <td style={tdStyle}>
+                        {row.phone ? (
+                          <a href={`tel:${row.phone}`} style={{ color: "#111827" }}>
+                            {row.phone}
+                          </a>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+
+                      <td style={tdStyle}>
+                        <select
+                          value={row.status || "new"}
+                          disabled={savingId === row.id}
+                          onChange={(e) => updateStatus(row.id, e.target.value)}
+                          style={{
+                            minWidth: 150,
+                            padding: "8px 10px",
+                            borderRadius: 10,
+                            border: "1px solid rgba(0,0,0,0.15)",
+                            background: "#fff",
+                          }}
+                        >
+                          {STATUS_OPTIONS.map((s) => (
+                            <option key={s.value} value={s.value}>
+                              {s.label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+
+                      <td style={tdStyle}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                          <button
+                            type="button"
+                            style={{
+                              ...actionButtonStyle,
+                              opacity:
+                                row.organization_id || creatingOrgId === row.id ? 0.7 : 1,
+                              cursor:
+                                row.organization_id || creatingOrgId === row.id
+                                  ? "default"
+                                  : "pointer",
+                            }}
+                            onClick={() => createOrganizationFromRequest(row)}
+                            disabled={!!row.organization_id || creatingOrgId === row.id}
+                          >
+                            {creatingOrgId === row.id
+                              ? "Vytvářím..."
+                              : row.organization_id
+                              ? "Organizace existuje"
+                              : "Vytvořit organizaci"}
+                          </button>
+
+                          <button
+                            type="button"
+                            style={{
+                              ...actionButtonStyle,
+                              opacity: !row.organization_id || invitingId === row.id ? 0.7 : 1,
+                              cursor:
+                                !row.organization_id || invitingId === row.id
+                                  ? "default"
+                                  : "pointer",
+                            }}
+                            onClick={() => inviteOrganizationAdmin(row)}
+                            disabled={!row.organization_id || invitingId === row.id}
+                          >
+                            {invitingId === row.id
+                              ? "Odesílám..."
+                              : row.admin_invited_email
+                              ? "Pozvat znovu admina"
+                              : "Pozvat administrátora"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </main>
       </div>
     </RequireAuth>
