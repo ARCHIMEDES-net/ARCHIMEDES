@@ -5,50 +5,60 @@ import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
 /* =========================
-   RUBRIKY (ověřené názvy)
+   RUBRIKY
 ========================= */
 const RUBRICS = [
   { key: "senior", label: "Senior Klub", titlePrefix: "Senior Klub – ", aud: ["Senioři"] },
-  { key: "wellbeing", label: "Wellbeing", titlePrefix: "Wellbeing – ", aud: ["Wellbeing"] },
 
-  { key: "science_on", label: "Science On", titlePrefix: "Science On – ", aud: ["2. stupeň"] },
-  { key: "czexpats", label: "Czexpats in Science", titlePrefix: "Czexpats in Science – ", aud: ["2. stupeň"] },
-  { key: "smart_city", label: "Smart City Klub", titlePrefix: "Smart City Klub – ", aud: ["2. stupeň", "Smart Cities"] },
-  { key: "kariera", label: "Kariérní poradenství jinak", titlePrefix: "Kariérní poradenství jinak – ", aud: ["2. stupeň", "Kariérní poradenství"] },
+  { key: "wellbeing", label: "Wellbeing", titlePrefix: "Wellbeing – ", aud: [] },
 
-  { key: "lit_adult", label: "Literární klub Magnesia Litera (dospělí)", titlePrefix: "Literární klub – dospělí – ", aud: ["Komunita", "Čtenářský klub – dospělí"] },
-  { key: "lit_kids", label: "Literární klub Magnesia Litera (děti)", titlePrefix: "Literární klub – děti – ", aud: ["1. stupeň", "Čtenářský klub – děti"] },
+  { key: "science_on", label: "Science On", titlePrefix: "Science On – ", aud: ["II. stupeň"] },
+  { key: "czexpats", label: "Czexpats in Science", titlePrefix: "Czexpats in Science – ", aud: ["II. stupeň"] },
+  { key: "smart_city", label: "Smart City Klub", titlePrefix: "Smart City Klub – ", aud: ["II. stupeň"] },
+  {
+    key: "kariera",
+    label: "Kariérní poradenství jinak",
+    titlePrefix: "Kariérní poradenství jinak – ",
+    aud: ["II. stupeň"],
+  },
 
-  { key: "film", label: "Filmový klub", titlePrefix: "Filmový klub – ", aud: ["Komunita", "Filmový klub"] },
-  { key: "special", label: "Speciál", titlePrefix: "Speciál – ", aud: ["Speciál"] },
+  {
+    key: "lit_adult",
+    label: "Literární klub Magnesia Litera (dospělí)",
+    titlePrefix: "Literární klub – dospělí – ",
+    aud: ["Dospělí"],
+  },
+  {
+    key: "lit_kids",
+    label: "Literární klub Magnesia Litera (děti)",
+    titlePrefix: "Literární klub – děti – ",
+    aud: ["I. stupeň"],
+  },
+
+  { key: "film", label: "Filmový klub", titlePrefix: "Filmový klub – ", aud: ["Komunita"] },
+  { key: "special", label: "Speciál", titlePrefix: "Speciál – ", aud: [] },
 ];
 
 /* =========================
-   Cílovky (checkbox „tabulka“)
+   Cílovky
 ========================= */
 const AUDIENCE_OPTIONS = [
-  "1. stupeň",
-  "2. stupeň",
+  "I. stupeň",
+  "II. stupeň",
+  "Učitelé",
   "Senioři",
   "Komunita",
-  "Wellbeing",
-  "Filmový klub",
-  "Čtenářský klub – děti",
-  "Čtenářský klub – dospělí",
-  "Smart Cities",
-  "Kariérní poradenství",
-  "Speciál",
+  "Dospělí",
 ];
 
 const FILTER_OPTIONS = [
   { key: "all", label: "Vše" },
-  { key: "Senioři", label: "Senior klub" },
-  { key: "Čtenářský klub – děti", label: "Čtenářský klub – děti" },
-  { key: "Čtenářský klub – dospělí", label: "Čtenářský klub – dospělí" },
-  { key: "Filmový klub", label: "Filmový klub" },
-  { key: "Smart Cities", label: "Smart City" },
-  { key: "Wellbeing", label: "Wellbeing" },
-  { key: "Speciál", label: "Speciál" },
+  { key: "I. stupeň", label: "I. stupeň" },
+  { key: "II. stupeň", label: "II. stupeň" },
+  { key: "Učitelé", label: "Učitelé" },
+  { key: "Senioři", label: "Senioři" },
+  { key: "Komunita", label: "Komunita" },
+  { key: "Dospělí", label: "Dospělí" },
 ];
 
 /* =========================
@@ -63,6 +73,11 @@ function splitAudience(value) {
 
 function joinAudience(list) {
   return (list || []).join(", ");
+}
+
+function normalizeAudienceGroups(list) {
+  const allowed = new Set(AUDIENCE_OPTIONS);
+  return (list || []).map(String).filter((x) => allowed.has(x));
 }
 
 function pad2(n) {
@@ -204,13 +219,6 @@ export default function AdminUdalosti() {
     }
   }, [audienceSelected]);
 
-  useEffect(() => {
-    const parsed = splitAudience(audienceText);
-    const a = JSON.stringify(parsed);
-    const b = JSON.stringify(audienceSelected);
-    if (a !== b) setAudienceSelected(parsed);
-  }, [audienceText, audienceSelected]);
-
   async function loadEvents() {
     setLoading(true);
     setError("");
@@ -248,8 +256,14 @@ export default function AdminUdalosti() {
       const normalized = Array.isArray(data)
         ? data.map((row) => {
             const session = Array.isArray(row.broadcast_sessions) ? row.broadcast_sessions[0] : null;
+            const groups = Array.isArray(row.audience_groups)
+              ? normalizeAudienceGroups(row.audience_groups)
+              : normalizeAudienceGroups(splitAudience(normalizeText(row.audience)));
+
             return {
               ...row,
+              audience_groups: groups,
+              audience: groups.length ? joinAudience(groups) : normalizeText(row.audience),
               broadcast_status: session?.status || "",
               broadcast_viewer_url: session?.viewer_url || "",
               broadcast_recording_url: session?.recording_url || "",
@@ -274,8 +288,8 @@ export default function AdminUdalosti() {
         ? copy
         : copy.filter((row) => {
             const groups = Array.isArray(row.audience_groups)
-              ? row.audience_groups.map(String)
-              : splitAudience(normalizeText(row.audience));
+              ? normalizeAudienceGroups(row.audience_groups)
+              : normalizeAudienceGroups(splitAudience(normalizeText(row.audience)));
             return groups.includes(filterKey);
           });
 
@@ -315,12 +329,14 @@ export default function AdminUdalosti() {
     setTitle(normalizeText(r.title));
     setStartsAtLocal(toDatetimeLocalValue(r.starts_at));
 
-    const groups = Array.isArray(r.audience_groups) ? r.audience_groups.map(String) : [];
+    const groups = Array.isArray(r.audience_groups)
+      ? normalizeAudienceGroups(r.audience_groups)
+      : [];
     const audText = normalizeText(r.audience);
-    const finalGroups = groups.length ? groups : splitAudience(audText);
+    const finalGroups = groups.length ? groups : normalizeAudienceGroups(splitAudience(audText));
 
     setAudienceSelected(finalGroups);
-    setAudienceText(groups.length ? joinAudience(finalGroups) : audText);
+    setAudienceText(joinAudience(finalGroups));
 
     setFullDescription(normalizeText(r.full_description));
     setStreamUrl(normalizeText(r.stream_url));
@@ -341,8 +357,10 @@ export default function AdminUdalosti() {
 
     const cur = Array.isArray(audienceSelected) ? audienceSelected : [];
     const merged = Array.from(new Set([...(cur || []), ...(r.aud || [])]));
-    setAudienceSelected(merged);
-    setAudienceText(joinAudience(merged));
+    const normalized = normalizeAudienceGroups(merged);
+
+    setAudienceSelected(normalized);
+    setAudienceText(joinAudience(normalized));
 
     setInfo(`Rubrika nastavena: ${r.label}`);
   }
@@ -421,12 +439,12 @@ export default function AdminUdalosti() {
       return;
     }
 
-    const groups = (audienceSelected || []).map(String).filter(Boolean);
+    const groups = normalizeAudienceGroups((audienceSelected || []).map(String).filter(Boolean));
 
     const payload = {
       title: title.trim(),
       starts_at: startsAt.toISOString(),
-      audience: audienceText.trim() || joinAudience(groups),
+      audience: joinAudience(groups),
       audience_groups: groups,
       full_description: (fullDescription || "").trim(),
       stream_url: normalizeUrl(streamUrl),
@@ -603,7 +621,7 @@ export default function AdminUdalosti() {
                 ))}
               </div>
               <div style={{ marginTop: 6, color: "#6b7280", fontSize: 13 }}>
-                Kliknutím se předvyplní název a cílovka (můžeš dál upravit).
+                Kliknutím se předvyplní název a případně doporučená cílovka.
               </div>
             </div>
 
@@ -639,7 +657,7 @@ export default function AdminUdalosti() {
                                 const next = e.target.checked
                                   ? Array.from(new Set([...cur, opt]))
                                   : cur.filter((x) => x !== opt);
-                                setAudienceSelected(next);
+                                setAudienceSelected(normalizeAudienceGroups(next));
                               }}
                             />
                             <span>{opt}</span>
@@ -650,13 +668,13 @@ export default function AdminUdalosti() {
 
                     <input
                       value={audienceText}
-                      onChange={(e) => setAudienceText(e.target.value)}
-                      style={input}
-                      placeholder="Text pro zobrazení (lze upravit)…"
+                      readOnly
+                      style={{ ...input, background: "#f9fafb", color: "#374151" }}
+                      placeholder="Text pro zobrazení"
                     />
 
                     <div style={{ color: "#6b7280", fontSize: 13 }}>
-                      Pozn.: databáze vyžaduje neprázdné <b>audience_groups</b> – proto vyber aspoň jednu cílovku.
+                      Vyber aspoň jednu cílovku. Rubrika a cílovka jsou nyní oddělené.
                     </div>
                   </div>
                 </Field>
