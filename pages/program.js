@@ -65,10 +65,28 @@ function formatDateTimeCS(value) {
   });
 }
 
+function normalizePosterPath(path) {
+  if (!path) return "";
+  let s = String(path).trim();
+  if (!s) return "";
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  if (s.startsWith(`${BUCKET}/`)) s = s.slice(BUCKET.length + 1);
+  if (s.startsWith("/")) s = s.slice(1);
+  return s;
+}
+
 function publicUrlFromPath(path) {
-  if (!path) return null;
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data?.publicUrl || null;
+  const normalized = normalizePosterPath(path);
+  if (!normalized) return "";
+  if (normalized.startsWith("http://") || normalized.startsWith("https://")) return normalized;
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(normalized);
+  return data?.publicUrl || "";
+}
+
+function resolvePosterUrl(row) {
+  const directUrl = String(row?.poster_url || "").trim();
+  if (directUrl) return directUrl;
+  return publicUrlFromPath(row?.poster_path);
 }
 
 function normalizeAudienceValue(v) {
@@ -95,7 +113,7 @@ export default function ProgramPublic() {
     const { data, error } = await supabase
       .from("events")
       .select(
-        "id,title,starts_at,category,audience,full_description,worksheet_url,poster_path,is_published,created_at"
+        "id,title,starts_at,category,audience,full_description,worksheet_url,poster_path,poster_url,is_published,created_at"
       )
       .eq("is_published", true)
       .order("starts_at", { ascending: true });
@@ -987,7 +1005,7 @@ function Section({ title, count, children }) {
 }
 
 function EventCard({ e }) {
-  const posterUrl = publicUrlFromPath(e.poster_path);
+  const posterUrl = resolvePosterUrl(e);
   const aud = normalizeAudienceValue(e.audience);
 
   return (
