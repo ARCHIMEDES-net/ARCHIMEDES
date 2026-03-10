@@ -44,20 +44,26 @@ function badgeColor(label) {
 
 function normalizePosterPath(p) {
   if (!p) return "";
-  let s = String(p);
-
+  let s = String(p).trim();
+  if (!s) return "";
   if (s.startsWith(`${BUCKET}/`)) s = s.slice(BUCKET.length + 1);
   if (s.startsWith("http://") || s.startsWith("https://")) return s;
   if (s.startsWith("/")) s = s.slice(1);
-
   return s;
 }
 
 function publicUrlFromPath(path) {
   const p = normalizePosterPath(path);
   if (!p) return "";
+  if (p.startsWith("http://") || p.startsWith("https://")) return p;
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(p);
   return data?.publicUrl || "";
+}
+
+function resolvePosterUrl(row) {
+  const directUrl = String(row?.poster_url || "").trim();
+  if (directUrl) return directUrl;
+  return publicUrlFromPath(row?.poster_path);
 }
 
 function normalizeSession(session) {
@@ -191,7 +197,7 @@ function JoinButton({ row }) {
 }
 
 function EventCard({ row, compact = false }) {
-  const posterUrl = row.poster_path ? publicUrlFromPath(row.poster_path) : "";
+  const posterUrl = resolvePosterUrl(row);
   const start = getEffectiveStart(row);
 
   return (
@@ -275,6 +281,7 @@ export default function Kalendar() {
         worksheet_url,
         is_published,
         poster_path,
+        poster_url,
         broadcast_sessions (
           id,
           event_id,
