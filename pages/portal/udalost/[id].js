@@ -43,10 +43,28 @@ function normalizeAudience(aud) {
   return s.split(",").map((x) => x.trim()).filter(Boolean);
 }
 
-function publicUrlFromPath(path) {
+function normalizePosterPath(path) {
   if (!path) return "";
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  let s = String(path).trim();
+  if (!s) return "";
+  if (s.startsWith(`${BUCKET}/`)) s = s.slice(BUCKET.length + 1);
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  if (s.startsWith("/")) s = s.slice(1);
+  return s;
+}
+
+function publicUrlFromPath(path) {
+  const normalized = normalizePosterPath(path);
+  if (!normalized) return "";
+  if (normalized.startsWith("http://") || normalized.startsWith("https://")) return normalized;
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(normalized);
   return data?.publicUrl || "";
+}
+
+function resolvePosterUrl(row) {
+  const directUrl = String(row?.poster_url || "").trim();
+  if (directUrl) return directUrl;
+  return publicUrlFromPath(row?.poster_path);
 }
 
 export default function UdalostDetail() {
@@ -93,8 +111,8 @@ export default function UdalostDetail() {
   const worksheetUrl = row?.worksheet_url || "";
 
   const posterUrl = useMemo(
-    () => publicUrlFromPath(row?.poster_path),
-    [row?.poster_path]
+    () => resolvePosterUrl(row),
+    [row]
   );
 
   if (loading) return <div className="p-6">Načítám…</div>;
@@ -121,10 +139,8 @@ export default function UdalostDetail() {
         </div>
 
         <div className="mt-4 bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
-          {/* PLAKÁT */}
           {posterUrl ? (
             <div className="mb-5 border border-slate-200 rounded-2xl overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={posterUrl}
                 alt="Plakát události"
