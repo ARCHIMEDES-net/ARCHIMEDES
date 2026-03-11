@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import Link from "next/link"
 import dynamic from "next/dynamic"
 
 const SchoolsMap = dynamic(
@@ -15,11 +14,11 @@ function InstagramPost({ id, type }) {
       : `https://www.instagram.com/reel/${id}/embed`
 
   return (
-    <div style={{ borderRadius:12, overflow:"hidden" }}>
+    <div style={{borderRadius:12,overflow:"hidden"}}>
       <iframe
         src={src}
         width="100%"
-        height="460"
+        height="420"
         frameBorder="0"
         scrolling="no"
       />
@@ -48,77 +47,85 @@ export default function NovaHomepage(){
 <section style={{
 maxWidth:1200,
 margin:"80px auto",
-padding:"0 20px",
-textAlign:"center"
+padding:"0 20px"
 }}>
 
-<h1 style={{fontSize:44,fontWeight:800}}>
-ARCHIMEDES® Live
+<div style={{
+display:"grid",
+gridTemplateColumns:"1.1fr 1fr",
+gap:60,
+alignItems:"center"
+}}>
+
+<div>
+
+<div style={{
+display:"inline-block",
+background:"#f3f4f6",
+padding:"6px 12px",
+borderRadius:20,
+fontSize:14,
+marginBottom:20
+}}>
+ARCHIMEDES Live • program + učebna + komunita
+</div>
+
+<h1 style={{
+fontSize:48,
+fontWeight:800,
+lineHeight:1.1
+}}>
+Program, který propojuje
+školu a život obce
 </h1>
 
-<p style={{fontSize:20,marginTop:20}}>
-živý vzdělávací program pro školy a komunitu obce
+<p style={{
+marginTop:20,
+fontSize:18,
+maxWidth:520
+}}>
+ARCHIMEDES® propojuje učebnu,
+živé hosty a program pro děti,
+učitele, seniory i komunitu obce.
 </p>
 
-<p style={{maxWidth:700,margin:"20px auto"}}>
-Síť učeben propojených s odborníky,
-vědou, kulturou a praxí.
-</p>
-
-<div style={{marginTop:30}}>
-
-<Link href="/poptavka">
-<a style={{
-padding:"14px 26px",
-borderRadius:10,
-background:"#111827",
-color:"white",
-textDecoration:"none",
-fontWeight:600,
-marginRight:12
+<ul style={{
+marginTop:20,
+lineHeight:1.8
 }}>
-Ukázková hodina
-</a>
-</Link>
+<li>hosté z Akademie věd, kultury a praxe</li>
+<li>využití pro školu i komunitu obce</li>
+<li>síť reálných učeben ARCHIMEDES®</li>
+</ul>
 
-<Link href="/program">
-<a style={{
-padding:"14px 26px",
-borderRadius:10,
-border:"1px solid #ddd",
-textDecoration:"none",
-fontWeight:600
-}}>
-Jak program funguje
-</a>
-</Link>
+</div>
+
+
+<img
+src="/media/ucebnavprirode.jpg"
+style={{
+width:"100%",
+borderRadius:18
+}}
+/>
 
 </div>
 
 </section>
 
 
-{/* INSTAGRAM */}
+{/* INSTAGRAM VIDEA */}
 
 <section style={{
 maxWidth:1200,
-margin:"100px auto",
+margin:"40px auto",
 padding:"0 20px"
 }}>
 
-<h2 style={{
-textAlign:"center",
-fontSize:34,
-fontWeight:800
-}}>
-Jak vypadá ARCHIMEDES Live v reálné škole
-</h2>
-
 <div style={{
 display:"grid",
-gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",
-gap:24,
-marginTop:40
+gridTemplateColumns:"repeat(3,1fr)",
+gap:24
 }}>
 
 {posts.map((p,i)=>(
@@ -143,21 +150,21 @@ padding:"0 20px"
 }}>
 
 <h2 style={{
-textAlign:"center",
 fontSize:34,
-fontWeight:800
+fontWeight:800,
+textAlign:"center"
 }}>
 Síť učeben ARCHIMEDES®
 </h2>
 
 <p style={{
 textAlign:"center",
-maxWidth:700,
+maxWidth:600,
 margin:"20px auto"
 }}>
 Učebny propojují školy a komunity
-v České republice a postupně
-vznikají i v dalších evropských zemích.
+po celé České republice a postupně
+vznikají i v dalších zemích.
 </p>
 
 <div style={{marginTop:40}}>
@@ -166,91 +173,6 @@ vznikají i v dalších evropských zemích.
 
 </section>
 
-
-{/* PROGRAM */}
-
-<section style={{
-maxWidth:1200,
-margin:"120px auto",
-padding:"0 20px",
-textAlign:"center"
-}}>
-
-<h2 style={{fontSize:34,fontWeight:800}}>
-Program ARCHIMEDES Live
-</h2>
-
-<div style={{
-display:"grid",
-gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",
-gap:30,
-marginTop:40
-}}>
-
-<div>
-<h3>Science</h3>
-<p>setkání s vědci a odborníky</p>
-</div>
-
-<div>
-<h3>Smart Cities</h3>
-<p>jak bude vypadat město budoucnosti</p>
-</div>
-
-<div>
-<h3>Čtenářský klub</h3>
-<p>setkání s autory knih</p>
-</div>
-
-<div>
-<h3>Senior klub</h3>
-<p>program pro starší generaci</p>
-</div>
-
-</div>
-
-</section>
-
-
-{/* CTA */}
-
-<section style={{
-maxWidth:900,
-margin:"120px auto",
-padding:"40px",
-textAlign:"center",
-background:"#f5f5f5",
-borderRadius:16
-}}>
-
-<h2 style={{fontSize:32,fontWeight:800}}>
-Chcete ARCHIMEDES ve vaší škole nebo obci?
-</h2>
-
-<p style={{marginTop:20}}>
-Domluvte si ukázkovou hodinu
-a vyzkoušejte ARCHIMEDES Live
-přímo s vaší třídou.
-</p>
-
-<div style={{marginTop:30}}>
-
-<Link href="/poptavka">
-<a style={{
-padding:"14px 26px",
-borderRadius:10,
-background:"#111827",
-color:"white",
-textDecoration:"none",
-fontWeight:600
-}}>
-Domluvit ukázkovou hodinu
-</a>
-</Link>
-
-</div>
-
-</section>
 
 </main>
 
