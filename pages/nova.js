@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { supabase } from "../lib/supabaseClient";
 
 const SchoolsMap = dynamic(() => import("../components/SchoolsMap"), {
   ssr: false,
@@ -23,6 +24,8 @@ const mediaNames = [
   "Blesk",
 ];
 
+const BUCKET = "schools";
+
 // Obrázky stejně jako v původní homepage ze ZIPu
 const heroImg = "/ucebna.jpg";
 const lessonImg = "/vyuka.jpeg";
@@ -36,6 +39,30 @@ const fallbackPosts = [
   { type: "p", id: "DVbsiplCOJ_" },
   { type: "reel", id: "DVvUBXDCMYC" },
 ];
+
+function publicUrlFromPath(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data?.publicUrl || null;
+}
+
+function toNumberOrNull(v) {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function normalizeLatLng(row) {
+  const lat = toNumberOrNull(row?.latitude) ?? toNumberOrNull(row?.lat) ?? null;
+  const lng =
+    toNumberOrNull(row?.longitude) ?? toNumberOrNull(row?.lng) ?? null;
+
+  return {
+    ...row,
+    lat: typeof lat === "number" ? lat : null,
+    lng: typeof lng === "number" ? lng : null,
+  };
+}
 
 function PrimaryButton({ href, children }) {
   return (
@@ -168,6 +195,9 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [instagramReady, setInstagramReady] = useState(false);
 
+  const [schoolRows, setSchoolRows] = useState([]);
+  const [mapLoading, setMapLoading] = useState(true);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -195,7 +225,35 @@ export default function Home() {
       }
     }
 
+    async function loadSchools() {
+      try {
+        const { data, error } = await supabase
+          .from("schools")
+          .select("*")
+          .eq("is_published", true)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        const rows = (data || []).map(normalizeLatLng).map((row) => ({
+          ...row,
+          photo_url: row.photo_url || publicUrlFromPath(row.photo_path),
+        }));
+
+        if (!cancelled) {
+          setSchoolRows(rows);
+          setMapLoading(false);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setSchoolRows([]);
+          setMapLoading(false);
+        }
+      }
+    }
+
     loadInstagram();
+    loadSchools();
 
     return () => {
       cancelled = true;
@@ -207,11 +265,16 @@ export default function Home() {
     return fallbackPosts;
   }, [posts]);
 
+  const schoolsWithCoords = useMemo(() => {
+    return schoolRows.filter(
+      (r) => typeof r.lat === "number" && typeof r.lng === "number"
+    );
+  }, [schoolRows]);
+
   return (
     <div
       style={{
-        fontFamily:
-          "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+        fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
         background: "#f6f7fb",
         minHeight: "100vh",
       }}
@@ -316,14 +379,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ZDE JSOU MÍSTO TLAČÍTEK A BÍLÝCH BOXŮ 3 POSLEDNÍ INSTAGRAM PŘÍSPĚVKY */}
         <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 24px" }}>
-          <div
-            style={{
-              background: "transparent",
-              borderRadius: 28,
-            }}
-          >
+          <div style={{ background: "transparent", borderRadius: 28 }}>
             <div style={{ marginBottom: 18 }}>
               <div
                 style={{
@@ -333,41 +390,22 @@ export default function Home() {
                   marginBottom: 8,
                 }}
               >
-                ARCHIMEDES Live v praxi
-              </div>
-              <div
-                style={{
-                  fontSize: 30,
-                  lineHeight: 1.1,
-                  fontWeight: 900,
-                  color: "#0f172a",
-                }}
-              >
-                Poslední 3 příspěvky z Instagramu
+                ARCHIMEDES Live aktuálně:
               </div>
             </div>
 
             <div className="instagramGrid">
-              {instagramReady
-                ? renderedPosts.map((post, index) => (
-                    <InstagramEmbed
-                      key={`${post.type}-${post.id}-${index}`}
-                      id={post.id}
-                      type={post.type}
-                    />
-                  ))
-                : fallbackPosts.map((post, index) => (
-                    <InstagramEmbed
-                      key={`${post.type}-${post.id}-${index}`}
-                      id={post.id}
-                      type={post.type}
-                    />
-                  ))}
+              {(instagramReady ? renderedPosts : fallbackPosts).map((post, index) => (
+                <InstagramEmbed
+                  key={`${post.type}-${post.id}-${index}`}
+                  id={post.id}
+                  type={post.type}
+                />
+              ))}
             </div>
           </div>
         </section>
 
-        {/* ZDE JE MÍSTO DVOU BĚŽÍCÍCH LIŠT MAPA */}
         <section style={{ maxWidth: 1180, margin: "0 auto", padding: "6px 16px 22px" }}>
           <div
             style={{
@@ -408,7 +446,22 @@ export default function Home() {
                 minHeight: 440,
               }}
             >
-              <SchoolsMap />
+              {mapLoading ? (
+                <div
+                  style={{
+                    minHeight: 440,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "rgba(15,23,42,0.6)",
+                    fontWeight: 700,
+                  }}
+                >
+                  Načítám mapu…
+                </div>
+              ) : (
+                <SchoolsMap items={schoolsWithCoords} />
+              )}
             </div>
           </div>
         </section>
@@ -779,10 +832,10 @@ export default function Home() {
             padding: 10px 14px;
             border-radius: 999px;
             background: white;
-            border: 1px solid rgba(15,23,42,0.08);
+            border: 1px solid rgba(15, 23, 42, 0.08);
             color: #334155;
             font-weight: 700;
-            box-shadow: 0 6px 18px rgba(15,23,42,0.04);
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
           }
 
           .ctaGrid {
