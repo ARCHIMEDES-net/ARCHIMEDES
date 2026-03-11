@@ -7,23 +7,6 @@ const SchoolsMap = dynamic(() => import("../components/SchoolsMap"), {
   ssr: false,
 });
 
-const partnerNames = [
-  "CzechTrade",
-  "ZOO Praha",
-  "Magnesia Litera",
-  "Akademie věd ČR",
-  "Policie ČR",
-  "Hasiči ČR",
-  "Svaz místních samospráv",
-];
-
-const mediaNames = [
-  "Česká televize",
-  "CzechCrunch",
-  "iDNES.cz",
-  "Blesk",
-];
-
 const BUCKET = "schools";
 
 // Obrázky stejně jako v původní homepage ze ZIPu
@@ -38,6 +21,29 @@ const fallbackPosts = [
   { type: "p", id: "DVqEttcjpu0" },
   { type: "p", id: "DVbsiplCOJ_" },
   { type: "reel", id: "DVvUBXDCMYC" },
+];
+
+const mediaLinks = [
+  {
+    label: "BVV / URBIS",
+    href: "https://www.bvv.cz/urbis/aktuality/archimedes-r-zahajil-eru-living-lab-na-vystavisti",
+  },
+  {
+    label: "iDNES",
+    href: "https://www.idnes.cz/brno/zpravy/venkovni-ucebna-archimedes-moderni-vyuka-antonin-koplik.A240403_092205_brno-zpravy_krut",
+  },
+  {
+    label: "Česká televize",
+    href: "https://www.ceskatelevize.cz/porady/10253066674-zpravy-ve-12/223411012000328/",
+  },
+  {
+    label: "Blesk",
+    href: "https://www.blesk.cz/clanek/regiony-brno-brno-zpravy/748154/prevrat-ve-skolstvi-v-hodonine-vymysleli-unikatni-ucebny-chteji-je-na-celem-svete.html",
+  },
+  {
+    label: "CzechCrunch",
+    href: "https://cc.cz/cech-vymyslel-specialni-ucebnu-deti-diky-ni-mohou-pozorovat-co-se-deje-v-ptaci-budce-nebo-u-pyramid/",
+  },
 ];
 
 function publicUrlFromPath(path) {
@@ -676,44 +682,54 @@ export default function Home() {
         </section>
 
         <section style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 16px 12px" }}>
-          <div className="miniTrust">
-            <div>
-              <div
-                style={{
-                  fontSize: 14,
-                  fontWeight: 800,
-                  color: "rgba(15,23,42,0.56)",
-                  marginBottom: 8,
-                }}
-              >
-                Partneři projektu
-              </div>
-              <div className="chipRow">
-                {partnerNames.map((name) => (
-                  <span key={name} className="chip">
-                    {name}
-                  </span>
-                ))}
-              </div>
+          <div
+            style={{
+              background: "white",
+              border: "1px solid rgba(15,23,42,0.08)",
+              borderRadius: 28,
+              padding: "24px",
+              boxShadow: "0 12px 34px rgba(15,23,42,0.05)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 800,
+                color: "rgba(15,23,42,0.56)",
+                marginBottom: 12,
+              }}
+            >
+              ARCHIMEDES v médiích
             </div>
-            <div>
-              <div
+
+            <div className="mediaStrip">
+              {mediaLinks.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mediaLink"
+                  aria-label={item.label}
+                >
+                  <span className="mediaLogoText">{item.label}</span>
+                </a>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 16 }}>
+              <a
+                href="https://www.archimedes-net.com/media/"
+                target="_blank"
+                rel="noreferrer"
                 style={{
-                  fontSize: 14,
                   fontWeight: 800,
-                  color: "rgba(15,23,42,0.56)",
-                  marginBottom: 8,
+                  color: "#0f172a",
+                  textDecoration: "none",
                 }}
               >
-                Média
-              </div>
-              <div className="chipRow">
-                {mediaNames.map((name) => (
-                  <span key={name} className="chip">
-                    {name}
-                  </span>
-                ))}
-              </div>
+                Všechna média →
+              </a>
             </div>
           </div>
         </section>
@@ -812,32 +828,6 @@ export default function Home() {
             gap: 16px;
           }
 
-          .miniTrust {
-            display: grid;
-            grid-template-columns: 1.3fr 1fr;
-            gap: 16px;
-            align-items: start;
-          }
-
-          .chipRow {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-          }
-
-          .chip {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 14px;
-            border-radius: 999px;
-            background: white;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            color: #334155;
-            font-weight: 700;
-            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-          }
-
           .ctaGrid {
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
@@ -845,10 +835,40 @@ export default function Home() {
             align-items: center;
           }
 
+          .mediaStrip {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+          }
+
+          .mediaLink {
+            text-decoration: none;
+          }
+
+          .mediaLogoText {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 0 18px;
+            border-radius: 999px;
+            background: #f8fafc;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            color: #0f172a;
+            font-weight: 800;
+            transition: transform 0.15s ease, box-shadow 0.15s ease,
+              background 0.15s ease;
+          }
+
+          .mediaLink:hover .mediaLogoText {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+            background: white;
+          }
+
           @media (max-width: 1100px) {
             .heroGrid,
             .dualGrid,
-            .miniTrust,
             .ctaGrid,
             .instagramGrid {
               grid-template-columns: 1fr;
