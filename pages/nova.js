@@ -1,6 +1,12 @@
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import PublicHeader from "../components/PublicHeader";
-import SchoolsMap from "../components/SchoolsMap";
+
+/* Leaflet mapa musí běžet jen v prohlížeči */
+const SchoolsMap = dynamic(
+  () => import("../components/SchoolsMap"),
+  { ssr: false }
+);
 
 function InstagramReel({ id }) {
   return (
@@ -18,6 +24,7 @@ function InstagramReel({ id }) {
 }
 
 export default function NovaHomepage() {
+
   return (
     <>
       <PublicHeader />
@@ -25,14 +32,16 @@ export default function NovaHomepage() {
       <main style={{ fontFamily: "Inter, sans-serif" }}>
 
         {/* HERO */}
+
         <section
           style={{
             maxWidth: 1200,
             margin: "80px auto",
             padding: "0 20px",
-            textAlign: "center",
+            textAlign: "center"
           }}
         >
+
           <h1 style={{ fontSize: 42, fontWeight: 800 }}>
             ARCHIMEDES® Live
           </h1>
@@ -46,6 +55,7 @@ export default function NovaHomepage() {
           </p>
 
           <div style={{ marginTop: 30 }}>
+
             <Link href="/program">
               <a
                 style={{
@@ -55,7 +65,7 @@ export default function NovaHomepage() {
                   color: "white",
                   textDecoration: "none",
                   fontWeight: 600,
-                  marginRight: 12,
+                  marginRight: 12
                 }}
               >
                 Ukázková hodina
@@ -69,28 +79,32 @@ export default function NovaHomepage() {
                   borderRadius: 10,
                   border: "1px solid #ddd",
                   textDecoration: "none",
-                  fontWeight: 600,
+                  fontWeight: 600
                 }}
               >
                 Jak program funguje
               </a>
             </Link>
+
           </div>
+
         </section>
 
         {/* VIDEA */}
+
         <section
           style={{
             maxWidth: 1200,
             margin: "80px auto",
-            padding: "0 20px",
+            padding: "0 20px"
           }}
         >
+
           <h2
             style={{
               textAlign: "center",
               fontSize: 34,
-              fontWeight: 800,
+              fontWeight: 800
             }}
           >
             ARCHIMEDES Live v praxi
@@ -101,29 +115,34 @@ export default function NovaHomepage() {
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
               gap: 24,
-              marginTop: 40,
+              marginTop: 40
             }}
           >
-            {/* poslední 3 Reels – ID se bude aktualizovat */}
+
+            {/* Instagram Reels */}
             <InstagramReel id="DVvUBXDCMYC" />
             <InstagramReel id="REEL2" />
             <InstagramReel id="REEL3" />
+
           </div>
+
         </section>
 
         {/* MAPA */}
+
         <section
           style={{
             maxWidth: 1200,
             margin: "100px auto",
-            padding: "0 20px",
+            padding: "0 20px"
           }}
         >
+
           <h2
             style={{
               textAlign: "center",
               fontSize: 34,
-              fontWeight: 800,
+              fontWeight: 800
             }}
           >
             Síť učeben ARCHIMEDES®
@@ -133,7 +152,7 @@ export default function NovaHomepage() {
             style={{
               textAlign: "center",
               maxWidth: 700,
-              margin: "20px auto",
+              margin: "20px auto"
             }}
           >
             Učebny propojují školy a komunity v České republice
@@ -143,17 +162,20 @@ export default function NovaHomepage() {
           <div style={{ marginTop: 40 }}>
             <SchoolsMap />
           </div>
+
         </section>
 
         {/* PROGRAM */}
+
         <section
           style={{
             maxWidth: 1200,
             margin: "100px auto",
             padding: "0 20px",
-            textAlign: "center",
+            textAlign: "center"
           }}
         >
+
           <h2 style={{ fontSize: 34, fontWeight: 800 }}>
             Program ARCHIMEDES Live
           </h2>
@@ -163,9 +185,10 @@ export default function NovaHomepage() {
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
               gap: 30,
-              marginTop: 40,
+              marginTop: 40
             }}
           >
+
             <div>
               <h3>Science</h3>
               <p>setkání s vědci a odborníky</p>
@@ -185,10 +208,13 @@ export default function NovaHomepage() {
               <h3>Senior klub</h3>
               <p>program pro starší generaci</p>
             </div>
+
           </div>
+
         </section>
 
         {/* CTA */}
+
         <section
           style={{
             maxWidth: 900,
@@ -196,9 +222,10 @@ export default function NovaHomepage() {
             padding: "40px",
             textAlign: "center",
             background: "#f5f5f5",
-            borderRadius: 16,
+            borderRadius: 16
           }}
         >
+
           <h2 style={{ fontSize: 32, fontWeight: 800 }}>
             Chcete ARCHIMEDES ve vaší škole nebo obci?
           </h2>
@@ -209,6 +236,7 @@ export default function NovaHomepage() {
           </p>
 
           <div style={{ marginTop: 30 }}>
+
             <Link href="/poptavka">
               <a
                 style={{
@@ -217,13 +245,15 @@ export default function NovaHomepage() {
                   background: "#111827",
                   color: "white",
                   textDecoration: "none",
-                  fontWeight: 600,
+                  fontWeight: 600
                 }}
               >
                 Domluvit ukázkovou hodinu
               </a>
             </Link>
+
           </div>
+
         </section>
 
       </main>
