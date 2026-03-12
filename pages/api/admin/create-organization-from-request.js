@@ -21,12 +21,52 @@ function makeJoinCode() {
   return "ORG-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
+function getBearerToken(req) {
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (!authHeader || typeof authHeader !== "string") return null;
+
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1] : null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
+    const token = getBearerToken(req);
+
+    if (!token) {
+      return res.status(401).json({ error: "Chybí autorizace uživatele." });
+    }
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(token);
+
+    if (userError || !user) {
+      return res.status(401).json({ error: "Neplatné nebo expirované přihlášení." });
+    }
+
+    // serverové ověření platform admin role
+    const { data: adminRow, error: adminCheckError } = await supabaseAdmin
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (adminCheckError) {
+      throw adminCheckError;
+    }
+
+    if (!adminRow) {
+      return res.status(403).json({
+        error: "Tuto akci může provádět pouze platform admin.",
+      });
+    }
+
     const { requestId, organizationName, licenseType } = req.body || {};
 
     if (!requestId) {
@@ -54,17 +94,23 @@ export default async function handler(req, res) {
     }
 
     if (existingRequest.organization_id) {
-      return res.status(400).json({ error: "Organizace už byla z této žádosti vytvořena." });
+      return res.status(400).json({
+        error: "Organizace už byla z této žádosti vytvořena.",
+      });
     }
 
     let joinCode = makeJoinCode();
 
     for (let i = 0; i < 5; i += 1) {
-      const { data: existingOrg } = await supabaseAdmin
+      const { data: existingOrg, error: existingOrgError } = await supabaseAdmin
         .from("organizations")
         .select("id")
         .eq("join_code", joinCode)
         .maybeSingle();
+
+      if (existingOrgError) {
+        throw existingOrgError;
+      }
 
       if (!existingOrg) break;
       joinCode = makeJoinCode();
