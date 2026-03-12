@@ -56,9 +56,9 @@ function modeConfig(mode) {
       badge: "Demo režim",
       badgeBg: "#fff4d6",
       badgeColor: "#8a5a00",
-      title: "Archiv je součástí plné licence ARCHIMEDES Live",
+      title: "Archiv vidíte, ale plný obsah je jen pro registrované organizace",
       text:
-        "V demo režimu si můžete prohlédnout portál, program a strukturu systému. Archiv záznamů, navazující materiály a návrat k odvysílaným tématům jsou dostupné pro aktivní organizace.",
+        "V demo režimu vidíte složku Archiv i ukázku jejího obsahu. Plné záznamy, navazující materiály a návrat k odvysílaným tématům jsou dostupné pro registrované organizace s aktivní licencí ARCHIMEDES Live.",
       primaryLabel: "Aktivovat licenci",
     };
   }
