@@ -34,12 +34,16 @@ export default function CreateOrganizationPage() {
 
     try {
       const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-      if (userError) throw userError;
-      if (!user) {
+      if (sessionError) throw sessionError;
+
+      const accessToken = session?.access_token;
+      const user = session?.user;
+
+      if (!user || !accessToken) {
         throw new Error("Nejste přihlášen.");
       }
 
@@ -47,9 +51,9 @@ export default function CreateOrganizationPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          userId: user.id,
           organizationName,
           orgType,
         }),
