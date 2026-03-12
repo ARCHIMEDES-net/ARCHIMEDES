@@ -21,11 +21,6 @@ function formatDateTimeCS(date) {
   });
 }
 
-function archiveCountText(count) {
-  if (count === 1) return "1 vysílání";
-  return `${count} vysílání`;
-}
-
 function normalizeGroups(row) {
   if (Array.isArray(row?.audience_groups) && row.audience_groups.length) return row.audience_groups;
   const aud = row?.audience;
@@ -37,6 +32,45 @@ function normalizeGroups(row) {
     .filter(Boolean);
 }
 
+
+function extractYouTubeId(url) {
+  if (!url) return "";
+
+  try {
+    const parsed = new URL(String(url).trim());
+    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+
+    if (host === "youtu.be") {
+      return (parsed.pathname || "").replace(/^\//, "").split("/")[0] || "";
+    }
+
+    if (host === "youtube.com" || host === "m.youtube.com" || host === "music.youtube.com") {
+      const v = parsed.searchParams.get("v");
+      if (v) return v;
+
+      const parts = (parsed.pathname || "").split("/").filter(Boolean);
+      const embedIndex = parts.findIndex((x) => x === "embed" || x === "shorts" || x === "live");
+      if (embedIndex >= 0 && parts[embedIndex + 1]) return parts[embedIndex + 1];
+    }
+
+    if (host === "youtube-nocookie.com") {
+      const parts = (parsed.pathname || "").split("/").filter(Boolean);
+      const embedIndex = parts.findIndex((x) => x === "embed");
+      if (embedIndex >= 0 && parts[embedIndex + 1]) return parts[embedIndex + 1];
+    }
+  } catch (_e) {
+    return "";
+  }
+
+  return "";
+}
+
+function getArchiveCoverUrl(row) {
+  if (row?.poster_url) return row.poster_url;
+  const ytId = extractYouTubeId(row?.stream_url);
+  if (ytId) return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+  return "";
+}
 function resolveLicenseMode(org) {
   if (!org) return "default";
 
@@ -61,10 +95,10 @@ function modeConfig(mode) {
       badge: "Demo režim",
       badgeBg: "#fff4d6",
       badgeColor: "#8a5a00",
-      title: "Archiv vysílání vidíte, ale plný obsah je jen pro registrované organizace",
+      title: "Archiv je součástí plné licence ARCHIMEDES Live",
       text:
-        "V demo režimu vidíte složku Archiv i ukázku jejího obsahu. Plné záznamy, navazující materiály a návrat k odvysílaným tématům jsou dostupné pro registrované organizace s aktivní licencí ARCHIMEDES Live.",
-      primaryLabel: "Požádat o přístup do ARCHIMEDES Live",
+        "V demo režimu si můžete prohlédnout portál, program a strukturu systému. Archiv záznamů, navazující materiály a návrat k odvysílaným tématům jsou dostupné pro aktivní organizace.",
+      primaryLabel: "Aktivovat licenci",
     };
   }
 
@@ -92,6 +126,8 @@ function modeConfig(mode) {
 }
 
 function PreviewCard({ item }) {
+  const coverUrl = getArchiveCoverUrl(item);
+
   return (
     <div
       style={{
@@ -101,7 +137,41 @@ function PreviewCard({ item }) {
         background: "linear-gradient(180deg, #ffffff 0%, #fbfcff 100%)",
       }}
     >
-      <div style={{ fontWeight: 900, fontSize: 15, color: "#0f172a", lineHeight: 1.35 }}>
+      {coverUrl ? (
+        <img
+          src={coverUrl}
+          alt={item.title || "Náhled záznamu"}
+          style={{
+            width: "100%",
+            height: 148,
+            objectFit: "cover",
+            borderRadius: 14,
+            border: "1px solid rgba(15,23,42,0.08)",
+            background: "#f8fafc",
+            display: "block",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            height: 148,
+            borderRadius: 14,
+            border: "1px dashed rgba(15,23,42,0.16)",
+            background: "linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)",
+            color: "rgba(15,23,42,0.54)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: 800,
+            fontSize: 13,
+          }}
+        >
+          Náhled vysílání
+        </div>
+      )}
+
+      <div style={{ marginTop: 12, fontWeight: 900, fontSize: 15, color: "#0f172a", lineHeight: 1.35 }}>
         {item.title || "Záznam vysílání"}
       </div>
 
@@ -227,7 +297,12 @@ export default function Archiv() {
     const now = new Date();
     return rows
       .filter((r) => r.is_published !== false)
-      .map((r) => ({ ...r, _d: safeDate(r.starts_at), _groups: normalizeGroups(r) }))
+      .map((r) => ({
+        ...r,
+        _d: safeDate(r.starts_at),
+        _groups: normalizeGroups(r),
+        _coverUrl: getArchiveCoverUrl(r),
+      }))
       .filter((r) => r._d && r._d < now);
   }, [rows]);
 
@@ -538,132 +613,12 @@ export default function Archiv() {
       <PortalHeader />
 
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
-        <section
-          style={{
-            marginTop: 10,
-            background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
-            border: "1px solid rgba(15,23,42,0.08)",
-            borderRadius: 24,
-            padding: "22px 22px 20px",
-            boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              gap: 16,
-              alignItems: "flex-start",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ minWidth: 0, flex: "1 1 560px" }}>
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "6px 10px",
-                  borderRadius: 999,
-                  background: "rgba(15,23,42,0.06)",
-                  color: "#0f172a",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  marginBottom: 12,
-                }}
-              >
-                Knihovna vysílání
-              </div>
-
-              <h1
-                style={{
-                  margin: 0,
-                  fontSize: 34,
-                  lineHeight: 1.08,
-                  color: "#0f172a",
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                Archiv vysílání ARCHIMEDES Live
-              </h1>
-
-              <p
-                style={{
-                  margin: "14px 0 0",
-                  fontSize: 16,
-                  lineHeight: 1.65,
-                  color: "rgba(15,23,42,0.72)",
-                  maxWidth: 760,
-                }}
-              >
-                Záznamy přednášek, rozhovorů a vzdělávacích vstupů z celé sítě ARCHIMEDES. Můžete
-                se vracet k odvysílaným tématům, otevřít detail pořadu a navázat na něj další prací.
-              </p>
-            </div>
-
-            <div
-              style={{
-                minWidth: 250,
-                flex: "0 1 320px",
-                background: "white",
-                border: "1px solid rgba(15,23,42,0.08)",
-                borderRadius: 20,
-                padding: 16,
-                boxShadow: "0 10px 28px rgba(15,23,42,0.04)",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 13,
-                  fontWeight: 800,
-                  color: "rgba(15,23,42,0.64)",
-                  marginBottom: 8,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.04em",
-                }}
-              >
-                Přehled archivu
-              </div>
-
-              <div
-                style={{
-                  fontSize: 30,
-                  fontWeight: 900,
-                  lineHeight: 1,
-                  color: "#0f172a",
-                }}
-              >
-                {prepared.length}
-              </div>
-
-              <div
-                style={{
-                  marginTop: 8,
-                  fontSize: 15,
-                  lineHeight: 1.55,
-                  color: "rgba(15,23,42,0.72)",
-                }}
-              >
-                Archiv obsahuje {archiveCountText(prepared.length)}.
-              </div>
-
-              <div
-                style={{
-                  marginTop: 12,
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                  gap: 10,
-                }}
-              >
-                <MiniStat value={String(categories.filter((x) => x !== "Vše").length)} label="rubrik" />
-                <MiniStat value={String(audiences.filter((x) => x !== "Vše").length)} label="cílových skupin" />
-              </div>
-            </div>
-          </div>
-        </section>
+        <h1 style={{ margin: "10px 0 6px" }}>Archiv</h1>
+        <p style={{ margin: 0, color: "#374151" }}>
+          Záznamy odvysílaných událostí, návrat k tématům a návazné materiály.
+        </p>
 
         <div
-          className="archive-filters"
           style={{
             marginTop: 12,
             border: "1px solid #e5e7eb",
@@ -775,10 +730,10 @@ export default function Archiv() {
                       background: "#fff",
                     }}
                   >
-                    {r.poster_url ? (
+                    {r._coverUrl ? (
                       <img
-                        src={r.poster_url}
-                        alt=""
+                        src={r._coverUrl}
+                        alt={r.title || "Náhled záznamu"}
                         style={{
                           width: 120,
                           height: 90,
@@ -803,7 +758,7 @@ export default function Archiv() {
                           fontWeight: 800,
                         }}
                       >
-                        Bez plakátu
+                        Náhled vysílání
                       </div>
                     )}
 
@@ -845,14 +800,6 @@ export default function Archiv() {
             )}
           </section>
         ) : null}
-
-        <style jsx>{`
-          @media (max-width: 900px) {
-            .archive-filters {
-              grid-template-columns: 1fr !important;
-            }
-          }
-        `}</style>
       </main>
     </RequireAuth>
   );
