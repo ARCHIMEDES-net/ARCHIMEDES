@@ -1,4 +1,42 @@
+import { useState } from "react";
+
+const OPTIONS = [
+  {
+    key: "program",
+    title: "Program ARCHIMEDES Live",
+    text: "Živý vzdělávací a komunitní program s inspirativními hosty, který mohou využívat školy, obce i místní komunity během celého roku.",
+  },
+  {
+    key: "ucebna",
+    title: "Učebna ARCHIMEDES",
+    text: "Moderní venkovní učebna jako prostor pro výuku, setkávání lidí a komunitní aktivity.",
+  },
+  {
+    key: "oboji",
+    title: "Program a učebna",
+    text: "Propojení prostoru a programu vytváří místo, kde se mohou potkávat děti, senioři i obyvatelé obce.",
+  },
+  {
+    key: "navsteva",
+    title: "Návštěva vzorové učebny",
+    text: "Rádi vás provedeme vzorovou učebnou ARCHIMEDES na BVV v Brně a ukážeme vám, jak může projekt fungovat ve vaší obci.",
+  },
+];
+
 export default function PoptavkaPage() {
+  const [selectedOption, setSelectedOption] = useState("");
+
+  const selectedLabel =
+    OPTIONS.find((item) => item.key === selectedOption)?.title || "";
+
+  function handleSelect(optionKey) {
+    setSelectedOption(optionKey);
+    const form = document.getElementById("formular");
+    if (form) {
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   return (
     <main
       style={{
@@ -7,17 +45,33 @@ export default function PoptavkaPage() {
         padding: "56px 20px 90px",
       }}
     >
-      {/* HERO */}
       <section
         style={{
-          background: "#fff",
+          background: "#ffffff",
           border: "1px solid #e5e7eb",
           borderRadius: 28,
           padding: "42px 36px",
-          boxShadow: "0 16px 40px rgba(15,23,42,0.06)",
+          boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
           marginBottom: 34,
         }}
       >
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            minHeight: 36,
+            padding: "0 14px",
+            borderRadius: 999,
+            background: "#eef2ff",
+            color: "#1e3a8a",
+            fontSize: 14,
+            fontWeight: 800,
+            marginBottom: 18,
+          }}
+        >
+          Spojme se
+        </div>
+
         <h1
           style={{
             margin: 0,
@@ -30,7 +84,7 @@ export default function PoptavkaPage() {
           Mám zájem
         </h1>
 
-        <div style={{ maxWidth: 820, marginTop: 22 }}>
+        <div style={{ maxWidth: 860, marginTop: 22 }}>
           <p
             style={{
               margin: 0,
@@ -63,14 +117,13 @@ export default function PoptavkaPage() {
               color: "#475569",
             }}
           >
-            Stačí nám napsat pár informací a společně najdeme nejlepší řešení
-            pro vaši školu, obec nebo komunitu.
+            Vyberte si, o co máte zájem. Formulář se vám podle toho automaticky
+            připraví.
           </p>
         </div>
       </section>
 
-      {/* KARTY */}
-      <section style={{ marginBottom: 28 }}>
+      <section style={{ marginBottom: 26 }}>
         <div
           style={{
             display: "grid",
@@ -79,38 +132,59 @@ export default function PoptavkaPage() {
           }}
           className="interest-grid"
         >
-          <div style={cardStyle}>
-            <h3 style={cardTitle}>Program ARCHIMEDES Live</h3>
-            <p style={cardText}>
-              Živý vzdělávací a komunitní program s inspirativními hosty,
-              který mohou využívat školy, obce i místní komunity během celého
-              roku.
-            </p>
-          </div>
+          {OPTIONS.map((item) => {
+            const isActive = selectedOption === item.key;
 
-          <div style={cardStyle}>
-            <h3 style={cardTitle}>Učebna ARCHIMEDES</h3>
-            <p style={cardText}>
-              Moderní venkovní učebna jako prostor pro výuku, setkávání lidí a
-              komunitní aktivity.
-            </p>
-          </div>
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => handleSelect(item.key)}
+                style={{
+                  ...cardStyle,
+                  textAlign: "left",
+                  cursor: "pointer",
+                  background: isActive ? "#eff6ff" : "#ffffff",
+                  border: isActive ? "2px solid #2563eb" : "1px solid #e5e7eb",
+                  boxShadow: isActive
+                    ? "0 18px 42px rgba(37,99,235,0.12)"
+                    : "0 12px 30px rgba(15,23,42,0.04)",
+                  transform: isActive ? "translateY(-2px)" : "none",
+                }}
+              >
+                <div
+                  style={{
+                    display: "inline-flex",
+                    minHeight: 30,
+                    alignItems: "center",
+                    padding: "0 12px",
+                    borderRadius: 999,
+                    background: isActive ? "#2563eb" : "#f8fafc",
+                    color: isActive ? "#ffffff" : "#475569",
+                    fontSize: 13,
+                    fontWeight: 800,
+                    marginBottom: 16,
+                  }}
+                >
+                  {isActive ? "Vybráno" : "Vybrat"}
+                </div>
 
-          <div style={cardStyle}>
-            <h3 style={cardTitle}>Program a učebna</h3>
-            <p style={cardText}>
-              Propojení prostoru a programu vytváří místo, kde se mohou
-              potkávat děti, senioři i obyvatelé obce.
-            </p>
-          </div>
+                <h3 style={cardTitle}>{item.title}</h3>
+                <p style={cardText}>{item.text}</p>
 
-          <div style={cardStyle}>
-            <h3 style={cardTitle}>Návštěva vzorové učebny</h3>
-            <p style={cardText}>
-              Rádi vás provedeme vzorovou učebnou ARCHIMEDES na BVV v Brně a
-              ukážeme vám, jak může projekt fungovat ve vaší obci.
-            </p>
-          </div>
+                <div
+                  style={{
+                    marginTop: 18,
+                    fontSize: 15,
+                    fontWeight: 800,
+                    color: isActive ? "#2563eb" : "#0f172a",
+                  }}
+                >
+                  {isActive ? "Pokračovat ve formuláři ↓" : "Vybrat tuto možnost"}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -131,15 +205,14 @@ export default function PoptavkaPage() {
             color: "#475569",
           }}
         >
-          Nejste si jistí? Stačí napsat pár slov a společně najdeme vhodné
-          řešení.
+          Nejste si jistí? Vyberte nejbližší možnost nebo nám napište pár slov.
+          Společně najdeme vhodné řešení pro školu, obec i komunitu.
         </p>
       </section>
 
-      {/* DUVĚRA */}
       <section
         style={{
-          background: "#fff",
+          background: "#ffffff",
           border: "1px solid #e5e7eb",
           borderRadius: 28,
           padding: "34px 30px",
@@ -205,11 +278,10 @@ export default function PoptavkaPage() {
         </div>
       </section>
 
-      {/* FORMULAR */}
       <section
         id="formular"
         style={{
-          background: "#fff",
+          background: "#ffffff",
           border: "1px solid #e5e7eb",
           borderRadius: 28,
           padding: "34px 30px",
@@ -253,13 +325,33 @@ export default function PoptavkaPage() {
         </p>
 
         <form style={{ maxWidth: 760, marginTop: 28 }}>
-          <label style={labelStyle}>Jméno</label>
+          <label style={labelStyle}>Mám zájem o</label>
+          <select
+            value={selectedOption}
+            onChange={(e) => setSelectedOption(e.target.value)}
+            style={inputStyle}
+          >
+            <option value="">Vyberte možnost</option>
+            {OPTIONS.map((item) => (
+              <option key={item.key} value={item.key}>
+                {item.title}
+              </option>
+            ))}
+          </select>
+
+          {selectedLabel ? (
+            <div style={{ ...helpStyle, marginTop: 8 }}>
+              Vybraná možnost: <strong>{selectedLabel}</strong>
+            </div>
+          ) : null}
+
+          <label style={{ ...labelStyle, marginTop: 16 }}>Jméno</label>
           <input type="text" style={inputStyle} />
 
-          <label style={labelStyle}>Odkud jste</label>
+          <label style={{ ...labelStyle, marginTop: 16 }}>Odkud jste</label>
           <input type="text" style={inputStyle} />
 
-          <label style={labelStyle}>Email</label>
+          <label style={{ ...labelStyle, marginTop: 16 }}>Email</label>
           <input type="email" style={inputStyle} />
           <div style={helpStyle}>Na tento email vám pošleme odpověď.</div>
 
@@ -270,13 +362,12 @@ export default function PoptavkaPage() {
           <label style={{ ...labelStyle, marginTop: 16 }}>Zpráva</label>
           <textarea rows="6" style={textareaStyle} />
           <div style={helpStyle}>
-            Můžete napsat, zda máte zájem o program, učebnu nebo návštěvu
-            vzorové učebny.
+            Můžete doplnit základní představu, termín nebo místo.
           </div>
 
           <div style={{ marginTop: 24 }}>
             <button type="submit" style={buttonStyle}>
-              Chci se zapojit
+              Odeslat
             </button>
           </div>
 
@@ -316,15 +407,15 @@ export default function PoptavkaPage() {
 
 const cardStyle = {
   background: "#ffffff",
-  border: "1px solid #e5e7eb",
   borderRadius: 22,
   padding: 26,
-  boxShadow: "0 12px 30px rgba(15,23,42,0.04)",
+  boxSizing: "border-box",
+  transition: "all 0.2s ease",
 };
 
 const cardTitle = {
   margin: 0,
-  fontSize: 28,
+  fontSize: 24,
   lineHeight: 1.15,
   letterSpacing: "-0.02em",
   color: "#0f172a",
@@ -393,7 +484,6 @@ const textareaStyle = {
 };
 
 const helpStyle = {
-  marginTop: 8,
   fontSize: 14,
   lineHeight: 1.55,
   color: "#64748b",
