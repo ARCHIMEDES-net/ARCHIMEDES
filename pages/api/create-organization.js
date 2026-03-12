@@ -10,15 +10,38 @@ function generateJoinCode() {
   return `ORG-${part}`;
 }
 
+function getBearerToken(req) {
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (!authHeader || typeof authHeader !== "string") return null;
+
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1] : null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { userId, organizationName, orgType } = req.body || {};
+    const token = getBearerToken(req);
 
-    const cleanUserId = String(userId || "").trim();
+    if (!token) {
+      return res.status(401).json({ error: "Chybí autorizace uživatele." });
+    }
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(token);
+
+    if (userError || !user) {
+      return res.status(401).json({ error: "Neplatné nebo expirované přihlášení." });
+    }
+
+    const { organizationName, orgType } = req.body || {};
+
+    const cleanUserId = String(user.id || "").trim();
     const cleanOrganizationName = String(organizationName || "").trim();
     const cleanOrgType = String(orgType || "").trim();
 
@@ -33,7 +56,7 @@ export default async function handler(req, res) {
     ];
 
     if (!cleanUserId) {
-      return res.status(400).json({ error: "Chybí userId." });
+      return res.status(401).json({ error: "Nepodařilo se ověřit uživatele." });
     }
 
     if (!cleanOrganizationName) {
@@ -64,7 +87,6 @@ export default async function handler(req, res) {
 
     let joinCode = generateJoinCode();
 
-    // jednoduchá ochrana proti kolizi kódu
     for (let i = 0; i < 5; i++) {
       const { data: existingCode, error: codeCheckError } = await supabaseAdmin
         .from("organizations")
