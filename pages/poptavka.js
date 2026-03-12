@@ -29,12 +29,16 @@ export default function PoptavkaPage() {
   const selectedLabel =
     OPTIONS.find((item) => item.key === selectedOption)?.title || "";
 
-  function handleSelect(optionKey) {
-    setSelectedOption(optionKey);
+  function scrollToForm() {
     const form = document.getElementById("formular");
     if (form) {
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  }
+
+  function handleSelect(optionKey) {
+    setSelectedOption(optionKey);
+    scrollToForm();
   }
 
   return (
@@ -45,6 +49,7 @@ export default function PoptavkaPage() {
         padding: "56px 20px 90px",
       }}
     >
+      {/* HERO */}
       <section
         style={{
           background: "#ffffff",
@@ -123,6 +128,7 @@ export default function PoptavkaPage() {
         </div>
       </section>
 
+      {/* KARTY */}
       <section style={{ marginBottom: 26 }}>
         <div
           style={{
@@ -140,6 +146,7 @@ export default function PoptavkaPage() {
                 key={item.key}
                 type="button"
                 onClick={() => handleSelect(item.key)}
+                className={`interest-card ${isActive ? "active" : ""}`}
                 style={{
                   ...cardStyle,
                   textAlign: "left",
@@ -149,38 +156,60 @@ export default function PoptavkaPage() {
                   boxShadow: isActive
                     ? "0 18px 42px rgba(37,99,235,0.12)"
                     : "0 12px 30px rgba(15,23,42,0.04)",
-                  transform: isActive ? "translateY(-2px)" : "none",
+                  display: "flex",
+                  flexDirection: "column",
+                  minHeight: 360,
                 }}
               >
                 <div
                   style={{
                     display: "inline-flex",
-                    minHeight: 30,
                     alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: 30,
                     padding: "0 12px",
                     borderRadius: 999,
                     background: isActive ? "#2563eb" : "#f8fafc",
                     color: isActive ? "#ffffff" : "#475569",
                     fontSize: 13,
                     fontWeight: 800,
-                    marginBottom: 16,
+                    marginBottom: 18,
+                    alignSelf: "flex-start",
                   }}
                 >
                   {isActive ? "Vybráno" : "Vybrat"}
                 </div>
 
-                <h3 style={cardTitle}>{item.title}</h3>
-                <p style={cardText}>{item.text}</p>
+                <div
+                  style={{
+                    minHeight: 74,
+                    display: "flex",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <h3 style={cardTitle}>{item.title}</h3>
+                </div>
 
                 <div
                   style={{
-                    marginTop: 18,
-                    fontSize: 15,
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <p style={cardText}>{item.text}</p>
+                </div>
+
+                <div
+                  className="interest-card-cta"
+                  style={{
+                    marginTop: 20,
+                    fontSize: 16,
                     fontWeight: 800,
                     color: isActive ? "#2563eb" : "#0f172a",
                   }}
                 >
-                  {isActive ? "Pokračovat ve formuláři ↓" : "Vybrat tuto možnost"}
+                  {isActive ? "Pokračovat ve formuláři ↓" : "Vybrat tuto možnost →"}
                 </div>
               </button>
             );
@@ -194,7 +223,7 @@ export default function PoptavkaPage() {
           border: "1px solid #e2e8f0",
           borderRadius: 22,
           padding: "20px 22px",
-          marginBottom: 34,
+          marginBottom: 18,
         }}
       >
         <p
@@ -210,6 +239,45 @@ export default function PoptavkaPage() {
         </p>
       </section>
 
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          marginBottom: 40,
+        }}
+      >
+        <button
+          type="button"
+          onClick={scrollToForm}
+          style={{
+            minHeight: 52,
+            padding: "0 22px",
+            borderRadius: 14,
+            border: "1px solid #cbd5e1",
+            background: "#ffffff",
+            color: "#0f172a",
+            fontSize: 16,
+            fontWeight: 800,
+            cursor: "pointer",
+            boxShadow: "0 10px 24px rgba(15,23,42,0.06)",
+            transition: "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 16px 32px rgba(15,23,42,0.10)";
+            e.currentTarget.style.borderColor = "#94a3b8";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 10px 24px rgba(15,23,42,0.06)";
+            e.currentTarget.style.borderColor = "#cbd5e1";
+          }}
+        >
+          Kontaktujte mne
+        </button>
+      </div>
+
+      {/* DŮVĚRA */}
       <section
         style={{
           background: "#ffffff",
@@ -278,6 +346,7 @@ export default function PoptavkaPage() {
         </div>
       </section>
 
+      {/* FORMULÁŘ */}
       <section
         id="formular"
         style={{
@@ -385,6 +454,32 @@ export default function PoptavkaPage() {
       </section>
 
       <style jsx>{`
+        .interest-card {
+          transition:
+            transform 0.18s ease,
+            box-shadow 0.18s ease,
+            border-color 0.18s ease,
+            background 0.18s ease;
+        }
+
+        .interest-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 22px 48px rgba(15, 23, 42, 0.10) !important;
+          border-color: #cbd5e1 !important;
+          background: #fcfdff !important;
+        }
+
+        .interest-card:hover .interest-card-cta {
+          color: #2563eb !important;
+        }
+
+        .interest-card.active:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 22px 48px rgba(37, 99, 235, 0.16) !important;
+          border-color: #2563eb !important;
+          background: #eff6ff !important;
+        }
+
         @media (max-width: 1024px) {
           .interest-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -399,6 +494,11 @@ export default function PoptavkaPage() {
           .interest-grid {
             grid-template-columns: 1fr !important;
           }
+
+          .interest-card:hover,
+          .interest-card.active:hover {
+            transform: none;
+          }
         }
       `}</style>
     </main>
@@ -408,23 +508,22 @@ export default function PoptavkaPage() {
 const cardStyle = {
   background: "#ffffff",
   borderRadius: 22,
-  padding: 26,
+  padding: 28,
   boxSizing: "border-box",
-  transition: "all 0.2s ease",
 };
 
 const cardTitle = {
   margin: 0,
-  fontSize: 24,
-  lineHeight: 1.15,
+  fontSize: 22,
+  lineHeight: 1.16,
   letterSpacing: "-0.02em",
   color: "#0f172a",
 };
 
 const cardText = {
-  margin: "14px 0 0",
+  margin: 0,
   fontSize: 17,
-  lineHeight: 1.75,
+  lineHeight: 1.72,
   color: "#475569",
 };
 
