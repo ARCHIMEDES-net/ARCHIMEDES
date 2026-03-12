@@ -82,10 +82,25 @@ export default function AdminZadostiPage() {
         return;
       }
 
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) throw sessionError;
+
+      const accessToken = session?.access_token;
+      const user = session?.user;
+
+      if (!user || !accessToken) {
+        throw new Error("Nejste přihlášen.");
+      }
+
       const response = await fetch("/api/admin/create-organization-from-request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           requestId: row.id,
