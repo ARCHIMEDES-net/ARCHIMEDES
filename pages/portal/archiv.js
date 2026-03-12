@@ -21,6 +21,11 @@ function formatDateTimeCS(date) {
   });
 }
 
+function archiveCountText(count) {
+  if (count === 1) return "1 vysílání";
+  return `${count} vysílání`;
+}
+
 function normalizeGroups(row) {
   if (Array.isArray(row?.audience_groups) && row.audience_groups.length) return row.audience_groups;
   const aud = row?.audience;
@@ -56,10 +61,10 @@ function modeConfig(mode) {
       badge: "Demo režim",
       badgeBg: "#fff4d6",
       badgeColor: "#8a5a00",
-      title: "Archiv vidíte, ale plný obsah je jen pro registrované organizace",
+      title: "Archiv vysílání vidíte, ale plný obsah je jen pro registrované organizace",
       text:
         "V demo režimu vidíte složku Archiv i ukázku jejího obsahu. Plné záznamy, navazující materiály a návrat k odvysílaným tématům jsou dostupné pro registrované organizace s aktivní licencí ARCHIMEDES Live.",
-      primaryLabel: "Aktivovat licenci",
+      primaryLabel: "Požádat o přístup do ARCHIMEDES Live",
     };
   }
 
@@ -533,12 +538,132 @@ export default function Archiv() {
       <PortalHeader />
 
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
-        <h1 style={{ margin: "10px 0 6px" }}>Archiv</h1>
-        <p style={{ margin: 0, color: "#374151" }}>
-          Záznamy odvysílaných událostí, návrat k tématům a návazné materiály.
-        </p>
+        <section
+          style={{
+            marginTop: 10,
+            background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
+            border: "1px solid rgba(15,23,42,0.08)",
+            borderRadius: 24,
+            padding: "22px 22px 20px",
+            boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: 16,
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ minWidth: 0, flex: "1 1 560px" }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "6px 10px",
+                  borderRadius: 999,
+                  background: "rgba(15,23,42,0.06)",
+                  color: "#0f172a",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  marginBottom: 12,
+                }}
+              >
+                Knihovna vysílání
+              </div>
+
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: 34,
+                  lineHeight: 1.08,
+                  color: "#0f172a",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Archiv vysílání ARCHIMEDES Live
+              </h1>
+
+              <p
+                style={{
+                  margin: "14px 0 0",
+                  fontSize: 16,
+                  lineHeight: 1.65,
+                  color: "rgba(15,23,42,0.72)",
+                  maxWidth: 760,
+                }}
+              >
+                Záznamy přednášek, rozhovorů a vzdělávacích vstupů z celé sítě ARCHIMEDES. Můžete
+                se vracet k odvysílaným tématům, otevřít detail pořadu a navázat na něj další prací.
+              </p>
+            </div>
+
+            <div
+              style={{
+                minWidth: 250,
+                flex: "0 1 320px",
+                background: "white",
+                border: "1px solid rgba(15,23,42,0.08)",
+                borderRadius: 20,
+                padding: 16,
+                boxShadow: "0 10px 28px rgba(15,23,42,0.04)",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: "rgba(15,23,42,0.64)",
+                  marginBottom: 8,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                Přehled archivu
+              </div>
+
+              <div
+                style={{
+                  fontSize: 30,
+                  fontWeight: 900,
+                  lineHeight: 1,
+                  color: "#0f172a",
+                }}
+              >
+                {prepared.length}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 8,
+                  fontSize: 15,
+                  lineHeight: 1.55,
+                  color: "rgba(15,23,42,0.72)",
+                }}
+              >
+                Archiv obsahuje {archiveCountText(prepared.length)}.
+              </div>
+
+              <div
+                style={{
+                  marginTop: 12,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: 10,
+                }}
+              >
+                <MiniStat value={String(categories.filter((x) => x !== "Vše").length)} label="rubrik" />
+                <MiniStat value={String(audiences.filter((x) => x !== "Vše").length)} label="cílových skupin" />
+              </div>
+            </div>
+          </div>
+        </section>
 
         <div
+          className="archive-filters"
           style={{
             marginTop: 12,
             border: "1px solid #e5e7eb",
@@ -720,6 +845,14 @@ export default function Archiv() {
             )}
           </section>
         ) : null}
+
+        <style jsx>{`
+          @media (max-width: 900px) {
+            .archive-filters {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
       </main>
     </RequireAuth>
   );
