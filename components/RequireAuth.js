@@ -90,25 +90,40 @@ export default function RequireAuth({ children }) {
           pathname === "/portal" ||
           pathname.startsWith("/portal/");
 
-        // 1) Profil není dokončený:
-        // pustíme uživatele jen na profil a na správu uživatelů,
-        // aby se admin organizace nezasekl.
-        if (!profileComplete && !isProfilePage && !isUsersPage) {
+        // 1) Uživatel s organizací:
+        // pustíme ho normálně do portálu i tehdy,
+        // když ještě nemá vyplněné preference.
+        // To je důležité pro demo režim a první vstup školy.
+        if (hasOrganization) {
+          if (isUsersPage && !isOrgAdmin) {
+            router.replace("/portal");
+            return;
+          }
+
+          if (mounted) setChecking(false);
+          return;
+        }
+
+        // 2) Uživatel bez organizace:
+        // pokud nemá hotový profil, pustíme ho jen na profil,
+        // welcome, join a create-organization.
+        if (!profileComplete) {
+          if (
+            isProfilePage ||
+            isWelcomePage ||
+            isCreateOrganizationPage ||
+            isJoinPage
+          ) {
+            if (mounted) setChecking(false);
+            return;
+          }
+
           router.replace("/portal/muj-profil");
           return;
         }
 
-        // 2) Admin organizace může na správu uživatelů i tehdy,
-        // když ještě nemá úplně hotový profil.
-        if (isUsersPage && !isOrgAdmin) {
-          router.replace("/portal");
-          return;
-        }
-
-        // 3) Uživatel bez organizace:
-        // může být jednotlivec, nebo si může organizaci vytvořit / připojit.
-        // Proto ho nepřesměrováváme násilně z portálu pryč.
-        // Jen mu dovolíme přístup i na welcome/create-organization/join.
+        // 3) Uživatel bez organizace, ale s hotovým profilem:
+        // může dál do welcome / create-organization / join / portálu.
         if (!hasOrganization) {
           if (
             isWelcomePage ||
@@ -125,7 +140,6 @@ export default function RequireAuth({ children }) {
           return;
         }
 
-        // 4) Uživatel s organizací jde normálně dál.
         if (mounted) setChecking(false);
       } catch (_e) {
         router.replace("/login");
