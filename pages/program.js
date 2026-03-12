@@ -4,45 +4,151 @@ import { supabase } from "../lib/supabaseClient";
 
 const BUCKET = "posters";
 
-const programBlocks = [
+const pillars = [
   {
-    title: "Přírodověda & technologie",
-    text: "Živé vstupy s odborníky, konkrétní témata z praxe a pracovní listy pro žáky.",
+    color: "#3b82f6",
+    shadow: "rgba(59,130,246,0.20)",
+    title: "PRO ŠKOLY",
+    items: [
+      {
+        strong: "I. stupeň – Objevujeme svět:",
+        text: "tvořivost, objevování světa, spolupráce se zajímavými partnery a čtenářské formáty pro děti.",
+      },
+      {
+        strong: "II. stupeň – Svět v souvislostech:",
+        text: "aktuální témata, veřejný prostor, společnost, Evropa a inspirativní hosté z praxe.",
+      },
+      {
+        strong: "Kariérní poradenství jinak:",
+        text: "setkání s lidmi z praxe a podpora rozhodování, co dál po škole.",
+      },
+      {
+        strong: "Wellbeing – Generace Z navigátor:",
+        text: "duševní zdraví, bezpečné klima ve třídě a podpora žáků 8.–9. tříd.",
+      },
+    ],
+    footer:
+      "Speciální formáty: 13. komnata VIP, mezinárodní inspirace a další mimořádné vstupy podle sezóny.",
   },
   {
-    title: "Wellbeing pro žáky",
-    text: "Podpora duševní pohody, práce s emocemi, psychohygiena a bezpečné klima ve třídě.",
+    color: "#f59e0b",
+    shadow: "rgba(245,158,11,0.20)",
+    title: "PRO SENIORY A AKTIVNÍ STÁRNUTÍ",
+    items: [
+      {
+        strong: "Senior klub:",
+        text: "kultivované diskuse, zajímaví hosté a pravidelná setkání, která propojují lidi v obci.",
+      },
+      {
+        strong: "Čtenářský klub:",
+        text: "sdílené čtení, doporučené knihy a inspirativní debaty nad příběhy i tématy života.",
+      },
+      {
+        strong: "Akademie třetího věku:",
+        text: "digitální gramotnost, zdraví, orientace v současném světě a praktická témata pro každodenní život.",
+      },
+    ],
   },
   {
-    title: "Kariérní poradenství jinak",
-    text: "Setkání s lidmi z praxe, inspirace pro budoucí volbu povolání a dovednosti pro život.",
+    color: "#22c55e",
+    shadow: "rgba(34,197,94,0.18)",
+    title: "PRO KOMUNITU A ROZVOJ OBCE",
+    items: [
+      {
+        strong: "Vzdělávání dobrovolných hasičů:",
+        text: "odborné vstupy a sdílení dobré praxe pro jednotky i vedení obcí.",
+      },
+      {
+        strong: "Smart City klub:",
+        text: "program pro deváťáky a mladé lidi, kteří chtějí přemýšlet o své obci a jejím budoucím rozvoji.",
+      },
+      {
+        strong: "Servis pro zastupitele a komunitu:",
+        text: "dobrá praxe, inspirace, mezigenerační propojení a rozvoj místního života.",
+      },
+    ],
   },
   {
-    title: "Čtenářský klub",
-    text: "Program pro děti i dospělé, kniha měsíce, inspirativní hosté a společné sdílení.",
-  },
-  {
-    title: "Senior klub",
-    text: "Pravidelný program pro seniory, prevence izolace, setkávání a aktivní zapojení.",
-  },
-  {
-    title: "Smart Cities (deváťáci)",
-    text: "Jak přemýšlet o městě, obci a veřejném prostoru očima mladé generace.",
+    color: "#a855f7",
+    shadow: "rgba(168,85,247,0.18)",
+    title: "LETNÍ SPECIÁL A KULTURA",
+    items: [
+      {
+        strong: "Filmový klub:",
+        text: "výběr filmů a moderovaných úvodů, které dokážou z učebny nebo komunitního prostoru udělat kulturní místo.",
+      },
+      {
+        strong: "Mimořádné tematické vstupy:",
+        text: "aktuální události, významná výročí, sportovní a společenské momenty nebo speciální hosté.",
+      },
+    ],
   },
 ];
 
-const audienceCards = [
+const teaserCards = [
   {
-    title: "Pro školy",
-    text: "Hotový program pro výuku, který učitel může hned využít ve třídě bez složité přípravy.",
+    title: "Ukázka vysílání pro I. stupeň",
+    subtitle: "ZOO Praha / koně",
+    note: "Sem přijde krátký sestřih vysílání pro děti.",
   },
   {
-    title: "Pro obce",
-    text: "Pravidelný obsah pro komunitní život obce, seniory, mezigenerační setkávání i kulturní přesah.",
+    title: "Angličtina s hostem",
+    subtitle: "Paul Wade",
+    note: "Sem přijde krátká ukázka anglického vstupu.",
   },
   {
-    title: "Pro seniory",
-    text: "Bezpečný, srozumitelný a smysluplný program, který podporuje aktivitu i kontakt s ostatními.",
+    title: "Senior klub",
+    subtitle: "pravidelný komunitní formát",
+    note: "Sem přijde 20s upoutávka na Senior klub.",
+  },
+];
+
+const pricingCards = [
+  {
+    title: "Program pro školu a obec",
+    price: "2 890 Kč",
+    period: "/ měsíc",
+    badge: "doporučená varianta",
+    items: [
+      "živá vysílání pro školu a komunitu",
+      "pravidelný program během roku",
+      "přístup do archivu a k materiálům",
+      "zapojení školy i komunitního života obce",
+    ],
+  },
+  {
+    title: "Senior klub",
+    price: "1 990 Kč",
+    period: "/ měsíc",
+    badge: "samostatný formát",
+    items: [
+      "pravidelná online setkání pro seniory",
+      "kulturní a společenský program",
+      "bezpečný a srozumitelný formát",
+      "vhodné i pro menší obce a komunity",
+    ],
+  },
+  {
+    title: "Jednorázový vstup",
+    price: "490 Kč",
+    period: "/ vstup",
+    badge: "pro jednotlivce",
+    items: [
+      "jednorázová účast na vybraném vysílání",
+      "vhodné pro hosty mimo zapojené školy a obce",
+      "rychlá cesta, jak si program vyzkoušet",
+    ],
+  },
+  {
+    title: "Speciální kulturní formát",
+    price: "490 Kč",
+    period: "/ vstup",
+    badge: "filmový klub a speciály",
+    items: [
+      "vybrané kulturní a sezónní vstupy",
+      "mimořádné programy pro veřejnost",
+      "vhodné jako doplněk programu během roku",
+    ],
   },
 ];
 
@@ -89,122 +195,210 @@ function resolvePosterUrl(row) {
   return publicUrlFromPath(row?.poster_path);
 }
 
-function normalizeAudienceValue(v) {
-  if (!v) return [];
-  if (Array.isArray(v)) return v;
-  return String(v)
-    .split(",")
-    .map((x) => x.trim())
-    .filter(Boolean);
-}
-
-export default function ProgramPublic() {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
-
-  const [q, setQ] = useState("");
-  const [onlyFuture, setOnlyFuture] = useState(true);
-
-  async function load() {
-    setLoading(true);
-    setErr("");
-
-    const { data, error } = await supabase
-      .from("events")
-      .select(
-        "id,title,starts_at,category,audience,full_description,worksheet_url,poster_path,poster_url,is_published,created_at"
-      )
-      .eq("is_published", true)
-      .order("starts_at", { ascending: true });
-
-    if (error) {
-      setErr(error.message);
-      setLoading(false);
-      return;
-    }
-
-    setEvents(data || []);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  const filtered = useMemo(() => {
-    const query = q.trim().toLowerCase();
-
-    return (events || [])
-      .filter((e) => {
-        if (!e) return false;
-
-        if (onlyFuture) {
-          const d = safeDate(e.starts_at);
-          if (!d) return false;
-          if (d < new Date()) return false;
-        }
-
-        if (!query) return true;
-
-        const aud = normalizeAudienceValue(e.audience).join(" ").toLowerCase();
-        const hay = `${e.title || ""} ${e.category || ""} ${aud} ${e.full_description || ""}`.toLowerCase();
-        return hay.includes(query);
-      })
-      .sort((a, b) => {
-        const da = safeDate(a.starts_at)?.getTime() ?? 0;
-        const db = safeDate(b.starts_at)?.getTime() ?? 0;
-        return da - db;
-      });
-  }, [events, q, onlyFuture]);
-
-  const future = useMemo(() => {
-    const t = Date.now();
-    return filtered.filter((e) => (safeDate(e.starts_at)?.getTime() ?? 0) >= t);
-  }, [filtered]);
-
-  const past = useMemo(() => {
-    const t = Date.now();
-    return filtered
-      .filter((e) => (safeDate(e.starts_at)?.getTime() ?? 0) < t)
-      .sort((a, b) => {
-        const da = safeDate(a.starts_at)?.getTime() ?? 0;
-        const db = safeDate(b.starts_at)?.getTime() ?? 0;
-        return db - da;
-      });
-  }, [filtered]);
+function EventCard({ event }) {
+  const poster = resolvePosterUrl(event);
 
   return (
-    <div className="page">
-      <main>
-        <section className="container heroWrap">
-          <div className="heroCard">
-            <div className="heroText">
-              <div className="eyebrow eyebrowLight">Program ARCHIMEDES Live</div>
-              <h1>
-                Každý měsíc nový obsah
-                <br />
-                pro školy, obce
-                <br />
-                i seniory
-              </h1>
-              <p className="heroLead">
-                Živé vstupy s hosty, pracovní listy, tematické bloky a pravidelný program,
-                který může škola i obec okamžitě využít.
-              </p>
+    <article
+      style={{
+        background: "#fff",
+        borderRadius: 22,
+        overflow: "hidden",
+        boxShadow: "0 18px 45px rgba(15,23,42,0.08)",
+        border: "1px solid rgba(15,23,42,0.08)",
+        minHeight: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div
+        style={{
+          height: 180,
+          background: poster
+            ? `center / cover no-repeat url(${poster})`
+            : "linear-gradient(135deg, #e5e7eb 0%, #cbd5e1 100%)",
+          display: "flex",
+          alignItems: "flex-end",
+          padding: 16,
+        }}
+      >
+        {event?.category ? (
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "7px 12px",
+              borderRadius: 999,
+              background: "rgba(255,255,255,0.94)",
+              color: "#0f172a",
+              fontSize: 13,
+              fontWeight: 700,
+            }}
+          >
+            {event.category}
+          </span>
+        ) : null}
+      </div>
 
-              <div className="heroBullets">
-                <span>živé vysílání</span>
-                <span>pracovní listy</span>
-                <span>program pro komunitu</span>
+      <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
+        <div style={{ fontSize: 14, color: "#475569", fontWeight: 700 }}>{formatDateTimeCS(event?.starts_at)}</div>
+        <h3 style={{ margin: 0, fontSize: 24, lineHeight: 1.18, color: "#0f172a" }}>{event?.title || "Bez názvu"}</h3>
+        <p style={{ margin: 0, color: "#475569", lineHeight: 1.65, fontSize: 15 }}>
+          {String(event?.full_description || "").slice(0, 180) || "Podrobnosti programu budou upřesněny."}
+          {String(event?.full_description || "").length > 180 ? "…" : ""}
+        </p>
+        <div style={{ marginTop: "auto" }}>
+          <Link
+            href={`/portal/udalost/${event.id}`}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 44,
+              padding: "0 16px",
+              borderRadius: 14,
+              textDecoration: "none",
+              color: "#0f172a",
+              background: "#f8fafc",
+              border: "1px solid rgba(15,23,42,0.10)",
+              fontWeight: 700,
+            }}
+          >
+            Zobrazit detail
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export default function ProgramPage() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadEvents() {
+      setLoading(true);
+      setError("");
+
+      const { data, error } = await supabase
+        .from("events")
+        .select("id,title,starts_at,category,full_description,poster_path,poster_url,is_published")
+        .eq("is_published", true)
+        .gte("starts_at", new Date().toISOString())
+        .order("starts_at", { ascending: true })
+        .limit(3);
+
+      if (!mounted) return;
+
+      if (error) {
+        setError(error.message || "Nepodařilo se načíst program.");
+        setEvents([]);
+        setLoading(false);
+        return;
+      }
+
+      setEvents(data || []);
+      setLoading(false);
+    }
+
+    loadEvents();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const hasEvents = useMemo(() => Array.isArray(events) && events.length > 0, [events]);
+
+  return (
+    <div
+      style={{
+        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        background: "#f8fafc",
+        color: "#0f172a",
+        minHeight: "100vh",
+      }}
+    >
+      <main>
+        <section
+          style={{
+            maxWidth: 1240,
+            margin: "0 auto",
+            padding: "56px 16px 30px",
+          }}
+        >
+          <div
+            style={{
+              background: "linear-gradient(135deg, #0f172a 0%, #1d4ed8 55%, #2563eb 100%)",
+              borderRadius: 32,
+              padding: "44px 28px",
+              color: "#fff",
+              boxShadow: "0 24px 60px rgba(15,23,42,0.16)",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                right: -60,
+                top: -60,
+                width: 240,
+                height: 240,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.08)",
+              }}
+            />
+            <div style={{ position: "relative", maxWidth: 820 }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  padding: "8px 14px",
+                  borderRadius: 999,
+                  background: "rgba(255,255,255,0.14)",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  marginBottom: 16,
+                }}
+              >
+                Přehled vysílání a programové nabídky
               </div>
+              <h1
+                style={{
+                  margin: "0 0 18px 0",
+                  fontSize: "clamp(38px, 6vw, 68px)",
+                  lineHeight: 0.98,
+                  letterSpacing: "-0.04em",
+                }}
+              >
+                Program pro školy,
+                <br />
+                seniory i komunitu
+              </h1>
+              <p
+                style={{
+                  margin: 0,
+                  maxWidth: 760,
+                  fontSize: 19,
+                  lineHeight: 1.7,
+                  color: "rgba(255,255,255,0.88)",
+                }}
+              >
+                ARCHIMEDES Live přináší živá vysílání, inspirativní hosty, pracovní listy,
+                komunitní program a kulturní formáty. Stránka ukazuje, co program obsahuje,
+                jaké má hlavní rubriky a jak se lze do programu zapojit.
+              </p>
 
               <div
                 style={{
                   display: "flex",
-                  gap: "12px",
+                  gap: 12,
                   flexWrap: "wrap",
-                  marginTop: "24px",
+                  marginTop: 24,
                 }}
               >
                 <Link
@@ -213,848 +407,376 @@ export default function ProgramPublic() {
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    minHeight: "48px",
+                    minHeight: 50,
                     padding: "0 18px",
-                    borderRadius: "14px",
+                    borderRadius: 14,
                     textDecoration: "none",
-                    fontSize: "16px",
-                    fontWeight: 700,
-                    color: "#ffffff",
-                    background: "linear-gradient(135deg,#10b981,#059669)",
-                    boxShadow: "0 10px 24px rgba(16,185,129,0.22)",
-                    border: "1px solid rgba(16,185,129,0.9)",
-                    transition: "transform 0.15s ease, box-shadow 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 14px 28px rgba(16,185,129,0.28)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 10px 24px rgba(16,185,129,0.22)";
+                    color: "#0f172a",
+                    background: "#ffffff",
+                    fontWeight: 800,
+                    boxShadow: "0 12px 30px rgba(15,23,42,0.15)",
                   }}
                 >
                   Domluvit ukázku programu
                 </Link>
-
                 <Link
-                  href="/cenik"
+                  href="#cena-programu"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    minHeight: "48px",
+                    minHeight: 50,
                     padding: "0 18px",
-                    borderRadius: "14px",
+                    borderRadius: 14,
                     textDecoration: "none",
-                    fontSize: "16px",
-                    fontWeight: 600,
                     color: "#ffffff",
-                    background: "rgba(255,255,255,0.10)",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    backdropFilter: "blur(6px)",
-                    transition: "transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 10px 22px rgba(15,23,42,0.18)";
-                    e.currentTarget.style.background = "rgba(255,255,255,0.16)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                    e.currentTarget.style.background = "rgba(255,255,255,0.10)";
+                    background: "rgba(255,255,255,0.12)",
+                    border: "1px solid rgba(255,255,255,0.20)",
+                    fontWeight: 700,
                   }}
                 >
-                  Ceník a financování
+                  Kolik program stojí
                 </Link>
               </div>
             </div>
-
-            <div className="heroInfoCard">
-              <div className="infoKicker">Jak program funguje</div>
-              <div className="infoSteps">
-                <div className="infoStep">
-                  <div className="infoNo">1</div>
-                  <div>
-                    <strong>Živý vstup</strong>
-                    <p>Odborník z praxe, konkrétní téma, zapojení publika.</p>
-                  </div>
-                </div>
-
-                <div className="infoStep">
-                  <div className="infoNo">2</div>
-                  <div>
-                    <strong>Pracovní list</strong>
-                    <p>Podklady pro učitele a žáky, které lze hned použít.</p>
-                  </div>
-                </div>
-
-                <div className="infoStep">
-                  <div className="infoNo">3</div>
-                  <div>
-                    <strong>Navazující aktivita</strong>
-                    <p>Program pokračuje ve třídě nebo v komunitě obce.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 
-        <section className="section sectionAlt">
-          <div className="container">
-            <div className="sectionIntro">
-              <div className="eyebrow">Pro koho je program</div>
-              <h2>Jeden program. Více cílových skupin.</h2>
-            </div>
-
-            <div className="audienceGrid">
-              {audienceCards.map((item) => (
-                <div key={item.title} className="audienceCard">
-                  <h3>{item.title}</h3>
-                  <p>{item.text}</p>
-                </div>
-              ))}
-            </div>
+        <section style={{ maxWidth: 1240, margin: "0 auto", padding: "8px 16px 20px" }}>
+          <div style={{ maxWidth: 940, marginBottom: 24 }}>
+            <h2 style={{ margin: "0 0 10px 0", fontSize: 36, lineHeight: 1.08 }}>Hlavní rubriky a formáty</h2>
+            <p style={{ margin: 0, color: "#475569", fontSize: 17, lineHeight: 1.7 }}>
+              Program je postavený tak, aby dával smysl škole, seniorům i širší komunitě.
+              Nejde o jednu sérii vstupů, ale o živý celek, který může obec používat během
+              celého roku.
+            </p>
           </div>
-        </section>
 
-        <section className="section">
-          <div className="container">
-            <div className="sectionIntro">
-              <div className="eyebrow">Tematické bloky</div>
-              <h2>Ukázka programových oblastí</h2>
-              <p className="sectionLead narrow">
-                Program ARCHIMEDES Live je sestavený tak, aby pomáhal škole, obci i komunitě.
-                Každý blok má jasné využití a konkrétní přínos.
-              </p>
-            </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 22,
+              alignItems: "stretch",
+            }}
+          >
+            {pillars.map((pillar) => (
+              <article
+                key={pillar.title}
+                style={{
+                  background: "#fff",
+                  borderRadius: 26,
+                  border: `2px solid ${pillar.color}33`,
+                  boxShadow: `0 18px 38px ${pillar.shadow}`,
+                  padding: 24,
+                  display: "flex",
+                  flexDirection: "column",
+                  minHeight: "100%",
+                }}
+              >
+                <h3
+                  style={{
+                    margin: "0 0 20px 0",
+                    color: pillar.color,
+                    fontSize: 22,
+                    lineHeight: 1.1,
+                    fontWeight: 900,
+                  }}
+                >
+                  {pillar.title}
+                </h3>
 
-            <div className="blocksGrid">
-              {programBlocks.map((item) => (
-                <div key={item.title} className="blockCard">
-                  <h3>{item.title}</h3>
-                  <p>{item.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="section sectionAlt">
-          <div className="container">
-            <div className="liveHeader">
-              <div>
-                <div className="eyebrow">Živý přehled programu</div>
-                <h2>Nadcházející vysílání a události</h2>
-                <p className="sectionLead narrow">
-                  Veřejný přehled publikovaných událostí. Odkaz na samotné vysílání je dostupný
-                  registrovaným uživatelům v portálu.
-                </p>
-              </div>
-
-              <div className="toolbar">
-                <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Hledat v programu…"
-                  className="searchInput"
-                />
-
-                <label className="checkWrap">
-                  <input
-                    type="checkbox"
-                    checked={onlyFuture}
-                    onChange={(e) => setOnlyFuture(e.target.checked)}
-                  />
-                  <span>Jen nadcházející</span>
-                </label>
-              </div>
-            </div>
-
-            {err ? <div className="errorBox">Chyba: {err}</div> : null}
-
-            {loading ? (
-              <div className="stateBox">Načítám…</div>
-            ) : future.length === 0 && past.length === 0 ? (
-              <div className="stateBox">Zatím žádné publikované události.</div>
-            ) : (
-              <>
-                <Section title="Nadcházející" count={future.length}>
-                  {future.map((e) => (
-                    <EventCard key={e.id} e={e} />
+                <div style={{ display: "grid", gap: 16 }}>
+                  {pillar.items.map((item) => (
+                    <div key={`${pillar.title}-${item.strong}`} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                      <div
+                        style={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: "50%",
+                          background: pillar.color,
+                          marginTop: 6,
+                          flex: "0 0 14px",
+                        }}
+                      />
+                      <div style={{ color: "#1e293b", lineHeight: 1.55, fontSize: 16 }}>
+                        <strong>{item.strong}</strong> {item.text}
+                      </div>
+                    </div>
                   ))}
-                </Section>
+                </div>
 
-                {!onlyFuture ? (
-                  <div style={{ marginTop: 18 }}>
-                    <Section title="Proběhlo" count={past.length}>
-                      {past.slice(0, 30).map((e) => (
-                        <EventCard key={e.id} e={e} />
-                      ))}
-                    </Section>
+                {pillar.footer ? (
+                  <div
+                    style={{
+                      marginTop: 20,
+                      padding: 16,
+                      borderRadius: 18,
+                      background: pillar.color,
+                      color: "#fff",
+                      lineHeight: 1.55,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {pillar.footer}
                   </div>
                 ) : null}
-              </>
-            )}
-
-            <div className="noteLine">
-              Pozn.: Zobrazuji jen položky, které mají v adminu nastaveno <b>Publikováno</b>.
-            </div>
+              </article>
+            ))}
           </div>
         </section>
 
-        <section className="container finalCtaWrap">
-          <div className="finalCta">
-            <div>
-              <div className="eyebrow eyebrowLight">Další krok</div>
-              <h2>Chcete vidět, jak může program fungovat u vás?</h2>
-              <p>
-                Během krátké online schůzky ukážeme strukturu jedné hodiny, typy programů
-                i to, jak program využije škola nebo obec v praxi.
-              </p>
-            </div>
+        <section style={{ maxWidth: 1240, margin: "0 auto", padding: "34px 16px 18px" }}>
+          <div style={{ maxWidth: 940, marginBottom: 22 }}>
+            <h2 style={{ margin: "0 0 10px 0", fontSize: 36, lineHeight: 1.08 }}>Ukázky vysílání</h2>
+            <p style={{ margin: 0, color: "#475569", fontSize: 17, lineHeight: 1.7 }}>
+              Tři okna níže jsou připravená pro krátké sestřihy. Rozměr je nastavený tak, aby
+              po doplnění videí působila sekce čistě a přehledně.
+            </p>
+          </div>
 
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 22,
+            }}
+          >
+            {teaserCards.map((card) => (
+              <article
+                key={card.title}
+                style={{
+                  background: "#fff",
+                  borderRadius: 24,
+                  border: "1px solid rgba(15,23,42,0.08)",
+                  boxShadow: "0 14px 34px rgba(15,23,42,0.07)",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    aspectRatio: "16 / 9",
+                    background: "linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "rgba(15,23,42,0.72)",
+                    fontWeight: 800,
+                    letterSpacing: "0.02em",
+                    fontSize: 15,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  místo pro video ukázku
+                </div>
+                <div style={{ padding: 20 }}>
+                  <h3 style={{ margin: "0 0 8px 0", fontSize: 24, lineHeight: 1.15 }}>{card.title}</h3>
+                  <div style={{ color: "#2563eb", fontWeight: 800, marginBottom: 8 }}>{card.subtitle}</div>
+                  <p style={{ margin: 0, color: "#475569", lineHeight: 1.65 }}>{card.note}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section style={{ maxWidth: 1240, margin: "0 auto", padding: "38px 16px 10px" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 18,
+            }}
+          >
+            {[
+              {
+                title: "Živé vysílání",
+                text: "Pravidelné vstupy s hosty, moderované programy a témata, která škola i obec skutečně využijí.",
+              },
+              {
+                title: "Archiv a záznamy",
+                text: "Obsah může sloužit i zpětně – jako inspirace, doplněk výuky nebo komunitní program.",
+              },
+              {
+                title: "Pracovní listy a návaznost",
+                text: "Součástí programu jsou materiály, které pomáhají učiteli i organizátorům programu v obci.",
+              },
+              {
+                title: "Jedna značka, více cílových skupin",
+                text: "Škola, senioři, komunita i kultura jsou přehledně pod jedním programem a jednou logikou webu.",
+              },
+            ].map((item) => (
+              <article
+                key={item.title}
+                style={{
+                  background: "#fff",
+                  borderRadius: 22,
+                  padding: 22,
+                  border: "1px solid rgba(15,23,42,0.08)",
+                  boxShadow: "0 12px 30px rgba(15,23,42,0.05)",
+                }}
+              >
+                <h3 style={{ margin: "0 0 8px 0", fontSize: 22, lineHeight: 1.15 }}>{item.title}</h3>
+                <p style={{ margin: 0, color: "#475569", lineHeight: 1.7 }}>{item.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section style={{ maxWidth: 1240, margin: "0 auto", padding: "42px 16px 18px" }}>
+          <div style={{ maxWidth: 940, marginBottom: 22 }}>
+            <h2 style={{ margin: "0 0 10px 0", fontSize: 36, lineHeight: 1.08 }}>Nejbližší vysílání</h2>
+            <p style={{ margin: 0, color: "#475569", fontSize: 17, lineHeight: 1.7 }}>
+              Přehled nejbližších zveřejněných vstupů. Tato část zůstává živá a může se dále
+              rozšiřovat podle toho, jak bude přibývat obsah v administraci.
+            </p>
+          </div>
+
+          {loading ? (
+            <div style={{ color: "#475569", padding: "10px 2px 4px" }}>Načítám program…</div>
+          ) : error ? (
             <div
               style={{
-                display: "flex",
-                gap: "14px",
-                flexWrap: "wrap",
-                justifyContent: "flex-end",
+                background: "#fff7ed",
+                border: "1px solid #fdba74",
+                color: "#9a3412",
+                borderRadius: 16,
+                padding: 16,
               }}
             >
-              <Link
-                href="/poptavka"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minHeight: "48px",
-                  padding: "0 18px",
-                  borderRadius: "14px",
-                  textDecoration: "none",
-                  fontSize: "16px",
-                  fontWeight: 700,
-                  color: "#111827",
-                  background: "#ffffff",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = "0 12px 26px rgba(0,0,0,0.16)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                Domluvit ukázku programu
-              </Link>
-
-              <Link
-                href="/portal"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minHeight: "48px",
-                  padding: "0 18px",
-                  borderRadius: "14px",
-                  textDecoration: "none",
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  color: "#ffffff",
-                  background: "transparent",
-                  border: "1px solid rgba(255,255,255,0.26)",
-                  transition: "transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                  e.currentTarget.style.boxShadow = "0 10px 22px rgba(0,0,0,0.16)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                Vstoupit do portálu
-              </Link>
+              {error}
             </div>
+          ) : hasEvents ? (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: 22,
+              }}
+            >
+              {events.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          ) : (
+            <div
+              style={{
+                background: "#ffffff",
+                borderRadius: 20,
+                border: "1px solid rgba(15,23,42,0.08)",
+                padding: 22,
+                color: "#475569",
+                boxShadow: "0 12px 30px rgba(15,23,42,0.05)",
+              }}
+            >
+              Zatím zde nejsou zveřejněná nejbližší vysílání. Jakmile budou nové termíny
+              publikované v administraci, objeví se automaticky tady.
+            </div>
+          )}
+        </section>
+
+        <section id="cena-programu" style={{ maxWidth: 1240, margin: "0 auto", padding: "46px 16px 70px" }}>
+          <div style={{ maxWidth: 940, marginBottom: 24 }}>
+            <h2 style={{ margin: "0 0 10px 0", fontSize: 36, lineHeight: 1.08 }}>Kolik program stojí</h2>
+            <p style={{ margin: 0, color: "#475569", fontSize: 17, lineHeight: 1.7 }}>
+              Cena je součástí programu. Nejde o technický produkt, ale o pravidelný obsah,
+              vysílání a zapojení školy nebo komunity do živého celku.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+              gap: 22,
+            }}
+          >
+            {pricingCards.map((card, index) => (
+              <article
+                key={card.title}
+                style={{
+                  background: index === 0 ? "linear-gradient(180deg, #ffffff 0%, #eff6ff 100%)" : "#fff",
+                  borderRadius: 24,
+                  padding: 22,
+                  border: index === 0 ? "2px solid #2563eb" : "1px solid rgba(15,23,42,0.08)",
+                  boxShadow: index === 0 ? "0 20px 44px rgba(37,99,235,0.12)" : "0 14px 34px rgba(15,23,42,0.06)",
+                  minHeight: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    padding: "7px 12px",
+                    borderRadius: 999,
+                    background: index === 0 ? "#2563eb" : "#f1f5f9",
+                    color: index === 0 ? "#fff" : "#0f172a",
+                    fontSize: 13,
+                    fontWeight: 800,
+                    marginBottom: 16,
+                    alignSelf: "flex-start",
+                  }}
+                >
+                  {card.badge}
+                </div>
+                <h3 style={{ margin: "0 0 12px 0", fontSize: 24, lineHeight: 1.16 }}>{card.title}</h3>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
+                  <div style={{ fontSize: 42, lineHeight: 1, fontWeight: 900, letterSpacing: "-0.04em" }}>{card.price}</div>
+                  <div style={{ color: "#475569", fontWeight: 700 }}>{card.period}</div>
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 18, color: "#334155", lineHeight: 1.8, flex: 1 }}>
+                  {card.items.map((item) => (
+                    <li key={`${card.title}-${item}`}>{item}</li>
+                  ))}
+                </ul>
+                <div style={{ marginTop: 18, fontSize: 14, color: "#64748b" }}>Cena bez DPH.</div>
+              </article>
+            ))}
+          </div>
+
+          <div
+            style={{
+              marginTop: 24,
+              background: "#0f172a",
+              color: "#fff",
+              borderRadius: 26,
+              padding: 28,
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 20,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ maxWidth: 700 }}>
+              <h3 style={{ margin: "0 0 8px 0", fontSize: 28, lineHeight: 1.08 }}>Chcete stránku otestovat naživo?</h3>
+              <p style={{ margin: 0, color: "rgba(255,255,255,0.78)", lineHeight: 1.7, fontSize: 17 }}>
+                Nejlepší cesta je ukázka programu. Během krátkého setkání je hned vidět, jak
+                může ARCHIMEDES Live fungovat pro školu, vedení obce i komunitní život.
+              </p>
+            </div>
+            <Link
+              href="/poptavka"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 50,
+                padding: "0 18px",
+                borderRadius: 14,
+                textDecoration: "none",
+                color: "#0f172a",
+                background: "#ffffff",
+                fontWeight: 800,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Poslat poptávku
+            </Link>
           </div>
         </section>
       </main>
-
-      <style jsx>{`
-        .page {
-          min-height: 100vh;
-          background: #f6f7fb;
-          color: #111827;
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
-
-        .container {
-          max-width: 1100px;
-          margin: 0 auto;
-          padding-left: 16px;
-          padding-right: 16px;
-        }
-
-        .section {
-          padding: 84px 0;
-        }
-
-        .sectionAlt {
-          background: #eef1f7;
-        }
-
-        .heroWrap {
-          padding-top: 28px;
-          padding-bottom: 28px;
-        }
-
-        .heroCard {
-          display: grid;
-          grid-template-columns: 1.08fr 0.92fr;
-          gap: 22px;
-          background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
-          border-radius: 28px;
-          overflow: hidden;
-          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
-        }
-
-        .heroText {
-          padding: 36px 34px;
-          color: white;
-        }
-
-        .eyebrow {
-          font-size: 13px;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: #6b7280;
-          margin-bottom: 10px;
-          font-weight: 700;
-        }
-
-        .eyebrowLight {
-          color: rgba(255, 255, 255, 0.72);
-        }
-
-        h1 {
-          margin: 0 0 18px;
-          font-size: 54px;
-          line-height: 1.03;
-          letter-spacing: -0.03em;
-        }
-
-        h2 {
-          margin: 0;
-          font-size: 42px;
-          line-height: 1.12;
-          letter-spacing: -0.02em;
-        }
-
-        h3 {
-          margin: 0 0 8px;
-          font-size: 24px;
-          line-height: 1.2;
-        }
-
-        p {
-          margin: 0;
-          font-size: 17px;
-          line-height: 1.7;
-          color: #4b5563;
-        }
-
-        .heroLead {
-          color: rgba(255, 255, 255, 0.9);
-          font-size: 20px;
-          line-height: 1.75;
-          max-width: 640px;
-        }
-
-        .heroBullets {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-          margin-top: 22px;
-        }
-
-        .heroBullets span {
-          display: inline-flex;
-          align-items: center;
-          padding: 10px 14px;
-          border-radius: 999px;
-          background: rgba(255, 255, 255, 0.12);
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          color: rgba(255, 255, 255, 0.94);
-          font-size: 14px;
-        }
-
-        .heroInfoCard {
-          background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
-          border-left: 1px solid rgba(255, 255, 255, 0.06);
-          padding: 34px 28px;
-          color: white;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-        }
-
-        .infoKicker {
-          font-size: 14px;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: rgba(255, 255, 255, 0.7);
-          margin-bottom: 18px;
-          font-weight: 700;
-        }
-
-        .infoSteps {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .infoStep {
-          display: grid;
-          grid-template-columns: 46px 1fr;
-          gap: 14px;
-          align-items: start;
-          padding: 16px;
-          background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 18px;
-        }
-
-        .infoStep p {
-          color: rgba(255, 255, 255, 0.78);
-          font-size: 15px;
-          line-height: 1.6;
-          margin-top: 4px;
-        }
-
-        .infoNo {
-          width: 46px;
-          height: 46px;
-          border-radius: 14px;
-          background: white;
-          color: #111827;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 800;
-          font-size: 20px;
-        }
-
-        .sectionIntro {
-          margin-bottom: 30px;
-        }
-
-        .sectionLead {
-          font-size: 19px;
-          line-height: 1.75;
-          color: #4b5563;
-          margin-top: 14px;
-        }
-
-        .narrow {
-          max-width: 760px;
-        }
-
-        .audienceGrid,
-        .blocksGrid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 18px;
-        }
-
-        .audienceCard,
-        .blockCard,
-        .eventSection,
-        .finalCta {
-          background: white;
-          border: 1px solid rgba(17, 24, 39, 0.08);
-          border-radius: 22px;
-        }
-
-        .audienceCard,
-        .blockCard {
-          padding: 24px;
-        }
-
-        .liveHeader {
-          display: grid;
-          grid-template-columns: 1fr auto;
-          gap: 18px;
-          align-items: end;
-          margin-bottom: 22px;
-        }
-
-        .toolbar {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-        }
-
-        .searchInput {
-          min-width: 260px;
-          padding: 11px 13px;
-          border-radius: 14px;
-          border: 1px solid rgba(17, 24, 39, 0.14);
-          background: white;
-          font-size: 15px;
-          outline: none;
-        }
-
-        .checkWrap {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 11px 13px;
-          border-radius: 14px;
-          border: 1px solid rgba(17, 24, 39, 0.14);
-          background: white;
-          cursor: pointer;
-          user-select: none;
-          font-size: 15px;
-        }
-
-        .errorBox,
-        .stateBox {
-          padding: 14px 16px;
-          border-radius: 16px;
-          margin-bottom: 14px;
-          background: white;
-          border: 1px solid rgba(17, 24, 39, 0.08);
-        }
-
-        .errorBox {
-          background: #fff3f3;
-          border-color: #ffd0d0;
-          color: #8a1f1f;
-        }
-
-        .noteLine {
-          margin-top: 16px;
-          opacity: 0.7;
-          font-size: 13px;
-        }
-
-        .eventSection {
-          overflow: hidden;
-          background: white;
-        }
-
-        .eventSectionHead {
-          padding: 14px 16px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-          display: flex;
-          gap: 10px;
-          align-items: center;
-        }
-
-        .eventSectionTitle {
-          font-weight: 800;
-        }
-
-        .eventSectionCount {
-          margin-left: auto;
-          opacity: 0.7;
-          font-size: 14px;
-        }
-
-        .eventSectionBody {
-          display: grid;
-          gap: 0;
-        }
-
-        .eventCard {
-          display: grid;
-          grid-template-columns: 110px 1fr;
-          gap: 14px;
-          padding: 14px 16px;
-          border-top: 1px solid rgba(0, 0, 0, 0.06);
-          align-items: start;
-          background: white;
-        }
-
-        .posterWrap {
-          width: 110px;
-          height: 74px;
-          border-radius: 14px;
-          overflow: hidden;
-          border: 1px solid rgba(0, 0, 0, 0.1);
-          background: rgba(0, 0, 0, 0.03);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .posterPlaceholder {
-          opacity: 0.6;
-          font-size: 12px;
-        }
-
-        .posterImg {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .eventMain {
-          min-width: 0;
-        }
-
-        .eventTop {
-          display: flex;
-          gap: 10px;
-          align-items: baseline;
-          flex-wrap: wrap;
-        }
-
-        .eventTitle {
-          font-weight: 800;
-          font-size: 16px;
-        }
-
-        .eventDate {
-          opacity: 0.75;
-          font-size: 14px;
-        }
-
-        .chipSmall {
-          font-size: 12px;
-          padding: 3px 8px;
-          border-radius: 999px;
-          border: 1px solid rgba(0, 0, 0, 0.12);
-          background: white;
-          opacity: 0.95;
-        }
-
-        .audienceRow {
-          margin-top: 7px;
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .desc {
-          margin-top: 8px;
-          opacity: 0.88;
-          line-height: 1.45;
-          max-width: 760px;
-          color: #374151;
-          font-size: 15px;
-        }
-
-        .eventActions {
-          margin-top: 12px;
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-
-        .actionLink {
-          text-decoration: none;
-          padding: 8px 11px;
-          border-radius: 12px;
-          border: 1px solid rgba(17, 24, 39, 0.16);
-          background: white;
-          color: #111827;
-          font-size: 14px;
-          font-weight: 600;
-        }
-
-        .actionLinkDark {
-          background: #111827;
-          color: white;
-          font-weight: 700;
-        }
-
-        .finalCtaWrap {
-          padding-top: 0;
-          padding-bottom: 96px;
-        }
-
-        .finalCta {
-          background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
-          border-radius: 28px;
-          padding: 36px;
-          color: white;
-          display: grid;
-          grid-template-columns: 1.1fr auto;
-          gap: 20px;
-          align-items: center;
-          box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
-        }
-
-        .finalCta p {
-          color: rgba(255, 255, 255, 0.82);
-          margin-top: 12px;
-        }
-
-        @media (max-width: 1080px) {
-          h1 {
-            font-size: 46px;
-          }
-
-          h2 {
-            font-size: 36px;
-          }
-
-          .heroCard,
-          .liveHeader,
-          .finalCta {
-            grid-template-columns: 1fr;
-          }
-
-          .audienceGrid,
-          .blocksGrid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
-          .toolbar {
-            justify-content: flex-start;
-          }
-        }
-
-        @media (max-width: 720px) {
-          .heroWrap {
-            padding-top: 20px;
-          }
-
-          .heroText,
-          .heroInfoCard,
-          .audienceCard,
-          .blockCard,
-          .finalCta,
-          .eventSectionHead,
-          .eventCard {
-            padding-left: 20px;
-            padding-right: 20px;
-          }
-
-          h1 {
-            font-size: 36px;
-          }
-
-          h2 {
-            font-size: 30px;
-          }
-
-          .heroLead,
-          .sectionLead,
-          p {
-            font-size: 16px;
-          }
-
-          .audienceGrid,
-          .blocksGrid {
-            grid-template-columns: 1fr;
-          }
-
-          .eventCard {
-            grid-template-columns: 1fr;
-          }
-
-          .posterWrap {
-            width: 100%;
-            height: 170px;
-          }
-
-          .searchInput {
-            min-width: 0;
-            width: 100%;
-          }
-
-          .toolbar {
-            width: 100%;
-          }
-
-          .section {
-            padding: 64px 0;
-          }
-
-          .finalCtaWrap {
-            padding-bottom: 72px;
-          }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-function Section({ title, count, children }) {
-  return (
-    <div className="eventSection">
-      <div className="eventSectionHead">
-        <div className="eventSectionTitle">{title}</div>
-        <div className="eventSectionCount">{count} položek</div>
-      </div>
-      <div className="eventSectionBody">{children}</div>
-    </div>
-  );
-}
-
-function EventCard({ e }) {
-  const posterUrl = resolvePosterUrl(e);
-  const aud = normalizeAudienceValue(e.audience);
-
-  return (
-    <div className="eventCard">
-      <div className="posterWrap">
-        {posterUrl ? (
-          <img alt="Plakát" src={posterUrl} className="posterImg" />
-        ) : (
-          <span className="posterPlaceholder">Bez plakátu</span>
-        )}
-      </div>
-
-      <div className="eventMain">
-        <div className="eventTop">
-          <div className="eventTitle">{e.title || "—"}</div>
-          <div className="eventDate">{formatDateTimeCS(e.starts_at)}</div>
-          {e.category ? <span className="chipSmall">{e.category}</span> : null}
-        </div>
-
-        {aud.length ? (
-          <div className="audienceRow">
-            {aud.slice(0, 8).map((t) => (
-              <span key={`${e.id}-${t}`} className="chipSmall">
-                {t}
-              </span>
-            ))}
-            {aud.length > 8 ? <span className="chipSmall">+{aud.length - 8}</span> : null}
-          </div>
-        ) : null}
-
-        {e.full_description ? (
-          <div className="desc">
-            {String(e.full_description).slice(0, 180)}
-            {String(e.full_description).length > 180 ? "…" : ""}
-          </div>
-        ) : null}
-
-        <div className="eventActions">
-          {e.worksheet_url ? (
-            <a href={e.worksheet_url} target="_blank" rel="noreferrer" className="actionLink">
-              📄 Pracovní list
-            </a>
-          ) : null}
-
-          <Link href="/portal" className="actionLink actionLinkDark">
-            Přihlásit se do portálu
-          </Link>
-        </div>
-      </div>
     </div>
   );
 }
