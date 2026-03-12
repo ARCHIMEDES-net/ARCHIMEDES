@@ -24,11 +24,39 @@ function formatDateTimeCS(value) {
   });
 }
 
+function formatDateCS(value) {
+  const d = safeDate(value);
+  if (!d) return "—";
+  return d.toLocaleDateString("cs-CZ", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 function stripHtml(s) {
   return String(s || "")
     .replace(/<[^>]*>/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function resolveLicenseMode(org) {
+  if (!org) return "default";
+
+  const status = String(org.license_status || "trial").toLowerCase().trim();
+  const validUntil = safeDate(org.license_valid_until);
+
+  if (status === "suspended") return "suspended";
+  if (status === "active") return "active";
+  if (status === "expired") return "expired";
+
+  if (status === "trial") {
+    if (!validUntil) return "trial";
+    return validUntil.getTime() >= Date.now() ? "trial" : "expired";
+  }
+
+  return "expired";
 }
 
 export default function PortalIndex() {
@@ -44,6 +72,10 @@ export default function PortalIndex() {
   const [organizationCode, setOrganizationCode] = useState("");
   const [membershipRole, setMembershipRole] = useState("");
   const [copiedCode, setCopiedCode] = useState(false);
+
+  const [licenseStatus, setLicenseStatus] = useState("");
+  const [licenseValidUntil, setLicenseValidUntil] = useState(null);
+  const [licenseMode, setLicenseMode] = useState("default");
 
   useEffect(() => {
     (async () => {
@@ -83,6 +115,7 @@ export default function PortalIndex() {
         if (userError) throw userError;
         if (!user) {
           setDashboardType("default");
+          setLicenseMode("default");
           setLoadingProfileType(false);
           return;
         }
@@ -113,7 +146,7 @@ export default function PortalIndex() {
         if (membership?.organization_id) {
           const { data: org, error: orgError } = await supabase
             .from("organizations")
-            .select("id, name, join_code")
+            .select("id, name, join_code, license_status, license_valid_until")
             .eq("id", membership.organization_id)
             .maybeSingle();
 
@@ -121,17 +154,21 @@ export default function PortalIndex() {
 
           setOrganizationName(org?.name || "");
           setOrganizationCode(org?.join_code || "");
+          setLicenseStatus(org?.license_status || "trial");
+          setLicenseValidUntil(org?.license_valid_until || null);
+          setLicenseMode(resolveLicenseMode(org));
 
-          // Pro onboarding a běžný provoz stačí vědět, že uživatel je v organizaci.
-          // Typ organizace teď nenačítáme, protože právě ten způsoboval pád do default režimu.
           setDashboardType("organization");
         } else if (profile?.user_type === "individual") {
           setDashboardType("individual");
+          setLicenseMode("active");
         } else {
           setDashboardType("default");
+          setLicenseMode("default");
         }
       } catch (_e) {
         setDashboardType("default");
+        setLicenseMode("default");
       } finally {
         setLoadingProfileType(false);
       }
@@ -141,14 +178,18 @@ export default function PortalIndex() {
   const hasEvents = nextEvents && nextEvents.length > 0;
 
   const dashboard = useMemo(
-    () => getDashboardConfig(dashboardType, organizationName),
-    [dashboardType, organizationName]
+    () => getDashboardConfig(dashboardType, organizationName, licenseMode, licenseValidUntil),
+    [dashboardType, organizationName, licenseMode, licenseValidUntil]
   );
 
   const showGettingStarted =
     !loadingProfileType &&
     !!organizationName &&
     membershipRole === "organization_admin";
+
+  const showTrialBanner = dashboardType === "organization" && licenseMode === "trial";
+  const showExpiredBanner = dashboardType === "organization" && licenseMode === "expired";
+  const showSuspendedBanner = dashboardType === "organization" && licenseMode === "suspended";
 
   async function handleCopyOrganizationCode() {
     if (!organizationCode) return;
@@ -167,6 +208,64 @@ export default function PortalIndex() {
 
       <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto", padding: "24px 16px 48px" }}>
+          {showTrialBanner ? (
+            <LicenseBanner
+              mode="trial"
+              title="ARCHIMEDES Live – demo přístup"
+              text={
+                <>
+                  Vaše organizace{organizationName ? ` ${organizationName}` : ""} má aktivní demo
+                  přístup{licenseValidUntil ? (
+                    <>
+                      {" "}
+                      do <strong>{formatDateCS(licenseValidUntil)}</strong>
+                    </>
+                  ) : null}
+                  . Můžete si vyzkoušet portál, prohlédnout program a připravit si ukázkovou hodinu.
+                </>
+              }
+              primaryHref="/poptavka"
+              primaryLabel="Požádat o plnou licenci"
+              secondaryHref="/portal/kalendar"
+              secondaryLabel="Otevřít kalendář"
+            />
+          ) : null}
+
+          {showExpiredBanner ? (
+            <LicenseBanner
+              mode="expired"
+              title="Demo přístup vypršel"
+              text={
+                <>
+                  Přístup organizace{organizationName ? ` ${organizationName}` : ""} je nyní v
+                  omezeném režimu. Pro pokračování v plném programu kontaktujte EduVision a aktivujte
+                  licenci.
+                </>
+              }
+              primaryHref="/poptavka"
+              primaryLabel="Aktivovat licenci"
+              secondaryHref="/portal/skoly"
+              secondaryLabel="Zobrazit síť učeben"
+            />
+          ) : null}
+
+          {showSuspendedBanner ? (
+            <LicenseBanner
+              mode="suspended"
+              title="Přístup organizace je pozastaven"
+              text={
+                <>
+                  Přístup organizace{organizationName ? ` ${organizationName}` : ""} je dočasně
+                  pozastaven. Pro obnovení kontaktujte EduVision.
+                </>
+              }
+              primaryHref="/poptavka"
+              primaryLabel="Kontaktovat EduVision"
+              secondaryHref="/portal/skoly"
+              secondaryLabel="Zobrazit síť učeben"
+            />
+          ) : null}
+
           <section
             style={{
               background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
@@ -460,7 +559,11 @@ export default function PortalIndex() {
                 color: "rgba(15,23,42,0.72)",
               }}
             >
-              Přístup k obsahu pro registrované.
+              {licenseMode === "trial"
+                ? "Demo přístup pro registrované."
+                : licenseMode === "expired" || licenseMode === "suspended"
+                ? "Omezený přístup."
+                : "Přístup k obsahu pro registrované."}
             </div>
 
             <div
@@ -808,10 +911,176 @@ export default function PortalIndex() {
   );
 }
 
-function getDashboardConfig(type, organizationName = "") {
+function getDashboardConfig(type, organizationName = "", licenseMode = "default", licenseValidUntil = null) {
   const orgLabel = organizationName ? ` pro ${organizationName}` : "";
+  const trialUntilText = licenseValidUntil ? formatDateCS(licenseValidUntil) : null;
 
   if (type === "organization") {
+    if (licenseMode === "trial") {
+      return {
+        badge: "ARCHIMEDES Live • demo organizace",
+        heroTitleLine1: "Vítejte v demo režimu",
+        heroTitleLine2: "ARCHIMEDES Live",
+        heroText: `Tady si můžete vyzkoušet fungování portálu${orgLabel}. Demo slouží k orientaci v programu, kalendáři a síti učeben${trialUntilText ? ` do ${trialUntilText}` : ""}.`,
+        tipBold: "Kalendář",
+        quickTitle: "Doporučené první kroky",
+        quickSubtitle: "Začněte tím, co vám nejrychleji ukáže hodnotu programu.",
+        primaryCtaLabel: "Otevřít kalendář",
+        primaryCtaHref: "/portal/kalendar",
+        sideBoxTitle: "Jak funguje demo",
+        sideBoxText:
+          "V demo režimu si můžete prohlédnout portál, program a ukázkové části obsahu. Pro plný provoz školy nebo obce je potřeba aktivní licence.",
+        stats: [
+          { value: "14 dní", label: "doporučená délka dema" },
+          { value: "1", label: "ukázková hodina zdarma" },
+          { value: "3", label: "nejbližší vysílání v přehledu" },
+          { value: "demo", label: "režim organizace" },
+        ],
+        tiles: [
+          {
+            href: "/portal/kalendar",
+            icon: "🗓️",
+            title: "Kalendář programu",
+            desc: "Podívejte se, jak vypadá program a jak se škola dostane k jednotlivým vstupům.",
+            cta: "Otevřít",
+            highlight: true,
+            note: "Začněte zde",
+          },
+          {
+            href: "/portal/skoly",
+            icon: "🏫",
+            title: "Síť učeben",
+            desc: "Prohlédněte si školy a obce, které už v síti ARCHIMEDES fungují.",
+            cta: "Otevřít",
+          },
+          {
+            href: "/poptavka",
+            icon: "🎓",
+            title: "Ukázková hodina",
+            desc: "Požádejte o ukázkovou hodinu zdarma pro vaši školu nebo obec.",
+            cta: "Požádat",
+          },
+          {
+            href: "/poptavka",
+            icon: "🔓",
+            title: "Plná licence",
+            desc: "Aktivujte plný přístup do programu, záznamů a dalších částí portálu.",
+            cta: "Aktivovat",
+          },
+        ],
+      };
+    }
+
+    if (licenseMode === "expired") {
+      return {
+        badge: "ARCHIMEDES Live • omezený režim",
+        heroTitleLine1: "Přístup je nyní",
+        heroTitleLine2: "v omezeném režimu",
+        heroText: `Portál${orgLabel} zůstává dostupný v omezeném rozsahu. Pro pokračování v plném programu je potřeba aktivovat licenci organizace.`,
+        tipBold: "Aktivace licence",
+        quickTitle: "Další doporučený krok",
+        quickSubtitle: "Obnovte plný přístup pro školu nebo obec.",
+        primaryCtaLabel: "Aktivovat licenci",
+        primaryCtaHref: "/poptavka",
+        sideBoxTitle: "Co dál",
+        sideBoxText:
+          "Po obnovení licence získáte znovu plný přístup do programu, záznamů i dalších částí portálu.",
+        stats: [
+          { value: "omezeně", label: "režim portálu" },
+          { value: "1", label: "doporučený další krok" },
+          { value: "3", label: "nejbližší vysílání v přehledu" },
+          { value: "0", label: "plných licencí aktivních v tomto režimu" },
+        ],
+        tiles: [
+          {
+            href: "/poptavka",
+            icon: "🔓",
+            title: "Aktivovat licenci",
+            desc: "Kontaktujte EduVision a obnovte plný přístup pro organizaci.",
+            cta: "Aktivovat",
+            highlight: true,
+            note: "Doporučeno",
+          },
+          {
+            href: "/portal/skoly",
+            icon: "🏫",
+            title: "Síť učeben",
+            desc: "Inspirace z praxe a přehled již zapojených škol a obcí.",
+            cta: "Otevřít",
+          },
+          {
+            href: "/portal/kalendar",
+            icon: "🗓️",
+            title: "Kalendář",
+            desc: "Základní přehled programu a další orientace v portálu.",
+            cta: "Otevřít",
+          },
+          {
+            href: "/poptavka",
+            icon: "📞",
+            title: "Domluvit další postup",
+            desc: "Ozvěte se nám a připravíme další krok pro vaši organizaci.",
+            cta: "Kontaktovat",
+          },
+        ],
+      };
+    }
+
+    if (licenseMode === "suspended") {
+      return {
+        badge: "ARCHIMEDES Live • přístup pozastaven",
+        heroTitleLine1: "Přístup organizace je",
+        heroTitleLine2: "dočasně pozastaven",
+        heroText: `Portál${orgLabel} je dočasně pozastaven. Pro další postup kontaktujte EduVision.`,
+        tipBold: "Kontakt s EduVision",
+        quickTitle: "Co můžete udělat teď",
+        quickSubtitle: "Nejrychlejší cesta k obnovení přístupu.",
+        primaryCtaLabel: "Kontaktovat EduVision",
+        primaryCtaHref: "/poptavka",
+        sideBoxTitle: "Obnovení přístupu",
+        sideBoxText:
+          "Jakmile bude přístup obnoven, organizace se vrátí do běžného provozu.",
+        stats: [
+          { value: "pauza", label: "stav přístupu" },
+          { value: "1", label: "doporučený další krok" },
+          { value: "0", label: "plný obsah v tomto režimu" },
+          { value: "info", label: "dostupný režim portálu" },
+        ],
+        tiles: [
+          {
+            href: "/poptavka",
+            icon: "📞",
+            title: "Kontaktovat EduVision",
+            desc: "Ozvěte se nám a společně nastavíme další postup.",
+            cta: "Kontaktovat",
+            highlight: true,
+            note: "Doporučeno",
+          },
+          {
+            href: "/portal/skoly",
+            icon: "🏫",
+            title: "Síť učeben",
+            desc: "Přehled škol a obcí zapojených do sítě ARCHIMEDES.",
+            cta: "Otevřít",
+          },
+          {
+            href: "/portal/kalendar",
+            icon: "🗓️",
+            title: "Kalendář",
+            desc: "Základní orientace v programu a veřejně dostupných částech portálu.",
+            cta: "Otevřít",
+          },
+          {
+            href: "/poptavka",
+            icon: "✉️",
+            title: "Napsat zprávu",
+            desc: "Pošlete nám informaci a navážeme na další krok.",
+            cta: "Odeslat",
+          },
+        ],
+      };
+    }
+
     return {
       badge: "ARCHIMEDES Live • organizace",
       heroTitleLine1: "Vaše pracovní plocha",
@@ -975,6 +1244,149 @@ function getDashboardConfig(type, organizationName = "") {
       },
     ],
   };
+}
+
+function LicenseBanner({
+  mode,
+  title,
+  text,
+  primaryHref,
+  primaryLabel,
+  secondaryHref,
+  secondaryLabel,
+}) {
+  const config =
+    mode === "trial"
+      ? {
+          bg: "linear-gradient(180deg, #fffdf6 0%, #fffaf0 100%)",
+          border: "1px solid #f5d9a8",
+          badgeBg: "#fff2cc",
+          badgeColor: "#8a5a00",
+        }
+      : mode === "expired"
+      ? {
+          bg: "linear-gradient(180deg, #fff8f8 0%, #fff3f3 100%)",
+          border: "1px solid #f2c9c9",
+          badgeBg: "#ffe3e3",
+          badgeColor: "#9f1d1d",
+        }
+      : {
+          bg: "linear-gradient(180deg, #f8f9ff 0%, #f3f5ff 100%)",
+          border: "1px solid #d8def8",
+          badgeBg: "#e9edff",
+          badgeColor: "#3646a3",
+        };
+
+  return (
+    <section
+      style={{
+        background: config.bg,
+        border: config.border,
+        borderRadius: 24,
+        padding: 18,
+        marginBottom: 18,
+        boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ minWidth: 0, flex: "1 1 560px" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "6px 10px",
+              borderRadius: 999,
+              background: config.badgeBg,
+              color: config.badgeColor,
+              fontSize: 12,
+              fontWeight: 900,
+              marginBottom: 10,
+            }}
+          >
+            {mode === "trial"
+              ? "Demo režim"
+              : mode === "expired"
+              ? "Licence vypršela"
+              : "Přístup pozastaven"}
+          </div>
+
+          <div
+            style={{
+              fontSize: 28,
+              fontWeight: 900,
+              lineHeight: 1.08,
+              color: "#0f172a",
+            }}
+          >
+            {title}
+          </div>
+
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 15,
+              lineHeight: 1.6,
+              color: "rgba(15,23,42,0.74)",
+              maxWidth: 850,
+            }}
+          >
+            {text}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          {primaryHref ? (
+            <Link
+              href={primaryHref}
+              style={{
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "12px 16px",
+                borderRadius: 14,
+                background: "#0f172a",
+                color: "white",
+                fontWeight: 900,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {primaryLabel}
+            </Link>
+          ) : null}
+
+          {secondaryHref ? (
+            <Link
+              href={secondaryHref}
+              style={{
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "12px 16px",
+                borderRadius: 14,
+                background: "white",
+                color: "#0f172a",
+                border: "1px solid rgba(15,23,42,0.12)",
+                fontWeight: 900,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {secondaryLabel}
+            </Link>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function StatCard({ value, label }) {
