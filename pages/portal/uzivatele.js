@@ -131,23 +131,33 @@ export default function UzivateleSkolyPage() {
         throw new Error("Tuto akci může provádět jen administrátor organizace.");
       }
 
-      if (!currentUserId) {
-        throw new Error("Chybí identita přihlášeného uživatele.");
-      }
-
       if (!newEmail.trim()) throw new Error("Vyplňte e-mail.");
       if (!newFullName.trim()) throw new Error("Vyplňte jméno a příjmení.");
+
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) throw sessionError;
+
+      const accessToken = session?.access_token;
+      const user = session?.user;
+
+      if (!user || !accessToken) {
+        throw new Error("Nejste přihlášen.");
+      }
 
       const response = await fetch("/api/invite-user", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           email: newEmail.trim().toLowerCase(),
           fullName: newFullName.trim(),
           role: newRole,
-          inviterUserId: currentUserId,
         }),
       });
 
