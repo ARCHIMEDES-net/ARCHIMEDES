@@ -619,13 +619,13 @@ export default function Home() {
             />
             <InfoCard
               number="2"
-              title="Pracovní list a navázání ve třídě"
-              text="Škola dostává materiály, které může využít okamžitě ve výuce nebo při navazující aktivitě."
+              title="Připravené pracovní listy"
+              text="Pro vysílání jsou připraveny materiály pro další práci ve třídě."
             />
             <InfoCard
               number="3"
               title="Přínos i pro obec"
-              text="Stejná platforma nabízí program také seniorům, komunitě a veřejným akcím v obci."
+              text="Platforma nabízí program také seniorům, komunitě a veřejným akcím v obci."
             />
           </div>
         </section>
@@ -1117,4 +1117,5 @@ function ProgramCard({ title, text, img }) {
     </div>
   );
 }
+
 
