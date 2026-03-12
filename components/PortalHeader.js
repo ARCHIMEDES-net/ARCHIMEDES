@@ -138,6 +138,7 @@ export default function PortalHeader({ title = "" }) {
   const isActive = (key) => {
     if (key === "portal") return path === "/portal" || path === "/portal/";
     if (key === "program") return path.startsWith("/portal/kalendar");
+    if (key === "archiv") return path.startsWith("/portal/archiv");
     if (key === "profil") return path.startsWith("/portal/muj-profil");
     if (key === "uzivatele") return path.startsWith("/portal/uzivatele");
     if (key === "admin") return path.startsWith("/portal/admin");
@@ -257,6 +258,10 @@ export default function PortalHeader({ title = "" }) {
 
           <Link href="/portal/kalendar" style={navItem("program")}>
             Program
+          </Link>
+
+          <Link href="/portal/archiv" style={navItem("archiv")}>
+            Archiv
           </Link>
 
           {!loadingRole && isOrgAdmin ? (
