@@ -929,7 +929,7 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
         primaryCtaHref: "/portal/kalendar",
         sideBoxTitle: "Jak funguje demo",
         sideBoxText:
-          "V demo režimu si můžete prohlédnout portál, program a ukázkové části obsahu. Pro plný provoz školy nebo obce je potřeba aktivní licence.",
+          "V demo režimu si můžete prohlédnout portál, program, síť učeben i složku Archiv. Po otevření archivu uvidíte jeho strukturu a informaci, že plný obsah je dostupný pro registrované organizace s aktivní licencí.",
         stats: [
           { value: "14 dní", label: "doporučená délka dema" },
           { value: "1", label: "ukázková hodina zdarma" },
@@ -945,6 +945,14 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
             cta: "Otevřít",
             highlight: true,
             note: "Začněte zde",
+          },
+          {
+            href: "/portal/archiv",
+            icon: "📚",
+            title: "Archiv",
+            desc: "Uvidíte složku Archiv a její strukturu. Plné záznamy a navazující materiály jsou dostupné pro registrované organizace s aktivní licencí.",
+            cta: "Otevřít",
+            note: "Ukázka",
           },
           {
             href: "/portal/skoly",
