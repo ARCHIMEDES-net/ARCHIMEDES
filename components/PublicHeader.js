@@ -205,10 +205,6 @@ export default function PublicHeader({ active = "" }) {
                 Učebna
               </Link>
 
-              <Link href="/cenik" style={navItem("cenik")}>
-                Ceník
-              </Link>
-
               <Link href="/poptavka" style={navItem("poptavka")}>
                 Poptávka
               </Link>
