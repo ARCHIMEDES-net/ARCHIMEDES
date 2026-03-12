@@ -16,10 +16,16 @@ export default function CreateSchoolPage() {
 
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-      if (!user) {
+      if (sessionError) throw sessionError;
+
+      const accessToken = session?.access_token;
+      const user = session?.user;
+
+      if (!user || !accessToken) {
         throw new Error("Nejste přihlášen.");
       }
 
@@ -27,10 +33,11 @@ export default function CreateSchoolPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          userId: user.id,
           organizationName: schoolName,
+          orgType: "school",
         }),
       });
 
@@ -59,15 +66,9 @@ export default function CreateSchoolPage() {
     >
       <h1>Založit školu</h1>
 
-      <p>
-        Vytvoříte organizaci školy a stanete se jejím administrátorem.
-      </p>
+      <p>Vytvoříte organizaci školy a stanete se jejím administrátorem.</p>
 
-      {error && (
-        <div style={{ color: "red", marginBottom: 16 }}>
-          {error}
-        </div>
-      )}
+      {error && <div style={{ color: "red", marginBottom: 16 }}>{error}</div>}
 
       <form onSubmit={handleCreate}>
         <label>Název školy</label>
