@@ -625,7 +625,7 @@ export default function Home() {
             <InfoCard
               number="3"
               title="Přínos i pro obec"
-              text="Stejná platforma může nabízet program také seniorům, komunitě a veřejným akcím v obci."
+              text="Stejná platforma nabízí program také seniorům, komunitě a veřejným akcím v obci."
             />
           </div>
         </section>
@@ -1117,3 +1117,4 @@ function ProgramCard({ title, text, img }) {
     </div>
   );
 }
+
