@@ -18,9 +18,9 @@ const kidsImg = "/praxe.webp";
 
 // fallback pouze pro případ, že by API dočasně nevrátilo data
 const fallbackPosts = [
+  { type: "p", id: "DVyqPmiiLKF" },
+  { type: "p", id: "DVvUBXDCMYC" },
   { type: "p", id: "DVqEttcjpu0" },
-  { type: "p", id: "DVbsiplCOJ_" },
-  { type: "reel", id: "DVvUBXDCMYC" },
 ];
 
 const mediaLinks = [
@@ -72,7 +72,7 @@ const mediaLinks = [
   {
     label: "Mikulov",
     domain: "mikulov.cz",
-    href: "https://www.mikulov.cz/obcan/aktuality/702-mikulovsti-zaci-dostali-moderni-venkovni-ucebnu-archimedes",
+    href: "https://www.mikulov.cz/obcan/aktuality/702-mikulovsti-zaci-dostali-moderni-venkovni-venkovni-ucebnu-archimedes",
   },
 ];
 
@@ -198,11 +198,23 @@ function OutlineLightButton({ href, children }) {
   );
 }
 
+function getInstagramEmbedUrl(id, type) {
+  if (type === "reel") {
+    return `https://www.instagram.com/reel/${id}/embed`;
+  }
+  return `https://www.instagram.com/p/${id}/embed/captioned`;
+}
+
+function getInstagramPostUrl(id, type) {
+  if (type === "reel") {
+    return `https://www.instagram.com/reel/${id}/`;
+  }
+  return `https://www.instagram.com/p/${id}/`;
+}
+
 function InstagramEmbed({ id, type }) {
-  const src =
-    type === "p"
-      ? `https://www.instagram.com/p/${id}/embed`
-      : `https://www.instagram.com/reel/${id}/embed`;
+  const src = getInstagramEmbedUrl(id, type);
+  const href = getInstagramPostUrl(id, type);
 
   return (
     <div
@@ -216,13 +228,37 @@ function InstagramEmbed({ id, type }) {
     >
       <iframe
         src={src}
+        title={`Instagram ${id}`}
         width="100%"
         height="470"
         frameBorder="0"
         scrolling="no"
         allowTransparency="true"
+        loading="lazy"
+        referrerPolicy="strict-origin-when-cross-origin"
         style={{ display: "block", width: "100%", background: "white" }}
       />
+      <div
+        style={{
+          padding: "12px 16px 16px",
+          borderTop: "1px solid rgba(15,23,42,0.06)",
+          background: "#fff",
+        }}
+      >
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            textDecoration: "none",
+            color: "#0f172a",
+            fontWeight: 800,
+            fontSize: 15,
+          }}
+        >
+          Otevřít příspěvek na Instagramu →
+        </a>
+      </div>
     </div>
   );
 }
