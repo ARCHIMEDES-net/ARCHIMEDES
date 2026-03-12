@@ -15,29 +15,40 @@ export default async function handler(req, res) {
 
     const text = await response.text();
 
+    // vytáhneme všechny odkazy na posty
     const matches = [...text.matchAll(/instagram\.com\/(p|reel)\/([^/?"<]+)/g)];
 
-    const unique = [];
+    const posts = [];
     const seen = new Set();
 
     for (const m of matches) {
       const type = m[1];
       const id = m[2];
-
       const key = `${type}:${id}`;
+
       if (!seen.has(key)) {
         seen.add(key);
-        unique.push({ type, id });
+        posts.push({ type, id });
       }
-
-      if (unique.length >= 3) break;
     }
 
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-    return res.status(200).json(unique);
+    // vezmeme poslední 3 (nejnovější)
+    const latest = posts.slice(-3).reverse();
+
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, max-age=0"
+    );
+
+    return res.status(200).json(latest);
   } catch (error) {
     console.error("Instagram API error:", error);
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, max-age=0"
+    );
+
     return res.status(200).json([]);
   }
 }
