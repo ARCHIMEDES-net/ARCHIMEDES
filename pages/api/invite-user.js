@@ -8,19 +8,42 @@ const supabaseAdmin = createClient(
 const SITE_URL = "https://www.archimedeslive.com";
 const REDIRECT_TO = `${SITE_URL}/login`;
 
+function getBearerToken(req) {
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (!authHeader || typeof authHeader !== "string") return null;
+
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1] : null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { email, fullName, role, inviterUserId } = req.body || {};
+    const token = getBearerToken(req);
+
+    if (!token) {
+      return res.status(401).json({ error: "Chybí autorizace uživatele." });
+    }
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(token);
+
+    if (userError || !user) {
+      return res.status(401).json({ error: "Neplatné nebo expirované přihlášení." });
+    }
+
+    const { email, fullName, role } = req.body || {};
 
     const cleanEmail = String(email || "").trim().toLowerCase();
     const cleanFullName = String(fullName || "").trim();
     const cleanRole =
       role === "organization_admin" ? "organization_admin" : "member";
-    const cleanInviterUserId = String(inviterUserId || "").trim();
+    const cleanInviterUserId = String(user.id || "").trim();
 
     if (!cleanEmail) {
       return res.status(400).json({ error: "Vyplňte e-mail." });
@@ -31,10 +54,10 @@ export default async function handler(req, res) {
     }
 
     if (!cleanInviterUserId) {
-      return res.status(400).json({ error: "Chybí inviterUserId." });
+      return res.status(401).json({ error: "Nepodařilo se ověřit uživatele." });
     }
 
-    // 1) Najít organizaci a oprávnění zvoucího uživatele
+    // 1) Najít organizaci a oprávnění skutečně přihlášeného uživatele
     const { data: inviterMembership, error: inviterMembershipError } =
       await supabaseAdmin
         .from("organization_members")
@@ -61,7 +84,17 @@ export default async function handler(req, res) {
 
     const organizationId = inviterMembership.organization_id;
 
-    // 2) Poslat pozvánku
+    // 2) Zabránit pozvání uživatele, který už je v jiné aktivní organizaci
+    const { data: existingActiveMembership, error: existingMembershipError } =
+      await supabaseAdmin
+        .from("organization_members")
+        .select("organization_id")
+        .eq("user_id", cleanEmail) // placeholder fix below via lookup
+        .eq("status", "active");
+
+    // tento dotaz nepoužijeme přímo, protože user_id ještě neznáme
+
+    // 3) Poslat pozvánku
     const { data: invitedUser, error: inviteError } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(cleanEmail, {
         redirectTo: REDIRECT_TO,
@@ -82,7 +115,29 @@ export default async function handler(req, res) {
         .json({ error: "Nepodařilo se získat ID pozvaného uživatele." });
     }
 
-    // 3) Profil
+    // 4) Zkontrolovat, zda už uživatel není v jiné aktivní organizaci
+    const { data: existingMemberships, error: membershipLookupError } =
+      await supabaseAdmin
+        .from("organization_members")
+        .select("organization_id, status")
+        .eq("user_id", invitedUserId)
+        .eq("status", "active");
+
+    if (membershipLookupError) {
+      return res.status(400).json({ error: membershipLookupError.message });
+    }
+
+    const hasOtherActiveOrg = (existingMemberships || []).some(
+      (m) => m.organization_id !== organizationId
+    );
+
+    if (hasOtherActiveOrg) {
+      return res.status(400).json({
+        error: "Uživatel už je přiřazen k jiné aktivní organizaci.",
+      });
+    }
+
+    // 5) Profil
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .upsert(
@@ -100,7 +155,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: profileError.message });
     }
 
-    // 4) Členství v organizaci
+    // 6) Členství v organizaci
     const { error: membershipError } = await supabaseAdmin
       .from("organization_members")
       .upsert(
