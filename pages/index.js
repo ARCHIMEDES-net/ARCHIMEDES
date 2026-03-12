@@ -264,8 +264,12 @@ export default function Home() {
 
     async function loadInstagram() {
       try {
-        const res = await fetch("/api/instagram");
+        const res = await fetch(`/api/instagram?t=${Date.now()}`, {
+          cache: "no-store",
+        });
+
         if (!res.ok) throw new Error("Instagram API failed");
+
         const data = await res.json();
 
         if (!cancelled && Array.isArray(data) && data.length) {
@@ -341,7 +345,9 @@ export default function Home() {
       }}
     >
       <main>
-        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "56px 16px 32px" }}>
+        <section
+          style={{ maxWidth: 1180, margin: "0 auto", padding: "56px 16px 32px" }}
+        >
           <div className="heroGrid">
             <div>
               <div
@@ -440,7 +446,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 24px" }}>
+        <section
+          style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 24px" }}
+        >
           <div style={{ background: "transparent", borderRadius: 28 }}>
             <div style={{ marginBottom: 18 }}>
               <div
@@ -467,7 +475,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "6px 16px 22px" }}>
+        <section
+          style={{ maxWidth: 1180, margin: "0 auto", padding: "6px 16px 22px" }}
+        >
           <div
             style={{
               background: "white",
@@ -527,7 +537,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "18px 16px 18px" }}>
+        <section
+          style={{ maxWidth: 1180, margin: "0 auto", padding: "18px 16px 18px" }}
+        >
           <div
             style={{
               display: "flex",
@@ -582,7 +594,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "8px 16px 18px" }}>
+        <section
+          style={{ maxWidth: 1180, margin: "0 auto", padding: "8px 16px 18px" }}
+        >
           <div className="dualGrid">
             <div
               style={{
@@ -674,7 +688,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 16px 20px" }}>
+        <section
+          style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 16px 20px" }}
+        >
           <div
             style={{
               background: "white",
@@ -736,7 +752,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 16px 12px" }}>
+        <section
+          style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 16px 12px" }}
+        >
           <div
             style={{
               background: "white",
@@ -785,7 +803,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "20px 16px 70px" }}>
+        <section
+          style={{ maxWidth: 1180, margin: "0 auto", padding: "20px 16px 70px" }}
+        >
           <div
             style={{
               background: "linear-gradient(135deg, #0f172a 0%, #111827 100%)",
@@ -841,7 +861,9 @@ export default function Home() {
                 }}
               >
                 <WhiteButton href="/poptavka">Chci více informací</WhiteButton>
-                <OutlineLightButton href="/ucebna">Prohlédnout učebnu</OutlineLightButton>
+                <OutlineLightButton href="/ucebna">
+                  Prohlédnout učebnu
+                </OutlineLightButton>
               </div>
             </div>
           </div>
