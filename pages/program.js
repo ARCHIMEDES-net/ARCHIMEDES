@@ -701,9 +701,9 @@ export default function ProgramPage() {
           {/* FEATURE ROWS */}
           <section style={{ marginTop: 78 }}>
             <SectionTitle
-              eyebrow="Jak program působí v praxi"
-              title="Živý program, který je vidět i cítit"
-              text="ARCHIMEDES Live není jen kalendář vysílání. Je to skutečný program, který vnáší do školy i obce energii, témata a pravidelnost."
+              eyebrow="Interaktivní ARCHIMEDES Live v praxi"
+              title="Živý program, který baví"
+              text="ARCHIMEDES Live je pravidelný program, který přináší do školy i obce energii, témata a posiluje komunitu."
             />
 
             <FeatureRow
@@ -714,14 +714,14 @@ export default function ProgramPage() {
 
             <FeatureRow
               image="/program-seniori.jpg"
-              title="Pro seniory, kteří chtějí zůstat v kontaktu, v obraze a spolu"
+              title="Pro seniory, kteří chtějí zůstat v kontaktu, aktivní a spolu"
               text="Senior klub a navazující formáty dávají obci pravidelný program pro starší generaci. Vzniká prostor pro setkávání, rozhovory, inspiraci i sdílení témat, která mají smysl pro každodenní život."
               reverse
             />
 
             <FeatureRow
               image="/program-vysilani.webp"
-              title="Jedno místo, odkud může program běžet do školy i celé komunity"
+              title="Jedno místo, odkud program běží do školy i celé komunity"
               text="Program může obec využívat jako živé vysílání, společné promítání i navazující komunitní setkání. Díky tomu vzniká jednoduchý a přehledný model, který je srozumitelný pro školu, obec i veřejnost."
             />
           </section>
