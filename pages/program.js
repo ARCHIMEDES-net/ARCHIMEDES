@@ -6,13 +6,16 @@ const BUCKET = "posters";
 
 const pillars = [
   {
-    color: "#3b82f6",
-    shadow: "rgba(59,130,246,0.20)",
+    accent: "#5b8def",
+    border: "rgba(91,141,239,0.24)",
+    soft: "#f8fbff",
     title: "PRO ŠKOLY",
+    intro:
+      "Pravidelný program pro výuku, inspiraci i témata, která pomáhají škole držet krok se světem.",
     items: [
       {
         strong: "I. stupeň – Objevujeme svět:",
-        text: "tvořivost, objevování světa, spolupráce se zajímavými partnery a čtenářské formáty pro děti.",
+        text: "tvořivost, poznávání světa, spolupráce se zajímavými partnery a čtenářské formáty pro děti.",
       },
       {
         strong: "II. stupeň – Svět v souvislostech:",
@@ -26,33 +29,41 @@ const pillars = [
         strong: "Wellbeing – Generace Z navigátor:",
         text: "duševní zdraví, bezpečné klima ve třídě a podpora žáků 8.–9. tříd.",
       },
+      {
+        strong: "Speciální formáty:",
+        text: "13. komnata VIP, Voices Across Borders a další mimořádné vstupy podle sezóny a tématu.",
+      },
     ],
-    footer:
-      "Speciální formáty: 13. komnata VIP, mezinárodní inspirace a další mimořádné vstupy podle sezóny.",
   },
   {
-    color: "#f59e0b",
-    shadow: "rgba(245,158,11,0.20)",
+    accent: "#e49b45",
+    border: "rgba(228,155,69,0.24)",
+    soft: "#fffaf4",
     title: "PRO SENIORY A AKTIVNÍ STÁRNUTÍ",
+    intro:
+      "Klidný, srozumitelný a lidský formát, který vytváří pravidelná setkání a dává obci další přirozený program.",
     items: [
       {
         strong: "Senior klub:",
-        text: "kultivované diskuse, zajímaví hosté a pravidelná setkání, která propojují lidi v obci.",
+        text: "kultivované diskuse, inspirativní hosté a pravidelná setkání, která propojují lidi v obci.",
       },
       {
         strong: "Čtenářský klub:",
-        text: "sdílené čtení, doporučené knihy a inspirativní debaty nad příběhy i tématy života.",
+        text: "sdílené čtení, doporučené knihy a debaty nad příběhy i tématy života.",
       },
       {
         strong: "Akademie třetího věku:",
-        text: "digitální gramotnost, zdraví, orientace v současném světě a praktická témata pro každodenní život.",
+        text: "digitální gramotnost, zdraví, orientace v současném světě a praktická témata pro každý den.",
       },
     ],
   },
   {
-    color: "#22c55e",
-    shadow: "rgba(34,197,94,0.18)",
+    accent: "#55b56f",
+    border: "rgba(85,181,111,0.24)",
+    soft: "#f7fcf8",
     title: "PRO KOMUNITU A ROZVOJ OBCE",
+    intro:
+      "Program, který propojuje školu, obec a místní komunitu a dává vedení obce konkrétní obsah pro celý rok.",
     items: [
       {
         strong: "Vzdělávání dobrovolných hasičů:",
@@ -69,13 +80,16 @@ const pillars = [
     ],
   },
   {
-    color: "#a855f7",
-    shadow: "rgba(168,85,247,0.18)",
+    accent: "#b36ad7",
+    border: "rgba(179,106,215,0.24)",
+    soft: "#fcf8ff",
     title: "LETNÍ SPECIÁL A KULTURA",
+    intro:
+      "Sezónní a kulturní formáty, které z programu dělají i společenskou a komunitní událost.",
     items: [
       {
-        strong: "Filmový klub:",
-        text: "výběr filmů a moderovaných úvodů, které dokážou z učebny nebo komunitního prostoru udělat kulturní místo.",
+        strong: "Filmový klub s Aerofilms:",
+        text: "výběr filmů a moderovaných úvodů, které z učebny nebo komunitního prostoru udělají kulturní místo.",
       },
       {
         strong: "Mimořádné tematické vstupy:",
@@ -88,18 +102,24 @@ const pillars = [
 const teaserCards = [
   {
     title: "Ukázka vysílání pro I. stupeň",
-    subtitle: "ZOO Praha / koně",
-    note: "Sem přijde krátký sestřih vysílání pro děti.",
+    subtitle: "ZOO Praha – koně",
+    description:
+      "Krátká ukázka hravého vstupu pro děti z prvního stupně. Přesně ten typ obsahu, který učiteli pomáhá otevřít hodinu živě a srozumitelně.",
+    embedUrl: "https://www.youtube.com/embed/yvelfGeL6Jg",
   },
   {
-    title: "Angličtina s hostem",
+    title: "Angličtina s rodilým mluvčím",
     subtitle: "Paul Wade",
-    note: "Sem přijde krátká ukázka anglického vstupu.",
+    description:
+      "Ukázka formátu, kde děti i učitel vidí angličtinu v přirozené komunikaci. Vhodné jako zpestření výuky i motivace k mluvení.",
+    embedUrl: "https://www.youtube.com/embed/bX2y0Uxw-Dg",
   },
   {
     title: "Senior klub",
-    subtitle: "pravidelný komunitní formát",
-    note: "Sem přijde 20s upoutávka na Senior klub.",
+    subtitle: "prof. Jan Pirk a spisovatel Viktor Špaček",
+    description:
+      "Ukázka klidného a kultivovaného formátu pro seniory. Rozhovor, který ukazuje, že program může být hodnotný, lidský a atraktivní i mimo školu.",
+    embedUrl: "https://www.youtube.com/embed/-VV3PYdWPUo",
   },
 ];
 
@@ -109,11 +129,12 @@ const pricingCards = [
     price: "2 890 Kč",
     period: "/ měsíc",
     badge: "doporučená varianta",
+    accent: "#0f172a",
     items: [
-      "živá vysílání pro školu a komunitu",
+      "živá vysílání pro školu i komunitu",
       "pravidelný program během roku",
-      "přístup do archivu a k materiálům",
-      "zapojení školy i komunitního života obce",
+      "archiv vybraných záznamů a navazující materiály",
+      "jedna přehledná nabídka pro školu, obec i komunitní život",
     ],
   },
   {
@@ -121,10 +142,11 @@ const pricingCards = [
     price: "1 990 Kč",
     period: "/ měsíc",
     badge: "samostatný formát",
+    accent: "#7c4a14",
     items: [
       "pravidelná online setkání pro seniory",
       "kulturní a společenský program",
-      "bezpečný a srozumitelný formát",
+      "srozumitelný a bezpečný formát",
       "vhodné i pro menší obce a komunity",
     ],
   },
@@ -133,9 +155,10 @@ const pricingCards = [
     price: "490 Kč",
     period: "/ vstup",
     badge: "pro jednotlivce",
+    accent: "#475569",
     items: [
       "jednorázová účast na vybraném vysílání",
-      "vhodné pro hosty mimo zapojené školy a obce",
+      "vhodné pro zájemce mimo zapojené školy a obce",
       "rychlá cesta, jak si program vyzkoušet",
     ],
   },
@@ -144,11 +167,31 @@ const pricingCards = [
     price: "490 Kč",
     period: "/ vstup",
     badge: "filmový klub a speciály",
+    accent: "#7e22ce",
     items: [
       "vybrané kulturní a sezónní vstupy",
       "mimořádné programy pro veřejnost",
-      "vhodné jako doplněk programu během roku",
+      "vhodné jako doplněk během roku",
     ],
+  },
+];
+
+const benefits = [
+  {
+    title: "Živé vysílání",
+    text: "Pravidelné vstupy s hosty, moderované programy a témata, která škola i obec skutečně využijí.",
+  },
+  {
+    title: "Archiv a ukázky",
+    text: "Obsah může sloužit i zpětně – jako inspirace, doplněk výuky nebo kulturní a komunitní program.",
+  },
+  {
+    title: "Navazující materiály",
+    text: "Součástí programu jsou pracovní listy a další podklady, které pomáhají učiteli i organizátorům v obci.",
+  },
+  {
+    title: "Demo bez složitosti",
+    text: "Veřejná část webu ukazuje hlavní rubriky, ukázky vysílání i orientační podobu programu. Další krok je krátká ukázka naživo.",
   },
 ];
 
@@ -202,9 +245,9 @@ function EventCard({ event }) {
     <article
       style={{
         background: "#fff",
-        borderRadius: 22,
+        borderRadius: 24,
         overflow: "hidden",
-        boxShadow: "0 18px 45px rgba(15,23,42,0.08)",
+        boxShadow: "0 18px 40px rgba(15,23,42,0.06)",
         border: "1px solid rgba(15,23,42,0.08)",
         minHeight: "100%",
         display: "flex",
@@ -272,6 +315,37 @@ function EventCard({ event }) {
   );
 }
 
+function VideoCard({ card }) {
+  return (
+    <article
+      style={{
+        background: "#fff",
+        borderRadius: 24,
+        border: "1px solid rgba(15,23,42,0.08)",
+        boxShadow: "0 14px 34px rgba(15,23,42,0.06)",
+        overflow: "hidden",
+      }}
+    >
+      <div style={{ position: "relative", width: "100%", aspectRatio: "16 / 9", background: "#e5e7eb" }}>
+        <iframe
+          src={card.embedUrl}
+          title={card.title}
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
+        />
+      </div>
+      <div style={{ padding: 20 }}>
+        <h3 style={{ margin: "0 0 6px 0", fontSize: 24, lineHeight: 1.15 }}>{card.title}</h3>
+        <div style={{ color: "#b91c1c", fontWeight: 800, marginBottom: 10 }}>{card.subtitle}</div>
+        <p style={{ margin: 0, color: "#475569", lineHeight: 1.65 }}>{card.description}</p>
+      </div>
+    </article>
+  );
+}
+
 export default function ProgramPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -327,39 +401,27 @@ export default function ProgramPage() {
           style={{
             maxWidth: 1240,
             margin: "0 auto",
-            padding: "56px 16px 30px",
+            padding: "56px 16px 24px",
           }}
         >
           <div
             style={{
-              background: "linear-gradient(135deg, #0f172a 0%, #1d4ed8 55%, #2563eb 100%)",
+              background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
               borderRadius: 32,
-              padding: "44px 28px",
-              color: "#fff",
-              boxShadow: "0 24px 60px rgba(15,23,42,0.16)",
-              overflow: "hidden",
-              position: "relative",
+              padding: "40px 28px",
+              border: "1px solid rgba(15,23,42,0.08)",
+              boxShadow: "0 18px 48px rgba(15,23,42,0.06)",
             }}
           >
-            <div
-              style={{
-                position: "absolute",
-                right: -60,
-                top: -60,
-                width: 240,
-                height: 240,
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.08)",
-              }}
-            />
-            <div style={{ position: "relative", maxWidth: 820 }}>
+            <div style={{ maxWidth: 860 }}>
               <div
                 style={{
                   display: "inline-flex",
                   padding: "8px 14px",
                   borderRadius: 999,
-                  background: "rgba(255,255,255,0.14)",
-                  border: "1px solid rgba(255,255,255,0.14)",
+                  background: "#eef2ff",
+                  color: "#334155",
+                  border: "1px solid rgba(148,163,184,0.20)",
                   fontSize: 14,
                   fontWeight: 700,
                   marginBottom: 16,
@@ -369,28 +431,28 @@ export default function ProgramPage() {
               </div>
               <h1
                 style={{
-                  margin: "0 0 18px 0",
-                  fontSize: "clamp(38px, 6vw, 68px)",
-                  lineHeight: 0.98,
-                  letterSpacing: "-0.04em",
+                  margin: "0 0 16px 0",
+                  fontSize: "clamp(36px, 5.4vw, 64px)",
+                  lineHeight: 1.02,
+                  letterSpacing: "-0.045em",
                 }}
               >
                 Program pro školy,
                 <br />
-                seniory i komunitu
+                seniory a komunitu
               </h1>
               <p
                 style={{
                   margin: 0,
-                  maxWidth: 760,
+                  maxWidth: 780,
                   fontSize: 19,
-                  lineHeight: 1.7,
-                  color: "rgba(255,255,255,0.88)",
+                  lineHeight: 1.72,
+                  color: "#475569",
                 }}
               >
-                ARCHIMEDES Live přináší živá vysílání, inspirativní hosty, pracovní listy,
-                komunitní program a kulturní formáty. Stránka ukazuje, co program obsahuje,
-                jaké má hlavní rubriky a jak se lze do programu zapojit.
+                ARCHIMEDES Live propojuje živá vysílání, inspirativní hosty, pracovní listy,
+                komunitní program a kulturní formáty. Veřejná část ukazuje hlavní rubriky,
+                ukázky vysílání i orientační podobu zapojení do programu.
               </p>
 
               <div
@@ -411,10 +473,9 @@ export default function ProgramPage() {
                     padding: "0 18px",
                     borderRadius: 14,
                     textDecoration: "none",
-                    color: "#0f172a",
-                    background: "#ffffff",
+                    color: "#ffffff",
+                    background: "#0f172a",
                     fontWeight: 800,
-                    boxShadow: "0 12px 30px rgba(15,23,42,0.15)",
                   }}
                 >
                   Domluvit ukázku programu
@@ -429,9 +490,9 @@ export default function ProgramPage() {
                     padding: "0 18px",
                     borderRadius: 14,
                     textDecoration: "none",
-                    color: "#ffffff",
-                    background: "rgba(255,255,255,0.12)",
-                    border: "1px solid rgba(255,255,255,0.20)",
+                    color: "#0f172a",
+                    background: "#ffffff",
+                    border: "1px solid rgba(15,23,42,0.12)",
                     fontWeight: 700,
                   }}
                 >
@@ -447,8 +508,8 @@ export default function ProgramPage() {
             <h2 style={{ margin: "0 0 10px 0", fontSize: 36, lineHeight: 1.08 }}>Hlavní rubriky a formáty</h2>
             <p style={{ margin: 0, color: "#475569", fontSize: 17, lineHeight: 1.7 }}>
               Program je postavený tak, aby dával smysl škole, seniorům i širší komunitě.
-              Nejde o jednu sérii vstupů, ale o živý celek, který může obec používat během
-              celého roku.
+              Není to jedna série vstupů, ale živý celek, který může obec i škola používat
+              během celého roku.
             </p>
           </div>
 
@@ -464,10 +525,10 @@ export default function ProgramPage() {
               <article
                 key={pillar.title}
                 style={{
-                  background: "#fff",
+                  background: pillar.soft,
                   borderRadius: 26,
-                  border: `2px solid ${pillar.color}33`,
-                  boxShadow: `0 18px 38px ${pillar.shadow}`,
+                  border: `1px solid ${pillar.border}`,
+                  boxShadow: "0 14px 34px rgba(15,23,42,0.05)",
                   padding: 24,
                   display: "flex",
                   flexDirection: "column",
@@ -476,8 +537,8 @@ export default function ProgramPage() {
               >
                 <h3
                   style={{
-                    margin: "0 0 20px 0",
-                    color: pillar.color,
+                    margin: "0 0 12px 0",
+                    color: pillar.accent,
                     fontSize: 22,
                     lineHeight: 1.1,
                     fontWeight: 900,
@@ -486,41 +547,29 @@ export default function ProgramPage() {
                   {pillar.title}
                 </h3>
 
+                <p style={{ margin: "0 0 18px 0", color: "#475569", lineHeight: 1.65, fontSize: 15 }}>
+                  {pillar.intro}
+                </p>
+
                 <div style={{ display: "grid", gap: 16 }}>
                   {pillar.items.map((item) => (
                     <div key={`${pillar.title}-${item.strong}`} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                       <div
                         style={{
-                          width: 14,
-                          height: 14,
+                          width: 12,
+                          height: 12,
                           borderRadius: "50%",
-                          background: pillar.color,
-                          marginTop: 6,
-                          flex: "0 0 14px",
+                          background: pillar.accent,
+                          marginTop: 7,
+                          flex: "0 0 12px",
                         }}
                       />
-                      <div style={{ color: "#1e293b", lineHeight: 1.55, fontSize: 16 }}>
+                      <div style={{ color: "#1e293b", lineHeight: 1.58, fontSize: 16 }}>
                         <strong>{item.strong}</strong> {item.text}
                       </div>
                     </div>
                   ))}
                 </div>
-
-                {pillar.footer ? (
-                  <div
-                    style={{
-                      marginTop: 20,
-                      padding: 16,
-                      borderRadius: 18,
-                      background: pillar.color,
-                      color: "#fff",
-                      lineHeight: 1.55,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {pillar.footer}
-                  </div>
-                ) : null}
               </article>
             ))}
           </div>
@@ -530,8 +579,8 @@ export default function ProgramPage() {
           <div style={{ maxWidth: 940, marginBottom: 22 }}>
             <h2 style={{ margin: "0 0 10px 0", fontSize: 36, lineHeight: 1.08 }}>Ukázky vysílání</h2>
             <p style={{ margin: 0, color: "#475569", fontSize: 17, lineHeight: 1.7 }}>
-              Tři okna níže jsou připravená pro krátké sestřihy. Rozměr je nastavený tak, aby
-              po doplnění videí působila sekce čistě a přehledně.
+              Tři reálné ukázky pomáhají rychle pochopit, jak ARCHIMEDES Live vypadá v praxi.
+              Díky nim je hned vidět rozdíl mezi školním vstupem, jazykovým formátem a programem pro seniory.
             </p>
           </div>
 
@@ -543,38 +592,7 @@ export default function ProgramPage() {
             }}
           >
             {teaserCards.map((card) => (
-              <article
-                key={card.title}
-                style={{
-                  background: "#fff",
-                  borderRadius: 24,
-                  border: "1px solid rgba(15,23,42,0.08)",
-                  boxShadow: "0 14px 34px rgba(15,23,42,0.07)",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    aspectRatio: "16 / 9",
-                    background: "linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "rgba(15,23,42,0.72)",
-                    fontWeight: 800,
-                    letterSpacing: "0.02em",
-                    fontSize: 15,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  místo pro video ukázku
-                </div>
-                <div style={{ padding: 20 }}>
-                  <h3 style={{ margin: "0 0 8px 0", fontSize: 24, lineHeight: 1.15 }}>{card.title}</h3>
-                  <div style={{ color: "#2563eb", fontWeight: 800, marginBottom: 8 }}>{card.subtitle}</div>
-                  <p style={{ margin: 0, color: "#475569", lineHeight: 1.65 }}>{card.note}</p>
-                </div>
-              </article>
+              <VideoCard key={card.title} card={card} />
             ))}
           </div>
         </section>
@@ -587,24 +605,7 @@ export default function ProgramPage() {
               gap: 18,
             }}
           >
-            {[
-              {
-                title: "Živé vysílání",
-                text: "Pravidelné vstupy s hosty, moderované programy a témata, která škola i obec skutečně využijí.",
-              },
-              {
-                title: "Archiv a záznamy",
-                text: "Obsah může sloužit i zpětně – jako inspirace, doplněk výuky nebo komunitní program.",
-              },
-              {
-                title: "Pracovní listy a návaznost",
-                text: "Součástí programu jsou materiály, které pomáhají učiteli i organizátorům programu v obci.",
-              },
-              {
-                title: "Jedna značka, více cílových skupin",
-                text: "Škola, senioři, komunita i kultura jsou přehledně pod jedním programem a jednou logikou webu.",
-              },
-            ].map((item) => (
+            {benefits.map((item) => (
               <article
                 key={item.title}
                 style={{
@@ -626,8 +627,8 @@ export default function ProgramPage() {
           <div style={{ maxWidth: 940, marginBottom: 22 }}>
             <h2 style={{ margin: "0 0 10px 0", fontSize: 36, lineHeight: 1.08 }}>Nejbližší vysílání</h2>
             <p style={{ margin: 0, color: "#475569", fontSize: 17, lineHeight: 1.7 }}>
-              Přehled nejbližších zveřejněných vstupů. Tato část zůstává živá a může se dále
-              rozšiřovat podle toho, jak bude přibývat obsah v administraci.
+              Přehled nejbližších zveřejněných vstupů. Tato část zůstává živá a automaticky se
+              doplňuje podle toho, jak přibývá obsah v administraci.
             </p>
           </div>
 
@@ -690,15 +691,15 @@ export default function ProgramPage() {
               gap: 22,
             }}
           >
-            {pricingCards.map((card, index) => (
+            {pricingCards.map((card) => (
               <article
                 key={card.title}
                 style={{
-                  background: index === 0 ? "linear-gradient(180deg, #ffffff 0%, #eff6ff 100%)" : "#fff",
+                  background: "#fff",
                   borderRadius: 24,
                   padding: 22,
-                  border: index === 0 ? "2px solid #2563eb" : "1px solid rgba(15,23,42,0.08)",
-                  boxShadow: index === 0 ? "0 20px 44px rgba(37,99,235,0.12)" : "0 14px 34px rgba(15,23,42,0.06)",
+                  border: "1px solid rgba(15,23,42,0.08)",
+                  boxShadow: "0 14px 34px rgba(15,23,42,0.06)",
                   minHeight: "100%",
                   display: "flex",
                   flexDirection: "column",
@@ -710,8 +711,9 @@ export default function ProgramPage() {
                     alignItems: "center",
                     padding: "7px 12px",
                     borderRadius: 999,
-                    background: index === 0 ? "#2563eb" : "#f1f5f9",
-                    color: index === 0 ? "#fff" : "#0f172a",
+                    background: "#f8fafc",
+                    color: card.accent,
+                    border: `1px solid ${card.accent}22`,
                     fontSize: 13,
                     fontWeight: 800,
                     marginBottom: 16,
@@ -738,8 +740,9 @@ export default function ProgramPage() {
           <div
             style={{
               marginTop: 24,
-              background: "#0f172a",
-              color: "#fff",
+              background: "#ffffff",
+              border: "1px solid rgba(15,23,42,0.08)",
+              boxShadow: "0 14px 34px rgba(15,23,42,0.06)",
               borderRadius: 26,
               padding: 28,
               display: "flex",
@@ -750,10 +753,10 @@ export default function ProgramPage() {
             }}
           >
             <div style={{ maxWidth: 700 }}>
-              <h3 style={{ margin: "0 0 8px 0", fontSize: 28, lineHeight: 1.08 }}>Chcete stránku otestovat naživo?</h3>
-              <p style={{ margin: 0, color: "rgba(255,255,255,0.78)", lineHeight: 1.7, fontSize: 17 }}>
-                Nejlepší cesta je ukázka programu. Během krátkého setkání je hned vidět, jak
-                může ARCHIMEDES Live fungovat pro školu, vedení obce i komunitní život.
+              <h3 style={{ margin: "0 0 8px 0", fontSize: 28, lineHeight: 1.08 }}>Chcete si program projít naživo?</h3>
+              <p style={{ margin: 0, color: "#475569", lineHeight: 1.7, fontSize: 17 }}>
+                Nejlepší cesta je krátká ukázka nebo demo. Během jednoho setkání je hned vidět,
+                jak může ARCHIMEDES Live fungovat pro školu, vedení obce i komunitní život.
               </p>
             </div>
             <Link
@@ -766,13 +769,13 @@ export default function ProgramPage() {
                 padding: "0 18px",
                 borderRadius: 14,
                 textDecoration: "none",
-                color: "#0f172a",
-                background: "#ffffff",
+                color: "#ffffff",
+                background: "#0f172a",
                 fontWeight: 800,
                 whiteSpace: "nowrap",
               }}
             >
-              Poslat poptávku
+              Domluvit demo
             </Link>
           </div>
         </section>
