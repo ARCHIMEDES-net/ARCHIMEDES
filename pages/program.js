@@ -654,7 +654,7 @@ export default function ProgramPage() {
                     marginTop: 28,
                   }}
                 >
-                  <PrimaryButton href="/poptavka">Mám zájem o demo</PrimaryButton>
+                  <PrimaryButton href="/demo">Mám zájem o demo</PrimaryButton>
                   <SecondaryButton href="#zapojeni">Jak se zapojit</SecondaryButton>
                 </div>
               </div>
@@ -935,7 +935,7 @@ export default function ProgramPage() {
               </p>
             </div>
 
-            <PrimaryButton href="/poptavka">Mám zájem o demo</PrimaryButton>
+            <PrimaryButton href="/demo">Mám zájem o demo</PrimaryButton>
           </section>
         </div>
       </main>
