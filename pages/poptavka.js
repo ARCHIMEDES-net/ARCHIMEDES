@@ -38,7 +38,9 @@ export default function PoptavkaPage() {
 
   function handleSelect(optionKey) {
     setSelectedOption(optionKey);
-    scrollToForm();
+    setTimeout(() => {
+      scrollToForm();
+    }, 80);
   }
 
   return (
@@ -57,7 +59,7 @@ export default function PoptavkaPage() {
           borderRadius: 28,
           padding: "42px 36px",
           boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
-          marginBottom: 34,
+          marginBottom: 24,
         }}
       >
         <div
@@ -125,6 +127,32 @@ export default function PoptavkaPage() {
             Vyberte si, o co máte zájem. Formulář se vám podle toho automaticky
             připraví.
           </p>
+        </div>
+      </section>
+
+      {/* PROGRAM BANNER */}
+      <section
+        style={{
+          background: "#ffffff",
+          border: "1px solid #e5e7eb",
+          borderRadius: 28,
+          padding: 14,
+          boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
+          marginBottom: 30,
+          overflow: "hidden",
+        }}
+      >
+        <div style={{ borderRadius: 20, overflow: "hidden" }}>
+          <img
+            src="/program-vysilani.webp"
+            alt="Program ARCHIMEDES Live"
+            style={{
+              display: "block",
+              width: "100%",
+              height: "auto",
+              objectFit: "cover",
+            }}
+          />
         </div>
       </section>
 
@@ -209,7 +237,9 @@ export default function PoptavkaPage() {
                     color: isActive ? "#2563eb" : "#0f172a",
                   }}
                 >
-                  {isActive ? "Pokračovat ve formuláři ↓" : "Vybrat tuto možnost →"}
+                  {isActive
+                    ? "Pokračovat ve formuláři ↓"
+                    : "Vybrat tuto možnost →"}
                 </div>
               </button>
             );
@@ -260,7 +290,8 @@ export default function PoptavkaPage() {
             fontWeight: 800,
             cursor: "pointer",
             boxShadow: "0 10px 24px rgba(15,23,42,0.06)",
-            transition: "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
+            transition:
+              "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = "translateY(-2px)";
@@ -277,6 +308,102 @@ export default function PoptavkaPage() {
         </button>
       </div>
 
+      {/* BVV */}
+      <section
+        style={{
+          background: "#ffffff",
+          border: "1px solid #e5e7eb",
+          borderRadius: 28,
+          padding: "34px 30px",
+          boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
+          marginBottom: 34,
+        }}
+      >
+        <div className="visual-grid">
+          <div>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: 34,
+                padding: "0 12px",
+                borderRadius: 999,
+                background: "#f8fafc",
+                color: "#475569",
+                fontSize: 13,
+                fontWeight: 800,
+                marginBottom: 16,
+              }}
+            >
+              Vzorová učebna
+            </div>
+
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "clamp(28px, 4vw, 42px)",
+                lineHeight: 1.08,
+                color: "#0f172a",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Navštivte vzorovou učebnu ARCHIMEDES na BVV
+            </h2>
+
+            <p
+              style={{
+                margin: "16px 0 0",
+                fontSize: 18,
+                lineHeight: 1.72,
+                color: "#475569",
+                maxWidth: 560,
+              }}
+            >
+              V Brně vám rádi ukážeme reálnou podobu učebny ARCHIMEDES i to,
+              jak může fungovat ve vaší škole, obci nebo komunitě.
+            </p>
+
+            <p
+              style={{
+                margin: "14px 0 0",
+                fontSize: 17,
+                lineHeight: 1.72,
+                color: "#64748b",
+                maxWidth: 560,
+              }}
+            >
+              Osobní návštěva pomůže nejlépe pochopit prostor, atmosféru i
+              možnosti využití v praxi.
+            </p>
+
+            <div style={{ marginTop: 24 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedOption("navsteva");
+                  setTimeout(() => {
+                    scrollToForm();
+                  }, 80);
+                }}
+                style={secondaryDarkButton}
+              >
+                Chci domluvit návštěvu
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div style={imageWrapStyle}>
+              <img
+                src="/bvv.jpg"
+                alt="Vzorová učebna ARCHIMEDES na BVV"
+                style={imageStyle}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* DŮVĚRA */}
       <section
         style={{
@@ -288,59 +415,74 @@ export default function PoptavkaPage() {
           marginBottom: 34,
         }}
       >
-        <h2
-          style={{
-            margin: 0,
-            fontSize: "clamp(28px, 4vw, 42px)",
-            lineHeight: 1.08,
-            color: "#0f172a",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          ARCHIMEDES už funguje v praxi
-        </h2>
+        <div className="visual-grid reverse-on-mobile">
+          <div>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "clamp(28px, 4vw, 42px)",
+                lineHeight: 1.08,
+                color: "#0f172a",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              ARCHIMEDES už funguje v praxi
+            </h2>
 
-        <p
-          style={{
-            margin: "16px 0 0",
-            maxWidth: 760,
-            fontSize: 18,
-            lineHeight: 1.7,
-            color: "#475569",
-          }}
-        >
-          Projekt ARCHIMEDES dnes využívají školy a obce v různých regionech.
-          Učebny slouží pro výuku, komunitní setkávání i kulturní programy.
-        </p>
+            <p
+              style={{
+                margin: "16px 0 0",
+                maxWidth: 760,
+                fontSize: 18,
+                lineHeight: 1.7,
+                color: "#475569",
+              }}
+            >
+              Projekt ARCHIMEDES dnes využívají školy a obce v různých
+              regionech. Učebny slouží pro výuku, komunitní setkávání i kulturní
+              programy.
+            </p>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-            gap: 22,
-            marginTop: 26,
-          }}
-          className="trust-grid"
-        >
-          <div style={trustCard}>
-            <div style={trustTitle}>20+ realizovaných učeben</div>
-            <div style={trustText}>
-              Místa, kde se potkává výuka, komunita a inspirativní hosté.
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: 22,
+                marginTop: 26,
+              }}
+              className="trust-grid"
+            >
+              <div style={trustCard}>
+                <div style={trustTitle}>20+ realizovaných učeben</div>
+                <div style={trustText}>
+                  Místa, kde se potkává výuka, komunita a inspirativní hosté.
+                </div>
+              </div>
+
+              <div style={trustCard}>
+                <div style={trustTitle}>Program pro více generací</div>
+                <div style={trustText}>
+                  Zapojit se mohou školy, senioři i místní komunita.
+                </div>
+              </div>
+
+              <div style={trustCard}>
+                <div style={trustTitle}>Oceněný projekt</div>
+                <div style={trustText}>
+                  ARCHIMEDES získal ocenění Obec 2030 za inovativní přístup k
+                  rozvoji obcí.
+                </div>
+              </div>
             </div>
           </div>
 
-          <div style={trustCard}>
-            <div style={trustTitle}>Program pro více generací</div>
-            <div style={trustText}>
-              Zapojit se mohou školy, senioři i místní komunita.
-            </div>
-          </div>
-
-          <div style={trustCard}>
-            <div style={trustTitle}>Oceněný projekt</div>
-            <div style={trustText}>
-              ARCHIMEDES získal ocenění Obec 2030 za inovativní přístup k
-              rozvoji obcí.
+          <div>
+            <div style={imageWrapStyle}>
+              <img
+                src="/prestrih.webp"
+                alt="Slavnostní otevření projektu ARCHIMEDES"
+                style={imageStyle}
+              />
             </div>
           </div>
         </div>
@@ -464,7 +606,7 @@ export default function PoptavkaPage() {
 
         .interest-card:hover {
           transform: translateY(-6px);
-          box-shadow: 0 22px 48px rgba(15, 23, 42, 0.10) !important;
+          box-shadow: 0 22px 48px rgba(15, 23, 42, 0.1) !important;
           border-color: #cbd5e1 !important;
           background: #fcfdff !important;
         }
@@ -480,12 +622,23 @@ export default function PoptavkaPage() {
           background: #eff6ff !important;
         }
 
+        .visual-grid {
+          display: grid;
+          grid-template-columns: 1.05fr 0.95fr;
+          gap: 28px;
+          align-items: center;
+        }
+
         @media (max-width: 1024px) {
           .interest-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
           }
 
           .trust-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .visual-grid {
             grid-template-columns: 1fr !important;
           }
         }
@@ -599,4 +752,32 @@ const buttonStyle = {
   fontWeight: 800,
   cursor: "pointer",
   boxShadow: "0 14px 34px rgba(15,23,42,0.16)",
+};
+
+const secondaryDarkButton = {
+  minHeight: 52,
+  padding: "0 22px",
+  borderRadius: 14,
+  border: "none",
+  background: "#0f172a",
+  color: "#ffffff",
+  fontSize: 16,
+  fontWeight: 800,
+  cursor: "pointer",
+  boxShadow: "0 14px 34px rgba(15,23,42,0.16)",
+};
+
+const imageWrapStyle = {
+  borderRadius: 22,
+  overflow: "hidden",
+  border: "1px solid #e5e7eb",
+  boxShadow: "0 18px 40px rgba(15,23,42,0.08)",
+  background: "#f8fafc",
+};
+
+const imageStyle = {
+  display: "block",
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
 };
