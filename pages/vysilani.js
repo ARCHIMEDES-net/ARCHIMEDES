@@ -14,48 +14,55 @@ export default function ProbehlaVysilaniPage() {
 
   return (
     <>
-      <main style={{ background: "#f7f8fb", minHeight: "100vh" }}>
-        <section
-          style={{
-            background:
-              "linear-gradient(135deg, #173b77 0%, #214a8c 45%, #102c58 100%)",
-            color: "#fff",
-          }}
-        >
-          <div
+      <main
+        style={{
+          background: "#f8fafc",
+          minHeight: "100vh",
+          padding: "42px 20px 90px",
+        }}
+      >
+        <div style={{ maxWidth: "1180px", margin: "0 auto" }}>
+          {/* HERO */}
+          <section
             style={{
-              maxWidth: "1200px",
-              margin: "0 auto",
-              padding: "72px 24px 64px",
+              background: "#fff",
+              borderRadius: "30px",
+              border: "1px solid #e2e8f0",
+              boxShadow: "0 20px 60px rgba(15,23,42,0.06)",
+              overflow: "hidden",
             }}
           >
             <div
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "8px 14px",
-                borderRadius: "999px",
-                background: "rgba(255,255,255,0.12)",
-                border: "1px solid rgba(255,255,255,0.18)",
-                fontSize: "14px",
-                fontWeight: 700,
-                letterSpacing: "0.02em",
-                marginBottom: "18px",
+                display: "grid",
+                gridTemplateColumns: "1.02fr 1fr",
+                alignItems: "stretch",
               }}
+              className="hero-grid"
             >
-              ARCHIMEDES Live
-            </div>
+              <div style={{ padding: "42px 42px 38px" }}>
+                <div
+                  style={{
+                    display: "inline-block",
+                    padding: "8px 14px",
+                    borderRadius: 999,
+                    background: "#eef2ff",
+                    color: "#1e3a8a",
+                    fontSize: 14,
+                    fontWeight: 800,
+                    marginBottom: 18,
+                  }}
+                >
+                  ARCHIMEDES Live
+                </div>
 
-            <div className="hero-grid">
-              <div>
                 <h1
                   style={{
-                    margin: "0 0 18px",
-                    fontSize: "clamp(36px, 5vw, 60px)",
-                    lineHeight: 1.05,
-                    fontWeight: 800,
-                    letterSpacing: "-0.03em",
+                    margin: 0,
+                    fontSize: "clamp(36px, 5vw, 62px)",
+                    lineHeight: 1.02,
+                    color: "#0f172a",
+                    letterSpacing: "-0.04em",
                   }}
                 >
                   Proběhlá vysílání
@@ -63,11 +70,11 @@ export default function ProbehlaVysilaniPage() {
 
                 <p
                   style={{
-                    margin: "0 0 22px",
-                    fontSize: "clamp(18px, 2vw, 22px)",
-                    lineHeight: 1.55,
-                    maxWidth: "760px",
-                    color: "rgba(255,255,255,0.92)",
+                    margin: "22px 0 0",
+                    fontSize: 20,
+                    lineHeight: 1.75,
+                    color: "#334155",
+                    maxWidth: 620,
                   }}
                 >
                   Podívejte se na výběr plakátů z vysílání, která už v programu
@@ -78,65 +85,80 @@ export default function ProbehlaVysilaniPage() {
                 <div
                   style={{
                     display: "flex",
+                    gap: 14,
                     flexWrap: "wrap",
-                    gap: "14px",
-                    marginBottom: "26px",
+                    marginTop: 26,
+                    marginBottom: 28,
                   }}
                 >
                   <div
                     style={{
-                      background: "rgba(255,255,255,0.12)",
-                      border: "1px solid rgba(255,255,255,0.16)",
-                      borderRadius: "18px",
-                      padding: "16px 18px",
-                      minWidth: "180px",
-                      backdropFilter: "blur(8px)",
+                      background: "#f8fafc",
+                      border: "1px solid #dbe3ef",
+                      borderRadius: 20,
+                      padding: "18px 20px",
+                      minWidth: 170,
                     }}
                   >
                     <div
                       style={{
-                        fontSize: "14px",
+                        fontSize: 13,
                         textTransform: "uppercase",
                         letterSpacing: "0.08em",
-                        color: "rgba(255,255,255,0.72)",
-                        marginBottom: "6px",
+                        color: "#64748b",
+                        marginBottom: 8,
+                        fontWeight: 700,
                       }}
                     >
                       Plakátů
                     </div>
-                    <div style={{ fontSize: "30px", fontWeight: 800 }}>
+                    <div
+                      style={{
+                        fontSize: 34,
+                        fontWeight: 900,
+                        lineHeight: 1,
+                        color: "#0f172a",
+                      }}
+                    >
                       {totalCount}
                     </div>
                   </div>
 
                   <div
                     style={{
-                      background: "rgba(255,255,255,0.12)",
-                      border: "1px solid rgba(255,255,255,0.16)",
-                      borderRadius: "18px",
-                      padding: "16px 18px",
-                      minWidth: "220px",
-                      backdropFilter: "blur(8px)",
+                      background: "#f8fafc",
+                      border: "1px solid #dbe3ef",
+                      borderRadius: 20,
+                      padding: "18px 20px",
+                      minWidth: 260,
                     }}
                   >
                     <div
                       style={{
-                        fontSize: "14px",
+                        fontSize: 13,
                         textTransform: "uppercase",
                         letterSpacing: "0.08em",
-                        color: "rgba(255,255,255,0.72)",
-                        marginBottom: "6px",
+                        color: "#64748b",
+                        marginBottom: 8,
+                        fontWeight: 700,
                       }}
                     >
                       Veřejná ukázka
                     </div>
-                    <div style={{ fontSize: "18px", fontWeight: 700 }}>
+                    <div
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 800,
+                        lineHeight: 1.35,
+                        color: "#334155",
+                      }}
+                    >
                       hostů, témat a programu
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                   <Link href="/program" style={primaryButtonStyle}>
                     Zobrazit program
                   </Link>
@@ -146,16 +168,16 @@ export default function ProbehlaVysilaniPage() {
                 </div>
               </div>
 
-              <div>
+              <div style={{ padding: "22px" }}>
                 <div
                   style={{
-                    position: "relative",
                     borderRadius: "28px",
                     overflow: "hidden",
-                    boxShadow: "0 28px 80px rgba(0,0,0,0.28)",
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    background: "rgba(255,255,255,0.08)",
-                    padding: "18px",
+                    background: "#f8fafc",
+                    border: "1px solid #dbe3ef",
+                    boxShadow: "0 16px 36px rgba(15,23,42,0.08)",
+                    padding: "12px",
+                    height: "100%",
                   }}
                 >
                   <div
@@ -163,6 +185,7 @@ export default function ProbehlaVysilaniPage() {
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr",
                       gap: "12px",
+                      height: "100%",
                     }}
                   >
                     {[1, 2, 3, 4].map((n) => (
@@ -171,7 +194,7 @@ export default function ProbehlaVysilaniPage() {
                         style={{
                           borderRadius: "18px",
                           overflow: "hidden",
-                          background: "rgba(255,255,255,0.06)",
+                          background: "#e5e7eb",
                           aspectRatio: "3 / 4",
                         }}
                       >
@@ -191,22 +214,24 @@ export default function ProbehlaVysilaniPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section>
-          <div
-            style={{
-              maxWidth: "1200px",
-              margin: "0 auto",
-              padding: "40px 24px 24px",
-            }}
-          >
-            <div className="section-head">
+          {/* GALERIE */}
+          <section style={{ marginTop: 72 }}>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "end",
+                justifyContent: "space-between",
+                gap: "18px",
+                marginBottom: "28px",
+              }}
+            >
               <div>
                 <div
                   style={{
-                    color: "#173b77",
+                    color: "#1e3a8a",
                     fontWeight: 800,
                     fontSize: "14px",
                     letterSpacing: "0.08em",
@@ -240,18 +265,46 @@ export default function ProbehlaVysilaniPage() {
                 }}
               >
                 Kliknutím na libovolný plakát otevřete větší náhled. Stačí do
-                složky <strong>public</strong> nahrát soubory pojmenované
-                <strong> pl1.webp</strong> až <strong>pl30.webp</strong>.
+                složky <strong>public</strong> nahrát soubory pojmenované{" "}
+                <strong>pl1.webp</strong> až <strong>pl30.webp</strong>.
               </p>
             </div>
 
-            <div className="poster-grid">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: "20px",
+              }}
+            >
               {posters.map((poster) => (
                 <button
                   key={poster.id}
                   type="button"
                   onClick={() => setActivePoster(poster)}
-                  className="poster-card"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    padding: 0,
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "22px",
+                    overflow: "hidden",
+                    background: "#fff",
+                    boxShadow: "0 12px 36px rgba(15, 23, 42, 0.08)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    transition: "transform 0.18s ease, box-shadow 0.18s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 18px 42px rgba(15, 23, 42, 0.13)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow =
+                      "0 12px 36px rgba(15, 23, 42, 0.08)";
+                  }}
                 >
                   <div
                     style={{
@@ -297,22 +350,28 @@ export default function ProbehlaVysilaniPage() {
                 </button>
               ))}
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section>
-          <div
-            style={{
-              maxWidth: "1200px",
-              margin: "0 auto",
-              padding: "56px 24px 80px",
-            }}
-          >
-            <div className="cta-box">
+          {/* CTA */}
+          <section style={{ marginTop: 84 }}>
+            <div
+              style={{
+                borderRadius: "30px",
+                background: "#fff",
+                border: "1px solid #e2e8f0",
+                boxShadow: "0 18px 46px rgba(15, 23, 42, 0.08)",
+                padding: "36px 28px",
+                display: "grid",
+                gridTemplateColumns: "1.15fr 0.85fr",
+                gap: "24px",
+                alignItems: "center",
+              }}
+              className="cta-grid"
+            >
               <div>
                 <div
                   style={{
-                    color: "#173b77",
+                    color: "#1e3a8a",
                     fontWeight: 800,
                     fontSize: "14px",
                     letterSpacing: "0.08em",
@@ -364,13 +423,13 @@ export default function ProbehlaVysilaniPage() {
                 <Link href="/poptavka" style={primaryButtonStyle}>
                   Mám zájem o přístup
                 </Link>
-                <Link href="/ucebna" style={ghostButtonStyle}>
+                <Link href="/ucebna" style={secondaryButtonStyle}>
                   Více o učebně
                 </Link>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </main>
 
       {activePoster && (
@@ -441,63 +500,16 @@ export default function ProbehlaVysilaniPage() {
       )}
 
       <style jsx>{`
-        .hero-grid {
-          display: grid;
-          grid-template-columns: 1.2fr 0.8fr;
-          gap: 36px;
-          align-items: center;
-        }
-
-        .section-head {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: end;
-          justify-content: space-between;
-          gap: 18px;
-          margin-bottom: 28px;
-        }
-
-        .poster-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 20px;
-        }
-
-        .poster-card {
-          display: block;
-          width: 100%;
-          padding: 0;
-          border: 1px solid #e5e7eb;
-          border-radius: 22px;
-          overflow: hidden;
-          background: #fff;
-          box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
-          cursor: pointer;
-          text-align: left;
-          transition: transform 0.18s ease, box-shadow 0.18s ease;
-        }
-
-        .poster-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 18px 42px rgba(15, 23, 42, 0.13);
-        }
-
-        .cta-box {
-          border-radius: 30px;
-          background: linear-gradient(135deg, #ffffff 0%, #eef4ff 50%, #f5f8ff 100%);
-          border: 1px solid #dbe5f3;
-          box-shadow: 0 18px 46px rgba(15, 23, 42, 0.08);
-          padding: 36px 28px;
-          display: grid;
-          grid-template-columns: 1.15fr 0.85fr;
-          gap: 24px;
-          align-items: center;
-        }
-
-        @media (max-width: 920px) {
+        @media (max-width: 1100px) {
           .hero-grid,
-          .cta-box {
-            grid-template-columns: 1fr;
+          .cta-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 760px) {
+          .hero-grid > div:first-child {
+            padding: 30px 22px 26px !important;
           }
         }
       `}</style>
@@ -511,13 +523,13 @@ const primaryButtonStyle = {
   justifyContent: "center",
   minHeight: "52px",
   padding: "0 20px",
-  borderRadius: "999px",
-  background: "#ef4444",
+  borderRadius: "14px",
+  background: "#0f172a",
   color: "#fff",
   textDecoration: "none",
   fontWeight: 800,
   fontSize: "16px",
-  boxShadow: "0 14px 28px rgba(239, 68, 68, 0.22)",
+  boxShadow: "0 14px 28px rgba(15, 23, 42, 0.16)",
 };
 
 const secondaryButtonStyle = {
@@ -526,26 +538,11 @@ const secondaryButtonStyle = {
   justifyContent: "center",
   minHeight: "52px",
   padding: "0 20px",
-  borderRadius: "999px",
-  background: "rgba(255,255,255,0.12)",
-  color: "#fff",
-  textDecoration: "none",
-  fontWeight: 800,
-  fontSize: "16px",
-  border: "1px solid rgba(255,255,255,0.18)",
-};
-
-const ghostButtonStyle = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minHeight: "52px",
-  padding: "0 20px",
-  borderRadius: "999px",
+  borderRadius: "14px",
   background: "#fff",
-  color: "#173b77",
+  color: "#0f172a",
   textDecoration: "none",
   fontWeight: 800,
   fontSize: "16px",
-  border: "1px solid #cfd9ea",
+  border: "1px solid #cbd5e1",
 };
