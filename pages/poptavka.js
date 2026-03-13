@@ -59,7 +59,7 @@ export default function PoptavkaPage() {
           borderRadius: 28,
           padding: "42px 36px",
           boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
-          marginBottom: 24,
+          marginBottom: 28,
         }}
       >
         <div
@@ -130,34 +130,8 @@ export default function PoptavkaPage() {
         </div>
       </section>
 
-      {/* PROGRAM BANNER */}
-      <section
-        style={{
-          background: "#ffffff",
-          border: "1px solid #e5e7eb",
-          borderRadius: 28,
-          padding: 14,
-          boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
-          marginBottom: 30,
-          overflow: "hidden",
-        }}
-      >
-        <div style={{ borderRadius: 20, overflow: "hidden" }}>
-          <img
-            src="/ceny.webp"
-            alt="Program ARCHIMEDES Live"
-            style={{
-              display: "block",
-              width: "100%",
-              height: "auto",
-              objectFit: "cover",
-            }}
-          />
-        </div>
-      </section>
-
       {/* KARTY */}
-      <section style={{ marginBottom: 26 }}>
+      <section style={{ marginBottom: 24 }}>
         <div
           style={{
             display: "grid",
@@ -194,13 +168,14 @@ export default function PoptavkaPage() {
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    minHeight: 30,
-                    padding: "0 12px",
+                    minHeight: 32,
+                    padding: "0 13px",
                     borderRadius: 999,
                     background: isActive ? "#2563eb" : "#f8fafc",
-                    color: isActive ? "#ffffff" : "#475569",
-                    fontSize: 13,
-                    fontWeight: 800,
+                    color: isActive ? "#ffffff" : "#334155",
+                    fontSize: 14,
+                    fontWeight: 900,
+                    letterSpacing: "-0.01em",
                     marginBottom: 18,
                     alignSelf: "flex-start",
                   }}
@@ -273,7 +248,7 @@ export default function PoptavkaPage() {
         style={{
           display: "flex",
           justifyContent: "center",
-          marginBottom: 40,
+          marginBottom: 38,
         }}
       >
         <button
@@ -307,6 +282,114 @@ export default function PoptavkaPage() {
           Kontaktujte mne
         </button>
       </div>
+
+      {/* FORMULÁŘ */}
+      <section
+        id="formular"
+        style={{
+          background: "#ffffff",
+          border: "1px solid #e5e7eb",
+          borderRadius: 28,
+          padding: "34px 30px",
+          boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
+          marginBottom: 34,
+        }}
+      >
+        <h2
+          style={{
+            margin: 0,
+            fontSize: "clamp(28px, 4vw, 42px)",
+            lineHeight: 1.08,
+            color: "#0f172a",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Domluvme se
+        </h2>
+
+        <p
+          style={{
+            margin: "14px 0 0",
+            fontSize: 18,
+            lineHeight: 1.7,
+            color: "#475569",
+            maxWidth: 760,
+          }}
+        >
+          Napište nám pár informací o tom, o co máte zájem. Ozveme se vám a
+          domluvíme další postup.
+        </p>
+
+        <p
+          style={{
+            margin: "10px 0 0",
+            fontSize: 15,
+            lineHeight: 1.6,
+            color: "#64748b",
+          }}
+        >
+          Vyplnění formuláře zabere méně než minutu.
+        </p>
+
+        <form style={{ maxWidth: 760, marginTop: 28 }}>
+          <label style={labelStyle}>Mám zájem o</label>
+          <select
+            value={selectedOption}
+            onChange={(e) => setSelectedOption(e.target.value)}
+            style={inputStyle}
+          >
+            <option value="">Vyberte možnost</option>
+            {OPTIONS.map((item) => (
+              <option key={item.key} value={item.key}>
+                {item.title}
+              </option>
+            ))}
+          </select>
+
+          {selectedLabel ? (
+            <div style={{ ...helpStyle, marginTop: 8 }}>
+              Vybraná možnost: <strong>{selectedLabel}</strong>
+            </div>
+          ) : null}
+
+          <label style={{ ...labelStyle, marginTop: 16 }}>Jméno</label>
+          <input type="text" style={inputStyle} />
+
+          <label style={{ ...labelStyle, marginTop: 16 }}>Odkud jste</label>
+          <input type="text" style={inputStyle} />
+
+          <label style={{ ...labelStyle, marginTop: 16 }}>Email</label>
+          <input type="email" style={inputStyle} />
+          <div style={helpStyle}>Na tento email vám pošleme odpověď.</div>
+
+          <label style={{ ...labelStyle, marginTop: 16 }}>Telefon</label>
+          <input type="tel" style={inputStyle} />
+          <div style={helpStyle}>Telefon je volitelný, ale urychlí domluvu.</div>
+
+          <label style={{ ...labelStyle, marginTop: 16 }}>Zpráva</label>
+          <textarea rows="6" style={textareaStyle} />
+          <div style={helpStyle}>
+            Můžete doplnit základní představu, termín nebo místo.
+          </div>
+
+          <div style={{ marginTop: 24 }}>
+            <button type="submit" style={buttonStyle}>
+              Odeslat
+            </button>
+          </div>
+
+          <p
+            style={{
+              margin: "12px 0 0",
+              fontSize: 15,
+              lineHeight: 1.6,
+              color: "#64748b",
+            }}
+          >
+            Ozveme se vám obvykle do 24 hodin.
+          </p>
+        </form>
+      </section>
 
       {/* BVV */}
       <section
@@ -412,7 +495,6 @@ export default function PoptavkaPage() {
           borderRadius: 28,
           padding: "34px 30px",
           boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
-          marginBottom: 34,
         }}
       >
         <div className="visual-grid reverse-on-mobile">
@@ -488,113 +570,6 @@ export default function PoptavkaPage() {
         </div>
       </section>
 
-      {/* FORMULÁŘ */}
-      <section
-        id="formular"
-        style={{
-          background: "#ffffff",
-          border: "1px solid #e5e7eb",
-          borderRadius: 28,
-          padding: "34px 30px",
-          boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
-        }}
-      >
-        <h2
-          style={{
-            margin: 0,
-            fontSize: "clamp(28px, 4vw, 42px)",
-            lineHeight: 1.08,
-            color: "#0f172a",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Domluvme se
-        </h2>
-
-        <p
-          style={{
-            margin: "14px 0 0",
-            fontSize: 18,
-            lineHeight: 1.7,
-            color: "#475569",
-            maxWidth: 760,
-          }}
-        >
-          Napište nám pár informací o tom, o co máte zájem. Ozveme se vám a
-          domluvíme další postup.
-        </p>
-
-        <p
-          style={{
-            margin: "10px 0 0",
-            fontSize: 15,
-            lineHeight: 1.6,
-            color: "#64748b",
-          }}
-        >
-          Vyplnění formuláře zabere méně než minutu.
-        </p>
-
-        <form style={{ maxWidth: 760, marginTop: 28 }}>
-          <label style={labelStyle}>Mám zájem o</label>
-          <select
-            value={selectedOption}
-            onChange={(e) => setSelectedOption(e.target.value)}
-            style={inputStyle}
-          >
-            <option value="">Vyberte možnost</option>
-            {OPTIONS.map((item) => (
-              <option key={item.key} value={item.key}>
-                {item.title}
-              </option>
-            ))}
-          </select>
-
-          {selectedLabel ? (
-            <div style={{ ...helpStyle, marginTop: 8 }}>
-              Vybraná možnost: <strong>{selectedLabel}</strong>
-            </div>
-          ) : null}
-
-          <label style={{ ...labelStyle, marginTop: 16 }}>Jméno</label>
-          <input type="text" style={inputStyle} />
-
-          <label style={{ ...labelStyle, marginTop: 16 }}>Odkud jste</label>
-          <input type="text" style={inputStyle} />
-
-          <label style={{ ...labelStyle, marginTop: 16 }}>Email</label>
-          <input type="email" style={inputStyle} />
-          <div style={helpStyle}>Na tento email vám pošleme odpověď.</div>
-
-          <label style={{ ...labelStyle, marginTop: 16 }}>Telefon</label>
-          <input type="tel" style={inputStyle} />
-          <div style={helpStyle}>Telefon je volitelný, ale urychlí domluvu.</div>
-
-          <label style={{ ...labelStyle, marginTop: 16 }}>Zpráva</label>
-          <textarea rows="6" style={textareaStyle} />
-          <div style={helpStyle}>
-            Můžete doplnit základní představu, termín nebo místo.
-          </div>
-
-          <div style={{ marginTop: 24 }}>
-            <button type="submit" style={buttonStyle}>
-              Odeslat
-            </button>
-          </div>
-
-          <p
-            style={{
-              margin: "12px 0 0",
-              fontSize: 15,
-              lineHeight: 1.6,
-              color: "#64748b",
-            }}
-          >
-            Ozveme se vám obvykle do 24 hodin.
-          </p>
-        </form>
-      </section>
-
       <style jsx>{`
         .interest-card {
           transition:
@@ -668,6 +643,7 @@ const cardStyle = {
 const cardTitle = {
   margin: 0,
   fontSize: 22,
+  fontWeight: 850,
   lineHeight: 1.16,
   letterSpacing: "-0.02em",
   color: "#0f172a",
