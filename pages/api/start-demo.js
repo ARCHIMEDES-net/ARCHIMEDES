@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-import crypto from "crypto";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -42,28 +41,27 @@ export default async function handler(req, res) {
       throw new Error(`Nepodařilo se vytvořit organizaci: ${orgError.message}`);
     }
 
-    // 2) vytvoření uživatele v Supabase Auth
-    const { data: createdUser, error: createUserError } =
-      await supabase.auth.admin.createUser({
-        email: cleanEmail,
-        email_confirm: true,
-        password: crypto.randomUUID(),
+    // 2) pozvání uživatele e-mailem
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
+
+    const { data: inviteData, error: inviteError } =
+      await supabase.auth.admin.inviteUserByEmail(cleanEmail, {
+        redirectTo: `${siteUrl}/login`,
       });
 
-    if (createUserError) {
-      console.error("CREATE USER ERROR:", createUserError);
-      throw new Error(
-        `Nepodařilo se vytvořit uživatele: ${createUserError.message}`
-      );
+    if (inviteError) {
+      console.error("INVITE ERROR:", inviteError);
+      throw new Error(`Nepodařilo se odeslat pozvánku: ${inviteError.message}`);
     }
 
-    const userId = createdUser?.user?.id;
+    const userId = inviteData?.user?.id;
 
     if (!userId) {
-      throw new Error("Nevzniklo user ID.");
+      throw new Error("Nevzniklo user ID z pozvánky.");
     }
 
-    // 3) vytvoření / aktualizace profilu
+    // 3) profil
     const { error: profileError } = await supabase.from("profiles").upsert(
       [
         {
@@ -100,28 +98,10 @@ export default async function handler(req, res) {
       );
     }
 
-    // 5) odeslání odkazu pro nastavení hesla / dokončení vstupu
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
-
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-      cleanEmail,
-      {
-        redirectTo: `${siteUrl}/login`,
-      }
-    );
-
-    if (resetError) {
-      console.error("RESET EMAIL ERROR:", resetError);
-      throw new Error(
-        `Nepodařilo se odeslat e-mail s odkazem: ${resetError.message}`
-      );
-    }
-
     return res.status(200).json({
       success: true,
       organizationId: organization.id,
-      message: "Demo učebna byla vytvořena. Na e-mail byl odeslán odkaz.",
+      message: "Demo učebna byla vytvořena. Na e-mail byla odeslána pozvánka.",
     });
   } catch (error) {
     console.error("START DEMO ERROR:", error);
