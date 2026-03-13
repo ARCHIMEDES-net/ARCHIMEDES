@@ -11,56 +11,71 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { school, name, email } = req.body;
+    const { school, name, email } = req.body || {};
 
-    if (!school || !email) {
-      return res.status(400).json({ error: "Chybí název školy nebo email." });
+    if (!school || !name || !email) {
+      return res.status(400).json({
+        error: "Chybí název školy, jméno nebo e-mail.",
+      });
     }
 
-    // vytvoření demo organizace
+    // 1) vytvoření demo organizace
     const { data: organization, error: orgError } = await supabase
       .from("organizations")
       .insert([
         {
           name: `${school} – DEMO`,
-          type: "school",
-          demo: true,
+          org_type: "school",
+          status: "active",
         },
       ])
       .select()
       .single();
 
     if (orgError) {
-      throw orgError;
+      console.error("ORG ERROR:", orgError);
+      throw new Error(`Nepodařilo se vytvořit organizaci: ${orgError.message}`);
     }
 
-    // vytvoření uživatelského účtu
-    const { data: userData, error: userError } =
+    // 2) pokus o dohledání uživatele podle emailu v auth
+    // pokud neexistuje, vytvoříme ho
+    let userId = null;
+
+    const { data: createdUser, error: createUserError } =
       await supabase.auth.admin.createUser({
         email,
         email_confirm: true,
       });
 
-    if (userError) {
-      throw userError;
+    if (createUserError) {
+      console.error("CREATE USER ERROR:", createUserError);
+      throw new Error(`Nepodařilo se vytvořit uživatele: ${createUserError.message}`);
     }
 
-    const userId = userData.user.id;
+    userId = createdUser?.user?.id;
 
-    // vytvoření profilu
-    const { error: profileError } = await supabase.from("profiles").insert([
-      {
-        id: userId,
-        full_name: name,
-        user_type: "organization",
-      },
-    ]);
+    if (!userId) {
+      throw new Error("Nevzniklo user ID.");
+    }
+
+    // 3) profil
+    const { error: profileError } = await supabase.from("profiles").upsert(
+      [
+        {
+          id: userId,
+          full_name: name,
+          user_type: "organization",
+        },
+      ],
+      { onConflict: "id" }
+    );
 
     if (profileError) {
-      throw profileError;
+      console.error("PROFILE ERROR:", profileError);
+      throw new Error(`Nepodařilo se uložit profil: ${profileError.message}`);
     }
 
-    // přidání do organizace
+    // 4) členství v organizaci
     const { error: memberError } = await supabase
       .from("organization_members")
       .insert([
@@ -72,7 +87,8 @@ export default async function handler(req, res) {
       ]);
 
     if (memberError) {
-      throw memberError;
+      console.error("MEMBER ERROR:", memberError);
+      throw new Error(`Nepodařilo se vytvořit členství: ${memberError.message}`);
     }
 
     return res.status(200).json({
@@ -80,9 +96,9 @@ export default async function handler(req, res) {
       organizationId: organization.id,
     });
   } catch (error) {
-    console.error(error);
+    console.error("START DEMO ERROR:", error);
     return res.status(500).json({
-      error: "Nepodařilo se vytvořit demo.",
+      error: error.message || "Nepodařilo se vytvořit demo.",
     });
   }
 }
