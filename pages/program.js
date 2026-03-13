@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+const PROGRAM_POSTERS = Array.from({ length: 30 }, (_, i) => `/pl${i + 1}.webp`);
 
 const schoolItems = [
   {
@@ -523,6 +526,27 @@ function PriceCard({ title, price, suffix, badge, description, items, featured }
 }
 
 export default function ProgramPage() {
+  const [activePoster, setActivePoster] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    if (isPaused) return undefined;
+
+    const interval = setInterval(() => {
+      setIsVisible(false);
+
+      const timeout = setTimeout(() => {
+        setActivePoster((prev) => (prev + 1) % PROGRAM_POSTERS.length);
+        setIsVisible(true);
+      }, 350);
+
+      return () => clearTimeout(timeout);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [isPaused]);
+
   return (
     <>
       <main
@@ -641,16 +665,103 @@ export default function ProgramPage() {
                   background: "#e2e8f0",
                 }}
               >
-                <img
-                  src="/program-hero.jpg"
-                  alt="ARCHIMEDES Live – živý program v učebně"
+                <Link
+                  href="/vysilani"
+                  onMouseEnter={() => setIsPaused(true)}
+                  onMouseLeave={() => setIsPaused(false)}
+                  className="program-poster-hero"
                   style={{
+                    position: "relative",
+                    display: "block",
                     width: "100%",
                     height: "100%",
-                    display: "block",
-                    objectFit: "cover",
+                    minHeight: 420,
+                    overflow: "hidden",
+                    textDecoration: "none",
+                    background: "#dbe4f0",
                   }}
-                />
+                >
+                  <img
+                    src={PROGRAM_POSTERS[activePoster]}
+                    alt={`Ukázka programu ARCHIMEDES Live ${activePoster + 1}`}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      display: "block",
+                      objectFit: "cover",
+                      opacity: isVisible ? 1 : 0.12,
+                      transition: "opacity 0.55s ease",
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 18,
+                      left: 18,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "10px 14px",
+                      borderRadius: 999,
+                      background: "rgba(15, 23, 42, 0.72)",
+                      color: "#fff",
+                      fontSize: 14,
+                      fontWeight: 800,
+                      backdropFilter: "blur(8px)",
+                    }}
+                  >
+                    Ukázky z programu
+                  </div>
+
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: 18,
+                      bottom: 18,
+                      right: 18,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 12,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "10px 14px",
+                        borderRadius: 999,
+                        background: "rgba(255,255,255,0.90)",
+                        color: "#0f172a",
+                        fontSize: 14,
+                        fontWeight: 800,
+                        boxShadow: "0 10px 24px rgba(15,23,42,0.14)",
+                      }}
+                    >
+                      Proběhlá vysílání
+                    </div>
+
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "10px 14px",
+                        borderRadius: 999,
+                        background: "rgba(23, 59, 119, 0.88)",
+                        color: "#fff",
+                        fontSize: 14,
+                        fontWeight: 800,
+                        boxShadow: "0 10px 24px rgba(15,23,42,0.14)",
+                      }}
+                    >
+                      Zobrazit galerii
+                    </div>
+                  </div>
+                </Link>
               </div>
             </div>
           </section>
@@ -779,11 +890,7 @@ export default function ProgramPage() {
               className="price-grid"
             >
               {priceCards.map((card, idx) => (
-                <PriceCard
-                  key={card.title}
-                  {...card}
-                  featured={idx === 0}
-                />
+                <PriceCard key={card.title} {...card} featured={idx === 0} />
               ))}
             </div>
           </section>
@@ -852,6 +959,10 @@ export default function ProgramPage() {
           .feature-row.reverse > div {
             order: initial !important;
           }
+
+          .program-poster-hero {
+            min-height: 380px !important;
+          }
         }
 
         @media (max-width: 760px) {
@@ -862,6 +973,10 @@ export default function ProgramPage() {
 
           .hero-grid > div:first-child {
             padding: 30px 22px 26px !important;
+          }
+
+          .program-poster-hero {
+            min-height: 320px !important;
           }
         }
       `}</style>
