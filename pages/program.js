@@ -76,40 +76,40 @@ const priceCards = [
     ],
   },
   {
-    title: "Senior klub",
+    title: "Škola",
     price: "1 990 Kč",
     suffix: "/ měsíc",
     badge: "samostatný formát",
     description:
-      "Pravidelný program pro seniory a komunitní setkávání.",
+      "Samostatný vzdělávací formát pro školu se zaměřením na živé vstupy a práci s třídou.",
     items: [
-      "inspirativní hosté",
-      "kulturní a společenský přesah",
-      "vhodné i pro menší obce",
+      "živá vysílání pro I. a II. stupeň",
+      "vhodné i jako startovní varianta",
+      "pravidelný obsah během školního roku",
     ],
   },
   {
-    title: "Jednorázový vstup",
+    title: "Senior klub",
     price: "490 Kč",
     suffix: "/ vstup",
-    badge: "pro jednotlivce",
+    badge: "pro seniory",
     description:
-      "Účast na vybraném vysílání nebo mimořádném programu.",
+      "Jednorázový vstup do Senior klubu s inspirativním hostem a společným setkáním.",
     items: [
-      "rychlá cesta, jak si program vyzkoušet",
-      "vhodné pro hosty mimo zapojené školy a obce",
+      "rychlá cesta, jak si formát vyzkoušet",
+      "vhodné i pro menší obce a komunitní skupiny",
     ],
   },
   {
-    title: "Speciální kulturní formát",
+    title: "Komunitní program",
     price: "490 Kč",
     suffix: "/ vstup",
-    badge: "filmový klub a speciály",
+    badge: "pro komunitu",
     description:
-      "Mimořádné kulturní a tematické vstupy pro veřejnost.",
+      "Jednorázový komunitní nebo tematický program pro veřejnost, spolky a místní setkávání.",
     items: [
-      "sezónní programy",
       "kulturní a komunitní rozměr",
+      "mimořádné tematické vstupy a speciály",
     ],
   },
 ];
