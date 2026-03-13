@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 1) vytvoření demo organizace
+    // 1️⃣ vytvoření demo organizace
     const { data: organization, error: orgError } = await supabase
       .from("organizations")
       .insert([
@@ -37,10 +37,7 @@ export default async function handler(req, res) {
       throw new Error(`Nepodařilo se vytvořit organizaci: ${orgError.message}`);
     }
 
-    // 2) pokus o dohledání uživatele podle emailu v auth
-    // pokud neexistuje, vytvoříme ho
-    let userId = null;
-
+    // 2️⃣ vytvoření uživatele v Supabase Auth
     const { data: createdUser, error: createUserError } =
       await supabase.auth.admin.createUser({
         email,
@@ -52,13 +49,13 @@ export default async function handler(req, res) {
       throw new Error(`Nepodařilo se vytvořit uživatele: ${createUserError.message}`);
     }
 
-    userId = createdUser?.user?.id;
+    const userId = createdUser?.user?.id;
 
     if (!userId) {
       throw new Error("Nevzniklo user ID.");
     }
 
-    // 3) profil
+    // 3️⃣ vytvoření / aktualizace profilu
     const { error: profileError } = await supabase.from("profiles").upsert(
       [
         {
@@ -75,14 +72,15 @@ export default async function handler(req, res) {
       throw new Error(`Nepodařilo se uložit profil: ${profileError.message}`);
     }
 
-    // 4) členství v organizaci
+    // 4️⃣ přidání do organizace
     const { error: memberError } = await supabase
       .from("organization_members")
       .insert([
         {
           organization_id: organization.id,
           user_id: userId,
-          role: "organization_admin",
+          role_in_org: "organization_admin",
+          status: "active",
         },
       ]);
 
