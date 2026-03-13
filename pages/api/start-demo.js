@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import crypto from "crypto";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -19,12 +20,16 @@ export default async function handler(req, res) {
       });
     }
 
-    // 1️⃣ vytvoření demo organizace
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanSchool = String(school).trim();
+    const cleanName = String(name).trim();
+
+    // 1) vytvoření demo organizace
     const { data: organization, error: orgError } = await supabase
       .from("organizations")
       .insert([
         {
-          name: `${school} – DEMO`,
+          name: `${cleanSchool} – DEMO`,
           org_type: "school",
           status: "active",
         },
@@ -37,16 +42,19 @@ export default async function handler(req, res) {
       throw new Error(`Nepodařilo se vytvořit organizaci: ${orgError.message}`);
     }
 
-    // 2️⃣ vytvoření uživatele v Supabase Auth
+    // 2) vytvoření uživatele v Supabase Auth
     const { data: createdUser, error: createUserError } =
       await supabase.auth.admin.createUser({
-        email,
+        email: cleanEmail,
         email_confirm: true,
+        password: crypto.randomUUID(),
       });
 
     if (createUserError) {
       console.error("CREATE USER ERROR:", createUserError);
-      throw new Error(`Nepodařilo se vytvořit uživatele: ${createUserError.message}`);
+      throw new Error(
+        `Nepodařilo se vytvořit uživatele: ${createUserError.message}`
+      );
     }
 
     const userId = createdUser?.user?.id;
@@ -55,13 +63,14 @@ export default async function handler(req, res) {
       throw new Error("Nevzniklo user ID.");
     }
 
-    // 3️⃣ vytvoření / aktualizace profilu
+    // 3) vytvoření / aktualizace profilu
     const { error: profileError } = await supabase.from("profiles").upsert(
       [
         {
           id: userId,
-          full_name: name,
+          full_name: cleanName,
           user_type: "organization",
+          must_set_password: true,
         },
       ],
       { onConflict: "id" }
@@ -72,7 +81,7 @@ export default async function handler(req, res) {
       throw new Error(`Nepodařilo se uložit profil: ${profileError.message}`);
     }
 
-    // 4️⃣ přidání do organizace
+    // 4) přidání do organizace
     const { error: memberError } = await supabase
       .from("organization_members")
       .insert([
@@ -86,12 +95,33 @@ export default async function handler(req, res) {
 
     if (memberError) {
       console.error("MEMBER ERROR:", memberError);
-      throw new Error(`Nepodařilo se vytvořit členství: ${memberError.message}`);
+      throw new Error(
+        `Nepodařilo se vytvořit členství: ${memberError.message}`
+      );
+    }
+
+    // 5) odeslání odkazu pro nastavení hesla / dokončení vstupu
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
+
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+      cleanEmail,
+      {
+        redirectTo: `${siteUrl}/login`,
+      }
+    );
+
+    if (resetError) {
+      console.error("RESET EMAIL ERROR:", resetError);
+      throw new Error(
+        `Nepodařilo se odeslat e-mail s odkazem: ${resetError.message}`
+      );
     }
 
     return res.status(200).json({
       success: true,
       organizationId: organization.id,
+      message: "Demo učebna byla vytvořena. Na e-mail byl odeslán odkaz.",
     });
   } catch (error) {
     console.error("START DEMO ERROR:", error);
