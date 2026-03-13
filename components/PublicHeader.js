@@ -1,265 +1,214 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 const LOGO_SRC = "/logo.jpg";
 
 function stripQuery(asPath) {
-  return (asPath || "").split("?")[0].split("#")[0];
+  return (asPath || "").split("?")[0];
 }
+
+const NAV_ITEMS = [
+  { href: "/", label: "Domů" },
+  { href: "/program", label: "Program" },
+  { href: "/vysilani", label: "Proběhlá vysílání" },
+  { href: "/ucebna", label: "Učebna" },
+  { href: "/cenik", label: "Ceník" },
+  { href: "/poptavka", label: "Poptávka" },
+  { href: "/kontakt", label: "Kontakt" },
+];
 
 export default function PublicHeader({ active = "" }) {
   const router = useRouter();
   const pathname = router?.pathname || "";
-  const asPath = useMemo(() => stripQuery(router?.asPath || ""), [router?.asPath]);
-
-  const [isMobile, setIsMobile] = useState(false);
+  const asPath = stripQuery(router?.asPath || "");
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  if (pathname.startsWith("/portal") || pathname === "/login") return null;
-
-  useEffect(() => {
-    function handleResize() {
-      const mobile = window.innerWidth <= 760;
-      setIsMobile(mobile);
-
-      if (!mobile) {
-        setMobileOpen(false);
-      }
-    }
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  if (pathname.startsWith("/portal") || pathname.startsWith("/login")) {
+    return null;
+  }
 
   useEffect(() => {
     setMobileOpen(false);
   }, [asPath]);
 
-  const itemBase = {
-    textDecoration: "none",
-    color: "#111827",
-    padding: "10px 12px",
-    borderRadius: 10,
-    fontWeight: 700,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 42,
-    whiteSpace: "nowrap",
-    boxSizing: "border-box",
+  const isActive = (href) => {
+    if (active && active === href) return true;
+    if (href === "/") return asPath === "/";
+    return asPath === href || pathname === href;
   };
-
-  const activeStyle = {
-    background: "#111827",
-    color: "#fff",
-    border: "1px solid #111827",
-  };
-
-  const inactiveStyle = {
-    background: "transparent",
-    border: "1px solid transparent",
-    opacity: 0.92,
-  };
-
-  const portalStyle = {
-    ...itemBase,
-    border: "1px solid #e5e7eb",
-    background: "#fff",
-  };
-
-  const mobileMenuButtonStyle = {
-    border: "1px solid #e5e7eb",
-    background: "#fff",
-    color: "#111827",
-    borderRadius: 12,
-    minHeight: 42,
-    minWidth: 42,
-    padding: "0 12px",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 22,
-    lineHeight: 1,
-    cursor: "pointer",
-  };
-
-  const mobileNavLinkStyle = (key, isPortal = false) => {
-    if (isPortal) {
-      return {
-        ...portalStyle,
-        width: "100%",
-        justifyContent: "flex-start",
-      };
-    }
-
-    return {
-      ...itemBase,
-      ...(isActive(key) ? activeStyle : inactiveStyle),
-      width: "100%",
-      justifyContent: "flex-start",
-    };
-  };
-
-  function isActive(key) {
-    if (active) return active === key;
-    if (key === "home") return asPath === "/";
-    if (key === "program") return asPath === "/program";
-    if (key === "ucebna") return asPath === "/ucebna";
-    if (key === "cenik") return asPath === "/cenik";
-    if (key === "poptavka") return asPath === "/poptavka";
-    if (key === "kontakt") return asPath === "/kontakt";
-    return false;
-  }
-
-  const navItem = (key) => ({
-    ...itemBase,
-    ...(isActive(key) ? activeStyle : inactiveStyle),
-  });
 
   return (
     <header
       style={{
-        background: "white",
-        borderBottom: "1px solid rgba(0,0,0,0.08)",
         position: "sticky",
         top: 0,
-        zIndex: 20,
+        zIndex: 50,
+        background: "rgba(255,255,255,0.92)",
+        backdropFilter: "blur(10px)",
+        borderBottom: "1px solid rgba(15, 23, 42, 0.08)",
       }}
     >
       <div
         style={{
-          maxWidth: 1100,
+          maxWidth: "1200px",
           margin: "0 auto",
-          padding: isMobile ? "10px 12px" : "10px 16px",
+          padding: "14px 20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "16px",
         }}
       >
-        <div
+        <Link
+          href="/"
           style={{
-            display: "flex",
+            display: "inline-flex",
             alignItems: "center",
-            gap: 12,
+            gap: "14px",
+            textDecoration: "none",
+            color: "#0f172a",
             minWidth: 0,
           }}
         >
+          <img
+            src={LOGO_SRC}
+            alt="ARCHIMEDES Live"
+            style={{
+              height: "48px",
+              width: "auto",
+              display: "block",
+              objectFit: "contain",
+            }}
+          />
+        </Link>
+
+        <nav className="desktop-nav" style={{ alignItems: "center", gap: "10px" }}>
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                textDecoration: "none",
+                padding: "10px 14px",
+                borderRadius: "999px",
+                fontWeight: isActive(item.href) ? 800 : 700,
+                color: isActive(item.href) ? "#173b77" : "#334155",
+                background: isActive(item.href) ? "#eff6ff" : "transparent",
+                transition: "all 0.18s ease",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
+
           <Link
-            href="/"
+            href="/portal"
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
               textDecoration: "none",
-              flexShrink: 0,
+              padding: "11px 18px",
+              borderRadius: "999px",
+              fontWeight: 800,
+              color: "#fff",
+              background: "#ef4444",
+              boxShadow: "0 12px 22px rgba(239, 68, 68, 0.18)",
+              whiteSpace: "nowrap",
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={LOGO_SRC}
-              alt="ARCHIMEDES Live"
-              style={{
-                height: isMobile ? 38 : 44,
-                width: "auto",
-                display: "block",
-                flexShrink: 0,
-              }}
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-            />
+            Portál
           </Link>
+        </nav>
 
-          {isMobile ? (
-            <button
-              type="button"
-              aria-label={mobileOpen ? "Zavřít menu" : "Otevřít menu"}
-              aria-expanded={mobileOpen}
-              onClick={() => setMobileOpen((prev) => !prev)}
-              style={{
-                ...mobileMenuButtonStyle,
-                marginLeft: "auto",
-              }}
-            >
-              {mobileOpen ? "×" : "☰"}
-            </button>
-          ) : (
-            <nav
-              style={{
-                marginLeft: "auto",
-                display: "flex",
-                gap: 10,
-                alignItems: "center",
-                justifyContent: "flex-end",
-                flexWrap: "nowrap",
-              }}
-            >
-              <Link href="/" style={navItem("home")}>
-                Domů
-              </Link>
+        <button
+          type="button"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-label="Otevřít menu"
+          className="mobile-toggle"
+          style={{
+            display: "none",
+            border: "1px solid rgba(15, 23, 42, 0.12)",
+            background: "#fff",
+            color: "#0f172a",
+            borderRadius: "14px",
+            width: "44px",
+            height: "44px",
+            fontSize: "22px",
+            cursor: "pointer",
+          }}
+        >
+          ☰
+        </button>
+      </div>
 
-              <Link href="/program" style={navItem("program")}>
-                Program
-              </Link>
-
-              <Link href="/ucebna" style={navItem("ucebna")}>
-                Učebna
-              </Link>
-
-              <Link href="/poptavka" style={navItem("poptavka")}>
-                Poptávka
-              </Link>
-
-              <Link href="/kontakt" style={navItem("kontakt")}>
-                Kontakt
-              </Link>
-
-              <Link href="/portal" style={portalStyle}>
-                Portál
-              </Link>
-            </nav>
-          )}
-        </div>
-
-        {isMobile && mobileOpen ? (
-          <nav
+      {mobileOpen && (
+        <div
+          style={{
+            borderTop: "1px solid rgba(15, 23, 42, 0.08)",
+            background: "#fff",
+          }}
+        >
+          <div
             style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-              marginTop: 12,
-              paddingTop: 4,
+              maxWidth: "1200px",
+              margin: "0 auto",
+              padding: "14px 20px 18px",
+              display: "grid",
+              gap: "10px",
             }}
           >
-            <Link href="/" style={mobileNavLinkStyle("home")}>
-              Domů
-            </Link>
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                style={{
+                  textDecoration: "none",
+                  padding: "12px 14px",
+                  borderRadius: "16px",
+                  fontWeight: isActive(item.href) ? 800 : 700,
+                  color: isActive(item.href) ? "#173b77" : "#334155",
+                  background: isActive(item.href) ? "#eff6ff" : "#f8fafc",
+                }}
+              >
+                {item.label}
+              </Link>
+            ))}
 
-            <Link href="/program" style={mobileNavLinkStyle("program")}>
-              Program
-            </Link>
-
-            <Link href="/ucebna" style={mobileNavLinkStyle("ucebna")}>
-              Učebna
-            </Link>
-
-            <Link href="/cenik" style={mobileNavLinkStyle("cenik")}>
-              Ceník
-            </Link>
-
-            <Link href="/poptavka" style={mobileNavLinkStyle("poptavka")}>
-              Poptávka
-            </Link>
-
-            <Link href="/kontakt" style={mobileNavLinkStyle("kontakt")}>
-              Kontakt
-            </Link>
-
-            <Link href="/portal" style={mobileNavLinkStyle("", true)}>
+            <Link
+              href="/portal"
+              style={{
+                textDecoration: "none",
+                padding: "13px 16px",
+                borderRadius: "16px",
+                fontWeight: 800,
+                color: "#fff",
+                background: "#ef4444",
+                textAlign: "center",
+              }}
+            >
               Portál
             </Link>
-          </nav>
-        ) : null}
-      </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        .desktop-nav {
+          display: flex;
+        }
+
+        @media (max-width: 1080px) {
+          .desktop-nav {
+            display: none;
+          }
+
+          .mobile-toggle {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+          }
+        }
+      `}</style>
     </header>
   );
 }
