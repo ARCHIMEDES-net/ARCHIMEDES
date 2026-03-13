@@ -144,7 +144,7 @@ export default function PoptavkaPage() {
       >
         <div style={{ borderRadius: 20, overflow: "hidden" }}>
           <img
-            src="/program-vysilani.webp"
+            src="/ceny.webp"
             alt="Program ARCHIMEDES Live"
             style={{
               display: "block",
