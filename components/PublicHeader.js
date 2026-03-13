@@ -13,7 +13,6 @@ const NAV_ITEMS = [
   { href: "/program", label: "Program" },
   { href: "/vysilani", label: "Proběhlá vysílání" },
   { href: "/ucebna", label: "Učebna" },
-  { href: "/cenik", label: "Ceník" },
   { href: "/poptavka", label: "Poptávka" },
   { href: "/kontakt", label: "Kontakt" },
 ];
@@ -111,8 +110,8 @@ export default function PublicHeader({ active = "" }) {
               borderRadius: "999px",
               fontWeight: 800,
               color: "#fff",
-              background: "#ef4444",
-              boxShadow: "0 12px 22px rgba(239, 68, 68, 0.18)",
+              background: "#173b77",
+              boxShadow: "0 12px 22px rgba(23, 59, 119, 0.20)",
               whiteSpace: "nowrap",
             }}
           >
@@ -182,8 +181,9 @@ export default function PublicHeader({ active = "" }) {
                 borderRadius: "16px",
                 fontWeight: 800,
                 color: "#fff",
-                background: "#ef4444",
+                background: "#173b77",
                 textAlign: "center",
+                boxShadow: "0 10px 20px rgba(23, 59, 119, 0.18)",
               }}
             >
               Portál
