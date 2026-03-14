@@ -264,6 +264,7 @@ export default function Kalendar() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  const [isProgramAdmin, setIsProgramAdmin] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -317,6 +318,46 @@ export default function Kalendar() {
     load();
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRole() {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user || cancelled) {
+          if (!cancelled) setIsProgramAdmin(false);
+          return;
+        }
+
+        const [{ data: membership }, { data: isAdminData, error: isAdminError }] = await Promise.all([
+          supabase
+            .from("organization_members")
+            .select("role_in_org")
+            .eq("user_id", user.id)
+            .eq("status", "active")
+            .maybeSingle(),
+          supabase.rpc("is_admin"),
+        ]);
+
+        if (cancelled) return;
+
+        setIsProgramAdmin(
+          membership?.role_in_org === "organization_admin" || (!isAdminError && !!isAdminData)
+        );
+      } catch (_e) {
+        if (!cancelled) setIsProgramAdmin(false);
+      }
+    }
+
+    loadRole();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const now = new Date();
 
   const visibleRows = useMemo(() => {
@@ -353,13 +394,48 @@ export default function Kalendar() {
             </p>
           </div>
 
-          <button
-            onClick={load}
-            className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
-          >
-            Obnovit
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {isProgramAdmin ? (
+              <>
+                <Link
+                  href="/portal/admin-udalosti/novy"
+                  className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
+                >
+                  ➕ Nová událost
+                </Link>
+                <Link
+                  href="/portal/admin-udalosti"
+                  className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
+                >
+                  🛠 Správa vysílání
+                </Link>
+                <Link
+                  href="/portal/archiv"
+                  className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
+                >
+                  📁 Archiv
+                </Link>
+              </>
+            ) : null}
+
+            <button
+              onClick={load}
+              className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
+            >
+              Obnovit
+            </button>
+          </div>
         </div>
+
+        {isProgramAdmin ? (
+          <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="font-semibold text-slate-900">Administrace programu</div>
+            <div className="text-sm text-slate-600 mt-1">
+              Nové vysílání zakládejte přes tlačítko <strong>Nová událost</strong>. Po skončení vysílání
+              doplňte záznam ve <strong>Správě vysílání</strong> a zkontrolujte výsledek v <strong>Archivu</strong>.
+            </div>
+          </div>
+        ) : null}
 
         {loading && <div className="mt-6">Načítám…</div>}
         {err && <div className="mt-6 text-red-600">{err}</div>}
