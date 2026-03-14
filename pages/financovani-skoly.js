@@ -278,7 +278,7 @@ export default function FinancovaniSkolyPage() {
 
             <div className="mt-10 grid md:grid-cols-3 gap-6">
 
-              <img src="/sab1.webp" className="rounded-2xl shadow" />
+              <img src="/sab4.webp" className="rounded-2xl shadow" />
 
               <img src="/sab2.webp" className="rounded-2xl shadow" />
 
