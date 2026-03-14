@@ -67,7 +67,7 @@ export default function FinancovaniSkolyPage() {
               <div className="overflow-hidden rounded-3xl border border-slate-200 shadow-xl">
 
                 <img
-                  src="/sab1.webp"
+                  src="/sab4.webp"
                   alt="Výuka v učebně ARCHIMEDES"
                   className="w-full h-full object-cover"
                 />
