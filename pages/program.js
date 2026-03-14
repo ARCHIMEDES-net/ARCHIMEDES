@@ -197,7 +197,7 @@ function PrimaryButton({ href, children }) {
 
 function SecondaryButton({ href, children }) {
   return (
-    <a
+    <Link
       href={href}
       style={{
         display: "inline-flex",
@@ -215,7 +215,32 @@ function SecondaryButton({ href, children }) {
       }}
     >
       {children}
-    </a>
+    </Link>
+  );
+}
+
+
+function TertiaryButton({ href, children }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: 52,
+        padding: "0 22px",
+        borderRadius: 14,
+        background: "#eef2ff",
+        color: "#1e3a8a",
+        textDecoration: "none",
+        fontWeight: 800,
+        fontSize: 16,
+        border: "1px solid #c7d2fe",
+      }}
+    >
+      {children}
+    </Link>
   );
 }
 
@@ -656,6 +681,9 @@ export default function ProgramPage() {
                 >
                   <PrimaryButton href="/demo">Mám zájem o demo</PrimaryButton>
                   <SecondaryButton href="#zapojeni">Jak se zapojit</SecondaryButton>
+                  <TertiaryButton href="/financovani-skoly">
+                    Pro školy – financování z OP JAK
+                  </TertiaryButton>
                 </div>
               </div>
 
