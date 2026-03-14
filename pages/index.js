@@ -428,7 +428,7 @@ export default function Home() {
                 }}
               >
                 ARCHIMEDES® propojuje venkovní učebnu, inspirativní hosty a živý program pro děti,
-                učitele, seniory i komunitu obce. Škola získává inspirativní výuku,
+                učitele, seniory i komunitu obce. Škola získává inspirativní výuku a
                 obec živý program pro své obyvatele.
               </p>
 
@@ -616,7 +616,7 @@ export default function Home() {
             <InfoCard
               number="1"
               title="Živý vstup s hostem"
-              text="Děti se připojí do programu a setkají se s odborníkem, autorem nebo inspirativní osobností."
+              text="Děti se připojí k živému vysílání a setkají se s odborníkem, autorem nebo inspirativní osobností."
             />
             <InfoCard
               number="2"
@@ -673,7 +673,7 @@ export default function Home() {
                     color: "rgba(15,23,42,0.72)",
                   }}
                 >
-                  Škola i obec získávají pravidelný program bez složité přípravy.
+                  Škola i obec získají pravidelný program bez složité přípravy.
                   Stačí se připojit a využít připravený obsah.
                 </p>
               </div>
@@ -872,7 +872,7 @@ export default function Home() {
                     letterSpacing: "-0.02em",
                   }}
                 >
-                  Ukážeme vám program i učebnu
+                  Ukážeme vám program i venkovní učebnu v praxi
                 </div>
                 <div
                   style={{
@@ -883,7 +883,7 @@ export default function Home() {
                     maxWidth: 740,
                   }}
                 >
-                  ARCHIMEDES® prodává licenci programu i samotnou stavbu učebny.
+                  ARCHIMEDES® dodává licenci programu i samotnou stavbu učebny.
                   Pomůžeme vám vybrat model, který bude dávat smysl právě pro vaši
                   školu nebo obec.
                 </div>
