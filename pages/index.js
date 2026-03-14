@@ -415,7 +415,7 @@ export default function Home() {
               >
                 Program, který propojuje
                 <br />
-                školu a život obce
+                školu s životem obce
               </h1>
 
               <p
@@ -427,7 +427,7 @@ export default function Home() {
                   margin: 0,
                 }}
               >
-                ARCHIMEDES® propojuje učebnu, živé hosty a program pro děti,
+                ARCHIMEDES® propojuje venkovní učebnu, inspirativní hosty a živý program pro děti,
                 učitele, seniory i komunitu obce. Škola získává inspirativní výuku,
                 obec živý program pro své obyvatele.
               </p>
