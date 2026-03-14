@@ -401,8 +401,8 @@ export default function Home() {
                   marginBottom: 18,
                 }}
               >
-                ARCHIMEDES Live • živý program, který propojuje venkovní učebnu, školu a život obce
-              </div>
+                ARCHIMEDES Live<br />Živý program, který propojuje venkovní učebnu, školu a život obce
+                  </div>
 
               <h1
                 style={{
