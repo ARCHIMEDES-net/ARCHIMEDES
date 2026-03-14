@@ -1,137 +1,157 @@
 import Link from "next/link";
+import Footer from "../components/Footer";
 
 export default function PravniPage() {
   return (
-    <main style={styles.page}>
-      <div style={styles.wrap}>
-        <div style={styles.topNav}>
-          <Link href="/" style={styles.backLink}>
-            ← Zpět na web
-          </Link>
-        </div>
-
-        <header style={styles.hero}>
-          <span style={styles.badge}>ARCHIMEDES Live</span>
-          <h1 style={styles.h1}>Právní informace</h1>
-          <p style={styles.lead}>
-            Tato stránka obsahuje základní informace o používání portálu,
-            ochraně osobních údajů a používání cookies. Finální texty mohou být
-            následně upraveny dle podkladů právního zástupce.
-          </p>
-        </header>
-
-        <nav style={styles.toc}>
-          <a href="#podminky" style={styles.tocLink}>Podmínky používání</a>
-          <a href="#udaje" style={styles.tocLink}>Ochrana osobních údajů</a>
-          <a href="#cookies" style={styles.tocLink}>Cookies</a>
-          <a href="#obsah" style={styles.tocLink}>Audiovizuální obsah</a>
-          <a href="#kontakt" style={styles.tocLink}>Kontakt</a>
-        </nav>
-
-        <section id="podminky" style={styles.card}>
-          <h2 style={styles.h2}>1. Podmínky používání portálu ARCHIMEDES Live</h2>
-          <p style={styles.p}>
-            Portál ARCHIMEDES Live je online vzdělávací a komunitní prostředí
-            určené pro školy, obce, organizace a jednotlivce zapojené do programu
-            ARCHIMEDES.
-          </p>
-          <p style={styles.p}>Používáním portálu uživatel potvrzuje, že:</p>
-          <ul style={styles.ul}>
-            <li>využívá portál v souladu s jeho účelem,</li>
-            <li>
-              nebude šířit obsah, který je v rozporu s právními předpisy, dobrými
-              mravy nebo pravidly slušné komunikace,
-            </li>
-            <li>
-              nebude zneužívat přístup k portálu nebo narušovat jeho technické
-              fungování.
-            </li>
-          </ul>
-          <p style={styles.p}>
-            Provozovatel portálu si vyhrazuje právo omezit nebo zrušit přístup
-            uživateli, který tato pravidla porušuje.
-          </p>
-        </section>
-
-        <section id="udaje" style={styles.card}>
-          <h2 style={styles.h2}>2. Ochrana osobních údajů</h2>
-          <p style={styles.p}>
-            Správcem osobních údajů je provozovatel projektu ARCHIMEDES.
-          </p>
-          <p style={styles.p}>
-            Osobní údaje mohou být zpracovávány zejména za účelem:
-          </p>
-          <ul style={styles.ul}>
-            <li>vytvoření a správy uživatelského účtu,</li>
-            <li>organizace vzdělávacích aktivit a vysílání,</li>
-            <li>komunikace s uživateli portálu,</li>
-            <li>zajištění technického provozu platformy.</li>
-          </ul>
-          <p style={styles.p}>
-            Zpracovávané údaje mohou zahrnovat například:
-          </p>
-          <ul style={styles.ul}>
-            <li>jméno a příjmení,</li>
-            <li>e-mailovou adresu,</li>
-            <li>organizaci nebo školu,</li>
-            <li>technické údaje spojené s přihlášením do portálu.</li>
-          </ul>
-          <p style={styles.p}>
-            Osobní údaje jsou zpracovávány pouze po dobu nezbytnou pro fungování
-            služby a v souladu s platnými právními předpisy.
-          </p>
-          <p style={styles.p}>
-            Uživatel má právo požádat o přístup ke svým údajům, jejich opravu,
-            omezení nebo výmaz a o informace o způsobu jejich zpracování.
-          </p>
-        </section>
-
-        <section id="cookies" style={styles.card}>
-          <h2 style={styles.h2}>3. Používání cookies</h2>
-          <p style={styles.p}>
-            Portál ARCHIMEDES Live používá pouze nezbytné technické cookies.
-          </p>
-          <p style={styles.p}>Tyto cookies slouží k:</p>
-          <ul style={styles.ul}>
-            <li>zajištění přihlášení uživatele do portálu,</li>
-            <li>správnému fungování uživatelské relace,</li>
-            <li>zabezpečení přístupu k jednotlivým částem systému.</li>
-          </ul>
-          <p style={styles.p}>
-            Bez těchto cookies by nebylo možné portál používat.
-          </p>
-          <p style={styles.p}>
-            Tyto cookies neslouží k reklamě, remarketingu ani sledování uživatele
-            na jiných webových stránkách.
-          </p>
-          <div style={styles.notice}>
-            Pokud budou do budoucna na web doplněny analytické nebo marketingové
-            nástroje, může být tato část rozšířena o správu souhlasů.
+    <>
+      <main style={styles.page}>
+        <div style={styles.wrap}>
+          <div style={styles.topNav}>
+            <Link href="/" style={styles.backLink}>
+              ← Zpět na web
+            </Link>
           </div>
-        </section>
 
-        <section id="obsah" style={styles.card}>
-          <h2 style={styles.h2}>4. Audiovizuální obsah</h2>
-          <p style={styles.p}>
-            Některé aktivity projektu ARCHIMEDES mohou být přenášeny online,
-            zaznamenávány nebo zpřístupněny v archivu platformy.
-          </p>
-          <p style={styles.p}>
-            Účastníci konkrétních aktivit jsou o této skutečnosti informováni
-            organizátorem dané akce.
-          </p>
-        </section>
+          <header style={styles.hero}>
+            <span style={styles.badge}>ARCHIMEDES Live</span>
+            <h1 style={styles.h1}>Právní informace</h1>
+            <p style={styles.lead}>
+              Tato stránka obsahuje základní informace o používání portálu,
+              ochraně osobních údajů a používání cookies. Finální texty mohou být
+              následně upraveny dle podkladů právního zástupce.
+            </p>
+          </header>
 
-        <section id="kontakt" style={styles.card}>
-          <h2 style={styles.h2}>5. Kontakt</h2>
-          <p style={styles.p}>
-            V případě dotazů týkajících se provozu portálu, ochrany osobních údajů
-            nebo používání cookies je možné kontaktovat provozovatele projektu
-            ARCHIMEDES prostřednictvím kontaktních údajů uvedených na hlavním webu.
-          </p>
-        </section>
-      </div>
-    </main>
+          <nav style={styles.toc}>
+            <a href="#podminky" style={styles.tocLink}>
+              Podmínky používání
+            </a>
+            <a href="#udaje" style={styles.tocLink}>
+              Ochrana osobních údajů
+            </a>
+            <a href="#cookies" style={styles.tocLink}>
+              Cookies
+            </a>
+            <a href="#obsah" style={styles.tocLink}>
+              Audiovizuální obsah
+            </a>
+            <a href="#kontakt" style={styles.tocLink}>
+              Kontakt
+            </a>
+          </nav>
+
+          <section id="podminky" style={styles.card}>
+            <h2 style={styles.h2}>
+              1. Podmínky používání portálu ARCHIMEDES Live
+            </h2>
+            <p style={styles.p}>
+              Portál ARCHIMEDES Live je online vzdělávací a komunitní prostředí
+              určené pro školy, obce, organizace a jednotlivce zapojené do programu
+              ARCHIMEDES.
+            </p>
+            <p style={styles.p}>Používáním portálu uživatel potvrzuje, že:</p>
+            <ul style={styles.ul}>
+              <li>využívá portál v souladu s jeho účelem,</li>
+              <li>
+                nebude šířit obsah, který je v rozporu s právními předpisy,
+                dobrými mravy nebo pravidly slušné komunikace,
+              </li>
+              <li>
+                nebude zneužívat přístup k portálu nebo narušovat jeho technické
+                fungování.
+              </li>
+            </ul>
+            <p style={styles.p}>
+              Provozovatel portálu si vyhrazuje právo omezit nebo zrušit přístup
+              uživateli, který tato pravidla porušuje.
+            </p>
+          </section>
+
+          <section id="udaje" style={styles.card}>
+            <h2 style={styles.h2}>2. Ochrana osobních údajů</h2>
+            <p style={styles.p}>
+              Správcem osobních údajů je provozovatel projektu ARCHIMEDES.
+            </p>
+            <p style={styles.p}>
+              Osobní údaje mohou být zpracovávány zejména za účelem:
+            </p>
+            <ul style={styles.ul}>
+              <li>vytvoření a správy uživatelského účtu,</li>
+              <li>organizace vzdělávacích aktivit a vysílání,</li>
+              <li>komunikace s uživateli portálu,</li>
+              <li>zajištění technického provozu platformy.</li>
+            </ul>
+            <p style={styles.p}>Zpracovávané údaje mohou zahrnovat například:</p>
+            <ul style={styles.ul}>
+              <li>jméno a příjmení,</li>
+              <li>e-mailovou adresu,</li>
+              <li>organizaci nebo školu,</li>
+              <li>technické údaje spojené s přihlášením do portálu.</li>
+            </ul>
+            <p style={styles.p}>
+              Osobní údaje jsou zpracovávány pouze po dobu nezbytnou pro fungování
+              služby a v souladu s platnými právními předpisy.
+            </p>
+            <p style={styles.p}>
+              Uživatel má právo požádat o přístup ke svým údajům, jejich opravu,
+              omezení nebo výmaz a o informace o způsobu jejich zpracování.
+            </p>
+          </section>
+
+          <section id="cookies" style={styles.card}>
+            <h2 style={styles.h2}>3. Používání cookies</h2>
+            <p style={styles.p}>
+              Portál ARCHIMEDES Live používá pouze nezbytné technické cookies.
+            </p>
+            <p style={styles.p}>Tyto cookies slouží k:</p>
+            <ul style={styles.ul}>
+              <li>zajištění přihlášení uživatele do portálu,</li>
+              <li>správnému fungování uživatelské relace,</li>
+              <li>zabezpečení přístupu k jednotlivým částem systému.</li>
+            </ul>
+            <p style={styles.p}>
+              Bez těchto cookies by nebylo možné portál používat.
+            </p>
+            <p style={styles.p}>
+              Tyto cookies neslouží k reklamě, remarketingu ani sledování
+              uživatele na jiných webových stránkách.
+            </p>
+            <div style={styles.notice}>
+              Pokud budou do budoucna na web doplněny analytické nebo marketingové
+              nástroje, může být tato část rozšířena o správu souhlasů.
+            </div>
+          </section>
+
+          <section id="obsah" style={styles.card}>
+            <h2 style={styles.h2}>4. Audiovizuální obsah</h2>
+            <p style={styles.p}>
+              Některé aktivity projektu ARCHIMEDES mohou být přenášeny online,
+              zaznamenávány nebo zpřístupněny v archivu platformy.
+            </p>
+            <p style={styles.p}>
+              Účastníci konkrétních aktivit jsou o této skutečnosti informováni
+              organizátorem dané akce.
+            </p>
+          </section>
+
+          <section id="kontakt" style={styles.card}>
+            <h2 style={styles.h2}>5. Kontakt</h2>
+            <p style={styles.p}>
+              V případě dotazů týkajících se provozu portálu, ochrany osobních
+              údajů nebo používání cookies je možné kontaktovat provozovatele
+              projektu ARCHIMEDES prostřednictvím kontaktní stránky na hlavním webu.
+            </p>
+            <p style={styles.p}>
+              <Link href="/kontakt" style={styles.inlineLink}>
+                Přejít na kontaktní stránku →
+              </Link>
+            </p>
+          </section>
+        </div>
+      </main>
+
+      <Footer />
+    </>
   );
 }
 
@@ -140,7 +160,7 @@ const styles = {
     minHeight: "100vh",
     background:
       "linear-gradient(180deg, #f7fbf8 0%, #eef7f1 45%, #ffffff 100%)",
-    padding: "32px 20px 60px",
+    padding: "32px 20px 40px",
     color: "#163029",
     fontFamily:
       'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -156,6 +176,11 @@ const styles = {
     color: "#1f6b53",
     textDecoration: "none",
     fontWeight: 600,
+  },
+  inlineLink: {
+    color: "#1f6b53",
+    textDecoration: "none",
+    fontWeight: 700,
   },
   hero: {
     background: "#ffffff",
