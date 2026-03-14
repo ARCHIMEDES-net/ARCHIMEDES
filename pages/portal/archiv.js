@@ -208,6 +208,7 @@ export default function Archiv() {
   const [licenseMode, setLicenseMode] = useState("active");
   const [licenseLoading, setLicenseLoading] = useState(true);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [isOrgAdmin, setIsOrgAdmin] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -232,12 +233,16 @@ export default function Archiv() {
 
         const { data: membership, error: membershipError } = await supabase
           .from("organization_members")
-          .select("organization_id")
+          .select("organization_id, role_in_org")
           .eq("user_id", user.id)
           .eq("status", "active")
           .maybeSingle();
 
         if (membershipError) throw membershipError;
+
+        if (isMounted) {
+          setIsOrgAdmin(membership?.role_in_org === "organization_admin");
+        }
 
         if (!membership?.organization_id) {
           if (!isMounted) return;
@@ -330,6 +335,7 @@ export default function Archiv() {
 
   const previewRows = useMemo(() => prepared.slice(0, 3), [prepared]);
 
+  const isArchiveAdmin = isPlatformAdmin || isOrgAdmin;
   const effectiveMode = isPlatformAdmin ? "active" : licenseMode;
   const isLocked =
     effectiveMode === "trial" ||
@@ -613,10 +619,60 @@ export default function Archiv() {
       <PortalHeader />
 
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
-        <h1 style={{ margin: "10px 0 6px" }}>Archiv</h1>
-        <p style={{ margin: 0, color: "#374151" }}>
-          Záznamy odvysílaných událostí, návrat k tématům a návazné materiály.
-        </p>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <h1 style={{ margin: "10px 0 6px" }}>Archiv</h1>
+            <p style={{ margin: 0, color: "#374151" }}>
+              Záznamy odvysílaných událostí, návrat k tématům a návazné materiály.
+            </p>
+          </div>
+
+          {isArchiveAdmin ? (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Link
+                href="/portal/admin-udalosti/novy"
+                style={{
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "10px 14px",
+                  borderRadius: 12,
+                  background: "#0f172a",
+                  color: "white",
+                  fontWeight: 900,
+                }}
+              >
+                ➕ Nová událost
+              </Link>
+              <Link
+                href="/portal/admin-udalosti"
+                style={{
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "10px 14px",
+                  borderRadius: 12,
+                  background: "white",
+                  color: "#0f172a",
+                  fontWeight: 900,
+                  border: "1px solid #e5e7eb",
+                }}
+              >
+                🛠 Správa vysílání
+              </Link>
+            </div>
+          ) : null}
+        </div>
 
         <div
           style={{
