@@ -1,6 +1,30 @@
 import { useState } from "react";
 import Link from "next/link";
 
+const pageStyle = {
+  minHeight: "100vh",
+  background: "#f6f7fb",
+  padding: "40px 16px",
+  fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+};
+
+const cardStyle = {
+  background: "#fff",
+  borderRadius: 24,
+  padding: 28,
+  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+  border: "1px solid rgba(0,0,0,0.08)",
+};
+
+const inputStyle = {
+  width: "100%",
+  padding: "12px 14px",
+  fontSize: 16,
+  borderRadius: 12,
+  border: "1px solid rgba(0,0,0,0.15)",
+  boxSizing: "border-box",
+};
+
 export default function DemoPage() {
   const [school, setSchool] = useState("");
   const [name, setName] = useState("");
@@ -43,147 +67,155 @@ export default function DemoPage() {
 
   if (success) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#f6f7fb",
-          padding: "40px 16px",
-          fontFamily: "system-ui",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 760,
-            margin: "0 auto",
-            background: "#fff",
-            borderRadius: 24,
-            padding: 28,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-            border: "1px solid rgba(0,0,0,0.08)",
-          }}
-        >
-          <h1 style={{ marginTop: 0, marginBottom: 12, fontSize: 34, lineHeight: 1.15 }}>
-            Demo učebna byla vytvořena
-          </h1>
+      <div style={pageStyle}>
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
+          <div style={cardStyle}>
+            <h1 className="demoTitle" style={{ marginTop: 0, marginBottom: 12 }}>
+              Demo učebna byla vytvořena
+            </h1>
 
-          <p
-            style={{
-              marginTop: 0,
-              marginBottom: 16,
-              color: "rgba(0,0,0,0.72)",
-              fontSize: 17,
-              lineHeight: 1.7,
-            }}
-          >
-            Na zadaný e-mail jsme odeslali odkaz pro dokončení přístupu do demo
-            portálu ARCHIMEDES Live.
-          </p>
-
-          <div
-            style={{
-              padding: 16,
-              borderRadius: 16,
-              background: "#eefaf0",
-              border: "1px solid #cfe8d3",
-              color: "#166534",
-              marginBottom: 18,
-              lineHeight: 1.7,
-            }}
-          >
-            Otevřete e-mailovou schránku, klikněte na odkaz v e-mailu a nastavte
-            si heslo. Poté budete automaticky pokračovat do portálu.
-          </div>
-
-          <div
-            style={{
-              padding: 16,
-              borderRadius: 16,
-              background: "#f8f9fc",
-              border: "1px solid rgba(0,0,0,0.06)",
-              color: "rgba(0,0,0,0.72)",
-              marginBottom: 24,
-              lineHeight: 1.7,
-            }}
-          >
-            Pokud e-mail nevidíte hned, podívejte se také do složky Hromadné,
-            Promo nebo Spam.
-          </div>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-            <Link
-              href="/login"
+            <p
+              className="demoLead"
               style={{
-                display: "inline-block",
-                padding: "12px 18px",
-                borderRadius: 12,
-                background: "#111827",
-                color: "#fff",
-                textDecoration: "none",
-                fontWeight: 700,
+                marginTop: 0,
+                marginBottom: 16,
+                color: "rgba(0,0,0,0.72)",
               }}
             >
-              Pokračovat na přihlášení
-            </Link>
+              Na zadaný e-mail jsme odeslali odkaz pro dokončení přístupu do demo
+              portálu ARCHIMEDES Live.
+            </p>
 
-            <Link
-              href="/"
+            <div
               style={{
-                display: "inline-block",
-                padding: "12px 18px",
-                borderRadius: 12,
-                background: "#fff",
-                color: "#111827",
-                textDecoration: "none",
-                fontWeight: 700,
-                border: "1px solid rgba(0,0,0,0.12)",
+                padding: 16,
+                borderRadius: 16,
+                background: "#eefaf0",
+                border: "1px solid #cfe8d3",
+                color: "#166534",
+                marginBottom: 18,
+                lineHeight: 1.7,
               }}
             >
-              Zpět na hlavní stránku
-            </Link>
+              Otevřete e-mailovou schránku, klikněte na odkaz v e-mailu a nastavte
+              si heslo. Poté budete automaticky pokračovat do portálu.
+            </div>
+
+            <div
+              style={{
+                padding: 16,
+                borderRadius: 16,
+                background: "#f8f9fc",
+                border: "1px solid rgba(0,0,0,0.06)",
+                color: "rgba(0,0,0,0.72)",
+                marginBottom: 24,
+                lineHeight: 1.7,
+              }}
+            >
+              Pokud e-mail nevidíte hned, podívejte se také do složky Hromadné,
+              Promo nebo Spam.
+            </div>
+
+            <div className="demoButtonsRow">
+              <Link
+                href="/login"
+                style={{
+                  display: "inline-block",
+                  padding: "12px 18px",
+                  borderRadius: 12,
+                  background: "#111827",
+                  color: "#fff",
+                  textDecoration: "none",
+                  fontWeight: 700,
+                  textAlign: "center",
+                }}
+              >
+                Pokračovat na přihlášení
+              </Link>
+
+              <Link
+                href="/"
+                style={{
+                  display: "inline-block",
+                  padding: "12px 18px",
+                  borderRadius: 12,
+                  background: "#fff",
+                  color: "#111827",
+                  textDecoration: "none",
+                  fontWeight: 700,
+                  border: "1px solid rgba(0,0,0,0.12)",
+                  textAlign: "center",
+                }}
+              >
+                Zpět na hlavní stránku
+              </Link>
+            </div>
           </div>
         </div>
+
+        <style jsx>{`
+          .demoTitle {
+            font-size: 34px;
+            line-height: 1.15;
+          }
+
+          .demoLead {
+            font-size: 17px;
+            line-height: 1.7;
+          }
+
+          .demoButtonsRow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+          }
+
+          @media (max-width: 760px) {
+            .demoTitle {
+              font-size: 28px;
+            }
+
+            .demoLead {
+              font-size: 16px;
+            }
+
+            .demoButtonsRow {
+              display: grid;
+              grid-template-columns: 1fr;
+            }
+          }
+        `}</style>
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#f6f7fb",
-        padding: "40px 16px",
-        fontFamily: "system-ui",
-      }}
-    >
+    <div style={pageStyle}>
       <div
+        className="demoGrid"
         style={{
           maxWidth: 980,
           margin: "0 auto",
           display: "grid",
           gridTemplateColumns: "1.15fr 0.85fr",
           gap: 24,
+          alignItems: "start",
         }}
       >
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 24,
-            padding: 28,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-            border: "1px solid rgba(0,0,0,0.08)",
-          }}
-        >
-          <h1 style={{ marginTop: 0, marginBottom: 14, fontSize: 38, lineHeight: 1.12 }}>
+        <div style={cardStyle}>
+          <h1
+            className="demoMainTitle"
+            style={{ marginTop: 0, marginBottom: 14 }}
+          >
             Vyzkoušejte ARCHIMEDES Live ve vaší škole
           </h1>
 
           <p
+            className="demoMainLead"
             style={{
               marginTop: 0,
               marginBottom: 22,
               color: "rgba(0,0,0,0.72)",
-              fontSize: 18,
-              lineHeight: 1.7,
             }}
           >
             ARCHIMEDES Live je živý vzdělávací program pro školy a komunitu obce.
@@ -200,11 +232,21 @@ export default function DemoPage() {
               border: "1px solid rgba(0,0,0,0.06)",
             }}
           >
-            <h2 style={{ marginTop: 0, marginBottom: 14, fontSize: 24 }}>
+            <h2
+              className="demoSectionTitle"
+              style={{ marginTop: 0, marginBottom: 14 }}
+            >
               Co v demu uvidíte
             </h2>
 
-            <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 1.9, color: "rgba(0,0,0,0.74)" }}>
+            <ul
+              className="demoList"
+              style={{
+                margin: 0,
+                paddingLeft: 20,
+                color: "rgba(0,0,0,0.74)",
+              }}
+            >
               <li>jak vypadá živé vysílání s inspirativním hostem</li>
               <li>jak škola sleduje program na interaktivním panelu</li>
               <li>jak fungují pracovní listy a návaznost do výuky</li>
@@ -229,19 +271,19 @@ export default function DemoPage() {
 
         <div
           style={{
-            background: "#fff",
-            borderRadius: 24,
-            padding: 28,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-            border: "1px solid rgba(0,0,0,0.08)",
+            ...cardStyle,
             alignSelf: "start",
           }}
         >
-          <h2 style={{ marginTop: 0, marginBottom: 12, fontSize: 28 }}>
+          <h2
+            className="demoFormTitle"
+            style={{ marginTop: 0, marginBottom: 12 }}
+          >
             Spustit demo školy
           </h2>
 
           <p
+            className="demoFormLead"
             style={{
               marginTop: 0,
               marginBottom: 20,
@@ -276,14 +318,7 @@ export default function DemoPage() {
                 value={school}
                 onChange={(e) => setSchool(e.target.value)}
                 required
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  fontSize: 16,
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.15)",
-                  boxSizing: "border-box",
-                }}
+                style={inputStyle}
               />
             </div>
 
@@ -303,14 +338,7 @@ export default function DemoPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  fontSize: 16,
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.15)",
-                  boxSizing: "border-box",
-                }}
+                style={inputStyle}
               />
             </div>
 
@@ -330,14 +358,7 @@ export default function DemoPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  fontSize: 16,
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.15)",
-                  boxSizing: "border-box",
-                }}
+                style={inputStyle}
               />
             </div>
 
@@ -355,6 +376,7 @@ export default function DemoPage() {
                 cursor: loading ? "default" : "pointer",
                 fontWeight: 700,
                 opacity: loading ? 0.7 : 1,
+                width: "100%",
               }}
             >
               {loading ? "Vytvářím demo učebnu…" : "Spustit demo školy"}
@@ -377,6 +399,57 @@ export default function DemoPage() {
           </form>
         </div>
       </div>
+
+      <style jsx>{`
+        .demoMainTitle {
+          font-size: 38px;
+          line-height: 1.12;
+        }
+
+        .demoMainLead {
+          font-size: 18px;
+          line-height: 1.7;
+        }
+
+        .demoSectionTitle {
+          font-size: 24px;
+        }
+
+        .demoList {
+          line-height: 1.9;
+          font-size: 16px;
+        }
+
+        .demoFormTitle {
+          font-size: 28px;
+        }
+
+        @media (max-width: 900px) {
+          .demoGrid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 760px) {
+          .demoMainTitle {
+            font-size: 28px;
+            line-height: 1.16;
+          }
+
+          .demoMainLead {
+            font-size: 16px;
+            line-height: 1.65;
+          }
+
+          .demoSectionTitle {
+            font-size: 22px;
+          }
+
+          .demoFormTitle {
+            font-size: 24px;
+          }
+        }
+      `}</style>
     </div>
   );
 }
