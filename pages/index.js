@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { supabase } from "../lib/supabaseClient";
+import Footer from "../components/Footer";
 
 const SchoolsMap = dynamic(() => import("../components/SchoolsMap"), {
   ssr: false,
@@ -1016,6 +1017,8 @@ export default function Home() {
           }
         `}</style>
       </main>
+
+      <Footer />
     </div>
   );
 }
@@ -1117,5 +1120,3 @@ function ProgramCard({ title, text, img }) {
     </div>
   );
 }
-
-
