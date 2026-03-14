@@ -543,7 +543,7 @@ export default function Home() {
                   color: "#0f172a",
                 }}
               >
-                Učebny už fungují v konkrétních městech a obcích
+                Učebny už fungují v řadě měst a obcí
               </div>
             </div>
 
