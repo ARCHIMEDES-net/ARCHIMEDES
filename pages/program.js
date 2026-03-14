@@ -219,7 +219,6 @@ function SecondaryButton({ href, children }) {
   );
 }
 
-
 function TertiaryButton({ href, children }) {
   return (
     <Link
@@ -237,6 +236,30 @@ function TertiaryButton({ href, children }) {
         fontWeight: 800,
         fontSize: 16,
         border: "1px solid #c7d2fe",
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function SeniorButton({ href, children }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: 52,
+        padding: "0 22px",
+        borderRadius: 14,
+        background: "#fff7ed",
+        color: "#9a3412",
+        textDecoration: "none",
+        fontWeight: 800,
+        fontSize: 16,
+        border: "1px solid #fdba74",
       }}
     >
       {children}
@@ -582,7 +605,6 @@ export default function ProgramPage() {
         }}
       >
         <div style={{ maxWidth: 1180, margin: "0 auto" }}>
-          {/* HERO */}
           <section
             style={{
               background: "#fff",
@@ -684,6 +706,9 @@ export default function ProgramPage() {
                   <TertiaryButton href="/financovani-skoly">
                     Pro školy – financování z OP JAK
                   </TertiaryButton>
+                  <SeniorButton href="/poptavka">
+                    Senioři – registrace
+                  </SeniorButton>
                 </div>
               </div>
 
@@ -794,7 +819,6 @@ export default function ProgramPage() {
             </div>
           </section>
 
-          {/* PROGRAM CARDS */}
           <section style={{ marginTop: 72 }}>
             <SectionTitle
               title="Hlavní rubriky programu"
@@ -837,7 +861,6 @@ export default function ProgramPage() {
             </div>
           </section>
 
-          {/* FEATURE ROWS */}
           <section style={{ marginTop: 78 }}>
             <SectionTitle
               eyebrow="Interaktivní ARCHIMEDES Live v praxi"
@@ -865,7 +888,6 @@ export default function ProgramPage() {
             />
           </section>
 
-          {/* VIDEOS */}
           <section style={{ marginTop: 84 }}>
             <SectionTitle
               eyebrow="Ukázky vysílání"
@@ -900,7 +922,6 @@ export default function ProgramPage() {
             </div>
           </section>
 
-          {/* PRICES */}
           <section id="zapojeni" style={{ marginTop: 84 }}>
             <SectionTitle
               eyebrow="Zapojení do programu"
@@ -923,7 +944,6 @@ export default function ProgramPage() {
             </div>
           </section>
 
-          {/* CTA */}
           <section
             style={{
               marginTop: 86,
