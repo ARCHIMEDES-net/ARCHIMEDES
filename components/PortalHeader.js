@@ -141,7 +141,12 @@ export default function PortalHeader({ title = "" }) {
     if (key === "archiv") return path.startsWith("/portal/archiv");
     if (key === "profil") return path.startsWith("/portal/muj-profil");
     if (key === "uzivatele") return path.startsWith("/portal/uzivatele");
-    if (key === "admin") return path.startsWith("/portal/admin");
+    if (key === "sprava-vysilani") {
+      return path.startsWith("/portal/admin-udalosti") || path.startsWith("/portal/admin/udalosti");
+    }
+    if (key === "admin") {
+      return path.startsWith("/portal/admin") && !path.startsWith("/portal/admin-udalosti");
+    }
     return false;
   };
 
@@ -264,6 +269,12 @@ export default function PortalHeader({ title = "" }) {
             Archiv
           </Link>
 
+          {!loadingRole && (isOrgAdmin || isPlatformAdmin) ? (
+            <Link href="/portal/admin-udalosti" style={navItem("sprava-vysilani")}>
+              Správa vysílání
+            </Link>
+          ) : null}
+
           {!loadingRole && isOrgAdmin ? (
             <Link href="/portal/uzivatele" style={navItem("uzivatele")}>
               Uživatelé
@@ -275,7 +286,7 @@ export default function PortalHeader({ title = "" }) {
           </Link>
 
           {!loadingRole && isPlatformAdmin ? (
-            <Link href="/portal/admin-udalosti" style={navItem("admin")}>
+            <Link href="/portal/admin" style={navItem("admin")}>
               Admin
             </Link>
           ) : null}
