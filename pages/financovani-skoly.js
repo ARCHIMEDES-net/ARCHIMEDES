@@ -67,7 +67,7 @@ export default function FinancovaniSkolyPage() {
               <div className="overflow-hidden rounded-3xl border border-slate-200 shadow-xl">
 
                 <img
-                  src="/sab7.jpg"
+                  src="/sab7.jpeg"
                   alt="Výuka v učebně ARCHIMEDES"
                   className="w-full h-full object-cover"
                 />
@@ -278,7 +278,7 @@ export default function FinancovaniSkolyPage() {
 
             <div className="mt-10 grid md:grid-cols-3 gap-6">
 
-              <img src="/sab7.jpg" className="rounded-2xl shadow" />
+              <img src="/sab7.jpeg" className="rounded-2xl shadow" />
 
               <img src="/sab2.webp" className="rounded-2xl shadow" />
 
