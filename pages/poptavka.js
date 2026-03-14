@@ -7,6 +7,11 @@ const OPTIONS = [
     text: "Živý vzdělávací a komunitní program s inspirativními hosty, který mohou využívat školy, obce i místní komunity během celého roku.",
   },
   {
+    key: "senior",
+    title: "Senior klub",
+    text: "Pravidelný program pro seniory zaměřený na inspiraci, setkávání, rozhovory a aktivní komunitní život v obci.",
+  },
+  {
     key: "ucebna",
     title: "Učebna ARCHIMEDES",
     text: "Moderní venkovní učebna jako prostor pro výuku, setkávání lidí a komunitní aktivity.",
@@ -25,6 +30,14 @@ const OPTIONS = [
 
 export default function PoptavkaPage() {
   const [selectedOption, setSelectedOption] = useState("");
+  const [name, setName] = useState("");
+  const [place, setPlace] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const selectedLabel =
     OPTIONS.find((item) => item.key === selectedOption)?.title || "";
@@ -41,6 +54,54 @@ export default function PoptavkaPage() {
     setTimeout(() => {
       scrollToForm();
     }, 80);
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess(false);
+
+    try {
+      const res = await fetch("/api/poptavka", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          selectedOption,
+          selectedLabel,
+          name,
+          place,
+          email,
+          phone,
+          message,
+        }),
+      });
+
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Nepodařilo se odeslat poptávku.");
+      }
+
+      setSuccess(true);
+      setSelectedOption("");
+      setName("");
+      setPlace("");
+      setEmail("");
+      setPhone("");
+      setMessage("");
+    } catch (err) {
+      setError(err.message || "Došlo k chybě při odeslání formuláře.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -113,7 +174,8 @@ export default function PoptavkaPage() {
             }}
           >
             Můžete využívat živý program <strong>ARCHIMEDES Live</strong>,
-            postavit <strong>učebnu ARCHIMEDES</strong> nebo obojí propojit.
+            zapojit <strong>Senior klub</strong>, postavit{" "}
+            <strong>učebnu ARCHIMEDES</strong> nebo obojí propojit.
           </p>
 
           <p
@@ -135,7 +197,7 @@ export default function PoptavkaPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
             gap: 22,
           }}
           className="interest-grid"
@@ -240,7 +302,7 @@ export default function PoptavkaPage() {
           }}
         >
           Nejste si jistí? Vyberte nejbližší možnost nebo nám napište pár slov.
-          Společně najdeme vhodné řešení pro školu, obec i komunitu.
+          Společně najdeme vhodné řešení pro školu, obec, seniory i komunitu.
         </p>
       </section>
 
@@ -331,12 +393,13 @@ export default function PoptavkaPage() {
           Vyplnění formuláře zabere méně než minutu.
         </p>
 
-        <form style={{ maxWidth: 760, marginTop: 28 }}>
+        <form onSubmit={handleSubmit} style={{ maxWidth: 760, marginTop: 28 }}>
           <label style={labelStyle}>Mám zájem o</label>
           <select
             value={selectedOption}
             onChange={(e) => setSelectedOption(e.target.value)}
             style={inputStyle}
+            required
           >
             <option value="">Vyberte možnost</option>
             {OPTIONS.map((item) => (
@@ -353,30 +416,101 @@ export default function PoptavkaPage() {
           ) : null}
 
           <label style={{ ...labelStyle, marginTop: 16 }}>Jméno</label>
-          <input type="text" style={inputStyle} />
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={inputStyle}
+            required
+          />
 
           <label style={{ ...labelStyle, marginTop: 16 }}>Odkud jste</label>
-          <input type="text" style={inputStyle} />
+          <input
+            type="text"
+            value={place}
+            onChange={(e) => setPlace(e.target.value)}
+            style={inputStyle}
+          />
 
           <label style={{ ...labelStyle, marginTop: 16 }}>Email</label>
-          <input type="email" style={inputStyle} />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={inputStyle}
+            required
+          />
           <div style={helpStyle}>Na tento email vám pošleme odpověď.</div>
 
           <label style={{ ...labelStyle, marginTop: 16 }}>Telefon</label>
-          <input type="tel" style={inputStyle} />
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            style={inputStyle}
+          />
           <div style={helpStyle}>Telefon je volitelný, ale urychlí domluvu.</div>
 
           <label style={{ ...labelStyle, marginTop: 16 }}>Zpráva</label>
-          <textarea rows="6" style={textareaStyle} />
+          <textarea
+            rows="6"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            style={textareaStyle}
+          />
           <div style={helpStyle}>
             Můžete doplnit základní představu, termín nebo místo.
           </div>
 
           <div style={{ marginTop: 24 }}>
-            <button type="submit" style={buttonStyle}>
-              Odeslat
+            <button
+              type="submit"
+              style={{
+                ...buttonStyle,
+                opacity: loading ? 0.7 : 1,
+                cursor: loading ? "not-allowed" : "pointer",
+              }}
+              disabled={loading}
+            >
+              {loading ? "Odesílám..." : "Odeslat"}
             </button>
           </div>
+
+          {success ? (
+            <div
+              style={{
+                marginTop: 16,
+                padding: "14px 16px",
+                borderRadius: 14,
+                border: "1px solid #bbf7d0",
+                background: "#f0fdf4",
+                color: "#166534",
+                fontSize: 15,
+                fontWeight: 700,
+                lineHeight: 1.6,
+              }}
+            >
+              Děkujeme, poptávka byla odeslána. Ozveme se vám co nejdříve.
+            </div>
+          ) : null}
+
+          {error ? (
+            <div
+              style={{
+                marginTop: 16,
+                padding: "14px 16px",
+                borderRadius: 14,
+                border: "1px solid #fecaca",
+                background: "#fef2f2",
+                color: "#991b1b",
+                fontSize: 15,
+                fontWeight: 700,
+                lineHeight: 1.6,
+              }}
+            >
+              {error}
+            </div>
+          ) : null}
 
           <p
             style={{
@@ -602,6 +736,12 @@ export default function PoptavkaPage() {
           grid-template-columns: 1.05fr 0.95fr;
           gap: 28px;
           align-items: center;
+        }
+
+        @media (max-width: 1280px) {
+          .interest-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+          }
         }
 
         @media (max-width: 1024px) {
