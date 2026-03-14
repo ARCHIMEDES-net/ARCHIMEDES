@@ -46,6 +46,48 @@ function withTimeout(promise, ms, label) {
   ]);
 }
 
+const inputStyle = {
+  width: "100%",
+  padding: "12px 14px",
+  borderRadius: 12,
+  border: "1px solid rgba(0,0,0,0.15)",
+  boxSizing: "border-box",
+};
+
+const primaryButtonStyle = (saving) => ({
+  padding: "12px 18px",
+  borderRadius: 12,
+  border: "none",
+  background: "#111827",
+  color: "#fff",
+  fontWeight: 700,
+  cursor: saving ? "default" : "pointer",
+  opacity: saving ? 0.7 : 1,
+});
+
+const linkButtonStyle = {
+  background: "none",
+  border: "none",
+  padding: 0,
+  color: "#111827",
+  textDecoration: "underline",
+  cursor: "pointer",
+  fontSize: 14,
+};
+
+const legalTextStyle = {
+  marginTop: 16,
+  fontSize: 13,
+  lineHeight: 1.7,
+  color: "rgba(0,0,0,0.62)",
+};
+
+const legalLinkStyle = {
+  color: "#111827",
+  fontWeight: 700,
+  textDecoration: "none",
+};
+
 export default function Login() {
   const router = useRouter();
 
@@ -62,8 +104,6 @@ export default function Login() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // DŮLEŽITÉ: když jsme v recovery/invite flow, nedovolíme návrat do loginu
-  // dřív, než uživatel heslo skutečně nastaví nebo než flow selže.
   const passwordFlowLockedRef = useRef(false);
 
   async function getProfileMustSetPassword(userId) {
@@ -176,8 +216,6 @@ export default function Login() {
           return;
         }
 
-        // Když nemáme session, ale jsme v reset flow, stále držíme formulář
-        // pro nové heslo. Někdy se session dotáhne až o chvilku později.
         if (inviteOrRecovery) {
           passwordFlowLockedRef.current = true;
           setMode("set-password");
@@ -229,7 +267,11 @@ export default function Login() {
         if (inviteOrRecovery || passwordFlowLockedRef.current) {
           passwordFlowLockedRef.current = true;
           setMode("set-password");
-          setMessage(type === "recovery" ? "Nastavte si nové heslo." : "Dokončete registraci nastavením svého hesla.");
+          setMessage(
+            type === "recovery"
+              ? "Nastavte si nové heslo."
+              : "Dokončete registraci nastavením svého hesla."
+          );
           setCheckingSession(false);
           return;
         }
@@ -238,9 +280,6 @@ export default function Login() {
         return;
       }
 
-      // DŮLEŽITÉ:
-      // pokud jsme v reset/invite flow, ignorujeme přepnutí do loginu
-      // a držíme formulář pro nové heslo.
       if ((event === "SIGNED_OUT" || !session) && passwordFlowLockedRef.current) {
         setMode("set-password");
         setCheckingSession(false);
@@ -490,13 +529,7 @@ export default function Login() {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.15)",
-                  boxSizing: "border-box",
-                }}
+                style={inputStyle}
               />
             </div>
 
@@ -508,30 +541,11 @@ export default function Login() {
                 type="password"
                 value={newPassword2}
                 onChange={(e) => setNewPassword2(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.15)",
-                  boxSizing: "border-box",
-                }}
+                style={inputStyle}
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={saving}
-              style={{
-                padding: "12px 18px",
-                borderRadius: 12,
-                border: "none",
-                background: "#111827",
-                color: "#fff",
-                fontWeight: 700,
-                cursor: saving ? "default" : "pointer",
-                opacity: saving ? 0.7 : 1,
-              }}
-            >
+            <button type="submit" disabled={saving} style={primaryButtonStyle(saving)}>
               {saving ? "Ukládám…" : "Nastavit heslo a pokračovat"}
             </button>
           </form>
@@ -545,30 +559,11 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.15)",
-                  boxSizing: "border-box",
-                }}
+                style={inputStyle}
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={saving}
-              style={{
-                padding: "12px 18px",
-                borderRadius: 12,
-                border: "none",
-                background: "#111827",
-                color: "#fff",
-                fontWeight: 700,
-                cursor: saving ? "default" : "pointer",
-                opacity: saving ? 0.7 : 1,
-              }}
-            >
+            <button type="submit" disabled={saving} style={primaryButtonStyle(saving)}>
               {saving ? "Odesílám…" : "Odeslat odkaz pro nové heslo"}
             </button>
 
@@ -580,15 +575,7 @@ export default function Login() {
                   setError("");
                   setMessage("");
                 }}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: 0,
-                  color: "#111827",
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                  fontSize: 14,
-                }}
+                style={linkButtonStyle}
               >
                 Zpět na přihlášení
               </button>
@@ -605,13 +592,7 @@ export default function Login() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(0,0,0,0.15)",
-                    boxSizing: "border-box",
-                  }}
+                  style={inputStyle}
                 />
               </div>
 
@@ -623,13 +604,7 @@ export default function Login() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(0,0,0,0.15)",
-                    boxSizing: "border-box",
-                  }}
+                  style={inputStyle}
                 />
               </div>
 
@@ -641,37 +616,32 @@ export default function Login() {
                     setError("");
                     setMessage("");
                   }}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    color: "#111827",
-                    textDecoration: "underline",
-                    cursor: "pointer",
-                    fontSize: 14,
-                  }}
+                  style={linkButtonStyle}
                 >
                   Zapomenuté heslo
                 </button>
               </div>
 
-              <button
-                type="submit"
-                disabled={saving}
-                style={{
-                  padding: "12px 18px",
-                  borderRadius: 12,
-                  border: "none",
-                  background: "#111827",
-                  color: "#fff",
-                  fontWeight: 700,
-                  cursor: saving ? "default" : "pointer",
-                  opacity: saving ? 0.7 : 1,
-                }}
-              >
+              <button type="submit" disabled={saving} style={primaryButtonStyle(saving)}>
                 {saving ? "Přihlašuji…" : "Přihlásit se"}
               </button>
             </form>
+
+            <p style={legalTextStyle}>
+              Přihlášením do portálu berete na vědomí{" "}
+              <Link href="/pravni" style={legalLinkStyle}>
+                podmínky používání
+              </Link>
+              ,{" "}
+              <Link href="/pravni#udaje" style={legalLinkStyle}>
+                ochranu osobních údajů
+              </Link>{" "}
+              a{" "}
+              <Link href="/pravni#cookies" style={legalLinkStyle}>
+                informace o cookies
+              </Link>
+              .
+            </p>
 
             <div
               style={{
