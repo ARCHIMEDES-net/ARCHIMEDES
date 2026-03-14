@@ -188,6 +188,7 @@ function PrimaryButton({ href, children }) {
         fontWeight: 700,
         fontSize: 16,
         boxShadow: "0 14px 34px rgba(15,23,42,0.16)",
+        transition: "transform 0.18s ease, box-shadow 0.18s ease",
       }}
     >
       {children}
@@ -212,6 +213,7 @@ function SecondaryButton({ href, children }) {
         fontWeight: 700,
         fontSize: 16,
         border: "1px solid #cbd5e1",
+        transition: "transform 0.18s ease, box-shadow 0.18s ease",
       }}
     >
       {children}
@@ -236,6 +238,7 @@ function TertiaryButton({ href, children }) {
         fontWeight: 800,
         fontSize: 16,
         border: "1px solid #c7d2fe",
+        transition: "transform 0.18s ease, box-shadow 0.18s ease",
       }}
     >
       {children}
@@ -247,6 +250,7 @@ function SeniorButton({ href, children }) {
   return (
     <Link
       href={href}
+      className="senior-cta"
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -254,12 +258,14 @@ function SeniorButton({ href, children }) {
         minHeight: 52,
         padding: "0 22px",
         borderRadius: 14,
-        background: "#fff7ed",
+        background: "linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)",
         color: "#9a3412",
         textDecoration: "none",
         fontWeight: 800,
         fontSize: 16,
         border: "1px solid #fdba74",
+        boxShadow: "0 10px 24px rgba(154,52,18,0.08)",
+        transition: "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
       {children}
@@ -695,19 +701,24 @@ export default function ProgramPage() {
 
                 <div
                   style={{
-                    display: "flex",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, minmax(220px, max-content))",
                     gap: 14,
-                    flexWrap: "wrap",
-                    marginTop: 28,
+                    marginTop: 30,
+                    alignItems: "stretch",
                   }}
+                  className="hero-cta-grid"
                 >
                   <PrimaryButton href="/demo">Mám zájem o demo</PrimaryButton>
+
                   <SecondaryButton href="#zapojeni">Jak se zapojit</SecondaryButton>
+
                   <TertiaryButton href="/financovani-skoly">
                     Pro školy – financování z OP JAK
                   </TertiaryButton>
+
                   <SeniorButton href="/poptavka">
-                    Senioři – registrace
+                    Senior klub - registrace
                   </SeniorButton>
                 </div>
               </div>
@@ -989,6 +1000,19 @@ export default function ProgramPage() {
       </main>
 
       <style jsx>{`
+        .hero-cta-grid :global(a) {
+          width: 100%;
+        }
+
+        .hero-cta-grid :global(a:hover) {
+          transform: translateY(-1px);
+        }
+
+        .hero-cta-grid :global(.senior-cta:hover) {
+          box-shadow: 0 16px 30px rgba(154, 52, 18, 0.14);
+          background: linear-gradient(135deg, #fff1e6 0%, #fed7aa 100%);
+        }
+
         @media (max-width: 1100px) {
           .program-grid,
           .price-grid {
@@ -1011,6 +1035,10 @@ export default function ProgramPage() {
           .program-poster-hero {
             min-height: 380px !important;
           }
+
+          .hero-cta-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
         }
 
         @media (max-width: 760px) {
@@ -1025,6 +1053,10 @@ export default function ProgramPage() {
 
           .program-poster-hero {
             min-height: 320px !important;
+          }
+
+          .hero-cta-grid {
+            grid-template-columns: 1fr !important;
           }
         }
       `}</style>
