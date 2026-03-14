@@ -10,14 +10,12 @@ const SchoolsMap = dynamic(() => import("../components/SchoolsMap"), {
 
 const BUCKET = "schools";
 
-// Obrázky stejně jako v původní homepage ze ZIPu
 const heroImg = "/ucebna.jpg";
 const lessonImg = "/vyuka.jpeg";
 const guestImg = "/ctenarsky.jpg";
 const communityImg = "/smart.jpg";
 const kidsImg = "/praxe.webp";
 
-// fallback pouze pro případ, že by API dočasně nevrátilo data
 const fallbackPosts = [
   { type: "p", id: "DVyqPmiiLKF" },
   { type: "p", id: "DVvUBXDCMYC" },
@@ -289,6 +287,17 @@ function MediaLogoButton({ label, domain, href }) {
   );
 }
 
+function HeroBadge() {
+  return (
+    <div className="heroBadge">
+      <div className="heroBadgeTitle">ARCHIMEDES Live</div>
+      <div className="heroBadgeText">
+        Živý program, který propojuje venkovní učebnu, školu a život obce
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [posts, setPosts] = useState([]);
   const [instagramReady, setInstagramReady] = useState(false);
@@ -387,22 +396,7 @@ export default function Home() {
         >
           <div className="heroGrid">
             <div>
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "8px 14px",
-                  borderRadius: 999,
-                  background: "rgba(15,23,42,0.06)",
-                  color: "#0f172a",
-                  fontSize: 13,
-                  fontWeight: 800,
-                  marginBottom: 18,
-                }}
-              >
-                ARCHIMEDES Live<br />Živý program, který propojuje venkovní učebnu, školu a život obce
-                  </div>
+              <HeroBadge />
 
               <h1
                 style={{
@@ -418,19 +412,36 @@ export default function Home() {
                 školu s životem obce
               </h1>
 
-              <p
+              <div
                 style={{
-                  fontSize: 21,
-                  lineHeight: 1.55,
-                  color: "rgba(15,23,42,0.76)",
                   maxWidth: 700,
                   margin: 0,
                 }}
               >
-                ARCHIMEDES® propojuje venkovní učebnu, inspirativní hosty a živý program pro děti,
-                učitele, seniory i komunitu obce. Škola získává inspirativní výuku a
-                obec živý program pro své obyvatele.
-              </p>
+                <p
+                  style={{
+                    fontSize: 21,
+                    lineHeight: 1.55,
+                    color: "rgba(15,23,42,0.76)",
+                    margin: 0,
+                  }}
+                >
+                  ARCHIMEDES® propojuje venkovní učebnu, inspirativní hosty a
+                  živý program pro děti, učitele, seniory i komunitu obce.
+                </p>
+
+                <p
+                  style={{
+                    fontSize: 21,
+                    lineHeight: 1.55,
+                    color: "rgba(15,23,42,0.76)",
+                    margin: "10px 0 0",
+                  }}
+                >
+                  Škola získává inspirativní výuku a obec pravidelný program pro
+                  své obyvatele.
+                </p>
+              </div>
 
               <div
                 style={{
@@ -445,7 +456,7 @@ export default function Home() {
               >
                 <div>• hosté z Akademie věd, kultury, odborné praxe i ze zahraničí</div>
                 <div>• využití pro školu, komunitu obce i společné akce</div>
-                <div>• síť reálných učeben ARCHIMEDES® po celé republice</div>
+                <div>• síť učeben ARCHIMEDES® po celé republice</div>
               </div>
             </div>
 
@@ -477,7 +488,7 @@ export default function Home() {
                   fontWeight: 700,
                 }}
               >
-                Venkovní učebna ARCHIMEDES® – reálná realizace v síti projektu
+                Venkovní učebna ARCHIMEDES® – realizace projektu
               </div>
             </div>
           </div>
@@ -621,12 +632,12 @@ export default function Home() {
             <InfoCard
               number="2"
               title="Připravené pracovní listy"
-              text="Pro vysílání jsou připraveny materiály pro další práci ve třídě."
+              text="Pro každé vysílání jsou připraveny materiály pro další práci ve třídě."
             />
             <InfoCard
               number="3"
               title="Přínos i pro obec"
-              text="Platforma nabízí program také seniorům, komunitě a veřejným akcím v obci."
+              text="Program nabízí obsah také seniorům, komunitě a veřejným akcím v obci."
             />
           </div>
         </section>
@@ -717,8 +728,8 @@ export default function Home() {
                     color: "rgba(15,23,42,0.72)",
                   }}
                 >
-                  V programu se propojuje škola s vědou, kulturou, veřejným životem
-                  i odbornými partnery.
+                  Děti se setkávají s vědci, autory, odborníky z praxe i
+                  inspirativními osobnostmi veřejného života.
                 </p>
               </div>
             </div>
@@ -883,9 +894,9 @@ export default function Home() {
                     maxWidth: 740,
                   }}
                 >
-                  ARCHIMEDES® dodává licenci programu i samotnou stavbu učebny.
-                  Pomůžeme vám vybrat model, který bude dávat smysl právě pro vaši
-                  školu nebo obec.
+                  ARCHIMEDES® nabízí licenci programu i realizaci venkovní
+                  učebny. Pomůžeme vám vybrat model, který bude dávat smysl
+                  právě pro vaši školu nebo obec.
                 </div>
               </div>
               <div
@@ -912,6 +923,37 @@ export default function Home() {
             grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
             gap: 36px;
             align-items: center;
+          }
+
+          .heroBadge {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: linear-gradient(
+              180deg,
+              rgba(15, 23, 42, 0.06) 0%,
+              rgba(15, 23, 42, 0.08) 100%
+            );
+            color: #0f172a;
+            margin-bottom: 18px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+            max-width: 100%;
+          }
+
+          .heroBadgeTitle {
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1.2;
+          }
+
+          .heroBadgeText {
+            font-size: 12px;
+            line-height: 1.35;
+            font-weight: 700;
+            color: rgba(15, 23, 42, 0.86);
           }
 
           .instagramGrid {
@@ -1013,6 +1055,19 @@ export default function Home() {
             .programGrid,
             .mediaStrip {
               grid-template-columns: 1fr;
+            }
+
+            .heroBadge {
+              border-radius: 22px;
+              padding: 10px 14px;
+            }
+
+            .heroBadgeTitle {
+              font-size: 12px;
+            }
+
+            .heroBadgeText {
+              font-size: 11.5px;
             }
           }
         `}</style>
