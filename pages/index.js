@@ -488,7 +488,7 @@ export default function Home() {
                   fontWeight: 700,
                 }}
               >
-                Venkovní učebna ARCHIMEDES® – realizace projektu
+                Venkovní učebna ARCHIMEDES® – realizace v ZŠ Ratíškovice
               </div>
             </div>
           </div>
