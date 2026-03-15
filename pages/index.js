@@ -554,7 +554,7 @@ export default function Home() {
                   color: "#0f172a",
                 }}
               >
-                Učebny už fungují v řadě měst a obcí
+                Učebny už fungují v řadě měst a obcí - přidejte se...
               </div>
             </div>
 
