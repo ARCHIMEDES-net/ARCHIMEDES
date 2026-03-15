@@ -96,12 +96,18 @@ export default function FinancovaniSkolyPage() {
                   Pro ředitele základních škol
                 </div>
 
-                <h1 className="mt-6 max-w-4xl text-4xl font-black leading-tight tracking-tight text-slate-900 sm:text-5xl lg:text-5xl">
-                  Máte ve škole Šablony OP JAK?
-                  <br />
-                  ARCHIMEDES Live může být
-                  <br />
-                  smysluplnou součástí vaší výuky.
+                <h1 className="mt-6 max-w-2xl text-4xl font-bold leading-[1.15] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+                  <span className="block text-3xl font-semibold text-slate-700 sm:text-4xl lg:text-5xl">
+                    Šablony OP JAK ve škole?
+                  </span>
+
+                  <span className="block mt-3">
+                    ARCHIMEDES Live přináší
+                  </span>
+
+                  <span className="block mt-3 font-extrabold">
+                    hotový program do výuky.
+                  </span>
                 </h1>
 
                 <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-700 sm:text-xl">
