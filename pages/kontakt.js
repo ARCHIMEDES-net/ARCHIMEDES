@@ -205,7 +205,7 @@ export default function Kontakt() {
               }}
             >
               <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 24 }}>
-                Realizátor:
+                Realizátor
               </h3>
               <p style={{ color: "rgba(0,0,0,0.65)", marginTop: 0 }}>
                 EduVision s.r.o.
