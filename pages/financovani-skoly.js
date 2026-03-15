@@ -209,7 +209,7 @@ export default function FinancovaniSkolyPage() {
                 </div>
 
                 <h2 className="mt-4 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
-                  Nekupujete technologii. Kupujete hotovou vzdělávací hodinu.
+                  Získáváte hotovou vzdělávací hodinu.
                 </h2>
 
                 <p className="mt-5 text-base leading-8 text-slate-700 sm:text-lg">
