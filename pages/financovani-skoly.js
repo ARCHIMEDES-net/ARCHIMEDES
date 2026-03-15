@@ -1,228 +1,345 @@
-
+import Head from "next/head";
 import Link from "next/link";
 import Footer from "../components/Footer";
 
-export default function FinancovaniSkoly() {
+const heroImg = "/IMG_0228_hero.webp";
+const panelImg = "/DJI_20260202_100827_288_content.webp";
+const classImg = "/DJI_20260202_104516_998_content.webp";
+
+const benefitCards = [
+  {
+    title: "Neřešíte další projekt navíc",
+    text:
+      "Získáte hotový program, který můžete zařadit do výuky bez složité přípravy a bez vymýšlení nového formátu.",
+  },
+  {
+    title: "Dává to smysl ve výuce",
+    text:
+      "Žáci sledují živý vstup, pracují s tématem a učitel má k dispozici navazující aktivitu pro třídu.",
+  },
+  {
+    title: "Máte jasný argument pro školu",
+    text:
+      "Program propojuje školu s lidmi z praxe, aktuálními tématy a moderními formami výuky, které dnes školy hledají.",
+  },
+];
+
+const fitItems = [
+  "živý vstup do vyučování",
+  "host z praxe nebo inspirativní osobnost",
+  "práce s aktuálním tématem",
+  "projektová nebo tematická hodina",
+  "navazující pracovní list",
+  "větší zapojení a pozornost žáků",
+];
+
+const practicalSteps = [
+  {
+    number: "1",
+    title: "Vyberete vhodné vysílání",
+    text:
+      "Podle věku žáků, tématu nebo podle toho, co právě ve škole řešíte.",
+  },
+  {
+    number: "2",
+    title: "Pustíte program ve třídě",
+    text:
+      "Na interaktivním panelu nebo přes běžné školní vybavení, které už máte.",
+  },
+  {
+    number: "3",
+    title: "Navážete prací s třídou",
+    text:
+      "Krátká diskuse, reflexe nebo pracovní list promění sledování v plnohodnotnou vzdělávací aktivitu.",
+  },
+];
+
+function PrimaryButton({ href, children }) {
   return (
-    <main>
+    <Link
+      href={href}
+      className="inline-flex min-h-[52px] items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-base font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-slate-800 hover:shadow-xl"
+    >
+      {children}
+    </Link>
+  );
+}
 
-      {/* HERO */}
+function SecondaryButton({ href, children }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex min-h-[52px] items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 py-3 text-base font-extrabold text-slate-800 transition hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-lg"
+    >
+      {children}
+    </Link>
+  );
+}
 
-      <section className="section hero">
-        <div className="container hero-grid">
+export default function FinancovaniSkolyPage() {
+  return (
+    <>
+      <Head>
+        <title>Financování školy | ARCHIMEDES Live</title>
+        <meta
+          name="description"
+          content="Jste ředitel školy a řešíte, zda lze ARCHIMEDES Live využít v rámci Šablon OP JAK? Přehledně a srozumitelně: co program přináší škole, učitelům i žákům."
+        />
+      </Head>
 
-          <div className="hero-text">
+      <main className="bg-white text-slate-900">
+        <section className="border-b border-slate-200 bg-gradient-to-b from-slate-50 via-white to-white">
+          <div className="mx-auto max-w-7xl px-5 py-10 sm:px-6 md:px-8 md:py-16">
+            <div className="grid items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
+              <div>
+                <div className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-700">
+                  Pro ředitele základních škol
+                </div>
 
-            <div className="badge">
-              Pro ředitele základních škol
+                <h1 className="mt-5 max-w-4xl text-4xl font-black leading-tight tracking-tight text-slate-900 sm:text-5xl">
+                  ARCHIMEDES Live pro školy se Šablonami OP JAK
+                </h1>
+
+                <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-700 sm:text-xl">
+                  Pokud ve škole pracujete s projektem <strong>Šablony OP JAK</strong>,
+                  pravděpodobně hledáte aktivity, které budou pro žáky opravdu
+                  přínosné a pro učitele reálně použitelné.
+                </p>
+
+                <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+                  <strong>ARCHIMEDES Live</strong> vám přináší hotový formát do
+                  výuky: živý vstup, hosta z praxe, jasnou strukturu hodiny a
+                  navazující práci s žáky. Nejde o další složitou povinnost
+                  navíc, ale o program, který můžete rovnou použít ve škole.
+                </p>
+
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                  <PrimaryButton href="/poptavka">
+                    Chci ukázkovou hodinu pro naši školu
+                  </PrimaryButton>
+                  <SecondaryButton href="/program">
+                    Podívat se na program
+                  </SecondaryButton>
+                </div>
+
+                <div className="mt-8 rounded-3xl border border-emerald-200 bg-emerald-50/80 p-5">
+                  <div className="text-sm font-extrabold uppercase tracking-wide text-emerald-700">
+                    Co je pro vás důležité vědět hned
+                  </div>
+                  <ul className="mt-3 space-y-3 text-sm leading-6 text-slate-700 sm:text-base">
+                    <li>• nemusíte vymýšlet nový formát výuky</li>
+                    <li>• program je připravený tak, aby dával smysl ve škole</li>
+                    <li>• učitel dostává obsah, který lze rovnou použít ve třídě</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl">
+                  <img
+                    src={heroImg}
+                    alt="Žáci základní školy při projektové výuce v učebně ARCHIMEDES"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="text-2xl font-black text-slate-900">1</div>
+                    <div className="mt-1 text-sm font-bold text-slate-800">
+                      živý vstup
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="text-2xl font-black text-slate-900">1</div>
+                    <div className="mt-1 text-sm font-bold text-slate-800">
+                      silné téma
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="text-2xl font-black text-slate-900">1</div>
+                    <div className="mt-1 text-sm font-bold text-slate-800">
+                      práce s třídou
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <h1>
-              ARCHIMEDES Live pro školy se Šablonami OP JAK
-            </h1>
-
-            <p className="lead">
-              Pokud vaše škola pracuje s projektem <strong>Šablony OP JAK</strong>, 
-              můžete do výuky zapojit hotový vzdělávací program s živými vstupy, 
-              hosty z praxe a navazující prací se žáky.
-            </p>
-
-            <p>
-              ARCHIMEDES Live není další administrativní povinnost.  
-              Je to připravený formát výuky, který můžete jednoduše 
-              zapojit do běžné práce školy.
-            </p>
-
-            <div className="hero-buttons">
-
-              <Link href="/poptavka" className="btn-primary">
-                Chci ukázkovou hodinu pro naši školu
-              </Link>
-
-              <Link href="/program" className="btn-secondary">
-                Podívat se na program
-              </Link>
-
-            </div>
-
           </div>
+        </section>
 
-          <div className="hero-image">
-            <img src="/ucebna-deti.webp" alt="Výuka v učebně ARCHIMEDES" />
-          </div>
-
-        </div>
-      </section>
-
-
-      {/* CO PROGRAM PŘINÁŠÍ */}
-
-      <section className="section benefits">
-        <div className="container">
-
-          <h2>
-            Co program přináší do výuky
-          </h2>
-
-          <div className="grid-3">
-
-            <div className="card">
-              <div className="number">1</div>
-              <h3>živý vstup</h3>
-              <p>
-                Do výuky vstupuje odborník z praxe – vědec, autor,
-                podnikatel nebo inspirativní osobnost.
-              </p>
-            </div>
-
-            <div className="card">
-              <div className="number">1</div>
-              <h3>silné téma</h3>
-              <p>
-                Každé vysílání se věnuje aktuálnímu tématu,
-                které pomáhá žákům chápat svět v souvislostech.
-              </p>
-            </div>
-
-            <div className="card">
-              <div className="number">1</div>
-              <h3>práce s třídou</h3>
-              <p>
-                Učitel dostává pracovní list a strukturu hodiny,
-                takže lze program okamžitě využít ve výuce.
-              </p>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-
-      {/* ŠABLONY */}
-
-      <section className="section funding">
-        <div className="container funding-grid">
-
-          <div className="funding-image">
-            <img src="/panel-vysilani.webp" alt="Vysílání ARCHIMEDES Live ve škole" />
-          </div>
-
-          <div>
-
-            <h2>
-              Jak lze program využít ve Šablonách OP JAK
+        <section className="mx-auto max-w-7xl px-5 py-12 sm:px-6 md:px-8 md:py-16">
+          <div className="max-w-3xl">
+            <h2 className="text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
+              Proč by vás to mělo jako ředitele zajímat
             </h2>
-
-            <p>
-              Školy často hledají smysluplné aktivity, které budou 
-              skutečně přínosné pro žáky i učitele.
+            <p className="mt-4 text-base leading-8 text-slate-700 sm:text-lg">
+              Ve škole potřebujete obsah, který bude smysluplný pro žáky,
+              použitelný pro učitele a obhajitelný před vedením i zřizovatelem.
+              Právě v tom je ARCHIMEDES Live silný.
             </p>
-
-            <p>
-              ARCHIMEDES Live lze využít například v oblastech:
-            </p>
-
-            <ul className="list">
-
-              <li>
-                inovativní výuka
-              </li>
-
-              <li>
-                projektové vzdělávání
-              </li>
-
-              <li>
-                propojování školy s praxí
-              </li>
-
-              <li>
-                rozvoj kompetencí žáků
-              </li>
-
-              <li>
-                spolupráce mezi školami
-              </li>
-
-            </ul>
-
-            <p>
-              Program je připraven tak, aby jej bylo možné 
-              snadno zapojit do běžného školního provozu.
-            </p>
-
           </div>
 
-        </div>
-      </section>
-
-
-      {/* PROČ TO DÁVÁ SMYSL */}
-
-      <section className="section why">
-        <div className="container">
-
-          <h2>
-            Proč školy ARCHIMEDES Live využívají
-          </h2>
-
-          <div className="grid-3">
-
-            <div className="card">
-              <h3>Inspirace pro žáky</h3>
-              <p>
-                Žáci se setkávají s lidmi z praxe a vidí,
-                jak mohou znalosti využít v reálném životě.
-              </p>
-            </div>
-
-            <div className="card">
-              <h3>Podpora pro učitele</h3>
-              <p>
-                Učitel získává připravenou strukturu hodiny
-                a kvalitní obsah bez zbytečné přípravy navíc.
-              </p>
-            </div>
-
-            <div className="card">
-              <h3>Propojení škol</h3>
-              <p>
-                Školy se zapojují do společné sítě a sdílejí
-                zkušenosti i inspiraci.
-              </p>
-            </div>
-
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {benefitCards.map((item) => (
+              <div
+                key={item.title}
+                className="rounded-[26px] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+              >
+                <h3 className="text-xl font-black text-slate-900">
+                  {item.title}
+                </h3>
+                <p className="mt-3 text-base leading-7 text-slate-600">
+                  {item.text}
+                </p>
+              </div>
+            ))}
           </div>
+        </section>
 
-        </div>
-      </section>
+        <section className="bg-slate-50">
+          <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 md:px-8 md:py-16">
+            <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+              <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
+                <img
+                  src={panelImg}
+                  alt="Živé vysílání ARCHIMEDES Live na interaktivním panelu ve třídě"
+                  className="h-full w-full object-cover"
+                />
+              </div>
 
+              <div>
+                <div className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700">
+                  Co ve škole skutečně kupujete
+                </div>
 
-      {/* CTA */}
+                <h2 className="mt-4 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
+                  Nekupujete technologii. Kupujete hotovou vzdělávací hodinu.
+                </h2>
 
-      <section className="section cta">
-        <div className="container center">
+                <p className="mt-5 text-base leading-8 text-slate-700 sm:text-lg">
+                  Z pohledu ředitele je důležité, že ARCHIMEDES Live není jen
+                  nějaká platforma, kterou si škola pořídí a pak přemýšlí, co s
+                  ní. Dostáváte konkrétní vzdělávací obsah, který lze použít ve
+                  výuce.
+                </p>
 
-          <h2>
-            Chcete vidět, jak může ARCHIMEDES Live fungovat ve vaší škole?
-          </h2>
+                <p className="mt-4 text-base leading-8 text-slate-700 sm:text-lg">
+                  Největší přínos je v tom, že žáci nesledují pasivně video, ale
+                  dostávají živý vstup, téma k přemýšlení a navazující práci ve
+                  třídě.
+                </p>
 
-          <p>
-            Rádi vám ukážeme ukázkovou hodinu, kterou můžete
-            vyzkoušet se svou třídou.
-          </p>
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  {fitItems.map((item) => (
+                    <div
+                      key={item}
+                      className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm"
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-          <Link href="/poptavka" className="btn-primary big">
-            Domluvit ukázkovou hodinu
-          </Link>
+        <section className="mx-auto max-w-7xl px-5 py-12 sm:px-6 md:px-8 md:py-16">
+          <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+            <div>
+              <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold text-slate-700">
+                Jak to vypadá v praxi
+              </div>
 
-        </div>
-      </section>
+              <h2 className="mt-4 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
+                Pro vás jednoduché. Pro učitele použitelné. Pro žáky zajímavé.
+              </h2>
 
+              <p className="mt-5 text-base leading-8 text-slate-700 sm:text-lg">
+                Ve škole potřebujete řešení, které nezatíží provoz a nebude stát
+                na tom, že si jeden učitel všechno sám připraví od začátku.
+                Proto je ARCHIMEDES Live postavený co nejjednodušeji.
+              </p>
+
+              <div className="mt-8 space-y-4">
+                {practicalSteps.map((step) => (
+                  <div
+                    key={step.number}
+                    className="flex gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5"
+                  >
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-lg font-black text-white">
+                      {step.number}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900">
+                        {step.title}
+                      </h3>
+                      <p className="mt-1 text-base leading-7 text-slate-600">
+                        {step.text}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
+              <img
+                src={classImg}
+                alt="Projektová výuka dětí v učebně ARCHIMEDES"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-slate-50">
+          <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 md:px-8 md:py-16">
+            <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+              <div className="rounded-[28px] border border-blue-200 bg-blue-50 p-6 sm:p-8">
+                <div className="text-sm font-black uppercase tracking-wide text-blue-700">
+                  Stručně řečeno
+                </div>
+                <h2 className="mt-3 text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
+                  Pokud hledáte program, který bude ve škole opravdu žít, jste na správném místě.
+                </h2>
+                <p className="mt-4 text-base leading-7 text-slate-700">
+                  Jako ředitel nepotřebujete další složitý systém. Potřebujete
+                  obsah, který bude fungovat ve třídě, bude přínosný pro žáky a
+                  učitel ho zvládne bez zbytečné zátěže. Přesně tak je
+                  ARCHIMEDES Live postavený.
+                </p>
+              </div>
+
+              <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                <div className="text-sm font-black uppercase tracking-wide text-slate-500">
+                  Nejlepší další krok
+                </div>
+                <h2 className="mt-3 text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
+                  Podívejte se, jak by to mohlo fungovat právě u vás ve škole
+                </h2>
+                <p className="mt-4 text-base leading-7 text-slate-600">
+                  Nejrychlejší je krátká ukázková hodina. Uvidíte reakci žáků,
+                  práci učitele i to, jestli je tento model vhodný právě pro
+                  vaši školu.
+                </p>
+
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <PrimaryButton href="/poptavka">
+                    Chci ukázkovou hodinu
+                  </PrimaryButton>
+                  <SecondaryButton href="/kontakt">
+                    Potřebuji se doptat
+                  </SecondaryButton>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
 
       <Footer />
-
-    </main>
+    </>
   );
 }
