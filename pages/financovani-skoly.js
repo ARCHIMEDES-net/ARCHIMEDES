@@ -207,36 +207,33 @@ export default function FinancovaniSkolyPage() {
 
               <div>
                 <div className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700">
-                  Jak to funguje ve škole
+                  Co ve škole skutečně kupujete
                 </div>
 
                 <h2 className="mt-4 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
-                  Pro vás jednoduché. Pro učitele použitelné. Pro žáky atraktivní.
+                  Nekupujete technologii. Kupujete hotovou vzdělávací hodinu.
                 </h2>
 
                 <p className="mt-5 text-base leading-8 text-slate-700 sm:text-lg">
-                  Ve škole potřebujete řešení, které nezatíží provoz a nebude
-                  stát na tom, že si jeden učitel všechno sám připraví od začátku.
-                  Proto je ARCHIMEDES Live postavený co nejjednodušeji.
+                  Z pohledu ředitele je důležité, že ARCHIMEDES Live není jen
+                  nějaká platforma, kterou si škola pořídí a pak přemýšlí, co s
+                  ní. Dostáváte konkrétní vzdělávací obsah, který lze použít ve
+                  výuce.
                 </p>
 
-                <div className="mt-8 space-y-4">
-                  {practicalSteps.map((step) => (
+                <p className="mt-4 text-base leading-8 text-slate-700 sm:text-lg">
+                  Největší přínos je v tom, že žáci nesledují pasivně video, ale
+                  dostávají živý vstup, téma k přemýšlení a navazující práci ve
+                  třídě.
+                </p>
+
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  {fitItems.map((item) => (
                     <div
-                      key={step.number}
-                      className="flex gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5"
+                      key={item}
+                      className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm"
                     >
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-lg font-black text-white">
-                        {step.number}
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-black text-slate-900">
-                          {step.title}
-                        </h3>
-                        <p className="mt-1 text-base leading-7 text-slate-600">
-                          {step.text}
-                        </p>
-                      </div>
+                      {item}
                     </div>
                   ))}
                 </div>
@@ -245,6 +242,99 @@ export default function FinancovaniSkolyPage() {
           </div>
         </section>
 
+        <section className="mx-auto max-w-7xl px-5 py-12 sm:px-6 md:px-8 md:py-16">
+          <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+            <div>
+              <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold text-slate-700">
+                Jak to vypadá v praxi
+              </div>
+
+              <h2 className="mt-4 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
+                Pro vás jednoduché. Pro učitele použitelné. Pro žáky atraktivní.
+              </h2>
+
+              <p className="mt-5 text-base leading-8 text-slate-700 sm:text-lg">
+                Ve škole potřebujete řešení, které nezatíží provoz a nebude
+                stát na tom, že si jeden učitel všechno sám připraví od začátku.
+                Proto je ARCHIMEDES Live postavený co nejjednodušeji.
+              </p>
+
+              <div className="mt-8 space-y-4">
+                {practicalSteps.map((step) => (
+                  <div
+                    key={step.number}
+                    className="flex gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5"
+                  >
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-lg font-black text-white">
+                      {step.number}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900">
+                        {step.title}
+                      </h3>
+                      <p className="mt-1 text-base leading-7 text-slate-600">
+                        {step.text}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
+              <img
+                src={classImg}
+                alt="Projektová výuka dětí v učebně ARCHIMEDES"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-slate-50">
+          <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 md:px-8 md:py-16">
+            <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+              <div className="rounded-[28px] border border-blue-200 bg-blue-50 p-6 sm:p-8">
+                <div className="text-sm font-black uppercase tracking-wide text-blue-700">
+                  Stručně řečeno
+                </div>
+                <h2 className="mt-3 text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
+                  Pokud hledáte program, který bude ve škole opravdu žít, jste
+                  na správném místě.
+                </h2>
+                <p className="mt-4 text-base leading-7 text-slate-700">
+                  Jako ředitel nepotřebujete další složitý systém. Potřebujete
+                  obsah, který bude fungovat ve třídě, bude přínosný pro žáky a
+                  učitel ho zvládne bez zbytečné zátěže. Přesně tak je
+                  ARCHIMEDES Live postavený.
+                </p>
+              </div>
+
+              <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                <div className="text-sm font-black uppercase tracking-wide text-slate-500">
+                  Nejlepší další krok
+                </div>
+                <h2 className="mt-3 text-2xl font-black leading-tight text-slate-900 sm:text-3xl">
+                  Podívejte se, jak by to mohlo fungovat právě u vás ve škole
+                </h2>
+                <p className="mt-4 text-base leading-7 text-slate-600">
+                  Nejrychlejší je krátká ukázková hodina. Uvidíte reakci žáků,
+                  práci učitele i to, jestli je tento model vhodný právě pro
+                  vaši školu.
+                </p>
+
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <PrimaryButton href="/poptavka">
+                    Chci ukázkovou hodinu
+                  </PrimaryButton>
+                  <SecondaryButton href="/kontakt">
+                    Potřebuji se doptat
+                  </SecondaryButton>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       <Footer />
