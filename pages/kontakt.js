@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Footer from "../components/Footer";
 
 const team = [
   {
@@ -6,354 +7,174 @@ const team = [
     role: "Jednatel společnosti, autor projektu",
     email: "antonin.koplik@eduvision.cz",
     phone: "",
-    photo: "/team/antonin-koplik.jpg",
   },
   {
     name: "Dominik Ševčík",
     role: "Ředitel realizací",
     email: "dominik.sevcik@eduvision.cz",
     phone: "+420 735 104 449",
-    photo: "/team/dominik-sevcik.jpg",
   },
   {
     name: "Martina Lačňáková",
     role: "Manažerka zakázek",
     email: "martina.lacnakova@eduvision.cz",
     phone: "+420 732 827 210",
-    photo: "/team/martina-lacnakova.jpg",
   },
   {
     name: "Natálie Lípová",
     role: "Manažerka programu a obsahu",
     email: "natalie.lipova@archimedeslive.com",
     phone: "+420 737 628 944",
-    photo: "/team/natalie-lipova.jpg",
   },
   {
     name: "Simona Gavlíková",
     role: "Manažerka komunity a partnerství",
     email: "simona.gavlikova@archimedeslive.com",
     phone: "+420 603 467 337",
-    photo: "/team/simona-gavlikova.jpg",
   },
 ];
 
-function TeamPhoto({ person }) {
+function ContactCard({ title, text, value, children }) {
   return (
-    <div
-      style={{
-        width: "100%",
-        aspectRatio: "4 / 3",
-        borderRadius: 16,
-        overflow: "hidden",
-        background:
-          "linear-gradient(135deg, rgba(15,23,42,0.08), rgba(31,41,55,0.14))",
-        border: "1px solid rgba(17,24,39,0.08)",
-        marginBottom: 16,
-        position: "relative",
-      }}
-    >
-      <img
-        src={person.photo}
-        alt={person.name}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          display: "block",
-        }}
-        onError={(e) => {
-          e.currentTarget.style.display = "none";
-          const fallback = e.currentTarget.nextSibling;
-          if (fallback) fallback.style.display = "flex";
-        }}
-      />
-      <div
-        style={{
-          display: "none",
-          position: "absolute",
-          inset: 0,
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          padding: 16,
-          color: "rgba(17,24,39,0.55)",
-          textAlign: "center",
-          fontSize: 15,
-          lineHeight: 1.5,
-        }}
-      >
-        <div
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: 999,
-            background: "rgba(17,24,39,0.08)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 28,
-            marginBottom: 10,
-          }}
-        >
-          👤
-        </div>
-        <div>Sem doplníme fotografii</div>
-        <div style={{ fontSize: 13, marginTop: 4 }}>{person.name}</div>
-      </div>
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h3 className="mb-2 text-xl font-semibold text-slate-900">{title}</h3>
+      {text ? <p className="mb-3 text-sm leading-6 text-slate-500">{text}</p> : null}
+      {value ? <div className="text-base font-semibold text-slate-900">{value}</div> : null}
+      {children}
     </div>
   );
 }
 
-export default function Kontakt() {
+export default function KontaktPage() {
   return (
-    <div
-      style={{
-        fontFamily:
-          'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        background: "#f6f7fb",
-        minHeight: "100vh",
-      }}
-    >
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <main>
-        <section
-          style={{
-            maxWidth: 1100,
-            margin: "0 auto",
-            padding: "60px 16px 80px",
-          }}
-        >
-          <div style={{ maxWidth: 720, marginBottom: 40 }}>
-            <h1
-              style={{
-                margin: "0 0 16px 0",
-                fontSize: 52,
-                lineHeight: 1.1,
-                letterSpacing: "-0.03em",
-                color: "#111827",
-              }}
-            >
-              Kontakt
-            </h1>
+        <section className="border-b border-slate-200 bg-gradient-to-b from-slate-50 via-white to-white">
+          <div className="mx-auto max-w-6xl px-4 pb-14 pt-16 sm:px-6 lg:px-8 lg:pb-20 lg:pt-20">
+            <div className="max-w-3xl">
+              <span className="mb-4 inline-flex rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-600">
+                Kontakt
+              </span>
 
-            <p
-              style={{
-                margin: 0,
-                fontSize: 18,
-                lineHeight: 1.7,
-                color: "rgba(17,24,39,0.72)",
-              }}
-            >
-              Máte zájem o program ARCHIMEDES Live pro školu nebo obec?
-              Ozvěte se nám. Rádi představíme projekt a možnosti zapojení.
+              <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+                Spojte se s námi
+              </h1>
+
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+                Máte zájem o program ARCHIMEDES Live pro školu, obec nebo komunitu?
+                Ozvěte se nám. Rádi vám představíme projekt, možnosti zapojení i
+                další postup.
+              </p>
+            </div>
+
+            <div className="mt-10 grid gap-5 md:grid-cols-3">
+              <ContactCard
+                title="E-mail"
+                text="Kontaktní e-mail"
+                value="info@eduvision.cz"
+              />
+
+              <ContactCard
+                title="Telefon"
+                text="Zavolejte nám"
+                value="+420 732 827 210"
+              />
+
+              <ContactCard title="Provozovatel" text="EduVision s.r.o.">
+                <div className="text-sm leading-7 text-slate-700">
+                  Purkyňova 649/127
+                  <br />
+                  Medlánky
+                  <br />
+                  612 00 Brno
+                </div>
+              </ContactCard>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
+          <div className="mb-8 max-w-2xl">
+            <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+              Tým projektu
+            </h2>
+            <p className="mt-3 text-base leading-7 text-slate-600">
+              Kontakty na členy týmu, kteří zajišťují realizace, program, partnerství
+              i komunikaci s obcemi a školami.
             </p>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 18,
-              marginBottom: 50,
-            }}
-            className="contactGrid"
-          >
-            <div
-              style={{
-                background: "white",
-                padding: 24,
-                borderRadius: 18,
-                border: "1px solid rgba(0,0,0,0.08)",
-              }}
-            >
-              <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 24 }}>
-                E-mail
-              </h3>
-              <p style={{ color: "rgba(0,0,0,0.65)", marginTop: 0 }}>
-                Kontaktní e-mail
-              </p>
-              <p style={{ fontSize: 18, fontWeight: 600, marginBottom: 0 }}>
-                info@eduvision.cz
-              </p>
-            </div>
-
-            <div
-              style={{
-                background: "white",
-                padding: 24,
-                borderRadius: 18,
-                border: "1px solid rgba(0,0,0,0.08)",
-              }}
-            >
-              <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 24 }}>
-                Telefon
-              </h3>
-              <p style={{ color: "rgba(0,0,0,0.65)", marginTop: 0 }}>
-                Zavolejte nám
-              </p>
-              <p style={{ fontSize: 18, fontWeight: 600, marginBottom: 0 }}>
-                +420 732 827 210
-              </p>
-            </div>
-
-            <div
-              style={{
-                background: "white",
-                padding: 24,
-                borderRadius: 18,
-                border: "1px solid rgba(0,0,0,0.08)",
-              }}
-            >
-              <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 24 }}>
-                Realizátor
-              </h3>
-              <p style={{ color: "rgba(0,0,0,0.65)", marginTop: 0 }}>
-                EduVision s.r.o.
-              </p>
-              <p style={{ lineHeight: 1.6, marginBottom: 0 }}>
-                Purkyňova 649/127
-                <br />
-                Medlánky
-                <br />
-                612 00 Brno
-              </p>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: 40 }}>
-            <h2
-              style={{
-                fontSize: 36,
-                marginBottom: 24,
-                color: "#111827",
-              }}
-            >
-              Tým projektu
-            </h2>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: 18,
-              }}
-              className="teamGrid"
-            >
-              {team.map((person) => (
-                <div
-                  key={person.name}
-                  style={{
-                    background: "white",
-                    padding: 20,
-                    borderRadius: 18,
-                    border: "1px solid rgba(0,0,0,0.08)",
-                    boxShadow: "0 10px 30px rgba(17,24,39,0.05)",
-                  }}
-                >
-                  <TeamPhoto person={person} />
-
-                  <div
-                    style={{
-                      fontSize: 20,
-                      fontWeight: 700,
-                      color: "#111827",
-                      marginBottom: 6,
-                    }}
-                  >
-                    {person.name}
-                  </div>
-
-                  <div
-                    style={{
-                      color: "rgba(0,0,0,0.65)",
-                      fontSize: 15,
-                      marginBottom: 14,
-                      lineHeight: 1.5,
-                      minHeight: 44,
-                    }}
-                  >
-                    {person.role}
-                  </div>
-
-                  <div
-                    style={{
-                      fontSize: 15,
-                      lineHeight: 1.8,
-                      color: "#374151",
-                    }}
-                  >
-                    <div style={{ wordBreak: "break-word" }}>📧 {person.email}</div>
-                    {person.phone ? <div>📞 {person.phone}</div> : null}
-                  </div>
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {team.map((person) => (
+              <div
+                key={person.name}
+                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-lg font-semibold text-slate-700">
+                  {person.name
+                    .split(" ")
+                    .map((part) => part[0])
+                    .slice(0, 2)
+                    .join("")}
                 </div>
-              ))}
-            </div>
-          </div>
 
-          <div
-            style={{
-              marginTop: 40,
-              background: "white",
-              borderRadius: 20,
-              padding: 30,
-              border: "1px solid rgba(0,0,0,0.08)",
-              textAlign: "center",
-            }}
-          >
-            <h3
-              style={{
-                marginTop: 0,
-                fontSize: 26,
-                color: "#111827",
-              }}
-            >
+                <h3 className="text-xl font-semibold text-slate-900">{person.name}</h3>
+
+                <p className="mt-2 min-h-[48px] text-sm leading-6 text-slate-500">
+                  {person.role}
+                </p>
+
+                <div className="mt-5 space-y-2 text-sm leading-6 text-slate-700">
+                  <div className="break-all">
+                    <span className="font-medium text-slate-900">E-mail:</span>{" "}
+                    <a
+                      href={`mailto:${person.email}`}
+                      className="text-slate-700 underline decoration-slate-300 underline-offset-4 hover:text-slate-900"
+                    >
+                      {person.email}
+                    </a>
+                  </div>
+
+                  {person.phone ? (
+                    <div>
+                      <span className="font-medium text-slate-900">Telefon:</span>{" "}
+                      <a
+                        href={`tel:${person.phone.replace(/\s+/g, "")}`}
+                        className="text-slate-700 underline decoration-slate-300 underline-offset-4 hover:text-slate-900"
+                      >
+                        {person.phone}
+                      </a>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-20">
+          <div className="rounded-[28px] border border-slate-200 bg-white px-6 py-10 text-center shadow-sm sm:px-10">
+            <h3 className="text-2xl font-semibold text-slate-900 sm:text-3xl">
               Máte zájem o program ARCHIMEDES Live?
             </h3>
 
-            <p
-              style={{
-                fontSize: 17,
-                color: "rgba(0,0,0,0.65)",
-                marginBottom: 24,
-                lineHeight: 1.7,
-              }}
-            >
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
               Domluvte si krátkou ukázku programu nebo nám pošlete poptávku.
+              Společně najdeme variantu, která bude dávat smysl pro vaši školu,
+              obec nebo komunitu.
             </p>
 
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                justifyContent: "center",
-                flexWrap: "wrap",
-              }}
-            >
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 href="/poptavka"
-                style={{
-                  padding: "12px 22px",
-                  borderRadius: 12,
-                  background: "#111827",
-                  color: "white",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                }}
+                className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
               >
                 Odeslat poptávku
               </Link>
 
               <Link
                 href="/program"
-                style={{
-                  padding: "12px 22px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.2)",
-                  textDecoration: "none",
-                  color: "#111827",
-                  fontWeight: 600,
-                  background: "white",
-                }}
+                className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-slate-50"
               >
                 Zobrazit program
               </Link>
@@ -362,29 +183,7 @@ export default function Kontakt() {
         </section>
       </main>
 
-      <style jsx>{`
-        @media (max-width: 980px) {
-          .contactGrid,
-          .teamGrid {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
-        }
-
-        @media (max-width: 720px) {
-          .contactGrid,
-          .teamGrid {
-            grid-template-columns: 1fr !important;
-          }
-
-          h1 {
-            font-size: 38px !important;
-          }
-
-          h2 {
-            font-size: 30px !important;
-          }
-        }
-      `}</style>
+      <Footer />
     </div>
   );
 }
