@@ -139,18 +139,12 @@ function ContactCard({ title, text, value, href, accent = false }) {
   return (
     <div
       style={{
-        background: accent
-          ? "linear-gradient(135deg, #173b77 0%, #0f172a 100%)"
-          : "white",
-        color: accent ? "white" : "#0f172a",
+        background: "white",
+        color: "#0f172a",
         borderRadius: 22,
         padding: 24,
-        border: accent
-          ? "1px solid rgba(23,59,119,0.35)"
-          : "1px solid rgba(15,23,42,0.08)",
-        boxShadow: accent
-          ? "0 18px 40px rgba(15,23,42,0.18)"
-          : "0 12px 28px rgba(15,23,42,0.06)",
+        border: "1px solid rgba(15,23,42,0.08)",
+        boxShadow: "0 12px 28px rgba(15,23,42,0.06)",
       }}
     >
       <div
@@ -159,27 +153,29 @@ function ContactCard({ title, text, value, href, accent = false }) {
           fontWeight: 800,
           letterSpacing: "0.06em",
           textTransform: "uppercase",
-          color: accent ? "rgba(255,255,255,0.72)" : "#64748b",
+          color: "#64748b",
           marginBottom: 10,
         }}
       >
         {title}
       </div>
 
-      <div
-        style={{
-          fontSize: 15,
-          lineHeight: 1.6,
-          color: accent ? "rgba(255,255,255,0.8)" : "rgba(15,23,42,0.68)",
-          marginBottom: 14,
-        }}
-      >
-        {text}
-      </div>
+      {text ? (
+        <div
+          style={{
+            fontSize: 15,
+            lineHeight: 1.6,
+            color: "rgba(15,23,42,0.68)",
+            marginBottom: 14,
+          }}
+        >
+          {text}
+        </div>
+      ) : null}
 
       <div
         style={{
-          color: accent ? "#fff" : "#0f172a",
+          color: "#0f172a",
         }}
       >
         {body}
@@ -503,8 +499,8 @@ export default function KontaktPage() {
               href="tel:+420732827210"
             />
             <ContactCard
-              title="Sídlo"
-              text="Provozovatel projektu a obchodní zázemí."
+              title="Provozovatel"
+              text=""
               value={
                 <>
                   EduVision s.r.o.
@@ -516,7 +512,6 @@ export default function KontaktPage() {
                   612 00 Brno
                 </>
               }
-              accent
             />
           </div>
         </section>
