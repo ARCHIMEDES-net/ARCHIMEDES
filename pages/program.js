@@ -94,7 +94,7 @@ const priceCards = [
   {
     title: "Senior klub",
     price: "490 Kč",
-    suffix: "/ vstup",
+    suffix: "/ měsíc",
     badge: "pro seniory",
     description:
       "Jednorázový vstup do Senior klubu s inspirativním hostem a společným setkáním.",
@@ -106,7 +106,7 @@ const priceCards = [
   {
     title: "Komunitní program",
     price: "490 Kč",
-    suffix: "/ vstup",
+    suffix: "/ měsíc",
     badge: "pro komunitu",
     description:
       "Jednorázový komunitní nebo tematický program pro veřejnost, spolky a místní setkávání.",
