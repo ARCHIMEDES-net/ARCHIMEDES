@@ -164,3 +164,90 @@ export default function FinancovaniSkolyPage() {
             </div>
           </div>
         </section>
+
+        <section className="mx-auto max-w-7xl px-5 py-12 sm:px-6 md:px-8 md:py-16">
+          <div className="max-w-3xl">
+            <h2 className="text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
+              Proč by vás to mělo jako ředitele zajímat
+            </h2>
+            <p className="mt-4 text-base leading-8 text-slate-700 sm:text-lg">
+              Ve škole potřebujete obsah, který bude smysluplný pro žáky,
+              použitelný pro učitele a obhajitelný před vedením i zřizovatelem.
+              Právě v tom je ARCHIMEDES Live silný.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {benefitCards.map((item) => (
+              <div
+                key={item.title}
+                className="rounded-[26px] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+              >
+                <h3 className="text-xl font-black text-slate-900">
+                  {item.title}
+                </h3>
+                <p className="mt-3 text-base leading-7 text-slate-600">
+                  {item.text}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="bg-slate-50">
+          <div className="mx-auto max-w-7xl px-5 py-12 sm:px-6 md:px-8 md:py-16">
+            <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+              <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
+                <img
+                  src={panelImg}
+                  alt="Živé vysílání ARCHIMEDES Live na interaktivním panelu ve třídě"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+
+              <div>
+                <div className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700">
+                  Jak to funguje ve škole
+                </div>
+
+                <h2 className="mt-4 text-3xl font-black leading-tight text-slate-900 sm:text-4xl">
+                  Pro vás jednoduché. Pro učitele použitelné. Pro žáky atraktivní.
+                </h2>
+
+                <p className="mt-5 text-base leading-8 text-slate-700 sm:text-lg">
+                  Ve škole potřebujete řešení, které nezatíží provoz a nebude
+                  stát na tom, že si jeden učitel všechno sám připraví od začátku.
+                  Proto je ARCHIMEDES Live postavený co nejjednodušeji.
+                </p>
+
+                <div className="mt-8 space-y-4">
+                  {practicalSteps.map((step) => (
+                    <div
+                      key={step.number}
+                      className="flex gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5"
+                    >
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-lg font-black text-white">
+                        {step.number}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black text-slate-900">
+                          {step.title}
+                        </h3>
+                        <p className="mt-1 text-base leading-7 text-slate-600">
+                          {step.text}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <Footer />
+    </>
+  );
+}
