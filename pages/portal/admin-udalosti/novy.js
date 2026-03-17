@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import RequireAuth from "../../../components/RequireAuth";
+import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
@@ -35,12 +35,6 @@ function normalizeAudienceGroups(val) {
     .filter(Boolean);
 }
 
-function publicUrlFromPath(path) {
-  if (!path) return "";
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data?.publicUrl || "";
-}
-
 function safeFileName(name) {
   return String(name || "poster")
     .toLowerCase()
@@ -49,7 +43,6 @@ function safeFileName(name) {
 }
 
 function makeId() {
-  // browser uuid
   if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
@@ -61,7 +54,6 @@ export default function NovaUdalost() {
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
 
-  // form data
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [audienceGroups, setAudienceGroups] = useState([]);
@@ -72,11 +64,9 @@ export default function NovaUdalost() {
   const [startsAtLocal, setStartsAtLocal] = useState(toDateTimeLocalValue(new Date()));
   const [isPublished, setIsPublished] = useState(false);
 
-  // poster upload
   const [posterFile, setPosterFile] = useState(null);
   const [posterPreview, setPosterPreview] = useState("");
 
-  // lookups
   const [catOptions, setCatOptions] = useState([]);
   const [audOptions, setAudOptions] = useState([]);
   const [lookupErr, setLookupErr] = useState("");
@@ -111,12 +101,8 @@ export default function NovaUdalost() {
         return;
       }
 
-      setCatOptions(
-        (catData || []).map((x) => ({ value: x.name, label: x.name }))
-      );
-      setAudOptions(
-        (audData || []).map((x) => ({ value: x.name, label: x.name }))
-      );
+      setCatOptions((catData || []).map((x) => ({ value: x.name, label: x.name })));
+      setAudOptions((audData || []).map((x) => ({ value: x.name, label: x.name })));
       setLookupErr("");
     }
 
@@ -129,7 +115,6 @@ export default function NovaUdalost() {
   async function uploadPosterIfAny() {
     if (!posterFile) return null;
 
-    const ext = posterFile.name?.split(".").pop() || "png";
     const key = `${makeId()}-${safeFileName(posterFile.name || "poster")}`;
     const path = `events/${key}`;
 
@@ -165,7 +150,7 @@ export default function NovaUdalost() {
     }
 
     const aud = normalizeAudienceGroups(audienceGroups);
-    const audience_groups = aud.length ? aud : ["komunita"]; // kvůli constraintu
+    const audience_groups = aud.length ? aud : ["komunita"];
 
     let poster_path = null;
     try {
@@ -206,7 +191,7 @@ export default function NovaUdalost() {
   }
 
   return (
-    <RequireAuth>
+    <RequirePlatformAdmin>
       <PortalHeader />
 
       <div className="max-w-4xl mx-auto px-4 py-6">
@@ -237,7 +222,6 @@ export default function NovaUdalost() {
           {info ? <div className="mt-3 text-green-700">{info}</div> : null}
 
           <div className="mt-5 grid grid-cols-1 gap-4">
-            {/* PLAKÁT */}
             <div className="grid gap-2">
               <div className="text-sm text-slate-600">Plakát (poster)</div>
               <input
@@ -256,7 +240,6 @@ export default function NovaUdalost() {
               />
               {posterPreview ? (
                 <div className="border border-slate-200 rounded-2xl overflow-hidden max-w-xl">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={posterPreview} alt="Náhled plakátu" className="w-full h-auto" />
                 </div>
               ) : null}
@@ -419,6 +402,6 @@ export default function NovaUdalost() {
           </div>
         </div>
       </div>
-    </RequireAuth>
+    </RequirePlatformAdmin>
   );
 }
