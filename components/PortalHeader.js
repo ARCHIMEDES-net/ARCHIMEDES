@@ -201,7 +201,6 @@ export default function PortalHeader({ title = "" }) {
               minWidth: 0,
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={LOGO_SRC}
               alt="ARCHIMEDES Live"
@@ -269,7 +268,7 @@ export default function PortalHeader({ title = "" }) {
             Archiv
           </Link>
 
-          {!loadingRole && (isOrgAdmin || isPlatformAdmin) ? (
+          {!loadingRole && isPlatformAdmin ? (
             <Link href="/portal/admin-udalosti" style={navItem("sprava-vysilani")}>
               Správa vysílání
             </Link>
