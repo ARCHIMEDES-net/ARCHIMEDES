@@ -54,6 +54,29 @@ const inputStyle = {
   boxSizing: "border-box",
 };
 
+const passwordInputWrapStyle = {
+  position: "relative",
+};
+
+const passwordInputStyle = {
+  ...inputStyle,
+  paddingRight: 52,
+};
+
+const eyeButtonStyle = {
+  position: "absolute",
+  right: 10,
+  top: "50%",
+  transform: "translateY(-50%)",
+  border: "none",
+  background: "transparent",
+  cursor: "pointer",
+  fontSize: 18,
+  lineHeight: 1,
+  padding: 4,
+  color: "#374151",
+};
+
 const primaryButtonStyle = (saving) => ({
   padding: "12px 18px",
   borderRadius: 12,
@@ -88,6 +111,45 @@ const legalLinkStyle = {
   textDecoration: "none",
 };
 
+function PasswordField({
+  label,
+  value,
+  onChange,
+  placeholder = "",
+  show,
+  onToggle,
+  autoComplete,
+}) {
+  return (
+    <div>
+      <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
+        {label}
+      </label>
+
+      <div style={passwordInputWrapStyle}>
+        <input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          style={passwordInputStyle}
+        />
+
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={show ? "Skrýt heslo" : "Zobrazit heslo"}
+          title={show ? "Skrýt heslo" : "Zobrazit heslo"}
+          style={eyeButtonStyle}
+        >
+          {show ? "🙈" : "👁"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Login() {
   const router = useRouter();
 
@@ -99,6 +161,10 @@ export default function Login() {
 
   const [newPassword, setNewPassword] = useState("");
   const [newPassword2, setNewPassword2] = useState("");
+
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showNewPassword2, setShowNewPassword2] = useState(false);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -436,6 +502,16 @@ export default function Login() {
     }
   }
 
+  const passwordsMatch =
+    newPassword.length > 0 &&
+    newPassword2.length > 0 &&
+    newPassword === newPassword2;
+
+  const passwordsMismatch =
+    newPassword.length > 0 &&
+    newPassword2.length > 0 &&
+    newPassword !== newPassword2;
+
   if (checkingSession) {
     return (
       <div
@@ -522,28 +598,50 @@ export default function Login() {
         {mode === "set-password" ? (
           <form onSubmit={handleSetPassword}>
             <div style={{ marginBottom: 14 }}>
-              <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                Nové heslo
-              </label>
-              <input
-                type="password"
+              <PasswordField
+                label="Nové heslo"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                style={inputStyle}
+                show={showNewPassword}
+                onToggle={() => setShowNewPassword((v) => !v)}
+                autoComplete="new-password"
               />
             </div>
 
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                Nové heslo znovu
-              </label>
-              <input
-                type="password"
+            <div style={{ marginBottom: 8 }}>
+              <PasswordField
+                label="Nové heslo znovu"
                 value={newPassword2}
                 onChange={(e) => setNewPassword2(e.target.value)}
-                style={inputStyle}
+                show={showNewPassword2}
+                onToggle={() => setShowNewPassword2((v) => !v)}
+                autoComplete="new-password"
               />
             </div>
+
+            {passwordsMismatch ? (
+              <div
+                style={{
+                  marginBottom: 16,
+                  fontSize: 14,
+                  color: "#a40000",
+                }}
+              >
+                Hesla se zatím neshodují.
+              </div>
+            ) : null}
+
+            {passwordsMatch ? (
+              <div
+                style={{
+                  marginBottom: 16,
+                  fontSize: 14,
+                  color: "#166534",
+                }}
+              >
+                Hesla se shodují.
+              </div>
+            ) : null}
 
             <button type="submit" disabled={saving} style={primaryButtonStyle(saving)}>
               {saving ? "Ukládám…" : "Nastavit heslo a pokračovat"}
@@ -597,14 +695,13 @@ export default function Login() {
               </div>
 
               <div style={{ marginBottom: 10 }}>
-                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                  Heslo
-                </label>
-                <input
-                  type="password"
+                <PasswordField
+                  label="Heslo"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={inputStyle}
+                  show={showLoginPassword}
+                  onToggle={() => setShowLoginPassword((v) => !v)}
+                  autoComplete="current-password"
                 />
               </div>
 
