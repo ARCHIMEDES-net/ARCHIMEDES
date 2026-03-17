@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import RequireAuth from "../../../components/RequireAuth";
+import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
@@ -538,7 +538,7 @@ export default function AdminUdalosti() {
   }
 
   return (
-    <RequireAuth>
+    <RequirePlatformAdmin>
       <PortalHeader />
 
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
@@ -912,7 +912,7 @@ export default function AdminUdalosti() {
           </div>
         </section>
       </main>
-    </RequireAuth>
+    </RequirePlatformAdmin>
   );
 }
 
