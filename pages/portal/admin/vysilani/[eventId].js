@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import RequireAuth from "../../../../components/RequireAuth";
+import RequirePlatformAdmin from "../../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../../components/PortalHeader";
 import { supabase } from "../../../../lib/supabaseClient";
 
@@ -333,7 +333,7 @@ export default function AdminVysilaniDetailPage() {
   };
 
   return (
-    <RequireAuth>
+    <RequirePlatformAdmin>
       <div
         style={{
           minHeight: "100vh",
@@ -670,7 +670,7 @@ export default function AdminVysilaniDetailPage() {
           </div>
         </main>
       </div>
-    </RequireAuth>
+    </RequirePlatformAdmin>
   );
 }
 
