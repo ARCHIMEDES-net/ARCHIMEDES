@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import RequireAuth from "../../../components/RequireAuth";
+import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
@@ -54,10 +54,8 @@ export default function AdminUdalostEdit() {
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
 
-  // DB row
   const [row, setRow] = useState(null);
 
-  // form state
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [audienceGroups, setAudienceGroups] = useState([]);
@@ -68,11 +66,9 @@ export default function AdminUdalostEdit() {
   const [startsAtLocal, setStartsAtLocal] = useState("");
   const [isPublished, setIsPublished] = useState(false);
 
-  // poster
   const [posterPath, setPosterPath] = useState("");
   const posterUrl = useMemo(() => publicUrlFromPath(posterPath), [posterPath]);
 
-  // lookup
   const [catOptions, setCatOptions] = useState([]);
   const [audOptions, setAudOptions] = useState([]);
   const [lookupErr, setLookupErr] = useState("");
@@ -167,7 +163,7 @@ export default function AdminUdalostEdit() {
     }
 
     const aud = normalizeAudienceGroups(audienceGroups);
-    const audience_groups = aud.length ? aud : ["komunita"]; // projde constraint
+    const audience_groups = aud.length ? aud : ["komunita"];
 
     const payload = {
       title: title.trim(),
@@ -240,24 +236,24 @@ export default function AdminUdalostEdit() {
 
   if (loading) {
     return (
-      <RequireAuth>
+      <RequirePlatformAdmin>
         <PortalHeader />
         <div className="p-6">Načítám…</div>
-      </RequireAuth>
+      </RequirePlatformAdmin>
     );
   }
 
   if (err && !row) {
     return (
-      <RequireAuth>
+      <RequirePlatformAdmin>
         <PortalHeader />
         <div className="p-6 text-red-600">{err}</div>
-      </RequireAuth>
+      </RequirePlatformAdmin>
     );
   }
 
   return (
-    <RequireAuth>
+    <RequirePlatformAdmin>
       <PortalHeader />
 
       <div className="max-w-4xl mx-auto px-4 py-6">
@@ -421,7 +417,6 @@ export default function AdminUdalostEdit() {
 
               {posterUrl ? (
                 <div className="border rounded-2xl overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={posterUrl} alt="Plakát" className="w-full h-auto" />
                 </div>
               ) : (
@@ -490,6 +485,6 @@ export default function AdminUdalostEdit() {
           </div>
         </div>
       </div>
-    </RequireAuth>
+    </RequirePlatformAdmin>
   );
 }
