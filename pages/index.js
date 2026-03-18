@@ -1,20 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { supabase } from "../lib/supabaseClient";
 import Footer from "../components/Footer";
-
-const SchoolsMap = dynamic(() => import("../components/SchoolsMap"), {
-  ssr: false,
-});
-
-const BUCKET = "schools";
 
 const heroImg = "/ucebna.jpg";
 const lessonImg = "/vyuka.jpeg";
 const guestImg = "/ctenarsky.jpg";
 const communityImg = "/smart.jpg";
 const kidsImg = "/praxe.webp";
+const networkImg = "/variant1_clean.jpg";
 
 const fallbackPosts = [
   { type: "p", id: "DVyqPmiiLKF" },
@@ -74,30 +68,6 @@ const mediaLinks = [
     href: "https://www.mikulov.cz/obcan/aktuality/702-mikulovsti-zaci-dostali-moderni-venkovni-venkovni-ucebnu-archimedes",
   },
 ];
-
-function publicUrlFromPath(path) {
-  if (!path) return null;
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data?.publicUrl || null;
-}
-
-function toNumberOrNull(v) {
-  if (v === null || v === undefined || v === "") return null;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : null;
-}
-
-function normalizeLatLng(row) {
-  const lat = toNumberOrNull(row?.latitude) ?? toNumberOrNull(row?.lat) ?? null;
-  const lng =
-    toNumberOrNull(row?.longitude) ?? toNumberOrNull(row?.lng) ?? null;
-
-  return {
-    ...row,
-    lat: typeof lat === "number" ? lat : null,
-    lng: typeof lng === "number" ? lng : null,
-  };
-}
 
 function PrimaryButton({ href, children }) {
   return (
@@ -302,9 +272,6 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [instagramReady, setInstagramReady] = useState(false);
 
-  const [schoolRows, setSchoolRows] = useState([]);
-  const [mapLoading, setMapLoading] = useState(true);
-
   useEffect(() => {
     let cancelled = false;
 
@@ -336,35 +303,7 @@ export default function Home() {
       }
     }
 
-    async function loadSchools() {
-      try {
-        const { data, error } = await supabase
-          .from("schools")
-          .select("*")
-          .eq("is_published", true)
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-
-        const rows = (data || []).map(normalizeLatLng).map((row) => ({
-          ...row,
-          photo_url: row.photo_url || publicUrlFromPath(row.photo_path),
-        }));
-
-        if (!cancelled) {
-          setSchoolRows(rows);
-          setMapLoading(false);
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setSchoolRows([]);
-          setMapLoading(false);
-        }
-      }
-    }
-
     loadInstagram();
-    loadSchools();
 
     return () => {
       cancelled = true;
@@ -375,12 +314,6 @@ export default function Home() {
     if (posts.length >= 3) return posts.slice(0, 3);
     return fallbackPosts;
   }, [posts]);
-
-  const schoolsWithCoords = useMemo(() => {
-    return schoolRows.filter(
-      (r) => typeof r.lat === "number" && typeof r.lng === "number"
-    );
-  }, [schoolRows]);
 
   return (
     <div
@@ -535,52 +468,102 @@ export default function Home() {
               boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
             }}
           >
-            <div style={{ marginBottom: 18 }}>
-              <div
-                style={{
-                  fontSize: 15,
-                  fontWeight: 800,
-                  color: "rgba(15,23,42,0.56)",
-                  marginBottom: 8,
-                }}
-              >
-                Síť učeben ARCHIMEDES®
-              </div>
-              <div
-                style={{
-                  fontSize: 30,
-                  lineHeight: 1.1,
-                  fontWeight: 900,
-                  color: "#0f172a",
-                }}
-              >
-                Učebny už fungují v řadě měst a obcí - přidejte se...
-              </div>
-            </div>
-
-            <div
-              style={{
-                borderRadius: 22,
-                overflow: "hidden",
-                minHeight: 440,
-              }}
-            >
-              {mapLoading ? (
+            <div className="networkGrid">
+              <div>
                 <div
                   style={{
-                    minHeight: 440,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    fontSize: 15,
+                    fontWeight: 800,
+                    color: "rgba(15,23,42,0.56)",
+                    marginBottom: 8,
+                  }}
+                >
+                  Síť učeben ARCHIMEDES®
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 34,
+                    lineHeight: 1.08,
+                    fontWeight: 900,
+                    color: "#0f172a",
+                    letterSpacing: "-0.02em",
+                    maxWidth: 620,
+                  }}
+                >
+                  ARCHIMEDES už funguje ve více než 20 obcích po celé ČR
+                </div>
+
+                <p
+                  style={{
+                    margin: "14px 0 0",
+                    maxWidth: 640,
+                    fontSize: 18,
+                    lineHeight: 1.65,
+                    color: "rgba(15,23,42,0.72)",
+                  }}
+                >
+                  Školy, obce i komunity se zapojují do programu, který přináší
+                  živé vzdělávání do každodenní výuky i života v obci. Síť se
+                  každým měsícem rozšiřuje.
+                </p>
+
+                <div className="networkStats">
+                  <div className="networkStatCard">
+                    <div className="networkStatNumber">20+</div>
+                    <div className="networkStatLabel">realizovaných míst</div>
+                  </div>
+
+                  <div className="networkStatCard">
+                    <div className="networkStatNumber">po celé ČR</div>
+                    <div className="networkStatLabel">ověřeno v praxi</div>
+                  </div>
+
+                  <div className="networkStatCard">
+                    <div className="networkStatNumber">síť roste</div>
+                    <div className="networkStatLabel">přibývají další lokality</div>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 18,
+                    fontSize: 15,
+                    lineHeight: 1.5,
                     color: "rgba(15,23,42,0.6)",
                     fontWeight: 700,
                   }}
                 >
-                  Načítám mapu…
+                  Vítěz soutěže OBEC 2030 – Křenov
                 </div>
-              ) : (
-                <SchoolsMap items={schoolsWithCoords} />
-              )}
+
+                <div style={{ marginTop: 20 }}>
+                  <PrimaryButton href="/poptavka">Chci ukázku programu</PrimaryButton>
+                </div>
+              </div>
+
+              <div>
+                <div
+                  style={{
+                    borderRadius: 24,
+                    overflow: "hidden",
+                    background: "#fff",
+                    boxShadow: "0 22px 52px rgba(15,23,42,0.12)",
+                    border: "1px solid rgba(15,23,42,0.08)",
+                  }}
+                >
+                  <img
+                    src={networkImg}
+                    alt="ARCHIMEDES oceněný v soutěži OBEC 2030"
+                    style={{
+                      width: "100%",
+                      display: "block",
+                      aspectRatio: "4/3",
+                      objectFit: "cover",
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -925,6 +908,48 @@ export default function Home() {
             align-items: center;
           }
 
+          .networkGrid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
+            gap: 28px;
+            align-items: center;
+          }
+
+          .networkStats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 22px;
+            max-width: 760px;
+          }
+
+          .networkStatCard {
+            background: #f8fafc;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 22px;
+            padding: 18px 16px;
+            min-height: 112px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+          }
+
+          .networkStatNumber {
+            font-size: 28px;
+            line-height: 1.05;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+          }
+
+          .networkStatLabel {
+            margin-top: 8px;
+            font-size: 14px;
+            line-height: 1.45;
+            font-weight: 700;
+            color: rgba(15, 23, 42, 0.64);
+          }
+
           .heroBadge {
             display: inline-flex;
             flex-direction: column;
@@ -1035,6 +1060,7 @@ export default function Home() {
 
           @media (max-width: 1100px) {
             .heroGrid,
+            .networkGrid,
             .dualGrid,
             .ctaGrid,
             .instagramGrid {
@@ -1047,6 +1073,11 @@ export default function Home() {
 
             .mediaStrip {
               grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .networkStats {
+              grid-template-columns: 1fr;
+              max-width: 100%;
             }
           }
 
