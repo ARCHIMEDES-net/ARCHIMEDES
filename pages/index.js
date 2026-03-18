@@ -515,7 +515,7 @@ export default function Home() {
                   </div>
 
                   <div className="networkStatCard">
-                    <div className="networkStatNumber">po celé ČR</div>
+                    <div className="networkStatNumber">ČR/SR</div>
                     <div className="networkStatLabel">ověřeno v praxi</div>
                   </div>
 
