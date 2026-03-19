@@ -330,7 +330,7 @@ export default function KontaktPage() {
                   marginBottom: 18,
                 }}
               >
-                ARCHIMEDES® Live • kontakt
+                ARCHIMEDES Live • kontakt
               </div>
 
               <h1
