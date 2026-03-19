@@ -14,7 +14,7 @@ export default function Home() {
         <title>ARCHIMEDES Live | Živý program pro školy a obce</title>
         <meta
           name="description"
-          content="ARCHIMEDES Live přináší školám živé vstupy s odborníky, interaktivní výuku a program, který dává smysl škole i obci."
+          content="ARCHIMEDES Live přináší školám živé vstupy s odborníky, reálná témata a program, který propojuje výuku s praxí."
         />
       </Head>
 
@@ -34,12 +34,14 @@ export default function Home() {
                 <h1>
                   Přinášíme
                   <br />
-                  život do výuky
+                  reálný svět
+                  <br />
+                  do výuky
                 </h1>
 
                 <p className="heroLead">
-                  Živé vstupy s odborníky, interaktivní práce ve třídě a program,
-                  který dává smysl škole i obci.
+                  Živé vstupy s odborníky, reálná témata a přímé propojení školy
+                  s praxí. Program, který dává smysl škole i obci.
                 </p>
 
                 <div className="heroActions">
@@ -53,7 +55,7 @@ export default function Home() {
 
                 <div className="heroMeta">
                   <span>živé vstupy</span>
-                  <span>reálné školy</span>
+                  <span>reální hosté</span>
                   <span>ověřeno v praxi</span>
                 </div>
               </div>
@@ -69,7 +71,8 @@ export default function Home() {
               <h2>Jednoduchý model, který škola zvládne hned</h2>
               <p>
                 Nejde o další složitý systém. Jde o připravený program, který se
-                snadno zapojí do běžné výuky.
+                snadno zapojí do běžné výuky a přináší do školy skutečné lidi,
+                skutečná témata a skutečné souvislosti.
               </p>
             </div>
 
@@ -80,10 +83,10 @@ export default function Home() {
                 </div>
                 <div className="stepBody">
                   <div className="stepNumber">1</div>
-                  <h3>Živý odborník přímo ve třídě</h3>
+                  <h3>Živý host přímo ve třídě</h3>
                   <p>
-                    Škola se připojí k živému vstupu a děti se setkají s hostem z
-                    praxe, autorem nebo odborníkem.
+                    Škola se připojí k živému vstupu a děti se setkají s
+                    odborníkem, autorem nebo člověkem z reálné praxe.
                   </p>
                 </div>
               </article>
@@ -97,7 +100,7 @@ export default function Home() {
                   <h3>Žáci sledují, reagují a vnímají</h3>
                   <p>
                     Výuka není pasivní. Děti se zapojují, sledují, přemýšlejí a
-                    pracují s tématem ve třídě.
+                    pracují s tématem přímo ve třídě.
                   </p>
                 </div>
               </article>
@@ -128,27 +131,30 @@ export default function Home() {
             </div>
 
             <div className="benefitsGrid">
-              <div className="benefitCard">
-                <h3>Pro školu</h3>
+              <div className="benefitCard benefitCardPrimary">
+                <div className="benefitTag">Pro školu</div>
+                <h3>Hotový formát, který lze využít bez složité přípravy</h3>
                 <p>
                   Moderní výuka, inspirativní hosté a obsah, který učitelé mohou
-                  využít bez složité přípravy.
+                  snadno zařadit do běžného školního dne.
                 </p>
               </div>
 
               <div className="benefitCard">
-                <h3>Pro žáky</h3>
+                <div className="benefitTag">Pro žáky</div>
+                <h3>Setkání s reálným světem a větší motivace</h3>
                 <p>
-                  Setkání s reálným světem, větší motivace a témata, která
-                  přesahují běžnou učebnici.
+                  Děti vidí, že to, co se učí, souvisí s opravdovým životem,
+                  praxí, profesemi i místy mimo školní lavici.
                 </p>
               </div>
 
               <div className="benefitCard">
-                <h3>Pro obec</h3>
+                <div className="benefitTag">Pro obec</div>
+                <h3>Obsah, který může sloužit celé komunitě</h3>
                 <p>
-                  Program může sloužit nejen škole, ale i komunitě, seniorům a
-                  společným aktivitám v obci.
+                  Program může využívat nejen škola, ale i obec, komunita,
+                  senioři a další společné aktivity v místě.
                 </p>
               </div>
             </div>
@@ -156,7 +162,7 @@ export default function Home() {
         </section>
 
         {/* DUVĚRA */}
-        <section className="section">
+        <section className="section sectionTightTop">
           <div className="container">
             <div className="trustPanel">
               <div>
@@ -191,7 +197,9 @@ export default function Home() {
           <div className="container">
             <div className="ctaBox">
               <div>
-                <div className="eyebrow light">Chcete to vidět ve vlastní škole?</div>
+                <div className="eyebrow light">
+                  Chcete to vidět ve vlastní škole?
+                </div>
                 <h2>Ukážeme vám ARCHIMEDES Live v praxi</h2>
                 <p>
                   Domluvíme ukázkovou hodinu a společně se podíváme, jak může
@@ -199,10 +207,13 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="ctaActions">
-                <Link href="/poptavka" className="btn btnLight">
-                  Domluvit ukázku
-                </Link>
+              <div className="ctaSide">
+                <div className="ctaActions">
+                  <Link href="/poptavka" className="btn btnLight">
+                    Domluvit ukázku
+                  </Link>
+                </div>
+                <div className="ctaNote">bez závazku • online nebo přímo ve škole</div>
               </div>
             </div>
           </div>
@@ -248,10 +259,10 @@ export default function Home() {
             inset: 0;
             background: linear-gradient(
               90deg,
-              rgba(8, 15, 34, 0.78) 0%,
-              rgba(8, 15, 34, 0.55) 30%,
+              rgba(8, 15, 34, 0.72) 0%,
+              rgba(8, 15, 34, 0.48) 28%,
               rgba(8, 15, 34, 0.18) 55%,
-              rgba(8, 15, 34, 0.05) 100%
+              rgba(8, 15, 34, 0.02) 100%
             );
           }
 
@@ -264,8 +275,8 @@ export default function Home() {
           }
 
           .heroContent {
-            max-width: 620px;
-            padding: 92px 0 86px;
+            max-width: 640px;
+            padding: 88px 0 82px;
             color: white;
           }
 
@@ -288,7 +299,7 @@ export default function Home() {
 
           .eyebrow.light {
             background: rgba(255, 255, 255, 0.14);
-            color: rgba(255, 255, 255, 0.92);
+            color: rgba(255, 255, 255, 0.94);
           }
 
           .heroContent .eyebrow {
@@ -299,8 +310,8 @@ export default function Home() {
           h1 {
             margin: 0;
             font-size: 72px;
-            line-height: 0.96;
-            letter-spacing: -0.05em;
+            line-height: 0.94;
+            letter-spacing: -0.055em;
             font-weight: 900;
           }
 
@@ -308,8 +319,8 @@ export default function Home() {
             margin: 22px 0 0;
             font-size: 22px;
             line-height: 1.6;
-            color: rgba(255, 255, 255, 0.9);
-            max-width: 580px;
+            color: rgba(255, 255, 255, 0.92);
+            max-width: 600px;
           }
 
           .heroActions,
@@ -327,7 +338,7 @@ export default function Home() {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 24px;
+            margin-top: 22px;
           }
 
           .heroMeta span {
@@ -337,7 +348,7 @@ export default function Home() {
             padding: 0 12px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.12);
-            color: rgba(255, 255, 255, 0.92);
+            color: rgba(255, 255, 255, 0.94);
             font-size: 14px;
             font-weight: 700;
           }
@@ -351,12 +362,20 @@ export default function Home() {
             border-radius: 14px;
             text-decoration: none;
             font-weight: 800;
-            transition: 0.18s ease;
+            transition: transform 0.18s ease, background 0.18s ease,
+              box-shadow 0.18s ease, color 0.18s ease;
+            white-space: nowrap;
           }
 
-          .btnPrimary {
+          .btn:visited {
+            text-decoration: none;
+          }
+
+          .btnPrimary,
+          .btnPrimary:visited {
             background: white;
             color: #0f172a;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
           }
 
           .btnPrimary:hover {
@@ -364,10 +383,12 @@ export default function Home() {
             background: #f3f4f6;
           }
 
-          .btnSecondary {
-            border: 1px solid rgba(255, 255, 255, 0.26);
+          .btnSecondary,
+          .btnSecondary:visited {
+            border: 1px solid rgba(255, 255, 255, 0.28);
             color: white;
             background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(4px);
           }
 
           .btnSecondary:hover {
@@ -375,9 +396,11 @@ export default function Home() {
             background: rgba(255, 255, 255, 0.14);
           }
 
-          .btnLight {
+          .btnLight,
+          .btnLight:visited {
             background: white;
             color: #0f172a;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
           }
 
           .btnLight:hover {
@@ -386,7 +409,11 @@ export default function Home() {
           }
 
           .section {
-            padding: 86px 0;
+            padding: 82px 0;
+          }
+
+          .sectionTightTop {
+            padding-top: 64px;
           }
 
           .sectionSoft {
@@ -394,20 +421,20 @@ export default function Home() {
           }
 
           .sectionIntro {
-            margin-bottom: 28px;
+            margin-bottom: 26px;
           }
 
           .sectionIntro.center {
             text-align: center;
-            max-width: 820px;
-            margin: 0 auto 34px;
+            max-width: 860px;
+            margin: 0 auto 32px;
           }
 
           h2 {
             margin: 0;
             font-size: 44px;
-            line-height: 1.04;
-            letter-spacing: -0.04em;
+            line-height: 1.02;
+            letter-spacing: -0.045em;
             font-weight: 900;
             color: #0f172a;
           }
@@ -417,15 +444,15 @@ export default function Home() {
           .ctaBox p {
             margin: 14px 0 0;
             font-size: 18px;
-            line-height: 1.7;
+            line-height: 1.68;
             color: #4b5563;
-            max-width: 760px;
+            max-width: 780px;
           }
 
           .stepsGrid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 20px;
+            gap: 18px;
           }
 
           .stepCard,
@@ -439,13 +466,13 @@ export default function Home() {
 
           .stepImage img {
             width: 100%;
-            height: 260px;
+            height: 220px;
             object-fit: cover;
             display: block;
           }
 
           .stepBody {
-            padding: 22px;
+            padding: 20px 20px 22px;
           }
 
           .stepNumber {
@@ -466,7 +493,7 @@ export default function Home() {
           .benefitCard h3 {
             margin: 0;
             font-size: 24px;
-            line-height: 1.15;
+            line-height: 1.12;
             font-weight: 900;
             color: #0f172a;
           }
@@ -475,24 +502,42 @@ export default function Home() {
           .benefitCard p {
             margin: 10px 0 0;
             font-size: 16px;
-            line-height: 1.65;
+            line-height: 1.6;
             color: #556070;
           }
 
           .benefitsGrid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 20px;
+            grid-template-columns: 1.08fr 1fr 1fr;
+            gap: 18px;
           }
 
           .benefitCard {
-            padding: 26px;
+            padding: 24px;
+          }
+
+          .benefitCardPrimary {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border-color: rgba(28, 72, 132, 0.12);
+          }
+
+          .benefitTag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 32px;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: #eef3fb;
+            color: #223252;
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 14px;
           }
 
           .trustPanel {
             display: grid;
-            grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-            gap: 28px;
+            grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+            gap: 26px;
             align-items: start;
             background: white;
             border: 1px solid rgba(15, 23, 42, 0.08);
@@ -532,7 +577,7 @@ export default function Home() {
           }
 
           .ctaSection {
-            padding: 0 0 90px;
+            padding: 0 0 88px;
           }
 
           .ctaBox {
@@ -542,7 +587,7 @@ export default function Home() {
             padding: 36px 30px;
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
-            gap: 20px;
+            gap: 24px;
             align-items: center;
             box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
           }
@@ -552,7 +597,21 @@ export default function Home() {
           }
 
           .ctaBox p {
-            color: rgba(255, 255, 255, 0.82);
+            color: rgba(255, 255, 255, 0.84);
+          }
+
+          .ctaSide {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+          }
+
+          .ctaNote {
+            font-size: 14px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.72);
+            font-weight: 700;
           }
 
           @media (max-width: 1100px) {
@@ -562,6 +621,10 @@ export default function Home() {
             .ctaBox {
               grid-template-columns: 1fr;
             }
+
+            .ctaSide {
+              align-items: flex-start;
+            }
           }
 
           @media (max-width: 900px) {
@@ -570,8 +633,8 @@ export default function Home() {
             }
 
             h1 {
-              font-size: 52px;
-              line-height: 1;
+              font-size: 56px;
+              line-height: 0.98;
             }
 
             h2 {
@@ -583,7 +646,7 @@ export default function Home() {
             }
 
             .stepImage img {
-              height: 220px;
+              height: 208px;
             }
           }
 
@@ -601,7 +664,7 @@ export default function Home() {
                 180deg,
                 rgba(8, 15, 34, 0.68) 0%,
                 rgba(8, 15, 34, 0.42) 45%,
-                rgba(8, 15, 34, 0.3) 100%
+                rgba(8, 15, 34, 0.28) 100%
               );
             }
 
