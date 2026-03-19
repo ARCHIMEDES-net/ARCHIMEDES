@@ -7,6 +7,115 @@ const stepOnlineImg = "/jak-funguje-online.jpg";
 const stepClassImg = "/jak-funguje-trida.jpg";
 const stepBoardImg = "/jak-funguje-tabule.jpg";
 
+function PrimaryButton({ href, children }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: 52,
+        padding: "0 22px",
+        borderRadius: 14,
+        background: "#ffffff",
+        color: "#0f172a",
+        textDecoration: "none",
+        fontWeight: 800,
+        fontSize: 16,
+        lineHeight: 1.2,
+        boxShadow: "0 10px 24px rgba(15,23,42,0.16)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <span
+        style={{
+          color: "#0f172a",
+          fontWeight: 800,
+          fontSize: 16,
+          lineHeight: 1.2,
+          display: "inline-block",
+        }}
+      >
+        {children}
+      </span>
+    </Link>
+  );
+}
+
+function SecondaryButton({ href, children }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: 52,
+        padding: "0 22px",
+        borderRadius: 14,
+        background: "rgba(255,255,255,0.08)",
+        color: "#ffffff",
+        textDecoration: "none",
+        fontWeight: 800,
+        fontSize: 16,
+        lineHeight: 1.2,
+        border: "1px solid rgba(255,255,255,0.28)",
+        backdropFilter: "blur(4px)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <span
+        style={{
+          color: "#ffffff",
+          fontWeight: 800,
+          fontSize: 16,
+          lineHeight: 1.2,
+          display: "inline-block",
+        }}
+      >
+        {children}
+      </span>
+    </Link>
+  );
+}
+
+function LightButton({ href, children }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: 52,
+        padding: "0 22px",
+        borderRadius: 14,
+        background: "#ffffff",
+        color: "#0f172a",
+        textDecoration: "none",
+        fontWeight: 800,
+        fontSize: 16,
+        lineHeight: 1.2,
+        boxShadow: "0 10px 24px rgba(15,23,42,0.16)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <span
+        style={{
+          color: "#0f172a",
+          fontWeight: 800,
+          fontSize: 16,
+          lineHeight: 1.2,
+          display: "inline-block",
+        }}
+      >
+        {children}
+      </span>
+    </Link>
+  );
+}
+
 export default function Home() {
   return (
     <>
@@ -45,12 +154,12 @@ export default function Home() {
                 </p>
 
                 <div className="heroActions">
-                  <Link href="/poptavka" className="btn btnPrimary">
-                    <span>Chci ukázkovou hodinu</span>
-                  </Link>
-                  <Link href="/program" className="btn btnSecondary">
-                    <span>Prohlédnout program</span>
-                  </Link>
+                  <PrimaryButton href="/poptavka">
+                    Chci ukázkovou hodinu
+                  </PrimaryButton>
+                  <SecondaryButton href="/program">
+                    Prohlédnout program
+                  </SecondaryButton>
                 </div>
 
                 <div className="heroMeta">
@@ -209,9 +318,7 @@ export default function Home() {
 
               <div className="ctaSide">
                 <div className="ctaActions">
-                  <Link href="/poptavka" className="btn btnLight">
-                    <span>Domluvit ukázku</span>
-                  </Link>
+                  <LightButton href="/poptavka">Domluvit ukázku</LightButton>
                 </div>
                 <div className="ctaNote">
                   bez závazku • online nebo přímo ve škole
@@ -277,7 +384,7 @@ export default function Home() {
           }
 
           .heroContent {
-            max-width: 620px;
+            max-width: 600px;
             padding: 118px 0 82px;
             color: white;
           }
@@ -311,18 +418,18 @@ export default function Home() {
 
           h1 {
             margin: 0;
-            font-size: 64px;
+            font-size: 58px;
             line-height: 0.95;
             letter-spacing: -0.05em;
             font-weight: 900;
           }
 
           .heroLead {
-            margin: 22px 0 0;
-            font-size: 22px;
+            margin: 20px 0 0;
+            font-size: 21px;
             line-height: 1.58;
             color: rgba(255, 255, 255, 0.92);
-            max-width: 580px;
+            max-width: 560px;
           }
 
           .heroActions,
@@ -333,7 +440,7 @@ export default function Home() {
           }
 
           .heroActions {
-            margin-top: 30px;
+            margin-top: 28px;
           }
 
           .heroMeta {
@@ -353,84 +460,6 @@ export default function Home() {
             color: rgba(255, 255, 255, 0.94);
             font-size: 14px;
             font-weight: 700;
-          }
-
-          .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 52px;
-            padding: 0 22px;
-            border-radius: 14px;
-            text-decoration: none;
-            font-weight: 800;
-            transition: transform 0.18s ease, background 0.18s ease,
-              box-shadow 0.18s ease, color 0.18s ease;
-            white-space: nowrap;
-          }
-
-          .btn:visited {
-            text-decoration: none;
-          }
-
-          .btn span {
-            display: inline-block;
-            color: inherit !important;
-            -webkit-text-fill-color: currentColor !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            font-size: 16px !important;
-            line-height: 1.2 !important;
-            font-weight: 800 !important;
-          }
-
-          .btnPrimary,
-          .btnPrimary:visited {
-            background: white;
-            color: #0f172a !important;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
-          }
-
-          .btnPrimary span {
-            color: #0f172a !important;
-          }
-
-          .btnPrimary:hover {
-            transform: translateY(-2px);
-            background: #f3f4f6;
-          }
-
-          .btnSecondary,
-          .btnSecondary:visited {
-            border: 1px solid rgba(255, 255, 255, 0.28);
-            color: #ffffff !important;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(4px);
-          }
-
-          .btnSecondary span {
-            color: #ffffff !important;
-          }
-
-          .btnSecondary:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.14);
-          }
-
-          .btnLight,
-          .btnLight:visited {
-            background: white;
-            color: #0f172a !important;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
-          }
-
-          .btnLight span {
-            color: #0f172a !important;
-          }
-
-          .btnLight:hover {
-            transform: translateY(-2px);
-            background: #f3f4f6;
           }
 
           .section {
@@ -658,7 +687,7 @@ export default function Home() {
             }
 
             h1 {
-              font-size: 52px;
+              font-size: 50px;
               line-height: 0.98;
             }
 
@@ -699,7 +728,7 @@ export default function Home() {
             }
 
             h1 {
-              font-size: 42px;
+              font-size: 40px;
               letter-spacing: -0.04em;
             }
 
@@ -710,15 +739,14 @@ export default function Home() {
               font-size: 16px;
             }
 
-            .btn,
-            .heroActions a,
-            .ctaActions a {
-              width: 100%;
-            }
-
             .heroActions,
             .ctaActions {
               flex-direction: column;
+            }
+
+            .heroActions > :global(a),
+            .ctaActions > :global(a) {
+              width: 100%;
             }
           }
         `}</style>
