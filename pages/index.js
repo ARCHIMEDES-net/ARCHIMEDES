@@ -1,6 +1,6 @@
+import Head from "next/head";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { supabase } from "../lib/supabaseClient";
 import Footer from "../components/Footer";
 
 const heroImg = "/ucebna.jpg";
@@ -71,64 +71,23 @@ const mediaLinks = [
 
 function PrimaryButton({ href, children }) {
   return (
-    <Link
-      href={href}
-      style={{
-        textDecoration: "none",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 50,
-        padding: "0 22px",
-        borderRadius: 14,
-        background: "#0f172a",
-        color: "white",
-        fontWeight: 800,
-        border: "1px solid #0f172a",
-        boxShadow: "0 10px 24px rgba(15,23,42,0.14)",
-        transition: "transform 0.15s ease, box-shadow 0.15s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 14px 28px rgba(15,23,42,0.18)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 10px 24px rgba(15,23,42,0.14)";
-      }}
-    >
+    <Link href={href} className="btnPrimary">
       {children}
     </Link>
   );
 }
 
-function WhiteButton({ href, children }) {
+function SecondaryButton({ href, children }) {
   return (
-    <Link
-      href={href}
-      style={{
-        textDecoration: "none",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 50,
-        padding: "0 22px",
-        borderRadius: 14,
-        background: "white",
-        color: "#0f172a",
-        fontWeight: 900,
-        border: "1px solid rgba(255,255,255,0.2)",
-        transition: "transform 0.15s ease, box-shadow 0.15s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 12px 26px rgba(0,0,0,0.16)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "none";
-      }}
-    >
+    <Link href={href} className="btnSecondary">
+      {children}
+    </Link>
+  );
+}
+
+function LightButton({ href, children }) {
+  return (
+    <Link href={href} className="btnLight">
       {children}
     </Link>
   );
@@ -136,48 +95,19 @@ function WhiteButton({ href, children }) {
 
 function OutlineLightButton({ href, children }) {
   return (
-    <Link
-      href={href}
-      style={{
-        textDecoration: "none",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 50,
-        padding: "0 22px",
-        borderRadius: 14,
-        border: "1px solid rgba(255,255,255,0.3)",
-        color: "white",
-        fontWeight: 800,
-        background: "transparent",
-        transition:
-          "transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.background = "transparent";
-      }}
-    >
+    <Link href={href} className="btnOutlineLight">
       {children}
     </Link>
   );
 }
 
 function getInstagramEmbedUrl(id, type) {
-  if (type === "reel") {
-    return `https://www.instagram.com/reel/${id}/embed`;
-  }
+  if (type === "reel") return `https://www.instagram.com/reel/${id}/embed`;
   return `https://www.instagram.com/p/${id}/embed/captioned`;
 }
 
 function getInstagramPostUrl(id, type) {
-  if (type === "reel") {
-    return `https://www.instagram.com/reel/${id}/`;
-  }
+  if (type === "reel") return `https://www.instagram.com/reel/${id}/`;
   return `https://www.instagram.com/p/${id}/`;
 }
 
@@ -186,15 +116,7 @@ function InstagramEmbed({ id, type }) {
   const href = getInstagramPostUrl(id, type);
 
   return (
-    <div
-      style={{
-        background: "white",
-        border: "1px solid rgba(15,23,42,0.08)",
-        borderRadius: 26,
-        overflow: "hidden",
-        boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
-      }}
-    >
+    <div className="instagramCard">
       <iframe
         src={src}
         title={`Instagram ${id}`}
@@ -205,25 +127,14 @@ function InstagramEmbed({ id, type }) {
         allowTransparency="true"
         loading="lazy"
         referrerPolicy="strict-origin-when-cross-origin"
-        style={{ display: "block", width: "100%", background: "white" }}
+        style={{ display: "block", width: "100%", background: "#fff" }}
       />
-      <div
-        style={{
-          padding: "12px 16px 16px",
-          borderTop: "1px solid rgba(15,23,42,0.06)",
-          background: "#fff",
-        }}
-      >
+      <div className="instagramCardFooter">
         <a
           href={href}
           target="_blank"
           rel="noreferrer"
-          style={{
-            textDecoration: "none",
-            color: "#0f172a",
-            fontWeight: 800,
-            fontSize: 15,
-          }}
+          className="inlineArrowLink"
         >
           Otevřít příspěvek na Instagramu →
         </a>
@@ -257,13 +168,51 @@ function MediaLogoButton({ label, domain, href }) {
   );
 }
 
-function HeroBadge() {
+function SectionEyebrow({ children }) {
+  return <div className="sectionEyebrow">{children}</div>;
+}
+
+function HeroPill({ children }) {
+  return <div className="heroPill">{children}</div>;
+}
+
+function BenefitCard({ title, text }) {
   return (
-    <div className="heroBadge">
-      <div className="heroBadgeTitle">ARCHIMEDES Live</div>
-      <div className="heroBadgeText">
-        Živý program, který propojuje venkovní učebnu, školu a život obce
+    <div className="benefitCard">
+      <div className="benefitDot" />
+      <div className="benefitCardTitle">{title}</div>
+      <div className="benefitCardText">{text}</div>
+    </div>
+  );
+}
+
+function InfoCard({ number, title, text }) {
+  return (
+    <div className="infoCard">
+      <div className="infoCardBadge">{number}</div>
+      <div className="infoCardTitle">{title}</div>
+      <div className="infoCardText">{text}</div>
+    </div>
+  );
+}
+
+function ProgramCard({ title, text, img }) {
+  return (
+    <div className="programCard">
+      <img src={img} alt={title} className="programCardImg" />
+      <div className="programCardBody">
+        <div className="programCardTitle">{title}</div>
+        <div className="programCardText">{text}</div>
       </div>
+    </div>
+  );
+}
+
+function StatCard({ number, label }) {
+  return (
+    <div className="statCard">
+      <div className="statCardNumber">{number}</div>
+      <div className="statCardLabel">{label}</div>
     </div>
   );
 }
@@ -316,893 +265,1366 @@ export default function Home() {
   }, [posts]);
 
   return (
-    <div
-      style={{
-        fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
-        background: "#f6f7fb",
-        minHeight: "100vh",
-      }}
-    >
-      <main>
-        <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "56px 16px 32px" }}
-        >
-          <div className="heroGrid">
-            <div>
-              <HeroBadge />
+    <>
+      <Head>
+        <title>ARCHIMEDES Live | Živý program pro školy a obce</title>
+        <meta
+          name="description"
+          content="ARCHIMEDES Live přináší školám živé vstupy, pracovní listy, archiv a inspirativní hosty bez složité přípravy. Program pro výuku i komunitu obce."
+        />
+      </Head>
 
-              <h1
-                style={{
-                  fontSize: 56,
-                  lineHeight: 1.04,
-                  letterSpacing: "-0.03em",
-                  color: "#0f172a",
-                  margin: "0 0 18px",
-                }}
-              >
-                Program, který propojuje
-                <br />
-                školu s životem obce
-              </h1>
+      <div className="pageShell">
+        <main>
+          <section className="heroSection">
+            <div className="container">
+              <div className="heroPanel">
+                <div className="heroGrid">
+                  <div className="heroContent">
+                    <HeroPill>ARCHIMEDES Live • živý program pro školy a obce</HeroPill>
 
-              <div
-                style={{
-                  maxWidth: 700,
-                  margin: 0,
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: 21,
-                    lineHeight: 1.55,
-                    color: "rgba(15,23,42,0.76)",
-                    margin: 0,
-                  }}
-                >
-                  ARCHIMEDES® propojuje venkovní učebnu, inspirativní hosty a
-                  živý program pro děti, učitele, seniory i komunitu obce.
-                </p>
+                    <h1 className="heroTitle">
+                      Živý program do výuky,
+                      <br />
+                      který škole nepřidělává práci
+                    </h1>
 
-                <p
-                  style={{
-                    fontSize: 21,
-                    lineHeight: 1.55,
-                    color: "rgba(15,23,42,0.76)",
-                    margin: "10px 0 0",
-                  }}
-                >
-                  Škola získává inspirativní výuku a obec pravidelný program pro
-                  své obyvatele.
-                </p>
-              </div>
+                    <p className="heroLead">
+                      Škola získá hotové živé vstupy, pracovní listy a archiv
+                      vysílání. Obec navíc pravidelný program pro komunitu,
+                      seniory i společné akce.
+                    </p>
 
-              <div
-                style={{
-                  display: "grid",
-                  gap: 10,
-                  marginTop: 22,
-                  maxWidth: 640,
-                  color: "#0f172a",
-                  fontSize: 17,
-                  lineHeight: 1.5,
-                }}
-              >
-                <div>• hosté z Akademie věd, kultury, odborné praxe i ze zahraničí</div>
-                <div>• využití pro školu, komunitu obce i společné akce</div>
-                <div>• síť učeben ARCHIMEDES® po celé republice</div>
+                    <div className="heroTrustRow">
+                      <span>živé vysílání a hosté z praxe</span>
+                      <span>okamžitě využitelné ve škole</span>
+                      <span>ověřeno v síti učeben ARCHIMEDES®</span>
+                    </div>
+
+                    <div className="heroActions">
+                      <PrimaryButton href="/poptavka">
+                        Chci ukázku programu
+                      </PrimaryButton>
+                      <SecondaryButton href="/program">
+                        Prohlédnout program
+                      </SecondaryButton>
+                    </div>
+
+                    <div className="heroMiniStats">
+                      <div className="heroMiniStat">
+                        <strong>20+</strong>
+                        <span>míst v síti ARCHIMEDES</span>
+                      </div>
+                      <div className="heroMiniStat">
+                        <strong>1 třída</strong>
+                        <span>1 živý vstup 1 pracovní list</span>
+                      </div>
+                      <div className="heroMiniStat">
+                        <strong>OBEC 2030</strong>
+                        <span>ověřeno i v praxi obcí</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="heroVisualWrap">
+                    <div className="heroVisual">
+                      <img
+                        src={heroImg}
+                        alt="Venkovní učebna ARCHIMEDES®"
+                        className="heroImage"
+                      />
+
+                      <div className="heroFloatingCard heroFloatingCardTop">
+                        <div className="floatingCardEyebrow">Pro ředitele školy</div>
+                        <div className="floatingCardTitle">
+                          Hotový program bez složité přípravy
+                        </div>
+                      </div>
+
+                      <div className="heroFloatingCard heroFloatingCardBottom">
+                        <div className="floatingCardEyebrow">Pro obec</div>
+                        <div className="floatingCardTitle">
+                          Obsah pro školu, komunitu i seniory
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="heroCaption">
+                      Venkovní učebna ARCHIMEDES® – realizace v ZŠ Ratíškovice
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+          </section>
 
-            <div>
-              <div
-                style={{
-                  borderRadius: 26,
-                  overflow: "hidden",
-                  boxShadow: "0 24px 60px rgba(15,23,42,0.12)",
-                  background: "white",
-                }}
-              >
-                <img
-                  src={heroImg}
-                  alt="Venkovní učebna ARCHIMEDES®"
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    aspectRatio: "16/10",
-                    objectFit: "cover",
-                  }}
+          <section className="sectionPadTopSm">
+            <div className="container">
+              <div className="trustBar">
+                <div className="trustItem">živé vstupy s inspirativními hosty</div>
+                <div className="trustItem">pracovní listy pro další práci</div>
+                <div className="trustItem">archiv pro opakované využití</div>
+                <div className="trustItem">využití pro školu i komunitu obce</div>
+              </div>
+            </div>
+          </section>
+
+          <section className="sectionPad">
+            <div className="container">
+              <div className="sectionHeader">
+                <div>
+                  <SectionEyebrow>Proč to dává škole smysl</SectionEyebrow>
+                  <h2 className="sectionTitle">
+                    Ředitel získává program,
+                    <br />
+                    který je snadné zavést
+                  </h2>
+                  <p className="sectionLead maxW720">
+                    ARCHIMEDES Live není další komplikovaný systém. Je to
+                    připravený vzdělávací program, který můžete zařadit do výuky
+                    i života školy bez zbytečných organizačních nároků.
+                  </p>
+                </div>
+              </div>
+
+              <div className="benefitsGrid">
+                <BenefitCard
+                  title="Šetří čas učitelům"
+                  text="Škola dostává hotový obsah, který lze využít bez vymýšlení nového formátu."
+                />
+                <BenefitCard
+                  title="Působí moderně navenek"
+                  text="Žáci se potkávají s hosty z praxe, autory, vědci i inspirativními osobnostmi."
+                />
+                <BenefitCard
+                  title="Dává hodnotu i obci"
+                  text="Vedle školy může program využívat také obec, komunita a seniorní publikum."
                 />
               </div>
-              <div
-                style={{
-                  marginTop: 10,
-                  fontSize: 14,
-                  color: "rgba(15,23,42,0.62)",
-                  fontWeight: 700,
-                }}
-              >
-                Venkovní učebna ARCHIMEDES® – realizace v ZŠ Ratíškovice
+            </div>
+          </section>
+
+          <section className="sectionPad">
+            <div className="container">
+              <div className="glassPanel">
+                <div className="networkGrid">
+                  <div>
+                    <SectionEyebrow>Síť učeben ARCHIMEDES®</SectionEyebrow>
+
+                    <h2 className="sectionTitle">
+                      ARCHIMEDES už funguje
+                      <br />
+                      ve více než 20 obcích
+                    </h2>
+
+                    <p className="sectionLead maxW680">
+                      Síť se rozšiřuje a ukazuje, že propojení školy, učebny a
+                      živého programu funguje v praxi. Nejde o nápad na papíře,
+                      ale o ověřené řešení.
+                    </p>
+
+                    <div className="statsGrid">
+                      <StatCard number="20+" label="realizovaných míst" />
+                      <StatCard number="ČR / SR" label="ověřeno v praxi" />
+                      <StatCard number="síť roste" label="přibývají další lokality" />
+                    </div>
+
+                    <div className="networkFootnote">
+                      Vítěz soutěže OBEC 2030 – Křenov
+                    </div>
+
+                    <div className="networkAction">
+                      <PrimaryButton href="/poptavka">
+                        Chci ukázku programu
+                      </PrimaryButton>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="networkVisual">
+                      <img
+                        src={networkImg}
+                        alt="ARCHIMEDES oceněný v soutěži OBEC 2030"
+                        className="networkImage"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 24px" }}
-        >
-          <div style={{ background: "transparent", borderRadius: 28 }}>
-            <div style={{ marginBottom: 18 }}>
-              <div
-                style={{
-                  fontSize: 15,
-                  fontWeight: 800,
-                  color: "rgba(15,23,42,0.56)",
-                  marginBottom: 8,
-                }}
-              >
-                ARCHIMEDES Live aktuálně:
+          <section className="sectionPad">
+            <div className="container">
+              <div className="sectionHeader">
+                <div>
+                  <SectionEyebrow>Jak vypadá jedna hodina</SectionEyebrow>
+                  <h2 className="sectionTitle">
+                    1 třída – 1 živý vstup – 1 pracovní list
+                  </h2>
+                  <p className="sectionLead maxW760">
+                    Jednoduchý model, který je srozumitelný škole i zřizovateli.
+                    Žáci se připojí k živému vysílání, navážou ve třídě a škola
+                    má k dispozici i archiv.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="instagramGrid">
-              {(instagramReady ? renderedPosts : fallbackPosts).map((post, index) => (
-                <InstagramEmbed
-                  key={`${post.type}-${post.id}-${index}`}
-                  id={post.id}
-                  type={post.type}
+              <div className="howGrid">
+                <InfoCard
+                  number="1"
+                  title="Živý vstup s hostem"
+                  text="Třída se připojí k vysílání a setká se s vědcem, autorem, odborníkem nebo inspirativní osobností."
                 />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "6px 16px 22px" }}
-        >
-          <div
-            style={{
-              background: "white",
-              border: "1px solid rgba(15,23,42,0.08)",
-              borderRadius: 28,
-              padding: "28px 24px",
-              boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
-            }}
-          >
-            <div className="networkGrid">
-              <div>
-                <div
-                  style={{
-                    fontSize: 15,
-                    fontWeight: 800,
-                    color: "rgba(15,23,42,0.56)",
-                    marginBottom: 8,
-                  }}
-                >
-                  Síť učeben ARCHIMEDES®
-                </div>
-
-                <div
-                  style={{
-                    fontSize: 34,
-                    lineHeight: 1.08,
-                    fontWeight: 900,
-                    color: "#0f172a",
-                    letterSpacing: "-0.02em",
-                    maxWidth: 620,
-                  }}
-                >
-                  ARCHIMEDES už funguje ve více než 20 obcích po celé ČR
-                </div>
-
-                <p
-                  style={{
-                    margin: "14px 0 0",
-                    maxWidth: 640,
-                    fontSize: 18,
-                    lineHeight: 1.65,
-                    color: "rgba(15,23,42,0.72)",
-                  }}
-                >
-                  Školy, obce i komunity se zapojují do programu, který přináší
-                  živé vzdělávání do každodenní výuky i života v obci. Síť se
-                  každým měsícem rozšiřuje.
-                </p>
-
-                <div className="networkStats">
-                  <div className="networkStatCard">
-                    <div className="networkStatNumber">20+</div>
-                    <div className="networkStatLabel">realizovaných míst</div>
-                  </div>
-
-                  <div className="networkStatCard">
-                    <div className="networkStatNumber">ČR/SR</div>
-                    <div className="networkStatLabel">ověřeno v praxi</div>
-                  </div>
-
-                  <div className="networkStatCard">
-                    <div className="networkStatNumber">síť roste</div>
-                    <div className="networkStatLabel">přibývají další lokality</div>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    marginTop: 18,
-                    fontSize: 15,
-                    lineHeight: 1.5,
-                    color: "rgba(15,23,42,0.6)",
-                    fontWeight: 700,
-                  }}
-                >
-                  Vítěz soutěže OBEC 2030 – Křenov
-                </div>
-
-                <div style={{ marginTop: 20 }}>
-                  <PrimaryButton href="/poptavka">Chci ukázku programu</PrimaryButton>
-                </div>
+                <InfoCard
+                  number="2"
+                  title="Pracovní list a návaznost"
+                  text="K vysílání jsou připravené materiály, díky nimž může učitel téma snadno rozvinout."
+                />
+                <InfoCard
+                  number="3"
+                  title="Archiv pro další využití"
+                  text="Obsah je možné vracet do výuky i později a postupně z něj stavět vlastní rytmus práce školy."
+                />
               </div>
+            </div>
+          </section>
 
-              <div>
-                <div
-                  style={{
-                    borderRadius: 24,
-                    overflow: "hidden",
-                    background: "#fff",
-                    boxShadow: "0 22px 52px rgba(15,23,42,0.12)",
-                    border: "1px solid rgba(15,23,42,0.08)",
-                  }}
-                >
+          <section className="sectionPad">
+            <div className="container">
+              <div className="splitFeatureGrid">
+                <div className="featureCard featureCardDark">
+                  <div className="featureCardTextWrap">
+                    <SectionEyebrow>Co škola skutečně kupuje</SectionEyebrow>
+                    <h3 className="featureCardTitle featureCardTitleLight">
+                      Živý program,
+                      <br />
+                      ne další starost navíc
+                    </h3>
+                    <p className="featureCardText featureCardTextLight">
+                      Škola získává pravidelný obsah, který může okamžitě využít.
+                      Bez složité přípravy, bez hledání hostů, bez vymýšlení celé
+                      dramaturgie od nuly.
+                    </p>
+                    <div className="featureAction">
+                      <LightButton href="/program">Zobrazit program</LightButton>
+                    </div>
+                  </div>
                   <img
-                    src={networkImg}
-                    alt="ARCHIMEDES oceněný v soutěži OBEC 2030"
-                    style={{
-                      width: "100%",
-                      display: "block",
-                      aspectRatio: "4/3",
-                      objectFit: "cover",
-                    }}
+                    src={lessonImg}
+                    alt="Ukázka programu ARCHIMEDES®"
+                    className="featureCardImg"
+                  />
+                </div>
+
+                <div className="featureCard">
+                  <img
+                    src={kidsImg}
+                    alt="Děti v programu ARCHIMEDES®"
+                    className="featureCardImg"
+                  />
+                  <div className="featureCardTextWrap">
+                    <SectionEyebrow>Co zažijí děti</SectionEyebrow>
+                    <h3 className="featureCardTitle">
+                      Setkání s lidmi,
+                      <br />
+                      kteří mají co předat
+                    </h3>
+                    <p className="featureCardText">
+                      Děti se potkávají s vědci, autory, odborníky z praxe i
+                      inspirativními osobnostmi. Výuka tak získává větší energii,
+                      konkrétnost a přesah do reálného života.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="sectionPad">
+            <div className="container">
+              <div className="programPanel">
+                <div className="sectionHeader headerWithAction">
+                  <div>
+                    <SectionEyebrow>Program ARCHIMEDES Live</SectionEyebrow>
+                    <h2 className="sectionTitle">Ukázka formátů programu</h2>
+                    <p className="sectionLead maxW760">
+                      Formáty, které dávají smysl škole, žákům i komunitě obce.
+                    </p>
+                  </div>
+
+                  <PrimaryButton href="/program">Zobrazit celý program</PrimaryButton>
+                </div>
+
+                <div className="programGrid">
+                  <ProgramCard
+                    title="Science ON"
+                    text="Živá věda, pokusy a hosté z odborné praxe."
+                    img="/media/stem-microscopes.webp"
+                  />
+                  <ProgramCard
+                    title="Smart City klub"
+                    text="Jak přemýšlet o městě, obci a prostoru kolem nás."
+                    img={communityImg}
+                  />
+                  <ProgramCard
+                    title="Čtenářský klub"
+                    text="Autoři, knihy a společné čtenářské zážitky."
+                    img={guestImg}
+                  />
+                  <ProgramCard
+                    title="Senior klub"
+                    text="Pravidelný program pro starší generaci a komunitní propojení."
+                    img="/senior.jpg"
                   />
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "18px 16px 18px" }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 16,
-              flexWrap: "wrap",
-              marginBottom: 16,
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: 14,
-                  fontWeight: 800,
-                  color: "rgba(15,23,42,0.56)",
-                  marginBottom: 8,
-                }}
-              >
-                Jak vypadá jedna hodina
-              </div>
-              <div
-                style={{
-                  fontSize: 36,
-                  lineHeight: 1.08,
-                  fontWeight: 900,
-                  color: "#0f172a",
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                1 třída – 1 živý vstup – 1 pracovní list
-              </div>
-            </div>
-          </div>
-
-          <div className="howGrid">
-            <InfoCard
-              number="1"
-              title="Živý vstup s hostem"
-              text="Děti se připojí k živému vysílání a setkají se s odborníkem, autorem nebo inspirativní osobností."
-            />
-            <InfoCard
-              number="2"
-              title="Připravené pracovní listy"
-              text="Pro každé vysílání jsou připraveny materiály pro další práci ve třídě."
-            />
-            <InfoCard
-              number="3"
-              title="Přínos i pro obec"
-              text="Program nabízí obsah také seniorům, komunitě a veřejným akcím v obci."
-            />
-          </div>
-        </section>
-
-        <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "8px 16px 18px" }}
-        >
-          <div className="dualGrid">
-            <div
-              style={{
-                background: "white",
-                border: "1px solid rgba(15,23,42,0.08)",
-                borderRadius: 28,
-                overflow: "hidden",
-                boxShadow: "0 12px 34px rgba(15,23,42,0.05)",
-              }}
-            >
-              <img
-                src={lessonImg}
-                alt="Ukázka programu ARCHIMEDES®"
-                style={{
-                  width: "100%",
-                  display: "block",
-                  aspectRatio: "16/10",
-                  objectFit: "cover",
-                }}
-              />
-              <div style={{ padding: 22 }}>
-                <div
-                  style={{
-                    fontSize: 30,
-                    lineHeight: 1.1,
-                    fontWeight: 900,
-                    color: "#0f172a",
-                  }}
-                >
-                  Program, který lze využít okamžitě
-                </div>
-                <p
-                  style={{
-                    margin: "12px 0 0",
-                    fontSize: 17,
-                    lineHeight: 1.6,
-                    color: "rgba(15,23,42,0.72)",
-                  }}
-                >
-                  Škola i obec získají pravidelný program bez složité přípravy.
-                  Stačí se připojit a využít připravený obsah.
-                </p>
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: "white",
-                border: "1px solid rgba(15,23,42,0.08)",
-                borderRadius: 28,
-                overflow: "hidden",
-                boxShadow: "0 12px 34px rgba(15,23,42,0.05)",
-              }}
-            >
-              <img
-                src={kidsImg}
-                alt="Hosté v programu ARCHIMEDES®"
-                style={{
-                  width: "100%",
-                  display: "block",
-                  aspectRatio: "16/10",
-                  objectFit: "cover",
-                }}
-              />
-              <div style={{ padding: 22 }}>
-                <div
-                  style={{
-                    fontSize: 30,
-                    lineHeight: 1.1,
-                    fontWeight: 900,
-                    color: "#0f172a",
-                  }}
-                >
-                  Děti se setkávají s lidmi z praxe
-                </div>
-                <p
-                  style={{
-                    margin: "12px 0 0",
-                    fontSize: 17,
-                    lineHeight: 1.6,
-                    color: "rgba(15,23,42,0.72)",
-                  }}
-                >
-                  Děti se setkávají s vědci, autory, odborníky z praxe i
-                  inspirativními osobnostmi veřejného života.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 16px 20px" }}
-        >
-          <div
-            style={{
-              background: "white",
-              border: "1px solid rgba(15,23,42,0.08)",
-              borderRadius: 28,
-              padding: "26px 24px",
-              boxShadow: "0 12px 34px rgba(15,23,42,0.05)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                justifyContent: "space-between",
-                gap: 16,
-                flexWrap: "wrap",
-                marginBottom: 16,
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 28, fontWeight: 900, color: "#0f172a" }}>
-                  Program ARCHIMEDES Live
-                </div>
-                <div
-                  style={{
-                    marginTop: 8,
-                    fontSize: 16,
-                    color: "rgba(15,23,42,0.68)",
-                  }}
-                >
-                  Ukázka formátů, které dávají smysl škole i komunitě obce.
+          <section className="sectionPad">
+            <div className="container">
+              <div className="sectionHeader">
+                <div>
+                  <SectionEyebrow>ARCHIMEDES Live aktuálně</SectionEyebrow>
+                  <h2 className="sectionTitle">Jak to vypadá v praxi</h2>
+                  <p className="sectionLead maxW760">
+                    Reálné ukázky z prostředí ARCHIMEDES Live a z komunikace
+                    projektu směrem ke školám a obcím.
+                  </p>
                 </div>
               </div>
-              <PrimaryButton href="/program">Zobrazit program</PrimaryButton>
-            </div>
 
-            <div className="programGrid">
-              <ProgramCard
-                title="Science ON"
-                text="Živá věda, pokusy a hosté z odborné praxe."
-                img="/media/stem-microscopes.webp"
-              />
-              <ProgramCard
-                title="Smart City klub"
-                text="Jak přemýšlet o městě, obci a prostoru kolem nás."
-                img={communityImg}
-              />
-              <ProgramCard
-                title="Čtenářský klub"
-                text="Autoři, knihy a společné čtenářské zážitky."
-                img={guestImg}
-              />
-              <ProgramCard
-                title="Senior klub"
-                text="Pravidelný program pro starší generaci a komunitní propojení."
-                img="/senior.jpg"
-              />
-            </div>
-          </div>
-        </section>
-
-        <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "14px 16px 12px" }}
-        >
-          <div
-            style={{
-              background: "white",
-              border: "1px solid rgba(15,23,42,0.08)",
-              borderRadius: 28,
-              padding: "24px",
-              boxShadow: "0 12px 34px rgba(15,23,42,0.05)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 800,
-                color: "rgba(15,23,42,0.56)",
-                marginBottom: 12,
-              }}
-            >
-              ARCHIMEDES v médiích
-            </div>
-
-            <div className="mediaStrip">
-              {mediaLinks.map((item) => (
-                <MediaLogoButton
-                  key={`${item.label}-${item.href}`}
-                  label={item.label}
-                  domain={item.domain}
-                  href={item.href}
-                />
-              ))}
-            </div>
-
-            <div style={{ marginTop: 16 }}>
-              <a
-                href="https://www.archimedes-net.com/media/"
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  fontWeight: 800,
-                  color: "#0f172a",
-                  textDecoration: "none",
-                }}
-              >
-                Všechna média →
-              </a>
-            </div>
-          </div>
-        </section>
-
-        <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "20px 16px 70px" }}
-        >
-          <div
-            style={{
-              background: "linear-gradient(135deg, #0f172a 0%, #111827 100%)",
-              color: "white",
-              borderRadius: 30,
-              padding: "34px 28px",
-              boxShadow: "0 26px 60px rgba(15,23,42,0.18)",
-            }}
-          >
-            <div className="ctaGrid">
-              <div>
-                <div
-                  style={{
-                    fontSize: 16,
-                    fontWeight: 800,
-                    opacity: 0.78,
-                    marginBottom: 10,
-                  }}
-                >
-                  Chcete ukázku pro školu nebo obec?
-                </div>
-                <div
-                  style={{
-                    fontSize: 38,
-                    lineHeight: 1.08,
-                    fontWeight: 900,
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  Ukážeme vám program i venkovní učebnu v praxi
-                </div>
-                <div
-                  style={{
-                    marginTop: 12,
-                    fontSize: 18,
-                    lineHeight: 1.6,
-                    opacity: 0.9,
-                    maxWidth: 740,
-                  }}
-                >
-                  ARCHIMEDES® nabízí licenci programu i realizaci venkovní
-                  učebny. Pomůžeme vám vybrat model, který bude dávat smysl
-                  právě pro vaši školu nebo obec.
-                </div>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  gap: 14,
-                  flexWrap: "wrap",
-                  justifyContent: "flex-end",
-                  alignItems: "center",
-                }}
-              >
-                <WhiteButton href="/poptavka">Chci více informací</WhiteButton>
-                <OutlineLightButton href="/ucebna">
-                  Prohlédnout učebnu
-                </OutlineLightButton>
+              <div className="instagramGrid">
+                {(instagramReady ? renderedPosts : fallbackPosts).map((post, index) => (
+                  <InstagramEmbed
+                    key={`${post.type}-${post.id}-${index}`}
+                    id={post.id}
+                    type={post.type}
+                  />
+                ))}
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <style jsx global>{`
-          .heroGrid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
-            gap: 36px;
-            align-items: center;
-          }
+          <section className="sectionPad">
+            <div className="container">
+              <div className="mediaPanel">
+                <div className="sectionHeader compactHeader">
+                  <div>
+                    <SectionEyebrow>ARCHIMEDES v médiích</SectionEyebrow>
+                    <h2 className="sectionTitle">Důvěra, která je vidět</h2>
+                  </div>
+                </div>
 
-          .networkGrid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
-            gap: 28px;
-            align-items: center;
-          }
+                <div className="mediaStrip">
+                  {mediaLinks.map((item) => (
+                    <MediaLogoButton
+                      key={`${item.label}-${item.href}`}
+                      label={item.label}
+                      domain={item.domain}
+                      href={item.href}
+                    />
+                  ))}
+                </div>
 
-          .networkStats {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
-            margin-top: 22px;
-            max-width: 760px;
-          }
+                <div className="mediaAction">
+                  <a
+                    href="https://www.archimedes-net.com/media/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inlineArrowLink"
+                  >
+                    Všechna média →
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
 
-          .networkStatCard {
-            background: #f8fafc;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 22px;
-            padding: 18px 16px;
-            min-height: 112px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-          }
+          <section className="ctaSection">
+            <div className="container">
+              <div className="ctaPanel">
+                <div className="ctaGrid">
+                  <div>
+                    <SectionEyebrow>Chcete vidět, jak by to fungovalo u vás?</SectionEyebrow>
+                    <h2 className="ctaTitle">
+                      Ukážeme vám program
+                      <br />
+                      i venkovní učebnu v praxi
+                    </h2>
+                    <p className="ctaText">
+                      ARCHIMEDES® nabízí licenci programu i realizaci venkovní
+                      učebny. Společně vybereme model, který bude dávat smysl
+                      právě vaší škole nebo obci.
+                    </p>
+                  </div>
 
-          .networkStatNumber {
-            font-size: 28px;
-            line-height: 1.05;
-            font-weight: 900;
-            color: #0f172a;
-            letter-spacing: -0.02em;
-          }
+                  <div className="ctaActions">
+                    <LightButton href="/poptavka">Chci více informací</LightButton>
+                    <OutlineLightButton href="/ucebna">
+                      Prohlédnout učebnu
+                    </OutlineLightButton>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
 
-          .networkStatLabel {
-            margin-top: 8px;
-            font-size: 14px;
-            line-height: 1.45;
-            font-weight: 700;
-            color: rgba(15, 23, 42, 0.64);
-          }
+        <Footer />
+      </div>
 
-          .heroBadge {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 2px;
-            padding: 10px 16px;
-            border-radius: 999px;
-            background: linear-gradient(
-              180deg,
-              rgba(15, 23, 42, 0.06) 0%,
-              rgba(15, 23, 42, 0.08) 100%
-            );
-            color: #0f172a;
-            margin-bottom: 18px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
-            max-width: 100%;
-          }
+      <style jsx global>{`
+        html {
+          scroll-behavior: smooth;
+        }
 
-          .heroBadgeTitle {
-            font-size: 13px;
-            font-weight: 900;
-            line-height: 1.2;
-          }
+        body {
+          margin: 0;
+          background: #f5f7fb;
+          color: #0f172a;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+            sans-serif;
+          text-rendering: optimizeLegibility;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
 
-          .heroBadgeText {
-            font-size: 12px;
-            line-height: 1.35;
-            font-weight: 700;
-            color: rgba(15, 23, 42, 0.86);
-          }
+        * {
+          box-sizing: border-box;
+        }
 
-          .instagramGrid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-          }
+        .pageShell {
+          min-height: 100vh;
+          background:
+            radial-gradient(circle at top left, rgba(59, 130, 246, 0.07), transparent 28%),
+            radial-gradient(circle at top right, rgba(16, 185, 129, 0.06), transparent 24%),
+            linear-gradient(180deg, #f8fbff 0%, #f5f7fb 100%);
+        }
 
-          .howGrid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-          }
+        .container {
+          max-width: 1220px;
+          margin: 0 auto;
+          padding-left: 16px;
+          padding-right: 16px;
+        }
 
-          .dualGrid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px;
-          }
+        .heroSection {
+          padding: 34px 0 0;
+        }
 
-          .programGrid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 16px;
-          }
+        .heroPanel {
+          position: relative;
+          overflow: hidden;
+          border-radius: 34px;
+          padding: 34px;
+          background:
+            radial-gradient(circle at top left, rgba(255,255,255,0.9), rgba(255,255,255,0.72)),
+            linear-gradient(135deg, rgba(255,255,255,0.96), rgba(246,248,252,0.88));
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow:
+            0 20px 60px rgba(15, 23, 42, 0.08),
+            inset 0 1px 0 rgba(255,255,255,0.7);
+          backdrop-filter: blur(18px);
+        }
 
-          .ctaGrid {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 20px;
-            align-items: center;
+        .heroPanel::before {
+          content: "";
+          position: absolute;
+          inset: -120px auto auto -120px;
+          width: 260px;
+          height: 260px;
+          border-radius: 999px;
+          background: rgba(59, 130, 246, 0.08);
+          filter: blur(20px);
+          pointer-events: none;
+        }
+
+        .heroPanel::after {
+          content: "";
+          position: absolute;
+          inset: auto -80px -80px auto;
+          width: 220px;
+          height: 220px;
+          border-radius: 999px;
+          background: rgba(16, 185, 129, 0.08);
+          filter: blur(24px);
+          pointer-events: none;
+        }
+
+        .heroGrid {
+          display: grid;
+          grid-template-columns: minmax(0, 1.02fr) minmax(360px, 0.98fr);
+          gap: 34px;
+          align-items: center;
+          position: relative;
+          z-index: 1;
+        }
+
+        .heroContent {
+          min-width: 0;
+        }
+
+        .heroPill {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          min-height: 38px;
+          padding: 0 14px;
+          border-radius: 999px;
+          background: rgba(15, 23, 42, 0.06);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          color: #0f172a;
+          font-size: 13px;
+          line-height: 1;
+          font-weight: 800;
+          letter-spacing: 0.01em;
+          margin-bottom: 18px;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+
+        .heroTitle {
+          margin: 0;
+          font-size: 64px;
+          line-height: 0.98;
+          letter-spacing: -0.045em;
+          font-weight: 900;
+          color: #0f172a;
+          max-width: 780px;
+        }
+
+        .heroLead {
+          margin: 20px 0 0;
+          max-width: 720px;
+          font-size: 21px;
+          line-height: 1.58;
+          color: rgba(15, 23, 42, 0.76);
+        }
+
+        .heroTrustRow {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 22px;
+        }
+
+        .heroTrustRow span {
+          display: inline-flex;
+          align-items: center;
+          min-height: 38px;
+          padding: 0 14px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.88);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          color: rgba(15, 23, 42, 0.84);
+          font-size: 14px;
+          font-weight: 700;
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+        }
+
+        .heroActions,
+        .ctaActions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        .heroActions {
+          margin-top: 28px;
+        }
+
+        .btnPrimary,
+        .btnSecondary,
+        .btnLight,
+        .btnOutlineLight {
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 52px;
+          padding: 0 22px;
+          border-radius: 16px;
+          font-size: 15px;
+          font-weight: 800;
+          transition:
+            transform 0.16s ease,
+            box-shadow 0.16s ease,
+            background 0.16s ease,
+            border-color 0.16s ease,
+            color 0.16s ease;
+          will-change: transform;
+        }
+
+        .btnPrimary {
+          background: #0f172a;
+          color: #fff;
+          border: 1px solid #0f172a;
+          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+        }
+
+        .btnPrimary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+        }
+
+        .btnSecondary {
+          background: rgba(255,255,255,0.82);
+          color: #0f172a;
+          border: 1px solid rgba(15, 23, 42, 0.1);
+          box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+        }
+
+        .btnSecondary:hover {
+          transform: translateY(-2px);
+          background: #fff;
+          box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+        }
+
+        .btnLight {
+          background: #fff;
+          color: #0f172a;
+          border: 1px solid rgba(255,255,255,0.25);
+          box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+        }
+
+        .btnLight:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 16px 34px rgba(0, 0, 0, 0.16);
+        }
+
+        .btnOutlineLight {
+          background: transparent;
+          color: #fff;
+          border: 1px solid rgba(255,255,255,0.28);
+        }
+
+        .btnOutlineLight:hover {
+          transform: translateY(-2px);
+          background: rgba(255,255,255,0.08);
+        }
+
+        .heroMiniStats {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 12px;
+          margin-top: 28px;
+          max-width: 760px;
+        }
+
+        .heroMiniStat {
+          background: rgba(255,255,255,0.86);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 20px;
+          padding: 16px 16px 14px;
+          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
+        }
+
+        .heroMiniStat strong {
+          display: block;
+          font-size: 24px;
+          line-height: 1.04;
+          font-weight: 900;
+          letter-spacing: -0.03em;
+          color: #0f172a;
+        }
+
+        .heroMiniStat span {
+          display: block;
+          margin-top: 8px;
+          font-size: 13px;
+          line-height: 1.45;
+          color: rgba(15, 23, 42, 0.66);
+          font-weight: 700;
+        }
+
+        .heroVisualWrap {
+          min-width: 0;
+        }
+
+        .heroVisual {
+          position: relative;
+          border-radius: 30px;
+          overflow: hidden;
+          background: #fff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 28px 64px rgba(15, 23, 42, 0.14);
+        }
+
+        .heroImage {
+          width: 100%;
+          display: block;
+          aspect-ratio: 16 / 12;
+          object-fit: cover;
+        }
+
+        .heroFloatingCard {
+          position: absolute;
+          max-width: 240px;
+          border-radius: 20px;
+          padding: 14px 14px 13px;
+          background: rgba(255,255,255,0.9);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
+          backdrop-filter: blur(12px);
+        }
+
+        .heroFloatingCardTop {
+          top: 18px;
+          left: 18px;
+        }
+
+        .heroFloatingCardBottom {
+          right: 18px;
+          bottom: 18px;
+        }
+
+        .floatingCardEyebrow {
+          font-size: 11px;
+          line-height: 1.2;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          font-weight: 900;
+          color: rgba(15, 23, 42, 0.48);
+          margin-bottom: 6px;
+        }
+
+        .floatingCardTitle {
+          font-size: 15px;
+          line-height: 1.3;
+          font-weight: 900;
+          color: #0f172a;
+        }
+
+        .heroCaption {
+          margin-top: 12px;
+          font-size: 14px;
+          line-height: 1.45;
+          font-weight: 700;
+          color: rgba(15, 23, 42, 0.58);
+        }
+
+        .sectionPadTopSm {
+          padding-top: 14px;
+        }
+
+        .sectionPad {
+          padding: 22px 0;
+        }
+
+        .trustBar {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .trustItem {
+          min-height: 62px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          padding: 14px 16px;
+          border-radius: 20px;
+          background: rgba(255,255,255,0.88);
+          border: 1px solid rgba(15, 23, 42, 0.07);
+          color: rgba(15, 23, 42, 0.8);
+          font-size: 14px;
+          line-height: 1.4;
+          font-weight: 800;
+          box-shadow: 0 10px 26px rgba(15, 23, 42, 0.04);
+        }
+
+        .sectionHeader {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 18px;
+          flex-wrap: wrap;
+          margin-bottom: 18px;
+        }
+
+        .headerWithAction {
+          margin-bottom: 18px;
+        }
+
+        .compactHeader {
+          margin-bottom: 16px;
+        }
+
+        .sectionEyebrow {
+          font-size: 13px;
+          line-height: 1.2;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          font-weight: 900;
+          color: rgba(15, 23, 42, 0.48);
+          margin-bottom: 10px;
+        }
+
+        .sectionTitle {
+          margin: 0;
+          font-size: 42px;
+          line-height: 1.02;
+          letter-spacing: -0.03em;
+          font-weight: 900;
+          color: #0f172a;
+        }
+
+        .sectionLead {
+          margin: 12px 0 0;
+          font-size: 18px;
+          line-height: 1.65;
+          color: rgba(15, 23, 42, 0.7);
+        }
+
+        .maxW680 {
+          max-width: 680px;
+        }
+
+        .maxW720 {
+          max-width: 720px;
+        }
+
+        .maxW760 {
+          max-width: 760px;
+        }
+
+        .benefitsGrid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 16px;
+        }
+
+        .benefitCard {
+          position: relative;
+          min-height: 220px;
+          border-radius: 28px;
+          padding: 24px;
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.94), rgba(248,250,252,0.96));
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 16px 36px rgba(15, 23, 42, 0.05);
+        }
+
+        .benefitDot {
+          width: 12px;
+          height: 12px;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #0f172a, #334155);
+          margin-bottom: 18px;
+          box-shadow: 0 0 0 8px rgba(15, 23, 42, 0.06);
+        }
+
+        .benefitCardTitle {
+          font-size: 28px;
+          line-height: 1.08;
+          font-weight: 900;
+          letter-spacing: -0.02em;
+          color: #0f172a;
+        }
+
+        .benefitCardText {
+          margin-top: 12px;
+          font-size: 16px;
+          line-height: 1.65;
+          color: rgba(15, 23, 42, 0.7);
+          max-width: 360px;
+        }
+
+        .glassPanel,
+        .programPanel,
+        .mediaPanel {
+          border-radius: 30px;
+          padding: 28px;
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.95), rgba(249,250,252,0.96));
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 16px 38px rgba(15, 23, 42, 0.06);
+        }
+
+        .networkGrid {
+          display: grid;
+          grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
+          gap: 28px;
+          align-items: center;
+        }
+
+        .statsGrid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 14px;
+          margin-top: 22px;
+          max-width: 760px;
+        }
+
+        .statCard {
+          min-height: 118px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          border-radius: 22px;
+          padding: 18px 16px;
+          background: #f8fafc;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+        }
+
+        .statCardNumber {
+          font-size: 28px;
+          line-height: 1.04;
+          font-weight: 900;
+          letter-spacing: -0.03em;
+          color: #0f172a;
+        }
+
+        .statCardLabel {
+          margin-top: 8px;
+          font-size: 14px;
+          line-height: 1.45;
+          font-weight: 700;
+          color: rgba(15, 23, 42, 0.64);
+        }
+
+        .networkFootnote {
+          margin-top: 18px;
+          font-size: 15px;
+          line-height: 1.5;
+          font-weight: 800;
+          color: rgba(15, 23, 42, 0.6);
+        }
+
+        .networkAction {
+          margin-top: 20px;
+        }
+
+        .networkVisual {
+          overflow: hidden;
+          border-radius: 26px;
+          background: #fff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 24px 56px rgba(15, 23, 42, 0.12);
+        }
+
+        .networkImage {
+          width: 100%;
+          display: block;
+          aspect-ratio: 4 / 3;
+          object-fit: cover;
+        }
+
+        .howGrid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 16px;
+        }
+
+        .infoCard {
+          background: #fff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 28px;
+          padding: 24px;
+          box-shadow: 0 12px 32px rgba(15, 23, 42, 0.05);
+        }
+
+        .infoCardBadge {
+          width: 42px;
+          height: 42px;
+          border-radius: 999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #0f172a;
+          color: #fff;
+          font-size: 16px;
+          line-height: 1;
+          font-weight: 900;
+          margin-bottom: 18px;
+        }
+
+        .infoCardTitle {
+          font-size: 24px;
+          line-height: 1.1;
+          letter-spacing: -0.02em;
+          font-weight: 900;
+          color: #0f172a;
+        }
+
+        .infoCardText {
+          margin-top: 10px;
+          font-size: 16px;
+          line-height: 1.65;
+          color: rgba(15, 23, 42, 0.7);
+        }
+
+        .splitFeatureGrid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 16px;
+        }
+
+        .featureCard {
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          border-radius: 30px;
+          background: #fff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 16px 38px rgba(15, 23, 42, 0.06);
+          min-height: 100%;
+        }
+
+        .featureCardDark {
+          background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+          color: #fff;
+          border-color: rgba(15, 23, 42, 0.12);
+          box-shadow: 0 24px 54px rgba(15, 23, 42, 0.18);
+        }
+
+        .featureCardImg {
+          width: 100%;
+          display: block;
+          aspect-ratio: 16 / 10;
+          object-fit: cover;
+        }
+
+        .featureCardTextWrap {
+          padding: 24px 24px 26px;
+        }
+
+        .featureCardTitle {
+          margin: 0;
+          font-size: 34px;
+          line-height: 1.04;
+          letter-spacing: -0.03em;
+          font-weight: 900;
+          color: #0f172a;
+        }
+
+        .featureCardTitleLight {
+          color: #fff;
+        }
+
+        .featureCardText {
+          margin: 12px 0 0;
+          font-size: 17px;
+          line-height: 1.65;
+          color: rgba(15, 23, 42, 0.72);
+        }
+
+        .featureCardTextLight {
+          color: rgba(255, 255, 255, 0.82);
+        }
+
+        .featureAction {
+          margin-top: 18px;
+        }
+
+        .programGrid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 16px;
+        }
+
+        .programCard {
+          overflow: hidden;
+          border-radius: 24px;
+          background: #fff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+          transition: transform 0.16s ease, box-shadow 0.16s ease;
+        }
+
+        .programCard:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 18px 38px rgba(15, 23, 42, 0.09);
+        }
+
+        .programCardImg {
+          width: 100%;
+          display: block;
+          aspect-ratio: 4 / 3;
+          object-fit: cover;
+        }
+
+        .programCardBody {
+          padding: 18px;
+        }
+
+        .programCardTitle {
+          font-size: 22px;
+          line-height: 1.12;
+          font-weight: 900;
+          color: #0f172a;
+        }
+
+        .programCardText {
+          margin-top: 8px;
+          font-size: 15px;
+          line-height: 1.6;
+          color: rgba(15, 23, 42, 0.7);
+        }
+
+        .instagramGrid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 16px;
+        }
+
+        .instagramCard {
+          background: #fff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 28px;
+          overflow: hidden;
+          box-shadow: 0 12px 34px rgba(15, 23, 42, 0.05);
+        }
+
+        .instagramCardFooter {
+          padding: 12px 16px 16px;
+          border-top: 1px solid rgba(15, 23, 42, 0.06);
+          background: #fff;
+        }
+
+        .inlineArrowLink {
+          text-decoration: none;
+          color: #0f172a;
+          font-size: 15px;
+          line-height: 1.4;
+          font-weight: 800;
+        }
+
+        .inlineArrowLink:hover {
+          text-decoration: underline;
+        }
+
+        .mediaStrip {
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .mediaLink {
+          text-decoration: none;
+        }
+
+        .mediaLogoCard {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-height: 60px;
+          width: 100%;
+          padding: 0 16px;
+          border-radius: 18px;
+          background: #f8fafc;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          color: #0f172a;
+          transition:
+            transform 0.16s ease,
+            box-shadow 0.16s ease,
+            background 0.16s ease;
+        }
+
+        .mediaLogoCard:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+          background: #fff;
+        }
+
+        .mediaLogoImg {
+          width: 26px;
+          height: 26px;
+          flex: 0 0 26px;
+          border-radius: 6px;
+          background: #fff;
+        }
+
+        .mediaLogoText {
+          font-size: 15px;
+          line-height: 1.1;
+          font-weight: 800;
+        }
+
+        .mediaAction {
+          margin-top: 16px;
+        }
+
+        .ctaSection {
+          padding: 22px 0 72px;
+        }
+
+        .ctaPanel {
+          border-radius: 32px;
+          padding: 34px 28px;
+          background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+          color: #fff;
+          box-shadow: 0 28px 64px rgba(15, 23, 42, 0.2);
+        }
+
+        .ctaGrid {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 22px;
+          align-items: center;
+        }
+
+        .ctaTitle {
+          margin: 0;
+          font-size: 42px;
+          line-height: 1.02;
+          letter-spacing: -0.03em;
+          font-weight: 900;
+          color: #fff;
+        }
+
+        .ctaText {
+          margin: 14px 0 0;
+          max-width: 760px;
+          font-size: 18px;
+          line-height: 1.65;
+          color: rgba(255, 255, 255, 0.84);
+        }
+
+        @media (max-width: 1180px) {
+          .heroTitle {
+            font-size: 56px;
           }
 
           .mediaStrip {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 1080px) {
+          .heroGrid,
+          .networkGrid,
+          .splitFeatureGrid,
+          .ctaGrid,
+          .instagramGrid {
+            grid-template-columns: 1fr;
           }
 
-          .mediaLink {
-            text-decoration: none;
+          .heroMiniStats,
+          .statsGrid {
+            grid-template-columns: 1fr;
+            max-width: 100%;
+          }
+
+          .programGrid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .trustBar {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .heroFloatingCard {
+            max-width: 220px;
+          }
+
+          .ctaActions {
+            justify-content: flex-start;
+          }
+        }
+
+        @media (max-width: 860px) {
+          .heroPanel,
+          .glassPanel,
+          .programPanel,
+          .mediaPanel,
+          .ctaPanel {
+            padding: 22px;
+            border-radius: 26px;
+          }
+
+          .heroTitle,
+          .sectionTitle,
+          .ctaTitle {
+            font-size: 40px;
+            line-height: 1.03;
+          }
+
+          .heroLead,
+          .sectionLead,
+          .ctaText {
+            font-size: 17px;
+          }
+
+          .benefitsGrid,
+          .howGrid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .heroSection {
+            padding-top: 18px;
+          }
+
+          .container {
+            padding-left: 14px;
+            padding-right: 14px;
+          }
+
+          .heroTitle,
+          .sectionTitle,
+          .ctaTitle {
+            font-size: 34px;
+            line-height: 1.04;
+          }
+
+          .heroLead {
+            font-size: 18px;
+          }
+
+          .heroTrustRow span {
+            width: 100%;
+            justify-content: center;
+            text-align: center;
+          }
+
+          .trustBar,
+          .programGrid,
+          .mediaStrip {
+            grid-template-columns: 1fr;
+          }
+
+          .heroActions,
+          .ctaActions {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .btnPrimary,
+          .btnSecondary,
+          .btnLight,
+          .btnOutlineLight {
+            width: 100%;
+          }
+
+          .heroFloatingCard {
+            position: static;
+            max-width: none;
+            margin: 12px;
+          }
+
+          .heroVisual {
+            display: flex;
+            flex-direction: column;
+          }
+
+          .heroMiniStats {
+            margin-top: 20px;
+          }
+
+          .featureCardTitle,
+          .benefitCardTitle {
+            font-size: 28px;
           }
 
           .mediaLogoCard {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-height: 58px;
-            width: 100%;
-            padding: 0 16px;
-            border-radius: 18px;
-            background: #f8fafc;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            color: #0f172a;
-            transition: transform 0.15s ease, box-shadow 0.15s ease,
-              background 0.15s ease;
-            box-sizing: border-box;
+            min-height: 56px;
           }
-
-          .mediaLogoImg {
-            width: 26px;
-            height: 26px;
-            flex: 0 0 26px;
-            border-radius: 6px;
-            background: white;
-          }
-
-          .mediaLogoText {
-            font-weight: 800;
-            font-size: 15px;
-            line-height: 1.1;
-          }
-
-          .mediaLink:hover .mediaLogoCard {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-            background: white;
-          }
-
-          @media (max-width: 1100px) {
-            .heroGrid,
-            .networkGrid,
-            .dualGrid,
-            .ctaGrid,
-            .instagramGrid {
-              grid-template-columns: 1fr;
-            }
-
-            .programGrid {
-              grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .mediaStrip {
-              grid-template-columns: repeat(3, minmax(0, 1fr));
-            }
-
-            .networkStats {
-              grid-template-columns: 1fr;
-              max-width: 100%;
-            }
-          }
-
-          @media (max-width: 760px) {
-            .howGrid,
-            .programGrid,
-            .mediaStrip {
-              grid-template-columns: 1fr;
-            }
-
-            .heroBadge {
-              border-radius: 22px;
-              padding: 10px 14px;
-            }
-
-            .heroBadgeTitle {
-              font-size: 12px;
-            }
-
-            .heroBadgeText {
-              font-size: 11.5px;
-            }
-          }
-        `}</style>
-      </main>
-
-      <Footer />
-    </div>
-  );
-}
-
-function InfoCard({ number, title, text }) {
-  return (
-    <div
-      style={{
-        background: "white",
-        border: "1px solid rgba(15,23,42,0.08)",
-        borderRadius: 26,
-        padding: 22,
-        boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
-      }}
-    >
-      <div
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 999,
-          background: "#0f172a",
-          color: "white",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontWeight: 900,
-          marginBottom: 16,
-        }}
-      >
-        {number}
-      </div>
-      <div
-        style={{
-          fontSize: 22,
-          lineHeight: 1.15,
-          fontWeight: 900,
-          color: "#0f172a",
-        }}
-      >
-        {title}
-      </div>
-      <div
-        style={{
-          marginTop: 10,
-          fontSize: 16,
-          lineHeight: 1.6,
-          color: "rgba(15,23,42,0.72)",
-        }}
-      >
-        {text}
-      </div>
-    </div>
-  );
-}
-
-function ProgramCard({ title, text, img }) {
-  return (
-    <div
-      style={{
-        background: "white",
-        border: "1px solid rgba(15,23,42,0.08)",
-        borderRadius: 24,
-        overflow: "hidden",
-        boxShadow: "0 10px 30px rgba(15,23,42,0.05)",
-      }}
-    >
-      <img
-        src={img}
-        alt={title}
-        style={{
-          width: "100%",
-          display: "block",
-          aspectRatio: "4/3",
-          objectFit: "cover",
-        }}
-      />
-      <div style={{ padding: 18 }}>
-        <div
-          style={{
-            fontSize: 21,
-            lineHeight: 1.15,
-            fontWeight: 900,
-            color: "#0f172a",
-          }}
-        >
-          {title}
-        </div>
-        <div
-          style={{
-            marginTop: 8,
-            fontSize: 15,
-            lineHeight: 1.55,
-            color: "rgba(15,23,42,0.7)",
-          }}
-        >
-          {text}
-        </div>
-      </div>
-    </div>
+        }
+      `}</style>
+    </>
   );
 }
