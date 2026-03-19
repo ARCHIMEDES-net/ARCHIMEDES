@@ -38,9 +38,8 @@ export default function AktualniPozvankyPage() {
       </Head>
 
       <main className="min-h-screen bg-white text-slate-900">
-        {/* HERO */}
         <section className="border-b border-slate-200 bg-gradient-to-b from-slate-50 via-white to-white">
-          <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 lg:px-10 lg:py-20">
+          <div className="mx-auto max-w-7xl px-6 py-12 sm:px-8 lg:px-10 lg:py-14">
             <div className="max-w-3xl">
               <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1 text-sm font-semibold text-emerald-700">
                 Aktuální pozvánky
@@ -50,10 +49,9 @@ export default function AktualniPozvankyPage() {
                 Co se chystá teď
               </h1>
 
-              <p className="mt-6 text-lg leading-8 text-slate-600 sm:text-xl">
-                Podívejte se na aktuální pozvánky od hostů, kteří vstupují přímo do výuky.
-                Každé vysílání začíná osobním oslovením – a právě to dává hodině energii,
-                smysl a pozornost žáků.
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
+                Podívejte se na aktuální pozvánky od hostů, kteří vstupují přímo
+                do výuky.
               </p>
 
               <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
@@ -75,16 +73,11 @@ export default function AktualniPozvankyPage() {
           </div>
         </section>
 
-        {/* VIDEA */}
-        <section className="mx-auto max-w-7xl px-6 py-14 sm:px-8 lg:px-10 lg:py-18">
-          <div className="mb-8 max-w-3xl">
+        <section className="mx-auto max-w-7xl px-6 py-10 sm:px-8 lg:px-10 lg:py-12">
+          <div className="mb-6 max-w-3xl">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               Aktuální pozvánky od hostů
             </h2>
-            <p className="mt-4 text-lg leading-8 text-slate-600">
-              Krátké osobní pozvánky, které otevírají téma a vtahují žáky do výuky ještě
-              před samotným vysíláním.
-            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
@@ -134,7 +127,6 @@ export default function AktualniPozvankyPage() {
           </div>
         </section>
 
-        {/* TEXT BLOK */}
         <section className="border-y border-slate-200 bg-slate-50">
           <div className="mx-auto max-w-7xl px-6 py-14 sm:px-8 lg:px-10 lg:py-18">
             <div className="max-w-3xl">
@@ -155,7 +147,6 @@ export default function AktualniPozvankyPage() {
           </div>
         </section>
 
-        {/* CTA */}
         <section className="mx-auto max-w-7xl px-6 py-16 sm:px-8 lg:px-10 lg:py-20">
           <div className="rounded-[32px] bg-slate-900 px-6 py-10 text-white shadow-xl sm:px-10 lg:px-12">
             <h2 className="text-3xl font-bold sm:text-4xl">
