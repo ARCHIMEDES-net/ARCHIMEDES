@@ -328,6 +328,21 @@ export default function StartPage() {
                     <span>Doklady</span>
                     <strong>potvrzení e-mailem</strong>
                   </div>
+
+                  <div className="summaryContent">
+                    <div className="summaryContentLabel">Součást balíčku</div>
+                    <ul className="summaryList">
+                      <li>3× živý vstup pro I. stupeň ZŠ</li>
+                      <li>3× živý vstup pro II. stupeň ZŠ</li>
+                      <li>3× wellbeing program Generace Z</li>
+                      <li>3× Kariérní poradenství jinak</li>
+                      <li>1× speciální vysílání v angličtině</li>
+                    </ul>
+                    <p className="summaryNote">
+                      Konkrétní termíny vysílání budou zveřejňovány průběžně v
+                      programu ARCHIMEDES Live.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -727,6 +742,43 @@ export default function StartPage() {
             text-align: right;
             color: #ffffff;
             font-weight: 800;
+          }
+
+          .summaryContent {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+          }
+
+          .summaryContentLabel {
+            font-size: 13px;
+            line-height: 1.4;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.72);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 12px;
+          }
+
+          .summaryList {
+            margin: 0;
+            padding-left: 18px;
+            display: grid;
+            gap: 8px;
+          }
+
+          .summaryList li {
+            color: #ffffff;
+            font-size: 15px;
+            line-height: 1.55;
+            font-weight: 700;
+          }
+
+          .summaryNote {
+            margin: 14px 0 0;
+            font-size: 13px;
+            line-height: 1.55;
+            color: rgba(255, 255, 255, 0.68);
           }
 
           .formSection {
