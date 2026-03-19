@@ -1,12 +1,11 @@
-
 import Head from "next/head";
 import Link from "next/link";
 import Footer from "../components/Footer";
 
-const heroImg = "/vyuka.jpeg"; // hlavní živá fotka s lidmi
-const liveImgMain = "/vyuka-detail.jpeg"; // hlavní fotka vysílání
+const heroImg = "/vyuka.jpeg"; // hlavní hero
+const liveImgMain = "/vyuka-detail.jpeg"; // detail živého vysílání
 const liveImgSecondary = "/ucebna.jpg"; // širší kontext učebny
-const guestImg = "/hoste.jpg"; // host / osobnosti / důkaz důvěry
+const guestImg = "/hoste.jpg"; // host / důvěra / atmosféra
 
 export default function GuestPage() {
   return (
@@ -240,20 +239,25 @@ export default function GuestPage() {
             <div className="galleryGrid">
               <div className="galleryLarge">
                 <img
-                  src={liveImgMain}
-                  alt="Students engaged during live session"
+                  src={liveImgSecondary}
+                  alt="ARCHIMEDES learning space"
                 />
               </div>
 
               <div className="gallerySmallStack">
                 <img
-                  src={liveImgSecondary}
-                  alt="ARCHIMEDES learning space"
-                />
-                <img
                   src={guestImg}
                   alt="Guest and program atmosphere"
                 />
+
+                <div className="galleryTextCard">
+                  <div className="galleryTextLabel">What guests experience</div>
+                  <h3>A carefully curated format</h3>
+                  <p>
+                    A calm, moderated environment where your message is given
+                    space, attention and real human response.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -738,6 +742,43 @@ export default function GuestPage() {
             min-height: 269px;
           }
 
+          .galleryTextCard {
+            min-height: 269px;
+            padding: 28px 24px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, #0f172a 0%, #16213d 100%);
+            color: #ffffff;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+          }
+
+          .galleryTextLabel {
+            font-size: 13px;
+            line-height: 1.4;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.66);
+            margin-bottom: 10px;
+          }
+
+          .galleryTextCard h3 {
+            margin: 0;
+            font-size: 28px;
+            line-height: 1.08;
+            letter-spacing: -0.03em;
+            font-weight: 900;
+          }
+
+          .galleryTextCard p {
+            margin: 14px 0 0;
+            font-size: 17px;
+            line-height: 1.65;
+            color: rgba(255, 255, 255, 0.84);
+          }
+
           .closingSection {
             padding: 0 0 88px;
           }
@@ -864,7 +905,8 @@ export default function GuestPage() {
               min-height: 420px;
             }
 
-            .gallerySmallStack img {
+            .gallerySmallStack img,
+            .galleryTextCard {
               min-height: 260px;
             }
 
@@ -952,7 +994,8 @@ export default function GuestPage() {
             .benefitCard,
             .inviteBox,
             .closingCard,
-            .contactCard {
+            .contactCard,
+            .galleryTextCard {
               border-radius: 24px;
               padding-left: 20px;
               padding-right: 20px;
@@ -963,13 +1006,15 @@ export default function GuestPage() {
             }
 
             .benefitCard h3,
-            .trustCard h3 {
+            .trustCard h3,
+            .galleryTextCard h3 {
               font-size: 28px;
             }
 
             .mainVisual,
             .galleryLarge img,
-            .gallerySmallStack img {
+            .gallerySmallStack img,
+            .galleryTextCard {
               min-height: 260px;
               border-radius: 22px;
             }
