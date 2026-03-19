@@ -303,6 +303,17 @@ export default function StartPage() {
                     ARCHIMEDES Live v rozsahu balíčku START a zavazujete se k úhradě
                     ceny podle objednávky.
                   </div>
+
+                  <div className="supplierInline">
+                    <div className="supplierInlineLabel">Dodavatel</div>
+                    <div className="supplierInlineText">
+                      <strong>EduVision s.r.o.</strong> · Purkyňova 649/127, Medlánky,
+                      612 00 Brno · IČ: 17803039 · DIČ: CZ17803039
+                    </div>
+                    <div className="supplierInlineMeta">
+                      zapsána pod značkou C 131579/KSBR Krajským soudem v Brně
+                    </div>
+                  </div>
                 </div>
 
                 <div className="summaryColumn">
@@ -329,43 +340,23 @@ export default function StartPage() {
                       <span>Doklady</span>
                       <strong>potvrzení e-mailem</strong>
                     </div>
-                  </div>
 
-                  <div className="summaryCardsRow">
-                    <div className="summaryCard summaryCardLight">
-                      <div className="summaryContentLabel">Součást balíčku</div>
-                      <ul className="summaryList">
-                        <li>3× živý vstup pro I. stupeň ZŠ</li>
-                        <li>3× živý vstup pro II. stupeň ZŠ</li>
-                        <li>3× wellbeing program Generace Z</li>
-                        <li>3× Kariérní poradenství jinak</li>
-                        <li>1× speciální vysílání v angličtině</li>
-                      </ul>
-                      <p className="summaryNote">
-                        Konkrétní termíny vysílání budou zveřejňovány průběžně v
-                        programu ARCHIMEDES Live.
-                      </p>
-                    </div>
+                    <div className="summaryDivider" />
 
-                    <div className="summaryCard supplierCard">
-                      <div className="summaryContentLabel supplierLabel">
-                        Dodavatel
-                      </div>
-                      <div className="supplierText">
-                        <strong>EduVision s.r.o.</strong>
-                        <br />
-                        Purkyňova 649/127, Medlánky
-                        <br />
-                        612 00 Brno
-                        <br />
-                        IČ: 17803039
-                        <br />
-                        DIČ: CZ17803039
-                      </div>
-                      <p className="supplierMeta">
-                        zapsána pod značkou C 131579/KSBR Krajským soudem v Brně
-                      </p>
+                    <div className="summaryContentLabel summaryContentLabelDark">
+                      Součást balíčku
                     </div>
+                    <ul className="summaryList summaryListDark">
+                      <li>3× živý vstup pro I. stupeň ZŠ</li>
+                      <li>3× živý vstup pro II. stupeň ZŠ</li>
+                      <li>3× wellbeing program Generace Z</li>
+                      <li>3× Kariérní poradenství jinak</li>
+                      <li>1× speciální vysílání v angličtině</li>
+                    </ul>
+                    <p className="summaryNote summaryNoteDark">
+                      Konkrétní termíny vysílání budou zveřejňovány průběžně v
+                      programu ARCHIMEDES Live.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -671,20 +662,13 @@ export default function StartPage() {
 
           .heroGrid {
             display: grid;
-            grid-template-columns: minmax(0, 1.18fr) minmax(360px, 0.82fr);
+            grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
             gap: 28px;
             align-items: start;
           }
 
           .summaryColumn {
             display: grid;
-            gap: 16px;
-          }
-
-          .summaryCardsRow {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
           }
 
           .eyebrow {
@@ -733,28 +717,47 @@ export default function StartPage() {
             font-weight: 700;
           }
 
-          .summaryCard {
-            border-radius: 24px;
-            padding: 22px 22px;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+          .supplierInline {
+            margin-top: 18px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: #eef3fb;
+            border: 1px solid rgba(30, 64, 175, 0.1);
           }
 
-          .summaryCardDark {
+          .supplierInlineLabel {
+            font-size: 12px;
+            line-height: 1.4;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+          }
+
+          .supplierInlineText {
+            font-size: 14px;
+            line-height: 1.65;
+            color: #223252;
+          }
+
+          .supplierInlineText strong {
+            color: #0f172a;
+          }
+
+          .supplierInlineMeta {
+            margin-top: 6px;
+            font-size: 13px;
+            line-height: 1.55;
+            color: #667085;
+          }
+
+          .summaryCard {
+            border-radius: 24px;
+            padding: 24px 22px;
             background: #0f172a;
             color: #ffffff;
             box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
-          }
-
-          .summaryCardLight {
-            background: #ffffff;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            color: #0f172a;
-          }
-
-          .supplierCard {
-            background: #eef3fb;
-            border: 1px solid rgba(30, 64, 175, 0.08);
-            color: #0f172a;
           }
 
           .summaryLabel {
@@ -795,6 +798,12 @@ export default function StartPage() {
             font-weight: 800;
           }
 
+          .summaryDivider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.12);
+            margin: 18px 0 16px;
+          }
+
           .summaryContentLabel {
             font-size: 13px;
             line-height: 1.4;
@@ -802,7 +811,10 @@ export default function StartPage() {
             letter-spacing: 0.04em;
             text-transform: uppercase;
             margin-bottom: 12px;
-            color: #223252;
+          }
+
+          .summaryContentLabelDark {
+            color: rgba(255, 255, 255, 0.72);
           }
 
           .summaryList {
@@ -812,8 +824,8 @@ export default function StartPage() {
             gap: 8px;
           }
 
-          .summaryList li {
-            color: #0f172a;
+          .summaryListDark li {
+            color: #ffffff;
             font-size: 15px;
             line-height: 1.55;
             font-weight: 800;
@@ -823,29 +835,10 @@ export default function StartPage() {
             margin: 14px 0 0;
             font-size: 13px;
             line-height: 1.6;
-            color: #667085;
           }
 
-          .supplierLabel {
-            color: #1e3a8a;
-          }
-
-          .supplierText {
-            font-size: 15px;
-            line-height: 1.65;
-            color: #223252;
-          }
-
-          .supplierText strong {
-            color: #0f172a;
-            font-size: 16px;
-          }
-
-          .supplierMeta {
-            margin: 10px 0 0;
-            font-size: 13px;
-            line-height: 1.55;
-            color: #5b6472;
+          .summaryNoteDark {
+            color: rgba(255, 255, 255, 0.68);
           }
 
           .formSection {
@@ -1031,12 +1024,6 @@ export default function StartPage() {
             line-height: 1.6;
             color: #667085;
             font-weight: 700;
-          }
-
-          @media (max-width: 1100px) {
-            .summaryCardsRow {
-              grid-template-columns: 1fr;
-            }
           }
 
           @media (max-width: 980px) {
