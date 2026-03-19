@@ -46,10 +46,10 @@ export default function Home() {
 
                 <div className="heroActions">
                   <Link href="/poptavka" className="btn btnPrimary">
-                    Chci ukázkovou hodinu
+                    <span>Chci ukázkovou hodinu</span>
                   </Link>
                   <Link href="/program" className="btn btnSecondary">
-                    Prohlédnout program
+                    <span>Prohlédnout program</span>
                   </Link>
                 </div>
 
@@ -210,10 +210,12 @@ export default function Home() {
               <div className="ctaSide">
                 <div className="ctaActions">
                   <Link href="/poptavka" className="btn btnLight">
-                    Domluvit ukázku
+                    <span>Domluvit ukázku</span>
                   </Link>
                 </div>
-                <div className="ctaNote">bez závazku • online nebo přímo ve škole</div>
+                <div className="ctaNote">
+                  bez závazku • online nebo přímo ve škole
+                </div>
               </div>
             </div>
           </div>
@@ -259,9 +261,9 @@ export default function Home() {
             inset: 0;
             background: linear-gradient(
               90deg,
-              rgba(8, 15, 34, 0.72) 0%,
-              rgba(8, 15, 34, 0.48) 28%,
-              rgba(8, 15, 34, 0.18) 55%,
+              rgba(8, 15, 34, 0.64) 0%,
+              rgba(8, 15, 34, 0.42) 28%,
+              rgba(8, 15, 34, 0.16) 55%,
               rgba(8, 15, 34, 0.02) 100%
             );
           }
@@ -275,8 +277,8 @@ export default function Home() {
           }
 
           .heroContent {
-            max-width: 640px;
-            padding: 88px 0 82px;
+            max-width: 620px;
+            padding: 118px 0 82px;
             color: white;
           }
 
@@ -309,18 +311,18 @@ export default function Home() {
 
           h1 {
             margin: 0;
-            font-size: 72px;
-            line-height: 0.94;
-            letter-spacing: -0.055em;
+            font-size: 64px;
+            line-height: 0.95;
+            letter-spacing: -0.05em;
             font-weight: 900;
           }
 
           .heroLead {
             margin: 22px 0 0;
             font-size: 22px;
-            line-height: 1.6;
+            line-height: 1.58;
             color: rgba(255, 255, 255, 0.92);
-            max-width: 600px;
+            max-width: 580px;
           }
 
           .heroActions,
@@ -371,11 +373,26 @@ export default function Home() {
             text-decoration: none;
           }
 
+          .btn span {
+            display: inline-block;
+            color: inherit !important;
+            -webkit-text-fill-color: currentColor !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            font-size: 16px !important;
+            line-height: 1.2 !important;
+            font-weight: 800 !important;
+          }
+
           .btnPrimary,
           .btnPrimary:visited {
             background: white;
-            color: #0f172a;
+            color: #0f172a !important;
             box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+          }
+
+          .btnPrimary span {
+            color: #0f172a !important;
           }
 
           .btnPrimary:hover {
@@ -386,9 +403,13 @@ export default function Home() {
           .btnSecondary,
           .btnSecondary:visited {
             border: 1px solid rgba(255, 255, 255, 0.28);
-            color: white;
+            color: #ffffff !important;
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(4px);
+          }
+
+          .btnSecondary span {
+            color: #ffffff !important;
           }
 
           .btnSecondary:hover {
@@ -399,8 +420,12 @@ export default function Home() {
           .btnLight,
           .btnLight:visited {
             background: white;
-            color: #0f172a;
+            color: #0f172a !important;
             box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+          }
+
+          .btnLight span {
+            color: #0f172a !important;
           }
 
           .btnLight:hover {
@@ -633,7 +658,7 @@ export default function Home() {
             }
 
             h1 {
-              font-size: 56px;
+              font-size: 52px;
               line-height: 0.98;
             }
 
