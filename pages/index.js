@@ -1,4 +1,3 @@
-
 import Head from "next/head";
 import Link from "next/link";
 import Footer from "../components/Footer";
@@ -27,7 +26,8 @@ function PrimaryButton({ href, children }) {
         lineHeight: 1.2,
         boxShadow: "0 10px 24px rgba(15,23,42,0.16)",
         whiteSpace: "nowrap",
-        transition: "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
+        transition:
+          "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
       <span
@@ -66,7 +66,8 @@ function SecondaryButton({ href, children }) {
         boxShadow: "0 10px 24px rgba(15,23,42,0.12)",
         backdropFilter: "blur(6px)",
         whiteSpace: "nowrap",
-        transition: "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
+        transition:
+          "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
       <span
@@ -105,7 +106,8 @@ function TertiaryButton({ href, children }) {
         boxShadow: "0 10px 24px rgba(15,23,42,0.12)",
         backdropFilter: "blur(6px)",
         whiteSpace: "nowrap",
-        transition: "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
+        transition:
+          "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
       <span
@@ -142,7 +144,8 @@ function LightButton({ href, children }) {
         lineHeight: 1.2,
         boxShadow: "0 10px 24px rgba(15,23,42,0.16)",
         whiteSpace: "nowrap",
-        transition: "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
+        transition:
+          "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
       <span
@@ -197,6 +200,12 @@ export default function Home() {
                   s praxí. Program, který dává smysl škole i obci.
                 </p>
 
+                <div className="heroGuestPillWrap">
+                  <Link href="/guest" className="heroGuestPill">
+                    For guest speakers
+                  </Link>
+                </div>
+
                 <div className="heroActions">
                   <PrimaryButton href="/start">
                     Chci balíček START
@@ -205,13 +214,6 @@ export default function Home() {
                     Ukázková hodina
                   </SecondaryButton>
                   <TertiaryButton href="/demo">Chci DEMO</TertiaryButton>
-                </div>
-
-                <div className="heroGuestLinkWrap">
-                  <span className="heroGuestLabel">For invited guests:</span>
-                  <Link href="/guest" className="heroGuestLink">
-                    See how it works
-                  </Link>
                 </div>
               </div>
             </div>
@@ -479,6 +481,37 @@ export default function Home() {
             max-width: 560px;
           }
 
+          .heroGuestPillWrap {
+            margin-top: 18px;
+            margin-bottom: 16px;
+          }
+
+          .heroGuestPill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 38px;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: rgba(255, 255, 255, 0.96);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            backdrop-filter: blur(6px);
+            transition: transform 0.18s ease, background 0.18s ease,
+              border-color 0.18s ease, box-shadow 0.18s ease;
+          }
+
+          .heroGuestPill:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.34);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+          }
+
           .heroActions,
           .ctaActions {
             display: flex;
@@ -487,7 +520,7 @@ export default function Home() {
           }
 
           .heroActions {
-            margin-top: 28px;
+            margin-top: 0;
           }
 
           .heroActions :global(a:hover),
@@ -499,35 +532,6 @@ export default function Home() {
           .heroActions :global(a:active),
           .ctaActions :global(a:active) {
             transform: translateY(0);
-          }
-
-          .heroGuestLinkWrap {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px;
-            margin-top: 18px;
-          }
-
-          .heroGuestLabel {
-            font-size: 14px;
-            line-height: 1.4;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.78);
-          }
-
-          .heroGuestLink {
-            font-size: 14px;
-            line-height: 1.4;
-            font-weight: 800;
-            color: #ffffff;
-            text-decoration: none;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.34);
-            transition: border-color 0.18s ease, opacity 0.18s ease;
-          }
-
-          .heroGuestLink:hover {
-            border-color: rgba(255, 255, 255, 0.8);
           }
 
           .section {
@@ -817,13 +821,9 @@ export default function Home() {
               width: 100%;
             }
 
-            .heroGuestLinkWrap {
-              margin-top: 18px;
-            }
-
-            .heroGuestLabel,
-            .heroGuestLink {
-              font-size: 13px;
+            .heroGuestPillWrap {
+              margin-top: 16px;
+              margin-bottom: 14px;
             }
           }
         `}</style>
