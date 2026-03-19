@@ -42,7 +42,7 @@ export default async function handler(req, res) {
       throw new Error("Chyba uložení do DB");
     }
 
-    // 🔹 SMTP (STEJNÉ jako poptavka.js)
+    // 🔹 SMTP (stejné jako ve vašem projektu)
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
@@ -53,13 +53,16 @@ export default async function handler(req, res) {
       },
     });
 
-    // 🔹 EMAIL INTERNÍ (vám)
+    // 🔹 SUBJECT (IDENTIFIKACE)
+    const subject = `🟢 START – ${data.schoolName} (IČO: ${data.ico})`;
+
+    // 🔹 EMAIL INTERNÍ
     await transporter.sendMail({
       from: process.env.MAIL_FROM,
       to: process.env.MAIL_TO,
-      subject: "🟢 NOVÁ OBJEDNÁVKA – ARCHIMEDES START",
+      subject,
       html: `
-        <h2>Nová objednávka START</h2>
+        <h2>Nová objednávka – ARCHIMEDES START</h2>
 
         <p><strong>Škola:</strong> ${data.schoolName}</p>
         <p><strong>IČO:</strong> ${data.ico}</p>
@@ -98,7 +101,9 @@ export default async function handler(req, res) {
 
         <br/>
 
-        <p>V nejbližší době vás budeme kontaktovat a zašleme podklady k aktivaci.</p>
+        <p>Odesláním objednávky došlo k uzavření smlouvy o poskytování služby ARCHIMEDES Live.</p>
+
+        <p>Na základě objednávky vám bude vystavena faktura.</p>
 
         <br/>
 
