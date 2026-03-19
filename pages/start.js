@@ -19,6 +19,7 @@ const initialForm = {
   contactName: "",
   role: "",
   email: "",
+  adminEmail: "",
   phone: "",
   note: "",
   agreeVop: false,
@@ -88,17 +89,27 @@ export default function StartPage() {
 
         <main className="page">
           <section className="successSection">
-            <div className="container">
+            <div className="container narrow">
               <div className="successCard">
                 <div className="eyebrow dark">Objednávka přijata</div>
                 <h1>Děkujeme, objednávka byla přijata</h1>
                 <p className="lead">
-                  Na uvedený e-mail jsme vám zaslali potvrzení přijetí objednávky a
-                  uzavření smlouvy o poskytování služby ARCHIMEDES Live.
+                  Na uvedený e-mail vám zašleme potvrzení objednávky, fakturační
+                  podklady a další informace k zahájení programu ARCHIMEDES Live.
                 </p>
 
                 <div className="successBox">
-                  Na základě objednávky vám bude následně vystavena faktura.
+                  Balíček START je jednorázový program na období duben–červen 2026
+                  bez automatického prodloužení.
+                </div>
+
+                <div className="nextSteps">
+                  <div className="nextStepsTitle">Co bude následovat</div>
+                  <ul>
+                    <li>zašleme vám potvrzení objednávky,</li>
+                    <li>obdržíte fakturační podklady,</li>
+                    <li>následně získáte přístup k programu.</li>
+                  </ul>
                 </div>
 
                 <p className="smallText">
@@ -111,7 +122,7 @@ export default function StartPage() {
                     Zpět na hlavní stránku
                   </Link>
                   <Link href="/demo" className="secondaryLink">
-                    Chci si nejdřív prohlédnout DEMO
+                    Zobrazit DEMO
                   </Link>
                 </div>
               </div>
@@ -128,9 +139,13 @@ export default function StartPage() {
             }
 
             .container {
-              max-width: 980px;
+              max-width: 1180px;
               margin: 0 auto;
               padding: 0 20px;
+            }
+
+            .container.narrow {
+              max-width: 920px;
             }
 
             .successSection {
@@ -188,6 +203,35 @@ export default function StartPage() {
               font-size: 16px;
               line-height: 1.7;
               font-weight: 700;
+            }
+
+            .nextSteps {
+              margin-top: 22px;
+              padding: 20px 22px;
+              border-radius: 18px;
+              background: #f8fafc;
+              border: 1px solid rgba(15, 23, 42, 0.08);
+            }
+
+            .nextStepsTitle {
+              font-size: 15px;
+              line-height: 1.5;
+              font-weight: 800;
+              color: #0f172a;
+              margin-bottom: 8px;
+            }
+
+            .nextSteps ul {
+              margin: 0;
+              padding-left: 18px;
+              display: grid;
+              gap: 8px;
+            }
+
+            .nextSteps li {
+              color: #334155;
+              font-size: 15px;
+              line-height: 1.65;
             }
 
             .smallText {
@@ -289,35 +333,73 @@ export default function StartPage() {
           <div className="container">
             <div className="heroCard">
               <div className="heroGrid">
-                <div>
+                <div className="heroMain">
                   <div className="eyebrow dark">Balíček START duben–červen</div>
                   <h1>Objednávka balíčku START</h1>
+
                   <p className="lead">
                     Získejte přístup k programu ARCHIMEDES Live na období
-                    duben–červen. Po odeslání objednávky vám zašleme potvrzení
-                    přijetí objednávky a uzavření smlouvy na uvedený e-mail.
+                    duben–červen 2026. Balíček je připraven pro snadné zapojení do
+                    výuky bez složité přípravy.
                   </p>
 
+                  <div className="proofBox">
+                    Program ARCHIMEDES Live je určen pro školy a organizace, které
+                    chtějí rychle a přehledně zapojit živý program do výuky i
+                    školního života.
+                  </div>
+
                   <div className="noticeBox">
-                    Odesláním objednávky uzavíráte smlouvu o poskytování služby
-                    ARCHIMEDES Live v rozsahu balíčku START a zavazujete se k úhradě
-                    ceny podle objednávky.
+                    <strong>Odesláním objednávky objednáváte balíček START</strong>{" "}
+                    na období duben–červen 2026. Po odeslání vám zašleme potvrzení
+                    objednávky, fakturační podklady a další informace k zahájení
+                    programu.
+                  </div>
+
+                  <div className="processBox">
+                    <div className="processTitle">Jak to probíhá</div>
+                    <div className="processSteps">
+                      <div className="processStep">
+                        <span className="processNumber">1</span>
+                        <p>Odesláním objednávky rezervujete místo v programu.</p>
+                      </div>
+                      <div className="processStep">
+                        <span className="processNumber">2</span>
+                        <p>Zašleme vám potvrzení a fakturační podklady.</p>
+                      </div>
+                      <div className="processStep">
+                        <span className="processNumber">3</span>
+                        <p>Následně získáte přístup do ARCHIMEDES Live.</p>
+                      </div>
+                      <div className="processStep">
+                        <span className="processNumber">4</span>
+                        <p>Můžete zapojit třídy do vysílání v období duben–červen.</p>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="supplierInline">
                     <div className="supplierInlineLabel">Dodavatel</div>
                     <div className="supplierInlineText">
-                      <strong>EduVision s.r.o.</strong> · Purkyňova 649/127, Medlánky,
-                      612 00 Brno · IČ: 17803039 · DIČ: CZ17803039
+                      <strong>EduVision s.r.o.</strong> · Purkyňova 649/127,
+                      Medlánky, 612 00 Brno · IČ: 17803039 · DIČ: CZ17803039
                     </div>
                     <div className="supplierInlineMeta">
-                      zapsána pod značkou C 131579/KSBR Krajským soudem v Brně
+                      Poskytovatel programu a provozovatel služby ARCHIMEDES Live.
+                      Zapsána pod značkou C 131579/KSBR Krajským soudem v Brně.
                     </div>
+                  </div>
+
+                  <div className="demoInline">
+                    <span>Chcete si program nejprve prohlédnout?</span>
+                    <Link href="/demo" className="demoGhostButton">
+                      Zobrazit DEMO
+                    </Link>
                   </div>
                 </div>
 
                 <div className="summaryColumn">
-                  <div className="summaryCard summaryCardDark">
+                  <div className="summaryCard">
                     <div className="summaryLabel">Objednávaný balíček</div>
                     <div className="summaryTitle">START duben–červen</div>
 
@@ -333,30 +415,40 @@ export default function StartPage() {
 
                     <div className="summaryRow">
                       <span>Forma</span>
-                      <strong>objednávka online</strong>
+                      <strong>online program</strong>
                     </div>
 
                     <div className="summaryRow">
                       <span>Doklady</span>
-                      <strong>potvrzení e-mailem</strong>
+                      <strong>potvrzení objednávky, faktura</strong>
+                    </div>
+
+                    <div className="summaryRow">
+                      <span>Závazek</span>
+                      <strong>
+                        jednorázový balíček bez automatického prodloužení
+                      </strong>
                     </div>
 
                     <div className="summaryDivider" />
 
-                    <div className="summaryContentLabel summaryContentLabelDark">
-                      Součást balíčku
-                    </div>
-                    <ul className="summaryList summaryListDark">
+                    <div className="summaryContentLabel">Součást balíčku</div>
+                    <ul className="summaryList">
                       <li>3× živý vstup pro I. stupeň ZŠ</li>
                       <li>3× živý vstup pro II. stupeň ZŠ</li>
                       <li>3× wellbeing program Generace Z</li>
                       <li>3× Kariérní poradenství jinak</li>
                       <li>1× speciální vysílání v angličtině</li>
                     </ul>
-                    <p className="summaryNote summaryNoteDark">
+
+                    <p className="summaryNote">
                       Konkrétní termíny vysílání budou zveřejňovány průběžně v
                       programu ARCHIMEDES Live.
                     </p>
+
+                    <div className="capacityHint">
+                      Program začíná v dubnu. Doporučujeme rezervovat včas.
+                    </div>
                   </div>
                 </div>
               </div>
@@ -469,7 +561,7 @@ export default function StartPage() {
 
                 <div className="grid twoCols">
                   <div className="field">
-                    <label htmlFor="email">E-mail *</label>
+                    <label htmlFor="email">E-mail objednatele *</label>
                     <input
                       id="email"
                       name="email"
@@ -481,6 +573,21 @@ export default function StartPage() {
                   </div>
 
                   <div className="field">
+                    <label htmlFor="adminEmail">E-mail administrátora školy *</label>
+                    <input
+                      id="adminEmail"
+                      name="adminEmail"
+                      type="email"
+                      value={form.adminEmail}
+                      onChange={handleChange}
+                      placeholder="např. spravce@skola.cz"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid twoCols">
+                  <div className="field">
                     <label htmlFor="phone">Telefon</label>
                     <input
                       id="phone"
@@ -489,6 +596,13 @@ export default function StartPage() {
                       value={form.phone}
                       onChange={handleChange}
                     />
+                  </div>
+
+                  <div className="field fieldHintBox">
+                    <div className="fieldHint">
+                      Na e-mail administrátora školy můžeme následně zaslat
+                      přístupové údaje a organizační informace k programu.
+                    </div>
                   </div>
                 </div>
 
@@ -500,7 +614,19 @@ export default function StartPage() {
                     value={form.note}
                     onChange={handleChange}
                     rows={4}
+                    placeholder="Např. preferovaný způsob kontaktu nebo doplňující informace."
                   />
+                </div>
+              </div>
+
+              <div className="sectionBlock">
+                <div className="submitInfoBox">
+                  <div className="submitInfoTitle">Před odesláním</div>
+                  <ul>
+                    <li>přístup do programu obdržíte e-mailem,</li>
+                    <li>fakturace probíhá po potvrzení objednávky,</li>
+                    <li>balíček START je určen na období duben–červen 2026.</li>
+                  </ul>
                 </div>
               </div>
 
@@ -578,7 +704,7 @@ export default function StartPage() {
                     </span>
                   </label>
 
-                  <label className="checkboxItem">
+                  <label className="checkboxItem checkboxItemStrong">
                     <input
                       type="checkbox"
                       name="agreeContract"
@@ -587,9 +713,9 @@ export default function StartPage() {
                       required
                     />
                     <span>
-                      Odesláním objednávky uzavírám za školu / organizaci smlouvu o
-                      poskytování služby ARCHIMEDES Live – balíček START, s
-                      povinností úhrady ceny podle objednávky.
+                      Odesláním objednávky objednávám za školu / organizaci balíček
+                      START služby ARCHIMEDES Live na období duben–červen 2026 a
+                      potvrzuji povinnost úhrady ceny podle objednávky.
                     </span>
                   </label>
                 </div>
@@ -622,7 +748,7 @@ export default function StartPage() {
 
               <div className="submitRow">
                 <button type="submit" className="submitButton" disabled={loading}>
-                  {loading ? "Odesíláme..." : "Odeslat závaznou objednávku"}
+                  {loading ? "Odesíláme..." : "Objednat balíček START"}
                 </button>
 
                 <p className="submitNote">
@@ -667,6 +793,10 @@ export default function StartPage() {
             align-items: start;
           }
 
+          .heroMain {
+            min-width: 0;
+          }
+
           .summaryColumn {
             display: grid;
           }
@@ -705,8 +835,20 @@ export default function StartPage() {
             max-width: 760px;
           }
 
+          .proofBox {
+            margin-top: 18px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: #eef6ff;
+            border: 1px solid rgba(37, 99, 235, 0.12);
+            color: #1f3b75;
+            font-size: 15px;
+            line-height: 1.7;
+            font-weight: 700;
+          }
+
           .noticeBox {
-            margin-top: 22px;
+            margin-top: 18px;
             padding: 18px 20px;
             border-radius: 18px;
             background: #fff8e8;
@@ -714,7 +856,60 @@ export default function StartPage() {
             color: #6b4f00;
             font-size: 15px;
             line-height: 1.7;
-            font-weight: 700;
+          }
+
+          .noticeBox strong {
+            font-weight: 900;
+          }
+
+          .processBox {
+            margin-top: 18px;
+            padding: 20px 20px 18px;
+            border-radius: 18px;
+            background: #f8fafc;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+          }
+
+          .processTitle {
+            font-size: 15px;
+            line-height: 1.5;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+          }
+
+          .processSteps {
+            display: grid;
+            gap: 12px;
+          }
+
+          .processStep {
+            display: grid;
+            grid-template-columns: 32px 1fr;
+            gap: 12px;
+            align-items: start;
+          }
+
+          .processNumber {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            background: #e9eef8;
+            color: #223252;
+            font-size: 14px;
+            font-weight: 900;
+            line-height: 1;
+            box-shadow: inset 0 0 0 1px rgba(34, 50, 82, 0.08);
+          }
+
+          .processStep p {
+            margin: 3px 0 0;
+            color: #334155;
+            font-size: 15px;
+            line-height: 1.65;
           }
 
           .supplierInline {
@@ -750,6 +945,41 @@ export default function StartPage() {
             font-size: 13px;
             line-height: 1.55;
             color: #667085;
+          }
+
+          .demoInline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 12px;
+            align-items: center;
+            margin-top: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #475467;
+          }
+
+          .demoGhostButton {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 38px;
+            padding: 0 14px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 14px;
+            line-height: 1;
+            color: #223252;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            transition: transform 0.18s ease, box-shadow 0.18s ease,
+              border-color 0.18s ease;
+          }
+
+          .demoGhostButton:hover {
+            transform: translateY(-1px);
+            border-color: rgba(34, 50, 82, 0.2);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
           }
 
           .summaryCard {
@@ -811,9 +1041,6 @@ export default function StartPage() {
             letter-spacing: 0.04em;
             text-transform: uppercase;
             margin-bottom: 12px;
-          }
-
-          .summaryContentLabelDark {
             color: rgba(255, 255, 255, 0.72);
           }
 
@@ -824,7 +1051,7 @@ export default function StartPage() {
             gap: 8px;
           }
 
-          .summaryListDark li {
+          .summaryList li {
             color: #ffffff;
             font-size: 15px;
             line-height: 1.55;
@@ -835,10 +1062,19 @@ export default function StartPage() {
             margin: 14px 0 0;
             font-size: 13px;
             line-height: 1.6;
+            color: rgba(255, 255, 255, 0.68);
           }
 
-          .summaryNoteDark {
-            color: rgba(255, 255, 255, 0.68);
+          .capacityHint {
+            margin-top: 18px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.55;
+            font-weight: 800;
           }
 
           .formSection {
@@ -919,6 +1155,51 @@ export default function StartPage() {
             box-shadow: 0 0 0 4px rgba(27, 80, 156, 0.08);
           }
 
+          .fieldHintBox {
+            justify-content: flex-end;
+          }
+
+          .fieldHint {
+            min-height: 54px;
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: #f8fafc;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            color: #475467;
+            font-size: 14px;
+            line-height: 1.55;
+          }
+
+          .submitInfoBox {
+            padding: 18px 20px;
+            border-radius: 18px;
+            background: #f8fafc;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+          }
+
+          .submitInfoTitle {
+            font-size: 15px;
+            line-height: 1.5;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+          }
+
+          .submitInfoBox ul {
+            margin: 0;
+            padding-left: 18px;
+            display: grid;
+            gap: 8px;
+          }
+
+          .submitInfoBox li {
+            color: #334155;
+            font-size: 15px;
+            line-height: 1.65;
+          }
+
           .checkboxList {
             display: grid;
             gap: 14px;
@@ -933,6 +1214,11 @@ export default function StartPage() {
             border-radius: 16px;
             background: #f8fafc;
             border: 1px solid rgba(15, 23, 42, 0.08);
+          }
+
+          .checkboxItemStrong {
+            background: #fff8e8;
+            border-color: #f0dfaf;
           }
 
           .checkboxItem input {
@@ -1032,6 +1318,10 @@ export default function StartPage() {
             .oneColNarrow {
               grid-template-columns: 1fr;
             }
+
+            .fieldHintBox {
+              justify-content: stretch;
+            }
           }
 
           @media (max-width: 640px) {
@@ -1072,6 +1362,17 @@ export default function StartPage() {
 
             .summaryRow strong {
               text-align: left;
+            }
+
+            .processStep {
+              grid-template-columns: 28px 1fr;
+              gap: 10px;
+            }
+
+            .processNumber {
+              width: 28px;
+              height: 28px;
+              font-size: 13px;
             }
 
             .submitButton {
