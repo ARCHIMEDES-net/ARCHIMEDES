@@ -1,3 +1,4 @@
+
 import Head from "next/head";
 import Link from "next/link";
 import Footer from "../components/Footer";
@@ -26,6 +27,7 @@ function PrimaryButton({ href, children }) {
         lineHeight: 1.2,
         boxShadow: "0 10px 24px rgba(15,23,42,0.16)",
         whiteSpace: "nowrap",
+        transition: "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
       <span
@@ -54,20 +56,22 @@ function SecondaryButton({ href, children }) {
         minHeight: 52,
         padding: "0 22px",
         borderRadius: 14,
-        background: "rgba(255,255,255,0.08)",
-        color: "#ffffff",
+        background: "rgba(255,255,255,0.94)",
+        color: "#0f172a",
         textDecoration: "none",
         fontWeight: 800,
         fontSize: 16,
         lineHeight: 1.2,
-        border: "1px solid rgba(255,255,255,0.28)",
-        backdropFilter: "blur(4px)",
+        border: "1px solid rgba(255,255,255,0.68)",
+        boxShadow: "0 10px 24px rgba(15,23,42,0.12)",
+        backdropFilter: "blur(6px)",
         whiteSpace: "nowrap",
+        transition: "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
       <span
         style={{
-          color: "#ffffff",
+          color: "#0f172a",
           fontWeight: 800,
           fontSize: 16,
           lineHeight: 1.2,
@@ -99,6 +103,7 @@ function LightButton({ href, children }) {
         lineHeight: 1.2,
         boxShadow: "0 10px 24px rgba(15,23,42,0.16)",
         whiteSpace: "nowrap",
+        transition: "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
       <span
@@ -274,7 +279,7 @@ export default function Home() {
             <div className="trustPanel">
               <div>
                 <div className="eyebrow dark">Ověřeno v praxi</div>
-                <h2>ARCHIMEDES už funguje v desítkách škol a obcí</h2>
+                <h2>ARCHIMEDES už funguje v reálných školách a obcích</h2>
                 <p>
                   Nejde o teorii. Jde o model, který je možné ukázat v provozu a
                   který už má za sebou konkrétní zkušenosti z terénu.
@@ -307,10 +312,10 @@ export default function Home() {
                 <div className="eyebrow light">
                   Chcete to vidět ve vlastní škole?
                 </div>
-                <h2>Podívejte se na ARCHIMEDES Live v praxi</h2>
+                <h2>Ukážeme vám ARCHIMEDES Live v praxi</h2>
                 <p>
-                   Registrujte se k DEMO verzi a vyzkoušejte si ukázkové hodiny přímo u vás.
-  
+                  Domluvíme ukázkovou hodinu a společně se podíváme, jak může
+                  program fungovat právě u vás.
                 </p>
               </div>
 
@@ -439,6 +444,17 @@ export default function Home() {
 
           .heroActions {
             margin-top: 28px;
+          }
+
+          .heroActions :global(a:hover),
+          .ctaActions :global(a:hover) {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.2);
+          }
+
+          .heroActions :global(a:active),
+          .ctaActions :global(a:active) {
+            transform: translateY(0);
           }
 
           .heroMeta {
