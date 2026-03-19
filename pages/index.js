@@ -69,6 +69,16 @@ const mediaLinks = [
   },
 ];
 
+function getInstagramEmbedUrl(id, type) {
+  if (type === "reel") return `https://www.instagram.com/reel/${id}/embed`;
+  return `https://www.instagram.com/p/${id}/embed/captioned`;
+}
+
+function getInstagramPostUrl(id, type) {
+  if (type === "reel") return `https://www.instagram.com/reel/${id}/`;
+  return `https://www.instagram.com/p/${id}/`;
+}
+
 function PrimaryButton({ href, children }) {
   return (
     <Link href={href} className="btnPrimary">
@@ -85,60 +95,50 @@ function SecondaryButton({ href, children }) {
   );
 }
 
-function LightButton({ href, children }) {
+function SectionKicker({ children }) {
+  return <div className="sectionKicker">{children}</div>;
+}
+
+function MetricCard({ value, label }) {
   return (
-    <Link href={href} className="btnLight">
-      {children}
-    </Link>
+    <div className="metricCard">
+      <div className="metricValue">{value}</div>
+      <div className="metricLabel">{label}</div>
+    </div>
   );
 }
 
-function OutlineLightButton({ href, children }) {
+function EditorialCard({ title, text, dark = false }) {
   return (
-    <Link href={href} className="btnOutlineLight">
-      {children}
-    </Link>
-  );
-}
-
-function getInstagramEmbedUrl(id, type) {
-  if (type === "reel") return `https://www.instagram.com/reel/${id}/embed`;
-  return `https://www.instagram.com/p/${id}/embed/captioned`;
-}
-
-function getInstagramPostUrl(id, type) {
-  if (type === "reel") return `https://www.instagram.com/reel/${id}/`;
-  return `https://www.instagram.com/p/${id}/`;
-}
-
-function InstagramEmbed({ id, type }) {
-  const src = getInstagramEmbedUrl(id, type);
-  const href = getInstagramPostUrl(id, type);
-
-  return (
-    <div className="instagramCard">
-      <iframe
-        src={src}
-        title={`Instagram ${id}`}
-        width="100%"
-        height="470"
-        frameBorder="0"
-        scrolling="no"
-        allowTransparency="true"
-        loading="lazy"
-        referrerPolicy="strict-origin-when-cross-origin"
-        style={{ display: "block", width: "100%", background: "#fff" }}
-      />
-      <div className="instagramCardFooter">
-        <a
-          href={href}
-          target="_blank"
-          rel="noreferrer"
-          className="inlineArrowLink"
-        >
-          Otevřít příspěvek na Instagramu →
-        </a>
+    <div className={`editorialCard ${dark ? "editorialCardDark" : ""}`}>
+      <div className="editorialCardInner">
+        <div className="editorialCardTitle">{title}</div>
+        <div className="editorialCardText">{text}</div>
       </div>
+    </div>
+  );
+}
+
+function ProgramCard({ title, text, img }) {
+  return (
+    <div className="programCard">
+      <div className="programMediaWrap">
+        <img src={img} alt={title} className="programMedia" />
+      </div>
+      <div className="programBody">
+        <div className="programTitle">{title}</div>
+        <div className="programText">{text}</div>
+      </div>
+    </div>
+  );
+}
+
+function StepCard({ step, title, text }) {
+  return (
+    <div className="stepCard">
+      <div className="stepBadge">{step}</div>
+      <div className="stepTitle">{title}</div>
+      <div className="stepText">{text}</div>
     </div>
   );
 }
@@ -168,51 +168,29 @@ function MediaLogoButton({ label, domain, href }) {
   );
 }
 
-function SectionEyebrow({ children }) {
-  return <div className="sectionEyebrow">{children}</div>;
-}
+function InstagramEmbed({ id, type }) {
+  const src = getInstagramEmbedUrl(id, type);
+  const href = getInstagramPostUrl(id, type);
 
-function HeroPill({ children }) {
-  return <div className="heroPill">{children}</div>;
-}
-
-function BenefitCard({ title, text }) {
   return (
-    <div className="benefitCard">
-      <div className="benefitDot" />
-      <div className="benefitCardTitle">{title}</div>
-      <div className="benefitCardText">{text}</div>
-    </div>
-  );
-}
-
-function InfoCard({ number, title, text }) {
-  return (
-    <div className="infoCard">
-      <div className="infoCardBadge">{number}</div>
-      <div className="infoCardTitle">{title}</div>
-      <div className="infoCardText">{text}</div>
-    </div>
-  );
-}
-
-function ProgramCard({ title, text, img }) {
-  return (
-    <div className="programCard">
-      <img src={img} alt={title} className="programCardImg" />
-      <div className="programCardBody">
-        <div className="programCardTitle">{title}</div>
-        <div className="programCardText">{text}</div>
+    <div className="instagramCard">
+      <iframe
+        src={src}
+        title={`Instagram ${id}`}
+        width="100%"
+        height="470"
+        frameBorder="0"
+        scrolling="no"
+        allowTransparency="true"
+        loading="lazy"
+        referrerPolicy="strict-origin-when-cross-origin"
+        style={{ display: "block", width: "100%", background: "#fff" }}
+      />
+      <div className="instagramFooter">
+        <a href={href} target="_blank" rel="noreferrer" className="inlineLink">
+          Otevřít příspěvek na Instagramu →
+        </a>
       </div>
-    </div>
-  );
-}
-
-function StatCard({ number, label }) {
-  return (
-    <div className="statCard">
-      <div className="statCardNumber">{number}</div>
-      <div className="statCardLabel">{label}</div>
     </div>
   );
 }
@@ -274,32 +252,30 @@ export default function Home() {
         />
       </Head>
 
-      <div className="pageShell">
+      <div className="page">
         <main>
           <section className="heroSection">
             <div className="container">
-              <div className="heroPanel">
+              <div className="heroShell">
                 <div className="heroGrid">
-                  <div className="heroContent">
-                    <HeroPill>ARCHIMEDES Live • živý program pro školy a obce</HeroPill>
+                  <div className="heroLeft">
+                    <div className="heroTopline">
+                      <span className="heroToplineDot" />
+                      ARCHIMEDES Live • živý program pro školy a obce
+                    </div>
 
                     <h1 className="heroTitle">
-                      Živý program do výuky,
+                      Výuka, která působí
                       <br />
-                      který škole nepřidělává práci
+                      současně. Bez toho,
+                      <br />
+                      aby škole přidělávala práci.
                     </h1>
 
                     <p className="heroLead">
-                      Škola získá hotové živé vstupy, pracovní listy a archiv
-                      vysílání. Obec navíc pravidelný program pro komunitu,
-                      seniory i společné akce.
+                      Škola získá hotové živé vstupy, pracovní listy a archiv.
+                      Obec navíc program pro komunitu, seniory i společné akce.
                     </p>
-
-                    <div className="heroTrustRow">
-                      <span>živé vysílání a hosté z praxe</span>
-                      <span>okamžitě využitelné ve škole</span>
-                      <span>ověřeno v síti učeben ARCHIMEDES®</span>
-                    </div>
 
                     <div className="heroActions">
                       <PrimaryButton href="/poptavka">
@@ -310,40 +286,31 @@ export default function Home() {
                       </SecondaryButton>
                     </div>
 
-                    <div className="heroMiniStats">
-                      <div className="heroMiniStat">
-                        <strong>20+</strong>
-                        <span>míst v síti ARCHIMEDES</span>
-                      </div>
-                      <div className="heroMiniStat">
-                        <strong>1 třída</strong>
-                        <span>1 živý vstup 1 pracovní list</span>
-                      </div>
-                      <div className="heroMiniStat">
-                        <strong>OBEC 2030</strong>
-                        <span>ověřeno i v praxi obcí</span>
-                      </div>
+                    <div className="heroMicroProof">
+                      <span>živé vstupy s hosty z praxe</span>
+                      <span>okamžitě využitelné ve škole</span>
+                      <span>ověřeno v síti ARCHIMEDES®</span>
                     </div>
                   </div>
 
-                  <div className="heroVisualWrap">
-                    <div className="heroVisual">
+                  <div className="heroRight">
+                    <div className="heroImageCard">
                       <img
                         src={heroImg}
                         alt="Venkovní učebna ARCHIMEDES®"
                         className="heroImage"
                       />
 
-                      <div className="heroFloatingCard heroFloatingCardTop">
-                        <div className="floatingCardEyebrow">Pro ředitele školy</div>
-                        <div className="floatingCardTitle">
+                      <div className="floatingPanel floatingPanelA">
+                        <div className="floatingLabel">Pro ředitele školy</div>
+                        <div className="floatingTitle">
                           Hotový program bez složité přípravy
                         </div>
                       </div>
 
-                      <div className="heroFloatingCard heroFloatingCardBottom">
-                        <div className="floatingCardEyebrow">Pro obec</div>
-                        <div className="floatingCardTitle">
+                      <div className="floatingPanel floatingPanelB">
+                        <div className="floatingLabel">Pro obec</div>
+                        <div className="floatingTitle">
                           Obsah pro školu, komunitu i seniory
                         </div>
                       </div>
@@ -354,186 +321,185 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
+
+                <div className="heroMetrics">
+                  <MetricCard value="20+" label="míst v síti ARCHIMEDES®" />
+                  <MetricCard value="1 třída" label="1 živý vstup + 1 pracovní list" />
+                  <MetricCard value="OBEC 2030" label="ověřeno v praxi obcí" />
+                  <MetricCard value="škola + obec" label="jeden program, více využití" />
+                </div>
               </div>
             </div>
           </section>
 
-          <section className="sectionPadTopSm">
+          <section className="section sectionTight">
             <div className="container">
-              <div className="trustBar">
-                <div className="trustItem">živé vstupy s inspirativními hosty</div>
-                <div className="trustItem">pracovní listy pro další práci</div>
-                <div className="trustItem">archiv pro opakované využití</div>
-                <div className="trustItem">využití pro školu i komunitu obce</div>
-              </div>
-            </div>
-          </section>
-
-          <section className="sectionPad">
-            <div className="container">
-              <div className="sectionHeader">
-                <div>
-                  <SectionEyebrow>Proč to dává škole smysl</SectionEyebrow>
+              <div className="bentoIntro">
+                <div className="bentoHeadline">
+                  <SectionKicker>Proč to dává smysl</SectionKicker>
                   <h2 className="sectionTitle">
-                    Ředitel získává program,
+                    Méně složitosti.
                     <br />
-                    který je snadné zavést
+                    Víc skutečného využití.
                   </h2>
-                  <p className="sectionLead maxW720">
-                    ARCHIMEDES Live není další komplikovaný systém. Je to
-                    připravený vzdělávací program, který můžete zařadit do výuky
-                    i života školy bez zbytečných organizačních nároků.
-                  </p>
                 </div>
-              </div>
 
-              <div className="benefitsGrid">
-                <BenefitCard
-                  title="Šetří čas učitelům"
-                  text="Škola dostává hotový obsah, který lze využít bez vymýšlení nového formátu."
-                />
-                <BenefitCard
-                  title="Působí moderně navenek"
-                  text="Žáci se potkávají s hosty z praxe, autory, vědci i inspirativními osobnostmi."
-                />
-                <BenefitCard
-                  title="Dává hodnotu i obci"
-                  text="Vedle školy může program využívat také obec, komunita a seniorní publikum."
-                />
-              </div>
-            </div>
-          </section>
-
-          <section className="sectionPad">
-            <div className="container">
-              <div className="glassPanel">
-                <div className="networkGrid">
-                  <div>
-                    <SectionEyebrow>Síť učeben ARCHIMEDES®</SectionEyebrow>
-
-                    <h2 className="sectionTitle">
-                      ARCHIMEDES už funguje
-                      <br />
-                      ve více než 20 obcích
-                    </h2>
-
-                    <p className="sectionLead maxW680">
-                      Síť se rozšiřuje a ukazuje, že propojení školy, učebny a
-                      živého programu funguje v praxi. Nejde o nápad na papíře,
-                      ale o ověřené řešení.
-                    </p>
-
-                    <div className="statsGrid">
-                      <StatCard number="20+" label="realizovaných míst" />
-                      <StatCard number="ČR / SR" label="ověřeno v praxi" />
-                      <StatCard number="síť roste" label="přibývají další lokality" />
-                    </div>
-
-                    <div className="networkFootnote">
-                      Vítěz soutěže OBEC 2030 – Křenov
-                    </div>
-
-                    <div className="networkAction">
-                      <PrimaryButton href="/poptavka">
-                        Chci ukázku programu
-                      </PrimaryButton>
+                <div className="bentoGrid">
+                  <div className="bentoLarge bentoDark">
+                    <div className="bentoContent">
+                      <div className="bentoTitle">
+                        Škola nekupuje další systém.
+                        <br />
+                        Kupuje hotový program.
+                      </div>
+                      <div className="bentoText">
+                        ARCHIMEDES Live není další komplikovaná platforma. Je to
+                        připravený vzdělávací obsah, který lze snadno zařadit do
+                        výuky i života školy.
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <div className="networkVisual">
-                      <img
-                        src={networkImg}
-                        alt="ARCHIMEDES oceněný v soutěži OBEC 2030"
-                        className="networkImage"
-                      />
-                    </div>
-                  </div>
+                  <EditorialCard
+                    title="Šetří čas učitelům"
+                    text="Škola dostává připravený obsah, hosty i návazné materiály."
+                  />
+                  <EditorialCard
+                    title="Působí moderně navenek"
+                    text="Žáci se setkávají s lidmi z praxe, autory i inspirativními osobnostmi."
+                  />
+                  <EditorialCard
+                    title="Dává hodnotu i obci"
+                    text="Vedle školy může program využívat také obec, komunita a senioři."
+                  />
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="sectionPad">
+          <section className="section">
             <div className="container">
-              <div className="sectionHeader">
-                <div>
-                  <SectionEyebrow>Jak vypadá jedna hodina</SectionEyebrow>
+              <div className="networkLayout">
+                <div className="networkCopy">
+                  <SectionKicker>Síť učeben ARCHIMEDES®</SectionKicker>
                   <h2 className="sectionTitle">
-                    1 třída – 1 živý vstup – 1 pracovní list
+                    ARCHIMEDES už funguje
+                    <br />
+                    ve více než 20 obcích
                   </h2>
-                  <p className="sectionLead maxW760">
-                    Jednoduchý model, který je srozumitelný škole i zřizovateli.
-                    Žáci se připojí k živému vysílání, navážou ve třídě a škola
-                    má k dispozici i archiv.
+                  <p className="sectionLead">
+                    Nejde o koncept na papíře. Síť učeben a partnerů ukazuje, že
+                    propojení školy, živého programu a života obce funguje v
+                    praxi.
                   </p>
+
+                  <div className="networkStats">
+                    <MetricCard value="20+" label="realizovaných míst" />
+                    <MetricCard value="ČR / SR" label="ověřeno v praxi" />
+                    <MetricCard value="síť roste" label="přibývají další lokality" />
+                  </div>
+
+                  <div className="networkNote">
+                    Vítěz soutěže OBEC 2030 – Křenov
+                  </div>
+
+                  <div className="networkAction">
+                    <PrimaryButton href="/poptavka">
+                      Chci ukázku programu
+                    </PrimaryButton>
+                  </div>
+                </div>
+
+                <div className="networkVisualCard">
+                  <img
+                    src={networkImg}
+                    alt="ARCHIMEDES oceněný v soutěži OBEC 2030"
+                    className="networkVisualImg"
+                  />
                 </div>
               </div>
+            </div>
+          </section>
 
-              <div className="howGrid">
-                <InfoCard
-                  number="1"
+          <section className="section">
+            <div className="container">
+              <div className="processHeader">
+                <SectionKicker>Jak vypadá jedna hodina</SectionKicker>
+                <h2 className="sectionTitle">
+                  1 třída – 1 živý vstup – 1 pracovní list
+                </h2>
+                <p className="sectionLead processLead">
+                  Jednoduchý model, kterému rozumí ředitel, učitel i zřizovatel.
+                  Jasná logika. Žádná zbytečná složitost.
+                </p>
+              </div>
+
+              <div className="stepsGrid">
+                <StepCard
+                  step="1"
                   title="Živý vstup s hostem"
-                  text="Třída se připojí k vysílání a setká se s vědcem, autorem, odborníkem nebo inspirativní osobností."
+                  text="Třída se připojí k vysílání a setká se s odborníkem, autorem nebo inspirativní osobností."
                 />
-                <InfoCard
-                  number="2"
+                <StepCard
+                  step="2"
                   title="Pracovní list a návaznost"
                   text="K vysílání jsou připravené materiály, díky nimž může učitel téma snadno rozvinout."
                 />
-                <InfoCard
-                  number="3"
+                <StepCard
+                  step="3"
                   title="Archiv pro další využití"
-                  text="Obsah je možné vracet do výuky i později a postupně z něj stavět vlastní rytmus práce školy."
+                  text="Obsah se dá vracet do výuky i později a škola si z něj může budovat vlastní rytmus práce."
                 />
               </div>
             </div>
           </section>
 
-          <section className="sectionPad">
+          <section className="section">
             <div className="container">
-              <div className="splitFeatureGrid">
-                <div className="featureCard featureCardDark">
-                  <div className="featureCardTextWrap">
-                    <SectionEyebrow>Co škola skutečně kupuje</SectionEyebrow>
-                    <h3 className="featureCardTitle featureCardTitleLight">
+              <div className="editorialSplit">
+                <div className="editorialVisualCard editorialVisualDark">
+                  <div className="editorialVisualText">
+                    <SectionKicker>Co škola skutečně získává</SectionKicker>
+                    <h3 className="editorialVisualTitle">
                       Živý program,
                       <br />
                       ne další starost navíc
                     </h3>
-                    <p className="featureCardText featureCardTextLight">
+                    <p className="editorialVisualLead">
                       Škola získává pravidelný obsah, který může okamžitě využít.
-                      Bez složité přípravy, bez hledání hostů, bez vymýšlení celé
-                      dramaturgie od nuly.
+                      Bez vymýšlení dramaturgie od nuly, bez složité přípravy.
                     </p>
-                    <div className="featureAction">
-                      <LightButton href="/program">Zobrazit program</LightButton>
+                    <div className="editorialVisualAction">
+                      <SecondaryButton href="/program">
+                        Zobrazit program
+                      </SecondaryButton>
                     </div>
                   </div>
+
                   <img
                     src={lessonImg}
                     alt="Ukázka programu ARCHIMEDES®"
-                    className="featureCardImg"
+                    className="editorialVisualImage"
                   />
                 </div>
 
-                <div className="featureCard">
+                <div className="editorialVisualCard">
                   <img
                     src={kidsImg}
                     alt="Děti v programu ARCHIMEDES®"
-                    className="featureCardImg"
+                    className="editorialVisualImage"
                   />
-                  <div className="featureCardTextWrap">
-                    <SectionEyebrow>Co zažijí děti</SectionEyebrow>
-                    <h3 className="featureCardTitle">
+                  <div className="editorialVisualText">
+                    <SectionKicker>Co zažijí děti</SectionKicker>
+                    <h3 className="editorialVisualTitle">
                       Setkání s lidmi,
                       <br />
                       kteří mají co předat
                     </h3>
-                    <p className="featureCardText">
-                      Děti se potkávají s vědci, autory, odborníky z praxe i
-                      inspirativními osobnostmi. Výuka tak získává větší energii,
-                      konkrétnost a přesah do reálného života.
+                    <p className="editorialVisualLead">
+                      Děti se setkávají s vědci, autory, odborníky z praxe i
+                      osobnostmi veřejného života. Výuka tak získává větší energii
+                      i přesah do reálného světa.
                     </p>
                   </div>
                 </div>
@@ -541,19 +507,21 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="sectionPad">
+          <section className="section">
             <div className="container">
-              <div className="programPanel">
-                <div className="sectionHeader headerWithAction">
+              <div className="programShell">
+                <div className="programHeader">
                   <div>
-                    <SectionEyebrow>Program ARCHIMEDES Live</SectionEyebrow>
+                    <SectionKicker>Program ARCHIMEDES Live</SectionKicker>
                     <h2 className="sectionTitle">Ukázka formátů programu</h2>
-                    <p className="sectionLead maxW760">
+                    <p className="sectionLead">
                       Formáty, které dávají smysl škole, žákům i komunitě obce.
                     </p>
                   </div>
 
-                  <PrimaryButton href="/program">Zobrazit celý program</PrimaryButton>
+                  <div className="programHeaderAction">
+                    <PrimaryButton href="/program">Zobrazit celý program</PrimaryButton>
+                  </div>
                 </div>
 
                 <div className="programGrid">
@@ -582,17 +550,14 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="sectionPad">
+          <section className="section">
             <div className="container">
-              <div className="sectionHeader">
-                <div>
-                  <SectionEyebrow>ARCHIMEDES Live aktuálně</SectionEyebrow>
-                  <h2 className="sectionTitle">Jak to vypadá v praxi</h2>
-                  <p className="sectionLead maxW760">
-                    Reálné ukázky z prostředí ARCHIMEDES Live a z komunikace
-                    projektu směrem ke školám a obcím.
-                  </p>
-                </div>
+              <div className="socialHeader">
+                <SectionKicker>ARCHIMEDES Live aktuálně</SectionKicker>
+                <h2 className="sectionTitle">Jak to vypadá v praxi</h2>
+                <p className="sectionLead processLead">
+                  Reálné ukázky komunikace a života projektu.
+                </p>
               </div>
 
               <div className="instagramGrid">
@@ -607,14 +572,12 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="sectionPad">
+          <section className="section">
             <div className="container">
-              <div className="mediaPanel">
-                <div className="sectionHeader compactHeader">
-                  <div>
-                    <SectionEyebrow>ARCHIMEDES v médiích</SectionEyebrow>
-                    <h2 className="sectionTitle">Důvěra, která je vidět</h2>
-                  </div>
+              <div className="mediaShell">
+                <div className="mediaHeader">
+                  <SectionKicker>ARCHIMEDES v médiích</SectionKicker>
+                  <h2 className="sectionTitle">Důvěra, která je vidět</h2>
                 </div>
 
                 <div className="mediaStrip">
@@ -628,12 +591,12 @@ export default function Home() {
                   ))}
                 </div>
 
-                <div className="mediaAction">
+                <div className="mediaMore">
                   <a
                     href="https://www.archimedes-net.com/media/"
                     target="_blank"
                     rel="noreferrer"
-                    className="inlineArrowLink"
+                    className="inlineLink"
                   >
                     Všechna média →
                   </a>
@@ -642,12 +605,12 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="ctaSection">
+          <section className="section ctaSection">
             <div className="container">
-              <div className="ctaPanel">
+              <div className="ctaShell">
                 <div className="ctaGrid">
                   <div>
-                    <SectionEyebrow>Chcete vidět, jak by to fungovalo u vás?</SectionEyebrow>
+                    <SectionKicker>Chcete vidět, jak by to fungovalo u vás?</SectionKicker>
                     <h2 className="ctaTitle">
                       Ukážeme vám program
                       <br />
@@ -661,10 +624,12 @@ export default function Home() {
                   </div>
 
                   <div className="ctaActions">
-                    <LightButton href="/poptavka">Chci více informací</LightButton>
-                    <OutlineLightButton href="/ucebna">
+                    <PrimaryButton href="/poptavka">
+                      Chci více informací
+                    </PrimaryButton>
+                    <SecondaryButton href="/ucebna">
                       Prohlédnout učebnu
-                    </OutlineLightButton>
+                    </SecondaryButton>
                   </div>
                 </div>
               </div>
@@ -682,10 +647,10 @@ export default function Home() {
 
         body {
           margin: 0;
-          background: #f5f7fb;
+          background: #f3f5f9;
           color: #0f172a;
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-            sans-serif;
+          font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
+            "Segoe UI", sans-serif;
           text-rendering: optimizeLegibility;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
@@ -695,156 +660,140 @@ export default function Home() {
           box-sizing: border-box;
         }
 
-        .pageShell {
+        .page {
           min-height: 100vh;
           background:
-            radial-gradient(circle at top left, rgba(59, 130, 246, 0.07), transparent 28%),
-            radial-gradient(circle at top right, rgba(16, 185, 129, 0.06), transparent 24%),
-            linear-gradient(180deg, #f8fbff 0%, #f5f7fb 100%);
+            radial-gradient(circle at top left, rgba(96, 165, 250, 0.09), transparent 24%),
+            radial-gradient(circle at top right, rgba(16, 185, 129, 0.08), transparent 22%),
+            linear-gradient(180deg, #f7f9fc 0%, #f3f5f9 100%);
         }
 
         .container {
-          max-width: 1220px;
+          max-width: 1240px;
           margin: 0 auto;
-          padding-left: 16px;
-          padding-right: 16px;
+          padding-left: 18px;
+          padding-right: 18px;
+        }
+
+        .section {
+          padding: 22px 0;
+        }
+
+        .sectionTight {
+          padding-top: 12px;
+          padding-bottom: 22px;
         }
 
         .heroSection {
-          padding: 34px 0 0;
+          padding: 28px 0 18px;
         }
 
-        .heroPanel {
+        .heroShell {
           position: relative;
           overflow: hidden;
-          border-radius: 34px;
+          border-radius: 36px;
           padding: 34px;
           background:
-            radial-gradient(circle at top left, rgba(255,255,255,0.9), rgba(255,255,255,0.72)),
-            linear-gradient(135deg, rgba(255,255,255,0.96), rgba(246,248,252,0.88));
+            linear-gradient(135deg, rgba(255,255,255,0.96), rgba(247,249,252,0.92));
           border: 1px solid rgba(15, 23, 42, 0.08);
           box-shadow:
-            0 20px 60px rgba(15, 23, 42, 0.08),
-            inset 0 1px 0 rgba(255,255,255,0.7);
-          backdrop-filter: blur(18px);
+            0 24px 70px rgba(15, 23, 42, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.72);
+          backdrop-filter: blur(16px);
         }
 
-        .heroPanel::before {
+        .heroShell::before {
           content: "";
           position: absolute;
-          inset: -120px auto auto -120px;
+          top: -120px;
+          left: -120px;
           width: 260px;
           height: 260px;
           border-radius: 999px;
           background: rgba(59, 130, 246, 0.08);
-          filter: blur(20px);
+          filter: blur(30px);
           pointer-events: none;
         }
 
-        .heroPanel::after {
+        .heroShell::after {
           content: "";
           position: absolute;
-          inset: auto -80px -80px auto;
-          width: 220px;
-          height: 220px;
+          right: -100px;
+          bottom: -120px;
+          width: 260px;
+          height: 260px;
           border-radius: 999px;
           background: rgba(16, 185, 129, 0.08);
-          filter: blur(24px);
+          filter: blur(32px);
           pointer-events: none;
         }
 
         .heroGrid {
-          display: grid;
-          grid-template-columns: minmax(0, 1.02fr) minmax(360px, 0.98fr);
-          gap: 34px;
-          align-items: center;
           position: relative;
           z-index: 1;
+          display: grid;
+          grid-template-columns: minmax(0, 1.02fr) minmax(380px, 0.98fr);
+          gap: 34px;
+          align-items: center;
         }
 
-        .heroContent {
-          min-width: 0;
-        }
-
-        .heroPill {
+        .heroTopline {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           min-height: 38px;
           padding: 0 14px;
           border-radius: 999px;
-          background: rgba(15, 23, 42, 0.06);
+          background: rgba(15, 23, 42, 0.05);
           border: 1px solid rgba(15, 23, 42, 0.08);
           color: #0f172a;
           font-size: 13px;
-          line-height: 1;
           font-weight: 800;
           letter-spacing: 0.01em;
           margin-bottom: 18px;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+
+        .heroToplineDot {
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #0f172a, #334155);
         }
 
         .heroTitle {
           margin: 0;
-          font-size: 64px;
-          line-height: 0.98;
-          letter-spacing: -0.045em;
+          font-size: 72px;
+          line-height: 0.95;
+          letter-spacing: -0.055em;
           font-weight: 900;
+          max-width: 820px;
           color: #0f172a;
-          max-width: 780px;
         }
 
         .heroLead {
-          margin: 20px 0 0;
-          max-width: 720px;
+          margin: 22px 0 0;
+          max-width: 670px;
           font-size: 21px;
           line-height: 1.58;
-          color: rgba(15, 23, 42, 0.76);
-        }
-
-        .heroTrustRow {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-top: 22px;
-        }
-
-        .heroTrustRow span {
-          display: inline-flex;
-          align-items: center;
-          min-height: 38px;
-          padding: 0 14px;
-          border-radius: 999px;
-          background: rgba(255, 255, 255, 0.88);
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          color: rgba(15, 23, 42, 0.84);
-          font-size: 14px;
-          font-weight: 700;
-          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
-        }
-
-        .heroActions,
-        .ctaActions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
+          color: rgba(15, 23, 42, 0.72);
         }
 
         .heroActions {
-          margin-top: 28px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 30px;
         }
 
         .btnPrimary,
-        .btnSecondary,
-        .btnLight,
-        .btnOutlineLight {
-          text-decoration: none;
+        .btnSecondary {
           display: inline-flex;
           align-items: center;
           justify-content: center;
           min-height: 52px;
           padding: 0 22px;
           border-radius: 16px;
+          text-decoration: none;
           font-size: 15px;
           font-weight: 800;
           transition:
@@ -860,95 +809,55 @@ export default function Home() {
           background: #0f172a;
           color: #fff;
           border: 1px solid #0f172a;
-          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+          box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
         }
 
         .btnPrimary:hover {
           transform: translateY(-2px);
-          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+          box-shadow: 0 20px 40px rgba(15, 23, 42, 0.22);
         }
 
         .btnSecondary {
-          background: rgba(255,255,255,0.82);
+          background: rgba(255, 255, 255, 0.82);
           color: #0f172a;
-          border: 1px solid rgba(15, 23, 42, 0.1);
-          box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+          border: 1px solid rgba(15, 23, 42, 0.12);
+          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
         }
 
         .btnSecondary:hover {
           transform: translateY(-2px);
           background: #fff;
-          box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+          box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
         }
 
-        .btnLight {
-          background: #fff;
-          color: #0f172a;
-          border: 1px solid rgba(255,255,255,0.25);
-          box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+        .heroMicroProof {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 24px;
         }
 
-        .btnLight:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 16px 34px rgba(0, 0, 0, 0.16);
-        }
-
-        .btnOutlineLight {
-          background: transparent;
-          color: #fff;
-          border: 1px solid rgba(255,255,255,0.28);
-        }
-
-        .btnOutlineLight:hover {
-          transform: translateY(-2px);
-          background: rgba(255,255,255,0.08);
-        }
-
-        .heroMiniStats {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 12px;
-          margin-top: 28px;
-          max-width: 760px;
-        }
-
-        .heroMiniStat {
-          background: rgba(255,255,255,0.86);
+        .heroMicroProof span {
+          display: inline-flex;
+          align-items: center;
+          min-height: 38px;
+          padding: 0 14px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.88);
           border: 1px solid rgba(15, 23, 42, 0.08);
-          border-radius: 20px;
-          padding: 16px 16px 14px;
-          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
-        }
-
-        .heroMiniStat strong {
-          display: block;
-          font-size: 24px;
-          line-height: 1.04;
-          font-weight: 900;
-          letter-spacing: -0.03em;
-          color: #0f172a;
-        }
-
-        .heroMiniStat span {
-          display: block;
-          margin-top: 8px;
-          font-size: 13px;
-          line-height: 1.45;
-          color: rgba(15, 23, 42, 0.66);
+          color: rgba(15, 23, 42, 0.82);
+          font-size: 14px;
           font-weight: 700;
+          box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
         }
 
-        .heroVisualWrap {
-          min-width: 0;
-        }
-
-        .heroVisual {
+        .heroImageCard {
           position: relative;
-          border-radius: 30px;
           overflow: hidden;
+          border-radius: 30px;
           background: #fff;
           border: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: 0 28px 64px rgba(15, 23, 42, 0.14);
+          box-shadow: 0 26px 60px rgba(15, 23, 42, 0.14);
         }
 
         .heroImage {
@@ -958,38 +867,38 @@ export default function Home() {
           object-fit: cover;
         }
 
-        .heroFloatingCard {
+        .floatingPanel {
           position: absolute;
-          max-width: 240px;
-          border-radius: 20px;
+          max-width: 236px;
+          border-radius: 22px;
           padding: 14px 14px 13px;
-          background: rgba(255,255,255,0.9);
+          background: rgba(255, 255, 255, 0.9);
           border: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
+          box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
           backdrop-filter: blur(12px);
         }
 
-        .heroFloatingCardTop {
+        .floatingPanelA {
           top: 18px;
           left: 18px;
         }
 
-        .heroFloatingCardBottom {
+        .floatingPanelB {
           right: 18px;
           bottom: 18px;
         }
 
-        .floatingCardEyebrow {
+        .floatingLabel {
           font-size: 11px;
           line-height: 1.2;
           text-transform: uppercase;
           letter-spacing: 0.08em;
           font-weight: 900;
-          color: rgba(15, 23, 42, 0.48);
+          color: rgba(15, 23, 42, 0.46);
           margin-bottom: 6px;
         }
 
-        .floatingCardTitle {
+        .floatingTitle {
           font-size: 15px;
           line-height: 1.3;
           font-weight: 900;
@@ -1001,232 +910,241 @@ export default function Home() {
           font-size: 14px;
           line-height: 1.45;
           font-weight: 700;
-          color: rgba(15, 23, 42, 0.58);
+          color: rgba(15, 23, 42, 0.56);
         }
 
-        .sectionPadTopSm {
-          padding-top: 14px;
-        }
-
-        .sectionPad {
-          padding: 22px 0;
-        }
-
-        .trustBar {
+        .heroMetrics {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 12px;
+          gap: 14px;
+          margin-top: 18px;
+          position: relative;
+          z-index: 1;
         }
 
-        .trustItem {
-          min-height: 62px;
+        .metricCard {
+          min-height: 118px;
+          border-radius: 24px;
+          padding: 18px 16px;
+          background: rgba(255, 255, 255, 0.84);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 14px 32px rgba(15, 23, 42, 0.05);
           display: flex;
-          align-items: center;
+          flex-direction: column;
           justify-content: center;
-          text-align: center;
-          padding: 14px 16px;
-          border-radius: 20px;
-          background: rgba(255,255,255,0.88);
-          border: 1px solid rgba(15, 23, 42, 0.07);
-          color: rgba(15, 23, 42, 0.8);
+        }
+
+        .metricValue {
+          font-size: 28px;
+          line-height: 1.02;
+          font-weight: 900;
+          letter-spacing: -0.03em;
+          color: #0f172a;
+        }
+
+        .metricLabel {
+          margin-top: 8px;
           font-size: 14px;
-          line-height: 1.4;
-          font-weight: 800;
-          box-shadow: 0 10px 26px rgba(15, 23, 42, 0.04);
+          line-height: 1.45;
+          font-weight: 700;
+          color: rgba(15, 23, 42, 0.62);
         }
 
-        .sectionHeader {
-          display: flex;
-          align-items: flex-end;
-          justify-content: space-between;
-          gap: 18px;
-          flex-wrap: wrap;
-          margin-bottom: 18px;
-        }
-
-        .headerWithAction {
-          margin-bottom: 18px;
-        }
-
-        .compactHeader {
-          margin-bottom: 16px;
-        }
-
-        .sectionEyebrow {
+        .sectionKicker {
           font-size: 13px;
           line-height: 1.2;
           text-transform: uppercase;
           letter-spacing: 0.08em;
           font-weight: 900;
-          color: rgba(15, 23, 42, 0.48);
+          color: rgba(15, 23, 42, 0.46);
           margin-bottom: 10px;
         }
 
         .sectionTitle {
           margin: 0;
-          font-size: 42px;
-          line-height: 1.02;
-          letter-spacing: -0.03em;
+          font-size: 46px;
+          line-height: 1.01;
+          letter-spacing: -0.04em;
           font-weight: 900;
           color: #0f172a;
         }
 
         .sectionLead {
-          margin: 12px 0 0;
+          margin: 14px 0 0;
+          max-width: 760px;
           font-size: 18px;
-          line-height: 1.65;
+          line-height: 1.68;
           color: rgba(15, 23, 42, 0.7);
         }
 
-        .maxW680 {
-          max-width: 680px;
-        }
-
-        .maxW720 {
-          max-width: 720px;
-        }
-
-        .maxW760 {
-          max-width: 760px;
-        }
-
-        .benefitsGrid {
+        .bentoIntro {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 16px;
+          gap: 18px;
         }
 
-        .benefitCard {
+        .bentoHeadline {
+          max-width: 740px;
+        }
+
+        .bentoGrid {
+          display: grid;
+          grid-template-columns: 1.25fr repeat(3, minmax(0, 1fr));
+          gap: 16px;
+          align-items: stretch;
+        }
+
+        .bentoLarge {
+          min-height: 100%;
+          border-radius: 30px;
+          padding: 26px;
+          display: flex;
+          align-items: flex-end;
+          overflow: hidden;
           position: relative;
+        }
+
+        .bentoDark {
+          background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+          color: white;
+          box-shadow: 0 24px 56px rgba(15, 23, 42, 0.16);
+        }
+
+        .bentoDark::before {
+          content: "";
+          position: absolute;
+          inset: auto -60px -80px auto;
+          width: 180px;
+          height: 180px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.07);
+          filter: blur(10px);
+        }
+
+        .bentoContent {
+          position: relative;
+          z-index: 1;
+          max-width: 430px;
+        }
+
+        .bentoTitle {
+          font-size: 34px;
+          line-height: 1.04;
+          letter-spacing: -0.03em;
+          font-weight: 900;
+        }
+
+        .bentoText {
+          margin-top: 12px;
+          font-size: 17px;
+          line-height: 1.68;
+          color: rgba(255, 255, 255, 0.82);
+        }
+
+        .editorialCard {
           min-height: 220px;
           border-radius: 28px;
-          padding: 24px;
           background:
-            linear-gradient(180deg, rgba(255,255,255,0.94), rgba(248,250,252,0.96));
+            linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.98));
           border: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: 0 16px 36px rgba(15, 23, 42, 0.05);
+          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
         }
 
-        .benefitDot {
-          width: 12px;
-          height: 12px;
-          border-radius: 999px;
-          background: linear-gradient(135deg, #0f172a, #334155);
-          margin-bottom: 18px;
-          box-shadow: 0 0 0 8px rgba(15, 23, 42, 0.06);
+        .editorialCardDark {
+          background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+          color: white;
         }
 
-        .benefitCardTitle {
+        .editorialCardInner {
+          padding: 24px;
+        }
+
+        .editorialCardTitle {
           font-size: 28px;
           line-height: 1.08;
-          font-weight: 900;
           letter-spacing: -0.02em;
-          color: #0f172a;
+          font-weight: 900;
+          color: inherit;
         }
 
-        .benefitCardText {
+        .editorialCardText {
           margin-top: 12px;
           font-size: 16px;
-          line-height: 1.65;
-          color: rgba(15, 23, 42, 0.7);
-          max-width: 360px;
+          line-height: 1.66;
+          color: rgba(15, 23, 42, 0.68);
         }
 
-        .glassPanel,
-        .programPanel,
-        .mediaPanel {
-          border-radius: 30px;
-          padding: 28px;
-          background:
-            linear-gradient(180deg, rgba(255,255,255,0.95), rgba(249,250,252,0.96));
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: 0 16px 38px rgba(15, 23, 42, 0.06);
+        .editorialCardDark .editorialCardText {
+          color: rgba(255, 255, 255, 0.8);
         }
 
-        .networkGrid {
+        .networkLayout {
           display: grid;
-          grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
+          grid-template-columns: minmax(0, 1.02fr) minmax(340px, 0.98fr);
           gap: 28px;
           align-items: center;
         }
 
-        .statsGrid {
+        .networkStats {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 14px;
           margin-top: 22px;
-          max-width: 760px;
         }
 
-        .statCard {
-          min-height: 118px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          border-radius: 22px;
-          padding: 18px 16px;
-          background: #f8fafc;
-          border: 1px solid rgba(15, 23, 42, 0.08);
-        }
-
-        .statCardNumber {
-          font-size: 28px;
-          line-height: 1.04;
-          font-weight: 900;
-          letter-spacing: -0.03em;
-          color: #0f172a;
-        }
-
-        .statCardLabel {
-          margin-top: 8px;
-          font-size: 14px;
-          line-height: 1.45;
-          font-weight: 700;
-          color: rgba(15, 23, 42, 0.64);
-        }
-
-        .networkFootnote {
-          margin-top: 18px;
-          font-size: 15px;
-          line-height: 1.5;
-          font-weight: 800;
-          color: rgba(15, 23, 42, 0.6);
-        }
-
-        .networkAction {
-          margin-top: 20px;
-        }
-
-        .networkVisual {
+        .networkVisualCard {
           overflow: hidden;
-          border-radius: 26px;
+          border-radius: 30px;
           background: #fff;
           border: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: 0 24px 56px rgba(15, 23, 42, 0.12);
+          box-shadow: 0 26px 60px rgba(15, 23, 42, 0.12);
         }
 
-        .networkImage {
+        .networkVisualImg {
           width: 100%;
           display: block;
           aspect-ratio: 4 / 3;
           object-fit: cover;
         }
 
-        .howGrid {
+        .networkNote {
+          margin-top: 18px;
+          font-size: 15px;
+          line-height: 1.45;
+          font-weight: 800;
+          color: rgba(15, 23, 42, 0.58);
+        }
+
+        .networkAction {
+          margin-top: 22px;
+        }
+
+        .processHeader,
+        .socialHeader,
+        .mediaHeader {
+          max-width: 760px;
+          margin-bottom: 18px;
+        }
+
+        .processLead {
+          max-width: 680px;
+        }
+
+        .stepsGrid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 16px;
         }
 
-        .infoCard {
-          background: #fff;
-          border: 1px solid rgba(15, 23, 42, 0.08);
+        .stepCard {
+          min-height: 230px;
           border-radius: 28px;
           padding: 24px;
-          box-shadow: 0 12px 32px rgba(15, 23, 42, 0.05);
+          background: #fff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
         }
 
-        .infoCardBadge {
+        .stepBadge {
           width: 42px;
           height: 42px;
           border-radius: 999px;
@@ -1241,82 +1159,94 @@ export default function Home() {
           margin-bottom: 18px;
         }
 
-        .infoCardTitle {
+        .stepTitle {
           font-size: 24px;
           line-height: 1.1;
-          letter-spacing: -0.02em;
           font-weight: 900;
+          letter-spacing: -0.02em;
           color: #0f172a;
         }
 
-        .infoCardText {
+        .stepText {
           margin-top: 10px;
           font-size: 16px;
           line-height: 1.65;
           color: rgba(15, 23, 42, 0.7);
         }
 
-        .splitFeatureGrid {
+        .editorialSplit {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 16px;
         }
 
-        .featureCard {
-          display: flex;
-          flex-direction: column;
+        .editorialVisualCard {
           overflow: hidden;
           border-radius: 30px;
           background: #fff;
           border: 1px solid rgba(15, 23, 42, 0.08);
           box-shadow: 0 16px 38px rgba(15, 23, 42, 0.06);
-          min-height: 100%;
         }
 
-        .featureCardDark {
+        .editorialVisualDark {
           background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
-          color: #fff;
-          border-color: rgba(15, 23, 42, 0.12);
-          box-shadow: 0 24px 54px rgba(15, 23, 42, 0.18);
+          color: white;
+          border-color: rgba(15, 23, 42, 0.14);
+          box-shadow: 0 24px 56px rgba(15, 23, 42, 0.16);
         }
 
-        .featureCardImg {
+        .editorialVisualImage {
           width: 100%;
           display: block;
           aspect-ratio: 16 / 10;
           object-fit: cover;
         }
 
-        .featureCardTextWrap {
-          padding: 24px 24px 26px;
+        .editorialVisualText {
+          padding: 24px;
         }
 
-        .featureCardTitle {
+        .editorialVisualTitle {
           margin: 0;
-          font-size: 34px;
-          line-height: 1.04;
+          font-size: 36px;
+          line-height: 1.03;
           letter-spacing: -0.03em;
           font-weight: 900;
-          color: #0f172a;
+          color: inherit;
         }
 
-        .featureCardTitleLight {
-          color: #fff;
-        }
-
-        .featureCardText {
+        .editorialVisualLead {
           margin: 12px 0 0;
           font-size: 17px;
-          line-height: 1.65;
-          color: rgba(15, 23, 42, 0.72);
+          line-height: 1.68;
+          color: rgba(15, 23, 42, 0.7);
         }
 
-        .featureCardTextLight {
+        .editorialVisualDark .editorialVisualLead {
           color: rgba(255, 255, 255, 0.82);
         }
 
-        .featureAction {
+        .editorialVisualAction {
           margin-top: 18px;
+        }
+
+        .programShell,
+        .mediaShell {
+          border-radius: 32px;
+          padding: 28px;
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.98));
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 16px 38px rgba(15, 23, 42, 0.06);
+        }
+
+        .programHeader {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 18px;
+          flex-wrap: wrap;
+          margin-bottom: 18px;
         }
 
         .programGrid {
@@ -1327,37 +1257,41 @@ export default function Home() {
 
         .programCard {
           overflow: hidden;
-          border-radius: 24px;
+          border-radius: 26px;
           background: #fff;
           border: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
           transition: transform 0.16s ease, box-shadow 0.16s ease;
         }
 
         .programCard:hover {
           transform: translateY(-3px);
-          box-shadow: 0 18px 38px rgba(15, 23, 42, 0.09);
+          box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
         }
 
-        .programCardImg {
+        .programMediaWrap {
+          overflow: hidden;
+        }
+
+        .programMedia {
           width: 100%;
           display: block;
           aspect-ratio: 4 / 3;
           object-fit: cover;
         }
 
-        .programCardBody {
+        .programBody {
           padding: 18px;
         }
 
-        .programCardTitle {
+        .programTitle {
           font-size: 22px;
           line-height: 1.12;
           font-weight: 900;
           color: #0f172a;
         }
 
-        .programCardText {
+        .programText {
           margin-top: 8px;
           font-size: 15px;
           line-height: 1.6;
@@ -1375,16 +1309,15 @@ export default function Home() {
           border: 1px solid rgba(15, 23, 42, 0.08);
           border-radius: 28px;
           overflow: hidden;
-          box-shadow: 0 12px 34px rgba(15, 23, 42, 0.05);
+          box-shadow: 0 12px 32px rgba(15, 23, 42, 0.05);
         }
 
-        .instagramCardFooter {
+        .instagramFooter {
           padding: 12px 16px 16px;
           border-top: 1px solid rgba(15, 23, 42, 0.06);
-          background: #fff;
         }
 
-        .inlineArrowLink {
+        .inlineLink {
           text-decoration: none;
           color: #0f172a;
           font-size: 15px;
@@ -1392,7 +1325,7 @@ export default function Home() {
           font-weight: 800;
         }
 
-        .inlineArrowLink:hover {
+        .inlineLink:hover {
           text-decoration: underline;
         }
 
@@ -1443,19 +1376,19 @@ export default function Home() {
           font-weight: 800;
         }
 
-        .mediaAction {
+        .mediaMore {
           margin-top: 16px;
         }
 
         .ctaSection {
-          padding: 22px 0 72px;
+          padding-bottom: 72px;
         }
 
-        .ctaPanel {
-          border-radius: 32px;
+        .ctaShell {
+          border-radius: 34px;
           padding: 34px 28px;
           background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
-          color: #fff;
+          color: white;
           box-shadow: 0 28px 64px rgba(15, 23, 42, 0.2);
         }
 
@@ -1468,56 +1401,63 @@ export default function Home() {
 
         .ctaTitle {
           margin: 0;
-          font-size: 42px;
-          line-height: 1.02;
-          letter-spacing: -0.03em;
+          font-size: 46px;
+          line-height: 1.01;
+          letter-spacing: -0.04em;
           font-weight: 900;
-          color: #fff;
+          color: white;
         }
 
         .ctaText {
           margin: 14px 0 0;
-          max-width: 760px;
+          max-width: 740px;
           font-size: 18px;
-          line-height: 1.65;
+          line-height: 1.68;
           color: rgba(255, 255, 255, 0.84);
+        }
+
+        .ctaActions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          justify-content: flex-end;
         }
 
         @media (max-width: 1180px) {
           .heroTitle {
-            font-size: 56px;
+            font-size: 62px;
           }
 
+          .bentoGrid {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .bentoLarge {
+            grid-column: 1 / -1;
+          }
+
+          .programGrid,
           .mediaStrip {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .heroMetrics {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
         }
 
-        @media (max-width: 1080px) {
+        @media (max-width: 980px) {
           .heroGrid,
-          .networkGrid,
-          .splitFeatureGrid,
+          .networkLayout,
+          .editorialSplit,
           .ctaGrid,
           .instagramGrid {
             grid-template-columns: 1fr;
           }
 
-          .heroMiniStats,
-          .statsGrid {
+          .networkStats,
+          .stepsGrid {
             grid-template-columns: 1fr;
-            max-width: 100%;
-          }
-
-          .programGrid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-
-          .trustBar {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-
-          .heroFloatingCard {
-            max-width: 220px;
           }
 
           .ctaActions {
@@ -1525,14 +1465,13 @@ export default function Home() {
           }
         }
 
-        @media (max-width: 860px) {
-          .heroPanel,
-          .glassPanel,
-          .programPanel,
-          .mediaPanel,
-          .ctaPanel {
+        @media (max-width: 820px) {
+          .heroShell,
+          .programShell,
+          .mediaShell,
+          .ctaShell {
             padding: 22px;
-            border-radius: 26px;
+            border-radius: 28px;
           }
 
           .heroTitle,
@@ -1548,20 +1487,29 @@ export default function Home() {
             font-size: 17px;
           }
 
-          .benefitsGrid,
-          .howGrid {
+          .programGrid,
+          .mediaStrip,
+          .heroMetrics {
             grid-template-columns: 1fr;
+          }
+
+          .programHeader {
+            align-items: flex-start;
+          }
+
+          .floatingPanel {
+            max-width: 220px;
           }
         }
 
         @media (max-width: 640px) {
-          .heroSection {
-            padding-top: 18px;
-          }
-
           .container {
             padding-left: 14px;
             padding-right: 14px;
+          }
+
+          .heroSection {
+            padding-top: 18px;
           }
 
           .heroTitle,
@@ -1575,18 +1523,6 @@ export default function Home() {
             font-size: 18px;
           }
 
-          .heroTrustRow span {
-            width: 100%;
-            justify-content: center;
-            text-align: center;
-          }
-
-          .trustBar,
-          .programGrid,
-          .mediaStrip {
-            grid-template-columns: 1fr;
-          }
-
           .heroActions,
           .ctaActions {
             flex-direction: column;
@@ -1594,29 +1530,34 @@ export default function Home() {
           }
 
           .btnPrimary,
-          .btnSecondary,
-          .btnLight,
-          .btnOutlineLight {
+          .btnSecondary {
             width: 100%;
           }
 
-          .heroFloatingCard {
+          .heroMicroProof span {
+            width: 100%;
+            justify-content: center;
+            text-align: center;
+          }
+
+          .bentoGrid {
+            grid-template-columns: 1fr;
+          }
+
+          .floatingPanel {
             position: static;
             max-width: none;
             margin: 12px;
           }
 
-          .heroVisual {
+          .heroImageCard {
             display: flex;
             flex-direction: column;
           }
 
-          .heroMiniStats {
-            margin-top: 20px;
-          }
-
-          .featureCardTitle,
-          .benefitCardTitle {
+          .editorialVisualTitle,
+          .bentoTitle,
+          .editorialCardTitle {
             font-size: 28px;
           }
 
