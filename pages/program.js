@@ -5,7 +5,7 @@ const PROGRAM_POSTERS = Array.from({ length: 30 }, (_, i) => `/pl${i + 1}.webp`)
 
 const schoolItems = [
   {
-    title: "I. stupeň – Objevujeme svět",
+    title: "I.  – Objevujeme svět",
     text: "poznávání světa, přírody a společnosti ve spolupráci s odborníky a inspirativními partnery",
   },
   {
@@ -830,6 +830,40 @@ export default function ProgramPage() {
             </div>
           </section>
 
+          <section style={{ marginTop: 84 }}>
+            <SectionTitle
+              eyebrow="Ukázky vysílání"
+              title="Jak vypadá ARCHIMEDES Live naživo"
+              text="Krátké ukázky z reálných vysílání pomáhají rychle pochopit atmosféru, formát i možnosti programu."
+            />
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: 22,
+                marginTop: 24,
+              }}
+              className="video-grid"
+            >
+              <VideoCard
+                title="Ukázka vysílání pro školy"
+                subtitle="ZOO Praha – výukový vstup pro školní program"
+                src="https://www.youtube.com/embed/yvelfGeL6Jg"
+              />
+              <VideoCard
+                title="Angličtina s rodilým mluvčím"
+                subtitle="Paul Wade – ukázka živého vstupu"
+                src="https://www.youtube.com/embed/bX2y0Uxw-Dg"
+              />
+              <VideoCard
+                title="Senior klub"
+                subtitle="Prof. Jan Pirk a spisovatel Viktor Špaček"
+                src="https://www.youtube.com/embed/-VV3PYdWPUo"
+              />
+            </div>
+          </section>
+
           <section style={{ marginTop: 72 }}>
             <SectionTitle
               title="Hlavní rubriky programu"
@@ -897,40 +931,6 @@ export default function ProgramPage() {
               title="Jedno místo, odkud program běží do školy i celé komunity"
               text="Program může obec využívat jako živé vysílání, společné promítání i navazující komunitní setkání. Díky tomu vzniká jednoduchý a přehledný model, který je srozumitelný pro školu, obec i veřejnost."
             />
-          </section>
-
-          <section style={{ marginTop: 84 }}>
-            <SectionTitle
-              eyebrow="Ukázky vysílání"
-              title="Jak vypadá ARCHIMEDES Live naživo"
-              text="Krátké ukázky z reálných vysílání pomáhají rychle pochopit atmosféru, formát i možnosti programu."
-            />
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: 22,
-                marginTop: 24,
-              }}
-              className="video-grid"
-            >
-              <VideoCard
-                title="Ukázka vysílání pro školy"
-                subtitle="ZOO Praha – výukový vstup pro školní program"
-                src="https://www.youtube.com/embed/yvelfGeL6Jg"
-              />
-              <VideoCard
-                title="Angličtina s rodilým mluvčím"
-                subtitle="Paul Wade – ukázka živého vstupu"
-                src="https://www.youtube.com/embed/bX2y0Uxw-Dg"
-              />
-              <VideoCard
-                title="Senior klub"
-                subtitle="Prof. Jan Pirk a spisovatel Viktor Špaček"
-                src="https://www.youtube.com/embed/-VV3PYdWPUo"
-              />
-            </div>
           </section>
 
           <section id="zapojeni" style={{ marginTop: 84 }}>
