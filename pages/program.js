@@ -5,7 +5,7 @@ const PROGRAM_POSTERS = Array.from({ length: 30 }, (_, i) => `/pl${i + 1}.webp`)
 
 const schoolItems = [
   {
-    title: "I.  – Objevujeme svět",
+    title: "I. stupeň – Objevujeme svět",
     text: "poznávání světa, přírody a společnosti ve spolupráci s odborníky a inspirativními partnery",
   },
   {
@@ -265,7 +265,8 @@ function SeniorButton({ href, children }) {
         fontSize: 16,
         border: "1px solid #fdba74",
         boxShadow: "0 10px 24px rgba(154,52,18,0.08)",
-        transition: "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
+        transition:
+          "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
       {children}
@@ -465,7 +466,15 @@ function VideoCard({ title, subtitle, src }) {
   );
 }
 
-function PriceCard({ title, price, suffix, badge, description, items, featured }) {
+function PriceCard({
+  title,
+  price,
+  suffix,
+  badge,
+  description,
+  items,
+  featured,
+}) {
   return (
     <div
       style={{
@@ -830,7 +839,7 @@ export default function ProgramPage() {
             </div>
           </section>
 
-          <section style={{ marginTop: 84 }}>
+          <section id="ukazky-vysilani" style={{ marginTop: 84 }}>
             <SectionTitle
               eyebrow="Ukázky vysílání"
               title="Jak vypadá ARCHIMEDES Live naživo"
