@@ -331,39 +331,41 @@ export default function StartPage() {
                     </div>
                   </div>
 
-                  <div className="summaryCard summaryCardLight">
-                    <div className="summaryContentLabel">Součást balíčku</div>
-                    <ul className="summaryList">
-                      <li>3× živý vstup pro I. stupeň ZŠ</li>
-                      <li>3× živý vstup pro II. stupeň ZŠ</li>
-                      <li>3× wellbeing program Generace Z</li>
-                      <li>3× Kariérní poradenství jinak</li>
-                      <li>1× speciální vysílání v angličtině</li>
-                    </ul>
-                    <p className="summaryNote">
-                      Konkrétní termíny vysílání budou zveřejňovány průběžně v
-                      programu ARCHIMEDES Live.
-                    </p>
-                  </div>
+                  <div className="summaryCardsRow">
+                    <div className="summaryCard summaryCardLight">
+                      <div className="summaryContentLabel">Součást balíčku</div>
+                      <ul className="summaryList">
+                        <li>3× živý vstup pro I. stupeň ZŠ</li>
+                        <li>3× živý vstup pro II. stupeň ZŠ</li>
+                        <li>3× wellbeing program Generace Z</li>
+                        <li>3× Kariérní poradenství jinak</li>
+                        <li>1× speciální vysílání v angličtině</li>
+                      </ul>
+                      <p className="summaryNote">
+                        Konkrétní termíny vysílání budou zveřejňovány průběžně v
+                        programu ARCHIMEDES Live.
+                      </p>
+                    </div>
 
-                  <div className="summaryCard supplierCard">
-                    <div className="summaryContentLabel supplierLabel">
-                      Dodavatel
+                    <div className="summaryCard supplierCard">
+                      <div className="summaryContentLabel supplierLabel">
+                        Dodavatel
+                      </div>
+                      <div className="supplierText">
+                        <strong>EduVision s.r.o.</strong>
+                        <br />
+                        Purkyňova 649/127, Medlánky
+                        <br />
+                        612 00 Brno
+                        <br />
+                        IČ: 17803039
+                        <br />
+                        DIČ: CZ17803039
+                      </div>
+                      <p className="supplierMeta">
+                        zapsána pod značkou C 131579/KSBR Krajským soudem v Brně
+                      </p>
                     </div>
-                    <div className="supplierText">
-                      <strong>EduVision s.r.o.</strong>
-                      <br />
-                      Purkyňova 649/127, Medlánky
-                      <br />
-                      612 00 Brno
-                      <br />
-                      IČ: 17803039
-                      <br />
-                      DIČ: CZ17803039
-                    </div>
-                    <p className="supplierMeta">
-                      zapsána pod značkou C 131579/KSBR Krajským soudem v Brně
-                    </p>
                   </div>
                 </div>
               </div>
@@ -669,13 +671,19 @@ export default function StartPage() {
 
           .heroGrid {
             display: grid;
-            grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+            grid-template-columns: minmax(0, 1.18fr) minmax(360px, 0.82fr);
             gap: 28px;
             align-items: start;
           }
 
           .summaryColumn {
             display: grid;
+            gap: 16px;
+          }
+
+          .summaryCardsRow {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 16px;
           }
 
@@ -1023,6 +1031,12 @@ export default function StartPage() {
             line-height: 1.6;
             color: #667085;
             font-weight: 700;
+          }
+
+          @media (max-width: 1100px) {
+            .summaryCardsRow {
+              grid-template-columns: 1fr;
+            }
           }
 
           @media (max-width: 980px) {
