@@ -19,6 +19,7 @@ const initialForm = {
   contactName: "",
   role: "",
   email: "",
+  adminEmail: "",
   phone: "",
   note: "",
   agreeVop: false,
@@ -103,7 +104,7 @@ export default function StartPage() {
                 </div>
 
                 <div className="nextSteps">
-                  <div className="nextStepsTitle">Co bude následovat:</div>
+                  <div className="nextStepsTitle">Co bude následovat</div>
                   <ul>
                     <li>zašleme vám potvrzení objednávky,</li>
                     <li>obdržíte fakturační podklady,</li>
@@ -357,12 +358,24 @@ export default function StartPage() {
 
                   <div className="processBox">
                     <div className="processTitle">Jak to probíhá</div>
-                    <ol>
-                      <li>odesláním objednávky rezervujete místo v programu,</li>
-                      <li>zašleme vám potvrzení a fakturační podklady,</li>
-                      <li>následně získáte přístup do ARCHIMEDES Live,</li>
-                      <li>můžete zapojit třídy do vysílání v období duben–červen.</li>
-                    </ol>
+                    <div className="processSteps">
+                      <div className="processStep">
+                        <span className="processNumber">1</span>
+                        <p>Odesláním objednávky rezervujete místo v programu.</p>
+                      </div>
+                      <div className="processStep">
+                        <span className="processNumber">2</span>
+                        <p>Zašleme vám potvrzení a fakturační podklady.</p>
+                      </div>
+                      <div className="processStep">
+                        <span className="processNumber">3</span>
+                        <p>Následně získáte přístup do ARCHIMEDES Live.</p>
+                      </div>
+                      <div className="processStep">
+                        <span className="processNumber">4</span>
+                        <p>Můžete zapojit třídy do vysílání v období duben–červen.</p>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="supplierInline">
@@ -372,14 +385,16 @@ export default function StartPage() {
                       Medlánky, 612 00 Brno · IČ: 17803039 · DIČ: CZ17803039
                     </div>
                     <div className="supplierInlineMeta">
-                      Poskytovatel programu a provozovatel služby ARCHIMEDES Live.{" "}
+                      Poskytovatel programu a provozovatel služby ARCHIMEDES Live.
                       Zapsána pod značkou C 131579/KSBR Krajským soudem v Brně.
                     </div>
                   </div>
 
                   <div className="demoInline">
                     <span>Chcete si program nejprve prohlédnout?</span>
-                    <Link href="/demo">Zobrazit DEMO</Link>
+                    <Link href="/demo" className="demoGhostButton">
+                      Zobrazit DEMO
+                    </Link>
                   </div>
                 </div>
 
@@ -410,7 +425,9 @@ export default function StartPage() {
 
                     <div className="summaryRow">
                       <span>Závazek</span>
-                      <strong>jednorázový balíček bez automatického prodloužení</strong>
+                      <strong>
+                        jednorázový balíček bez automatického prodloužení
+                      </strong>
                     </div>
 
                     <div className="summaryDivider" />
@@ -544,7 +561,7 @@ export default function StartPage() {
 
                 <div className="grid twoCols">
                   <div className="field">
-                    <label htmlFor="email">E-mail *</label>
+                    <label htmlFor="email">E-mail objednatele *</label>
                     <input
                       id="email"
                       name="email"
@@ -556,6 +573,21 @@ export default function StartPage() {
                   </div>
 
                   <div className="field">
+                    <label htmlFor="adminEmail">E-mail administrátora školy *</label>
+                    <input
+                      id="adminEmail"
+                      name="adminEmail"
+                      type="email"
+                      value={form.adminEmail}
+                      onChange={handleChange}
+                      placeholder="např. spravce@skola.cz"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid twoCols">
+                  <div className="field">
                     <label htmlFor="phone">Telefon</label>
                     <input
                       id="phone"
@@ -564,6 +596,13 @@ export default function StartPage() {
                       value={form.phone}
                       onChange={handleChange}
                     />
+                  </div>
+
+                  <div className="field fieldHintBox">
+                    <div className="fieldHint">
+                      Na e-mail administrátora školy můžeme následně zaslat
+                      přístupové údaje a organizační informace k programu.
+                    </div>
                   </div>
                 </div>
 
@@ -825,7 +864,7 @@ export default function StartPage() {
 
           .processBox {
             margin-top: 18px;
-            padding: 18px 20px;
+            padding: 20px 20px 18px;
             border-radius: 18px;
             background: #f8fafc;
             border: 1px solid rgba(15, 23, 42, 0.08);
@@ -836,17 +875,38 @@ export default function StartPage() {
             line-height: 1.5;
             font-weight: 800;
             color: #0f172a;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
           }
 
-          .processBox ol {
-            margin: 0;
-            padding-left: 18px;
+          .processSteps {
             display: grid;
-            gap: 8px;
+            gap: 12px;
           }
 
-          .processBox li {
+          .processStep {
+            display: grid;
+            grid-template-columns: 32px 1fr;
+            gap: 12px;
+            align-items: start;
+          }
+
+          .processNumber {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            background: #e9eef8;
+            color: #223252;
+            font-size: 14px;
+            font-weight: 900;
+            line-height: 1;
+            box-shadow: inset 0 0 0 1px rgba(34, 50, 82, 0.08);
+          }
+
+          .processStep p {
+            margin: 3px 0 0;
             color: #334155;
             font-size: 15px;
             line-height: 1.65;
@@ -898,14 +958,28 @@ export default function StartPage() {
             color: #475467;
           }
 
-          .demoInline a {
-            color: #1d4ed8;
-            font-weight: 800;
+          .demoGhostButton {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 38px;
+            padding: 0 14px;
+            border-radius: 999px;
             text-decoration: none;
+            font-weight: 800;
+            font-size: 14px;
+            line-height: 1;
+            color: #223252;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            transition: transform 0.18s ease, box-shadow 0.18s ease,
+              border-color 0.18s ease;
           }
 
-          .demoInline a:hover {
-            text-decoration: underline;
+          .demoGhostButton:hover {
+            transform: translateY(-1px);
+            border-color: rgba(34, 50, 82, 0.2);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
           }
 
           .summaryCard {
@@ -1081,6 +1155,23 @@ export default function StartPage() {
             box-shadow: 0 0 0 4px rgba(27, 80, 156, 0.08);
           }
 
+          .fieldHintBox {
+            justify-content: flex-end;
+          }
+
+          .fieldHint {
+            min-height: 54px;
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: #f8fafc;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            color: #475467;
+            font-size: 14px;
+            line-height: 1.55;
+          }
+
           .submitInfoBox {
             padding: 18px 20px;
             border-radius: 18px;
@@ -1227,6 +1318,10 @@ export default function StartPage() {
             .oneColNarrow {
               grid-template-columns: 1fr;
             }
+
+            .fieldHintBox {
+              justify-content: stretch;
+            }
           }
 
           @media (max-width: 640px) {
@@ -1267,6 +1362,17 @@ export default function StartPage() {
 
             .summaryRow strong {
               text-align: left;
+            }
+
+            .processStep {
+              grid-template-columns: 28px 1fr;
+              gap: 10px;
+            }
+
+            .processNumber {
+              width: 28px;
+              height: 28px;
+              font-size: 13px;
             }
 
             .submitButton {
