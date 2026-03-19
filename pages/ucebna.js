@@ -8,7 +8,7 @@ const guestsImg = "/hoste.jpg";
 const variants = [
   {
     icon: "🌿",
-    title: "ARCHIMEDES OPTIMAL",
+    title: "ARCHIMEDES® OPTIMAL",
     subtitle: "Svoboda v otevřenosti",
     text: "Celodřevěná, zateplená konstrukce vycházející z populární vzorové učebny. Je navržena pro maximální kontakt s okolím a silný zážitek z výuky venku.",
     benefitTitle: "Největší benefit",
@@ -21,7 +21,7 @@ const variants = [
   },
   {
     icon: "❄️",
-    title: "ARCHIMEDES OPTIMAL+",
+    title: "ARCHIMEDES® OPTIMAL+",
     subtitle: "Komfort za každého počasí",
     text: "Vylepšená verze modelu Optimal. Zlatá střední cesta, která klade vyšší důraz na tepelnou izolaci, ale zachovává si krásný přírodní vzhled dřeva.",
     benefitTitle: "Největší benefit",
@@ -34,7 +34,7 @@ const variants = [
   },
   {
     icon: "🏢",
-    title: "ARCHIMEDES PREMIUM",
+    title: "ARCHIMEDES® PREMIUM",
     subtitle: "Standard trvalé stavby",
     text: "Plně zateplená učebna se sendvičovou skladbou stěn, konstruovaná pro intenzivní a každodenní výuku po celý rok – bez kompromisů.",
     benefitTitle: "Největší benefit",
