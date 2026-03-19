@@ -4,7 +4,7 @@ import Link from "next/link";
 import Footer from "../components/Footer";
 
 const heroImg = "/vyuka.jpeg"; // hlavní živá fotka s lidmi
-const liveImgMain = "/vyuka.jpeg"; // hlavní fotka vysílání
+const liveImgMain = "/vyuka-detail.jpeg"; // hlavní fotka vysílání
 const liveImgSecondary = "/ucebna.jpg"; // širší kontext učebny
 const guestImg = "/hoste.jpg"; // host / osobnosti / důkaz důvěry
 
