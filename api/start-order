@@ -1,0 +1,101 @@
+import { createClient } from "@supabase/supabase-js";
+import nodemailer from "nodemailer";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const data = req.body;
+
+    // 🔹 1. VALIDACE
+    if (!data.schoolName || !data.ico || !data.email) {
+      return res.status(400).json({
+        error: "Chybí povinné údaje",
+      });
+    }
+
+    // 🔹 2. ULOŽENÍ DO DB
+    const { error: dbError } = await supabase.from("orders_start").insert([
+      {
+        school_name: data.schoolName,
+        ico: data.ico,
+        street: data.street,
+        city: data.city,
+        zip: data.zip,
+        contact_name: data.contactName,
+        role: data.role,
+        email: data.email,
+        phone: data.phone,
+        note: data.note,
+      },
+    ]);
+
+    if (dbError) {
+      console.error(dbError);
+      throw new Error("Chyba uložení do databáze");
+    }
+
+    // 🔹 3. EMAIL TRANSPORT
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // 🔹 4. EMAIL TOBĚ
+    await transporter.sendMail({
+      from: `"ARCHIMEDES Live" <${process.env.EMAIL_USER}>`,
+      to: "antonin.koplik@eduvision.cz",
+      subject: "NOVÁ OBJEDNÁVKA – ARCHIMEDES START",
+      html: `
+        <h2>Nová objednávka START</h2>
+        <p><strong>Škola:</strong> ${data.schoolName}</p>
+        <p><strong>IČO:</strong> ${data.ico}</p>
+        <p><strong>Kontakt:</strong> ${data.contactName}</p>
+        <p><strong>Email:</strong> ${data.email}</p>
+        <p><strong>Telefon:</strong> ${data.phone || "-"}</p>
+        <p><strong>Poznámka:</strong><br/>${data.note || "-"}</p>
+      `,
+    });
+
+    // 🔹 5. EMAIL ZÁKAZNÍKOVI
+    await transporter.sendMail({
+      from: `"ARCHIMEDES Live" <${process.env.EMAIL_USER}>`,
+      to: data.email,
+      subject: "Potvrzení objednávky – ARCHIMEDES Live",
+      html: `
+        <h2>Děkujeme za objednávku</h2>
+        <p>Vaše objednávka balíčku START byla přijata.</p>
+
+        <p><strong>Balíček:</strong> START duben–červen 2026</p>
+        <p><strong>Cena:</strong> 4 990 Kč bez DPH</p>
+
+        <p>Na základě objednávky vám bude zaslána faktura.</p>
+
+        <br/>
+
+        <p>S pozdravem,<br/>
+        ARCHIMEDES Live<br/>
+        EduVision s.r.o.</p>
+      `,
+    });
+
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      error: "Server error",
+    });
+  }
+}
