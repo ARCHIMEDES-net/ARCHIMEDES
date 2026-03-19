@@ -274,7 +274,7 @@ export default function Home() {
             <div className="trustPanel">
               <div>
                 <div className="eyebrow dark">Ověřeno v praxi</div>
-                <h2>ARCHIMEDES už funguje v reálných školách a obcích</h2>
+                <h2>ARCHIMEDES už funguje v desítkách škol a obcí</h2>
                 <p>
                   Nejde o teorii. Jde o model, který je možné ukázat v provozu a
                   který už má za sebou konkrétní zkušenosti z terénu.
@@ -307,10 +307,10 @@ export default function Home() {
                 <div className="eyebrow light">
                   Chcete to vidět ve vlastní škole?
                 </div>
-                <h2>Ukážeme vám ARCHIMEDES Live v praxi</h2>
+                <h2>Podívejte se na ARCHIMEDES Live v praxi</h2>
                 <p>
-                  Domluvíme ukázkovou hodinu a společně se podíváme, jak může
-                  program fungovat právě u vás.
+                   Registrujte se k DEMO verzi a vyzkoušejte si ukázkové hodiny přímo u vás.
+  
                 </p>
               </div>
 
