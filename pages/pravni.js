@@ -1,6 +1,33 @@
 import Link from "next/link";
 import Footer from "../components/Footer";
 
+const documents = [
+  {
+    href: "/vop",
+    title: "Všeobecné obchodní podmínky",
+    text:
+      "Podmínky poskytování služby ARCHIMEDES Live, objednávky, rozsah služby, odpovědnost a pravidla užívání.",
+  },
+  {
+    href: "/dpa",
+    title: "Smlouva o zpracování osobních údajů (DPA)",
+    text:
+      "Základní rámec zpracování osobních údajů mezi školou nebo organizací a společností EduVision s.r.o.",
+  },
+  {
+    href: "/pravidla-zaznamu",
+    title: "Pravidla pořizování a zpřístupnění záznamů",
+    text:
+      "Informace o tom, jak ARCHIMEDES Live pracuje se záznamy vysílání a archivem pro registrované uživatele.",
+  },
+  {
+    href: "/ochrana-osobnich-udaju",
+    title: "Informace o zpracování osobních údajů",
+    text:
+      "Základní informace o tom, jak EduVision s.r.o. zpracovává osobní údaje v souvislosti s webem a službou ARCHIMEDES Live.",
+  },
+];
+
 export default function PravniPage() {
   return (
     <>
@@ -16,131 +43,79 @@ export default function PravniPage() {
             <span style={styles.badge}>ARCHIMEDES Live</span>
             <h1 style={styles.h1}>Právní informace</h1>
             <p style={styles.lead}>
-              Tato stránka obsahuje základní informace o používání portálu,
-              ochraně osobních údajů a používání cookies. Finální texty mohou být
-              následně upraveny dle podkladů právního zástupce.
+              Na této stránce najdete přehled základních právních dokumentů
+              souvisejících se službou ARCHIMEDES Live, objednávkovým procesem,
+              ochranou osobních údajů a prací se záznamy.
             </p>
           </header>
 
-          <nav style={styles.toc}>
-            <a href="#podminky" style={styles.tocLink}>
-              Podmínky používání
-            </a>
-            <a href="#udaje" style={styles.tocLink}>
-              Ochrana osobních údajů
-            </a>
-            <a href="#cookies" style={styles.tocLink}>
-              Cookies
-            </a>
-            <a href="#obsah" style={styles.tocLink}>
-              Audiovizuální obsah
-            </a>
-            <a href="#kontakt" style={styles.tocLink}>
-              Kontakt
-            </a>
-          </nav>
-
-          <section id="podminky" style={styles.card}>
-            <h2 style={styles.h2}>
-              1. Podmínky používání portálu ARCHIMEDES Live
-            </h2>
-            <p style={styles.p}>
-              Portál ARCHIMEDES Live je online vzdělávací a komunitní prostředí
-              určené pro školy, obce, organizace a jednotlivce zapojené do programu
-              ARCHIMEDES.
-            </p>
-            <p style={styles.p}>Používáním portálu uživatel potvrzuje, že:</p>
-            <ul style={styles.ul}>
-              <li>využívá portál v souladu s jeho účelem,</li>
-              <li>
-                nebude šířit obsah, který je v rozporu s právními předpisy,
-                dobrými mravy nebo pravidly slušné komunikace,
-              </li>
-              <li>
-                nebude zneužívat přístup k portálu nebo narušovat jeho technické
-                fungování.
-              </li>
-            </ul>
-            <p style={styles.p}>
-              Provozovatel portálu si vyhrazuje právo omezit nebo zrušit přístup
-              uživateli, který tato pravidla porušuje.
-            </p>
+          <section style={styles.grid}>
+            {documents.map((doc) => (
+              <article key={doc.href} style={styles.docCard}>
+                <h2 style={styles.docTitle}>{doc.title}</h2>
+                <p style={styles.docText}>{doc.text}</p>
+                <Link href={doc.href} style={styles.docLink}>
+                  Otevřít dokument →
+                </Link>
+              </article>
+            ))}
           </section>
 
-          <section id="udaje" style={styles.card}>
-            <h2 style={styles.h2}>2. Ochrana osobních údajů</h2>
-            <p style={styles.p}>
-              Správcem osobních údajů je provozovatel projektu ARCHIMEDES.
-            </p>
-            <p style={styles.p}>
-              Osobní údaje mohou být zpracovávány zejména za účelem:
-            </p>
-            <ul style={styles.ul}>
-              <li>vytvoření a správy uživatelského účtu,</li>
-              <li>organizace vzdělávacích aktivit a vysílání,</li>
-              <li>komunikace s uživateli portálu,</li>
-              <li>zajištění technického provozu platformy.</li>
-            </ul>
-            <p style={styles.p}>Zpracovávané údaje mohou zahrnovat například:</p>
-            <ul style={styles.ul}>
-              <li>jméno a příjmení,</li>
-              <li>e-mailovou adresu,</li>
-              <li>organizaci nebo školu,</li>
-              <li>technické údaje spojené s přihlášením do portálu.</li>
-            </ul>
-            <p style={styles.p}>
-              Osobní údaje jsou zpracovávány pouze po dobu nezbytnou pro fungování
-              služby a v souladu s platnými právními předpisy.
-            </p>
-            <p style={styles.p}>
-              Uživatel má právo požádat o přístup ke svým údajům, jejich opravu,
-              omezení nebo výmaz a o informace o způsobu jejich zpracování.
-            </p>
-          </section>
+          <section style={styles.infoRow}>
+            <div style={styles.cardLarge}>
+              <h2 style={styles.h2}>Používání portálu ARCHIMEDES Live</h2>
+              <p style={styles.p}>
+                Portál ARCHIMEDES Live je online vzdělávací a komunitní prostředí
+                určené pro školy, obce, organizace a další zapojené subjekty.
+              </p>
+              <p style={styles.p}>
+                Uživatelé jsou povinni využívat portál v souladu s jeho účelem,
+                nenarušovat jeho technické fungování a nešířit obsah, který je v
+                rozporu s právními předpisy, dobrými mravy nebo pravidly slušné
+                komunikace.
+              </p>
+              <p style={styles.p}>
+                Provozovatel si vyhrazuje právo omezit nebo zrušit přístup
+                uživateli, který tato pravidla porušuje.
+              </p>
+            </div>
 
-          <section id="cookies" style={styles.card}>
-            <h2 style={styles.h2}>3. Používání cookies</h2>
-            <p style={styles.p}>
-              Portál ARCHIMEDES Live používá pouze nezbytné technické cookies.
-            </p>
-            <p style={styles.p}>Tyto cookies slouží k:</p>
-            <ul style={styles.ul}>
-              <li>zajištění přihlášení uživatele do portálu,</li>
-              <li>správnému fungování uživatelské relace,</li>
-              <li>zabezpečení přístupu k jednotlivým částem systému.</li>
-            </ul>
-            <p style={styles.p}>
-              Bez těchto cookies by nebylo možné portál používat.
-            </p>
-            <p style={styles.p}>
-              Tyto cookies neslouží k reklamě, remarketingu ani sledování
-              uživatele na jiných webových stránkách.
-            </p>
-            <div style={styles.notice}>
-              Pokud budou do budoucna na web doplněny analytické nebo marketingové
-              nástroje, může být tato část rozšířena o správu souhlasů.
+            <div style={styles.cardSide}>
+              <div style={styles.sideLabel}>Dodavatel služby</div>
+              <div style={styles.sideCompany}>EduVision s.r.o.</div>
+              <p style={styles.sideText}>
+                Purkyňova 649/127, Medlánky
+                <br />
+                612 00 Brno
+                <br />
+                IČ: 17803039
+                <br />
+                DIČ: CZ17803039
+              </p>
+              <p style={styles.sideMeta}>
+                zapsána pod značkou C 131579/KSBR
+                <br />
+                Krajským soudem v Brně
+              </p>
             </div>
           </section>
 
-          <section id="obsah" style={styles.card}>
-            <h2 style={styles.h2}>4. Audiovizuální obsah</h2>
+          <section style={styles.card}>
+            <h2 style={styles.h2}>Cookies</h2>
             <p style={styles.p}>
-              Některé aktivity projektu ARCHIMEDES mohou být přenášeny online,
-              zaznamenávány nebo zpřístupněny v archivu platformy.
+              Portál ARCHIMEDES Live používá nezbytné technické cookies, které
+              slouží zejména k zajištění přihlášení uživatele, správnému fungování
+              relace a zabezpečení přístupu k jednotlivým částem systému.
             </p>
             <p style={styles.p}>
-              Účastníci konkrétních aktivit jsou o této skutečnosti informováni
-              organizátorem dané akce.
+              Bez těchto cookies by nebylo možné portál řádně používat. Pokud budou
+              do budoucna na web doplněny analytické nebo marketingové nástroje,
+              bude tato část rozšířena o odpovídající správu souhlasů.
             </p>
-          </section>
-
-          <section id="kontakt" style={styles.card}>
-            <h2 style={styles.h2}>5. Kontakt</h2>
-            <p style={styles.p}>
-              V případě dotazů týkajících se provozu portálu, ochrany osobních
-              údajů nebo používání cookies je možné kontaktovat provozovatele
-              projektu ARCHIMEDES prostřednictvím kontaktní stránky na hlavním webu.
-            </p>
+            <div style={styles.notice}>
+              V případě dotazů k provozu portálu, ochraně osobních údajů nebo práci
+              se záznamy můžete využít kontaktní stránku na hlavním webu.
+            </div>
             <p style={styles.p}>
               <Link href="/kontakt" style={styles.inlineLink}>
                 Přejít na kontaktní stránku →
@@ -159,108 +134,172 @@ const styles = {
   page: {
     minHeight: "100vh",
     background:
-      "linear-gradient(180deg, #f7fbf8 0%, #eef7f1 45%, #ffffff 100%)",
+      "linear-gradient(180deg, #f7f8fb 0%, #eef2f7 45%, #ffffff 100%)",
     padding: "32px 20px 40px",
-    color: "#163029",
+    color: "#0f172a",
     fontFamily:
       'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   },
   wrap: {
-    maxWidth: "980px",
+    maxWidth: "1120px",
     margin: "0 auto",
   },
   topNav: {
     marginBottom: "18px",
   },
   backLink: {
-    color: "#1f6b53",
-    textDecoration: "none",
-    fontWeight: 600,
-  },
-  inlineLink: {
-    color: "#1f6b53",
+    color: "#1d4ed8",
     textDecoration: "none",
     fontWeight: 700,
   },
+  inlineLink: {
+    color: "#1d4ed8",
+    textDecoration: "none",
+    fontWeight: 800,
+  },
   hero: {
     background: "#ffffff",
-    border: "1px solid rgba(22,48,41,0.08)",
-    borderRadius: "24px",
-    padding: "32px 28px",
-    boxShadow: "0 20px 50px rgba(22,48,41,0.06)",
+    border: "1px solid rgba(15,23,42,0.08)",
+    borderRadius: "28px",
+    padding: "34px 30px",
+    boxShadow: "0 20px 50px rgba(15,23,42,0.05)",
     marginBottom: "22px",
   },
   badge: {
     display: "inline-block",
-    background: "#e5f5ec",
-    color: "#1f6b53",
-    fontWeight: 700,
+    background: "#e9eef8",
+    color: "#223252",
+    fontWeight: 800,
     fontSize: "13px",
     padding: "8px 12px",
     borderRadius: "999px",
     marginBottom: "14px",
+    letterSpacing: "0.02em",
   },
   h1: {
     margin: "0 0 12px",
-    fontSize: "40px",
-    lineHeight: 1.1,
+    fontSize: "44px",
+    lineHeight: 1.05,
+    letterSpacing: "-0.04em",
+    fontWeight: 900,
+    color: "#0f172a",
   },
   lead: {
     margin: 0,
     fontSize: "18px",
-    lineHeight: 1.7,
-    color: "#45615a",
-    maxWidth: "820px",
+    lineHeight: 1.75,
+    color: "#475569",
+    maxWidth: "860px",
   },
-  toc: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "10px",
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: "18px",
     marginBottom: "22px",
   },
-  tocLink: {
+  docCard: {
     background: "#ffffff",
-    color: "#184d3d",
+    border: "1px solid rgba(15,23,42,0.08)",
+    borderRadius: "24px",
+    padding: "26px 24px",
+    boxShadow: "0 14px 40px rgba(15,23,42,0.05)",
+  },
+  docTitle: {
+    margin: "0 0 10px",
+    fontSize: "24px",
+    lineHeight: 1.18,
+    fontWeight: 900,
+    color: "#0f172a",
+  },
+  docText: {
+    margin: "0 0 14px",
+    fontSize: "16px",
+    lineHeight: 1.7,
+    color: "#475569",
+  },
+  docLink: {
+    color: "#1d4ed8",
     textDecoration: "none",
-    border: "1px solid rgba(22,48,41,0.08)",
-    borderRadius: "999px",
-    padding: "10px 14px",
-    fontWeight: 600,
+    fontWeight: 800,
+    fontSize: "15px",
+  },
+  infoRow: {
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1.2fr) minmax(280px, 0.8fr)",
+    gap: "18px",
+    marginBottom: "18px",
+  },
+  cardLarge: {
+    background: "#ffffff",
+    border: "1px solid rgba(15,23,42,0.08)",
+    borderRadius: "24px",
+    padding: "28px",
+    boxShadow: "0 14px 40px rgba(15,23,42,0.05)",
+  },
+  cardSide: {
+    background: "#eef3fb",
+    border: "1px solid rgba(30,64,175,0.08)",
+    borderRadius: "24px",
+    padding: "24px",
+    boxShadow: "0 14px 40px rgba(15,23,42,0.05)",
+  },
+  sideLabel: {
+    fontSize: "12px",
+    lineHeight: 1.4,
+    fontWeight: 800,
+    letterSpacing: "0.04em",
+    textTransform: "uppercase",
+    color: "#1e3a8a",
+    marginBottom: "10px",
+  },
+  sideCompany: {
+    fontSize: "24px",
+    lineHeight: 1.1,
+    fontWeight: 900,
+    color: "#0f172a",
+    marginBottom: "10px",
+  },
+  sideText: {
+    margin: "0 0 10px",
+    fontSize: "15px",
+    lineHeight: 1.7,
+    color: "#223252",
+  },
+  sideMeta: {
+    margin: 0,
+    fontSize: "13px",
+    lineHeight: 1.6,
+    color: "#64748b",
   },
   card: {
     background: "#ffffff",
-    border: "1px solid rgba(22,48,41,0.08)",
+    border: "1px solid rgba(15,23,42,0.08)",
     borderRadius: "24px",
     padding: "28px",
     marginBottom: "18px",
-    boxShadow: "0 14px 40px rgba(22,48,41,0.05)",
+    boxShadow: "0 14px 40px rgba(15,23,42,0.05)",
   },
   h2: {
     margin: "0 0 14px",
     fontSize: "28px",
-    lineHeight: 1.2,
+    lineHeight: 1.15,
+    fontWeight: 900,
+    color: "#0f172a",
   },
   p: {
     margin: "0 0 14px",
     fontSize: "17px",
     lineHeight: 1.75,
-    color: "#294740",
-  },
-  ul: {
-    margin: "0 0 14px 0",
-    paddingLeft: "22px",
-    color: "#294740",
-    lineHeight: 1.75,
-    fontSize: "17px",
+    color: "#334155",
   },
   notice: {
     marginTop: "8px",
-    background: "#f4fbf7",
-    border: "1px solid #d7eee1",
-    color: "#21483c",
+    background: "#f8fafc",
+    border: "1px solid rgba(15,23,42,0.08)",
+    color: "#334155",
     borderRadius: "16px",
     padding: "14px 16px",
     fontSize: "15px",
-    lineHeight: 1.6,
+    lineHeight: 1.65,
   },
 };
