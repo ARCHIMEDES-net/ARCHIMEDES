@@ -200,9 +200,20 @@ export default function Home() {
                   s praxí. Program, který dává smysl škole i obci.
                 </p>
 
-                <div className="heroGuestPillWrap">
-                  <Link href="/guest" className="heroGuestPill">
-                    For guest speakers
+                <div className="heroGuestLinkWrap">
+                  <Link href="/guest" className="heroGuestLink">
+                    <span className="heroGuestIcon" aria-hidden="true">
+                      ↗
+                    </span>
+
+                    <span className="heroGuestText">
+                      <span className="heroGuestTitle">Guest speakers</span>
+                      <span className="heroGuestSub">
+                        International guest access
+                      </span>
+                    </span>
+
+                    <span className="heroGuestBadge">EN</span>
                   </Link>
                 </div>
 
@@ -481,35 +492,89 @@ export default function Home() {
             max-width: 560px;
           }
 
-          .heroGuestPillWrap {
-            margin-top: 18px;
-            margin-bottom: 16px;
+          .heroGuestLinkWrap {
+            margin-top: 20px;
+            margin-bottom: 18px;
           }
 
-          .heroGuestPill {
+          .heroGuestLink {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 54px;
+            padding: 10px 14px 10px 10px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+            transition: transform 0.18s ease, background 0.18s ease,
+              border-color 0.18s ease, box-shadow 0.18s ease;
+            max-width: 340px;
+          }
+
+          .heroGuestLink:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.34);
+            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18);
+          }
+
+          .heroGuestIcon {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            border-radius: 999px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 38px;
-            padding: 0 14px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            color: rgba(255, 255, 255, 0.96);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 800;
-            letter-spacing: 0.01em;
-            backdrop-filter: blur(6px);
-            transition: transform 0.18s ease, background 0.18s ease,
-              border-color 0.18s ease, box-shadow 0.18s ease;
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 900;
+            line-height: 1;
           }
 
-          .heroGuestPill:hover {
-            transform: translateY(-1px);
-            background: rgba(255, 255, 255, 0.16);
-            border-color: rgba(255, 255, 255, 0.34);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+          .heroGuestText {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+          }
+
+          .heroGuestTitle {
+            font-size: 15px;
+            line-height: 1.15;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.98);
+            letter-spacing: -0.01em;
+          }
+
+          .heroGuestSub {
+            margin-top: 3px;
+            font-size: 12px;
+            line-height: 1.25;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.7);
+          }
+
+          .heroGuestBadge {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 42px;
+            height: 28px;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.96);
+            color: #0f172a;
+            font-size: 12px;
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
           }
 
           .heroActions,
@@ -821,9 +886,23 @@ export default function Home() {
               width: 100%;
             }
 
-            .heroGuestPillWrap {
-              margin-top: 16px;
-              margin-bottom: 14px;
+            .heroGuestLinkWrap {
+              margin-top: 18px;
+              margin-bottom: 16px;
+            }
+
+            .heroGuestLink {
+              width: 100%;
+              max-width: none;
+              padding-right: 12px;
+            }
+
+            .heroGuestTitle {
+              font-size: 14px;
+            }
+
+            .heroGuestSub {
+              font-size: 11px;
             }
           }
         `}</style>
