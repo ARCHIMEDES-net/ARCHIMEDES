@@ -154,12 +154,10 @@ export default function Home() {
                 </p>
 
                 <div className="heroActions">
-                  <PrimaryButton href="/poptavka">
-                    Chci ukázkovou hodinu
+                  <PrimaryButton href="/program#ukazky-vysilani">
+                    Ukázková hodina
                   </PrimaryButton>
-                  <SecondaryButton href="/program">
-                    Prohlédnout program
-                  </SecondaryButton>
+                  <SecondaryButton href="/demo">Chci DEMO</SecondaryButton>
                 </div>
 
                 <div className="heroMeta">
@@ -318,7 +316,7 @@ export default function Home() {
 
               <div className="ctaSide">
                 <div className="ctaActions">
-                  <LightButton href="/poptavka">Domluvit ukázku</LightButton>
+                  <LightButton href="/demo">Chci DEMO</LightButton>
                 </div>
                 <div className="ctaNote">
                   bez závazku • online nebo přímo ve škole
