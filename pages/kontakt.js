@@ -344,7 +344,7 @@ export default function KontaktPage() {
               >
                 Spojte se s týmem
                 <br />
-                ARCHIMEDES® Live
+                ARCHIMEDES Live
               </h1>
 
               <p
