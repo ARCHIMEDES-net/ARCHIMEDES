@@ -1,11 +1,10 @@
 import Head from "next/head";
-import Link from "next/link";
 import Footer from "../components/Footer";
 
-const heroImg = "/vyuka.jpeg"; // hlavní hero
-const liveImgMain = "/vyuka-detail.jpeg"; // detail živého vysílání
-const liveImgSecondary = "/ucebna.jpg"; // širší kontext učebny
-const guestImg = "/hoste.jpg"; // host / důvěra / atmosféra
+const heroImg = "/hero-vyuka.jpg";
+const liveImgMain = "/jak-funguje-online.jpg";
+const liveImgSecondary = "/jak-funguje-trida.jpg";
+const guestImg = "/hoste.jpg";
 
 export default function GuestPage() {
   return (
@@ -14,48 +13,56 @@ export default function GuestPage() {
         <title>Become a Guest | ARCHIMEDES Live</title>
         <meta
           name="description"
-          content="Join ARCHIMEDES Live as a guest speaker and inspire students and communities through live moderated sessions."
+          content="ARCHIMEDES Live connects exceptional personalities with real students through live, moderated sessions across schools and communities."
         />
       </Head>
 
       <main className="page">
-        <section
-          className="hero"
-          style={{
-            backgroundImage: `linear-gradient(90deg, rgba(9,16,32,0.82) 0%, rgba(9,16,32,0.66) 42%, rgba(9,16,32,0.46) 100%), url(${heroImg})`,
-          }}
-        >
-          <div className="container heroInner">
-            <div className="heroContent">
-              <div className="eyebrow">ARCHIMEDES Live</div>
+        <section className="hero">
+          <div className="heroMedia">
+            <img src={heroImg} alt="ARCHIMEDES Live with students" />
+            <div className="heroOverlay" />
+          </div>
 
-              <h1>
-                You do not just speak.
-                <br />
-                You shape how young people
-                <br />
-                see the world.
-              </h1>
+          <div className="heroContentWrap">
+            <div className="container">
+              <div className="heroContent">
+                <div className="eyebrow">ARCHIMEDES Live</div>
 
-              <p className="lead">
-                ARCHIMEDES Live connects exceptional personalities with real
-                students through live, moderated sessions across schools and
-                communities.
-              </p>
+                <h1>
+                  You do not just speak.
+                  <br />
+                  You shape how young people
+                  <br />
+                  see the world.
+                </h1>
 
-              <div className="heroActions">
-                <a href="#contact" className="primaryButton">
-                  Become a guest speaker
-                </a>
-                <a href="#live-format" className="secondaryButton">
-                  See how it works
-                </a>
+                <p className="heroLead">
+                  ARCHIMEDES Live connects exceptional personalities with real
+                  students through live, moderated sessions across schools and
+                  communities.
+                </p>
+
+                <div className="heroActions">
+                  <a href="#contact" className="primaryButton">
+                    Become a guest speaker
+                  </a>
+                  <a href="#live-format" className="secondaryButton">
+                    See how it works
+                  </a>
+                </div>
+
+                <div className="heroMeta">
+                  <span>live sessions</span>
+                  <span>real students</span>
+                  <span>carefully selected guests</span>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="introSection">
+        <section className="section introSection">
           <div className="container narrow">
             <h2>What is ARCHIMEDES Live</h2>
             <p className="introText">
@@ -120,7 +127,7 @@ export default function GuestPage() {
           </div>
         </section>
 
-        <section className="whySection">
+        <section className="section whySection">
           <div className="container">
             <h2>Why join us</h2>
 
@@ -165,12 +172,12 @@ export default function GuestPage() {
           </div>
         </section>
 
-        <section className="formatSection" id="live-format">
+        <section className="section formatSection" id="live-format">
           <div className="container">
             <div className="formatGrid">
               <div className="formatLeft">
                 <div className="eyebrow dark">Live format</div>
-                <h2>How it works</h2>
+                <h2 className="leftTitle">How it works</h2>
 
                 <div className="steps">
                   <div className="stepItem">
@@ -218,7 +225,7 @@ export default function GuestPage() {
               <div className="formatRight">
                 <img
                   src={liveImgMain}
-                  alt="ARCHIMEDES Live broadcast with students"
+                  alt="ARCHIMEDES Live online session on screen"
                   className="mainVisual"
                 />
               </div>
@@ -226,7 +233,7 @@ export default function GuestPage() {
           </div>
         </section>
 
-        <section className="gallerySection">
+        <section className="section gallerySection">
           <div className="container">
             <div className="galleryHeader">
               <h2>What a live session feels like</h2>
@@ -240,14 +247,14 @@ export default function GuestPage() {
               <div className="galleryLarge">
                 <img
                   src={liveImgSecondary}
-                  alt="ARCHIMEDES learning space"
+                  alt="Students reacting during an ARCHIMEDES Live session"
                 />
               </div>
 
               <div className="gallerySmallStack">
                 <img
                   src={guestImg}
-                  alt="Guest and program atmosphere"
+                  alt="Guests and ARCHIMEDES Live atmosphere"
                 />
 
                 <div className="galleryTextCard">
@@ -328,8 +335,36 @@ export default function GuestPage() {
           }
 
           .hero {
-            background-size: cover;
-            background-position: center;
+            position: relative;
+          }
+
+          .heroMedia {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+          }
+
+          .heroMedia img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+          }
+
+          .heroOverlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+              90deg,
+              rgba(9, 16, 32, 0.82) 0%,
+              rgba(9, 16, 32, 0.66) 42%,
+              rgba(9, 16, 32, 0.46) 100%
+            );
+          }
+
+          .heroContentWrap {
+            position: relative;
+            z-index: 2;
             color: #ffffff;
           }
 
@@ -372,7 +407,7 @@ export default function GuestPage() {
             font-weight: 900;
           }
 
-          .lead {
+          .heroLead {
             margin: 24px 0 0;
             font-size: 28px;
             line-height: 1.35;
@@ -392,26 +427,30 @@ export default function GuestPage() {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 56px;
+            min-height: 52px;
             padding: 0 22px;
-            border-radius: 16px;
+            border-radius: 14px;
             text-decoration: none;
-            font-size: 16px;
             font-weight: 800;
+            font-size: 16px;
+            line-height: 1.2;
+            white-space: nowrap;
             transition: transform 0.18s ease, box-shadow 0.18s ease,
-              background 0.18s ease, border-color 0.18s ease;
+              background 0.18s ease;
           }
 
           .primaryButton {
             background: #ffffff;
             color: #0f172a;
-            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
           }
 
           .secondaryButton {
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.28);
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.94);
+            color: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.68);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+            backdrop-filter: blur(6px);
           }
 
           .primaryButton:hover,
@@ -419,8 +458,32 @@ export default function GuestPage() {
             transform: translateY(-2px);
           }
 
+          .heroMeta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 12px;
+            margin-top: 20px;
+          }
+
+          .heroMeta span {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 13px;
+            font-weight: 700;
+          }
+
+          .section {
+            padding: 88px 0;
+          }
+
           .introSection {
-            padding: 88px 0 72px;
+            padding-bottom: 72px;
           }
 
           .introSection h2,
@@ -436,6 +499,10 @@ export default function GuestPage() {
             font-weight: 900;
             text-align: center;
             color: #0f172a;
+          }
+
+          .leftTitle {
+            text-align: left !important;
           }
 
           .introText {
@@ -560,7 +627,8 @@ export default function GuestPage() {
           }
 
           .whySection {
-            padding: 88px 0;
+            padding-top: 88px;
+            padding-bottom: 88px;
           }
 
           .cards3 {
@@ -624,7 +692,6 @@ export default function GuestPage() {
           }
 
           .formatSection {
-            padding: 88px 0;
             background: #f7f8fb;
           }
 
@@ -633,11 +700,6 @@ export default function GuestPage() {
             grid-template-columns: 1fr 1fr;
             gap: 28px;
             align-items: start;
-          }
-
-          .formatLeft h2 {
-            text-align: left;
-            margin-top: 6px;
           }
 
           .steps {
@@ -696,7 +758,8 @@ export default function GuestPage() {
           }
 
           .gallerySection {
-            padding: 88px 0;
+            padding-top: 88px;
+            padding-bottom: 88px;
           }
 
           .galleryHeader {
@@ -884,7 +947,7 @@ export default function GuestPage() {
               font-size: 60px;
             }
 
-            .lead {
+            .heroLead {
               font-size: 24px;
             }
 
@@ -914,8 +977,8 @@ export default function GuestPage() {
               min-height: 420px;
             }
 
-            .formatLeft h2 {
-              text-align: center;
+            .leftTitle {
+              text-align: center !important;
             }
           }
 
@@ -935,7 +998,7 @@ export default function GuestPage() {
               line-height: 1.02;
             }
 
-            .lead {
+            .heroLead {
               font-size: 19px;
             }
 
@@ -949,11 +1012,13 @@ export default function GuestPage() {
               width: 100%;
             }
 
+            .section,
             .introSection,
             .whySection,
             .formatSection,
             .gallerySection {
-              padding: 64px 0;
+              padding-top: 64px;
+              padding-bottom: 64px;
             }
 
             .quoteSection,
