@@ -305,31 +305,33 @@ export default function StartPage() {
                   </div>
                 </div>
 
-                <div className="summaryCard">
-                  <div className="summaryLabel">Objednávaný balíček</div>
-                  <div className="summaryTitle">START duben–červen</div>
+                <div className="summaryColumn">
+                  <div className="summaryCard summaryCardDark">
+                    <div className="summaryLabel">Objednávaný balíček</div>
+                    <div className="summaryTitle">START duben–červen</div>
 
-                  <div className="summaryRow">
-                    <span>Období</span>
-                    <strong>duben–červen 2026</strong>
+                    <div className="summaryRow">
+                      <span>Období</span>
+                      <strong>duben–červen 2026</strong>
+                    </div>
+
+                    <div className="summaryRow">
+                      <span>Cena</span>
+                      <strong>4.990,- Kč bez DPH</strong>
+                    </div>
+
+                    <div className="summaryRow">
+                      <span>Forma</span>
+                      <strong>objednávka online</strong>
+                    </div>
+
+                    <div className="summaryRow">
+                      <span>Doklady</span>
+                      <strong>potvrzení e-mailem</strong>
+                    </div>
                   </div>
 
-                  <div className="summaryRow">
-                    <span>Cena</span>
-                    <strong>4.990,- Kč bez DPH</strong>
-                  </div>
-
-                  <div className="summaryRow">
-                    <span>Forma</span>
-                    <strong>objednávka online</strong>
-                  </div>
-
-                  <div className="summaryRow">
-                    <span>Doklady</span>
-                    <strong>potvrzení e-mailem</strong>
-                  </div>
-
-                  <div className="summaryContent">
+                  <div className="summaryCard summaryCardLight">
                     <div className="summaryContentLabel">Součást balíčku</div>
                     <ul className="summaryList">
                       <li>3× živý vstup pro I. stupeň ZŠ</li>
@@ -341,6 +343,26 @@ export default function StartPage() {
                     <p className="summaryNote">
                       Konkrétní termíny vysílání budou zveřejňovány průběžně v
                       programu ARCHIMEDES Live.
+                    </p>
+                  </div>
+
+                  <div className="summaryCard supplierCard">
+                    <div className="summaryContentLabel supplierLabel">
+                      Dodavatel
+                    </div>
+                    <div className="supplierText">
+                      <strong>EduVision s.r.o.</strong>
+                      <br />
+                      Purkyňova 649/127, Medlánky
+                      <br />
+                      612 00 Brno
+                      <br />
+                      IČ: 17803039
+                      <br />
+                      DIČ: CZ17803039
+                    </div>
+                    <p className="supplierMeta">
+                      zapsána pod značkou C 131579/KSBR Krajským soudem v Brně
                     </p>
                   </div>
                 </div>
@@ -647,9 +669,14 @@ export default function StartPage() {
 
           .heroGrid {
             display: grid;
-            grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
-            gap: 24px;
+            grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+            gap: 28px;
             align-items: start;
+          }
+
+          .summaryColumn {
+            display: grid;
+            gap: 16px;
           }
 
           .eyebrow {
@@ -699,11 +726,27 @@ export default function StartPage() {
           }
 
           .summaryCard {
+            border-radius: 24px;
+            padding: 22px 22px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+          }
+
+          .summaryCardDark {
             background: #0f172a;
             color: #ffffff;
-            border-radius: 24px;
-            padding: 24px 22px;
             box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+          }
+
+          .summaryCardLight {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            color: #0f172a;
+          }
+
+          .supplierCard {
+            background: #eef3fb;
+            border: 1px solid rgba(30, 64, 175, 0.08);
+            color: #0f172a;
           }
 
           .summaryLabel {
@@ -744,20 +787,14 @@ export default function StartPage() {
             font-weight: 800;
           }
 
-          .summaryContent {
-            margin-top: 18px;
-            padding-top: 18px;
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
-          }
-
           .summaryContentLabel {
             font-size: 13px;
             line-height: 1.4;
             font-weight: 800;
-            color: rgba(255, 255, 255, 0.72);
-            text-transform: uppercase;
             letter-spacing: 0.04em;
+            text-transform: uppercase;
             margin-bottom: 12px;
+            color: #223252;
           }
 
           .summaryList {
@@ -768,17 +805,39 @@ export default function StartPage() {
           }
 
           .summaryList li {
-            color: #ffffff;
+            color: #0f172a;
             font-size: 15px;
             line-height: 1.55;
-            font-weight: 700;
+            font-weight: 800;
           }
 
           .summaryNote {
             margin: 14px 0 0;
             font-size: 13px;
+            line-height: 1.6;
+            color: #667085;
+          }
+
+          .supplierLabel {
+            color: #1e3a8a;
+          }
+
+          .supplierText {
+            font-size: 15px;
+            line-height: 1.65;
+            color: #223252;
+          }
+
+          .supplierText strong {
+            color: #0f172a;
+            font-size: 16px;
+          }
+
+          .supplierMeta {
+            margin: 10px 0 0;
+            font-size: 13px;
             line-height: 1.55;
-            color: rgba(255, 255, 255, 0.68);
+            color: #5b6472;
           }
 
           .formSection {
