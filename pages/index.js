@@ -197,13 +197,13 @@ export default function Home() {
                 </p>
 
                 <div className="heroActions">
-                  <PrimaryButton href="/program#ukazky-vysilani">
-                    Ukázková hodina
+                  <PrimaryButton href="/start">
+                    Chci balíček START
                   </PrimaryButton>
-                  <SecondaryButton href="/demo">Chci DEMO</SecondaryButton>
-                  <TertiaryButton href="/aktualni-pozvanky">
-                    Co se chystá teď
-                  </TertiaryButton>
+                  <SecondaryButton href="/program#ukazky-vysilani">
+                    Ukázková hodina
+                  </SecondaryButton>
+                  <TertiaryButton href="/demo">Chci DEMO</TertiaryButton>
                 </div>
 
                 <div className="heroMeta">
@@ -353,18 +353,20 @@ export default function Home() {
                 <div className="eyebrow light">
                   Chcete živý program ve vlastní škole?
                 </div>
-                <h2>Podívejte se na ARCHIMEDES Live v praxi</h2>
+                <h2>Objednejte balíček START nebo si nejdřív vyžádejte DEMO</h2>
                 <p>
-                  Prohlédnětě si ukázkovou hodinu nebo se registrujte k DEMO verzi.
+                  Začněte jednoduše. Vyberte si balíček START nebo si nejprve
+                  prohlédněte ARCHIMEDES Live v ukázce.
                 </p>
               </div>
 
               <div className="ctaSide">
                 <div className="ctaActions">
+                  <LightButton href="/start">Chci balíček START</LightButton>
                   <LightButton href="/demo">Chci DEMO</LightButton>
                 </div>
                 <div className="ctaNote">
-                  bez závazku • online nebo přímo ve škole
+                  objednávka online • potvrzení e-mailem
                 </div>
               </div>
             </div>
