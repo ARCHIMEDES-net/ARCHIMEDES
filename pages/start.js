@@ -316,7 +316,7 @@ export default function StartPage() {
 
                   <div className="summaryRow">
                     <span>Cena</span>
-                    <strong>[DOPLŇTE CENU] Kč</strong>
+                    <strong>4.990,- Kč bez DPH</strong>
                   </div>
 
                   <div className="summaryRow">
