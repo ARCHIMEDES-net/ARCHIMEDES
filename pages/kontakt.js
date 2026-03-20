@@ -7,10 +7,10 @@ const heroImg = "/ceny.webp";
 const team = [
   {
     name: "Antonín Koplík",
-    role: "Autor projektu, jednatel společnosti",
+    role: "Jednatel společnosti",
     email: "antonin.koplik@eduvision.cz",
     phone: "",
-    note: "Strategie projektu, partnerství, rozvoj",
+    note: "Strategie, partnerství, rozvoj",
   },
   {
     name: "Roman Tuzar",
@@ -21,7 +21,7 @@ const team = [
   },
   {
     name: "Dominik Ševčík",
-    role: "Ředitel realizací",
+    role: "Výkonný ředitel",
     email: "dominik.sevcik@eduvision.cz",
     phone: "+420 735 104 449",
     note: "Realizace učeben, technické řešení",
@@ -426,7 +426,7 @@ export default function KontaktPage() {
                     color: "rgba(15,23,42,0.68)",
                   }}
                 >
-                  Projekt ARCHIMEDES je postaven na reálných realizacích,
+                  ARCHIMEDES Live je postaven na reálných realizacích,
                   zkušenostech z obcí a živém programu pro vzdělávání i komunitní
                   život.
                 </div>
