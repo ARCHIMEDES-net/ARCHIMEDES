@@ -49,10 +49,12 @@ export default function App({ Component, pageProps }) {
         <meta name="description" content={description} />
         <meta name="theme-color" content="#111827" />
 
-        <link rel="icon" href="/logo-archimedes-live-mark.png" />
-        <link rel="shortcut icon" href="/logo-archimedes-live-mark.png" />
-        <link rel="apple-touch-icon" href="/logo-archimedes-live-mark-512.png" />
+        {/* ✅ FAVICON – SPRÁVNÝ SETUP */}
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
+        {/* SEO */}
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="ARCHIMEDES Live" />
         <meta property="og:title" content={title} />
