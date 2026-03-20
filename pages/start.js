@@ -96,11 +96,13 @@ export default function StartPage() {
                 <p className="lead">
                   Na uvedený e-mail vám zašleme potvrzení objednávky, fakturační
                   podklady a další informace k zahájení programu ARCHIMEDES Live.
+                  Na vyžádání připravíme také podklady pro interní administraci
+                  školy nebo organizace.
                 </p>
 
                 <div className="successBox">
-                  Balíček START je jednorázový program na období duben–červen 2026
-                  bez automatického prodloužení.
+                  Balíček START je jednorázový vzdělávací program na období
+                  duben–červen 2026 bez automatického prodloužení.
                 </div>
 
                 <div className="nextSteps">
@@ -108,6 +110,7 @@ export default function StartPage() {
                   <ul>
                     <li>zašleme vám potvrzení objednávky,</li>
                     <li>obdržíte fakturační podklady,</li>
+                    <li>na vyžádání připravíme specifikaci plnění,</li>
                     <li>následně získáte přístup k programu.</li>
                   </ul>
                 </div>
@@ -338,22 +341,34 @@ export default function StartPage() {
                   <h1>Objednávka balíčku START</h1>
 
                   <p className="lead">
-                    Získejte přístup k programu ARCHIMEDES Live na období
-                    duben–červen 2026. Balíček je připraven pro snadné zapojení do
-                    výuky bez složité přípravy.
+                    Objednáváte vzdělávací program ARCHIMEDES Live na období
+                    duben–červen 2026. Program obsahuje online vzdělávací aktivity
+                    pro žáky a školy, které lze zařadit do běžné výuky, třídnických
+                    a rozvojových aktivit i školního programu.
                   </p>
 
                   <div className="proofBox">
-                    Program ARCHIMEDES Live je určen pro školy a organizace, které
-                    chtějí rychle a přehledně zapojit živý program do výuky i
-                    školního života.
+                    ARCHIMEDES Live je vzdělávací program pro školy a další
+                    organizace. Obsahuje připravené online vzdělávací aktivity
+                    zaměřené na rozvoj žáků, aktuální témata, wellbeing,
+                    kariérovou orientaci a jazykové vzdělávání.
                   </div>
 
                   <div className="noticeBox">
                     <strong>Odesláním objednávky objednáváte balíček START</strong>{" "}
                     na období duben–červen 2026. Po odeslání vám zašleme potvrzení
                     objednávky, fakturační podklady a další informace k zahájení
-                    programu.
+                    programu. Na vyžádání připravíme také specifikaci plnění pro
+                    interní administraci školy nebo organizace.
+                  </div>
+
+                  <div className="opjakBox">
+                    Program ARCHIMEDES Live může škola využít také jako součást
+                    vzdělávacích aktivit financovaných z projektů a šablon, pokud
+                    jeho zařazení odpovídá zvolené aktivitě projektu, podmínkám
+                    výzvy a vnitřním pravidlům školy. Na vyžádání dodáme potvrzení
+                    objednávky, fakturu, specifikaci plnění a další podklady pro
+                    interní administraci školy.
                   </div>
 
                   <div className="processBox">
@@ -365,7 +380,11 @@ export default function StartPage() {
                       </div>
                       <div className="processStep">
                         <span className="processNumber">2</span>
-                        <p>Zašleme vám potvrzení a fakturační podklady.</p>
+                        <p>
+                          Zašleme vám potvrzení objednávky, fakturační podklady a
+                          na vyžádání také specifikaci plnění pro interní
+                          administraci školy.
+                        </p>
                       </div>
                       <div className="processStep">
                         <span className="processNumber">3</span>
@@ -373,7 +392,10 @@ export default function StartPage() {
                       </div>
                       <div className="processStep">
                         <span className="processNumber">4</span>
-                        <p>Můžete zapojit třídy do vysílání v období duben–červen.</p>
+                        <p>
+                          Můžete zapojit třídy do online vzdělávacích aktivit v
+                          období duben–červen.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -385,8 +407,9 @@ export default function StartPage() {
                       Medlánky, 612 00 Brno · IČ: 17803039 · DIČ: CZ17803039
                     </div>
                     <div className="supplierInlineMeta">
-                      Poskytovatel programu a provozovatel služby ARCHIMEDES Live.
-                      Zapsána pod značkou C 131579/KSBR Krajským soudem v Brně.
+                      Poskytovatel vzdělávacího programu a provozovatel služby
+                      ARCHIMEDES Live. Zapsána pod značkou C 131579/KSBR Krajským
+                      soudem v Brně.
                     </div>
                   </div>
 
@@ -414,13 +437,15 @@ export default function StartPage() {
                     </div>
 
                     <div className="summaryRow">
-                      <span>Forma</span>
-                      <strong>online program</strong>
+                      <span>Forma plnění</span>
+                      <strong>online vzdělávací program</strong>
                     </div>
 
                     <div className="summaryRow">
                       <span>Doklady</span>
-                      <strong>potvrzení objednávky, faktura</strong>
+                      <strong>
+                        potvrzení objednávky, faktura, specifikace plnění
+                      </strong>
                     </div>
 
                     <div className="summaryRow">
@@ -434,16 +459,16 @@ export default function StartPage() {
 
                     <div className="summaryContentLabel">Součást balíčku</div>
                     <ul className="summaryList">
-                      <li>3× živý vstup pro I. stupeň ZŠ</li>
-                      <li>3× živý vstup pro II. stupeň ZŠ</li>
-                      <li>3× wellbeing program Generace Z</li>
-                      <li>3× Kariérní poradenství jinak</li>
-                      <li>1× speciální vysílání v angličtině</li>
+                      <li>3× online vzdělávací program pro I. stupeň ZŠ</li>
+                      <li>3× online vzdělávací program pro II. stupeň ZŠ</li>
+                      <li>3× vzdělávací program zaměřený na wellbeing žáků</li>
+                      <li>3× vzdělávací program zaměřený na kariérovou orientaci</li>
+                      <li>1× vzdělávací program v anglickém jazyce</li>
                     </ul>
 
                     <p className="summaryNote">
-                      Konkrétní termíny vysílání budou zveřejňovány průběžně v
-                      programu ARCHIMEDES Live.
+                      Konkrétní termíny online vzdělávacích aktivit budou
+                      zveřejňovány průběžně v programu ARCHIMEDES Live.
                     </p>
 
                     <div className="capacityHint">
@@ -573,14 +598,14 @@ export default function StartPage() {
                   </div>
 
                   <div className="field">
-                    <label htmlFor="adminEmail">E-mail administrátora školy *</label>
+                    <label htmlFor="adminEmail">E-mail pro administraci programu *</label>
                     <input
                       id="adminEmail"
                       name="adminEmail"
                       type="email"
                       value={form.adminEmail}
                       onChange={handleChange}
-                      placeholder="např. spravce@skola.cz"
+                      placeholder="např. skola@skola.cz"
                       required
                     />
                   </div>
@@ -600,8 +625,9 @@ export default function StartPage() {
 
                   <div className="field fieldHintBox">
                     <div className="fieldHint">
-                      Na e-mail administrátora školy můžeme následně zaslat
-                      přístupové údaje a organizační informace k programu.
+                      Na tento e-mail zašleme přístupové údaje, organizační
+                      informace a případně podklady potřebné pro administraci
+                      programu ve škole nebo organizaci.
                     </div>
                   </div>
                 </div>
@@ -625,6 +651,10 @@ export default function StartPage() {
                   <ul>
                     <li>přístup do programu obdržíte e-mailem,</li>
                     <li>fakturace probíhá po potvrzení objednávky,</li>
+                    <li>
+                      na vyžádání připravíme také specifikaci plnění pro interní
+                      evidenci školy,
+                    </li>
                     <li>balíček START je určen na období duben–červen 2026.</li>
                   </ul>
                 </div>
@@ -713,9 +743,12 @@ export default function StartPage() {
                       required
                     />
                     <span>
-                      Odesláním objednávky objednávám za školu / organizaci balíček
-                      START služby ARCHIMEDES Live na období duben–červen 2026 a
-                      potvrzuji povinnost úhrady ceny podle objednávky.
+                      Odesláním objednávky objednávám za školu / organizaci
+                      balíček START služby ARCHIMEDES Live na období duben–červen
+                      2026 a potvrzuji, že škola / organizace uhradí cenu
+                      uvedenou v objednávce na základě vystaveného daňového
+                      dokladu, případně podle navazující smluvní dokumentace,
+                      je-li vyžadována.
                     </span>
                   </label>
                 </div>
@@ -753,6 +786,11 @@ export default function StartPage() {
 
                 <p className="submitNote">
                   Po odeslání objednávky vám přijde potvrzení e-mailem.
+                </p>
+                <p className="submitSubnote">
+                  Zařazení programu do financování školy posuzuje škola podle své
+                  projektové a účetní dokumentace. V případě potřeby doporučujeme
+                  ověření na konzultační lince pro šablony OP JAK.
                 </p>
               </div>
             </form>
@@ -860,6 +898,17 @@ export default function StartPage() {
 
           .noticeBox strong {
             font-weight: 900;
+          }
+
+          .opjakBox {
+            margin-top: 18px;
+            padding: 18px 20px;
+            border-radius: 18px;
+            background: #eefaf0;
+            border: 1px solid #cfe8d3;
+            color: #166534;
+            font-size: 15px;
+            line-height: 1.7;
           }
 
           .processBox {
@@ -1310,6 +1359,14 @@ export default function StartPage() {
             line-height: 1.6;
             color: #667085;
             font-weight: 700;
+          }
+
+          .submitSubnote {
+            margin: -2px 0 0;
+            font-size: 13px;
+            line-height: 1.65;
+            color: #667085;
+            max-width: 760px;
           }
 
           @media (max-width: 980px) {
