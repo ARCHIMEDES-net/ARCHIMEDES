@@ -45,9 +45,8 @@ export default function Home() {
                 </h1>
 
                 <p className="heroLead">
-                  Děti se potkávají s lidmi, kteří to opravdu dělají. Reálný
-                  svět přichází přímo do třídy.
-                </p>
+                  Do výuky přichází reálný svět – živě, s lidmi, kteří ho tvoří.
+            </p>
 
                 <div className="heroGuestLinkWrap">
                   <Link href="/guest" className="heroGuestLink">
