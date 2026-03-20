@@ -611,7 +611,7 @@ export default function KontaktPage() {
                     color: "#fff",
                   }}
                 >
-                  Chcete si domluvit ukázku programu?
+                  Chcete si domluvit realizaci programu u Vás?
                 </h3>
 
                 <p
