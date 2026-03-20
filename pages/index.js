@@ -45,7 +45,7 @@ export default function Home() {
                 </h1>
 
                 <p className="heroLead">
-                  Do výuky přichází reálný svět – živě, s lidmi, kteří ho tvoří.
+                  Do výuky přichází reálný svět – živě a interaktivně. S lidmi, kteří ho tvoří.
             </p>
 
                 <div className="heroGuestLinkWrap">
