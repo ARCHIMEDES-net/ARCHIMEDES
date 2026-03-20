@@ -598,7 +598,9 @@ export default function StartPage() {
                   </div>
 
                   <div className="field">
-                    <label htmlFor="adminEmail">E-mail pro administraci programu *</label>
+                    <label htmlFor="adminEmail">
+                      E-mail pro administraci programu *
+                    </label>
                     <input
                       id="adminEmail"
                       name="adminEmail"
@@ -648,14 +650,12 @@ export default function StartPage() {
               <div className="sectionBlock">
                 <div className="submitInfoBox">
                   <div className="submitInfoTitle">Před odesláním</div>
-                  <ul>
-                    <li>přístup do programu obdržíte e-mailem,</li>
-                    <li>fakturace probíhá po potvrzení objednávky,</li>
-                    <li>
-                      na vyžádání připravíme také specifikaci plnění pro interní
-                      evidenci školy,
-                    </li>
-                    <li>balíček START je určen na období duben–červen 2026.</li>
+
+                  <ul className="submitChecklist">
+                    <li>přístup do programu obdržíte e-mailem</li>
+                    <li>fakturace probíhá po potvrzení objednávky</li>
+                    <li>na vyžádání připravíme specifikaci plnění</li>
+                    <li>balíček START je na období duben–červen 2026</li>
                   </ul>
                 </div>
               </div>
@@ -1222,7 +1222,7 @@ export default function StartPage() {
           }
 
           .submitInfoBox {
-            padding: 18px 20px;
+            padding: 20px 22px;
             border-radius: 18px;
             background: #f8fafc;
             border: 1px solid rgba(15, 23, 42, 0.08);
@@ -1233,20 +1233,32 @@ export default function StartPage() {
             line-height: 1.5;
             font-weight: 800;
             color: #0f172a;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
           }
 
-          .submitInfoBox ul {
+          .submitChecklist {
+            list-style: none;
             margin: 0;
-            padding-left: 18px;
+            padding: 0;
             display: grid;
-            gap: 8px;
+            gap: 10px;
           }
 
-          .submitInfoBox li {
-            color: #334155;
+          .submitChecklist li {
+            position: relative;
+            padding-left: 28px;
             font-size: 15px;
             line-height: 1.65;
+            color: #334155;
+          }
+
+          .submitChecklist li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #16a34a;
+            font-weight: 900;
           }
 
           .checkboxList {
