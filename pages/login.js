@@ -113,7 +113,7 @@ export default function LoginPage() {
           if (!cancelled) {
             if (type === "recovery") {
               setMessage(
-                "Ověření proběhlo úspěšně. Nyní si nastavte nové heslo v profilu nebo pokračujte do portálu."
+                "Ověření proběhlo úspěšně. Nyní se můžete přihlásit novým heslem nebo pokračovat do portálu."
               );
             } else {
               router.replace("/portal");
@@ -178,7 +178,7 @@ export default function LoginPage() {
   return (
     <main
       style={{
-        minHeight: "100vh",
+        minHeight: "calc(100vh - 90px)",
         background: "#f5f7fb",
         padding: "48px 16px",
         display: "flex",
@@ -321,7 +321,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ ...inputStyle, paddingRight: 50 }}
+                style={{ ...inputStyle, paddingRight: 54 }}
               />
 
               <button
@@ -333,14 +333,17 @@ export default function LoginPage() {
                   top: "50%",
                   right: 12,
                   transform: "translateY(-50%)",
-                  width: 30,
-                  height: 30,
+                  width: 32,
+                  height: 32,
                   border: "none",
                   background: "transparent",
                   cursor: "pointer",
                   fontSize: 18,
                   lineHeight: 1,
                   color: "#475569",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 {showPassword ? "🙈" : "👁"}
@@ -370,7 +373,15 @@ export default function LoginPage() {
               marginBottom: 22,
             }}
           >
-            <button type="submit" disabled={loading || checkingLink} style={primaryBtn}>
+            <button
+              type="submit"
+              disabled={loading || checkingLink}
+              style={{
+                ...primaryBtn,
+                opacity: loading || checkingLink ? 0.8 : 1,
+                cursor: loading || checkingLink ? "default" : "pointer",
+              }}
+            >
               {loading ? "Přihlašuji..." : "Přihlásit se"}
             </button>
 
@@ -433,7 +444,6 @@ const primaryBtn = {
   fontWeight: 800,
   fontSize: 15,
   textDecoration: "none",
-  cursor: "pointer",
 };
 
 const secondaryBtn = {
