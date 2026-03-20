@@ -30,17 +30,7 @@ function PrimaryButton({ href, children }) {
           "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
-      <span
-        style={{
-          color: "#0f172a",
-          fontWeight: 800,
-          fontSize: 16,
-          lineHeight: 1.2,
-          display: "inline-block",
-        }}
-      >
-        {children}
-      </span>
+      <span>{children}</span>
     </Link>
   );
 }
@@ -70,17 +60,7 @@ function SecondaryButton({ href, children }) {
           "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
-      <span
-        style={{
-          color: "#0f172a",
-          fontWeight: 800,
-          fontSize: 16,
-          lineHeight: 1.2,
-          display: "inline-block",
-        }}
-      >
-        {children}
-      </span>
+      <span>{children}</span>
     </Link>
   );
 }
@@ -110,17 +90,37 @@ function TertiaryButton({ href, children }) {
           "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
-      <span
-        style={{
-          color: "#0f172a",
-          fontWeight: 800,
-          fontSize: 16,
-          lineHeight: 1.2,
-          display: "inline-block",
-        }}
-      >
-        {children}
-      </span>
+      <span>{children}</span>
+    </Link>
+  );
+}
+
+function GhostButton({ href, children }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: 52,
+        padding: "0 20px",
+        borderRadius: 14,
+        background: "rgba(255,255,255,0.08)",
+        color: "#ffffff",
+        textDecoration: "none",
+        fontWeight: 800,
+        fontSize: 15,
+        lineHeight: 1.2,
+        border: "1px solid rgba(255,255,255,0.18)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+        whiteSpace: "nowrap",
+        transition:
+          "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease",
+      }}
+    >
+      <span>{children}</span>
     </Link>
   );
 }
@@ -148,17 +148,7 @@ function LightButton({ href, children }) {
           "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
       }}
     >
-      <span
-        style={{
-          color: "#0f172a",
-          fontWeight: 800,
-          fontSize: 16,
-          lineHeight: 1.2,
-          display: "inline-block",
-        }}
-      >
-        {children}
-      </span>
+      <span>{children}</span>
     </Link>
   );
 }
@@ -175,7 +165,6 @@ export default function Home() {
       </Head>
 
       <main className="page">
-        {/* HERO */}
         <section className="hero">
           <div className="heroMedia">
             <img src={heroImg} alt="ARCHIMEDES Live ve škole" />
@@ -202,22 +191,16 @@ export default function Home() {
 
                 <div className="heroGuestLinkWrap">
                   <Link href="/guest" className="heroGuestLink">
-                    <span className="heroGuestGlow" aria-hidden="true" />
-                    <span className="heroGuestLeft">
-                      <span className="heroGuestIcon" aria-hidden="true">
+                    <span className="heroGuestInfo">
+                      <span className="heroGuestMiniIcon" aria-hidden="true">
                         ✦
                       </span>
-
                       <span className="heroGuestText">
-                        <span className="heroGuestEyebrow">
+                        <span className="heroGuestLabel">
                           International guest access
                         </span>
                         <span className="heroGuestTitle">
                           For guest speakers
-                        </span>
-                        <span className="heroGuestSub">
-                          Entry point, information and coordination for invited
-                          international guests
                         </span>
                       </span>
                     </span>
@@ -239,19 +222,15 @@ export default function Home() {
                     Ukázková hodina
                   </SecondaryButton>
                   <TertiaryButton href="/demo">Chci DEMO</TertiaryButton>
-                </div>
-
-                <div className="heroMetaActions">
-                  <Link href="/aktualni-pozvanky" className="heroMetaButton">
+                  <GhostButton href="/aktualni-pozvanky">
                     Aktuální pozvánky
-                  </Link>
+                  </GhostButton>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* JAK TO FUNGUJE */}
         <section className="section">
           <div className="container">
             <div className="sectionIntro center">
@@ -310,7 +289,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* PRINOSY */}
         <section className="section sectionSoft">
           <div className="container">
             <div className="sectionIntro">
@@ -349,7 +327,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* DUVĚRA */}
         <section className="section sectionTightTop">
           <div className="container">
             <div className="trustPanel">
@@ -380,7 +357,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* CTA */}
         <section className="ctaSection">
           <div className="container">
             <div className="ctaBox">
@@ -513,90 +489,59 @@ export default function Home() {
           }
 
           .heroGuestLinkWrap {
-            margin-top: 26px;
-            margin-bottom: 22px;
+            margin-top: 24px;
+            margin-bottom: 18px;
           }
 
           .heroGuestLink {
-            position: relative;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: space-between;
-            gap: 18px;
+            gap: 16px;
             width: 100%;
-            max-width: 560px;
-            padding: 16px 18px;
-            border-radius: 24px;
-            background: linear-gradient(
-              135deg,
-              rgba(255, 255, 255, 0.16) 0%,
-              rgba(255, 255, 255, 0.08) 100%
-            );
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 460px;
+            min-height: 64px;
+            padding: 10px 12px 10px 10px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             color: #ffffff;
             text-decoration: none;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
-            overflow: hidden;
-            transition: transform 0.22s ease, box-shadow 0.22s ease,
-              border-color 0.22s ease, background 0.22s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
+            transition: transform 0.18s ease, background 0.18s ease,
+              border-color 0.18s ease, box-shadow 0.18s ease;
           }
 
           .heroGuestLink:hover {
-            transform: translateY(-3px);
-            border-color: rgba(255, 255, 255, 0.32);
-            background: linear-gradient(
-              135deg,
-              rgba(255, 255, 255, 0.22) 0%,
-              rgba(255, 255, 255, 0.1) 100%
-            );
-            box-shadow: 0 24px 48px rgba(15, 23, 42, 0.24);
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.28);
+            box-shadow: 0 20px 38px rgba(15, 23, 42, 0.22);
           }
 
-          .heroGuestGlow {
-            position: absolute;
-            top: -30px;
-            left: -20px;
-            width: 140px;
-            height: 140px;
-            border-radius: 999px;
-            background: radial-gradient(
-              circle,
-              rgba(255, 255, 255, 0.18) 0%,
-              rgba(255, 255, 255, 0) 72%
-            );
-            pointer-events: none;
-          }
-
-          .heroGuestLeft {
-            position: relative;
-            z-index: 1;
+          .heroGuestInfo {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             min-width: 0;
           }
 
-          .heroGuestIcon {
-            width: 46px;
-            height: 46px;
-            min-width: 46px;
-            border-radius: 16px;
+          .heroGuestMiniIcon {
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            border-radius: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(
-              135deg,
-              rgba(255, 255, 255, 0.2) 0%,
-              rgba(255, 255, 255, 0.08) 100%
-            );
+            background: rgba(255, 255, 255, 0.14);
             border: 1px solid rgba(255, 255, 255, 0.14);
             color: #ffffff;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 900;
             line-height: 1;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
           }
 
           .heroGuestText {
@@ -605,39 +550,28 @@ export default function Home() {
             min-width: 0;
           }
 
-          .heroGuestEyebrow {
-            font-size: 11px;
+          .heroGuestLabel {
+            font-size: 10px;
             line-height: 1.2;
             font-weight: 800;
-            letter-spacing: 0.11em;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.68);
-            margin-bottom: 5px;
+            color: rgba(255, 255, 255, 0.66);
+            margin-bottom: 4px;
           }
 
           .heroGuestTitle {
-            font-size: 21px;
-            line-height: 1.08;
+            font-size: 26px;
+            line-height: 1.05;
             font-weight: 900;
-            color: rgba(255, 255, 255, 0.99);
+            color: rgba(255, 255, 255, 0.98);
             letter-spacing: -0.02em;
           }
 
-          .heroGuestSub {
-            margin-top: 5px;
-            font-size: 13px;
-            line-height: 1.4;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.8);
-            max-width: 350px;
-          }
-
           .heroGuestRight {
-            position: relative;
-            z-index: 1;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             flex-shrink: 0;
           }
 
@@ -645,8 +579,8 @@ export default function Home() {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 46px;
-            height: 30px;
+            min-width: 42px;
+            height: 28px;
             padding: 0 10px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.96);
@@ -659,16 +593,15 @@ export default function Home() {
           }
 
           .heroGuestArrow {
-            width: 36px;
-            height: 36px;
+            width: 30px;
+            height: 30px;
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.12);
             color: rgba(255, 255, 255, 0.98);
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 900;
             line-height: 1;
           }
@@ -682,40 +615,6 @@ export default function Home() {
 
           .heroActions {
             margin-top: 0;
-          }
-
-          .heroMetaActions {
-            margin-top: 14px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-          }
-
-          .heroMetaButton {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 44px;
-            padding: "0 16px";
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            color: rgba(255, 255, 255, 0.94);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 800;
-            letter-spacing: -0.01em;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transition: transform 0.18s ease, background 0.18s ease,
-              border-color 0.18s ease, box-shadow 0.18s ease;
-          }
-
-          .heroMetaButton:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.14);
-            border-color: rgba(255, 255, 255, 0.28);
-            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
           }
 
           .heroActions :global(a:hover),
@@ -1018,55 +917,35 @@ export default function Home() {
 
             .heroGuestLinkWrap {
               margin-top: 18px;
-              margin-bottom: 18px;
+              margin-bottom: 16px;
             }
 
             .heroGuestLink {
               max-width: none;
-              padding: 14px;
-              gap: 12px;
-              border-radius: 20px;
+              width: 100%;
+              min-height: 58px;
+              padding: 10px 12px 10px 10px;
+              border-radius: 16px;
             }
 
-            .heroGuestLeft {
-              gap: 12px;
-              align-items: flex-start;
+            .heroGuestMiniIcon {
+              width: 38px;
+              height: 38px;
+              min-width: 38px;
             }
 
-            .heroGuestIcon {
-              width: 42px;
-              height: 42px;
-              min-width: 42px;
-              border-radius: 14px;
+            .heroGuestLabel {
+              font-size: 9px;
             }
 
             .heroGuestTitle {
-              font-size: 17px;
-            }
-
-            .heroGuestSub {
-              font-size: 12px;
-              max-width: none;
-            }
-
-            .heroGuestRight {
-              gap: 8px;
+              font-size: 18px;
             }
 
             .heroGuestArrow {
-              width: 32px;
-              height: 32px;
-              font-size: 16px;
-            }
-
-            .heroMetaActions {
-              margin-top: 12px;
-            }
-
-            .heroMetaButton {
-              width: 100%;
-              justify-content: center;
-              padding: 0 16px;
+              width: 28px;
+              height: 28px;
+              font-size: 15px;
             }
           }
         `}</style>
