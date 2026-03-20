@@ -202,6 +202,7 @@ export default function Home() {
 
                 <div className="heroGuestLinkWrap">
                   <Link href="/guest" className="heroGuestLink">
+                    <span className="heroGuestGlow" aria-hidden="true" />
                     <span className="heroGuestLeft">
                       <span className="heroGuestIcon" aria-hidden="true">
                         ✦
@@ -209,13 +210,14 @@ export default function Home() {
 
                       <span className="heroGuestText">
                         <span className="heroGuestEyebrow">
-                          International access
+                          International guest access
                         </span>
                         <span className="heroGuestTitle">
                           For guest speakers
                         </span>
                         <span className="heroGuestSub">
-                          Information and entry point for international guests
+                          Entry point, information and coordination for invited
+                          international guests
                         </span>
                       </span>
                     </span>
@@ -237,9 +239,12 @@ export default function Home() {
                     Ukázková hodina
                   </SecondaryButton>
                   <TertiaryButton href="/demo">Chci DEMO</TertiaryButton>
-                  <LightButton href="/aktualni-pozvanky">
+                </div>
+
+                <div className="heroMetaActions">
+                  <Link href="/aktualni-pozvanky" className="heroMetaButton">
                     Aktuální pozvánky
-                  </LightButton>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -508,45 +513,65 @@ export default function Home() {
           }
 
           .heroGuestLinkWrap {
-            margin-top: 24px;
+            margin-top: 26px;
             margin-bottom: 22px;
           }
 
           .heroGuestLink {
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 18px;
             width: 100%;
-            max-width: 520px;
-            padding: 14px 16px;
-            border-radius: 22px;
+            max-width: 560px;
+            padding: 16px 18px;
+            border-radius: 24px;
             background: linear-gradient(
               135deg,
-              rgba(255, 255, 255, 0.18) 0%,
-              rgba(255, 255, 255, 0.09) 100%
+              rgba(255, 255, 255, 0.16) 0%,
+              rgba(255, 255, 255, 0.08) 100%
             );
-            border: 1px solid rgba(255, 255, 255, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: #ffffff;
             text-decoration: none;
-            backdrop-filter: blur(14px);
-            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
-            transition: transform 0.18s ease, background 0.18s ease,
-              border-color 0.18s ease, box-shadow 0.18s ease;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+            overflow: hidden;
+            transition: transform 0.22s ease, box-shadow 0.22s ease,
+              border-color 0.22s ease, background 0.22s ease;
           }
 
           .heroGuestLink:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.32);
             background: linear-gradient(
               135deg,
-              rgba(255, 255, 255, 0.24) 0%,
-              rgba(255, 255, 255, 0.12) 100%
+              rgba(255, 255, 255, 0.22) 0%,
+              rgba(255, 255, 255, 0.1) 100%
             );
-            border-color: rgba(255, 255, 255, 0.34);
-            box-shadow: 0 22px 42px rgba(15, 23, 42, 0.24);
+            box-shadow: 0 24px 48px rgba(15, 23, 42, 0.24);
+          }
+
+          .heroGuestGlow {
+            position: absolute;
+            top: -30px;
+            left: -20px;
+            width: 140px;
+            height: 140px;
+            border-radius: 999px;
+            background: radial-gradient(
+              circle,
+              rgba(255, 255, 255, 0.18) 0%,
+              rgba(255, 255, 255, 0) 72%
+            );
+            pointer-events: none;
           }
 
           .heroGuestLeft {
+            position: relative;
+            z-index: 1;
             display: flex;
             align-items: center;
             gap: 14px;
@@ -554,14 +579,19 @@ export default function Home() {
           }
 
           .heroGuestIcon {
-            width: 44px;
-            height: 44px;
-            min-width: 44px;
-            border-radius: 14px;
+            width: 46px;
+            height: 46px;
+            min-width: 46px;
+            border-radius: 16px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.16);
+            background: linear-gradient(
+              135deg,
+              rgba(255, 255, 255, 0.2) 0%,
+              rgba(255, 255, 255, 0.08) 100%
+            );
+            border: 1px solid rgba(255, 255, 255, 0.14);
             color: #ffffff;
             font-size: 18px;
             font-weight: 900;
@@ -579,29 +609,32 @@ export default function Home() {
             font-size: 11px;
             line-height: 1.2;
             font-weight: 800;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.11em;
             text-transform: uppercase;
             color: rgba(255, 255, 255, 0.68);
-            margin-bottom: 4px;
+            margin-bottom: 5px;
           }
 
           .heroGuestTitle {
-            font-size: 18px;
-            line-height: 1.15;
+            font-size: 21px;
+            line-height: 1.08;
             font-weight: 900;
-            color: rgba(255, 255, 255, 0.98);
-            letter-spacing: -0.01em;
+            color: rgba(255, 255, 255, 0.99);
+            letter-spacing: -0.02em;
           }
 
           .heroGuestSub {
-            margin-top: 4px;
+            margin-top: 5px;
             font-size: 13px;
-            line-height: 1.35;
+            line-height: 1.4;
             font-weight: 700;
-            color: rgba(255, 255, 255, 0.78);
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 350px;
           }
 
           .heroGuestRight {
+            position: relative;
+            z-index: 1;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -612,7 +645,7 @@ export default function Home() {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 44px;
+            min-width: 46px;
             height: 30px;
             padding: 0 10px;
             border-radius: 999px;
@@ -626,14 +659,15 @@ export default function Home() {
           }
 
           .heroGuestArrow {
-            width: 34px;
-            height: 34px;
+            width: 36px;
+            height: 36px;
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             background: rgba(255, 255, 255, 0.12);
-            color: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.98);
             font-size: 18px;
             font-weight: 900;
             line-height: 1;
@@ -648,6 +682,40 @@ export default function Home() {
 
           .heroActions {
             margin-top: 0;
+          }
+
+          .heroMetaActions {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+          }
+
+          .heroMetaButton {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: "0 16px";
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.94);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: transform 0.18s ease, background 0.18s ease,
+              border-color 0.18s ease, box-shadow 0.18s ease;
+          }
+
+          .heroMetaButton:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.28);
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
           }
 
           .heroActions :global(a:hover),
@@ -957,25 +1025,28 @@ export default function Home() {
               max-width: none;
               padding: 14px;
               gap: 12px;
+              border-radius: 20px;
             }
 
             .heroGuestLeft {
               gap: 12px;
+              align-items: flex-start;
             }
 
             .heroGuestIcon {
-              width: 40px;
-              height: 40px;
-              min-width: 40px;
-              border-radius: 12px;
+              width: 42px;
+              height: 42px;
+              min-width: 42px;
+              border-radius: 14px;
             }
 
             .heroGuestTitle {
-              font-size: 16px;
+              font-size: 17px;
             }
 
             .heroGuestSub {
               font-size: 12px;
+              max-width: none;
             }
 
             .heroGuestRight {
@@ -983,9 +1054,19 @@ export default function Home() {
             }
 
             .heroGuestArrow {
-              width: 30px;
-              height: 30px;
+              width: 32px;
+              height: 32px;
               font-size: 16px;
+            }
+
+            .heroMetaActions {
+              margin-top: 12px;
+            }
+
+            .heroMetaButton {
+              width: 100%;
+              justify-content: center;
+              padding: 0 16px;
             }
           }
         `}</style>
