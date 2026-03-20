@@ -65,7 +65,7 @@ export default function ProbehlaVysilaniPage() {
                     letterSpacing: "-0.04em",
                   }}
                 >
-                  Proběhlá vysílání
+                  Naši hosté a témata
                 </h1>
 
                 <p
@@ -77,8 +77,8 @@ export default function ProbehlaVysilaniPage() {
                     maxWidth: 620,
                   }}
                 >
-                  Podívejte se na výběr plakátů z vysílání, která už v programu
-                  ARCHIMEDES Live proběhla. Stránka slouží jako veřejná ukázka
+                  Podívejte se na výběr z vysílání, která už v programu
+                  ARCHIMEDES Live proběhla. Přehled vybraných
                   témat, hostů a šíře programu pro školy, obce i komunitu.
                 </p>
 
