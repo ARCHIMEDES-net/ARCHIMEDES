@@ -49,8 +49,9 @@ export default function App({ Component, pageProps }) {
         <meta name="description" content={description} />
         <meta name="theme-color" content="#111827" />
 
-        <link rel="icon" href="/favicon.png" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" href="/logo-archimedes-live-mark.png" />
+        <link rel="shortcut icon" href="/logo-archimedes-live-mark.png" />
+        <link rel="apple-touch-icon" href="/logo-archimedes-live-mark-512.png" />
 
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="ARCHIMEDES Live" />
