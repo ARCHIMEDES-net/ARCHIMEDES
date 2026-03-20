@@ -45,8 +45,11 @@ export default function Home() {
                 </h1>
 
                 <p className="heroLead">
-                  Do výuky přichází reálný svět – živě a interaktivně. S lidmi, kteří ho tvoří.
-            </p>
+                  Do výuky přichází reálný svět – živě a interaktivně.
+                  <span className="heroLeadBreak">
+                    S lidmi, kteří ho opravdu tvoří.
+                  </span>
+                </p>
 
                 <div className="heroGuestLinkWrap">
                   <Link href="/guest" className="heroGuestLink">
@@ -348,9 +351,14 @@ export default function Home() {
           .heroLead {
             margin: 22px 0 0;
             font-size: 21px;
-            line-height: 1.58;
+            line-height: 1.5;
             color: rgba(255, 255, 255, 0.92);
-            max-width: 590px;
+            max-width: 650px;
+          }
+
+          .heroLeadBreak {
+            display: block;
+            margin-top: 2px;
           }
 
           .heroGuestLinkWrap {
@@ -757,6 +765,10 @@ export default function Home() {
             .trustPanel p,
             .ctaBox p {
               font-size: 16px;
+            }
+
+            .heroLeadBreak {
+              margin-top: 4px;
             }
 
             .heroActions,
