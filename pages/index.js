@@ -2,34 +2,14 @@ import Head from "next/head";
 import Link from "next/link";
 import Footer from "../components/Footer";
 
-const heroImg = "/hero-vyuka.jpg";
+const heroImg = "/jak-funguje-trida.jpg";
 const stepOnlineImg = "/jak-funguje-online.jpg";
 const stepClassImg = "/ella.jpg";
 const stepBoardImg = "/jak-funguje-tabule.jpg";
 
 function PrimaryButton({ href, children }) {
   return (
-    <Link
-      href={href}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 22px",
-        borderRadius: 14,
-        background: "#ffffff",
-        color: "#0f172a",
-        textDecoration: "none",
-        fontWeight: 800,
-        fontSize: 16,
-        lineHeight: 1.2,
-        boxShadow: "0 10px 24px rgba(15,23,42,0.16)",
-        whiteSpace: "nowrap",
-        transition:
-          "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
-      }}
-    >
+    <Link href={href} className="btn btnPrimary">
       <span>{children}</span>
     </Link>
   );
@@ -37,59 +17,7 @@ function PrimaryButton({ href, children }) {
 
 function SecondaryButton({ href, children }) {
   return (
-    <Link
-      href={href}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 22px",
-        borderRadius: 14,
-        background: "rgba(255,255,255,0.94)",
-        color: "#0f172a",
-        textDecoration: "none",
-        fontWeight: 800,
-        fontSize: 16,
-        lineHeight: 1.2,
-        border: "1px solid rgba(255,255,255,0.68)",
-        boxShadow: "0 10px 24px rgba(15,23,42,0.12)",
-        backdropFilter: "blur(6px)",
-        whiteSpace: "nowrap",
-        transition:
-          "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
-      }}
-    >
-      <span>{children}</span>
-    </Link>
-  );
-}
-
-function TertiaryButton({ href, children }) {
-  return (
-    <Link
-      href={href}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 22px",
-        borderRadius: 14,
-        background: "rgba(255,255,255,0.94)",
-        color: "#0f172a",
-        textDecoration: "none",
-        fontWeight: 800,
-        fontSize: 16,
-        lineHeight: 1.2,
-        border: "1px solid rgba(255,255,255,0.68)",
-        boxShadow: "0 10px 24px rgba(15,23,42,0.12)",
-        backdropFilter: "blur(6px)",
-        whiteSpace: "nowrap",
-        transition:
-          "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
-      }}
-    >
+    <Link href={href} className="btn btnSecondary">
       <span>{children}</span>
     </Link>
   );
@@ -97,29 +25,7 @@ function TertiaryButton({ href, children }) {
 
 function GhostButton({ href, children }) {
   return (
-    <Link
-      href={href}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 20px",
-        borderRadius: 14,
-        background: "rgba(255,255,255,0.08)",
-        color: "#ffffff",
-        textDecoration: "none",
-        fontWeight: 800,
-        fontSize: 15,
-        lineHeight: 1.2,
-        border: "1px solid rgba(255,255,255,0.18)",
-        backdropFilter: "blur(10px)",
-        WebkitBackdropFilter: "blur(10px)",
-        whiteSpace: "nowrap",
-        transition:
-          "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease",
-      }}
-    >
+    <Link href={href} className="btn btnGhost">
       <span>{children}</span>
     </Link>
   );
@@ -127,27 +33,7 @@ function GhostButton({ href, children }) {
 
 function LightButton({ href, children }) {
   return (
-    <Link
-      href={href}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 22px",
-        borderRadius: 14,
-        background: "#ffffff",
-        color: "#0f172a",
-        textDecoration: "none",
-        fontWeight: 800,
-        fontSize: 16,
-        lineHeight: 1.2,
-        boxShadow: "0 10px 24px rgba(15,23,42,0.16)",
-        whiteSpace: "nowrap",
-        transition:
-          "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
-      }}
-    >
+    <Link href={href} className="btn btnLight">
       <span>{children}</span>
     </Link>
   );
@@ -177,16 +63,15 @@ export default function Home() {
                 <div className="eyebrow">ARCHIMEDES Live pro školy a obce</div>
 
                 <h1>
-                  Přinášíme
+                  Hodina, na kterou
                   <br />
-                  reálný svět
-                  <br />
-                  do výuky
+                  děti nezapomenou
                 </h1>
 
                 <p className="heroLead">
-                  Živé vstupy s odborníky, reálná témata a přímé propojení školy
-                  s praxí. Program, který dává smysl škole i obci.
+                  Živé vstupy s inspirativními lidmi, reálná témata a přímé
+                  propojení školy s praxí. Program, který dává smysl škole i
+                  obci.
                 </p>
 
                 <div className="heroGuestLinkWrap">
@@ -215,13 +100,13 @@ export default function Home() {
                 </div>
 
                 <div className="heroActions">
-                  <PrimaryButton href="/start">
-                    Chci balíček START
-                  </PrimaryButton>
-                  <SecondaryButton href="/program#ukazky-vysilani">
+                  <PrimaryButton href="/program#ukazky-vysilani">
                     Ukázková hodina
+                  </PrimaryButton>
+                  <SecondaryButton href="/demo">Chci DEMO</SecondaryButton>
+                  <SecondaryButton href="/start">
+                    Balíček START
                   </SecondaryButton>
-                  <TertiaryButton href="/demo">Chci DEMO</TertiaryButton>
                   <GhostButton href="/aktualni-pozvanky">
                     Aktuální pozvánky
                   </GhostButton>
@@ -373,7 +258,7 @@ export default function Home() {
 
               <div className="ctaSide">
                 <div className="ctaActions">
-                  <LightButton href="/start">Chci balíček START</LightButton>
+                  <LightButton href="/start">Balíček START</LightButton>
                   <LightButton href="/demo">Chci DEMO</LightButton>
                 </div>
                 <div className="ctaNote">
@@ -396,6 +281,73 @@ export default function Home() {
             max-width: 1240px;
             margin: 0 auto;
             padding: 0 20px;
+          }
+
+          .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+            padding: 0 20px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 15px;
+            line-height: 1.2;
+            white-space: nowrap;
+            transition: transform 0.18s ease, box-shadow 0.18s ease,
+              background 0.18s ease, border-color 0.18s ease,
+              color 0.18s ease;
+          }
+
+          .btnPrimary {
+            background: #ffffff;
+            color: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.82);
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.16);
+          }
+
+          .btnSecondary {
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+          }
+
+          .btnGhost {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+          }
+
+          .btnLight {
+            background: #ffffff;
+            color: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+          }
+
+          .btn:hover {
+            transform: translateY(-2px);
+          }
+
+          .btnPrimary:hover,
+          .btnLight:hover {
+            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
+            background: #ffffff;
+          }
+
+          .btnSecondary:hover {
+            background: rgba(255, 255, 255, 0.24);
+            border-color: rgba(255, 255, 255, 0.34);
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.14);
+          }
+
+          .btnGhost:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.26);
           }
 
           .hero {
@@ -424,10 +376,10 @@ export default function Home() {
             inset: 0;
             background: linear-gradient(
               90deg,
-              rgba(8, 15, 34, 0.64) 0%,
-              rgba(8, 15, 34, 0.42) 28%,
-              rgba(8, 15, 34, 0.16) 55%,
-              rgba(8, 15, 34, 0.02) 100%
+              rgba(8, 15, 34, 0.72) 0%,
+              rgba(8, 15, 34, 0.5) 30%,
+              rgba(8, 15, 34, 0.18) 58%,
+              rgba(8, 15, 34, 0.04) 100%
             );
           }
 
@@ -440,8 +392,8 @@ export default function Home() {
           }
 
           .heroContent {
-            max-width: 700px;
-            padding: 118px 0 82px;
+            max-width: 720px;
+            padding: 116px 0 84px;
             color: white;
           }
 
@@ -474,22 +426,22 @@ export default function Home() {
 
           h1 {
             margin: 0;
-            font-size: 58px;
-            line-height: 0.95;
-            letter-spacing: -0.05em;
+            font-size: 62px;
+            line-height: 0.96;
+            letter-spacing: -0.055em;
             font-weight: 900;
           }
 
           .heroLead {
-            margin: 20px 0 0;
+            margin: 22px 0 0;
             font-size: 21px;
             line-height: 1.58;
             color: rgba(255, 255, 255, 0.92);
-            max-width: 560px;
+            max-width: 590px;
           }
 
           .heroGuestLinkWrap {
-            margin-top: 24px;
+            margin-top: 26px;
             margin-bottom: 18px;
           }
 
@@ -499,26 +451,26 @@ export default function Home() {
             justify-content: space-between;
             gap: 16px;
             width: 100%;
-            max-width: 460px;
-            min-height: 64px;
+            max-width: 430px;
+            min-height: 62px;
             padding: 10px 12px 10px 10px;
             border-radius: 18px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.16);
             color: #ffffff;
             text-decoration: none;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
             transition: transform 0.18s ease, background 0.18s ease,
               border-color 0.18s ease, box-shadow 0.18s ease;
           }
 
           .heroGuestLink:hover {
             transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.16);
-            border-color: rgba(255, 255, 255, 0.28);
-            box-shadow: 0 20px 38px rgba(15, 23, 42, 0.22);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.24);
+            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18);
           }
 
           .heroGuestInfo {
@@ -529,17 +481,17 @@ export default function Home() {
           }
 
           .heroGuestMiniIcon {
-            width: 42px;
-            height: 42px;
-            min-width: 42px;
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
             border-radius: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.14);
-            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             color: #ffffff;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 900;
             line-height: 1;
           }
@@ -561,7 +513,7 @@ export default function Home() {
           }
 
           .heroGuestTitle {
-            font-size: 26px;
+            font-size: 24px;
             line-height: 1.05;
             font-weight: 900;
             color: rgba(255, 255, 255, 0.98);
@@ -599,7 +551,7 @@ export default function Home() {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.1);
             color: rgba(255, 255, 255, 0.98);
             font-size: 16px;
             font-weight: 900;
@@ -609,23 +561,12 @@ export default function Home() {
           .heroActions,
           .ctaActions {
             display: flex;
-            gap: 14px;
+            gap: 12px;
             flex-wrap: wrap;
           }
 
           .heroActions {
-            margin-top: 0;
-          }
-
-          .heroActions :global(a:hover),
-          .ctaActions :global(a:hover) {
-            transform: translateY(-2px);
-            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.2);
-          }
-
-          .heroActions :global(a:active),
-          .ctaActions :global(a:active) {
-            transform: translateY(0);
+            margin-top: 2px;
           }
 
           .section {
@@ -882,9 +823,9 @@ export default function Home() {
             .heroOverlay {
               background: linear-gradient(
                 180deg,
-                rgba(8, 15, 34, 0.68) 0%,
-                rgba(8, 15, 34, 0.42) 45%,
-                rgba(8, 15, 34, 0.28) 100%
+                rgba(8, 15, 34, 0.72) 0%,
+                rgba(8, 15, 34, 0.46) 45%,
+                rgba(8, 15, 34, 0.3) 100%
               );
             }
 
