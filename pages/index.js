@@ -99,12 +99,9 @@ export default function Home() {
           <div className="container">
             <div className="sectionIntro center">
               <div className="eyebrow dark">Jak to funguje</div>
-              <h2>Jednoduchý model, který škola zvládne hned</h2>
+              <h2>Jednoduché zapojení do běžné výuky</h2>
               <p>
-                Nejde o další složitý systém. Jde o připravený program, který se
-                snadno zapojí do běžné výuky a přináší do školy skutečné lidi,
-                skutečná témata a skutečné souvislosti.
-              </p>
+                Připravené online vstupy s hosty z praxe, které učitel snadno zařadí do hodiny. Žáci sledují živé vysílání, zapojují se do diskuze a pracují s tématy, která souvisí s výukou i životem kolem nich.              </p>
             </div>
 
             <div className="stepsGrid">
