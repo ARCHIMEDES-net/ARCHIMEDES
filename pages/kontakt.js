@@ -611,7 +611,7 @@ export default function KontaktPage() {
                     color: "#fff",
                   }}
                 >
-                  Chcete si domluvit realizaci programu u Vás?
+                  Chcete učebnu ARCHIMEDES "na klíč"?
                 </h3>
 
                 <p
