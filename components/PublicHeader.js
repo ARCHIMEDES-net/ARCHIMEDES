@@ -23,7 +23,7 @@ export default function PublicHeader({ active = "" }) {
   const asPath = stripQuery(router?.asPath || "");
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  if (pathname.startsWith("/portal") || pathname.startsWith("/login")) {
+  if (pathname.startsWith("/portal")) {
     return null;
   }
 
@@ -32,7 +32,14 @@ export default function PublicHeader({ active = "" }) {
   }, [asPath]);
 
   const isActive = (href) => {
-    if (active && active === href) return true;
+    if (active) {
+      if (href === "/") return active === "home";
+      if (href === "/program") return active === "program";
+      if (href === "/cenik") return active === "cenik";
+      if (href === "/poptavka") return active === "poptavka";
+      if (href === "/kontakt") return active === "kontakt";
+    }
+
     if (href === "/") return asPath === "/";
     return asPath === href || pathname === href;
   };
@@ -82,7 +89,10 @@ export default function PublicHeader({ active = "" }) {
           />
         </Link>
 
-        <nav className="desktop-nav" style={{ alignItems: "center", gap: "10px" }}>
+        <nav
+          className="desktop-nav"
+          style={{ alignItems: "center", gap: "10px" }}
+        >
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
