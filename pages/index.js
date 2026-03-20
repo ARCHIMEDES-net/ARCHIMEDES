@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 
 const heroImg = "/hero-vyuka.jpg";
 const stepOnlineImg = "/jak-funguje-online.jpg";
-const stepClassImg = "/jak-funguje-trida.jpg";
+const stepClassImg = "/ella.jpg";
 const stepBoardImg = "/jak-funguje-tabule.jpg";
 
 function PrimaryButton({ href, children }) {
