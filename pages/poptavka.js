@@ -341,7 +341,7 @@ export default function PoptavkaPage() {
             e.currentTarget.style.borderColor = "#cbd5e1";
           }}
         >
-          Kontaktujte mne
+          Kontaktujte nás
         </button>
       </div>
 
