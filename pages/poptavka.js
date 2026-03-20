@@ -564,7 +564,7 @@ export default function PoptavkaPage() {
                 letterSpacing: "-0.02em",
               }}
             >
-              Navštivte vzorovou učebnu ARCHIMEDES na BVV
+              Navštivte vzorovou učebnu ARCHIMEDES v areálu BVV
             </h2>
 
             <p
