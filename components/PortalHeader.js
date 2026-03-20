@@ -37,7 +37,7 @@ export default function PortalHeader({ title = "" }) {
           return;
         }
 
-        const { data: membership, error: membershipError } = await supabase
+        const { data: membership } = await supabase
           .from("organization_members")
           .select("role_in_org, status")
           .eq("user_id", user.id)
@@ -46,13 +46,9 @@ export default function PortalHeader({ title = "" }) {
 
         if (!alive) return;
 
-        if (!membershipError && membership?.role_in_org === "organization_admin") {
-          setIsOrgAdmin(true);
-        } else {
-          setIsOrgAdmin(false);
-        }
+        setIsOrgAdmin(membership?.role_in_org === "organization_admin");
 
-        const { data: platformAdminRow, error: platformAdminError } = await supabase
+        const { data: platformAdminRow } = await supabase
           .from("platform_admins")
           .select("user_id")
           .eq("user_id", user.id)
@@ -60,12 +56,8 @@ export default function PortalHeader({ title = "" }) {
 
         if (!alive) return;
 
-        if (!platformAdminError && platformAdminRow?.user_id) {
-          setIsPlatformAdmin(true);
-        } else {
-          setIsPlatformAdmin(false);
-        }
-      } catch (_e) {
+        setIsPlatformAdmin(!!platformAdminRow?.user_id);
+      } catch {
         if (!alive) return;
         setIsOrgAdmin(false);
         setIsPlatformAdmin(false);
@@ -85,7 +77,6 @@ export default function PortalHeader({ title = "" }) {
     function handleResize() {
       setIsMobile(window.innerWidth <= 760);
     }
-
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -131,10 +122,6 @@ export default function PortalHeader({ title = "" }) {
     fontWeight: 800,
     fontSize: 13,
     minHeight: 40,
-    whiteSpace: "nowrap",
-    color: "#0f172a",
-    boxSizing: "border-box",
-    transition: "all 0.18s ease",
   };
 
   const isActive = (key) => {
@@ -143,30 +130,23 @@ export default function PortalHeader({ title = "" }) {
     if (key === "archiv") return path.startsWith("/portal/archiv");
     if (key === "profil") return path.startsWith("/portal/muj-profil");
     if (key === "uzivatele") return path.startsWith("/portal/uzivatele");
-    if (key === "sprava-vysilani") {
-      return path.startsWith("/portal/admin-udalosti") || path.startsWith("/portal/admin/udalosti");
-    }
-    if (key === "admin") {
-      return path.startsWith("/portal/admin") && !path.startsWith("/portal/admin-udalosti");
-    }
+    if (key === "sprava-vysilani") return path.startsWith("/portal/admin-udalosti");
+    if (key === "admin") return path.startsWith("/portal/admin");
     return false;
   };
 
   const navItem = (key) => (isActive(key) ? activeStyle : itemBase);
 
   async function onLogout() {
-    try {
-      await supabase.auth.signOut();
-    } finally {
-      router.push("/login");
-    }
+    await supabase.auth.signOut();
+    router.push("/login");
   }
 
   return (
     <header
       style={{
         background: "rgba(255,255,255,0.96)",
-        backdropFilter: "saturate(140%) blur(10px)",
+        backdropFilter: "blur(10px)",
         borderBottom: "1px solid rgba(15,23,42,0.08)",
         position: "sticky",
         top: 0,
@@ -177,129 +157,50 @@ export default function PortalHeader({ title = "" }) {
         style={{
           maxWidth: 1160,
           margin: "0 auto",
-          padding: isMobile ? "10px 16px" : "12px 18px",
+          padding: "12px 18px",
           display: "flex",
-          flexDirection: isMobile ? "column" : "row",
-          alignItems: isMobile ? "flex-start" : "center",
+          alignItems: "center",
           justifyContent: "space-between",
-          gap: isMobile ? 12 : 18,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            minWidth: 0,
-            width: isMobile ? "100%" : "auto",
-          }}
-        >
-          <Link
-            href="/portal"
+        <Link href="/portal" style={{ display: "flex", alignItems: "center" }}>
+          <img
+            src={LOGO_SRC}
+            alt="ARCHIMEDES Live"
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 12,
-              textDecoration: "none",
-              flexShrink: 0,
-              minWidth: 0,
+              height: isMobile ? 30 : 34,
+              display: "block",
+              marginTop: -3,
             }}
-          >
-            <img
-              src={LOGO_SRC}
-              alt="ARCHIMEDES Live"
-              style={{
-                display: "block",
-                height: isMobile ? 30 : 34,
-                width: "auto",
-                maxWidth: "100%",
-                objectFit: "contain",
-                flexShrink: 0,
-                marginTop: -1,
-              }}
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-            />
+          />
+        </Link>
 
-            {!isMobile && title ? (
-              <span
-                style={{
-                  fontWeight: 900,
-                  color: "#0f172a",
-                  lineHeight: 1.1,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                {title}
-              </span>
-            ) : null}
-          </Link>
-        </div>
+        <nav style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <Link href="/portal" style={navItem("portal")}>Portál</Link>
+          <Link href="/portal/kalendar" style={navItem("program")}>Program</Link>
+          <Link href="/portal/archiv" style={navItem("archiv")}>Archiv</Link>
 
-        {isMobile && title ? (
-          <div
-            style={{
-              width: "100%",
-              fontWeight: 900,
-              color: "#0f172a",
-              lineHeight: 1.15,
-              marginTop: -2,
-            }}
-          >
-            {title}
-          </div>
-        ) : null}
-
-        <nav
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 10,
-            alignItems: "center",
-            justifyContent: isMobile ? "flex-start" : "flex-end",
-            width: isMobile ? "100%" : "auto",
-            marginLeft: isMobile ? 0 : "auto",
-          }}
-        >
-          <Link href="/portal" style={navItem("portal")}>
-            Portál
-          </Link>
-
-          <Link href="/portal/kalendar" style={navItem("program")}>
-            Program
-          </Link>
-
-          <Link href="/portal/archiv" style={navItem("archiv")}>
-            Archiv
-          </Link>
-
-          {!loadingRole && isPlatformAdmin ? (
+          {!loadingRole && isPlatformAdmin && (
             <Link href="/portal/admin-udalosti" style={navItem("sprava-vysilani")}>
               Správa vysílání
             </Link>
-          ) : null}
+          )}
 
-          {!loadingRole && isOrgAdmin ? (
+          {!loadingRole && isOrgAdmin && (
             <Link href="/portal/uzivatele" style={navItem("uzivatele")}>
               Uživatelé
             </Link>
-          ) : null}
+          )}
 
-          <Link href="/portal/muj-profil" style={navItem("profil")}>
-            Můj profil
-          </Link>
+          <Link href="/portal/muj-profil" style={navItem("profil")}>Můj profil</Link>
 
-          {!loadingRole && isPlatformAdmin ? (
-            <Link href="/portal/admin" style={navItem("admin")}>
-              Admin
-            </Link>
-          ) : null}
+          {!loadingRole && isPlatformAdmin && (
+            <Link href="/portal/admin" style={navItem("admin")}>Admin</Link>
+          )}
 
-          <Link href="/" style={publicWebStyle}>
-            Veřejný web
-          </Link>
+          <Link href="/" style={publicWebStyle}>Veřejný web</Link>
 
-          <button onClick={onLogout} style={logoutButtonStyle} type="button">
+          <button onClick={onLogout} style={logoutButtonStyle}>
             Odhlásit
           </button>
         </nav>
