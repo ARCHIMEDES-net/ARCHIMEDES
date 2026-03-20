@@ -7,33 +7,9 @@ const stepOnlineImg = "/jak-funguje-online.jpg";
 const stepClassImg = "/ella.jpg";
 const stepBoardImg = "/jak-funguje-tabule.jpg";
 
-function PrimaryButton({ href, children }) {
+function ButtonLink({ href, children, variant = "primary" }) {
   return (
-    <Link href={href} className="btn btnPrimary">
-      <span>{children}</span>
-    </Link>
-  );
-}
-
-function SecondaryButton({ href, children }) {
-  return (
-    <Link href={href} className="btn btnSecondary">
-      <span>{children}</span>
-    </Link>
-  );
-}
-
-function GhostButton({ href, children }) {
-  return (
-    <Link href={href} className="btn btnGhost">
-      <span>{children}</span>
-    </Link>
-  );
-}
-
-function LightButton({ href, children }) {
-  return (
-    <Link href={href} className="btn btnLight">
+    <Link href={href} className={`al-btn al-btn-${variant}`}>
       <span>{children}</span>
     </Link>
   );
@@ -100,16 +76,18 @@ export default function Home() {
                 </div>
 
                 <div className="heroActions">
-                  <PrimaryButton href="/program#ukazky-vysilani">
+                  <ButtonLink href="/program#ukazky-vysilani" variant="primary">
                     Ukázková hodina
-                  </PrimaryButton>
-                  <SecondaryButton href="/demo">Chci DEMO</SecondaryButton>
-                  <SecondaryButton href="/start">
+                  </ButtonLink>
+                  <ButtonLink href="/demo" variant="secondary">
+                    Chci DEMO
+                  </ButtonLink>
+                  <ButtonLink href="/start" variant="secondary">
                     Balíček START
-                  </SecondaryButton>
-                  <GhostButton href="/aktualni-pozvanky">
+                  </ButtonLink>
+                  <ButtonLink href="/aktualni-pozvanky" variant="ghost">
                     Aktuální pozvánky
-                  </GhostButton>
+                  </ButtonLink>
                 </div>
               </div>
             </div>
@@ -258,8 +236,12 @@ export default function Home() {
 
               <div className="ctaSide">
                 <div className="ctaActions">
-                  <LightButton href="/start">Balíček START</LightButton>
-                  <LightButton href="/demo">Chci DEMO</LightButton>
+                  <ButtonLink href="/start" variant="light">
+                    Balíček START
+                  </ButtonLink>
+                  <ButtonLink href="/demo" variant="light">
+                    Chci DEMO
+                  </ButtonLink>
                 </div>
                 <div className="ctaNote">
                   objednávka online • potvrzení e-mailem
@@ -281,73 +263,6 @@ export default function Home() {
             max-width: 1240px;
             margin: 0 auto;
             padding: 0 20px;
-          }
-
-          .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 50px;
-            padding: 0 20px;
-            border-radius: 999px;
-            text-decoration: none;
-            font-weight: 800;
-            font-size: 15px;
-            line-height: 1.2;
-            white-space: nowrap;
-            transition: transform 0.18s ease, box-shadow 0.18s ease,
-              background 0.18s ease, border-color 0.18s ease,
-              color 0.18s ease;
-          }
-
-          .btnPrimary {
-            background: #ffffff;
-            color: #0f172a;
-            border: 1px solid rgba(255, 255, 255, 0.82);
-            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.16);
-          }
-
-          .btnSecondary {
-            background: rgba(255, 255, 255, 0.16);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
-          }
-
-          .btnGhost {
-            background: transparent;
-            color: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-          }
-
-          .btnLight {
-            background: #ffffff;
-            color: #0f172a;
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
-          }
-
-          .btn:hover {
-            transform: translateY(-2px);
-          }
-
-          .btnPrimary:hover,
-          .btnLight:hover {
-            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
-            background: #ffffff;
-          }
-
-          .btnSecondary:hover {
-            background: rgba(255, 255, 255, 0.24);
-            border-color: rgba(255, 255, 255, 0.34);
-            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.14);
-          }
-
-          .btnGhost:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.26);
           }
 
           .hero {
@@ -377,8 +292,8 @@ export default function Home() {
             background: linear-gradient(
               90deg,
               rgba(8, 15, 34, 0.72) 0%,
-              rgba(8, 15, 34, 0.5) 30%,
-              rgba(8, 15, 34, 0.18) 58%,
+              rgba(8, 15, 34, 0.52) 28%,
+              rgba(8, 15, 34, 0.2) 56%,
               rgba(8, 15, 34, 0.04) 100%
             );
           }
@@ -742,7 +657,7 @@ export default function Home() {
           }
 
           .ctaBox {
-            background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+            background: linear-gradient(135deg, #071225 0%, #0a1730 100%);
             color: white;
             border-radius: 30px;
             padding: 36px 30px;
@@ -750,7 +665,7 @@ export default function Home() {
             grid-template-columns: minmax(0, 1fr) auto;
             gap: 24px;
             align-items: center;
-            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
           }
 
           .ctaBox h2 {
@@ -765,7 +680,7 @@ export default function Home() {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 10px;
+            gap: 12px;
           }
 
           .ctaNote {
@@ -851,8 +766,8 @@ export default function Home() {
               flex-direction: column;
             }
 
-            .heroActions > :global(a),
-            .ctaActions > :global(a) {
+            .heroActions :global(.al-btn),
+            .ctaActions :global(.al-btn) {
               width: 100%;
             }
 
@@ -888,6 +803,87 @@ export default function Home() {
               height: 28px;
               font-size: 15px;
             }
+          }
+        `}</style>
+
+        <style jsx global>{`
+          .al-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+            padding: 0 20px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 15px;
+            line-height: 1.2;
+            white-space: nowrap;
+            transition: transform 0.18s ease, box-shadow 0.18s ease,
+              background 0.18s ease, border-color 0.18s ease,
+              color 0.18s ease;
+          }
+
+          .al-btn span {
+            display: inline-block;
+          }
+
+          .al-btn-primary {
+            background: #ffffff;
+            color: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.88);
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.16);
+          }
+
+          .al-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
+            background: #ffffff;
+            color: #0f172a;
+          }
+
+          .al-btn-secondary {
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+          }
+
+          .al-btn-secondary:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.28);
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+          }
+
+          .al-btn-ghost {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+          }
+
+          .al-btn-ghost:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.24);
+          }
+
+          .al-btn-light {
+            background: #ffffff;
+            color: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.92);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+          }
+
+          .al-btn-light:hover {
+            transform: translateY(-2px);
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.18);
           }
         `}</style>
       </main>
