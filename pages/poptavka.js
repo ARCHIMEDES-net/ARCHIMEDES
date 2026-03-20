@@ -366,7 +366,7 @@ export default function PoptavkaPage() {
             letterSpacing: "-0.02em",
           }}
         >
-          Domluvme se
+          Rádi se s Vámi spojíme 
         </h2>
 
         <p
