@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-const LOGO_SRC = "/logo.jpg";
+const LOGO_SRC = "/logo-archimedes-live.png";
 
 function normalizePath(value = "") {
   return (value || "").split("?")[0].split("#")[0];
@@ -107,6 +107,7 @@ export default function PortalHeader({ title = "" }) {
     minHeight: 40,
     whiteSpace: "nowrap",
     boxSizing: "border-box",
+    transition: "all 0.18s ease",
   };
 
   const activeStyle = {
@@ -133,6 +134,7 @@ export default function PortalHeader({ title = "" }) {
     whiteSpace: "nowrap",
     color: "#0f172a",
     boxSizing: "border-box",
+    transition: "all 0.18s ease",
   };
 
   const isActive = (key) => {
@@ -163,8 +165,9 @@ export default function PortalHeader({ title = "" }) {
   return (
     <header
       style={{
-        background: "white",
-        borderBottom: "1px solid rgba(0,0,0,0.08)",
+        background: "rgba(255,255,255,0.96)",
+        backdropFilter: "saturate(140%) blur(10px)",
+        borderBottom: "1px solid rgba(15,23,42,0.08)",
         position: "sticky",
         top: 0,
         zIndex: 30,
@@ -172,14 +175,14 @@ export default function PortalHeader({ title = "" }) {
     >
       <div
         style={{
-          maxWidth: 1100,
+          maxWidth: 1160,
           margin: "0 auto",
-          padding: "10px 16px",
+          padding: isMobile ? "10px 16px" : "12px 18px",
           display: "flex",
           flexDirection: isMobile ? "column" : "row",
           alignItems: isMobile ? "flex-start" : "center",
           justifyContent: "space-between",
-          gap: isMobile ? 12 : 16,
+          gap: isMobile ? 12 : 18,
         }}
       >
         <div
@@ -195,7 +198,7 @@ export default function PortalHeader({ title = "" }) {
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 10,
+              gap: 12,
               textDecoration: "none",
               flexShrink: 0,
               minWidth: 0,
@@ -206,11 +209,12 @@ export default function PortalHeader({ title = "" }) {
               alt="ARCHIMEDES Live"
               style={{
                 display: "block",
-                height: "auto",
-                width: isMobile ? 150 : 170,
+                height: isMobile ? 30 : 34,
+                width: "auto",
                 maxWidth: "100%",
                 objectFit: "contain",
                 flexShrink: 0,
+                marginTop: -1,
               }}
               onError={(e) => {
                 e.currentTarget.style.display = "none";
@@ -223,6 +227,7 @@ export default function PortalHeader({ title = "" }) {
                   fontWeight: 900,
                   color: "#0f172a",
                   lineHeight: 1.1,
+                  letterSpacing: "-0.01em",
                 }}
               >
                 {title}
