@@ -1,4 +1,3 @@
-
 import Head from "next/head";
 import Link from "next/link";
 import Footer from "../components/Footer";
@@ -523,172 +522,6 @@ export default function KontaktPage() {
         </section>
 
         <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "18px 16px" }}
-        >
-          <div className="infoGrid">
-            <div
-              style={{
-                background: "white",
-                borderRadius: 26,
-                padding: 30,
-                border: "1px solid rgba(15,23,42,0.08)",
-                boxShadow: "0 14px 34px rgba(15,23,42,0.06)",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 13,
-                  fontWeight: 800,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: "#64748b",
-                  marginBottom: 12,
-                }}
-              >
-                Autor projektu
-              </div>
-
-              <h2
-                style={{
-                  fontSize: 34,
-                  lineHeight: 1.12,
-                  letterSpacing: "-0.02em",
-                  margin: "0 0 12px",
-                  color: "#0f172a",
-                }}
-              >
-                Antonín Koplík
-              </h2>
-
-              <p
-                style={{
-                  margin: "0 0 18px",
-                  fontSize: 17,
-                  lineHeight: 1.7,
-                  color: "rgba(15,23,42,0.72)",
-                }}
-              >
-                Autor projektu ARCHIMEDES®, jednatel společnosti EduVision s.r.o.
-                a garant dalšího rozvoje projektu pro školy, obce a komunitní
-                partnery.
-              </p>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 12,
-                }}
-              >
-                <a
-                  href="mailto:antonin.koplik@eduvision.cz"
-                  style={{
-                    textDecoration: "none",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: 46,
-                    padding: "0 18px",
-                    borderRadius: 12,
-                    background: "#f8fafc",
-                    border: "1px solid rgba(15,23,42,0.08)",
-                    color: "#173b77",
-                    fontWeight: 800,
-                  }}
-                >
-                  antonin.koplik@eduvision.cz
-                </a>
-
-                <Link
-                  href="/poptavka"
-                  style={{
-                    textDecoration: "none",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: 46,
-                    padding: "0 18px",
-                    borderRadius: 12,
-                    background: "#0f172a",
-                    border: "1px solid #0f172a",
-                    color: "#fff",
-                    fontWeight: 800,
-                  }}
-                >
-                  Domluvit schůzku
-                </Link>
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-                borderRadius: 26,
-                padding: 30,
-                border: "1px solid rgba(15,23,42,0.08)",
-                boxShadow: "0 14px 34px rgba(15,23,42,0.06)",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 13,
-                  fontWeight: 800,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: "#64748b",
-                  marginBottom: 12,
-                }}
-              >
-                Provozovatel projektu
-              </div>
-
-              <h2
-                style={{
-                  fontSize: 28,
-                  lineHeight: 1.15,
-                  letterSpacing: "-0.02em",
-                  margin: "0 0 12px",
-                  color: "#0f172a",
-                }}
-              >
-                EduVision s.r.o.
-              </h2>
-
-              <p
-                style={{
-                  margin: "0 0 16px",
-                  fontSize: 17,
-                  lineHeight: 1.7,
-                  color: "rgba(15,23,42,0.72)",
-                }}
-              >
-                EduVision zajišťuje rozvoj projektu ARCHIMEDES®, komunikaci s
-                partnery, obchodní část i realizace učeben.
-              </p>
-
-              <div
-                style={{
-                  display: "grid",
-                  gap: 10,
-                  fontSize: 15,
-                  lineHeight: 1.6,
-                  color: "#334155",
-                }}
-              >
-                <div>
-                  <strong style={{ color: "#0f172a" }}>E-mail:</strong>{" "}
-                  info@eduvision.cz
-                </div>
-                <div>
-                  <strong style={{ color: "#0f172a" }}>Adresa:</strong>{" "}
-                  Purkyňova 649/127, 612 00 Brno
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section
           style={{ maxWidth: 1180, margin: "0 auto", padding: "18px 16px 12px" }}
         >
           <div style={{ maxWidth: 760, marginBottom: 26 }}>
@@ -862,12 +695,6 @@ export default function KontaktPage() {
             gap: 18px;
           }
 
-          .infoGrid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
-            gap: 18px;
-          }
-
           .teamGrid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -883,7 +710,6 @@ export default function KontaktPage() {
 
           @media (max-width: 1100px) {
             .heroGrid,
-            .infoGrid,
             .ctaGrid {
               grid-template-columns: 1fr;
             }
