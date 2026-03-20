@@ -11,7 +11,7 @@ function stripQuery(asPath) {
 const NAV_ITEMS = [
   { href: "/", label: "Domů" },
   { href: "/program", label: "Program" },
-  { href: "/vysilani", label: "Proběhlá vysílání" },
+  { href: "/vysilani", label: "Hosté a témata" },
   { href: "/ucebna", label: "Učebna" },
   { href: "/poptavka", label: "Poptávka" },
   { href: "/kontakt", label: "Kontakt" },
