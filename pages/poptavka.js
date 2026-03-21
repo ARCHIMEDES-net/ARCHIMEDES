@@ -28,6 +28,23 @@ const OPTIONS = [
   },
 ];
 
+function getOptionTitleColor(key) {
+  switch (key) {
+    case "program":
+      return "#3b82f6";
+    case "senior":
+      return "#f59e0b";
+    case "ucebna":
+      return "#22c55e";
+    case "oboji":
+      return "#22c55e";
+    case "navsteva":
+      return "#a855f7";
+    default:
+      return "#0f172a";
+  }
+}
+
 export default function PoptavkaPage() {
   const [selectedOption, setSelectedOption] = useState("");
   const [name, setName] = useState("");
@@ -204,6 +221,7 @@ export default function PoptavkaPage() {
         >
           {OPTIONS.map((item) => {
             const isActive = selectedOption === item.key;
+            const titleColor = getOptionTitleColor(item.key);
 
             return (
               <button
@@ -252,7 +270,7 @@ export default function PoptavkaPage() {
                     alignItems: "flex-start",
                   }}
                 >
-                  <h3 style={cardTitle}>{item.title}</h3>
+                  <h3 style={{ ...cardTitle, color: titleColor }}>{item.title}</h3>
                 </div>
 
                 <div
@@ -366,7 +384,7 @@ export default function PoptavkaPage() {
             letterSpacing: "-0.02em",
           }}
         >
-          Rádi se s Vámi spojíme 
+          Rádi se s Vámi spojíme
         </h2>
 
         <p
