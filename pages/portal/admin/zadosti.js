@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import RequireAuth from "../../../components/RequireAuth";
+import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
@@ -82,15 +82,24 @@ export default function AdminZadostiPage() {
         return;
       }
 
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
+      const [
+        {
+          data: { user },
+          error: userError,
+        },
+        {
+          data: { session },
+          error: sessionError,
+        },
+      ] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.auth.getSession(),
+      ]);
 
+      if (userError) throw userError;
       if (sessionError) throw sessionError;
 
       const accessToken = session?.access_token;
-      const user = session?.user;
 
       if (!user || !accessToken) {
         throw new Error("Nejste přihlášen.");
@@ -223,7 +232,7 @@ export default function AdminZadostiPage() {
   };
 
   return (
-    <RequireAuth>
+    <RequirePlatformAdmin>
       <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
         <PortalHeader title="Admin • žádosti" />
 
@@ -463,8 +472,8 @@ export default function AdminZadostiPage() {
                             {creatingOrgId === row.id
                               ? "Vytvářím..."
                               : row.organization_id
-                              ? "Organizace existuje"
-                              : "Vytvořit organizaci"}
+                                ? "Organizace existuje"
+                                : "Vytvořit organizaci"}
                           </button>
 
                           <button
@@ -483,8 +492,8 @@ export default function AdminZadostiPage() {
                             {invitingId === row.id
                               ? "Odesílám..."
                               : row.admin_invited_email
-                              ? "Pozvat znovu admina"
-                              : "Pozvat administrátora"}
+                                ? "Pozvat znovu admina"
+                                : "Pozvat administrátora"}
                           </button>
                         </div>
                       </td>
@@ -496,6 +505,6 @@ export default function AdminZadostiPage() {
           </div>
         </main>
       </div>
-    </RequireAuth>
+    </RequirePlatformAdmin>
   );
 }
