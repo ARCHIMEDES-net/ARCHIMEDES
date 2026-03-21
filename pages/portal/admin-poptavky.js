@@ -1,7 +1,6 @@
-// pages/portal/admin-poptavky.js
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import RequireAuth from "../../components/RequireAuth";
+import RequirePlatformAdmin from "../../components/RequirePlatformAdmin";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
@@ -96,34 +95,16 @@ function isDemoLead(row) {
 }
 
 export default function AdminPoptavky() {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [checkingAdmin, setCheckingAdmin] = useState(true);
-
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  const [typeFilter, setTypeFilter] = useState("all"); // all | demo | obec | skola | senior
-  const [statusFilter, setStatusFilter] = useState("all"); // all | new | in_progress | approved | done
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [q, setQ] = useState("");
 
   const [approvingId, setApprovingId] = useState("");
   const [actionMsg, setActionMsg] = useState("");
-
-  useEffect(() => {
-    (async () => {
-      setCheckingAdmin(true);
-      try {
-        const { data, error } = await supabase.rpc("is_admin");
-        if (!error) setIsAdmin(!!data);
-        else setIsAdmin(false);
-      } catch {
-        setIsAdmin(false);
-      } finally {
-        setCheckingAdmin(false);
-      }
-    })();
-  }, []);
 
   async function load() {
     setLoading(true);
@@ -147,10 +128,8 @@ export default function AdminPoptavky() {
   }
 
   useEffect(() => {
-    if (!checkingAdmin && isAdmin) {
-      load();
-    }
-  }, [checkingAdmin, isAdmin]);
+    load();
+  }, []);
 
   async function setStatus(id, status) {
     const prev = rows;
@@ -180,7 +159,7 @@ export default function AdminPoptavky() {
     setActionMsg("");
 
     try {
-      const res = await fetch("/api/admin/approve-demo-request", {
+      const response = await fetch("/api/admin/approve-demo-request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -190,9 +169,9 @@ export default function AdminPoptavky() {
         }),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error(data?.error || "Schválení demo přístupu se nepodařilo.");
       }
 
@@ -268,7 +247,7 @@ export default function AdminPoptavky() {
   }, [rows, typeFilter, statusFilter, q]);
 
   return (
-    <RequireAuth>
+    <RequirePlatformAdmin>
       <PortalHeader />
 
       <div style={{ maxWidth: 1150, margin: "0 auto", padding: "24px 16px" }}>
@@ -282,7 +261,7 @@ export default function AdminPoptavky() {
 
             <button
               onClick={load}
-              disabled={loading || checkingAdmin || !isAdmin}
+              disabled={loading}
               style={{
                 padding: "10px 14px",
                 borderRadius: 10,
@@ -317,9 +296,7 @@ export default function AdminPoptavky() {
           </div>
         ) : null}
 
-        {checkingAdmin ? (
-          <div style={{ marginTop: 14 }}>Ověřuji oprávnění…</div>
-        ) : !isAdmin ? (
+        {err ? (
           <div
             style={{
               marginTop: 14,
@@ -330,247 +307,230 @@ export default function AdminPoptavky() {
               color: "#7a1f1f",
             }}
           >
-            Nemáš administrátorské oprávnění pro zobrazení poptávek.
+            Chyba: {err}
           </div>
-        ) : (
-          <>
-            {err ? (
-              <div
-                style={{
-                  marginTop: 14,
-                  padding: 14,
-                  borderRadius: 12,
-                  border: "1px solid #f2c3c3",
-                  background: "#fff5f5",
-                  color: "#7a1f1f",
-                }}
-              >
-                Chyba: {err}
-              </div>
-            ) : null}
+        ) : null}
 
-            <div
+        <div
+          style={{
+            marginTop: 14,
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <label style={{ color: "#444" }}>
+            Typ:{" "}
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
               style={{
-                marginTop: 14,
-                display: "flex",
-                gap: 10,
-                alignItems: "center",
-                flexWrap: "wrap",
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: "1px solid #ddd",
+                marginLeft: 8,
               }}
             >
-              <label style={{ color: "#444" }}>
-                Typ:{" "}
-                <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: 10,
-                    border: "1px solid #ddd",
-                    marginLeft: 8,
-                  }}
-                >
-                  <option value="all">Vše</option>
-                  <option value="demo">Demo</option>
-                  <option value="obec">Obec</option>
-                  <option value="skola">Škola</option>
-                  <option value="senior">Senior</option>
-                </select>
-              </label>
+              <option value="all">Vše</option>
+              <option value="demo">Demo</option>
+              <option value="obec">Obec</option>
+              <option value="skola">Škola</option>
+              <option value="senior">Senior</option>
+            </select>
+          </label>
 
-              <label style={{ color: "#444" }}>
-                Stav:{" "}
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: 10,
-                    border: "1px solid #ddd",
-                    marginLeft: 8,
-                  }}
-                >
-                  <option value="all">Vše</option>
-                  <option value="new">Nová</option>
-                  <option value="in_progress">Řeší se</option>
-                  <option value="approved">Schváleno</option>
-                  <option value="done">Vyřízeno</option>
-                </select>
-              </label>
+          <label style={{ color: "#444" }}>
+            Stav:{" "}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: "1px solid #ddd",
+                marginLeft: 8,
+              }}
+            >
+              <option value="all">Vše</option>
+              <option value="new">Nová</option>
+              <option value="in_progress">Řeší se</option>
+              <option value="approved">Schváleno</option>
+              <option value="done">Vyřízeno</option>
+            </select>
+          </label>
 
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Hledat (obec, email, poznámka…)…"
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  border: "1px solid #ddd",
-                  minWidth: 260,
-                  flex: "1 1 260px",
-                }}
-              />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Hledat (obec, email, poznámka…)…"
+            style={{
+              padding: "10px 12px",
+              borderRadius: 10,
+              border: "1px solid #ddd",
+              minWidth: 260,
+              flex: "1 1 260px",
+            }}
+          />
 
-              <div style={{ marginLeft: "auto", color: "#555" }}>
-                Záznamů: <strong>{filtered.length}</strong>
-              </div>
-            </div>
+          <div style={{ marginLeft: "auto", color: "#555" }}>
+            Záznamů: <strong>{filtered.length}</strong>
+          </div>
+        </div>
 
-            <div style={{ marginTop: 14, overflowX: "auto" }}>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "separate",
-                  borderSpacing: 0,
-                  border: "1px solid #e6e6e6",
-                  borderRadius: 14,
-                  overflow: "hidden",
-                  background: "white",
-                }}
-              >
-                <thead>
-                  <tr style={{ background: "#fafafa" }}>
-                    <th style={thStyle}>Datum</th>
-                    <th style={thStyle}>Stav</th>
-                    <th style={thStyle}>Typ</th>
-                    <th style={thStyle}>Organizace</th>
-                    <th style={thStyle}>Kontakt</th>
-                    <th style={thStyle}>E-mail</th>
-                    <th style={thStyle}>Telefon</th>
-                    <th style={thStyle}>Poznámka</th>
-                    <th style={thStyle}>Akce</th>
-                  </tr>
-                </thead>
+        <div style={{ marginTop: 14, overflowX: "auto" }}>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "separate",
+              borderSpacing: 0,
+              border: "1px solid #e6e6e6",
+              borderRadius: 14,
+              overflow: "hidden",
+              background: "white",
+            }}
+          >
+            <thead>
+              <tr style={{ background: "#fafafa" }}>
+                <th style={thStyle}>Datum</th>
+                <th style={thStyle}>Stav</th>
+                <th style={thStyle}>Typ</th>
+                <th style={thStyle}>Organizace</th>
+                <th style={thStyle}>Kontakt</th>
+                <th style={thStyle}>E-mail</th>
+                <th style={thStyle}>Telefon</th>
+                <th style={thStyle}>Poznámka</th>
+                <th style={thStyle}>Akce</th>
+              </tr>
+            </thead>
 
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td style={tdStyle} colSpan={9}>
-                        Načítám…
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td style={tdStyle} colSpan={9}>
+                    Načítám…
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td style={tdStyle} colSpan={9}>
+                    Zatím žádné poptávky.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((r) => {
+                  const s = r.status || "new";
+                  const demoLead = isDemoLead(r);
+
+                  return (
+                    <tr key={r.id}>
+                      <td style={tdStyle}>{formatDateTimeCS(r.created_at)}</td>
+
+                      <td style={tdStyle}>
+                        <span style={statusChipStyle(s)}>{statusLabel(s)}</span>
                       </td>
-                    </tr>
-                  ) : filtered.length === 0 ? (
-                    <tr>
-                      <td style={tdStyle} colSpan={9}>
-                        Zatím žádné poptávky.
-                      </td>
-                    </tr>
-                  ) : (
-                    filtered.map((r) => {
-                      const s = r.status || "new";
-                      const demoLead = isDemoLead(r);
 
-                      return (
-                        <tr key={r.id}>
-                          <td style={tdStyle}>{formatDateTimeCS(r.created_at)}</td>
-
-                          <td style={tdStyle}>
-                            <span style={statusChipStyle(s)}>{statusLabel(s)}</span>
-                          </td>
-
-                          <td style={tdStyle}>
-                            {norm(r.type) || "—"}
-                            {demoLead ? (
-                              <div style={{ marginTop: 6 }}>
-                                <span
-                                  style={{
-                                    display: "inline-flex",
-                                    padding: "4px 8px",
-                                    borderRadius: 999,
-                                    background: "#eef2ff",
-                                    color: "#1e3a8a",
-                                    fontSize: 11,
-                                    fontWeight: 800,
-                                  }}
-                                >
-                                  demo
-                                </span>
-                              </div>
-                            ) : null}
-                          </td>
-
-                          <td style={tdStyle}>{norm(r.organization) || "—"}</td>
-                          <td style={tdStyle}>{norm(r.contact_name) || "—"}</td>
-
-                          <td style={tdStyle}>
-                            {norm(r.email) ? (
-                              <a href={`mailto:${norm(r.email)}`} style={{ textDecoration: "none" }}>
-                                {norm(r.email)}
-                              </a>
-                            ) : (
-                              "—"
-                            )}
-                          </td>
-
-                          <td style={tdStyle}>
-                            {norm(r.phone) ? (
-                              <a href={`tel:${norm(r.phone)}`} style={{ textDecoration: "none" }}>
-                                {norm(r.phone)}
-                              </a>
-                            ) : (
-                              "—"
-                            )}
-                          </td>
-
-                          <td style={tdStyle}>
-                            <span style={{ whiteSpace: "pre-wrap" }}>
-                              {norm(r.note) || "—"}
+                      <td style={tdStyle}>
+                        {norm(r.type) || "—"}
+                        {demoLead ? (
+                          <div style={{ marginTop: 6 }}>
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                padding: "4px 8px",
+                                borderRadius: 999,
+                                background: "#eef2ff",
+                                color: "#1e3a8a",
+                                fontSize: 11,
+                                fontWeight: 800,
+                              }}
+                            >
+                              demo
                             </span>
-                          </td>
+                          </div>
+                        ) : null}
+                      </td>
 
-                          <td style={tdStyle}>
-                            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                              <button
-                                onClick={() => setStatus(r.id, "new")}
-                                style={miniBtn(s === "new")}
-                                title="Nastavit: Nová"
-                              >
-                                Nová
-                              </button>
+                      <td style={tdStyle}>{norm(r.organization) || "—"}</td>
+                      <td style={tdStyle}>{norm(r.contact_name) || "—"}</td>
 
-                              <button
-                                onClick={() => setStatus(r.id, "in_progress")}
-                                style={miniBtn(s === "in_progress")}
-                                title="Nastavit: Řeší se"
-                              >
-                                Řeší se
-                              </button>
+                      <td style={tdStyle}>
+                        {norm(r.email) ? (
+                          <a href={`mailto:${norm(r.email)}`} style={{ textDecoration: "none" }}>
+                            {norm(r.email)}
+                          </a>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
 
-                              <button
-                                onClick={() => setStatus(r.id, "done")}
-                                style={miniBtn(s === "done")}
-                                title="Nastavit: Vyřízeno"
-                              >
-                                Vyřízeno
-                              </button>
+                      <td style={tdStyle}>
+                        {norm(r.phone) ? (
+                          <a href={`tel:${norm(r.phone)}`} style={{ textDecoration: "none" }}>
+                            {norm(r.phone)}
+                          </a>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
 
-                              {demoLead ? (
-                                <button
-                                  onClick={() => approveDemo(r)}
-                                  disabled={approvingId === r.id || s === "approved"}
-                                  style={approveBtn(approvingId === r.id || s === "approved")}
-                                  title="Schválit demo přístup"
-                                >
-                                  {approvingId === r.id
-                                    ? "Schvaluji..."
-                                    : s === "approved"
-                                    ? "Schváleno"
-                                    : "Schválit demo"}
-                                </button>
-                              ) : null}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
+                      <td style={tdStyle}>
+                        <span style={{ whiteSpace: "pre-wrap" }}>
+                          {norm(r.note) || "—"}
+                        </span>
+                      </td>
+
+                      <td style={tdStyle}>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          <button
+                            onClick={() => setStatus(r.id, "new")}
+                            style={miniBtn(s === "new")}
+                            title="Nastavit: Nová"
+                          >
+                            Nová
+                          </button>
+
+                          <button
+                            onClick={() => setStatus(r.id, "in_progress")}
+                            style={miniBtn(s === "in_progress")}
+                            title="Nastavit: Řeší se"
+                          >
+                            Řeší se
+                          </button>
+
+                          <button
+                            onClick={() => setStatus(r.id, "done")}
+                            style={miniBtn(s === "done")}
+                            title="Nastavit: Vyřízeno"
+                          >
+                            Vyřízeno
+                          </button>
+
+                          {demoLead ? (
+                            <button
+                              onClick={() => approveDemo(r)}
+                              disabled={approvingId === r.id || s === "approved"}
+                              style={approveBtn(approvingId === r.id || s === "approved")}
+                              title="Schválit demo přístup"
+                            >
+                              {approvingId === r.id
+                                ? "Schvaluji..."
+                                : s === "approved"
+                                  ? "Schváleno"
+                                  : "Schválit demo"}
+                            </button>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </RequireAuth>
+    </RequirePlatformAdmin>
   );
 }
 
