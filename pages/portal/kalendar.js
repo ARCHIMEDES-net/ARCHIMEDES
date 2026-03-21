@@ -332,21 +332,11 @@ export default function Kalendar() {
           return;
         }
 
-        const [{ data: membership }, { data: isAdminData, error: isAdminError }] = await Promise.all([
-          supabase
-            .from("organization_members")
-            .select("role_in_org")
-            .eq("user_id", user.id)
-            .eq("status", "active")
-            .maybeSingle(),
-          supabase.rpc("is_admin"),
-        ]);
+        const { data: isAdminData, error: isAdminError } = await supabase.rpc("is_admin");
 
         if (cancelled) return;
 
-        setIsProgramAdmin(
-          membership?.role_in_org === "organization_admin" || (!isAdminError && !!isAdminData)
-        );
+        setIsProgramAdmin(!isAdminError && !!isAdminData);
       } catch (_e) {
         if (!cancelled) setIsProgramAdmin(false);
       }
