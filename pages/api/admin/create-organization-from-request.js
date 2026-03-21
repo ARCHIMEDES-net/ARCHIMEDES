@@ -50,9 +50,9 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Neplatné nebo expirované přihlášení." });
     }
 
-    // serverové ověření platform admin role
+    // serverové ověření platform admin role — sjednoceno na platform_admins
     const { data: adminRow, error: adminCheckError } = await supabaseAdmin
-      .from("admin_users")
+      .from("platform_admins")
       .select("user_id")
       .eq("user_id", user.id)
       .maybeSingle();
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
       throw adminCheckError;
     }
 
-    if (!adminRow) {
+    if (!adminRow?.user_id) {
       return res.status(403).json({
         error: "Tuto akci může provádět pouze platform admin.",
       });
