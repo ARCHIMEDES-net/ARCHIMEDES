@@ -5,6 +5,12 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
+const DEMO_FEATURED_VIDEO = {
+  title: "Ukázka vysílání pro školy",
+  subtitle: "ZOO Praha – výukový vstup pro školní program",
+  src: "https://www.youtube.com/embed/yvelfGeL6Jg",
+};
+
 function safeDate(value) {
   if (!value) return null;
   const d = new Date(value);
@@ -73,7 +79,6 @@ export default function PortalIndex() {
   const [membershipRole, setMembershipRole] = useState("");
   const [copiedCode, setCopiedCode] = useState(false);
 
-  const [licenseStatus, setLicenseStatus] = useState("");
   const [licenseValidUntil, setLicenseValidUntil] = useState(null);
   const [licenseMode, setLicenseMode] = useState("default");
 
@@ -151,7 +156,6 @@ export default function PortalIndex() {
 
           setOrganizationName(org?.name || "");
           setOrganizationCode(org?.join_code || "");
-          setLicenseStatus(org?.license_status || "trial");
           setLicenseValidUntil(org?.license_valid_until || null);
           setLicenseMode(resolveLicenseMode(org));
 
@@ -199,8 +203,7 @@ export default function PortalIndex() {
   const showAdminSection = !isDemoViewer;
 
   const showTrialBanner =
-    (dashboardType === "organization" || dashboardType === "demo_viewer") &&
-    licenseMode === "trial";
+    dashboardType === "organization" && licenseMode === "trial";
   const showExpiredBanner =
     (dashboardType === "organization" || dashboardType === "demo_viewer") &&
     licenseMode === "expired";
@@ -226,38 +229,26 @@ export default function PortalIndex() {
       <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto", padding: "24px 16px 48px" }}>
           {isDemoViewer ? (
-            <DemoViewerBanner organizationName={organizationName} />
+            <DemoFeaturedSection
+              organizationName={organizationName}
+              validUntil={licenseValidUntil}
+            />
           ) : null}
 
           {showTrialBanner ? (
             <LicenseBanner
               mode="trial"
-              title={
-                isDemoViewer
-                  ? "ARCHIMEDES Live – ukázkové prostředí"
-                  : "ARCHIMEDES Live – demo přístup"
-              }
+              title="ARCHIMEDES Live – demo přístup"
               text={
                 <>
-                  {isDemoViewer ? (
-                    <>
-                      Prohlížíte ukázkové prostředí
-                      {organizationName ? ` pro ${organizationName}` : ""}. Můžete si projít
-                      portál, program, kalendář a síť učeben
-                    </>
-                  ) : (
-                    <>
-                      Vaše organizace{organizationName ? ` ${organizationName}` : ""} má aktivní demo
-                      přístup. Můžete si vyzkoušet portál, prohlédnout program a připravit si ukázkovou hodinu
-                    </>
-                  )}
-                  {licenseValidUntil ? (
+                  Vaše organizace{organizationName ? ` ${organizationName}` : ""} má aktivní demo
+                  přístup{licenseValidUntil ? (
                     <>
                       {" "}
                       do <strong>{formatDateCS(licenseValidUntil)}</strong>
                     </>
                   ) : null}
-                  .
+                  . Můžete si vyzkoušet portál, prohlédnout program a připravit si ukázkovou hodinu.
                 </>
               }
               primaryHref="/poptavka"
@@ -302,86 +293,88 @@ export default function PortalIndex() {
             />
           ) : null}
 
-          <section
-            style={{
-              background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
-              border: "1px solid rgba(15,23,42,0.08)",
-              borderRadius: 24,
-              padding: "22px 22px 20px",
-              boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
-              marginBottom: 18,
-            }}
-          >
-            <div
+          {!isDemoViewer ? (
+            <section
               style={{
-                display: "flex",
-                gap: 16,
-                alignItems: "flex-start",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
+                background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
+                border: "1px solid rgba(15,23,42,0.08)",
+                borderRadius: 24,
+                padding: "22px 22px 20px",
+                boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
+                marginBottom: 18,
               }}
             >
-              <div style={{ minWidth: 0, flex: "1 1 520px" }}>
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "6px 10px",
-                    borderRadius: 999,
-                    background: "rgba(15,23,42,0.06)",
-                    color: "#0f172a",
-                    fontSize: 12,
-                    fontWeight: 800,
-                    marginBottom: 12,
-                  }}
-                >
-                  {dashboard.badge}
-                </div>
-
-                <h1
-                  style={{
-                    margin: 0,
-                    fontSize: 34,
-                    lineHeight: 1.08,
-                    color: "#0f172a",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  {dashboard.heroTitleLine1}
-                  <br />
-                  {dashboard.heroTitleLine2}
-                </h1>
-
-                <p
-                  style={{
-                    margin: "14px 0 0",
-                    fontSize: 16,
-                    lineHeight: 1.55,
-                    color: "rgba(15,23,42,0.72)",
-                    maxWidth: 760,
-                  }}
-                >
-                  {loadingProfileType ? "Načítám prostředí portálu…" : dashboard.heroText}
-                </p>
-              </div>
-
               <div
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(130px, 1fr))",
-                  gap: 10,
-                  flex: "0 1 320px",
-                  width: "100%",
-                  maxWidth: 320,
+                  display: "flex",
+                  gap: 16,
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
                 }}
               >
-                {dashboard.stats.map((item) => (
-                  <StatCard key={`${item.value}-${item.label}`} value={item.value} label={item.label} />
-                ))}
+                <div style={{ minWidth: 0, flex: "1 1 520px" }}>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "6px 10px",
+                      borderRadius: 999,
+                      background: "rgba(15,23,42,0.06)",
+                      color: "#0f172a",
+                      fontSize: 12,
+                      fontWeight: 800,
+                      marginBottom: 12,
+                    }}
+                  >
+                    {dashboard.badge}
+                  </div>
+
+                  <h1
+                    style={{
+                      margin: 0,
+                      fontSize: 34,
+                      lineHeight: 1.08,
+                      color: "#0f172a",
+                      letterSpacing: "-0.02em",
+                    }}
+                  >
+                    {dashboard.heroTitleLine1}
+                    <br />
+                    {dashboard.heroTitleLine2}
+                  </h1>
+
+                  <p
+                    style={{
+                      margin: "14px 0 0",
+                      fontSize: 16,
+                      lineHeight: 1.55,
+                      color: "rgba(15,23,42,0.72)",
+                      maxWidth: 760,
+                    }}
+                  >
+                    {loadingProfileType ? "Načítám prostředí portálu…" : dashboard.heroText}
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, minmax(130px, 1fr))",
+                    gap: 10,
+                    flex: "0 1 320px",
+                    width: "100%",
+                    maxWidth: 320,
+                  }}
+                >
+                  {dashboard.stats.map((item) => (
+                    <StatCard key={`${item.value}-${item.label}`} value={item.value} label={item.label} />
+                  ))}
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+          ) : null}
 
           {showGettingStarted ? (
             <section
@@ -984,35 +977,35 @@ function getDashboardConfig(
       heroTitleLine1: "Vítejte v ukázkovém",
       heroTitleLine2: "prostředí portálu",
       heroText: `Tady si můžete bezpečně prohlédnout, jak ARCHIMEDES Live funguje${orgLabel}. Ukázka slouží pouze k orientaci v programu, kalendáři, archivu a síti učeben${trialUntilText ? ` do ${trialUntilText}` : ""}.`,
-      tipBold: "Kalendář",
-      quickTitle: "Co doporučujeme otevřít jako první",
-      quickSubtitle: "Nejrychlejší cesta k tomu, abyste si udělali jasnou představu o portálu.",
-      primaryCtaLabel: "Otevřít kalendář",
+      tipBold: "Program",
+      quickTitle: "Co si projít dál v portálu",
+      quickSubtitle: "Po ukázkové hodině si projděte další části, které bude škola běžně používat.",
+      primaryCtaLabel: "Otevřít program",
       primaryCtaHref: "/portal/kalendar",
-      sideBoxTitle: "Co v ukázce získáte",
+      sideBoxTitle: "Co škola v licenci získá",
       sideBoxText:
-        "Ukázkové prostředí vám umožní projít strukturu portálu a vidět, jak vypadá práce s programem. Jde o režim pouze pro prohlížení, bez správy školy a bez administrativních zásahů.",
+        "Škola získá pravidelný program, přístup do archivu, pracovní materiály pro učitele a prostředí, ve kterém se rychle zorientuje i bez složitého zaškolení.",
       stats: [
-        { value: "demo", label: "režim přístupu" },
+        { value: "1", label: "ukázková hodina jako vstup" },
         { value: "3", label: "nejbližší vysílání v přehledu" },
-        { value: "4", label: "hlavní ukázkové sekce" },
-        { value: "read-only", label: "způsob použití" },
+        { value: "4", label: "části portálu k prohlédnutí" },
+        { value: "škola", label: "hlavní cílová skupina" },
       ],
       tiles: [
         {
           href: "/portal/kalendar",
           icon: "🗓️",
-          title: "Kalendář programu",
-          desc: "Podívejte se, jak vypadá program a jak se škola dostává k jednotlivým vstupům.",
+          title: "Program",
+          desc: "Podívejte se, jak je přehledně uspořádaný program a jak se škola dostává k jednotlivým hodinám.",
           cta: "Otevřít",
           highlight: true,
-          note: "Začněte zde",
+          note: "Hlavní část",
         },
         {
           href: "/portal/archiv",
           icon: "📚",
           title: "Archiv",
-          desc: "Projděte si strukturu archivu a podobu materiálů. Plný obsah je dostupný v aktivní licenci.",
+          desc: "Uvidíte strukturu archivu a návaznost na výuku. Plný obsah je dostupný v aktivní licenci.",
           cta: "Otevřít",
           note: "Ukázka",
         },
@@ -1026,15 +1019,15 @@ function getDashboardConfig(
         {
           href: "/poptavka",
           icon: "🎓",
-          title: "Ukázková hodina",
-          desc: "Požádejte o ukázkovou hodinu zdarma pro vaši školu nebo obec.",
+          title: "Ukázková hodina pro školu",
+          desc: "Domluvte si ukázkovou hodinu zdarma pro vaši školu a ověřte si fungování přímo ve třídě.",
           cta: "Požádat",
         },
         {
           href: "/poptavka",
           icon: "🔓",
           title: "Plná licence",
-          desc: "Aktivujte plný přístup do programu, záznamů a dalších částí portálu.",
+          desc: "Aktivujte plný přístup do programu, záznamů a dalších částí portálu pro svou školu.",
           cta: "Aktivovat",
         },
       ],
@@ -1908,6 +1901,250 @@ function OnboardingStep({ number, title, text, actionHref, actionLabel, footer }
           {actionLabel}
         </Link>
       ) : null}
+    </div>
+  );
+}
+
+function DemoFeaturedSection({ organizationName, validUntil }) {
+  return (
+    <section
+      style={{
+        background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
+        border: "1px solid rgba(15,23,42,0.08)",
+        borderRadius: 28,
+        padding: 22,
+        boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
+        marginBottom: 18,
+      }}
+    >
+      <div
+        className="demo-featured-grid"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.02fr 1fr",
+          gap: 22,
+          alignItems: "center",
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "7px 12px",
+              borderRadius: 999,
+              background: "#eef2ff",
+              color: "#1e3a8a",
+              fontSize: 13,
+              fontWeight: 900,
+              marginBottom: 14,
+            }}
+          >
+            Ukázka pro ředitele školy
+          </div>
+
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 42,
+              lineHeight: 1.04,
+              color: "#0f172a",
+              letterSpacing: "-0.03em",
+            }}
+          >
+            Vyzkoušejte si,
+            <br />
+            jak může vypadat jedna hodina ve vaší škole
+          </h1>
+
+          <p
+            style={{
+              margin: "18px 0 0",
+              fontSize: 18,
+              lineHeight: 1.72,
+              color: "#334155",
+              maxWidth: 680,
+            }}
+          >
+            Tohle je ukázkové prostředí ARCHIMEDES Live
+            {organizationName ? ` pro ${organizationName}` : ""}. Během několika minut
+            si můžete projít, jak vypadá výuka, program a návazné materiály pro učitele.
+          </p>
+
+          <p
+            style={{
+              margin: "12px 0 0",
+              fontSize: 16,
+              lineHeight: 1.7,
+              color: "#475569",
+              maxWidth: 700,
+            }}
+          >
+            Nejde o technickou ukázku systému. Jde o rychlou představu, co škola po
+            aktivaci skutečně získá.
+            {validUntil ? (
+              <>
+                {" "}
+                Ukázkový přístup je dostupný do <strong>{formatDateCS(validUntil)}</strong>.
+              </>
+            ) : null}
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              marginTop: 24,
+            }}
+          >
+            <Link
+              href="/poptavka"
+              style={{
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 52,
+                padding: "0 20px",
+                borderRadius: 14,
+                background: "#0f172a",
+                color: "white",
+                fontWeight: 900,
+                boxShadow: "0 14px 34px rgba(15,23,42,0.16)",
+              }}
+            >
+              Chci vyzkoušet ARCHIMEDES ve své škole
+            </Link>
+
+            <Link
+              href="/portal/kalendar"
+              style={{
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 52,
+                padding: "0 20px",
+                borderRadius: 14,
+                background: "#fff",
+                color: "#0f172a",
+                border: "1px solid rgba(15,23,42,0.12)",
+                fontWeight: 900,
+              }}
+            >
+              Otevřít program
+            </Link>
+          </div>
+
+          <div
+            className="demo-support-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gap: 12,
+              marginTop: 22,
+            }}
+          >
+            <DemoSupportCard
+              title="Ukázková hodina"
+              text="Krátký záznam z reálného vysílání pomůže rychle pochopit formát."
+            />
+            <DemoSupportCard
+              title="Pracovní návaznost"
+              text="V portálu pak škola navazuje přes program, archiv a další obsah."
+            />
+            <DemoSupportCard
+              title="Další krok"
+              text="Po ukázce si můžete domluvit hodinu zdarma přímo pro svou školu."
+            />
+          </div>
+        </div>
+
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 24,
+              overflow: "hidden",
+              border: "1px solid #dbe3ef",
+              boxShadow: "0 18px 44px rgba(15,23,42,0.10)",
+            }}
+          >
+            <div style={{ aspectRatio: "16 / 9", background: "#dbe4f0" }}>
+              <iframe
+                width="100%"
+                height="100%"
+                src={DEMO_FEATURED_VIDEO.src}
+                title={DEMO_FEATURED_VIDEO.title}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                style={{ display: "block", width: "100%", height: "100%" }}
+              />
+            </div>
+
+            <div style={{ padding: 18 }}>
+              <div
+                style={{
+                  fontSize: 19,
+                  fontWeight: 900,
+                  lineHeight: 1.3,
+                  color: "#0f172a",
+                }}
+              >
+                {DEMO_FEATURED_VIDEO.title}
+              </div>
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 15,
+                  lineHeight: 1.6,
+                  color: "#64748b",
+                }}
+              >
+                {DEMO_FEATURED_VIDEO.subtitle}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DemoSupportCard({ title, text }) {
+  return (
+    <div
+      style={{
+        background: "#fff",
+        border: "1px solid rgba(15,23,42,0.08)",
+        borderRadius: 18,
+        padding: 14,
+        boxShadow: "0 10px 24px rgba(15,23,42,0.04)",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 15,
+          fontWeight: 900,
+          lineHeight: 1.3,
+          color: "#0f172a",
+        }}
+      >
+        {title}
+      </div>
+      <div
+        style={{
+          marginTop: 6,
+          fontSize: 14,
+          lineHeight: 1.55,
+          color: "#64748b",
+        }}
+      >
+        {text}
+      </div>
     </div>
   );
 }
