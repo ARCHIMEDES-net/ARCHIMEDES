@@ -2037,29 +2037,6 @@ function DemoFeaturedSection({ organizationName, validUntil }) {
               Otevřít program
             </Link>
           </div>
-
-          <div
-            className="demo-support-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: 12,
-              marginTop: 22,
-            }}
-          >
-            <DemoSupportCard
-              title="Ukázková hodina"
-              text="Krátký záznam z reálného vysílání pomůže rychle pochopit formát."
-            />
-            <DemoSupportCard
-              title="Pracovní návaznost"
-              text="V portálu pak škola navazuje přes program, archiv a další obsah."
-            />
-            <DemoSupportCard
-              title="Další krok"
-              text="Po ukázce si můžete domluvit hodinu zdarma přímo pro svou školu."
-            />
-          </div>
         </div>
 
         <div style={{ minWidth: 0 }}>
@@ -2111,40 +2088,5 @@ function DemoFeaturedSection({ organizationName, validUntil }) {
         </div>
       </div>
     </section>
-  );
-}
-
-function DemoSupportCard({ title, text }) {
-  return (
-    <div
-      style={{
-        background: "#fff",
-        border: "1px solid rgba(15,23,42,0.08)",
-        borderRadius: 18,
-        padding: 14,
-        boxShadow: "0 10px 24px rgba(15,23,42,0.04)",
-      }}
-    >
-      <div
-        style={{
-          fontSize: 15,
-          fontWeight: 900,
-          lineHeight: 1.3,
-          color: "#0f172a",
-        }}
-      >
-        {title}
-      </div>
-      <div
-        style={{
-          marginTop: 6,
-          fontSize: 14,
-          lineHeight: 1.55,
-          color: "#64748b",
-        }}
-      >
-        {text}
-      </div>
-    </div>
   );
 }
