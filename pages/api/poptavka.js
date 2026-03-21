@@ -6,14 +6,16 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export default async function handler(req, res) {
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
 
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-
     const {
       selectedOption,
       selectedLabel,
@@ -21,43 +23,63 @@ export default async function handler(req, res) {
       place,
       email,
       phone,
-      message
-    } = req.body;
+      message,
+      company,
+    } = req.body || {};
 
-    if (!selectedOption) {
+    // Honeypot ochrana – bot typicky vyplní skryté pole
+    if (company) {
+      return res.status(200).json({
+        ok: true,
+        message: "Poptávka byla odeslána.",
+      });
+    }
+
+    const cleanSelectedOption = String(selectedOption || "").trim();
+    const cleanSelectedLabel = String(selectedLabel || "").trim();
+    const cleanName = String(name || "").trim();
+    const cleanPlace = String(place || "").trim();
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    const cleanPhone = String(phone || "").trim();
+    const cleanMessage = String(message || "").trim();
+
+    if (!cleanSelectedOption) {
       return res.status(400).json({ error: "Vyberte typ poptávky." });
     }
 
-    if (!name || !email) {
-      return res.status(400).json({ error: "Vyplňte jméno a email." });
+    if (!cleanName || cleanName.length < 2) {
+      return res.status(400).json({ error: "Vyplňte jméno." });
+    }
+
+    if (!isValidEmail(cleanEmail)) {
+      return res.status(400).json({ error: "Vyplňte platný email." });
     }
 
     const createdAt = new Date().toISOString();
 
-    // -----------------------------
-    // 1️⃣ Uložení do databáze
-    // -----------------------------
+    const note = [
+      `Zájem: ${cleanSelectedLabel || cleanSelectedOption}`,
+      "",
+      "Zpráva:",
+      cleanMessage || "-",
+      "",
+      "Zdroj: web archimedeslive.com/poptavka",
+    ].join("\n");
 
+    // 1) Uložení do databáze
     const { data, error } = await supabase
       .from("leads")
       .insert([
         {
           created_at: createdAt,
-          type: selectedOption,
-          organization: place || null,
-          contact_name: name,
-          email: email,
-          phone: phone || null,
-          note: `
-Zájem: ${selectedLabel || selectedOption}
-
-Zpráva:
-${message || "-"}
-
-Zdroj: web archimedeslive.com/poptavka
-          `,
-          status: "new"
-        }
+          type: cleanSelectedOption,
+          organization: cleanPlace || null,
+          contact_name: cleanName,
+          email: cleanEmail,
+          phone: cleanPhone || null,
+          note,
+          status: "new",
+        },
       ])
       .select("id")
       .single();
@@ -69,66 +91,71 @@ Zdroj: web archimedeslive.com/poptavka
 
     const leadId = data?.id || "-";
 
-    // -----------------------------
-    // 2️⃣ Odeslání emailu
-    // -----------------------------
+    // 2) Odeslání emailu
+    const smtpHost = process.env.SMTP_HOST;
+    const smtpPort = Number(process.env.SMTP_PORT);
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+    const mailFrom = process.env.MAIL_FROM;
+    const mailTo = process.env.MAIL_TO;
+
+    if (!smtpHost || !smtpPort || !smtpUser || !smtpPass || !mailFrom || !mailTo) {
+      console.error("SMTP config missing");
+      return res.status(500).json({ error: "E-mailová služba není správně nastavena." });
+    }
 
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
+      host: smtpHost,
+      port: smtpPort,
       secure: true,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
+        user: smtpUser,
+        pass: smtpPass,
+      },
     });
 
     await transporter.sendMail({
-      from: process.env.MAIL_FROM,
-      to: process.env.MAIL_TO,
-      replyTo: email,
-      subject: `Nová poptávka ARCHIMEDES Live`,
+      from: mailFrom,
+      to: mailTo,
+      replyTo: cleanEmail,
+      subject: "Nová poptávka ARCHIMEDES Live",
       text: `
 Přišla nová poptávka z webu ARCHIMEDES Live
 
 ID: ${leadId}
 
 Typ zájmu:
-${selectedLabel || selectedOption}
+${cleanSelectedLabel || cleanSelectedOption}
 
 Jméno:
-${name}
+${cleanName}
 
 Město / obec / škola:
-${place || "-"}
+${cleanPlace || "-"}
 
 Email:
-${email}
+${cleanEmail}
 
 Telefon:
-${phone || "-"}
+${cleanPhone || "-"}
 
 Zpráva:
-${message || "-"}
+${cleanMessage || "-"}
 
 Datum:
 ${createdAt}
-      `
+      `.trim(),
     });
 
     return res.status(200).json({
       ok: true,
-      message: "Poptávka byla odeslána."
+      message: "Poptávka byla odeslána.",
     });
-
   } catch (err) {
-
     console.error("API error:", err);
 
     return res.status(500).json({
-      error: "Serverová chyba."
+      error: "Serverová chyba.",
     });
-
   }
-
 }
