@@ -1,3 +1,4 @@
+
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 
@@ -155,13 +156,15 @@ export default async function handler(req, res) {
       },
     });
 
+    // 1) Interní notifikace pro vás
     await transporter.sendMail({
       from: mailFrom,
       to: mailTo,
       replyTo: cleanEmail,
       subject: demoMode
-        ? "Nová žádost o ukázkový přístup ARCHIMEDES Live"
-        : "Nová žádost o přístup ARCHIMEDES Live",
+        ? `ARCHIMEDES Live – DEMO | ${cleanOrganization} | ${cleanName}`
+        : `ARCHIMEDES Live – ŽÁDOST | ${cleanOrganization} | ${cleanName}`,
+      priority: "high",
       text: `
 Přišla nová žádost z webu ARCHIMEDES Live
 
@@ -193,6 +196,42 @@ ${cleanMessage || "-"}
 
 Datum:
 ${createdAt}
+      `.trim(),
+    });
+
+    // 2) Potvrzovací e-mail žadateli
+    await transporter.sendMail({
+      from: mailFrom,
+      to: cleanEmail,
+      subject: "ARCHIMEDES Live – přijali jsme Vaši žádost",
+      text: `
+Dobrý den,
+
+děkujeme za Váš zájem o ARCHIMEDES Live.
+
+Vaši žádost jsme v pořádku přijali a nyní ji zpracováváme.
+
+V nejbližší době Vám zašleme přístup do ukázkového prostředí,
+kde si můžete projít, jak ARCHIMEDES Live funguje ve škole i v obci.
+
+Součástí přístupu bude:
+– ukázka programu
+– reálné vysílání
+– archiv a pracovní materiály
+
+Po schválení Vám přijde e-mail s výzvou „Reset Password“.
+Jedná se o standardní bezpečnostní krok pro vytvoření Vašeho přístupu.
+
+Stačí kliknout na odkaz v tomto e-mailu a nastavit si vlastní heslo.
+
+Pokud e-mail nenajdete během několika minut, zkontrolujte prosím i složku spam.
+
+Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
+
+Těšíme se na spolupráci.
+
+ARCHIMEDES Live
+www.archimedeslive.com
       `.trim(),
     });
 
