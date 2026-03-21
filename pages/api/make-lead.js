@@ -4,40 +4,37 @@ export default async function handler(req, res) {
   }
 
   try {
-    const apiKey = req.headers["x-api-key"];
-    const expectedApiKey = process.env.INTERNAL_API_SECRET;
-    const webhookUrl = process.env.MAKE_LEAD_WEBHOOK_URL;
+    const webhookUrl =
+      process.env.MAKE_LEAD_WEBHOOK_URL ||
+      process.env.MAKE_WEBHOOK_URL ||
+      "";
 
-    if (!expectedApiKey) {
-      console.error("Missing INTERNAL_API_SECRET");
-      return res.status(500).json({ ok: false, error: "Server misconfiguration" });
-    }
+    console.log("make-lead env check", {
+      hasMakeLeadWebhook: !!process.env.MAKE_LEAD_WEBHOOK_URL,
+      hasMakeWebhook: !!process.env.MAKE_WEBHOOK_URL,
+      resolvedWebhook: webhookUrl ? "present" : "missing",
+    });
 
     if (!webhookUrl) {
-      console.error("Missing MAKE_LEAD_WEBHOOK_URL");
-      return res.status(500).json({ ok: false, error: "Server misconfiguration" });
-    }
-
-    if (!apiKey || apiKey !== expectedApiKey) {
-      return res.status(401).json({ ok: false, error: "Unauthorized" });
+      return res.status(500).json({
+        ok: false,
+        error: "Webhook URL missing",
+      });
     }
 
     const payload = req.body;
 
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-      return res.status(400).json({ ok: false, error: "Invalid payload" });
-    }
-
-    const payloadString = JSON.stringify(payload);
-
-    if (payloadString.length > 20_000) {
-      return res.status(413).json({ ok: false, error: "Payload too large" });
+      return res.status(400).json({
+        ok: false,
+        error: "Invalid payload",
+      });
     }
 
     const r = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: payloadString,
+      body: JSON.stringify(payload),
     });
 
     if (!r.ok) {
@@ -45,18 +42,21 @@ export default async function handler(req, res) {
       console.error("Make webhook failed", {
         status: r.status,
         statusText: r.statusText,
-        details: text?.slice(0, 500) || null,
+        body: text?.slice(0, 300) || "",
       });
 
       return res.status(502).json({
         ok: false,
-        error: "Upstream webhook failed",
+        error: "Make webhook failed",
       });
     }
 
     return res.status(200).json({ ok: true });
   } catch (e) {
-    console.error("make-lead error:", e);
-    return res.status(500).json({ ok: false, error: "Server error" });
+    console.error("make-lead error", e);
+    return res.status(500).json({
+      ok: false,
+      error: e?.message || "Server error",
+    });
   }
 }
