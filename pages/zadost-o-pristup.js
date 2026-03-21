@@ -1,22 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import PortalHeader from "../components/PortalHeader";
-import { supabase } from "../lib/supabaseClient";
-
-function normalizeLeadType(value, isDemoRequest = false) {
-  if (isDemoRequest) return "demo";
-
-  const v = String(value || "").toLowerCase().trim();
-
-  if (["škola", "skola", "school"].includes(v)) return "skola";
-  if (["obec", "město", "mesto", "obec / město", "obec / mesto"].includes(v))
-    return "obec";
-  if (["senior-klub", "senior klub", "senior", "senior club"].includes(v))
-    return "senior";
-  if (["spolek", "komunita", "community"].includes(v)) return "komunita";
-  return "obec";
-}
 
 export default function ZadostPristupPage() {
   const router = useRouter();
@@ -36,6 +20,7 @@ export default function ZadostPristupPage() {
     address: "",
     type: initialType,
     message: "",
+    company: "",
   });
 
   const [saving, setSaving] = useState(false);
@@ -97,46 +82,33 @@ export default function ZadostPristupPage() {
         throw new Error("Telefon je příliš krátký.");
       }
 
-      const requestHeader = isDemoRequest
-        ? "Typ žádosti: demo přístup"
-        : "Typ žádosti: standardní přístup";
+      const res = await fetch("/api/zadost-o-pristup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: trimmedName,
+          email: trimmedEmail,
+          phone: trimmedPhone,
+          organization: trimmedOrganization,
+          address: trimmedAddress,
+          type: trimmedType,
+          message: trimmedMessage,
+          isDemoRequest,
+          company: form.company,
+        }),
+      });
 
-      const organizationTypeLine = `Typ organizace: ${
-        trimmedType || "neuvedeno"
-      }`;
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
 
-      const sourceLine = isDemoRequest
-        ? "Zdroj: web archimedeslive.com/zadost-o-pristup?type=demo"
-        : "Zdroj: web archimedeslive.com/zadost-o-pristup";
-
-      const addressLine = `Adresa: ${trimmedAddress}`;
-
-      const composedMessage = [
-        requestHeader,
-        organizationTypeLine,
-        addressLine,
-        sourceLine,
-        trimmedMessage || "",
-      ]
-        .filter(Boolean)
-        .join("\n\n");
-
-      const payload = {
-        type: normalizeLeadType(trimmedType, isDemoRequest),
-        organization: trimmedOrganization,
-        contact_name: trimmedName,
-        email: trimmedEmail,
-        phone: trimmedPhone || null,
-        note: composedMessage,
-        status: "new",
-      };
-
-      const { error: insertError } = await supabase
-        .from("leads")
-        .insert([payload]);
-
-      if (insertError) {
-        throw new Error(insertError.message || "Žádost se nepodařilo uložit.");
+      if (!res.ok) {
+        throw new Error(data?.error || "Žádost se nepodařilo odeslat.");
       }
 
       setMessage(
@@ -153,6 +125,7 @@ export default function ZadostPristupPage() {
         address: "",
         type: isDemoRequest ? "škola" : "",
         message: "",
+        company: "",
       });
     } catch (err) {
       setError(err.message || "Žádost se nepodařilo odeslat.");
@@ -180,8 +153,6 @@ export default function ZadostPristupPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
-      <PortalHeader />
-
       <main style={{ maxWidth: 760, margin: "0 auto", padding: "40px 16px" }}>
         <div
           style={{
@@ -284,6 +255,24 @@ export default function ZadostPristupPage() {
               gap: 16,
             }}
           >
+            <input
+              type="text"
+              name="company"
+              value={form.company}
+              onChange={updateField}
+              autoComplete="off"
+              tabIndex={-1}
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                left: "-9999px",
+                opacity: 0,
+                pointerEvents: "none",
+                height: 0,
+                width: 0,
+              }}
+            />
+
             <div>
               <label
                 style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
