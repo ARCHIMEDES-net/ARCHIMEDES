@@ -100,8 +100,9 @@ export default function DemoPage() {
               className="demoList"
               style={{
                 margin: 0,
-                paddingLeft: 20,
+                paddingLeft: 0,
                 color: "rgba(0,0,0,0.74)",
+                listStyle: "none",
               }}
             >
               <li>podobu portálu po přihlášení z pohledu školy</li>
@@ -138,8 +139,8 @@ export default function DemoPage() {
             }}
           >
             Přístup do ukázky poskytujeme na základě krátké žádosti. Díky tomu
-            máme přehled o zájmu škol a můžeme navázat vhodným dalším krokem —
-            například ukázkovou hodinou nebo konkrétní nabídkou pro školu.
+            máme přehled o zájmu škol a můžeme navázat konkrétní nabídkou pro
+            školu.
           </div>
         </div>
 
@@ -177,10 +178,6 @@ export default function DemoPage() {
           >
             <Link href="/zadost-o-pristup?type=demo" style={buttonPrimaryStyle}>
               Požádat o ukázkový přístup
-            </Link>
-
-            <Link href="/ukazka" style={buttonSecondaryStyle}>
-              Nejprve si domluvit ukázku
             </Link>
 
             <Link href="/" style={buttonSecondaryStyle}>
@@ -226,8 +223,21 @@ export default function DemoPage() {
         }
 
         .demoList {
-          line-height: 1.9;
+          line-height: 1.8;
           font-size: 16px;
+        }
+
+        .demoList li {
+          position: relative;
+          padding-left: 18px;
+          margin-bottom: 8px;
+        }
+
+        .demoList li::before {
+          content: "•";
+          position: absolute;
+          left: 0;
+          color: #111827;
         }
 
         .demoFormTitle {
