@@ -1,10 +1,10 @@
 import Link from "next/link";
-import RequireAuth from "../../../components/RequireAuth";
+import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
 
 export default function AdminHome() {
   return (
-    <RequireAuth>
+    <RequirePlatformAdmin>
       <PortalHeader />
 
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
@@ -21,11 +21,19 @@ export default function AdminHome() {
           </Card>
 
           <Card title="Inzerce" desc="MVP: jednoduchá stránka pro komunitní informace.">
-            <Link href="/portal/inzerce">Otevřít inzerci</Link>
+            <Link href="/portal/admin-inzerce">Otevřít admin inzerce</Link>
+          </Card>
+
+          <Card title="Poptávky" desc="Přehled leadů a práce s demo schválením.">
+            <Link href="/portal/admin-poptavky">Otevřít admin poptávek</Link>
+          </Card>
+
+          <Card title="Žádosti o přístup" desc="Vytvoření organizace a pozvání administrátora.">
+            <Link href="/portal/admin/zadosti">Otevřít žádosti</Link>
           </Card>
         </section>
       </main>
-    </RequireAuth>
+    </RequirePlatformAdmin>
   );
 }
 
