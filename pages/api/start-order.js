@@ -23,6 +23,10 @@ function getClientIp(req) {
   return req.socket?.remoteAddress || "";
 }
 
+function normalizeEmail(value = "") {
+  return String(value).trim().toLowerCase();
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -31,19 +35,40 @@ export default async function handler(req, res) {
   try {
     const data = req.body || {};
 
+    const schoolNameRaw = String(data.schoolName || "").trim();
+    const icoRaw = String(data.ico || "").trim();
+    const streetRaw = String(data.street || "").trim();
+    const cityRaw = String(data.city || "").trim();
+    const zipRaw = String(data.zip || "").trim();
+    const contactNameRaw = String(data.contactName || "").trim();
+    const roleRaw = String(data.role || "").trim();
+    const emailRaw = normalizeEmail(data.email);
+    const adminEmailRaw = normalizeEmail(data.adminEmail);
+    const phoneRaw = String(data.phone || "").trim();
+    const noteRaw = String(data.note || "").trim();
+
     // VALIDACE POVINNÝCH POLÍ
     if (
-      !data.schoolName ||
-      !data.ico ||
-      !data.street ||
-      !data.city ||
-      !data.zip ||
-      !data.contactName ||
-      !data.role ||
-      !data.email
+      !schoolNameRaw ||
+      !icoRaw ||
+      !streetRaw ||
+      !cityRaw ||
+      !zipRaw ||
+      !contactNameRaw ||
+      !roleRaw ||
+      !emailRaw ||
+      !adminEmailRaw
     ) {
       return res.status(400).json({
         error: "Prosím vyplňte všechny povinné údaje.",
+      });
+    }
+
+    // ZÁKLADNÍ VALIDACE E-MAILŮ
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailRaw) || !emailRegex.test(adminEmailRaw)) {
+      return res.status(400).json({
+        error: "Prosím zadejte platné e-mailové adresy.",
       });
     }
 
@@ -67,16 +92,17 @@ export default async function handler(req, res) {
     // ULOŽENÍ DO DB
     const { error: dbError } = await supabase.from("orders_start").insert([
       {
-        school_name: data.schoolName,
-        ico: data.ico,
-        street: data.street,
-        city: data.city,
-        zip: data.zip,
-        contact_name: data.contactName,
-        role: data.role,
-        email: data.email,
-        phone: data.phone || null,
-        note: data.note || null,
+        school_name: schoolNameRaw,
+        ico: icoRaw,
+        street: streetRaw,
+        city: cityRaw,
+        zip: zipRaw,
+        contact_name: contactNameRaw,
+        role: roleRaw,
+        email: emailRaw,
+        admin_email: adminEmailRaw,
+        phone: phoneRaw || null,
+        note: noteRaw || null,
 
         agree_vop: !!data.agreeVop,
         agree_dpa: !!data.agreeDpa,
@@ -84,6 +110,7 @@ export default async function handler(req, res) {
         agree_authority: !!data.agreeAuthority,
         agree_contract: !!data.agreeContract,
 
+        onboarding_status: "pending",
         legal_version: "2026-03-start-v1",
         ip_address: clientIp,
         user_agent: userAgent,
@@ -107,18 +134,19 @@ export default async function handler(req, res) {
       },
     });
 
-    const schoolName = escapeHtml(data.schoolName);
-    const ico = escapeHtml(data.ico);
-    const street = escapeHtml(data.street);
-    const city = escapeHtml(data.city);
-    const zip = escapeHtml(data.zip);
-    const contactName = escapeHtml(data.contactName);
-    const role = escapeHtml(data.role);
-    const email = escapeHtml(data.email);
-    const phone = escapeHtml(data.phone || "-");
-    const note = escapeHtml(data.note || "-");
+    const schoolName = escapeHtml(schoolNameRaw);
+    const ico = escapeHtml(icoRaw);
+    const street = escapeHtml(streetRaw);
+    const city = escapeHtml(cityRaw);
+    const zip = escapeHtml(zipRaw);
+    const contactName = escapeHtml(contactNameRaw);
+    const role = escapeHtml(roleRaw);
+    const email = escapeHtml(emailRaw);
+    const adminEmail = escapeHtml(adminEmailRaw);
+    const phone = escapeHtml(phoneRaw || "-");
+    const note = escapeHtml(noteRaw || "-");
 
-    const subject = `🟢 START – ${data.schoolName} (IČO: ${data.ico})`;
+    const subject = `🟢 START – ${schoolNameRaw} (IČO: ${icoRaw})`;
 
     // EMAIL INTERNÍ
     await transporter.sendMail({
@@ -135,7 +163,8 @@ export default async function handler(req, res) {
 
         <p><strong>Kontakt:</strong> ${contactName}</p>
         <p><strong>Funkce:</strong> ${role}</p>
-        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Email objednatele:</strong> ${email}</p>
+        <p><strong>Admin email (portál):</strong> ${adminEmail}</p>
         <p><strong>Telefon:</strong> ${phone}</p>
 
         <hr/>
@@ -158,6 +187,7 @@ export default async function handler(req, res) {
           <li>Uzavření smlouvy s povinností úhrady: ano</li>
         </ul>
 
+        <p><strong>Onboarding stav:</strong> pending</p>
         <p><strong>Právní verze:</strong> 2026-03-start-v1</p>
         <p><strong>Odesláno:</strong> ${escapeHtml(now)}</p>
         <p><strong>IP:</strong> ${escapeHtml(clientIp || "-")}</p>
@@ -167,7 +197,7 @@ export default async function handler(req, res) {
     // EMAIL ZÁKAZNÍKOVI
     await transporter.sendMail({
       from: process.env.MAIL_FROM,
-      to: data.email,
+      to: emailRaw,
       subject: "Potvrzení objednávky – ARCHIMEDES Live",
       html: `
         <h2>Děkujeme za objednávku</h2>
@@ -176,6 +206,7 @@ export default async function handler(req, res) {
 
         <p><strong>Škola / organizace:</strong> ${schoolName}</p>
         <p><strong>Objednatel:</strong> ${contactName}</p>
+        <p><strong>Administrátor portálu:</strong> ${adminEmail}</p>
         <p><strong>Období:</strong> duben–červen 2026</p>
         <p><strong>Cena:</strong> 4 990 Kč bez DPH</p>
 
@@ -187,6 +218,10 @@ export default async function handler(req, res) {
         </p>
 
         <p>Na základě objednávky vám bude vystavena faktura.</p>
+        <p>
+          Přístup administrátora školy do portálu bude připraven pro e-mail:
+          <strong>${adminEmail}</strong>.
+        </p>
 
         <p>
           Důležité dokumenty:
