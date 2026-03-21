@@ -68,7 +68,10 @@ export default function Home() {
 
                 <div className="heroGuestLinkWrap">
                   <div className="heroGuestLabel">International guest access</div>
-                  <Link href="/guest" className="heroGuestLink">
+                  <Link
+                    href="/guest"
+                    className="heroGuestLink al-btn al-btn-ghost"
+                  >
                     <span className="heroGuestTitle">
                       For invited guest speakers
                     </span>
@@ -378,31 +381,7 @@ export default function Home() {
           }
 
           .heroGuestLink {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
             gap: 8px;
-            min-height: 50px;
-            padding: 0 20px;
-            border-radius: 999px;
-            text-decoration: none;
-            font-weight: 800;
-            font-size: 15px;
-            line-height: 1.2;
-            white-space: nowrap;
-            background: transparent;
-            color: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            transition: transform 0.18s ease, box-shadow 0.18s ease,
-              background 0.18s ease, border-color 0.18s ease,
-              color 0.18s ease;
-          }
-
-          .heroGuestLink:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.08);
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.24);
           }
 
           .heroGuestTitle {
@@ -818,4 +797,4 @@ export default function Home() {
       </main>
     </>
   );
-}
+}}
