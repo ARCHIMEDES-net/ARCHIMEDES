@@ -328,7 +328,7 @@ export default function StartPage() {
         <title>Vyzkoušejte ARCHIMEDES Live ještě letos | START pro školy</title>
         <meta
           name="description"
-          content="Zvýhodněný start ARCHIMEDES Live pro školy na období duben–červen 2026. Vyzkoušejte program ještě letos a připravte se na září."
+          content="Zvýhodněný start ARCHIMEDES Live pro školy na období duben–září 2026. Vyzkoušejte program ještě letos a připravte se na září."
         />
       </Head>
 
@@ -342,10 +342,10 @@ export default function StartPage() {
                   <h1>Vyzkoušejte ARCHIMEDES Live ještě letos</h1>
 
                   <p className="lead">
-                    Objednáváte zvýhodněný start programu ARCHIMEDES Live na období
-                    duben–červen 2026. Škola si tak může program reálně vyzkoušet
-                    ještě v tomto školním roce a zároveň se připravit na další
-                    zapojení od září.
+                    Objednejte si zvýhodněný start programu ARCHIMEDES Live na období
+                    duben–září 2026. Škola si tak může program reálně vyzkoušet
+                    ještě v tomto školním roce a zároveň se v klidu připravit na další
+                    zapojení v novém školním roce.
                   </p>
 
                   <div className="proofBox">
@@ -357,7 +357,7 @@ export default function StartPage() {
 
                   <div className="noticeBox">
                     <strong>Odesláním objednávky objednáváte zvýhodněný balíček START</strong>{" "}
-                    na období duben–červen 2026. Po odeslání vám zašleme potvrzení
+                    na období duben–září 2026. Po odeslání vám zašleme potvrzení
                     objednávky, fakturační podklady a další informace k zahájení
                     programu. Na vyžádání připravíme také specifikaci plnění pro
                     interní administraci školy nebo organizace.
@@ -395,7 +395,7 @@ export default function StartPage() {
                         <span className="processNumber">4</span>
                         <p>
                           Můžete zapojit třídy do online vzdělávacích aktivit v
-                          období duben–červen 2026 a ověřit si program ještě letos
+                          období duben–září 2026 a ověřit si program ještě letos
                           v praxi.
                         </p>
                       </div>
@@ -440,7 +440,7 @@ export default function StartPage() {
 
                     <div className="summaryRow">
                       <span>Období</span>
-                      <strong>duben–červen 2026</strong>
+                      <strong>duben–září 2026</strong>
                     </div>
 
                     <div className="summaryRow">
