@@ -16,6 +16,7 @@ export default function PortalHeader({ title = "" }) {
 
   const [isOrgAdmin, setIsOrgAdmin] = useState(false);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [isDemoViewer, setIsDemoViewer] = useState(false);
   const [loadingRole, setLoadingRole] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -33,6 +34,7 @@ export default function PortalHeader({ title = "" }) {
         if (!user) {
           setIsOrgAdmin(false);
           setIsPlatformAdmin(false);
+          setIsDemoViewer(false);
           setLoadingRole(false);
           return;
         }
@@ -46,7 +48,9 @@ export default function PortalHeader({ title = "" }) {
 
         if (!alive) return;
 
-        setIsOrgAdmin(membership?.role_in_org === "organization_admin");
+        const roleInOrg = membership?.role_in_org || "";
+        setIsOrgAdmin(roleInOrg === "organization_admin");
+        setIsDemoViewer(roleInOrg === "demo_viewer");
 
         const { data: platformAdminRow } = await supabase
           .from("platform_admins")
@@ -61,6 +65,7 @@ export default function PortalHeader({ title = "" }) {
         if (!alive) return;
         setIsOrgAdmin(false);
         setIsPlatformAdmin(false);
+        setIsDemoViewer(false);
       } finally {
         if (alive) setLoadingRole(false);
       }
@@ -161,6 +166,7 @@ export default function PortalHeader({ title = "" }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          gap: 12,
         }}
       >
         <Link href="/portal" style={{ display: "flex", alignItems: "center" }}>
@@ -175,30 +181,52 @@ export default function PortalHeader({ title = "" }) {
           />
         </Link>
 
-        <nav style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <Link href="/portal" style={navItem("portal")}>Portál</Link>
-          <Link href="/portal/kalendar" style={navItem("program")}>Program</Link>
-          <Link href="/portal/archiv" style={navItem("archiv")}>Archiv</Link>
+        <nav
+          style={{
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
+          }}
+        >
+          <Link href="/portal" style={navItem("portal")}>
+            Portál
+          </Link>
 
-          {!loadingRole && isPlatformAdmin && (
+          <Link href="/portal/kalendar" style={navItem("program")}>
+            Program
+          </Link>
+
+          <Link href="/portal/archiv" style={navItem("archiv")}>
+            Archiv
+          </Link>
+
+          {!loadingRole && !isDemoViewer && isPlatformAdmin && (
             <Link href="/portal/admin-udalosti" style={navItem("sprava-vysilani")}>
               Správa vysílání
             </Link>
           )}
 
-          {!loadingRole && isOrgAdmin && (
+          {!loadingRole && !isDemoViewer && isOrgAdmin && (
             <Link href="/portal/uzivatele" style={navItem("uzivatele")}>
               Uživatelé
             </Link>
           )}
 
-          <Link href="/portal/muj-profil" style={navItem("profil")}>Můj profil</Link>
+          <Link href="/portal/muj-profil" style={navItem("profil")}>
+            Můj profil
+          </Link>
 
-          {!loadingRole && isPlatformAdmin && (
-            <Link href="/portal/admin" style={navItem("admin")}>Admin</Link>
+          {!loadingRole && !isDemoViewer && isPlatformAdmin && (
+            <Link href="/portal/admin" style={navItem("admin")}>
+              Admin
+            </Link>
           )}
 
-          <Link href="/" style={publicWebStyle}>Veřejný web</Link>
+          <Link href="/" style={publicWebStyle}>
+            Veřejný web
+          </Link>
 
           <button onClick={onLogout} style={logoutButtonStyle}>
             Odhlásit
