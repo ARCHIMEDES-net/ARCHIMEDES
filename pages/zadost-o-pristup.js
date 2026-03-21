@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import PortalHeader from "../components/PortalHeader";
 import { supabase } from "../lib/supabaseClient";
 
@@ -7,20 +8,28 @@ function normalizeLicenseType(value) {
   const v = String(value || "").toLowerCase().trim();
 
   if (["škola", "skola", "school"].includes(v)) return "skola";
-  if (["obec", "město", "mesto", "obec / město", "obec / mesto"].includes(v)) return "obec";
+  if (["obec", "město", "mesto", "obec / město", "obec / mesto"].includes(v))
+    return "obec";
   if (["spolek", "komunita", "community"].includes(v)) return "komunita";
-  if (["senior-klub", "senior klub", "senior", "senior club"].includes(v)) return "senior";
+  if (["senior-klub", "senior klub", "senior", "senior club"].includes(v))
+    return "senior";
   return "komunita";
 }
 
 export default function ZadostPristupPage() {
+  const router = useRouter();
+  const isDemoRequest = useMemo(
+    () => String(router.query.type || "").toLowerCase() === "demo",
+    [router.query.type]
+  );
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
     organization: "",
     address: "",
-    type: "",
+    type: isDemoRequest ? "škola" : "",
     message: "",
   });
 
@@ -62,7 +71,9 @@ export default function ZadostPristupPage() {
 
       if (!trimmedOrganization) {
         throw new Error(
-          "Vyplňte prosím školu, obec, organizaci nebo místo, kde chcete ARCHIMEDES Live využít."
+          isDemoRequest
+            ? "Vyplňte prosím školu nebo organizaci, pro kterou chcete ukázkový přístup."
+            : "Vyplňte prosím školu, obec, organizaci nebo místo, kde chcete ARCHIMEDES Live využít."
         );
       }
 
@@ -74,6 +85,22 @@ export default function ZadostPristupPage() {
         throw new Error("Telefon je příliš krátký.");
       }
 
+      const requestHeader = isDemoRequest
+        ? "Typ žádosti: demo přístup"
+        : "Typ žádosti: standardní přístup";
+
+      const organizationTypeLine = `Typ organizace: ${
+        trimmedType || "neuvedeno"
+      }`;
+
+      const composedMessage = [
+        requestHeader,
+        organizationTypeLine,
+        trimmedMessage || "",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+
       const { error: insertError } = await supabase.from("access_requests").insert([
         {
           license_type: normalizeLicenseType(trimmedType),
@@ -82,9 +109,7 @@ export default function ZadostPristupPage() {
           address: trimmedAddress,
           email: trimmedEmail,
           phone: trimmedPhone || null,
-          message: trimmedMessage
-            ? `Typ organizace: ${trimmedType || "neuvedeno"}\n\n${trimmedMessage}`
-            : `Typ organizace: ${trimmedType || "neuvedeno"}`,
+          message: composedMessage,
           status: "new",
         },
       ]);
@@ -94,7 +119,9 @@ export default function ZadostPristupPage() {
       }
 
       setMessage(
-        "Děkujeme. Žádost o přístup byla úspěšně odeslána. Ozveme se vám s dalším postupem."
+        isDemoRequest
+          ? "Děkujeme. Žádost o ukázkový přístup byla úspěšně odeslána. Ozveme se vám s dalším postupem a přístupem do demo prostředí."
+          : "Děkujeme. Žádost o přístup byla úspěšně odeslána. Ozveme se vám s dalším postupem."
       );
 
       setForm({
@@ -103,7 +130,7 @@ export default function ZadostPristupPage() {
         phone: "",
         organization: "",
         address: "",
-        type: "",
+        type: isDemoRequest ? "škola" : "",
         message: "",
       });
     } catch (err) {
@@ -145,13 +172,39 @@ export default function ZadostPristupPage() {
           }}
         >
           <h1 style={{ marginTop: 0, fontSize: 32 }}>
-            Žádost o přístup do ARCHIMEDES Live
+            {isDemoRequest
+              ? "Žádost o ukázkový přístup do ARCHIMEDES Live"
+              : "Žádost o přístup do ARCHIMEDES Live"}
           </h1>
 
-          <p style={{ color: "rgba(0,0,0,0.68)", lineHeight: 1.6, marginBottom: 20 }}>
-            Pokud ještě nemáte přístup do portálu, vyplňte krátký formulář.
-            Ozveme se vám s dalším postupem a vhodným typem přístupu.
+          <p
+            style={{
+              color: "rgba(0,0,0,0.68)",
+              lineHeight: 1.6,
+              marginBottom: 20,
+            }}
+          >
+            {isDemoRequest
+              ? "Vyplňte krátký formulář a požádejte o přístup do ukázkového prostředí. Demo slouží k bezpečné prohlídce portálu z pohledu školy, bez administrativních zásahů a bez možnosti aktivního spuštění vysílání."
+              : "Pokud ještě nemáte přístup do portálu, vyplňte krátký formulář. Ozveme se vám s dalším postupem a vhodným typem přístupu."}
           </p>
+
+          {isDemoRequest ? (
+            <div
+              style={{
+                marginBottom: 18,
+                padding: 14,
+                borderRadius: 14,
+                background: "#eefaf0",
+                color: "#166534",
+                border: "1px solid #cfe8d3",
+                lineHeight: 1.6,
+              }}
+            >
+              Ukázkový přístup je určen k prohlížení prostředí ARCHIMEDES Live.
+              Neumožňuje správu školy, vytváření událostí ani spuštění vysílání.
+            </div>
+          ) : null}
 
           {error ? (
             <div
@@ -239,19 +292,26 @@ export default function ZadostPristupPage() {
               <label
                 style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
               >
-                Škola / obec / organizace / místo zájmu*
+                {isDemoRequest
+                  ? "Škola / organizace pro ukázkový přístup*"
+                  : "Škola / obec / organizace / místo zájmu*"}
               </label>
               <input
                 name="organization"
                 required
                 value={form.organization}
                 onChange={updateField}
-                placeholder="Např. ZŠ Hodonín, Obec Křenov, Hodonín, komunita v Bučovicích..."
+                placeholder={
+                  isDemoRequest
+                    ? "Např. ZŠ Hodonín, Gymnázium Vyškov..."
+                    : "Např. ZŠ Hodonín, Obec Křenov, Hodonín, komunita v Bučovicích..."
+                }
                 style={fieldStyle}
               />
               <div style={helperStyle}>
-                Pokud zatím nežádáte za konkrétní organizaci, napište prosím obec,
-                město nebo stručně popište, kde chcete ARCHIMEDES Live využít.
+                {isDemoRequest
+                  ? "Napište prosím školu nebo organizaci, pro kterou chcete ukázkové prostředí zobrazit."
+                  : "Pokud zatím nežádáte za konkrétní organizaci, napište prosím obec, město nebo stručně popište, kde chcete ARCHIMEDES Live využít."}
               </div>
             </div>
 
@@ -292,7 +352,8 @@ export default function ZadostPristupPage() {
                 <option value="jine">Jiné / zatím neurčeno</option>
               </select>
               <div style={helperStyle}>
-                Pokud zatím nevystupujete za konkrétní organizaci, zvolte „Jiné / zatím neurčeno“.
+                Pokud zatím nevystupujete za konkrétní organizaci, zvolte „Jiné /
+                zatím neurčeno“.
               </div>
             </div>
 
@@ -300,7 +361,7 @@ export default function ZadostPristupPage() {
               <label
                 style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
               >
-                Zpráva
+                {isDemoRequest ? "Poznámka" : "Zpráva"}
               </label>
               <textarea
                 name="message"
@@ -308,7 +369,11 @@ export default function ZadostPristupPage() {
                 value={form.message}
                 onChange={updateField}
                 style={{ ...fieldStyle, resize: "vertical" }}
-                placeholder="Můžete doplnit, pro koho o přístup usilujete, koho chcete zapojit nebo v jaké fázi zájmu jste."
+                placeholder={
+                  isDemoRequest
+                    ? "Můžete doplnit, pro koho chcete ukázkový přístup, jakou roli ve škole máte nebo co vás na ARCHIMEDES Live zajímá nejvíce."
+                    : "Můžete doplnit, pro koho o přístup usilujete, koho chcete zapojit nebo v jaké fázi zájmu jste."
+                }
               />
             </div>
 
@@ -334,11 +399,15 @@ export default function ZadostPristupPage() {
                   opacity: saving ? 0.7 : 1,
                 }}
               >
-                {saving ? "Odesílám..." : "Odeslat žádost"}
+                {saving
+                  ? "Odesílám..."
+                  : isDemoRequest
+                  ? "Odeslat žádost o ukázkový přístup"
+                  : "Odeslat žádost"}
               </button>
 
               <Link
-                href="/login"
+                href={isDemoRequest ? "/demo" : "/login"}
                 style={{
                   display: "inline-block",
                   padding: "12px 16px",
@@ -350,7 +419,7 @@ export default function ZadostPristupPage() {
                   border: "1px solid rgba(0,0,0,0.12)",
                 }}
               >
-                Zpět na přihlášení
+                {isDemoRequest ? "Zpět na ukázku" : "Zpět na přihlášení"}
               </Link>
             </div>
           </form>
