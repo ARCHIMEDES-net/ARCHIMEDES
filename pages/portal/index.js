@@ -124,11 +124,7 @@ export default function PortalIndex() {
           { data: profile, error: profileError },
           { data: membership, error: membershipError },
         ] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("id, user_type")
-            .eq("id", user.id)
-            .maybeSingle(),
+          supabase.from("profiles").select("id, user_type").eq("id", user.id).maybeSingle(),
 
           supabase
             .from("organization_members")
@@ -141,7 +137,8 @@ export default function PortalIndex() {
         if (profileError) throw profileError;
         if (membershipError) throw membershipError;
 
-        setMembershipRole(membership?.role_in_org || "");
+        const roleInOrg = membership?.role_in_org || "";
+        setMembershipRole(roleInOrg);
 
         if (membership?.organization_id) {
           const { data: org, error: orgError } = await supabase
@@ -158,7 +155,11 @@ export default function PortalIndex() {
           setLicenseValidUntil(org?.license_valid_until || null);
           setLicenseMode(resolveLicenseMode(org));
 
-          setDashboardType("organization");
+          if (roleInOrg === "demo_viewer") {
+            setDashboardType("demo_viewer");
+          } else {
+            setDashboardType("organization");
+          }
         } else if (profile?.user_type === "individual") {
           setDashboardType("individual");
           setLicenseMode("active");
@@ -176,9 +177,16 @@ export default function PortalIndex() {
   }, []);
 
   const hasEvents = nextEvents && nextEvents.length > 0;
+  const isDemoViewer = membershipRole === "demo_viewer";
 
   const dashboard = useMemo(
-    () => getDashboardConfig(dashboardType, organizationName, licenseMode, licenseValidUntil),
+    () =>
+      getDashboardConfig(
+        dashboardType,
+        organizationName,
+        licenseMode,
+        licenseValidUntil
+      ),
     [dashboardType, organizationName, licenseMode, licenseValidUntil]
   );
 
@@ -188,10 +196,17 @@ export default function PortalIndex() {
     membershipRole === "organization_admin";
 
   const isProgramAdmin = isAdmin || membershipRole === "organization_admin";
+  const showAdminSection = !isDemoViewer;
 
-  const showTrialBanner = dashboardType === "organization" && licenseMode === "trial";
-  const showExpiredBanner = dashboardType === "organization" && licenseMode === "expired";
-  const showSuspendedBanner = dashboardType === "organization" && licenseMode === "suspended";
+  const showTrialBanner =
+    (dashboardType === "organization" || dashboardType === "demo_viewer") &&
+    licenseMode === "trial";
+  const showExpiredBanner =
+    (dashboardType === "organization" || dashboardType === "demo_viewer") &&
+    licenseMode === "expired";
+  const showSuspendedBanner =
+    (dashboardType === "organization" || dashboardType === "demo_viewer") &&
+    licenseMode === "suspended";
 
   async function handleCopyOrganizationCode() {
     if (!organizationCode) return;
@@ -210,20 +225,39 @@ export default function PortalIndex() {
 
       <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto", padding: "24px 16px 48px" }}>
+          {isDemoViewer ? (
+            <DemoViewerBanner organizationName={organizationName} />
+          ) : null}
+
           {showTrialBanner ? (
             <LicenseBanner
               mode="trial"
-              title="ARCHIMEDES Live – demo přístup"
+              title={
+                isDemoViewer
+                  ? "ARCHIMEDES Live – ukázkové prostředí"
+                  : "ARCHIMEDES Live – demo přístup"
+              }
               text={
                 <>
-                  Vaše organizace{organizationName ? ` ${organizationName}` : ""} má aktivní demo
-                  přístup{licenseValidUntil ? (
+                  {isDemoViewer ? (
+                    <>
+                      Prohlížíte ukázkové prostředí
+                      {organizationName ? ` pro ${organizationName}` : ""}. Můžete si projít
+                      portál, program, kalendář a síť učeben
+                    </>
+                  ) : (
+                    <>
+                      Vaše organizace{organizationName ? ` ${organizationName}` : ""} má aktivní demo
+                      přístup. Můžete si vyzkoušet portál, prohlédnout program a připravit si ukázkovou hodinu
+                    </>
+                  )}
+                  {licenseValidUntil ? (
                     <>
                       {" "}
                       do <strong>{formatDateCS(licenseValidUntil)}</strong>
                     </>
                   ) : null}
-                  . Můžete si vyzkoušet portál, prohlédnout program a připravit si ukázkovou hodinu.
+                  .
                 </>
               }
               primaryHref="/poptavka"
@@ -236,7 +270,7 @@ export default function PortalIndex() {
           {showExpiredBanner ? (
             <LicenseBanner
               mode="expired"
-              title="Demo přístup vypršel"
+              title={isDemoViewer ? "Ukázkový přístup vypršel" : "Demo přístup vypršel"}
               text={
                 <>
                   Přístup organizace{organizationName ? ` ${organizationName}` : ""} je nyní v
@@ -561,7 +595,9 @@ export default function PortalIndex() {
                 color: "rgba(15,23,42,0.72)",
               }}
             >
-              {licenseMode === "trial"
+              {isDemoViewer
+                ? "Ukázkový přístup pouze pro prohlížení."
+                : licenseMode === "trial"
                 ? "Demo přístup pro registrované."
                 : licenseMode === "expired" || licenseMode === "suspended"
                 ? "Omezený přístup."
@@ -645,117 +681,119 @@ export default function PortalIndex() {
                 </div>
               </section>
 
-              <section
-                style={{
-                  background: "white",
-                  border: "1px solid rgba(15,23,42,0.08)",
-                  borderRadius: 24,
-                  padding: 18,
-                  boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
-                }}
-              >
-                <div
+              {showAdminSection ? (
+                <section
                   style={{
-                    display: "flex",
-                    gap: 10,
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    marginBottom: 14,
+                    background: "white",
+                    border: "1px solid rgba(15,23,42,0.08)",
+                    borderRadius: 24,
+                    padding: 18,
+                    boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
                   }}
                 >
-                  <div style={{ fontSize: 26, fontWeight: 900, lineHeight: 1.05, color: "#0f172a" }}>
-                    Administrace
-                  </div>
                   <div
                     style={{
-                      fontSize: 12,
-                      fontWeight: 800,
-                      padding: "4px 10px",
-                      borderRadius: 999,
-                      background: "rgba(15,23,42,0.06)",
-                      color: "rgba(15,23,42,0.72)",
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      marginBottom: 14,
                     }}
                   >
-                    vidí jen správci
+                    <div style={{ fontSize: 26, fontWeight: 900, lineHeight: 1.05, color: "#0f172a" }}>
+                      Administrace
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 800,
+                        padding: "4px 10px",
+                        borderRadius: 999,
+                        background: "rgba(15,23,42,0.06)",
+                        color: "rgba(15,23,42,0.72)",
+                      }}
+                    >
+                      vidí jen správci
+                    </div>
                   </div>
-                </div>
 
-                {checkingAdmin ? (
-                  <div
-                    style={{
-                      padding: 14,
-                      borderRadius: 16,
-                      border: "1px dashed rgba(15,23,42,0.18)",
-                      background: "rgba(15,23,42,0.02)",
-                      color: "rgba(15,23,42,0.70)",
-                    }}
-                  >
-                    Načítám práva…
-                  </div>
-                ) : isProgramAdmin ? (
-                  <div className="tiles-grid admin-grid">
-                    <Tile
-                      href="/portal/admin-udalosti/novy"
-                      icon="➕"
-                      title="Nová událost"
-                      desc="Rychlé založení nového vysílání nebo akce do programu."
-                      cta="Vytvořit"
-                    />
-                    <Tile
-                      href="/portal/admin-udalosti"
-                      icon="🛠️"
-                      title="Správa vysílání"
-                      desc="Vkládání, úpravy, odkazy na vysílání, záznamy a publikace."
-                      cta="Otevřít"
-                    />
-                    <Tile
-                      href="/portal/archiv"
-                      icon="📁"
-                      title="Archiv"
-                      desc="Kontrola záznamů, návazných materiálů a výsledného zobrazení pro uživatele."
-                      cta="Otevřít"
-                    />
-                    {isAdmin ? (
-                      <>
-                        <Tile
-                          href="/portal/admin-inzerce"
-                          icon="✅"
-                          title="Inzerce"
-                          desc="Moderace, TOP, ARCHIMEDES a správa příspěvků."
-                          cta="Otevřít"
-                        />
-                        <Tile
-                          href="/portal/admin-poptavky"
-                          icon="📨"
-                          title="Poptávky"
-                          desc="Přehled leadů a export do CSV."
-                          cta="Otevřít"
-                        />
-                        <Tile
-                          href="/portal/admin-skoly"
-                          icon="🏫"
-                          title="Školy"
-                          desc="Správa databáze učeben, fotek, kontaktů a publikace."
-                          cta="Otevřít"
-                        />
-                      </>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      padding: 16,
-                      borderRadius: 16,
-                      border: "1px dashed rgba(15,23,42,0.18)",
-                      background: "rgba(15,23,42,0.02)",
-                      color: "rgba(15,23,42,0.72)",
-                      fontSize: 15,
-                    }}
-                  >
-                    Administrace je dostupná jen správcům.
-                  </div>
-                )}
-              </section>
+                  {checkingAdmin ? (
+                    <div
+                      style={{
+                        padding: 14,
+                        borderRadius: 16,
+                        border: "1px dashed rgba(15,23,42,0.18)",
+                        background: "rgba(15,23,42,0.02)",
+                        color: "rgba(15,23,42,0.70)",
+                      }}
+                    >
+                      Načítám práva…
+                    </div>
+                  ) : isProgramAdmin ? (
+                    <div className="tiles-grid admin-grid">
+                      <Tile
+                        href="/portal/admin-udalosti/novy"
+                        icon="➕"
+                        title="Nová událost"
+                        desc="Rychlé založení nového vysílání nebo akce do programu."
+                        cta="Vytvořit"
+                      />
+                      <Tile
+                        href="/portal/admin-udalosti"
+                        icon="🛠️"
+                        title="Správa vysílání"
+                        desc="Vkládání, úpravy, odkazy na vysílání, záznamy a publikace."
+                        cta="Otevřít"
+                      />
+                      <Tile
+                        href="/portal/archiv"
+                        icon="📁"
+                        title="Archiv"
+                        desc="Kontrola záznamů, návazných materiálů a výsledného zobrazení pro uživatele."
+                        cta="Otevřít"
+                      />
+                      {isAdmin ? (
+                        <>
+                          <Tile
+                            href="/portal/admin-inzerce"
+                            icon="✅"
+                            title="Inzerce"
+                            desc="Moderace, TOP, ARCHIMEDES a správa příspěvků."
+                            cta="Otevřít"
+                          />
+                          <Tile
+                            href="/portal/admin-poptavky"
+                            icon="📨"
+                            title="Poptávky"
+                            desc="Přehled leadů a export do CSV."
+                            cta="Otevřít"
+                          />
+                          <Tile
+                            href="/portal/admin-skoly"
+                            icon="🏫"
+                            title="Školy"
+                            desc="Správa databáze učeben, fotek, kontaktů a publikace."
+                            cta="Otevřít"
+                          />
+                        </>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        padding: 16,
+                        borderRadius: 16,
+                        border: "1px dashed rgba(15,23,42,0.18)",
+                        background: "rgba(15,23,42,0.02)",
+                        color: "rgba(15,23,42,0.72)",
+                        fontSize: 15,
+                      }}
+                    >
+                      Administrace je dostupná jen správcům.
+                    </div>
+                  )}
+                </section>
+              ) : null}
             </div>
 
             <aside
@@ -931,9 +969,77 @@ export default function PortalIndex() {
   );
 }
 
-function getDashboardConfig(type, organizationName = "", licenseMode = "default", licenseValidUntil = null) {
+function getDashboardConfig(
+  type,
+  organizationName = "",
+  licenseMode = "default",
+  licenseValidUntil = null
+) {
   const orgLabel = organizationName ? ` pro ${organizationName}` : "";
   const trialUntilText = licenseValidUntil ? formatDateCS(licenseValidUntil) : null;
+
+  if (type === "demo_viewer") {
+    return {
+      badge: "ARCHIMEDES Live • ukázkové prostředí",
+      heroTitleLine1: "Vítejte v ukázkovém",
+      heroTitleLine2: "prostředí portálu",
+      heroText: `Tady si můžete bezpečně prohlédnout, jak ARCHIMEDES Live funguje${orgLabel}. Ukázka slouží pouze k orientaci v programu, kalendáři, archivu a síti učeben${trialUntilText ? ` do ${trialUntilText}` : ""}.`,
+      tipBold: "Kalendář",
+      quickTitle: "Co doporučujeme otevřít jako první",
+      quickSubtitle: "Nejrychlejší cesta k tomu, abyste si udělali jasnou představu o portálu.",
+      primaryCtaLabel: "Otevřít kalendář",
+      primaryCtaHref: "/portal/kalendar",
+      sideBoxTitle: "Co v ukázce získáte",
+      sideBoxText:
+        "Ukázkové prostředí vám umožní projít strukturu portálu a vidět, jak vypadá práce s programem. Jde o režim pouze pro prohlížení, bez správy školy a bez administrativních zásahů.",
+      stats: [
+        { value: "demo", label: "režim přístupu" },
+        { value: "3", label: "nejbližší vysílání v přehledu" },
+        { value: "4", label: "hlavní ukázkové sekce" },
+        { value: "read-only", label: "způsob použití" },
+      ],
+      tiles: [
+        {
+          href: "/portal/kalendar",
+          icon: "🗓️",
+          title: "Kalendář programu",
+          desc: "Podívejte se, jak vypadá program a jak se škola dostává k jednotlivým vstupům.",
+          cta: "Otevřít",
+          highlight: true,
+          note: "Začněte zde",
+        },
+        {
+          href: "/portal/archiv",
+          icon: "📚",
+          title: "Archiv",
+          desc: "Projděte si strukturu archivu a podobu materiálů. Plný obsah je dostupný v aktivní licenci.",
+          cta: "Otevřít",
+          note: "Ukázka",
+        },
+        {
+          href: "/portal/skoly",
+          icon: "🏫",
+          title: "Síť učeben",
+          desc: "Inspirace z praxe a přehled škol a obcí zapojených do sítě ARCHIMEDES.",
+          cta: "Otevřít",
+        },
+        {
+          href: "/poptavka",
+          icon: "🎓",
+          title: "Ukázková hodina",
+          desc: "Požádejte o ukázkovou hodinu zdarma pro vaši školu nebo obec.",
+          cta: "Požádat",
+        },
+        {
+          href: "/poptavka",
+          icon: "🔓",
+          title: "Plná licence",
+          desc: "Aktivujte plný přístup do programu, záznamů a dalších částí portálu.",
+          cta: "Aktivovat",
+        },
+      ],
+    };
+  }
 
   if (type === "organization") {
     if (licenseMode === "trial") {
@@ -1272,6 +1378,94 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
       },
     ],
   };
+}
+
+function DemoViewerBanner({ organizationName }) {
+  return (
+    <section
+      style={{
+        background: "linear-gradient(180deg, #eef6ff 0%, #f5f9ff 100%)",
+        border: "1px solid #cfe0ff",
+        borderRadius: 24,
+        padding: 18,
+        marginBottom: 18,
+        boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ minWidth: 0, flex: "1 1 560px" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "6px 10px",
+              borderRadius: 999,
+              background: "#dbeafe",
+              color: "#1d4ed8",
+              fontSize: 12,
+              fontWeight: 900,
+              marginBottom: 10,
+            }}
+          >
+            Ukázkové prostředí
+          </div>
+
+          <div
+            style={{
+              fontSize: 28,
+              fontWeight: 900,
+              lineHeight: 1.08,
+              color: "#0f172a",
+            }}
+          >
+            Prohlížíte demo režim ARCHIMEDES Live
+          </div>
+
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 15,
+              lineHeight: 1.6,
+              color: "rgba(15,23,42,0.74)",
+              maxWidth: 840,
+            }}
+          >
+            Tento přístup slouží k bezpečné prohlídce portálu
+            {organizationName ? ` pro ${organizationName}` : ""}. Můžete si projít strukturu programu,
+            kalendář, archiv a síť učeben, ale nemůžete nic spravovat ani měnit.
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Link
+            href="/poptavka"
+            style={{
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "12px 16px",
+              borderRadius: 14,
+              background: "#0f172a",
+              color: "white",
+              fontWeight: 900,
+              whiteSpace: "nowrap",
+            }}
+          >
+            Chci plnou licenci
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function LicenseBanner({
