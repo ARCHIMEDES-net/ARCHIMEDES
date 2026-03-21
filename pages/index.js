@@ -1,3 +1,4 @@
+
 import Head from "next/head";
 import Link from "next/link";
 import Footer from "../components/Footer";
@@ -67,10 +68,8 @@ export default function Home() {
                 </div>
 
                 <div className="heroGuestLinkWrap">
+                  <div className="heroGuestLabel">International guest access</div>
                   <Link href="/guest" className="heroGuestLink">
-                    <span className="heroGuestLabel">
-                      International guest access
-                    </span>
                     <span className="heroGuestTitle">
                       For invited guest speakers
                     </span>
@@ -364,21 +363,10 @@ export default function Home() {
 
           .heroGuestLinkWrap {
             margin-top: 16px;
-          }
-
-          .heroGuestLink {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: rgba(255, 255, 255, 0.84);
-            transition: transform 0.18s ease, color 0.18s ease,
-              opacity 0.18s ease;
-          }
-
-          .heroGuestLink:hover {
-            transform: translateY(-1px);
-            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
           }
 
           .heroGuestLabel {
@@ -390,26 +378,45 @@ export default function Home() {
             color: rgba(255, 255, 255, 0.52);
           }
 
-          .heroGuestTitle {
+          .heroGuestLink {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 50px;
+            padding: 0 20px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 800;
             font-size: 15px;
-            line-height: 1.5;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.86);
+            line-height: 1.2;
+            white-space: nowrap;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            transition: transform 0.18s ease, box-shadow 0.18s ease,
+              background 0.18s ease, border-color 0.18s ease,
+              color 0.18s ease;
+          }
+
+          .heroGuestLink:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.24);
+          }
+
+          .heroGuestTitle {
+            display: inline-block;
           }
 
           .heroGuestArrow {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.92);
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 900;
             line-height: 1;
-            margin-left: 2px;
           }
 
           .section {
@@ -705,15 +712,18 @@ export default function Home() {
 
             .heroGuestLinkWrap {
               margin-top: 14px;
-            }
-
-            .heroGuestLink {
               align-items: flex-start;
-              gap: 8px;
             }
 
             .heroGuestLabel {
               font-size: 11px;
+            }
+
+            .heroGuestLink {
+              width: auto;
+              max-width: 100%;
+              min-height: 46px;
+              padding: 0 16px;
             }
 
             .heroGuestTitle {
@@ -721,9 +731,7 @@ export default function Home() {
             }
 
             .heroGuestArrow {
-              width: 22px;
-              height: 22px;
-              font-size: 12px;
+              font-size: 13px;
             }
           }
         `}</style>
