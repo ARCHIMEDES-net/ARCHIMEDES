@@ -24,6 +24,7 @@ function norm(v) {
 
 function statusLabel(s) {
   const v = (s || "").toLowerCase();
+  if (v === "approved") return "Schváleno";
   if (v === "in_progress") return "Řeší se";
   if (v === "done") return "Vyřízeno";
   return "Nová";
@@ -45,9 +46,25 @@ function statusChipStyle(s) {
     whiteSpace: "nowrap",
   };
 
+  if (v === "approved") return { ...base, background: "#ecfeff", border: "1px solid #a5f3fc" };
   if (v === "done") return { ...base, background: "#ecfdf5", border: "1px solid #a7f3d0" };
   if (v === "in_progress") return { ...base, background: "#eff6ff", border: "1px solid #bfdbfe" };
   return { ...base, background: "#fff7ed", border: "1px solid #fed7aa" };
+}
+
+function isDemoLead(row) {
+  const hay = [
+    row?.type,
+    row?.organization,
+    row?.contact_name,
+    row?.email,
+    row?.phone,
+    row?.note,
+  ]
+    .map((x) => norm(x).toLowerCase())
+    .join(" | ");
+
+  return hay.includes("demo");
 }
 
 export default function AdminPoptavky() {
@@ -58,9 +75,12 @@ export default function AdminPoptavky() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  const [typeFilter, setTypeFilter] = useState("all"); // all | obec | skola | senior
-  const [statusFilter, setStatusFilter] = useState("all"); // all | new | in_progress | done
+  const [typeFilter, setTypeFilter] = useState("all"); // all | obec | skola | senior | demo
+  const [statusFilter, setStatusFilter] = useState("all"); // all | new | in_progress | approved | done
   const [q, setQ] = useState("");
+
+  const [approvingId, setApprovingId] = useState("");
+  const [actionMsg, setActionMsg] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -102,7 +122,6 @@ export default function AdminPoptavky() {
   }, [checkingAdmin, isAdmin]);
 
   async function setStatus(id, status) {
-    // optimisticky upravíme UI
     const prev = rows;
     setRows((r) => r.map((x) => (x.id === id ? { ...x, status } : x)));
 
@@ -113,12 +132,67 @@ export default function AdminPoptavky() {
     }
   }
 
+  async function approveDemo(row) {
+    if (!row?.id) return;
+
+    const email = norm(row.email);
+    if (!email) {
+      alert("U této žádosti chybí e-mail.");
+      return;
+    }
+
+    const ok = window.confirm(
+      `Schválit demo přístup pro ${email}?`
+    );
+    if (!ok) return;
+
+    setApprovingId(row.id);
+    setActionMsg("");
+
+    try {
+      const res = await fetch("/api/admin/approve-demo-request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          requestId: row.id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Schválení demo přístupu se nepodařilo.");
+      }
+
+      setRows((prev) =>
+        prev.map((x) =>
+          x.id === row.id
+            ? { ...x, status: "approved" }
+            : x
+        )
+      );
+
+      setActionMsg(`Demo přístup schválen pro ${email}.`);
+    } catch (e) {
+      alert(e.message || "Schválení demo přístupu se nepodařilo.");
+    } finally {
+      setApprovingId("");
+    }
+  }
+
   const filtered = useMemo(() => {
     let out = rows || [];
 
     if (typeFilter !== "all") {
       out = out.filter((r) => {
         const t = norm(r?.type).toLowerCase();
+        const n = norm(r?.note).toLowerCase();
+
+        if (typeFilter === "demo") {
+          return isDemoLead(r) || n.includes("demo");
+        }
         if (typeFilter === "skola") return t.includes("skola") || t.includes("škola") || t.includes("zš") || t.includes("zs");
         if (typeFilter === "senior") return t.includes("senior");
         return t.includes("obec");
@@ -182,6 +256,21 @@ export default function AdminPoptavky() {
           Přehled poptávek z formuláře <code>/poptavka</code>. Řazeno podle nejnovějších.
         </p>
 
+        {actionMsg ? (
+          <div
+            style={{
+              marginTop: 14,
+              padding: 14,
+              borderRadius: 12,
+              border: "1px solid #a7f3d0",
+              background: "#ecfdf5",
+              color: "#166534",
+            }}
+          >
+            {actionMsg}
+          </div>
+        ) : null}
+
         {checkingAdmin ? (
           <div style={{ marginTop: 14 }}>Ověřuji oprávnění…</div>
         ) : !isAdmin ? (
@@ -236,6 +325,7 @@ export default function AdminPoptavky() {
                   }}
                 >
                   <option value="all">Vše</option>
+                  <option value="demo">Demo</option>
                   <option value="obec">Obec</option>
                   <option value="skola">Škola</option>
                   <option value="senior">Senior</option>
@@ -257,6 +347,7 @@ export default function AdminPoptavky() {
                   <option value="all">Vše</option>
                   <option value="new">Nová</option>
                   <option value="in_progress">Řeší se</option>
+                  <option value="approved">Schváleno</option>
                   <option value="done">Vyřízeno</option>
                 </select>
               </label>
@@ -320,13 +411,34 @@ export default function AdminPoptavky() {
                   ) : (
                     filtered.map((r) => {
                       const s = r.status || "new";
+                      const demoLead = isDemoLead(r);
+
                       return (
                         <tr key={r.id}>
                           <td style={tdStyle}>{formatDateTimeCS(r.created_at)}</td>
                           <td style={tdStyle}>
                             <span style={statusChipStyle(s)}>{statusLabel(s)}</span>
                           </td>
-                          <td style={tdStyle}>{norm(r.type) || "—"}</td>
+                          <td style={tdStyle}>
+                            {norm(r.type) || "—"}
+                            {demoLead ? (
+                              <div style={{ marginTop: 6 }}>
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    padding: "4px 8px",
+                                    borderRadius: 999,
+                                    background: "#eef2ff",
+                                    color: "#1e3a8a",
+                                    fontSize: 11,
+                                    fontWeight: 800,
+                                  }}
+                                >
+                                  demo
+                                </span>
+                              </div>
+                            ) : null}
+                          </td>
                           <td style={tdStyle}>{norm(r.organization) || "—"}</td>
                           <td style={tdStyle}>{norm(r.contact_name) || "—"}</td>
                           <td style={tdStyle}>
@@ -373,6 +485,17 @@ export default function AdminPoptavky() {
                               >
                                 Vyřízeno
                               </button>
+
+                              {demoLead ? (
+                                <button
+                                  onClick={() => approveDemo(r)}
+                                  disabled={approvingId === r.id || s === "approved"}
+                                  style={approveBtn(approvingId === r.id || s === "approved")}
+                                  title="Schválit demo přístup"
+                                >
+                                  {approvingId === r.id ? "Schvaluji..." : s === "approved" ? "Schváleno" : "Schválit demo"}
+                                </button>
+                              ) : null}
                             </div>
                           </td>
                         </tr>
@@ -397,6 +520,19 @@ function miniBtn(active) {
     background: active ? "#111827" : "#fff",
     color: active ? "#fff" : "#111827",
     cursor: "pointer",
+    fontWeight: 800,
+    fontSize: 12,
+  };
+}
+
+function approveBtn(disabled) {
+  return {
+    padding: "8px 10px",
+    borderRadius: 10,
+    border: "1px solid " + (disabled ? "#d1d5db" : "#1d4ed8"),
+    background: disabled ? "#f3f4f6" : "#eff6ff",
+    color: disabled ? "#6b7280" : "#1d4ed8",
+    cursor: disabled ? "not-allowed" : "pointer",
     fontWeight: 800,
     fontSize: 12,
   };
