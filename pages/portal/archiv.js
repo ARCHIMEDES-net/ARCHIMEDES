@@ -32,7 +32,6 @@ function normalizeGroups(row) {
     .filter(Boolean);
 }
 
-
 function extractYouTubeId(url) {
   if (!url) return "";
 
@@ -71,6 +70,7 @@ function getArchiveCoverUrl(row) {
   if (ytId) return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
   return "";
 }
+
 function resolveLicenseMode(org) {
   if (!org) return "default";
 
@@ -97,7 +97,7 @@ function modeConfig(mode) {
       badgeColor: "#8a5a00",
       title: "Archiv je součástí plné licence ARCHIMEDES Live",
       text:
-        "V demo režimu si můžete prohlédnout portál, program a strukturu systému. Archiv záznamů, navazující materiály a návrat k odvysílaným tématům jsou dostupné pro aktivní organizace.",
+        "V demo režimu si můžete prohlédnout strukturu archivu a ukázku záznamů. Plný přístup k archivním videím, navazujícím materiálům a dlouhodobému využití obsahu je dostupný pro aktivní organizace.",
       primaryLabel: "Aktivovat licenci",
     };
   }
@@ -132,9 +132,10 @@ function PreviewCard({ item }) {
     <div
       style={{
         border: "1px solid rgba(15,23,42,0.08)",
-        borderRadius: 18,
-        padding: 14,
+        borderRadius: 20,
+        overflow: "hidden",
         background: "linear-gradient(180deg, #ffffff 0%, #fbfcff 100%)",
+        boxShadow: "0 10px 28px rgba(15,23,42,0.04)",
       }}
     >
       {coverUrl ? (
@@ -143,10 +144,8 @@ function PreviewCard({ item }) {
           alt={item.title || "Náhled záznamu"}
           style={{
             width: "100%",
-            height: 148,
+            height: 180,
             objectFit: "cover",
-            borderRadius: 14,
-            border: "1px solid rgba(15,23,42,0.08)",
             background: "#f8fafc",
             display: "block",
           }}
@@ -155,9 +154,8 @@ function PreviewCard({ item }) {
         <div
           style={{
             width: "100%",
-            height: 148,
-            borderRadius: 14,
-            border: "1px dashed rgba(15,23,42,0.16)",
+            height: 180,
+            borderBottom: "1px solid rgba(15,23,42,0.08)",
             background: "linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)",
             color: "rgba(15,23,42,0.54)",
             display: "flex",
@@ -167,31 +165,57 @@ function PreviewCard({ item }) {
             fontSize: 13,
           }}
         >
-          Náhled vysílání
+          Náhled archivního záznamu
         </div>
       )}
 
-      <div style={{ marginTop: 12, fontWeight: 900, fontSize: 15, color: "#0f172a", lineHeight: 1.35 }}>
-        {item.title || "Záznam vysílání"}
-      </div>
-
-      <div style={{ marginTop: 6, fontSize: 13, color: "rgba(15,23,42,0.68)" }}>
-        {item._d ? formatDateTimeCS(item._d) : "—"}
-        {item.category ? <span> &nbsp;•&nbsp; {item.category}</span> : null}
-      </div>
-
-      {(item._groups || []).length ? (
+      <div style={{ padding: 16 }}>
         <div
           style={{
-            marginTop: 8,
-            fontSize: 13,
-            color: "rgba(15,23,42,0.62)",
-            lineHeight: 1.5,
+            fontWeight: 900,
+            fontSize: 16,
+            color: "#0f172a",
+            lineHeight: 1.35,
           }}
         >
-          Cílové skupiny: {item._groups.join(", ")}
+          {item.title || "Záznam vysílání"}
         </div>
-      ) : null}
+
+        <div style={{ marginTop: 6, fontSize: 13, color: "rgba(15,23,42,0.68)" }}>
+          {item._d ? formatDateTimeCS(item._d) : "—"}
+          {item.category ? <span> &nbsp;•&nbsp; {item.category}</span> : null}
+        </div>
+
+        {(item._groups || []).length ? (
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 13,
+              color: "rgba(15,23,42,0.62)",
+              lineHeight: 1.5,
+            }}
+          >
+            Cílové skupiny: {item._groups.join(", ")}
+          </div>
+        ) : null}
+
+        <div
+          style={{
+            marginTop: 12,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "10px 12px",
+            borderRadius: 12,
+            background: "rgba(15,23,42,0.06)",
+            color: "#0f172a",
+            fontWeight: 800,
+            fontSize: 13,
+          }}
+        >
+          Dostupné v plné licenci
+        </div>
+      </div>
     </div>
   );
 }
@@ -333,7 +357,10 @@ export default function Archiv() {
       .filter((r) => (qq ? String(r.title || "").toLowerCase().includes(qq) : true));
   }, [prepared, filterCategory, filterAudience, q]);
 
-  const previewRows = useMemo(() => prepared.slice(0, 3), [prepared]);
+  const previewRows = useMemo(() => {
+    const withPreview = prepared.filter((r) => r._coverUrl);
+    return (withPreview.length ? withPreview : prepared).slice(0, 3);
+  }, [prepared]);
 
   const isArchiveAdmin = isPlatformAdmin || isOrgAdmin;
   const effectiveMode = isPlatformAdmin ? "active" : licenseMode;
@@ -360,7 +387,7 @@ export default function Archiv() {
       <RequireAuth>
         <PortalHeader />
 
-        <main style={{ maxWidth: 980, margin: "0 auto", padding: "32px 16px 48px" }}>
+        <main style={{ maxWidth: 1060, margin: "0 auto", padding: "32px 16px 48px" }}>
           <div
             style={{
               background: "#fff",
@@ -372,14 +399,13 @@ export default function Archiv() {
           >
             <div
               style={{
-                display: "flex",
-                gap: 18,
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                flexWrap: "wrap",
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 1.5fr) minmax(280px, 0.9fr)",
+                gap: 22,
+                alignItems: "start",
               }}
             >
-              <div style={{ minWidth: 0, flex: "1 1 560px" }}>
+              <div style={{ minWidth: 0 }}>
                 <div
                   style={{
                     display: "inline-flex",
@@ -401,10 +427,11 @@ export default function Archiv() {
                 <h1
                   style={{
                     margin: 0,
-                    fontSize: 34,
+                    fontSize: 36,
                     lineHeight: 1.08,
                     color: "#0f172a",
                     letterSpacing: "-0.02em",
+                    maxWidth: 760,
                   }}
                 >
                   {cfg.title}
@@ -425,7 +452,7 @@ export default function Archiv() {
 
                 <div
                   style={{
-                    marginTop: 18,
+                    marginTop: 20,
                     display: "grid",
                     gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
                     gap: 12,
@@ -472,24 +499,6 @@ export default function Archiv() {
                   </Link>
 
                   <Link
-                    href="/poptavka"
-                    style={{
-                      textDecoration: "none",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "14px 18px",
-                      borderRadius: 14,
-                      background: "white",
-                      color: "#0f172a",
-                      fontWeight: 900,
-                      border: "1px solid rgba(15,23,42,0.14)",
-                    }}
-                  >
-                    Domluvit ukázkovou hodinu
-                  </Link>
-
-                  <Link
                     href="/portal/kalendar"
                     style={{
                       textDecoration: "none",
@@ -511,48 +520,55 @@ export default function Archiv() {
 
               <div
                 style={{
-                  minWidth: 260,
-                  flex: "0 1 320px",
-                  background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
+                  minWidth: 0,
+                  background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
                   border: "1px solid rgba(15,23,42,0.08)",
                   borderRadius: 22,
                   padding: 18,
+                  boxShadow: "0 10px 28px rgba(15,23,42,0.04)",
                 }}
               >
                 <div
                   style={{
-                    fontSize: 13,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    padding: "6px 10px",
+                    borderRadius: 999,
+                    background: "rgba(15,23,42,0.06)",
+                    color: "#0f172a",
+                    fontSize: 12,
                     fontWeight: 900,
-                    color: "rgba(15,23,42,0.64)",
-                    marginBottom: 8,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.04em",
+                    marginBottom: 12,
                   }}
                 >
                   Co je součástí plné licence
                 </div>
 
-                <ul
-                  style={{
-                    margin: 0,
-                    paddingLeft: 18,
-                    color: "#0f172a",
-                    lineHeight: 1.8,
-                    fontSize: 15,
-                  }}
-                >
-                  <li>archiv odvysílaných pořadů</li>
-                  <li>návrat k tématům podle potřeby školy</li>
-                  <li>navazující pracovní materiály</li>
-                  <li>dlouhodobá využitelnost programu</li>
-                </ul>
+                <div style={{ display: "grid", gap: 10 }}>
+                  <LicenseFeature
+                    title="Archiv odvysílaných pořadů"
+                    text="škola se může vracet k již proběhlým tématům podle potřeby"
+                  />
+                  <LicenseFeature
+                    title="Navazující materiály"
+                    text="pracovní listy a další obsah pro praktické využití ve škole"
+                  />
+                  <LicenseFeature
+                    title="Dlouhodobé využití programu"
+                    text="obsah nezmizí po jednom vysílání a zůstává využitelný i zpětně"
+                  />
+                  <LicenseFeature
+                    title="Přehledná struktura archivu"
+                    text="rychlá orientace podle témat, rubrik a cílových skupin"
+                  />
+                </div>
               </div>
             </div>
 
-            <div style={{ marginTop: 26 }}>
+            <div style={{ marginTop: 30 }}>
               <div
                 style={{
-                  fontSize: 22,
+                  fontSize: 24,
                   fontWeight: 900,
                   color: "#0f172a",
                   marginBottom: 10,
@@ -566,11 +582,12 @@ export default function Archiv() {
                   fontSize: 15,
                   color: "rgba(15,23,42,0.7)",
                   lineHeight: 1.6,
-                  marginBottom: 16,
+                  marginBottom: 18,
+                  maxWidth: 860,
                 }}
               >
-                Archiv není prázdné úložiště. Je to praktický návrat k odvysílaným tématům, který
-                dává škole možnost použít obsah znovu, ve vhodný čas a s odstupem.
+                Archiv není seznam pozvánek na další vysílání. Je to prostor pro návrat k již odvysílaným tématům,
+                který škole umožňuje využít obsah znovu ve chvíli, kdy ho opravdu potřebuje.
               </div>
 
               {previewRows.length === 0 ? (
@@ -587,13 +604,7 @@ export default function Archiv() {
                   záznamy podle programu.
                 </div>
               ) : (
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                    gap: 14,
-                  }}
-                >
+                <div className="archive-preview-grid">
                   {previewRows.map((item) => (
                     <PreviewCard key={item.id} item={item} />
                   ))}
@@ -603,7 +614,13 @@ export default function Archiv() {
           </div>
 
           <style jsx>{`
-            @media (max-width: 900px) {
+            .archive-preview-grid {
+              display: grid;
+              grid-template-columns: repeat(3, minmax(0, 1fr));
+              gap: 14px;
+            }
+
+            @media (max-width: 980px) {
               .archive-preview-grid {
                 grid-template-columns: 1fr;
               }
@@ -886,12 +903,4 @@ function MiniStat({ value, label }) {
         style={{
           marginTop: 8,
           fontSize: 12,
-          lineHeight: 1.45,
-          color: "rgba(15,23,42,0.68)",
-        }}
-      >
-        {label}
-      </div>
-    </div>
-  );
-}
+          lineHeight:
