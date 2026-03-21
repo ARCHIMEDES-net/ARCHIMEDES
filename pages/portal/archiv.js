@@ -22,14 +22,24 @@ function formatDateTimeCS(date) {
 }
 
 function normalizeGroups(row) {
-  if (Array.isArray(row?.audience_groups) && row.audience_groups.length) return row.audience_groups;
+  if (Array.isArray(row?.audience_groups) && row.audience_groups.length) {
+    return row.audience_groups;
+  }
+
   const aud = row?.audience;
   if (!aud) return [];
   if (Array.isArray(aud)) return aud;
+
   return String(aud)
     .split(",")
     .map((x) => x.trim())
     .filter(Boolean);
+}
+
+function normalizeSession(session) {
+  if (!session) return null;
+  if (Array.isArray(session)) return session[0] || null;
+  return session;
 }
 
 function extractYouTubeId(url) {
@@ -43,12 +53,18 @@ function extractYouTubeId(url) {
       return (parsed.pathname || "").replace(/^\//, "").split("/")[0] || "";
     }
 
-    if (host === "youtube.com" || host === "m.youtube.com" || host === "music.youtube.com") {
+    if (
+      host === "youtube.com" ||
+      host === "m.youtube.com" ||
+      host === "music.youtube.com"
+    ) {
       const v = parsed.searchParams.get("v");
       if (v) return v;
 
       const parts = (parsed.pathname || "").split("/").filter(Boolean);
-      const embedIndex = parts.findIndex((x) => x === "embed" || x === "shorts" || x === "live");
+      const embedIndex = parts.findIndex(
+        (x) => x === "embed" || x === "shorts" || x === "live"
+      );
       if (embedIndex >= 0 && parts[embedIndex + 1]) return parts[embedIndex + 1];
     }
 
@@ -64,10 +80,26 @@ function extractYouTubeId(url) {
   return "";
 }
 
+function getRecordingUrl(row) {
+  const session = normalizeSession(row?.broadcast_sessions);
+  return (
+    session?.recording_url ||
+    row?.broadcast_recording_url ||
+    ""
+  );
+}
+
+function getArchiveVideoUrl(row) {
+  return getRecordingUrl(row) || row?.stream_url || "";
+}
+
 function getArchiveCoverUrl(row) {
   if (row?.poster_url) return row.poster_url;
-  const ytId = extractYouTubeId(row?.stream_url);
+
+  const archiveUrl = getArchiveVideoUrl(row);
+  const ytId = extractYouTubeId(archiveUrl);
   if (ytId) return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+
   return "";
 }
 
@@ -97,7 +129,7 @@ function modeConfig(mode) {
       badgeColor: "#8a5a00",
       title: "Archiv je součástí plné licence ARCHIMEDES Live",
       text:
-        "V demo režimu si můžete prohlédnout strukturu archivu a ukázku záznamů. Plný přístup k archivním videím, navazujícím materiálům a dlouhodobému využití obsahu je dostupný pro aktivní organizace.",
+        "V demo režimu si můžete projít strukturu archivu a vidět příklady záznamů. Plný přístup k archivním videím a navazujícím materiálům je dostupný pro aktivní organizace.",
       primaryLabel: "Aktivovat licenci",
     };
   }
@@ -133,7 +165,7 @@ function PreviewCard({ item }) {
       style={{
         border: "1px solid rgba(15,23,42,0.08)",
         borderRadius: 20,
-        overflow: "hidden",
+        padding: 14,
         background: "linear-gradient(180deg, #ffffff 0%, #fbfcff 100%)",
         boxShadow: "0 10px 28px rgba(15,23,42,0.04)",
       }}
@@ -144,8 +176,10 @@ function PreviewCard({ item }) {
           alt={item.title || "Náhled záznamu"}
           style={{
             width: "100%",
-            height: 180,
+            height: 160,
             objectFit: "cover",
+            borderRadius: 14,
+            border: "1px solid rgba(15,23,42,0.08)",
             background: "#f8fafc",
             display: "block",
           }}
@@ -154,8 +188,9 @@ function PreviewCard({ item }) {
         <div
           style={{
             width: "100%",
-            height: 180,
-            borderBottom: "1px solid rgba(15,23,42,0.08)",
+            height: 160,
+            borderRadius: 14,
+            border: "1px dashed rgba(15,23,42,0.16)",
             background: "linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)",
             color: "rgba(15,23,42,0.54)",
             display: "flex",
@@ -165,56 +200,123 @@ function PreviewCard({ item }) {
             fontSize: 13,
           }}
         >
-          Náhled archivního záznamu
+          Náhled záznamu
         </div>
       )}
 
-      <div style={{ padding: 16 }}>
+      <div
+        style={{
+          marginTop: 12,
+          display: "inline-flex",
+          alignItems: "center",
+          padding: "5px 10px",
+          borderRadius: 999,
+          background: "rgba(15,23,42,0.06)",
+          color: "#0f172a",
+          fontSize: 11,
+          fontWeight: 900,
+        }}
+      >
+        Záznam v archivu
+      </div>
+
+      <div
+        style={{
+          marginTop: 10,
+          fontWeight: 900,
+          fontSize: 16,
+          color: "#0f172a",
+          lineHeight: 1.35,
+        }}
+      >
+        {item.title || "Záznam vysílání"}
+      </div>
+
+      <div style={{ marginTop: 6, fontSize: 13, color: "rgba(15,23,42,0.68)" }}>
+        {item._d ? formatDateTimeCS(item._d) : "—"}
+        {item.category ? <span> &nbsp;•&nbsp; {item.category}</span> : null}
+      </div>
+
+      {(item._groups || []).length ? (
         <div
           style={{
-            fontWeight: 900,
-            fontSize: 16,
-            color: "#0f172a",
-            lineHeight: 1.35,
-          }}
-        >
-          {item.title || "Záznam vysílání"}
-        </div>
-
-        <div style={{ marginTop: 6, fontSize: 13, color: "rgba(15,23,42,0.68)" }}>
-          {item._d ? formatDateTimeCS(item._d) : "—"}
-          {item.category ? <span> &nbsp;•&nbsp; {item.category}</span> : null}
-        </div>
-
-        {(item._groups || []).length ? (
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: 13,
-              color: "rgba(15,23,42,0.62)",
-              lineHeight: 1.5,
-            }}
-          >
-            Cílové skupiny: {item._groups.join(", ")}
-          </div>
-        ) : null}
-
-        <div
-          style={{
-            marginTop: 12,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "10px 12px",
-            borderRadius: 12,
-            background: "rgba(15,23,42,0.06)",
-            color: "#0f172a",
-            fontWeight: 800,
+            marginTop: 8,
             fontSize: 13,
+            color: "rgba(15,23,42,0.62)",
+            lineHeight: 1.5,
           }}
         >
-          Dostupné v plné licenci
+          Cílové skupiny: {item._groups.join(", ")}
         </div>
+      ) : null}
+    </div>
+  );
+}
+
+function MiniStat({ value, label }) {
+  return (
+    <div
+      style={{
+        background: "white",
+        border: "1px solid rgba(15,23,42,0.08)",
+        borderRadius: 18,
+        padding: "14px 14px 12px",
+        boxShadow: "0 8px 24px rgba(15,23,42,0.04)",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 24,
+          fontWeight: 900,
+          lineHeight: 1,
+          color: "#0f172a",
+        }}
+      >
+        {value}
+      </div>
+      <div
+        style={{
+          marginTop: 8,
+          fontSize: 12,
+          lineHeight: 1.45,
+          color: "rgba(15,23,42,0.68)",
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function LicenseFeature({ title, text }) {
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(15,23,42,0.08)",
+        borderRadius: 16,
+        padding: 14,
+        background: "#fff",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 14,
+          fontWeight: 900,
+          color: "#0f172a",
+          lineHeight: 1.35,
+        }}
+      >
+        {title}
+      </div>
+      <div
+        style={{
+          marginTop: 6,
+          fontSize: 13,
+          lineHeight: 1.55,
+          color: "rgba(15,23,42,0.68)",
+        }}
+      >
+        {text}
       </div>
     </div>
   );
@@ -299,7 +401,23 @@ export default function Archiv() {
       const { data, error } = await supabase
         .from("events")
         .select(
-          "id,title,starts_at,category,audience_groups,audience,stream_url,worksheet_url,is_published,poster_url"
+          `
+            id,
+            title,
+            starts_at,
+            category,
+            audience_groups,
+            audience,
+            stream_url,
+            worksheet_url,
+            is_published,
+            poster_url,
+            broadcast_sessions (
+              recording_url,
+              viewer_url,
+              status
+            )
+          `
         )
         .order("starts_at", { ascending: false });
 
@@ -311,6 +429,7 @@ export default function Archiv() {
       } else {
         setRows(Array.isArray(data) ? data : []);
       }
+
       setLoading(false);
     }
 
@@ -324,14 +443,23 @@ export default function Archiv() {
 
   const prepared = useMemo(() => {
     const now = new Date();
+
     return rows
       .filter((r) => r.is_published !== false)
-      .map((r) => ({
-        ...r,
-        _d: safeDate(r.starts_at),
-        _groups: normalizeGroups(r),
-        _coverUrl: getArchiveCoverUrl(r),
-      }))
+      .map((r) => {
+        const d = safeDate(r.starts_at);
+        const recordingUrl = getRecordingUrl(r);
+        const archiveUrl = recordingUrl || r.stream_url || "";
+
+        return {
+          ...r,
+          _d: d,
+          _groups: normalizeGroups(r),
+          _recordingUrl: recordingUrl,
+          _archiveUrl: archiveUrl,
+          _coverUrl: getArchiveCoverUrl(r),
+        };
+      })
       .filter((r) => r._d && r._d < now);
   }, [rows]);
 
@@ -351,6 +479,7 @@ export default function Archiv() {
 
   const visible = useMemo(() => {
     const qq = q.trim().toLowerCase();
+
     return prepared
       .filter((r) => (filterCategory === "Vše" ? true : r.category === filterCategory))
       .filter((r) => (filterAudience === "Vše" ? true : (r._groups || []).includes(filterAudience)))
@@ -358,8 +487,8 @@ export default function Archiv() {
   }, [prepared, filterCategory, filterAudience, q]);
 
   const previewRows = useMemo(() => {
-    const withPreview = prepared.filter((r) => r._coverUrl);
-    return (withPreview.length ? withPreview : prepared).slice(0, 3);
+    const withVideo = prepared.filter((r) => !!r._archiveUrl);
+    return (withVideo.length ? withVideo : prepared).slice(0, 3);
   }, [prepared]);
 
   const isArchiveAdmin = isPlatformAdmin || isOrgAdmin;
@@ -387,7 +516,7 @@ export default function Archiv() {
       <RequireAuth>
         <PortalHeader />
 
-        <main style={{ maxWidth: 1060, margin: "0 auto", padding: "32px 16px 48px" }}>
+        <main style={{ maxWidth: 980, margin: "0 auto", padding: "32px 16px 48px" }}>
           <div
             style={{
               background: "#fff",
@@ -399,13 +528,14 @@ export default function Archiv() {
           >
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "minmax(0, 1.5fr) minmax(280px, 0.9fr)",
-                gap: 22,
-                alignItems: "start",
+                display: "flex",
+                gap: 18,
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                flexWrap: "wrap",
               }}
             >
-              <div style={{ minWidth: 0 }}>
+              <div style={{ minWidth: 0, flex: "1 1 560px" }}>
                 <div
                   style={{
                     display: "inline-flex",
@@ -427,11 +557,10 @@ export default function Archiv() {
                 <h1
                   style={{
                     margin: 0,
-                    fontSize: 36,
+                    fontSize: 34,
                     lineHeight: 1.08,
                     color: "#0f172a",
                     letterSpacing: "-0.02em",
-                    maxWidth: 760,
                   }}
                 >
                   {cfg.title}
@@ -451,8 +580,9 @@ export default function Archiv() {
                 </p>
 
                 <div
+                  className="archive-stats-grid"
                   style={{
-                    marginTop: 20,
+                    marginTop: 18,
                     display: "grid",
                     gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
                     gap: 12,
@@ -520,8 +650,9 @@ export default function Archiv() {
 
               <div
                 style={{
-                  minWidth: 0,
-                  background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
+                  minWidth: 280,
+                  flex: "0 1 340px",
+                  background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
                   border: "1px solid rgba(15,23,42,0.08)",
                   borderRadius: 22,
                   padding: 18,
@@ -530,45 +661,48 @@ export default function Archiv() {
               >
                 <div
                   style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    padding: "6px 10px",
-                    borderRadius: 999,
-                    background: "rgba(15,23,42,0.06)",
-                    color: "#0f172a",
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: 900,
-                    marginBottom: 12,
+                    color: "rgba(15,23,42,0.64)",
+                    marginBottom: 10,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
                   }}
                 >
                   Co je součástí plné licence
                 </div>
 
-                <div style={{ display: "grid", gap: 10 }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 10,
+                  }}
+                >
                   <LicenseFeature
-                    title="Archiv odvysílaných pořadů"
-                    text="škola se může vracet k již proběhlým tématům podle potřeby"
+                    title="Archiv odvysílaných témat"
+                    text="návrat k videím z předchozích vysílání"
                   />
                   <LicenseFeature
                     title="Navazující materiály"
-                    text="pracovní listy a další obsah pro praktické využití ve škole"
+                    text="pracovní listy a další využití ve výuce"
                   />
                   <LicenseFeature
-                    title="Dlouhodobé využití programu"
-                    text="obsah nezmizí po jednom vysílání a zůstává využitelný i zpětně"
+                    title="Praktické použití"
+                    text="škola si obsah pustí ve chvíli, kdy ho potřebuje"
                   />
                   <LicenseFeature
-                    title="Přehledná struktura archivu"
-                    text="rychlá orientace podle témat, rubrik a cílových skupin"
+                    title="Dlouhodobá hodnota"
+                    text="program nezmizí po jednom vysílání"
                   />
                 </div>
               </div>
             </div>
 
-            <div style={{ marginTop: 30 }}>
+            <div style={{ marginTop: 28 }}>
               <div
                 style={{
-                  fontSize: 24,
+                  fontSize: 22,
                   fontWeight: 900,
                   color: "#0f172a",
                   marginBottom: 10,
@@ -582,12 +716,11 @@ export default function Archiv() {
                   fontSize: 15,
                   color: "rgba(15,23,42,0.7)",
                   lineHeight: 1.6,
-                  marginBottom: 18,
-                  maxWidth: 860,
+                  marginBottom: 16,
                 }}
               >
-                Archiv není seznam pozvánek na další vysílání. Je to prostor pro návrat k již odvysílaným tématům,
-                který škole umožňuje využít obsah znovu ve chvíli, kdy ho opravdu potřebuje.
+                Archiv je návrat k již proběhlým tématům. Škola se může vrátit ke konkrétnímu
+                videu tehdy, kdy se jí to hodí do výuky nebo návazné práce.
               </div>
 
               {previewRows.length === 0 ? (
@@ -620,8 +753,9 @@ export default function Archiv() {
               gap: 14px;
             }
 
-            @media (max-width: 980px) {
-              .archive-preview-grid {
+            @media (max-width: 900px) {
+              .archive-preview-grid,
+              .archive-stats-grid {
                 grid-template-columns: 1fr;
               }
             }
@@ -692,6 +826,7 @@ export default function Archiv() {
         </div>
 
         <div
+          className="archive-filters-grid"
           style={{
             marginTop: 12,
             border: "1px solid #e5e7eb",
@@ -700,6 +835,7 @@ export default function Archiv() {
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
             gap: 10,
+            background: "#fff",
           }}
         >
           <div>
@@ -783,6 +919,7 @@ export default function Archiv() {
                   borderRadius: 14,
                   padding: 14,
                   color: "#6b7280",
+                  background: "#fff",
                 }}
               >
                 Archiv je zatím prázdný podle zvolených filtrů.
@@ -792,6 +929,7 @@ export default function Archiv() {
                 {visible.map((r) => (
                   <div
                     key={r.id}
+                    className="archive-row"
                     style={{
                       display: "grid",
                       gridTemplateColumns: "120px 1fr",
@@ -831,21 +969,16 @@ export default function Archiv() {
                           fontWeight: 800,
                         }}
                       >
-                        Náhled vysílání
+                        Náhled záznamu
                       </div>
                     )}
 
                     <div>
-                      <Link
-                        href={`/portal/udalost/${r.id}`}
-                        style={{ textDecoration: "none", color: "inherit" }}
-                      >
-                        <div style={{ fontWeight: 900, fontSize: 16, cursor: "pointer" }}>
-                          {r.title}
-                        </div>
-                      </Link>
+                      <div style={{ fontWeight: 900, fontSize: 16 }}>
+                        {r.title}
+                      </div>
 
-                      <div style={{ marginTop: 6, color: "#374151" }}>
+                      <div style={{ marginTop: 6, color: "#374151", lineHeight: 1.5 }}>
                         {r._d ? formatDateTimeCS(r._d) : "—"}
                         {r.category ? <span> &nbsp; • &nbsp; {r.category}</span> : null}
                         {(r._groups || []).length ? (
@@ -854,17 +987,78 @@ export default function Archiv() {
                       </div>
 
                       <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                        {r.stream_url ? (
-                          <Link href={`/portal/udalost/${r.id}`}>▶ Otevřít detail</Link>
+                        {r._archiveUrl ? (
+                          <a
+                            href={r._archiveUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              textDecoration: "none",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              padding: "10px 14px",
+                              borderRadius: 12,
+                              background: "#0f172a",
+                              color: "white",
+                              fontWeight: 900,
+                            }}
+                          >
+                            ▶ Otevřít video z archivu
+                          </a>
                         ) : (
-                          <span style={{ color: "#6b7280" }}>Odkaz není nastaven.</span>
+                          <Link
+                            href={`/portal/udalost/${r.id}`}
+                            style={{
+                              textDecoration: "none",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              padding: "10px 14px",
+                              borderRadius: 12,
+                              background: "#0f172a",
+                              color: "white",
+                              fontWeight: 900,
+                            }}
+                          >
+                            Otevřít detail
+                          </Link>
                         )}
 
                         {r.worksheet_url ? (
-                          <span style={{ color: "#6b7280" }}>📄 Pracovní list v detailu</span>
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              padding: "10px 14px",
+                              borderRadius: 12,
+                              border: "1px solid #e5e7eb",
+                              color: "#6b7280",
+                              background: "#fff",
+                              fontWeight: 700,
+                            }}
+                          >
+                            📄 Pracovní list v detailu
+                          </span>
                         ) : null}
 
-                        <Link href="/portal/kalendar">→ Program</Link>
+                        <Link
+                          href="/portal/kalendar"
+                          style={{
+                            textDecoration: "none",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: "10px 14px",
+                            borderRadius: 12,
+                            border: "1px solid #e5e7eb",
+                            color: "#0f172a",
+                            background: "#fff",
+                            fontWeight: 800,
+                          }}
+                        >
+                          → Program
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -873,34 +1067,19 @@ export default function Archiv() {
             )}
           </section>
         ) : null}
+
+        <style jsx>{`
+          @media (max-width: 820px) {
+            .archive-filters-grid {
+              grid-template-columns: 1fr;
+            }
+
+            .archive-row {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}</style>
       </main>
     </RequireAuth>
   );
 }
-
-function MiniStat({ value, label }) {
-  return (
-    <div
-      style={{
-        background: "white",
-        border: "1px solid rgba(15,23,42,0.08)",
-        borderRadius: 18,
-        padding: "14px 14px 12px",
-        boxShadow: "0 8px 24px rgba(15,23,42,0.04)",
-      }}
-    >
-      <div
-        style={{
-          fontSize: 24,
-          fontWeight: 900,
-          lineHeight: 1,
-          color: "#0f172a",
-        }}
-      >
-        {value}
-      </div>
-      <div
-        style={{
-          marginTop: 8,
-          fontSize: 12,
-          lineHeight:
