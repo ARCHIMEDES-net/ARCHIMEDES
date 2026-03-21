@@ -83,7 +83,7 @@ export default function StartPage() {
           <title>Objednávka přijata | ARCHIMEDES Live</title>
           <meta
             name="description"
-            content="Potvrzení přijetí objednávky balíčku START ARCHIMEDES Live."
+            content="Potvrzení přijetí objednávky zvýhodněného startu ARCHIMEDES Live pro školy."
           />
         </Head>
 
@@ -101,8 +101,9 @@ export default function StartPage() {
                 </p>
 
                 <div className="successBox">
-                  Balíček START je jednorázový vzdělávací program na období
-                  duben–červen 2026 bez automatického prodloužení.
+                  Objednali jste zvýhodněný balíček START na období duben–červen
+                  2026 bez automatického prodloužení. Škola si tak může program
+                  vyzkoušet ještě letos a připravit se na další zapojení od září.
                 </div>
 
                 <div className="nextSteps">
@@ -324,10 +325,10 @@ export default function StartPage() {
   return (
     <>
       <Head>
-        <title>Objednávka balíčku START | ARCHIMEDES Live</title>
+        <title>Vyzkoušejte ARCHIMEDES Live ještě letos | START pro školy</title>
         <meta
           name="description"
-          content="Objednávka balíčku START ARCHIMEDES Live pro školy a obce."
+          content="Zvýhodněný start ARCHIMEDES Live pro školy na období duben–červen 2026. Vyzkoušejte program ještě letos a připravte se na září."
         />
       </Head>
 
@@ -337,14 +338,14 @@ export default function StartPage() {
             <div className="heroCard">
               <div className="heroGrid">
                 <div className="heroMain">
-                  <div className="eyebrow dark">Balíček START duben–červen</div>
-                  <h1>Objednávka balíčku START</h1>
+                  <div className="eyebrow dark">Zvýhodněný START pro školy • jaro 2026</div>
+                  <h1>Vyzkoušejte ARCHIMEDES Live ještě letos</h1>
 
                   <p className="lead">
-                    Objednáváte vzdělávací program ARCHIMEDES Live na období
-                    duben–červen 2026. Program obsahuje online vzdělávací aktivity
-                    pro žáky a školy, které lze zařadit do běžné výuky, třídnických
-                    a rozvojových aktivit i školního programu.
+                    Objednáváte zvýhodněný start programu ARCHIMEDES Live na období
+                    duben–červen 2026. Škola si tak může program reálně vyzkoušet
+                    ještě v tomto školním roce a zároveň se připravit na další
+                    zapojení od září.
                   </p>
 
                   <div className="proofBox">
@@ -355,7 +356,7 @@ export default function StartPage() {
                   </div>
 
                   <div className="noticeBox">
-                    <strong>Odesláním objednávky objednáváte balíček START</strong>{" "}
+                    <strong>Odesláním objednávky objednáváte zvýhodněný balíček START</strong>{" "}
                     na období duben–červen 2026. Po odeslání vám zašleme potvrzení
                     objednávky, fakturační podklady a další informace k zahájení
                     programu. Na vyžádání připravíme také specifikaci plnění pro
@@ -394,7 +395,8 @@ export default function StartPage() {
                         <span className="processNumber">4</span>
                         <p>
                           Můžete zapojit třídy do online vzdělávacích aktivit v
-                          období duben–červen.
+                          období duben–červen 2026 a ověřit si program ještě letos
+                          v praxi.
                         </p>
                       </div>
                     </div>
@@ -423,17 +425,22 @@ export default function StartPage() {
 
                 <div className="summaryColumn">
                   <div className="summaryCard">
-                    <div className="summaryLabel">Objednávaný balíček</div>
-                    <div className="summaryTitle">START duben–červen</div>
+                    <div className="summaryLabel">Zvýhodněná nabídka pro školy</div>
+                    <div className="summaryTitle">START školy – jaro 2026</div>
+
+                    <div className="priceHighlight">
+                      <div className="priceTop">Zvýhodněná cena za celé období</div>
+                      <div className="priceNumbers">
+                        <span className="priceOld">7.960 Kč</span>
+                        <span className="priceArrow">→</span>
+                        <span className="priceNew">4.990 Kč</span>
+                      </div>
+                      <div className="priceMeta">cena bez DPH · jednorázově · bez automatického prodloužení</div>
+                    </div>
 
                     <div className="summaryRow">
                       <span>Období</span>
                       <strong>duben–červen 2026</strong>
-                    </div>
-
-                    <div className="summaryRow">
-                      <span>Cena</span>
-                      <strong>4.990,- Kč bez DPH</strong>
                     </div>
 
                     <div className="summaryRow">
@@ -449,9 +456,9 @@ export default function StartPage() {
                     </div>
 
                     <div className="summaryRow">
-                      <span>Závazek</span>
+                      <span>Využití</span>
                       <strong>
-                        jednorázový balíček bez automatického prodloužení
+                        ověření programu ještě letos + příprava na září
                       </strong>
                     </div>
 
@@ -472,7 +479,7 @@ export default function StartPage() {
                     </p>
 
                     <div className="capacityHint">
-                      Program začíná v dubnu. Doporučujeme rezervovat včas.
+                      Vyzkoušejte program ještě v tomto školním roce za zvýhodněnou cenu.
                     </div>
                   </div>
                 </div>
@@ -781,7 +788,7 @@ export default function StartPage() {
 
               <div className="submitRow">
                 <button type="submit" className="submitButton" disabled={loading}>
-                  {loading ? "Odesíláme..." : "Objednat balíček START"}
+                  {loading ? "Odesíláme..." : "Objednat zvýhodněný START"}
                 </button>
 
                 <p className="submitNote">
@@ -1054,6 +1061,61 @@ export default function StartPage() {
             line-height: 1.05;
             font-weight: 900;
             letter-spacing: -0.03em;
+          }
+
+          .priceHighlight {
+            margin-top: 18px;
+            padding: 18px 18px 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+          }
+
+          .priceTop {
+            font-size: 12px;
+            line-height: 1.4;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.72);
+          }
+
+          .priceNumbers {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 10px;
+            margin-top: 10px;
+          }
+
+          .priceOld {
+            font-size: 22px;
+            line-height: 1;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.45);
+            text-decoration: line-through;
+          }
+
+          .priceArrow {
+            font-size: 22px;
+            line-height: 1;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.7);
+          }
+
+          .priceNew {
+            font-size: 36px;
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: #ffffff;
+          }
+
+          .priceMeta {
+            margin-top: 10px;
+            font-size: 13px;
+            line-height: 1.55;
+            color: rgba(255, 255, 255, 0.72);
           }
 
           .summaryRow {
@@ -1422,6 +1484,10 @@ export default function StartPage() {
 
             .summaryTitle {
               font-size: 24px;
+            }
+
+            .priceNew {
+              font-size: 30px;
             }
 
             .summaryRow {
