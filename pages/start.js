@@ -94,16 +94,16 @@ export default function StartPage() {
                 <div className="eyebrow dark">Objednávka přijata</div>
                 <h1>Děkujeme, objednávka byla přijata</h1>
                 <p className="lead">
-                  Na uvedený e-mail vám zašleme potvrzení objednávky, fakturační
-                  podklady a další informace k zahájení programu ARCHIMEDES Live.
-                  Na vyžádání připravíme také podklady pro interní administraci
-                  školy nebo organizace.
+                  Na uvedený e-mail vám zašleme potvrzení objednávky a fakturační
+                  podklady. Na e-mail administrátora programu odešleme další
+                  informace k přístupu do ARCHIMEDES Live.
                 </p>
 
                 <div className="successBox">
                   Objednali jste zvýhodněný balíček START na období duben–září
                   2026 bez automatického prodloužení. Škola si tak může program
-                  vyzkoušet ještě letos a připravit se na další zapojení v novém školním roce.
+                  vyzkoušet ještě letos a připravit se na další zapojení v novém
+                  školním roce.
                 </div>
 
                 <div className="nextSteps">
@@ -111,8 +111,8 @@ export default function StartPage() {
                   <ul>
                     <li>zašleme vám potvrzení objednávky,</li>
                     <li>obdržíte fakturační podklady,</li>
-                    <li>na vyžádání připravíme specifikaci plnění,</li>
-                    <li>následně získáte přístup k programu.</li>
+                    <li>e-mail administrátora jsme zařadili pro přístup do programu,</li>
+                    <li>následně vám pošleme další organizační informace.</li>
                   </ul>
                 </div>
 
@@ -359,8 +359,8 @@ export default function StartPage() {
                     <strong>Odesláním objednávky objednáváte zvýhodněný balíček START</strong>{" "}
                     na období duben–září 2026. Po odeslání vám zašleme potvrzení
                     objednávky, fakturační podklady a další informace k zahájení
-                    programu. Na vyžádání připravíme také specifikaci plnění pro
-                    interní administraci školy nebo organizace.
+                    programu. Na zadaný e-mail administrátora programu budeme
+                    navazovat při zřízení přístupu do ARCHIMEDES Live.
                   </div>
 
                   <div className="opjakBox">
@@ -383,13 +383,12 @@ export default function StartPage() {
                         <span className="processNumber">2</span>
                         <p>
                           Zašleme vám potvrzení objednávky, fakturační podklady a
-                          na vyžádání také specifikaci plnění pro interní
-                          administraci školy.
+                          admin e-mail zařadíme pro další nastavení přístupu.
                         </p>
                       </div>
                       <div className="processStep">
                         <span className="processNumber">3</span>
-                        <p>Následně získáte přístup do ARCHIMEDES Live.</p>
+                        <p>Na e-mail administrátora navážeme s dalšími kroky k přístupu do ARCHIMEDES Live.</p>
                       </div>
                       <div className="processStep">
                         <span className="processNumber">4</span>
@@ -606,7 +605,7 @@ export default function StartPage() {
 
                   <div className="field">
                     <label htmlFor="adminEmail">
-                      E-mail pro administraci programu *
+                      E-mail administrátora programu *
                     </label>
                     <input
                       id="adminEmail"
@@ -634,8 +633,8 @@ export default function StartPage() {
 
                   <div className="field fieldHintBox">
                     <div className="fieldHint">
-                      Na tento e-mail zašleme přístupové údaje, organizační
-                      informace a případně podklady potřebné pro administraci
+                      Na tento e-mail budeme navazovat při zřízení přístupu do
+                      portálu, zasílání organizačních informací a další správě
                       programu ve škole nebo organizaci.
                     </div>
                   </div>
@@ -659,9 +658,9 @@ export default function StartPage() {
                   <div className="submitInfoTitle">Před odesláním</div>
 
                   <ul className="submitChecklist">
-                    <li>přístup do programu obdržíte e-mailem</li>
+                    <li>potvrzení objednávky obdrží objednatel e-mailem</li>
+                    <li>admin e-mail použijeme pro další nastavení přístupu</li>
                     <li>fakturace probíhá po potvrzení objednávky</li>
-                    <li>na vyžádání připravíme specifikaci plnění</li>
                     <li>balíček START je na období duben–září 2026</li>
                   </ul>
                 </div>
