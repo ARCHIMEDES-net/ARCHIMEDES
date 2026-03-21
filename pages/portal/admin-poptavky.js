@@ -46,13 +46,41 @@ function statusChipStyle(s) {
     whiteSpace: "nowrap",
   };
 
-  if (v === "approved") return { ...base, background: "#ecfeff", border: "1px solid #a5f3fc" };
-  if (v === "done") return { ...base, background: "#ecfdf5", border: "1px solid #a7f3d0" };
-  if (v === "in_progress") return { ...base, background: "#eff6ff", border: "1px solid #bfdbfe" };
-  return { ...base, background: "#fff7ed", border: "1px solid #fed7aa" };
+  if (v === "approved") {
+    return {
+      ...base,
+      background: "#ecfeff",
+      border: "1px solid #a5f3fc",
+    };
+  }
+
+  if (v === "done") {
+    return {
+      ...base,
+      background: "#ecfdf5",
+      border: "1px solid #a7f3d0",
+    };
+  }
+
+  if (v === "in_progress") {
+    return {
+      ...base,
+      background: "#eff6ff",
+      border: "1px solid #bfdbfe",
+    };
+  }
+
+  return {
+    ...base,
+    background: "#fff7ed",
+    border: "1px solid #fed7aa",
+  };
 }
 
 function isDemoLead(row) {
+  const type = norm(row?.type).toLowerCase();
+  if (type === "demo") return true;
+
   const hay = [
     row?.type,
     row?.organization,
@@ -75,7 +103,7 @@ export default function AdminPoptavky() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  const [typeFilter, setTypeFilter] = useState("all"); // all | obec | skola | senior | demo
+  const [typeFilter, setTypeFilter] = useState("all"); // all | demo | obec | skola | senior
   const [statusFilter, setStatusFilter] = useState("all"); // all | new | in_progress | approved | done
   const [q, setQ] = useState("");
 
@@ -100,6 +128,7 @@ export default function AdminPoptavky() {
   async function load() {
     setLoading(true);
     setErr("");
+    setActionMsg("");
 
     const { data, error } = await supabase
       .from("leads")
@@ -118,7 +147,9 @@ export default function AdminPoptavky() {
   }
 
   useEffect(() => {
-    if (!checkingAdmin && isAdmin) load();
+    if (!checkingAdmin && isAdmin) {
+      load();
+    }
   }, [checkingAdmin, isAdmin]);
 
   async function setStatus(id, status) {
@@ -126,6 +157,7 @@ export default function AdminPoptavky() {
     setRows((r) => r.map((x) => (x.id === id ? { ...x, status } : x)));
 
     const { error } = await supabase.from("leads").update({ status }).eq("id", id);
+
     if (error) {
       setRows(prev);
       alert("Nepodařilo se uložit stav: " + error.message);
@@ -141,9 +173,7 @@ export default function AdminPoptavky() {
       return;
     }
 
-    const ok = window.confirm(
-      `Schválit demo přístup pro ${email}?`
-    );
+    const ok = window.confirm(`Schválit demo přístup pro ${email}?`);
     if (!ok) return;
 
     setApprovingId(row.id);
@@ -191,10 +221,22 @@ export default function AdminPoptavky() {
         const n = norm(r?.note).toLowerCase();
 
         if (typeFilter === "demo") {
-          return isDemoLead(r) || n.includes("demo");
+          return t === "demo" || isDemoLead(r) || n.includes("demo");
         }
-        if (typeFilter === "skola") return t.includes("skola") || t.includes("škola") || t.includes("zš") || t.includes("zs");
-        if (typeFilter === "senior") return t.includes("senior");
+
+        if (typeFilter === "skola") {
+          return (
+            t.includes("skola") ||
+            t.includes("škola") ||
+            t.includes("zš") ||
+            t.includes("zs")
+          );
+        }
+
+        if (typeFilter === "senior") {
+          return t.includes("senior");
+        }
+
         return t.includes("obec");
       });
     }
@@ -217,6 +259,7 @@ export default function AdminPoptavky() {
         ]
           .map((x) => norm(x).toLowerCase())
           .join(" | ");
+
         return hay.includes(qq);
       });
     }
@@ -231,10 +274,12 @@ export default function AdminPoptavky() {
       <div style={{ maxWidth: 1150, margin: "0 auto", padding: "24px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <h1 style={{ fontSize: 28, margin: 0 }}>Admin – poptávky</h1>
+
           <div style={{ marginLeft: "auto", display: "flex", gap: 10, flexWrap: "wrap" }}>
             <Link href="/portal" style={{ textDecoration: "none" }}>
               ← Zpět do portálu
             </Link>
+
             <button
               onClick={load}
               disabled={loading || checkingAdmin || !isAdmin}
@@ -253,7 +298,8 @@ export default function AdminPoptavky() {
         </div>
 
         <p style={{ marginTop: 6, color: "#555" }}>
-          Přehled poptávek z formuláře <code>/poptavka</code>. Řazeno podle nejnovějších.
+          Přehled poptávek z formulářů <code>/poptavka</code> a{" "}
+          <code>/zadost-o-pristup</code>. Řazeno podle nejnovějších.
         </p>
 
         {actionMsg ? (
@@ -395,6 +441,7 @@ export default function AdminPoptavky() {
                     <th style={thStyle}>Akce</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {loading ? (
                     <tr>
@@ -416,9 +463,11 @@ export default function AdminPoptavky() {
                       return (
                         <tr key={r.id}>
                           <td style={tdStyle}>{formatDateTimeCS(r.created_at)}</td>
+
                           <td style={tdStyle}>
                             <span style={statusChipStyle(s)}>{statusLabel(s)}</span>
                           </td>
+
                           <td style={tdStyle}>
                             {norm(r.type) || "—"}
                             {demoLead ? (
@@ -439,8 +488,10 @@ export default function AdminPoptavky() {
                               </div>
                             ) : null}
                           </td>
+
                           <td style={tdStyle}>{norm(r.organization) || "—"}</td>
                           <td style={tdStyle}>{norm(r.contact_name) || "—"}</td>
+
                           <td style={tdStyle}>
                             {norm(r.email) ? (
                               <a href={`mailto:${norm(r.email)}`} style={{ textDecoration: "none" }}>
@@ -450,6 +501,7 @@ export default function AdminPoptavky() {
                               "—"
                             )}
                           </td>
+
                           <td style={tdStyle}>
                             {norm(r.phone) ? (
                               <a href={`tel:${norm(r.phone)}`} style={{ textDecoration: "none" }}>
@@ -459,9 +511,13 @@ export default function AdminPoptavky() {
                               "—"
                             )}
                           </td>
+
                           <td style={tdStyle}>
-                            <span style={{ whiteSpace: "pre-wrap" }}>{norm(r.note) || "—"}</span>
+                            <span style={{ whiteSpace: "pre-wrap" }}>
+                              {norm(r.note) || "—"}
+                            </span>
                           </td>
+
                           <td style={tdStyle}>
                             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                               <button
@@ -471,6 +527,7 @@ export default function AdminPoptavky() {
                               >
                                 Nová
                               </button>
+
                               <button
                                 onClick={() => setStatus(r.id, "in_progress")}
                                 style={miniBtn(s === "in_progress")}
@@ -478,6 +535,7 @@ export default function AdminPoptavky() {
                               >
                                 Řeší se
                               </button>
+
                               <button
                                 onClick={() => setStatus(r.id, "done")}
                                 style={miniBtn(s === "done")}
@@ -493,7 +551,11 @@ export default function AdminPoptavky() {
                                   style={approveBtn(approvingId === r.id || s === "approved")}
                                   title="Schválit demo přístup"
                                 >
-                                  {approvingId === r.id ? "Schvaluji..." : s === "approved" ? "Schváleno" : "Schválit demo"}
+                                  {approvingId === r.id
+                                    ? "Schvaluji..."
+                                    : s === "approved"
+                                    ? "Schváleno"
+                                    : "Schválit demo"}
                                 </button>
                               ) : null}
                             </div>
