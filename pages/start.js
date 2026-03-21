@@ -101,9 +101,9 @@ export default function StartPage() {
                 </p>
 
                 <div className="successBox">
-                  Objednali jste zvýhodněný balíček START na období duben–červen
+                  Objednali jste zvýhodněný balíček START na období duben–září
                   2026 bez automatického prodloužení. Škola si tak může program
-                  vyzkoušet ještě letos a připravit se na další zapojení od září.
+                  vyzkoušet ještě letos a připravit se na další zapojení v novém školním roce.
                 </div>
 
                 <div className="nextSteps">
@@ -328,7 +328,7 @@ export default function StartPage() {
         <title>Vyzkoušejte ARCHIMEDES Live ještě letos | START pro školy</title>
         <meta
           name="description"
-          content="Zvýhodněný start ARCHIMEDES Live pro školy na období duben–září 2026. Vyzkoušejte program ještě letos a připravte se na září."
+          content="Zvýhodněný start ARCHIMEDES Live pro školy na období duben–září 2026. Vyzkoušejte program ještě letos a připravte se v klidu na zapojení v novém školním roce."
         />
       </Head>
 
@@ -338,7 +338,7 @@ export default function StartPage() {
             <div className="heroCard">
               <div className="heroGrid">
                 <div className="heroMain">
-                  <div className="eyebrow dark">Zvýhodněný START pro školy • jaro 2026</div>
+                  <div className="eyebrow dark">Zvýhodněný START pro školy • jaro + září 2026</div>
                   <h1>Vyzkoušejte ARCHIMEDES Live ještě letos</h1>
 
                   <p className="lead">
@@ -466,11 +466,11 @@ export default function StartPage() {
 
                     <div className="summaryContentLabel">Součást balíčku</div>
                     <ul className="summaryList">
-                      <li>3× online vzdělávací program pro I. stupeň ZŠ</li>
-                      <li>3× online vzdělávací program pro II. stupeň ZŠ</li>
-                      <li>3× vzdělávací program zaměřený na wellbeing žáků</li>
-                      <li>3× vzdělávací program zaměřený na kariérovou orientaci</li>
-                      <li>1× vzdělávací program v anglickém jazyce</li>
+                      <li>4× online vzdělávací program pro I. stupeň ZŠ</li>
+                      <li>4× online vzdělávací program pro II. stupeň ZŠ</li>
+                      <li>4× vzdělávací program zaměřený na wellbeing žáků</li>
+                      <li>4× vzdělávací program zaměřený na kariérovou orientaci</li>
+                      <li>4× vzdělávací program v anglickém jazyce</li>
                     </ul>
 
                     <p className="summaryNote">
