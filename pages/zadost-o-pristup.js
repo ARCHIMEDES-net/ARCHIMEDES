@@ -1,27 +1,32 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import PortalHeader from "../components/PortalHeader";
 import { supabase } from "../lib/supabaseClient";
 
-function normalizeLicenseType(value) {
+function normalizeLeadType(value, isDemoRequest = false) {
+  if (isDemoRequest) return "demo";
+
   const v = String(value || "").toLowerCase().trim();
 
   if (["škola", "skola", "school"].includes(v)) return "skola";
   if (["obec", "město", "mesto", "obec / město", "obec / mesto"].includes(v))
     return "obec";
-  if (["spolek", "komunita", "community"].includes(v)) return "komunita";
   if (["senior-klub", "senior klub", "senior", "senior club"].includes(v))
     return "senior";
-  return "komunita";
+  if (["spolek", "komunita", "community"].includes(v)) return "komunita";
+  return "obec";
 }
 
 export default function ZadostPristupPage() {
   const router = useRouter();
+
   const isDemoRequest = useMemo(
     () => String(router.query.type || "").toLowerCase() === "demo",
     [router.query.type]
   );
+
+  const initialType = isDemoRequest ? "škola" : "";
 
   const [form, setForm] = useState({
     name: "",
@@ -29,7 +34,7 @@ export default function ZadostPristupPage() {
     phone: "",
     organization: "",
     address: "",
-    type: isDemoRequest ? "škola" : "",
+    type: initialType,
     message: "",
   });
 
@@ -37,8 +42,15 @@ export default function ZadostPristupPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
+  useEffect(() => {
+    setForm((prev) => ({
+      ...prev,
+      type: isDemoRequest ? "škola" : prev.type || "",
+    }));
+  }, [isDemoRequest]);
+
   function updateField(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
   async function submitForm(e) {
@@ -93,26 +105,33 @@ export default function ZadostPristupPage() {
         trimmedType || "neuvedeno"
       }`;
 
+      const sourceLine = isDemoRequest
+        ? "Zdroj: web archimedeslive.com/zadost-o-pristup?type=demo"
+        : "Zdroj: web archimedeslive.com/zadost-o-pristup";
+
+      const addressLine = `Adresa: ${trimmedAddress}`;
+
       const composedMessage = [
         requestHeader,
         organizationTypeLine,
+        addressLine,
+        sourceLine,
         trimmedMessage || "",
       ]
         .filter(Boolean)
         .join("\n\n");
 
-      const { error: insertError } = await supabase.from("access_requests").insert([
-        {
-          license_type: normalizeLicenseType(trimmedType),
-          contact_name: trimmedName,
-          organization: trimmedOrganization,
-          address: trimmedAddress,
-          email: trimmedEmail,
-          phone: trimmedPhone || null,
-          message: composedMessage,
-          status: "new",
-        },
-      ]);
+      const payload = {
+        type: normalizeLeadType(trimmedType, isDemoRequest),
+        organization: trimmedOrganization,
+        contact_name: trimmedName,
+        email: trimmedEmail,
+        phone: trimmedPhone || null,
+        note: composedMessage,
+        status: "new",
+      };
+
+      const { error: insertError } = await supabase.from("leads").insert([payload]);
 
       if (insertError) {
         throw new Error(insertError.message || "Žádost se nepodařilo uložit.");
