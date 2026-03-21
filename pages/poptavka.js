@@ -270,7 +270,18 @@ export default function PoptavkaPage() {
                     alignItems: "flex-start",
                   }}
                 >
-                  <h3 style={{ ...cardTitle, color: titleColor }}>{item.title}</h3>
+                  {item.key === "oboji" ? (
+                    <h3 style={cardTitle}>
+                      <span style={{ color: "#3b82f6", display: "block" }}>
+                        Program
+                      </span>
+                      <span style={{ color: "#22c55e", display: "block" }}>
+                        a učebna
+                      </span>
+                    </h3>
+                  ) : (
+                    <h3 style={{ ...cardTitle, color: titleColor }}>{item.title}</h3>
+                  )}
                 </div>
 
                 <div
