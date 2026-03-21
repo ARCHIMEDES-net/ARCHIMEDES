@@ -1,4 +1,3 @@
-// components/RequirePlatformAdmin.js
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
@@ -14,11 +13,12 @@ export default function RequirePlatformAdmin({ children }) {
       try {
         const {
           data: { user },
+          error: userError,
         } = await supabase.auth.getUser();
 
         if (!alive) return;
 
-        if (!user) {
+        if (userError || !user) {
           router.replace("/login");
           return;
         }
