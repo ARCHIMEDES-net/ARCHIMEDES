@@ -1,3 +1,4 @@
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ ok: false, error: "Method not allowed" });
@@ -8,12 +9,6 @@ export default async function handler(req, res) {
       process.env.MAKE_LEAD_WEBHOOK_URL ||
       process.env.MAKE_WEBHOOK_URL ||
       "";
-
-    console.log("make-lead env check", {
-      hasMakeLeadWebhook: !!process.env.MAKE_LEAD_WEBHOOK_URL,
-      hasMakeWebhook: !!process.env.MAKE_WEBHOOK_URL,
-      resolvedWebhook: webhookUrl ? "present" : "missing",
-    });
 
     if (!webhookUrl) {
       return res.status(500).json({
@@ -31,10 +26,41 @@ export default async function handler(req, res) {
       });
     }
 
+    // Honeypot ochrana – bot typicky vyplní skryté pole
+    if (payload.company) {
+      return res.status(200).json({ ok: true });
+    }
+
+    const email =
+      typeof payload.email === "string" ? payload.email.trim() : "";
+    const name =
+      typeof payload.name === "string"
+        ? payload.name.trim()
+        : typeof payload.contact_name === "string"
+        ? payload.contact_name.trim()
+        : "";
+
+    if (!email || !email.includes("@")) {
+      return res.status(400).json({
+        ok: false,
+        error: "Invalid email",
+      });
+    }
+
+    if (!name || name.length < 2) {
+      return res.status(400).json({
+        ok: false,
+        error: "Invalid name",
+      });
+    }
+
+    const cleanPayload = { ...payload };
+    delete cleanPayload.company;
+
     const r = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(cleanPayload),
     });
 
     if (!r.ok) {
