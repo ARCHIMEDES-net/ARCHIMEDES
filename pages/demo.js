@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Link from "next/link";
 
 const pageStyle = {
@@ -16,179 +15,36 @@ const cardStyle = {
   border: "1px solid rgba(0,0,0,0.08)",
 };
 
-const inputStyle = {
-  width: "100%",
-  padding: "12px 14px",
-  fontSize: 16,
+const buttonPrimaryStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "14px 18px",
   borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.15)",
-  boxSizing: "border-box",
+  background: "#111827",
+  color: "#fff",
+  textDecoration: "none",
+  fontWeight: 700,
+  textAlign: "center",
+  minHeight: 52,
+};
+
+const buttonSecondaryStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "14px 18px",
+  borderRadius: 12,
+  background: "#fff",
+  color: "#111827",
+  textDecoration: "none",
+  fontWeight: 700,
+  border: "1px solid rgba(0,0,0,0.12)",
+  textAlign: "center",
+  minHeight: 52,
 };
 
 export default function DemoPage() {
-  const [school, setSchool] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await fetch("/api/start-demo", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          school,
-          name,
-          email,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || "Nepodařilo se spustit demo.");
-      }
-
-      setSuccess(true);
-    } catch (err) {
-      setError(err.message || "Došlo k chybě.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (success) {
-    return (
-      <div style={pageStyle}>
-        <div style={{ maxWidth: 760, margin: "0 auto" }}>
-          <div style={cardStyle}>
-            <h1 className="demoTitle" style={{ marginTop: 0, marginBottom: 12 }}>
-              Demo učebna byla vytvořena
-            </h1>
-
-            <p
-              className="demoLead"
-              style={{
-                marginTop: 0,
-                marginBottom: 16,
-                color: "rgba(0,0,0,0.72)",
-              }}
-            >
-              Na zadaný e-mail jsme odeslali odkaz pro dokončení přístupu do demo
-              portálu ARCHIMEDES Live.
-            </p>
-
-            <div
-              style={{
-                padding: 16,
-                borderRadius: 16,
-                background: "#eefaf0",
-                border: "1px solid #cfe8d3",
-                color: "#166534",
-                marginBottom: 18,
-                lineHeight: 1.7,
-              }}
-            >
-              Otevřete e-mailovou schránku, klikněte na odkaz v e-mailu a nastavte
-              si heslo. Poté budete automaticky pokračovat do portálu.
-            </div>
-
-            <div
-              style={{
-                padding: 16,
-                borderRadius: 16,
-                background: "#f8f9fc",
-                border: "1px solid rgba(0,0,0,0.06)",
-                color: "rgba(0,0,0,0.72)",
-                marginBottom: 24,
-                lineHeight: 1.7,
-              }}
-            >
-              Pokud e-mail nevidíte hned, podívejte se také do složky Hromadné,
-              Promo nebo Spam.
-            </div>
-
-            <div className="demoButtonsRow">
-              <Link
-                href="/login"
-                style={{
-                  display: "inline-block",
-                  padding: "12px 18px",
-                  borderRadius: 12,
-                  background: "#111827",
-                  color: "#fff",
-                  textDecoration: "none",
-                  fontWeight: 700,
-                  textAlign: "center",
-                }}
-              >
-                Pokračovat na přihlášení
-              </Link>
-
-              <Link
-                href="/"
-                style={{
-                  display: "inline-block",
-                  padding: "12px 18px",
-                  borderRadius: 12,
-                  background: "#fff",
-                  color: "#111827",
-                  textDecoration: "none",
-                  fontWeight: 700,
-                  border: "1px solid rgba(0,0,0,0.12)",
-                  textAlign: "center",
-                }}
-              >
-                Zpět na hlavní stránku
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <style jsx>{`
-          .demoTitle {
-            font-size: 34px;
-            line-height: 1.15;
-          }
-
-          .demoLead {
-            font-size: 17px;
-            line-height: 1.7;
-          }
-
-          .demoButtonsRow {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-          }
-
-          @media (max-width: 760px) {
-            .demoTitle {
-              font-size: 28px;
-            }
-
-            .demoLead {
-              font-size: 16px;
-            }
-
-            .demoButtonsRow {
-              display: grid;
-              grid-template-columns: 1fr;
-            }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
   return (
     <div style={pageStyle}>
       <div
@@ -207,7 +63,7 @@ export default function DemoPage() {
             className="demoMainTitle"
             style={{ marginTop: 0, marginBottom: 14 }}
           >
-            Vyzkoušejte ARCHIMEDES Live ve vaší škole
+            Prohlédněte si, jak vypadá ARCHIMEDES Live po přihlášení
           </h1>
 
           <p
@@ -219,8 +75,9 @@ export default function DemoPage() {
             }}
           >
             ARCHIMEDES Live je živý vzdělávací program pro školy a komunitu obce.
-            Během několika minut si můžete vytvořit ukázkovou učebnu a podívat se,
-            jak portál funguje z pohledu školy.
+            Ukázkový přístup slouží k tomu, aby si ředitel, učitel nebo zájemce
+            mohl předem prohlédnout prostředí portálu a získat jasnou představu o
+            tom, co škola po aktivaci uvidí.
           </p>
 
           <div
@@ -236,7 +93,7 @@ export default function DemoPage() {
               className="demoSectionTitle"
               style={{ marginTop: 0, marginBottom: 14 }}
             >
-              Co v demu uvidíte
+              Co v ukázce uvidíte
             </h2>
 
             <ul
@@ -247,10 +104,11 @@ export default function DemoPage() {
                 color: "rgba(0,0,0,0.74)",
               }}
             >
-              <li>jak vypadá živé vysílání s inspirativním hostem</li>
-              <li>jak škola sleduje program na interaktivním panelu</li>
-              <li>jak fungují pracovní listy a návaznost do výuky</li>
-              <li>jak vypadá portál pro školu a přístup k programu</li>
+              <li>podobu portálu po přihlášení z pohledu školy</li>
+              <li>ukázku programu a struktury vysílání</li>
+              <li>ukázkové záznamy a návaznost do výuky</li>
+              <li>pracovní listy a materiály pro učitele</li>
+              <li>celkový dojem z prostředí, které škola po aktivaci získá</li>
             </ul>
           </div>
 
@@ -262,10 +120,26 @@ export default function DemoPage() {
               border: "1px solid #cfe8d3",
               color: "#166534",
               lineHeight: 1.7,
+              marginBottom: 18,
             }}
           >
-            Demo je určeno pro školy, které si chtějí ARCHIMEDES Live nejprve
-            vyzkoušet a teprve potom řešit další spolupráci nebo cenovou nabídku.
+            Ukázkový přístup je pouze pro prohlížení. Neumožňuje správu školy,
+            spouštění vysílání ani jiné administrativní zásahy.
+          </div>
+
+          <div
+            style={{
+              background: "#fff8e8",
+              padding: 18,
+              borderRadius: 18,
+              border: "1px solid #f1dfac",
+              color: "#7a5a00",
+              lineHeight: 1.7,
+            }}
+          >
+            Přístup do ukázky poskytujeme na základě krátké žádosti. Díky tomu
+            máme přehled o zájmu škol a můžeme navázat vhodným dalším krokem —
+            například ukázkovou hodinou nebo konkrétní nabídkou pro školu.
           </div>
         </div>
 
@@ -279,7 +153,7 @@ export default function DemoPage() {
             className="demoFormTitle"
             style={{ marginTop: 0, marginBottom: 12 }}
           >
-            Spustit demo školy
+            Získat ukázkový přístup
           </h2>
 
           <p
@@ -291,112 +165,48 @@ export default function DemoPage() {
               lineHeight: 1.7,
             }}
           >
-            Vyplňte krátký formulář. Vytvoříme vám demo učebnu a pošleme odkaz
-            pro dokončení přístupu do portálu.
+            Pošlete nám krátkou žádost o přístup do ukázkového prostředí.
+            Následně vám zašleme další informace a přístup do dema.
           </p>
 
-          <form
-            onSubmit={handleSubmit}
+          <div
             style={{
               display: "grid",
-              gap: 14,
+              gap: 12,
             }}
           >
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: 8,
-                  fontWeight: 700,
-                }}
-              >
-                Název školy
-              </label>
-              <input
-                type="text"
-                placeholder="Např. ZŠ Hodonín"
-                value={school}
-                onChange={(e) => setSchool(e.target.value)}
-                required
-                style={inputStyle}
-              />
-            </div>
+            <Link href="/zadost-o-pristup?type=demo" style={buttonPrimaryStyle}>
+              Požádat o ukázkový přístup
+            </Link>
 
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: 8,
-                  fontWeight: 700,
-                }}
-              >
-                Vaše jméno
-              </label>
-              <input
-                type="text"
-                placeholder="Např. Jan Novák"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                style={inputStyle}
-              />
-            </div>
+            <Link href="/ukazka" style={buttonSecondaryStyle}>
+              Nejprve si domluvit ukázku
+            </Link>
 
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: 8,
-                  fontWeight: 700,
-                }}
-              >
-                E-mail
-              </label>
-              <input
-                type="email"
-                placeholder="Např. reditel@skola.cz"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={inputStyle}
-              />
-            </div>
+            <Link href="/" style={buttonSecondaryStyle}>
+              Zpět na hlavní stránku
+            </Link>
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                marginTop: 6,
-                padding: "14px 18px",
-                fontSize: 18,
-                background: "#111827",
-                color: "#fff",
-                border: "none",
-                borderRadius: 12,
-                cursor: loading ? "default" : "pointer",
-                fontWeight: 700,
-                opacity: loading ? 0.7 : 1,
-                width: "100%",
-              }}
-            >
-              {loading ? "Vytvářím demo učebnu…" : "Spustit demo školy"}
-            </button>
-
-            {error ? (
-              <div
-                style={{
-                  marginTop: 6,
-                  padding: 12,
-                  borderRadius: 12,
-                  background: "#fff1f1",
-                  color: "#a40000",
-                  border: "1px solid #f2c9c9",
-                }}
-              >
-                {error}
-              </div>
-            ) : null}
-          </form>
+          <div
+            style={{
+              marginTop: 20,
+              padding: 16,
+              borderRadius: 16,
+              background: "#f8f9fc",
+              border: "1px solid rgba(0,0,0,0.06)",
+              color: "rgba(0,0,0,0.72)",
+              lineHeight: 1.7,
+            }}
+          >
+            Doporučený postup:
+            <br />
+            1. požádáte o ukázkový přístup
+            <br />
+            2. získáte vstup do demo prostředí
+            <br />
+            3. po prohlédnutí navážeme konkrétním řešením pro vaši školu
+          </div>
         </div>
       </div>
 
@@ -424,6 +234,10 @@ export default function DemoPage() {
           font-size: 28px;
         }
 
+        .demoFormLead {
+          font-size: 16px;
+        }
+
         @media (max-width: 900px) {
           .demoGrid {
             grid-template-columns: 1fr !important;
@@ -447,6 +261,10 @@ export default function DemoPage() {
 
           .demoFormTitle {
             font-size: 24px;
+          }
+
+          .demoFormLead {
+            font-size: 15px;
           }
         }
       `}</style>
