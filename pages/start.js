@@ -425,8 +425,8 @@ export default function StartPage() {
 
                 <div className="summaryColumn">
                   <div className="summaryCard">
-                    <div className="summaryLabel">Zvýhodněná nabídka pro školy</div>
-                    <div className="summaryTitle">START školy – jaro + září 2026</div>
+                    <div className="summaryLabel">Zvýhodněná nabídka "START"</div>
+                    <div className="summaryTitle">Jaro + září 2026</div>
 
                     <div className="priceHighlight">
                       <div className="priceTop">Zvýhodněná cena za celé období</div>
