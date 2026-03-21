@@ -82,11 +82,7 @@ function extractYouTubeId(url) {
 
 function getRecordingUrl(row) {
   const session = normalizeSession(row?.broadcast_sessions);
-  return (
-    session?.recording_url ||
-    row?.broadcast_recording_url ||
-    ""
-  );
+  return session?.recording_url || row?.broadcast_recording_url || "";
 }
 
 function getArchiveVideoUrl(row) {
@@ -94,11 +90,11 @@ function getArchiveVideoUrl(row) {
 }
 
 function getArchiveCoverUrl(row) {
-  if (row?.poster_url) return row.poster_url;
-
   const archiveUrl = getArchiveVideoUrl(row);
   const ytId = extractYouTubeId(archiveUrl);
   if (ytId) return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+
+  if (row?.poster_url) return row.poster_url;
 
   return "";
 }
@@ -526,176 +522,160 @@ export default function Archiv() {
               boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                gap: 18,
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ minWidth: 0, flex: "1 1 560px" }}>
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minWidth: 120,
-                    padding: "6px 12px",
-                    borderRadius: 999,
-                    background: cfg.badgeBg,
-                    color: cfg.badgeColor,
-                    fontSize: 12,
-                    fontWeight: 900,
-                    marginBottom: 14,
-                  }}
-                >
-                  {cfg.badge}
-                </div>
+            <div style={{ minWidth: 0, maxWidth: 760 }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minWidth: 120,
+                  padding: "6px 12px",
+                  borderRadius: 999,
+                  background: cfg.badgeBg,
+                  color: cfg.badgeColor,
+                  fontSize: 12,
+                  fontWeight: 900,
+                  marginBottom: 14,
+                }}
+              >
+                {cfg.badge}
+              </div>
 
-                <h1
-                  style={{
-                    margin: 0,
-                    fontSize: 34,
-                    lineHeight: 1.08,
-                    color: "#0f172a",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  {cfg.title}
-                </h1>
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: 34,
+                  lineHeight: 1.08,
+                  color: "#0f172a",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {cfg.title}
+              </h1>
 
-                <p
-                  style={{
-                    marginTop: 14,
-                    marginBottom: 0,
-                    fontSize: 16,
-                    lineHeight: 1.7,
-                    color: "rgba(15,23,42,0.72)",
-                    maxWidth: 760,
-                  }}
-                >
-                  {cfg.text}
-                </p>
+              <p
+                style={{
+                  marginTop: 14,
+                  marginBottom: 0,
+                  fontSize: 16,
+                  lineHeight: 1.7,
+                  color: "rgba(15,23,42,0.72)",
+                  maxWidth: 760,
+                }}
+              >
+                {cfg.text}
+              </p>
 
-                <div
-                  className="archive-stats-grid"
-                  style={{
-                    marginTop: 18,
-                    display: "grid",
-                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                    gap: 12,
-                    maxWidth: 760,
-                  }}
-                >
-                  <MiniStat
-                    value={String(prepared.length)}
-                    label="publikovaných záznamů v archivu"
-                  />
-                  <MiniStat
-                    value={String(categories.filter((x) => x !== "Vše").length)}
-                    label="rubrik v archivu"
-                  />
-                  <MiniStat
-                    value={String(audiences.filter((x) => x !== "Vše").length)}
-                    label="cílových skupin"
-                  />
-                </div>
-
-                <div
-                  style={{
-                    marginTop: 22,
-                    display: "flex",
-                    gap: 12,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <Link
-                    href="/poptavka"
-                    style={{
-                      textDecoration: "none",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "14px 18px",
-                      borderRadius: 14,
-                      background: "#0f172a",
-                      color: "white",
-                      fontWeight: 900,
-                    }}
-                  >
-                    {cfg.primaryLabel}
-                  </Link>
-
-                  <Link
-                    href="/portal/kalendar"
-                    style={{
-                      textDecoration: "none",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "14px 18px",
-                      borderRadius: 14,
-                      background: "white",
-                      color: "#0f172a",
-                      fontWeight: 900,
-                      border: "1px solid rgba(15,23,42,0.14)",
-                    }}
-                  >
-                    Otevřít program
-                  </Link>
-                </div>
+              <div
+                className="archive-stats-grid"
+                style={{
+                  marginTop: 18,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                  gap: 12,
+                  maxWidth: 760,
+                }}
+              >
+                <MiniStat
+                  value={String(prepared.length)}
+                  label="publikovaných záznamů v archivu"
+                />
+                <MiniStat
+                  value={String(categories.filter((x) => x !== "Vše").length)}
+                  label="rubrik v archivu"
+                />
+                <MiniStat
+                  value={String(audiences.filter((x) => x !== "Vše").length)}
+                  label="cílových skupin"
+                />
               </div>
 
               <div
                 style={{
-                  minWidth: 280,
-                  flex: "0 1 340px",
-                  background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
-                  border: "1px solid rgba(15,23,42,0.08)",
-                  borderRadius: 22,
-                  padding: 18,
-                  boxShadow: "0 10px 28px rgba(15,23,42,0.04)",
+                  marginTop: 20,
+                  display: "flex",
+                  gap: 12,
+                  flexWrap: "wrap",
                 }}
               >
-                <div
+                <Link
+                  href="/poptavka"
                   style={{
-                    fontSize: 13,
+                    textDecoration: "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "14px 18px",
+                    borderRadius: 14,
+                    background: "#0f172a",
+                    color: "white",
                     fontWeight: 900,
-                    color: "rgba(15,23,42,0.64)",
-                    marginBottom: 10,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.04em",
                   }}
                 >
-                  Co je součástí plné licence
-                </div>
+                  {cfg.primaryLabel}
+                </Link>
 
-                <div
+                <Link
+                  href="/portal/kalendar"
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 10,
+                    textDecoration: "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "14px 18px",
+                    borderRadius: 14,
+                    background: "white",
+                    color: "#0f172a",
+                    fontWeight: 900,
+                    border: "1px solid rgba(15,23,42,0.14)",
                   }}
                 >
-                  <LicenseFeature
-                    title="Archiv odvysílaných témat"
-                    text="návrat k videím z předchozích vysílání"
-                  />
-                  <LicenseFeature
-                    title="Navazující materiály"
-                    text="pracovní listy a další využití ve výuce"
-                  />
-                  <LicenseFeature
-                    title="Praktické použití"
-                    text="škola si obsah pustí ve chvíli, kdy ho potřebuje"
-                  />
-                  <LicenseFeature
-                    title="Dlouhodobá hodnota"
-                    text="program nezmizí po jednom vysílání"
-                  />
-                </div>
+                  Otevřít program
+                </Link>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 20,
+                width: "100%",
+                background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
+                border: "1px solid rgba(15,23,42,0.08)",
+                borderRadius: 22,
+                padding: 18,
+                boxShadow: "0 10px 28px rgba(15,23,42,0.04)",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 900,
+                  color: "rgba(15,23,42,0.64)",
+                  marginBottom: 12,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                Co je součástí plné licence
+              </div>
+
+              <div className="license-features-grid">
+                <LicenseFeature
+                  title="Archiv odvysílaných témat"
+                  text="návrat k videím z předchozích vysílání"
+                />
+                <LicenseFeature
+                  title="Navazující materiály"
+                  text="pracovní listy a další využití ve výuce"
+                />
+                <LicenseFeature
+                  title="Praktické použití"
+                  text="škola si obsah pustí ve chvíli, kdy ho potřebuje"
+                />
+                <LicenseFeature
+                  title="Dlouhodobá hodnota"
+                  text="program nezmizí po jednom vysílání"
+                />
               </div>
             </div>
 
@@ -753,9 +733,22 @@ export default function Archiv() {
               gap: 14px;
             }
 
+            .license-features-grid {
+              display: grid;
+              grid-template-columns: repeat(4, minmax(0, 1fr));
+              gap: 10px;
+            }
+
+            @media (max-width: 1100px) {
+              .license-features-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+              }
+            }
+
             @media (max-width: 900px) {
               .archive-preview-grid,
-              .archive-stats-grid {
+              .archive-stats-grid,
+              .license-features-grid {
                 grid-template-columns: 1fr;
               }
             }
