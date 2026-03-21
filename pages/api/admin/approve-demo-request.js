@@ -18,6 +18,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Chybí requestId." });
     }
 
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
+
     // 1) načíst žádost
     const { data: lead, error: leadError } = await supabaseAdmin
       .from("leads")
@@ -53,7 +56,9 @@ export default async function handler(req, res) {
     }
 
     if (!demoOrg?.id) {
-      return res.status(404).json({ error: "Demo organizace ARCHIMEDES DEMO SKOLA nebyla nalezena." });
+      return res.status(404).json({
+        error: "Demo organizace ARCHIMEDES DEMO SKOLA nebyla nalezena.",
+      });
     }
 
     // 3) najít existujícího uživatele podle emailu
@@ -68,21 +73,22 @@ export default async function handler(req, res) {
       (u) => String(u.email || "").toLowerCase() === email
     );
 
-    // 4) pokud neexistuje, pošli invite
+    // 4) pokud neexistuje, vytvořit usera bez hesla
     if (!user) {
-      const siteUrl =
-        process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
-
-      const { data: inviteData, error: inviteError } =
-        await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-          redirectTo: `${siteUrl}/login`,
+      const { data: createData, error: createError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email,
+          email_confirm: true,
+          user_metadata: {
+            full_name: contactName || "",
+          },
         });
 
-      if (inviteError) {
-        return res.status(500).json({ error: inviteError.message });
+      if (createError) {
+        return res.status(500).json({ error: createError.message });
       }
 
-      user = inviteData?.user;
+      user = createData?.user;
     }
 
     if (!user?.id) {
@@ -147,13 +153,24 @@ export default async function handler(req, res) {
       }
     }
 
-    // 7) označit lead jako approved
+    // 7) poslat email pro nastavení hesla
+    const { error: resetError } =
+      await supabaseAdmin.auth.resetPasswordForEmail(email, {
+        redirectTo: `${siteUrl}/nastavit-heslo`,
+      });
+
+    if (resetError) {
+      return res.status(500).json({ error: resetError.message });
+    }
+
+    // 8) označit lead jako approved
     const approvalNote = [
       normServer(lead.note),
       "",
       `Demo schváleno: ${new Date().toISOString()}`,
       `Demo organizace: ${demoOrg.name}`,
       `Uživatel: ${email}`,
+      `Odeslán odkaz pro nastavení hesla: ${siteUrl}/nastavit-heslo`,
       organization ? `Žadatel uvedl organizaci: ${organization}` : "",
     ]
       .filter(Boolean)
@@ -173,7 +190,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Demo přístup byl schválen.",
+      message: "Demo přístup byl schválen a byl odeslán e-mail pro nastavení hesla.",
       email,
       userId: user.id,
       organizationId: demoOrg.id,
