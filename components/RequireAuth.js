@@ -9,67 +9,87 @@ export default function RequireAuth({ children }) {
   useEffect(() => {
     let mounted = true;
 
+    async function deny(path = "/login") {
+      if (!mounted) return;
+      router.replace(path);
+    }
+
+    async function allow() {
+      if (!mounted) return;
+      setChecking(false);
+    }
+
     async function check() {
       try {
         const {
-          data: { session },
-        } = await supabase.auth.getSession();
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
 
-        if (!session) {
-          router.replace("/login");
+        if (userError || !user) {
+          await deny("/login");
           return;
         }
 
-        const user = session.user;
         const pathname = router.pathname || "";
 
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("id, full_name, must_set_password")
-          .eq("id", user.id)
-          .maybeSingle();
+        const [
+          { data: profile, error: profileError },
+          { data: audRows, error: audError },
+          { data: catRows, error: catError },
+          { data: membershipRows, error: membershipError },
+        ] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("id, full_name, must_set_password")
+            .eq("id", user.id)
+            .maybeSingle(),
+
+          supabase
+            .from("user_audience_preferences")
+            .select("id")
+            .eq("user_id", user.id)
+            .limit(1),
+
+          supabase
+            .from("user_category_preferences")
+            .select("id")
+            .eq("user_id", user.id)
+            .limit(1),
+
+          supabase
+            .from("organization_members")
+            .select("organization_id, role_in_org, status")
+            .eq("user_id", user.id)
+            .eq("status", "active")
+            .limit(2),
+        ]);
 
         if (profileError || !profile) {
-          router.replace("/login");
+          await deny("/login");
           return;
         }
 
         if (profile.must_set_password) {
-          router.replace("/login");
+          await deny("/login");
           return;
         }
 
-        const { data: audRows, error: audError } = await supabase
-          .from("user_audience_preferences")
-          .select("id")
-          .eq("user_id", user.id)
-          .limit(1);
-
-        if (audError) {
-          router.replace("/login");
+        if (audError || catError || membershipError) {
+          await deny("/login");
           return;
         }
 
-        const { data: catRows, error: catError } = await supabase
-          .from("user_category_preferences")
-          .select("id")
-          .eq("user_id", user.id)
-          .limit(1);
+        const memberships = Array.isArray(membershipRows) ? membershipRows : [];
+        const membership = memberships[0] || null;
 
-        if (catError) {
-          router.replace("/login");
-          return;
-        }
-
-        const { data: membership, error: membershipError } = await supabase
-          .from("organization_members")
-          .select("organization_id, role_in_org, status")
-          .eq("user_id", user.id)
-          .eq("status", "active")
-          .maybeSingle();
-
-        if (membershipError) {
-          router.replace("/login");
+        // Bezpečnostní fallback: více aktivních členství nechceme tiše ignorovat
+        if (memberships.length > 1) {
+          console.error("RequireAuth: user has multiple active memberships", {
+            userId: user.id,
+            memberships,
+          });
+          await deny("/login");
           return;
         }
 
@@ -86,27 +106,20 @@ export default function RequireAuth({ children }) {
         const isWelcomePage = pathname === "/welcome";
         const isCreateOrganizationPage = pathname === "/create-organization";
         const isJoinPage = pathname === "/join";
-        const isPortalPage =
-          pathname === "/portal" ||
-          pathname.startsWith("/portal/");
+        const isPortalPage = pathname === "/portal" || pathname.startsWith("/portal/");
 
-        // 1) Uživatel s organizací:
-        // pustíme ho normálně do portálu i tehdy,
-        // když ještě nemá vyplněné preference.
-        // To je důležité pro demo režim a první vstup školy.
+        // 1) Uživatel s organizací
         if (hasOrganization) {
           if (isUsersPage && !isOrgAdmin) {
-            router.replace("/portal");
+            await deny("/portal");
             return;
           }
 
-          if (mounted) setChecking(false);
+          await allow();
           return;
         }
 
-        // 2) Uživatel bez organizace:
-        // pokud nemá hotový profil, pustíme ho jen na profil,
-        // welcome, join a create-organization.
+        // 2) Uživatel bez organizace a bez kompletního profilu
         if (!profileComplete) {
           if (
             isProfilePage ||
@@ -114,41 +127,42 @@ export default function RequireAuth({ children }) {
             isCreateOrganizationPage ||
             isJoinPage
           ) {
-            if (mounted) setChecking(false);
+            await allow();
             return;
           }
 
-          router.replace("/portal/muj-profil");
+          await deny("/portal/muj-profil");
           return;
         }
 
-        // 3) Uživatel bez organizace, ale s hotovým profilem:
-        // může dál do welcome / create-organization / join / portálu.
+        // 3) Uživatel bez organizace, ale s hotovým profilem
+        // Bezpečněji ho nepouštíme do celého /portal/*
         if (!hasOrganization) {
           if (
             isWelcomePage ||
             isCreateOrganizationPage ||
             isJoinPage ||
-            isProfilePage ||
-            isPortalPage
+            isProfilePage
           ) {
-            if (mounted) setChecking(false);
+            await allow();
             return;
           }
 
-          if (mounted) setChecking(false);
+          await deny("/welcome");
           return;
         }
 
-        if (mounted) setChecking(false);
+        await allow();
       } catch (_e) {
-        router.replace("/login");
+        await deny("/login");
       }
     }
 
     check();
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         router.replace("/login");
       }
@@ -156,7 +170,7 @@ export default function RequireAuth({ children }) {
 
     return () => {
       mounted = false;
-      sub?.subscription?.unsubscribe?.();
+      subscription?.unsubscribe?.();
     };
   }, [router]);
 
