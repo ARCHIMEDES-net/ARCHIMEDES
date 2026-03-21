@@ -344,7 +344,7 @@ export default function StartPage() {
                   <p className="lead">
                     Objednejte si zvýhodněný start programu ARCHIMEDES Live na období
                     duben–září 2026. Škola si tak může program reálně vyzkoušet
-                    ještě v tomto školním roce a zároveň se v klidu připravit na další
+                    ještě v tomto školním roce a zároveň se v klidu připravit na
                     zapojení v novém školním roce.
                   </p>
 
@@ -426,7 +426,7 @@ export default function StartPage() {
                 <div className="summaryColumn">
                   <div className="summaryCard">
                     <div className="summaryLabel">Zvýhodněná nabídka pro školy</div>
-                    <div className="summaryTitle">START školy – jaro 2026</div>
+                    <div className="summaryTitle">START školy – jaro + září 2026</div>
 
                     <div className="priceHighlight">
                       <div className="priceTop">Zvýhodněná cena za celé období</div>
@@ -662,7 +662,7 @@ export default function StartPage() {
                     <li>přístup do programu obdržíte e-mailem</li>
                     <li>fakturace probíhá po potvrzení objednávky</li>
                     <li>na vyžádání připravíme specifikaci plnění</li>
-                    <li>balíček START je na období duben–červen 2026</li>
+                    <li>balíček START je na období duben–září 2026</li>
                   </ul>
                 </div>
               </div>
@@ -751,7 +751,7 @@ export default function StartPage() {
                     />
                     <span>
                       Odesláním objednávky objednávám za školu / organizaci
-                      balíček START služby ARCHIMEDES Live na období duben–červen
+                      balíček START služby ARCHIMEDES Live na období duben–září
                       2026 a potvrzuji, že škola / organizace uhradí cenu
                       uvedenou v objednávce na základě vystaveného daňového
                       dokladu, případně podle navazující smluvní dokumentace,
