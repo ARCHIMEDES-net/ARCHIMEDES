@@ -139,17 +139,19 @@ async function ensureProfile({
   userId,
   email,
   fullName,
+  mustSetPassword = true,
 }) {
-  const { error } = await supabase.from("profiles").upsert(
-    {
-      id: userId,
-      email,
-      full_name: fullName,
-      is_active: true,
-      must_set_password: true,
-    },
-    { onConflict: "id" }
-  );
+  const payload = {
+    id: userId,
+    email,
+    full_name: fullName,
+    is_active: true,
+    must_set_password: mustSetPassword,
+  };
+
+  const { error } = await supabase
+    .from("profiles")
+    .upsert(payload, { onConflict: "id" });
 
   if (error) {
     throw new Error(`Nepodařilo se uložit profil administrátora: ${error.message}`);
@@ -194,6 +196,34 @@ async function checkUserActiveMemberships(userId) {
   }
 
   return data || [];
+}
+
+async function getProfileByEmail(email) {
+  if (!email) return null;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, email, full_name")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Nepodařilo se načíst profil podle e-mailu: ${error.message}`);
+  }
+
+  return data || null;
+}
+
+async function getAuthUserEmailById(userId) {
+  if (!userId) return "";
+
+  const { data, error } = await supabase.auth.admin.getUserById(userId);
+
+  if (error) {
+    throw new Error(`Nepodařilo se načíst přihlášeného uživatele: ${error.message}`);
+  }
+
+  return normalizeEmail(data?.user?.email || "");
 }
 
 async function inviteAdminUser({ adminEmail, contactName }) {
@@ -242,6 +272,7 @@ export default async function handler(req, res) {
     const noteRaw = normalizeText(data.note);
 
     const currentUserId = normalizeText(data.currentUserId);
+    const currentUserEmailFromClient = normalizeEmail(data.currentUserEmail);
     const currentOrganizationId = normalizeText(data.currentOrganizationId);
     const currentOrganizationName = normalizeText(data.currentOrganizationName);
 
@@ -325,7 +356,11 @@ export default async function handler(req, res) {
 
     let onboardingStatus = "completed";
     let onboardingError = null;
-    let onboardingMode = "existing_user";
+    let onboardingMode = "new_user";
+    let resolvedCurrentUserEmail = currentUserEmailFromClient;
+    let currentUserMatchesAdmin = false;
+    let inviteSentToAdmin = false;
+    let adminSource = "invited_new_admin";
 
     try {
       let organization = null;
@@ -339,17 +374,18 @@ export default async function handler(req, res) {
 
         organizationId = organization.id;
         joinCode = organization.join_code;
+        onboardingMode = "existing_user_same_org";
       } else {
         organization = await getOrganizationByIco(icoRaw);
 
         if (!organization) {
-          onboardingMode = "new_user";
           organization = await createOrganization({
             name: schoolNameRaw,
             ico: icoRaw,
           });
+          onboardingMode = "new_organization";
         } else {
-          onboardingMode = currentUserId ? "existing_user" : "matched_by_ico";
+          onboardingMode = currentUserId ? "existing_user_matched_by_ico" : "matched_by_ico";
         }
 
         organizationId = organization.id;
@@ -357,7 +393,19 @@ export default async function handler(req, res) {
       }
 
       if (currentUserId) {
+        try {
+          resolvedCurrentUserEmail = await getAuthUserEmailById(currentUserId);
+        } catch (authUserError) {
+          console.error("AUTH USER LOOKUP ERROR:", authUserError);
+        }
+
+        currentUserMatchesAdmin =
+          !!resolvedCurrentUserEmail && resolvedCurrentUserEmail === adminEmailRaw;
+      }
+
+      if (currentUserId && currentUserMatchesAdmin) {
         adminUserId = currentUserId;
+        adminSource = "logged_in_user_matches_admin";
 
         const memberships = await checkUserActiveMemberships(adminUserId);
         const hasOtherActiveOrg = memberships.some(
@@ -370,8 +418,9 @@ export default async function handler(req, res) {
 
         await ensureProfile({
           userId: adminUserId,
-          email: adminEmailRaw,
+          email: resolvedCurrentUserEmail || adminEmailRaw,
           fullName: contactNameRaw,
+          mustSetPassword: false,
         });
 
         await ensureMembership({
@@ -380,31 +429,68 @@ export default async function handler(req, res) {
           roleInOrg: "organization_admin",
         });
       } else {
-        adminUserId = await inviteAdminUser({
-          adminEmail: adminEmailRaw,
-          contactName: contactNameRaw,
-        });
+        const existingAdminProfile = await getProfileByEmail(adminEmailRaw);
 
-        const memberships = await checkUserActiveMemberships(adminUserId);
-        const hasOtherActiveOrg = memberships.some(
-          (m) => m.organization_id !== organizationId
-        );
+        if (existingAdminProfile?.id) {
+          adminUserId = existingAdminProfile.id;
+          adminSource = currentUserId
+            ? "existing_profile_as_separate_admin"
+            : "existing_profile_admin";
 
-        if (hasOtherActiveOrg) {
-          throw new Error("Administrátor už je přiřazen k jiné aktivní organizaci.");
+          const memberships = await checkUserActiveMemberships(adminUserId);
+          const hasOtherActiveOrg = memberships.some(
+            (m) => m.organization_id !== organizationId
+          );
+
+          if (hasOtherActiveOrg) {
+            throw new Error("Administrátor už je přiřazen k jiné aktivní organizaci.");
+          }
+
+          await ensureProfile({
+            userId: adminUserId,
+            email: adminEmailRaw,
+            fullName: contactNameRaw,
+            mustSetPassword: false,
+          });
+
+          await ensureMembership({
+            organizationId,
+            userId: adminUserId,
+            roleInOrg: "organization_admin",
+          });
+        } else {
+          adminUserId = await inviteAdminUser({
+            adminEmail: adminEmailRaw,
+            contactName: contactNameRaw,
+          });
+
+          inviteSentToAdmin = true;
+          adminSource = currentUserId
+            ? "invited_separate_admin"
+            : "invited_new_admin";
+
+          const memberships = await checkUserActiveMemberships(adminUserId);
+          const hasOtherActiveOrg = memberships.some(
+            (m) => m.organization_id !== organizationId
+          );
+
+          if (hasOtherActiveOrg) {
+            throw new Error("Administrátor už je přiřazen k jiné aktivní organizaci.");
+          }
+
+          await ensureProfile({
+            userId: adminUserId,
+            email: adminEmailRaw,
+            fullName: contactNameRaw,
+            mustSetPassword: true,
+          });
+
+          await ensureMembership({
+            organizationId,
+            userId: adminUserId,
+            roleInOrg: "organization_admin",
+          });
         }
-
-        await ensureProfile({
-          userId: adminUserId,
-          email: adminEmailRaw,
-          fullName: contactNameRaw,
-        });
-
-        await ensureMembership({
-          organizationId,
-          userId: adminUserId,
-          roleInOrg: "organization_admin",
-        });
       }
 
       const { error: onboardingUpdateError } = await supabase
@@ -461,6 +547,10 @@ export default async function handler(req, res) {
     const safeOnboardingError = escapeHtml(onboardingError || "-");
     const safeOnboardingMode = escapeHtml(onboardingMode);
     const safeCurrentOrganizationName = escapeHtml(currentOrganizationName || "-");
+    const safeCurrentUserEmail = escapeHtml(resolvedCurrentUserEmail || "-");
+    const safeCurrentUserMatchesAdmin = currentUserMatchesAdmin ? "ano" : "ne";
+    const safeInviteSentToAdmin = inviteSentToAdmin ? "ano" : "ne";
+    const safeAdminSource = escapeHtml(adminSource);
 
     const subject = `🟢 START – ${schoolNameRaw} (IČO: ${icoRaw})`;
 
@@ -506,6 +596,10 @@ export default async function handler(req, res) {
 
         <p><strong>Režim objednávky:</strong> ${safeOnboardingMode}</p>
         <p><strong>Organizace z klienta:</strong> ${safeCurrentOrganizationName}</p>
+        <p><strong>Přihlášený uživatel:</strong> ${safeCurrentUserEmail}</p>
+        <p><strong>Admin email = přihlášený uživatel:</strong> ${safeCurrentUserMatchesAdmin}</p>
+        <p><strong>Zdroj admin účtu:</strong> ${safeAdminSource}</p>
+        <p><strong>Byla odeslána pozvánka adminovi:</strong> ${safeInviteSentToAdmin}</p>
         <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
         <p><strong>Onboarding stav:</strong> ${safeOnboardingStatus}</p>
         <p><strong>Onboarding chyba:</strong> ${safeOnboardingError}</p>
@@ -552,37 +646,69 @@ export default async function handler(req, res) {
       `,
     });
 
-    if (onboardingStatus === "completed" && !currentUserId) {
-      await transporter.sendMail({
-        from: process.env.MAIL_FROM,
-        to: adminEmailRaw,
-        subject: "Administrátorský přístup – ARCHIMEDES Live",
-        html: `
-          <h2>Byl vám vytvořen administrátorský přístup</h2>
+    if (onboardingStatus === "completed") {
+      if (inviteSentToAdmin) {
+        await transporter.sendMail({
+          from: process.env.MAIL_FROM,
+          to: adminEmailRaw,
+          subject: "Administrátorský přístup – ARCHIMEDES Live",
+          html: `
+            <h2>Byl vám vytvořen administrátorský přístup</h2>
 
-          <p>Pro školu <strong>${schoolName}</strong> jsme připravili přístup do ARCHIMEDES Live.</p>
+            <p>Pro školu <strong>${schoolName}</strong> jsme připravili přístup do ARCHIMEDES Live.</p>
 
-          <p><strong>Vaše role:</strong> administrátor školy</p>
-          <p><strong>E-mail administrátora:</strong> ${adminEmail}</p>
-          <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
+            <p><strong>Vaše role:</strong> administrátor školy</p>
+            <p><strong>E-mail administrátora:</strong> ${adminEmail}</p>
+            <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
 
-          <p>
-            Pro dokončení přístupu použijte odkaz z pozvánky, který vám byl odeslán
-            systémem, a následně se přihlaste zde:
-            <br/>
-            <a href="${REDIRECT_TO}">${REDIRECT_TO}</a>
-          </p>
+            <p>
+              Pro dokončení přístupu použijte odkaz z pozvánky, který vám byl odeslán
+              systémem, a následně se přihlaste zde:
+              <br/>
+              <a href="${REDIRECT_TO}">${REDIRECT_TO}</a>
+            </p>
 
-          <p>
-            Po přihlášení můžete v portálu přidávat další kolegy učitele a spravovat
-            přístup školy.
-          </p>
+            <p>
+              Po přihlášení můžete v portálu přidávat další kolegy učitele a spravovat
+              přístup školy.
+            </p>
 
-          <p>S pozdravem,<br/>
-          <strong>ARCHIMEDES Live</strong><br/>
-          EduVision s.r.o.</p>
-        `,
-      });
+            <p>S pozdravem,<br/>
+            <strong>ARCHIMEDES Live</strong><br/>
+            EduVision s.r.o.</p>
+          `,
+        });
+      } else {
+        await transporter.sendMail({
+          from: process.env.MAIL_FROM,
+          to: adminEmailRaw,
+          subject: "Administrátorský přístup – ARCHIMEDES Live",
+          html: `
+            <h2>Administrátorský přístup je připraven</h2>
+
+            <p>Pro školu <strong>${schoolName}</strong> je administrátorský přístup do ARCHIMEDES Live nastaven.</p>
+
+            <p><strong>Vaše role:</strong> administrátor školy</p>
+            <p><strong>E-mail administrátora:</strong> ${adminEmail}</p>
+            <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
+
+            <p>
+              Přihlaste se do portálu zde:
+              <br/>
+              <a href="${REDIRECT_TO}">${REDIRECT_TO}</a>
+            </p>
+
+            <p>
+              Po přihlášení můžete v portálu spravovat přístup školy a případně
+              přidávat další kolegy.
+            </p>
+
+            <p>S pozdravem,<br/>
+            <strong>ARCHIMEDES Live</strong><br/>
+            EduVision s.r.o.</p>
+          `,
+        });
+      }
     }
 
     return res.status(200).json({
