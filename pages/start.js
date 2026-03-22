@@ -54,6 +54,7 @@ export default function StartPage() {
   const [success, setSuccess] = useState(false);
 
   const [currentUserId, setCurrentUserId] = useState("");
+  const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [currentOrganizationId, setCurrentOrganizationId] = useState("");
   const [currentOrganizationName, setCurrentOrganizationName] = useState("");
 
@@ -84,6 +85,7 @@ export default function StartPage() {
 
         if (mounted) {
           setCurrentUserId(user.id || "");
+          setCurrentUserEmail(email || "");
         }
 
         const { data: membership, error: membershipError } = await supabase
@@ -161,6 +163,7 @@ export default function StartPage() {
         body: JSON.stringify({
           ...form,
           currentUserId,
+          currentUserEmail,
           currentOrganizationId,
           currentOrganizationName,
         }),
