@@ -53,6 +53,10 @@ export default function StartPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  const [currentUserId, setCurrentUserId] = useState("");
+  const [currentOrganizationId, setCurrentOrganizationId] = useState("");
+  const [currentOrganizationName, setCurrentOrganizationName] = useState("");
+
   useEffect(() => {
     let mounted = true;
 
@@ -75,6 +79,12 @@ export default function StartPage() {
 
         let schoolName = "";
         let adminEmail = email;
+        let organizationId = "";
+        let organizationName = "";
+
+        if (mounted) {
+          setCurrentUserId(user.id || "");
+        }
 
         const { data: membership, error: membershipError } = await supabase
           .from("organization_members")
@@ -86,17 +96,24 @@ export default function StartPage() {
         if (membershipError) throw membershipError;
 
         if (membership?.organization_id) {
+          organizationId = membership.organization_id;
+
           const { data: org, error: orgError } = await supabase
             .from("organizations")
-            .select("name")
+            .select("id, name")
             .eq("id", membership.organization_id)
             .maybeSingle();
 
           if (orgError) throw orgError;
+
           schoolName = org?.name || "";
+          organizationName = org?.name || "";
         }
 
         if (!mounted) return;
+
+        setCurrentOrganizationId(organizationId || "");
+        setCurrentOrganizationName(organizationName || "");
 
         setForm((prev) => ({
           ...prev,
@@ -141,7 +158,12 @@ export default function StartPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          currentUserId,
+          currentOrganizationId,
+          currentOrganizationName,
+        }),
       });
 
       const data = await res.json();
