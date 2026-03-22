@@ -130,7 +130,6 @@ export default function PortalIndex() {
           { data: membership, error: membershipError },
         ] = await Promise.all([
           supabase.from("profiles").select("id, user_type").eq("id", user.id).maybeSingle(),
-
           supabase
             .from("organization_members")
             .select("organization_id, status, role_in_org")
@@ -252,7 +251,7 @@ export default function PortalIndex() {
                   pro zapojení školy.
                 </>
               }
-              primaryHref="/poptavka"
+              primaryHref="/start"
               primaryLabel="Chci balíček START"
               secondaryHref="/portal/kalendar"
               secondaryLabel="Otevřít program"
@@ -262,7 +261,7 @@ export default function PortalIndex() {
           {showExpiredBanner ? (
             <LicenseBanner
               mode="expired"
-              title={isDemoViewer ? "Ukázkový přístup skončil" : "Ukázkový přístup skončil"}
+              title="Ukázkový přístup skončil"
               text={
                 <>
                   Přístup organizace{organizationName ? ` ${organizationName}` : ""} je nyní v
@@ -270,7 +269,7 @@ export default function PortalIndex() {
                   vhodnou variantu zapojení školy.
                 </>
               }
-              primaryHref="/poptavka"
+              primaryHref="/start"
               primaryLabel="Chci balíček START"
               secondaryHref="/portal/skoly"
               secondaryLabel="Zobrazit síť učeben"
@@ -1024,7 +1023,7 @@ function getDashboardConfig(
           cta: "Otevřít",
         },
         {
-          href: "/poptavka",
+          href: "/start",
           icon: "🚀",
           title: "Balíček START",
           desc: "Nejrychlejší cesta, jak školu zapojit do programu a začít s prvními vysíláními.",
@@ -1089,7 +1088,7 @@ function getDashboardConfig(
             cta: "Otevřít",
           },
           {
-            href: "/poptavka",
+            href: "/start",
             icon: "🚀",
             title: "Balíček START",
             desc: "Nejrychlejší způsob, jak se školou začít a zapojit se do programu bez zbytečného odkladu.",
@@ -1117,7 +1116,7 @@ function getDashboardConfig(
         quickTitle: "Další doporučený krok",
         quickSubtitle: "Obnovte plný přístup pro školu nebo obec.",
         primaryCtaLabel: "Chci balíček START",
-        primaryCtaHref: "/poptavka",
+        primaryCtaHref: "/start",
         sideBoxTitle: "Co dál",
         sideBoxText:
           "Po obnovení získáte znovu plný přístup k programu, záznamům i dalším částem portálu.",
@@ -1129,7 +1128,7 @@ function getDashboardConfig(
         ],
         tiles: [
           {
-            href: "/poptavka",
+            href: "/start",
             icon: "🚀",
             title: "Balíček START",
             desc: "Nejrychlejší cesta k obnovení programu pro vaši školu.",
@@ -1922,7 +1921,7 @@ function DemoFeaturedSection({ organizationName, validUntil }) {
             }}
           >
             <Link
-              href="/poptavka"
+              href="/start"
               style={{
                 textDecoration: "none",
                 display: "inline-flex",
