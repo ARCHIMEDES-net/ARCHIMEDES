@@ -1,7 +1,8 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
+import { supabase } from "../lib/supabaseClient";
 
 const legalLinks = {
   vop: "/vop",
@@ -29,11 +30,97 @@ const initialForm = {
   agreeContract: false,
 };
 
+function getBestContactName(user) {
+  const meta = user?.user_metadata || {};
+  return (
+    meta.full_name ||
+    meta.name ||
+    [meta.first_name, meta.last_name].filter(Boolean).join(" ").trim() ||
+    ""
+  );
+}
+
+function getBestRole(user) {
+  const meta = user?.user_metadata || {};
+  return meta.role || "";
+}
+
 export default function StartPage() {
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
+  const [prefillLoading, setPrefillLoading] = useState(true);
+  const [prefillReady, setPrefillReady] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadPrefill() {
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) throw userError;
+        if (!user || !mounted) {
+          setPrefillLoading(false);
+          return;
+        }
+
+        const email = user.email || "";
+        const contactName = getBestContactName(user);
+        const role = getBestRole(user);
+
+        let schoolName = "";
+        let adminEmail = email;
+
+        const { data: membership, error: membershipError } = await supabase
+          .from("organization_members")
+          .select("organization_id, status")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .maybeSingle();
+
+        if (membershipError) throw membershipError;
+
+        if (membership?.organization_id) {
+          const { data: org, error: orgError } = await supabase
+            .from("organizations")
+            .select("name")
+            .eq("id", membership.organization_id)
+            .maybeSingle();
+
+          if (orgError) throw orgError;
+          schoolName = org?.name || "";
+        }
+
+        if (!mounted) return;
+
+        setForm((prev) => ({
+          ...prev,
+          schoolName: prev.schoolName || schoolName,
+          contactName: prev.contactName || contactName,
+          role: prev.role || role,
+          email: prev.email || email,
+          adminEmail: prev.adminEmail || adminEmail,
+        }));
+
+        setPrefillReady(!!(schoolName || contactName || email));
+      } catch (_err) {
+        // Záměrně bez hlášky do UI – stránka musí fungovat i bez předvyplnění.
+      } finally {
+        if (mounted) setPrefillLoading(false);
+      }
+    }
+
+    loadPrefill();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -83,7 +170,7 @@ export default function StartPage() {
           <title>Objednávka přijata | ARCHIMEDES Live</title>
           <meta
             name="description"
-            content="Potvrzení přijetí objednávky zvýhodněného startu ARCHIMEDES Live pro školy."
+            content="Potvrzení přijetí objednávky balíčku START programu ARCHIMEDES Live pro školy."
           />
         </Head>
 
@@ -100,10 +187,10 @@ export default function StartPage() {
                 </p>
 
                 <div className="successBox">
-                  Objednali jste zvýhodněný balíček START na období duben–září
-                  2026 bez automatického prodloužení. Škola si tak může program
-                  vyzkoušet ještě letos a připravit se na další zapojení v novém
-                  školním roce.
+                  Objednali jste balíček START na období duben–září 2026 bez
+                  automatického prodloužení. Škola si tak může program vyzkoušet
+                  ještě letos a připravit se na další zapojení v novém školním
+                  roce.
                 </div>
 
                 <div className="nextSteps">
@@ -122,11 +209,11 @@ export default function StartPage() {
                 </p>
 
                 <div className="successActions">
-                  <Link href="/" className="primaryLink">
-                    Zpět na hlavní stránku
+                  <Link href="/portal" className="primaryLink">
+                    Zpět do portálu
                   </Link>
-                  <Link href="/demo" className="secondaryLink">
-                    Zobrazit DEMO
+                  <Link href="/portal/kalendar" className="secondaryLink">
+                    Otevřít program
                   </Link>
                 </div>
               </div>
@@ -325,10 +412,10 @@ export default function StartPage() {
   return (
     <>
       <Head>
-        <title>Vyzkoušejte ARCHIMEDES Live ještě letos | START pro školy</title>
+        <title>Balíček START | ARCHIMEDES Live</title>
         <meta
           name="description"
-          content="Zvýhodněný start ARCHIMEDES Live pro školy na období duben–září 2026. Vyzkoušejte program ještě letos a připravte se v klidu na zapojení v novém školním roce."
+          content="Objednejte pro školu balíček START programu ARCHIMEDES Live. Pokud jste přišli z ukázkového prostředí, část údajů jsme vám předvyplnili."
         />
       </Head>
 
@@ -338,15 +425,30 @@ export default function StartPage() {
             <div className="heroCard">
               <div className="heroGrid">
                 <div className="heroMain">
-                  <div className="eyebrow dark">Zvýhodněný START pro školy • jaro + září 2026</div>
-                  <h1>Vyzkoušejte ARCHIMEDES Live ještě letos</h1>
+                  <div className="eyebrow dark">Balíček START pro školy • jaro + září 2026</div>
+                  <h1>Pokračujte se školou do programu ARCHIMEDES Live</h1>
 
                   <p className="lead">
-                    Objednejte si zvýhodněný start programu ARCHIMEDES Live na období
-                    duben–září 2026. Škola si tak může program reálně vyzkoušet
-                    ještě v tomto školním roce a zároveň se v klidu připravit na
-                    zapojení v novém školním roce.
+                    Pokud jste si právě prošli ukázkové prostředí, jste na správném
+                    místě. Níže jen potvrďte nebo upravte údaje a odešlete objednávku
+                    balíčku START pro vaši školu.
                   </p>
+
+                  {prefillLoading ? (
+                    <div className="prefillInfo loading">
+                      Ověřuji údaje z vašeho přístupu a připravuji předvyplnění formuláře…
+                    </div>
+                  ) : prefillReady ? (
+                    <div className="prefillInfo ready">
+                      Údaje jsme předvyplnili podle vašeho přístupu do ukázkového
+                      prostředí. Před odesláním je můžete upravit.
+                    </div>
+                  ) : (
+                    <div className="prefillInfo neutral">
+                      Formulář můžete vyplnit ručně. Pokud jste přišli z ukázkového
+                      prostředí bez navázaných údajů školy, stačí vše doplnit níže.
+                    </div>
+                  )}
 
                   <div className="proofBox">
                     ARCHIMEDES Live je vzdělávací program pro školy a další
@@ -356,7 +458,7 @@ export default function StartPage() {
                   </div>
 
                   <div className="noticeBox">
-                    <strong>Odesláním objednávky objednáváte zvýhodněný balíček START</strong>{" "}
+                    <strong>Odesláním formuláře objednáváte balíček START</strong>{" "}
                     na období duben–září 2026. Po odeslání vám zašleme potvrzení
                     objednávky, fakturační podklady a další informace k zahájení
                     programu. Na zadaný e-mail administrátora programu budeme
@@ -377,18 +479,21 @@ export default function StartPage() {
                     <div className="processSteps">
                       <div className="processStep">
                         <span className="processNumber">1</span>
-                        <p>Odesláním objednávky rezervujete místo v programu.</p>
+                        <p>Potvrdíte nebo upravíte údaje školy a odešlete objednávku.</p>
                       </div>
                       <div className="processStep">
                         <span className="processNumber">2</span>
                         <p>
                           Zašleme vám potvrzení objednávky, fakturační podklady a
-                          admin e-mail zařadíme pro další nastavení přístupu.
+                          administrátora programu zařadíme pro další nastavení přístupu.
                         </p>
                       </div>
                       <div className="processStep">
                         <span className="processNumber">3</span>
-                        <p>Na e-mail administrátora navážeme s dalšími kroky k přístupu do ARCHIMEDES Live.</p>
+                        <p>
+                          Na e-mail administrátora navážeme s dalšími kroky k přístupu
+                          do ARCHIMEDES Live.
+                        </p>
                       </div>
                       <div className="processStep">
                         <span className="processNumber">4</span>
@@ -415,20 +520,20 @@ export default function StartPage() {
                   </div>
 
                   <div className="demoInline">
-                    <span>Chcete si program nejprve prohlédnout?</span>
-                    <Link href="/demo" className="demoGhostButton">
-                      Zobrazit DEMO
+                    <span>Chcete se ještě vrátit do ukázkového prostředí?</span>
+                    <Link href="/portal" className="demoGhostButton">
+                      Zpět do portálu
                     </Link>
                   </div>
                 </div>
 
                 <div className="summaryColumn">
                   <div className="summaryCard">
-                    <div className="summaryLabel">Zvýhodněná nabídka "START"</div>
+                    <div className="summaryLabel">Balíček START</div>
                     <div className="summaryTitle">Jaro + září 2026</div>
 
                     <div className="priceHighlight">
-                      <div className="priceTop">Zvýhodněná cena za celé období</div>
+                      <div className="priceTop">Cena za celé období</div>
                       <div className="priceNumbers">
                         <span className="priceOld">7.960 Kč</span>
                         <span className="priceArrow">→</span>
@@ -478,7 +583,8 @@ export default function StartPage() {
                     </p>
 
                     <div className="capacityHint">
-                      Vyzkoušejte program ještě v tomto školním roce za zvýhodněnou cenu.
+                      Nejrychlejší cesta, jak si škola může program ověřit v praxi ještě
+                      v tomto školním roce.
                     </div>
                   </div>
                 </div>
@@ -659,7 +765,7 @@ export default function StartPage() {
 
                   <ul className="submitChecklist">
                     <li>potvrzení objednávky obdrží objednatel e-mailem</li>
-                    <li>admin e-mail použijeme pro další nastavení přístupu</li>
+                    <li>e-mail administrátora použijeme pro další nastavení přístupu</li>
                     <li>fakturace probíhá po potvrzení objednávky</li>
                     <li>balíček START je na období duben–září 2026</li>
                   </ul>
@@ -787,7 +893,7 @@ export default function StartPage() {
 
               <div className="submitRow">
                 <button type="submit" className="submitButton" disabled={loading}>
-                  {loading ? "Odesíláme..." : "Objednat zvýhodněný START"}
+                  {loading ? "Odesíláme..." : "Objednat balíček START"}
                 </button>
 
                 <p className="submitNote">
@@ -877,6 +983,33 @@ export default function StartPage() {
             line-height: 1.72;
             color: #4b5563;
             max-width: 760px;
+          }
+
+          .prefillInfo {
+            margin-top: 16px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.7;
+          }
+
+          .prefillInfo.loading {
+            background: #f8fafc;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            color: #334155;
+          }
+
+          .prefillInfo.ready {
+            background: #eef6ff;
+            border: 1px solid rgba(37, 99, 235, 0.12);
+            color: #1f3b75;
+            font-weight: 700;
+          }
+
+          .prefillInfo.neutral {
+            background: #f8fafc;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            color: #475467;
           }
 
           .proofBox {
