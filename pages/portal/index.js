@@ -6,8 +6,8 @@ import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
 const DEMO_FEATURED_VIDEO = {
-  title: "Ukázka vysílání pro školy",
-  subtitle: "ZOO Praha – výukový vstup pro školní program",
+  title: "Ukázka živého vstupu do výuky",
+  subtitle: "ZOO Praha – host ve školním programu ARCHIMEDES Live",
   src: "https://www.youtube.com/embed/yvelfGeL6Jg",
 };
 
@@ -238,39 +238,40 @@ export default function PortalIndex() {
           {showTrialBanner ? (
             <LicenseBanner
               mode="trial"
-              title="ARCHIMEDES Live – demo přístup"
+              title="ARCHIMEDES Live – ukázkový přístup"
               text={
                 <>
-                  Vaše organizace{organizationName ? ` ${organizationName}` : ""} má aktivní demo
-                  přístup{licenseValidUntil ? (
+                  Vaše organizace{organizationName ? ` ${organizationName}` : ""} má aktivní
+                  ukázkový přístup{licenseValidUntil ? (
                     <>
                       {" "}
                       do <strong>{formatDateCS(licenseValidUntil)}</strong>
                     </>
                   ) : null}
-                  . Můžete si vyzkoušet portál, prohlédnout program a připravit si ukázkovou hodinu.
+                  . Můžete si projít portál, podívat se na program a připravit si další krok
+                  pro zapojení školy.
                 </>
               }
               primaryHref="/poptavka"
-              primaryLabel="Požádat o plnou licenci"
+              primaryLabel="Chci balíček START"
               secondaryHref="/portal/kalendar"
-              secondaryLabel="Otevřít kalendář"
+              secondaryLabel="Otevřít program"
             />
           ) : null}
 
           {showExpiredBanner ? (
             <LicenseBanner
               mode="expired"
-              title={isDemoViewer ? "Ukázkový přístup vypršel" : "Demo přístup vypršel"}
+              title={isDemoViewer ? "Ukázkový přístup skončil" : "Ukázkový přístup skončil"}
               text={
                 <>
                   Přístup organizace{organizationName ? ` ${organizationName}` : ""} je nyní v
-                  omezeném režimu. Pro pokračování v plném programu kontaktujte EduVision a aktivujte
-                  licenci.
+                  omezeném režimu. Pro pokračování v programu kontaktujte EduVision a vyberte
+                  vhodnou variantu zapojení školy.
                 </>
               }
               primaryHref="/poptavka"
-              primaryLabel="Aktivovat licenci"
+              primaryLabel="Chci balíček START"
               secondaryHref="/portal/skoly"
               secondaryLabel="Zobrazit síť učeben"
             />
@@ -556,16 +557,16 @@ export default function PortalIndex() {
 
                 <OnboardingStep
                   number="3"
-                  title="Začněte kalendářem"
-                  text="Nejrychlejší vstup do programu je přes kalendář. Odtud se dostanete k živému vysílání i detailu programu."
+                  title="Začněte programem"
+                  text="Nejrychlejší vstup do programu je přes kalendář. Odtud se dostanete k živému vysílání i detailu jednotlivých témat."
                   actionHref="/portal/kalendar"
-                  actionLabel="Otevřít kalendář"
+                  actionLabel="Otevřít program"
                 />
 
                 <OnboardingStep
                   number="4"
                   title="Spravujte uživatele"
-                  text="Na stránce Uživatelé uvidíte aktivní členy školy. Jednotlivé e-mailové pozvánky používejte jen když je to opravdu potřeba."
+                  text="Na stránce Uživatelé uvidíte aktivní členy školy. Jednotlivé e-mailové pozvánky používejte jen tehdy, když je to opravdu potřeba."
                   actionHref="/portal/uzivatele"
                   actionLabel="Otevřít uživatele"
                 />
@@ -589,9 +590,9 @@ export default function PortalIndex() {
               }}
             >
               {isDemoViewer
-                ? "Ukázkový přístup pouze pro prohlížení."
+                ? "Ukázkový přístup je určen pouze k prohlížení."
                 : licenseMode === "trial"
-                ? "Demo přístup pro registrované."
+                ? "Ukázkový přístup pro registrované."
                 : licenseMode === "expired" || licenseMode === "suspended"
                 ? "Omezený přístup."
                 : "Přístup k obsahu pro registrované."}
@@ -889,7 +890,7 @@ export default function PortalIndex() {
                   fontSize: 16,
                 }}
               >
-                Otevřít kalendář
+                Otevřít program
               </Link>
 
               <div
@@ -955,6 +956,12 @@ export default function PortalIndex() {
                 grid-template-columns: 1fr;
               }
             }
+
+            @media (max-width: 920px) {
+              .demo-featured-grid {
+                grid-template-columns: 1fr !important;
+              }
+            }
           `}</style>
         </div>
       </div>
@@ -976,19 +983,19 @@ function getDashboardConfig(
       badge: "ARCHIMEDES Live • ukázkové prostředí",
       heroTitleLine1: "Vítejte v ukázkovém",
       heroTitleLine2: "prostředí portálu",
-      heroText: `Tady si můžete bezpečně prohlédnout, jak ARCHIMEDES Live funguje${orgLabel}. Ukázka slouží pouze k orientaci v programu, kalendáři, archivu a síti učeben${trialUntilText ? ` do ${trialUntilText}` : ""}.`,
+      heroText: `Tady si můžete bezpečně projít, jak ARCHIMEDES Live funguje${orgLabel}. Ukázka slouží k orientaci v programu, archivu, kalendáři a síti učeben${trialUntilText ? ` do ${trialUntilText}` : ""}.`,
       tipBold: "Program",
       quickTitle: "Co si projít dál v portálu",
-      quickSubtitle: "Po ukázkové hodině si projděte další části, které bude škola běžně používat.",
+      quickSubtitle: "Po zhlédnutí ukázky živého vstupu si projděte další části, které škola běžně používá.",
       primaryCtaLabel: "Otevřít program",
       primaryCtaHref: "/portal/kalendar",
-      sideBoxTitle: "Co škola v licenci získá",
+      sideBoxTitle: "Co škola v programu získá",
       sideBoxText:
-        "Škola získá pravidelný program, přístup do archivu, pracovní materiály pro učitele a prostředí, ve kterém se rychle zorientuje i bez složitého zaškolení.",
+        "Škola získá pravidelný program, přístup do archivu, návazné materiály pro učitele a prostředí, ve kterém se rychle zorientuje i bez složité přípravy.",
       stats: [
-        { value: "1", label: "ukázková hodina jako vstup" },
+        { value: "1", label: "ukázka živého vstupu" },
         { value: "3", label: "nejbližší vysílání v přehledu" },
-        { value: "4", label: "části portálu k prohlédnutí" },
+        { value: "5", label: "částí portálu k prohlédnutí" },
         { value: "škola", label: "hlavní cílová skupina" },
       ],
       tiles: [
@@ -996,16 +1003,16 @@ function getDashboardConfig(
           href: "/portal/kalendar",
           icon: "🗓️",
           title: "Program",
-          desc: "Podívejte se, jak je přehledně uspořádaný program a jak se škola dostává k jednotlivým hodinám.",
+          desc: "Podívejte se, jak je přehledně uspořádaný program a jak se škola dostává k jednotlivým vstupům.",
           cta: "Otevřít",
           highlight: true,
-          note: "Hlavní část",
+          note: "Začněte zde",
         },
         {
           href: "/portal/archiv",
           icon: "📚",
           title: "Archiv",
-          desc: "Uvidíte strukturu archivu a návaznost na výuku. Plný obsah je dostupný v aktivní licenci.",
+          desc: "Uvidíte strukturu archivu a návaznost na výuku. Plný obsah je dostupný v aktivním programu školy.",
           cta: "Otevřít",
           note: "Ukázka",
         },
@@ -1018,17 +1025,18 @@ function getDashboardConfig(
         },
         {
           href: "/poptavka",
-          icon: "🎓",
-          title: "Ukázková hodina pro školu",
-          desc: "Domluvte si ukázkovou hodinu zdarma pro vaši školu a ověřte si fungování přímo ve třídě.",
-          cta: "Požádat",
+          icon: "🚀",
+          title: "Balíček START",
+          desc: "Nejrychlejší cesta, jak školu zapojit do programu a začít s prvními vysíláními.",
+          cta: "Chci START",
+          note: "Doporučeno",
         },
         {
           href: "/poptavka",
-          icon: "🔓",
-          title: "Plná licence",
-          desc: "Aktivujte plný přístup do programu, záznamů a dalších částí portálu pro svou školu.",
-          cta: "Aktivovat",
+          icon: "⭐",
+          title: "Celý program pro školu",
+          desc: "Pokud chcete pro školu pravidelný program v plném rozsahu, pokračujte touto cestou.",
+          cta: "Mám zájem",
         },
       ],
     };
@@ -1038,20 +1046,20 @@ function getDashboardConfig(
     if (licenseMode === "trial") {
       return {
         badge: "ARCHIMEDES Live • demo organizace",
-        heroTitleLine1: "Vítejte v demo režimu",
-        heroTitleLine2: "ARCHIMEDES Live",
-        heroText: `Tady si můžete vyzkoušet fungování portálu${orgLabel}. Demo slouží k orientaci v programu, kalendáři a síti učeben${trialUntilText ? ` do ${trialUntilText}` : ""}.`,
-        tipBold: "Kalendář",
+        heroTitleLine1: "Vítejte v ukázkovém",
+        heroTitleLine2: "režimu ARCHIMEDES Live",
+        heroText: `Tady si můžete vyzkoušet fungování portálu${orgLabel}. Ukázka slouží k orientaci v programu, archivu, kalendáři a síti učeben${trialUntilText ? ` do ${trialUntilText}` : ""}.`,
+        tipBold: "Program",
         quickTitle: "Doporučené první kroky",
-        quickSubtitle: "Začněte tím, co vám nejrychleji ukáže hodnotu programu.",
-        primaryCtaLabel: "Otevřít kalendář",
+        quickSubtitle: "Začněte tím, co vám nejrychleji ukáže hodnotu programu pro školu.",
+        primaryCtaLabel: "Otevřít program",
         primaryCtaHref: "/portal/kalendar",
-        sideBoxTitle: "Jak funguje demo",
+        sideBoxTitle: "Jak funguje ukázkový přístup",
         sideBoxText:
-          "V demo režimu si můžete prohlédnout portál, program, síť učeben i složku Archiv. Po otevření archivu uvidíte jeho strukturu a informaci, že plný obsah je dostupný pro registrované organizace s aktivní licencí.",
+          "V ukázkovém režimu si můžete projít portál, program, síť učeben i složku Archiv. Po otevření archivu uvidíte jeho strukturu a informaci, že plný obsah je dostupný pro školy zapojené do programu.",
         stats: [
-          { value: "14 dní", label: "doporučená délka dema" },
-          { value: "1", label: "ukázková hodina zdarma" },
+          { value: "14 dní", label: "doporučená délka ukázky" },
+          { value: "1", label: "ukázka živého vstupu" },
           { value: "3", label: "nejbližší vysílání v přehledu" },
           { value: "demo", label: "režim organizace" },
         ],
@@ -1059,7 +1067,7 @@ function getDashboardConfig(
           {
             href: "/portal/kalendar",
             icon: "🗓️",
-            title: "Kalendář programu",
+            title: "Program",
             desc: "Podívejte se, jak vypadá program a jak se škola dostane k jednotlivým vstupům.",
             cta: "Otevřít",
             highlight: true,
@@ -1069,7 +1077,7 @@ function getDashboardConfig(
             href: "/portal/archiv",
             icon: "📚",
             title: "Archiv",
-            desc: "Uvidíte složku Archiv a její strukturu. Plné záznamy a navazující materiály jsou dostupné pro registrované organizace s aktivní licencí.",
+            desc: "Uvidíte strukturu archivu. Plné záznamy a návazné materiály jsou dostupné pro školy zapojené do programu.",
             cta: "Otevřít",
             note: "Ukázka",
           },
@@ -1082,17 +1090,18 @@ function getDashboardConfig(
           },
           {
             href: "/poptavka",
-            icon: "🎓",
-            title: "Ukázková hodina",
-            desc: "Požádejte o ukázkovou hodinu zdarma pro vaši školu nebo obec.",
-            cta: "Požádat",
+            icon: "🚀",
+            title: "Balíček START",
+            desc: "Nejrychlejší způsob, jak se školou začít a zapojit se do programu bez zbytečného odkladu.",
+            cta: "Chci START",
+            note: "Doporučeno",
           },
           {
             href: "/poptavka",
-            icon: "🔓",
-            title: "Plná licence",
-            desc: "Aktivujte plný přístup do programu, záznamů a dalších částí portálu.",
-            cta: "Aktivovat",
+            icon: "⭐",
+            title: "Celý program",
+            desc: "Získejte pro školu pravidelný program v plném rozsahu a otevřete si všechny navazující části.",
+            cta: "Mám zájem",
           },
         ],
       };
@@ -1103,30 +1112,37 @@ function getDashboardConfig(
         badge: "ARCHIMEDES Live • omezený režim",
         heroTitleLine1: "Přístup je nyní",
         heroTitleLine2: "v omezeném režimu",
-        heroText: `Portál${orgLabel} zůstává dostupný v omezeném rozsahu. Pro pokračování v plném programu je potřeba aktivovat licenci organizace.`,
-        tipBold: "Aktivace licence",
+        heroText: `Portál${orgLabel} zůstává dostupný v omezeném rozsahu. Pro pokračování v programu je potřeba znovu nastavit aktivní zapojení školy.`,
+        tipBold: "Balíček START",
         quickTitle: "Další doporučený krok",
         quickSubtitle: "Obnovte plný přístup pro školu nebo obec.",
-        primaryCtaLabel: "Aktivovat licenci",
+        primaryCtaLabel: "Chci balíček START",
         primaryCtaHref: "/poptavka",
         sideBoxTitle: "Co dál",
         sideBoxText:
-          "Po obnovení licence získáte znovu plný přístup do programu, záznamů i dalších částí portálu.",
+          "Po obnovení získáte znovu plný přístup k programu, záznamům i dalším částem portálu.",
         stats: [
           { value: "omezeně", label: "režim portálu" },
           { value: "1", label: "doporučený další krok" },
           { value: "3", label: "nejbližší vysílání v přehledu" },
-          { value: "0", label: "plných licencí aktivních v tomto režimu" },
+          { value: "0", label: "plných přístupů v tomto režimu" },
         ],
         tiles: [
           {
             href: "/poptavka",
-            icon: "🔓",
-            title: "Aktivovat licenci",
-            desc: "Kontaktujte EduVision a obnovte plný přístup pro organizaci.",
-            cta: "Aktivovat",
+            icon: "🚀",
+            title: "Balíček START",
+            desc: "Nejrychlejší cesta k obnovení programu pro vaši školu.",
+            cta: "Chci START",
             highlight: true,
             note: "Doporučeno",
+          },
+          {
+            href: "/poptavka",
+            icon: "⭐",
+            title: "Celý program",
+            desc: "Pokud chcete pokračovat naplno, dejte nám vědět a nastavíme další postup.",
+            cta: "Mám zájem",
           },
           {
             href: "/portal/skoly",
@@ -1138,16 +1154,9 @@ function getDashboardConfig(
           {
             href: "/portal/kalendar",
             icon: "🗓️",
-            title: "Kalendář",
+            title: "Program",
             desc: "Základní přehled programu a další orientace v portálu.",
             cta: "Otevřít",
-          },
-          {
-            href: "/poptavka",
-            icon: "📞",
-            title: "Domluvit další postup",
-            desc: "Ozvěte se nám a připravíme další krok pro vaši organizaci.",
-            cta: "Kontaktovat",
           },
         ],
       };
@@ -1193,7 +1202,7 @@ function getDashboardConfig(
           {
             href: "/portal/kalendar",
             icon: "🗓️",
-            title: "Kalendář",
+            title: "Program",
             desc: "Základní orientace v programu a veřejně dostupných částech portálu.",
             cta: "Otevřít",
           },
@@ -1213,14 +1222,14 @@ function getDashboardConfig(
       heroTitleLine1: "Vaše pracovní plocha",
       heroTitleLine2: "pro živý program",
       heroText: `Tady najdete přístup k programu, záznamům, spolupráci i síti učeben${orgLabel}.`,
-      tipBold: "Kalendář",
+      tipBold: "Program",
       quickTitle: "Rychlý přístup",
       quickSubtitle: "Nejrychlejší cesta k programu a dalším sekcím portálu.",
-      primaryCtaLabel: "Otevřít kalendář",
+      primaryCtaLabel: "Otevřít program",
       primaryCtaHref: "/portal/kalendar",
       sideBoxTitle: "Doporučený další krok",
       sideBoxText:
-        "Začněte kalendářem a podle potřeby přejděte do dalších sekcí portálu.",
+        "Začněte programem a podle potřeby přejděte do dalších sekcí portálu.",
       stats: [
         { value: "1", label: "místo pro vstup do programu" },
         { value: "3", label: "nejbližší vysílání v přehledu" },
@@ -1231,7 +1240,7 @@ function getDashboardConfig(
         {
           href: "/portal/kalendar",
           icon: "🗓️",
-          title: "Kalendář",
+          title: "Program",
           desc: "Přehled vysílání, detail programu a nejsnazší vstup do živého obsahu.",
           cta: "Otevřít",
           highlight: true,
@@ -1269,14 +1278,14 @@ function getDashboardConfig(
       heroTitleLine2: "pro osobní přístup",
       heroText:
         "Tady najdete živý program, záznamy, komunitní obsah a další sekce, které můžete využívat i bez organizace.",
-      tipBold: "Kalendář",
+      tipBold: "Program",
       quickTitle: "Rychlý přístup",
       quickSubtitle: "Nejrychlejší cesta k programu, záznamům a dalšímu obsahu.",
-      primaryCtaLabel: "Otevřít kalendář",
+      primaryCtaLabel: "Otevřít program",
       primaryCtaHref: "/portal/kalendar",
       sideBoxTitle: "Doporučený další krok",
       sideBoxText:
-        "Začněte kalendářem a poté projděte archiv. Pokud vás zaujme síť učeben nebo spolupráce, pokračujte do inzerce.",
+        "Začněte programem a poté projděte archiv. Pokud vás zaujme síť učeben nebo spolupráce, pokračujte do inzerce.",
       stats: [
         { value: "1", label: "místo pro vstup do programu" },
         { value: "3", label: "nejbližší vysílání v přehledu" },
@@ -1287,7 +1296,7 @@ function getDashboardConfig(
         {
           href: "/portal/kalendar",
           icon: "🗓️",
-          title: "Kalendář",
+          title: "Program",
           desc: "Přehled vysílání, detail programu a nejsnazší vstup do živého obsahu.",
           cta: "Otevřít",
           highlight: true,
@@ -1324,14 +1333,14 @@ function getDashboardConfig(
     heroTitleLine2: "pro živý program",
     heroText:
       "Tady najdete nejrychlejší přístup do programu, archivu, inzerce i sítě učeben. Nejčastěji budete pracovat s kalendářem vysílání a navazujícími materiály.",
-    tipBold: "Kalendář",
+    tipBold: "Program",
     quickTitle: "Rychlý přístup",
     quickSubtitle: "Nejrychlejší cesta k tomu, co budete používat nejčastěji.",
-    primaryCtaLabel: "Otevřít kalendář",
+    primaryCtaLabel: "Otevřít program",
     primaryCtaHref: "/portal/kalendar",
     sideBoxTitle: "Doporučený další krok",
     sideBoxText:
-      "Začněte kalendářem. Odtud se nejrychleji dostanete k živému programu a následně i k dalším sekcím portálu.",
+      "Začněte programem. Odtud se nejrychleji dostanete k živému obsahu a následně i k dalším sekcím portálu.",
     stats: [
       { value: "1", label: "místo pro vstup do programu" },
       { value: "3", label: "nejbližší vysílání v přehledu" },
@@ -1342,7 +1351,7 @@ function getDashboardConfig(
       {
         href: "/portal/kalendar",
         icon: "🗓️",
-        title: "Kalendář",
+        title: "Program",
         desc: "Přehled vysílání, detail programu a nejsnazší vstup do živého obsahu.",
         cta: "Otevřít",
         highlight: true,
@@ -1371,94 +1380,6 @@ function getDashboardConfig(
       },
     ],
   };
-}
-
-function DemoViewerBanner({ organizationName }) {
-  return (
-    <section
-      style={{
-        background: "linear-gradient(180deg, #eef6ff 0%, #f5f9ff 100%)",
-        border: "1px solid #cfe0ff",
-        borderRadius: 24,
-        padding: 18,
-        marginBottom: 18,
-        boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          gap: 16,
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ minWidth: 0, flex: "1 1 560px" }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "6px 10px",
-              borderRadius: 999,
-              background: "#dbeafe",
-              color: "#1d4ed8",
-              fontSize: 12,
-              fontWeight: 900,
-              marginBottom: 10,
-            }}
-          >
-            Ukázkové prostředí
-          </div>
-
-          <div
-            style={{
-              fontSize: 28,
-              fontWeight: 900,
-              lineHeight: 1.08,
-              color: "#0f172a",
-            }}
-          >
-            Prohlížíte demo režim ARCHIMEDES Live
-          </div>
-
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: 15,
-              lineHeight: 1.6,
-              color: "rgba(15,23,42,0.74)",
-              maxWidth: 840,
-            }}
-          >
-            Tento přístup slouží k bezpečné prohlídce portálu
-            {organizationName ? ` pro ${organizationName}` : ""}. Můžete si projít strukturu programu,
-            kalendář, archiv a síť učeben, ale nemůžete nic spravovat ani měnit.
-          </div>
-        </div>
-
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link
-            href="/poptavka"
-            style={{
-              textDecoration: "none",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "12px 16px",
-              borderRadius: 14,
-              background: "#0f172a",
-              color: "white",
-              fontWeight: 900,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Chci plnou licenci
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
 }
 
 function LicenseBanner({
@@ -1527,9 +1448,9 @@ function LicenseBanner({
             }}
           >
             {mode === "trial"
-              ? "Demo režim"
+              ? "Ukázkový režim"
               : mode === "expired"
-              ? "Licence vypršela"
+              ? "Přístup skončil"
               : "Přístup pozastaven"}
           </div>
 
@@ -1953,9 +1874,9 @@ function DemoFeaturedSection({ organizationName, validUntil }) {
               letterSpacing: "-0.03em",
             }}
           >
-            Vyzkoušejte si,
+            Podívejte se,
             <br />
-            jak může vypadat jedna hodina ve vaší škole
+            jak může škola pracovat s programem ARCHIMEDES Live
           </h1>
 
           <p
@@ -1969,7 +1890,8 @@ function DemoFeaturedSection({ organizationName, validUntil }) {
           >
             Tohle je ukázkové prostředí ARCHIMEDES Live
             {organizationName ? ` pro ${organizationName}` : ""}. Během několika minut
-            si můžete projít, jak vypadá výuka, program a návazné materiály pro učitele.
+            si projdete program, archiv i další části portálu a uvidíte,
+            jak vypadá živý vstup hosta do výuky.
           </p>
 
           <p
@@ -1981,8 +1903,8 @@ function DemoFeaturedSection({ organizationName, validUntil }) {
               maxWidth: 700,
             }}
           >
-            Nejde o technickou ukázku systému. Jde o rychlou představu, co škola po
-            aktivaci skutečně získá.
+            Nejde o technickou ukázku systému. Jde o rychlou a srozumitelnou představu,
+            co může škola získat po zapojení do programu.
             {validUntil ? (
               <>
                 {" "}
@@ -2015,11 +1937,11 @@ function DemoFeaturedSection({ organizationName, validUntil }) {
                 boxShadow: "0 14px 34px rgba(15,23,42,0.16)",
               }}
             >
-              Chci vyzkoušet ARCHIMEDES ve své škole
+              Chci balíček START pro naši školu
             </Link>
 
             <Link
-              href="/portal/kalendar"
+              href="/poptavka"
               style={{
                 textDecoration: "none",
                 display: "inline-flex",
@@ -2034,7 +1956,7 @@ function DemoFeaturedSection({ organizationName, validUntil }) {
                 fontWeight: 900,
               }}
             >
-              Otevřít program
+              Chci celý program pro školu
             </Link>
           </div>
         </div>
