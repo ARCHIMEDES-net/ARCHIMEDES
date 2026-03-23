@@ -120,12 +120,12 @@ function resolveLicenseMode(org) {
 function modeConfig(mode) {
   if (mode === "trial") {
     return {
-      badge: "Demo režim",
+      badge: "Organizace bez aktivní licence",
       badgeBg: "#fff4d6",
       badgeColor: "#8a5a00",
-      title: "Archiv je součástí plné licence ARCHIMEDES Live",
+      title: "Archiv je součástí aktivní licence ARCHIMEDES Live",
       text:
-        "V demo režimu si můžete projít strukturu archivu a vidět příklady záznamů. Plný přístup k archivním videím a navazujícím materiálům je dostupný pro aktivní organizace.",
+        "Vaše organizace zatím nemá aktivní licenci pro plný archiv. Můžete si projít strukturu archivu a vidět příklady záznamů, ale plný přístup k archivním videím a navazujícím materiálům je dostupný pro aktivní organizace.",
       primaryLabel: "Aktivovat licenci",
     };
   }
@@ -353,21 +353,37 @@ export default function Archiv() {
           return;
         }
 
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, active_organization_id")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+
+        if (!isMounted) return;
+
+        if (!profile?.active_organization_id) {
+          setIsOrgAdmin(false);
+          setLicenseMode("active");
+          return;
+        }
+
         const { data: membership, error: membershipError } = await supabase
           .from("organization_members")
           .select("organization_id, role_in_org")
           .eq("user_id", user.id)
+          .eq("organization_id", profile.active_organization_id)
           .eq("status", "active")
           .maybeSingle();
 
         if (membershipError) throw membershipError;
 
-        if (isMounted) {
-          setIsOrgAdmin(membership?.role_in_org === "organization_admin");
-        }
+        if (!isMounted) return;
+
+        setIsOrgAdmin(membership?.role_in_org === "organization_admin");
 
         if (!membership?.organization_id) {
-          if (!isMounted) return;
           setLicenseMode("active");
           return;
         }
@@ -375,7 +391,7 @@ export default function Archiv() {
         const { data: org, error: orgError } = await supabase
           .from("organizations")
           .select("license_status, license_valid_until")
-          .eq("id", membership.organization_id)
+          .eq("id", profile.active_organization_id)
           .maybeSingle();
 
         if (orgError) throw orgError;
@@ -385,6 +401,7 @@ export default function Archiv() {
       } catch (_e) {
         if (!isMounted) return;
         setLicenseMode("expired");
+        setIsOrgAdmin(false);
       } finally {
         if (isMounted) setLicenseLoading(false);
       }
