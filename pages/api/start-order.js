@@ -25,7 +25,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
 const REDIRECT_TO = `${SITE_URL}/nastavit-heslo`;
 const DEMO_ORG_NAME = "ARCHIMEDES DEMO SKOLA";
-const LEGAL_VERSION = "2026-03-start-v2";
+const LEGAL_VERSION = "2026-03-start-v3";
 
 function escapeHtml(value = "") {
   return String(value)
@@ -162,9 +162,7 @@ function extractAccessTokenFromRequest(req) {
 
 async function getAuthenticatedUserFromRequest(req) {
   const accessToken = extractAccessTokenFromRequest(req);
-  if (!accessToken) {
-    return null;
-  }
+  if (!accessToken) return null;
 
   if (!supabasePublic) {
     console.error(
@@ -315,20 +313,24 @@ async function createOrganization({ name, ico }) {
   return data;
 }
 
-async function ensureProfile({
+async function upsertProfile({
   userId,
   email,
   fullName,
-  mustSetPassword = true,
+  userType = "organization",
+  mustSetPassword,
 }) {
   const payload = {
     id: userId,
     email,
     full_name: fullName || null,
-    user_type: "organization",
+    user_type: userType,
     is_active: true,
-    must_set_password: mustSetPassword,
   };
+
+  if (typeof mustSetPassword === "boolean") {
+    payload.must_set_password = mustSetPassword;
+  }
 
   const { error } = await supabase
     .from("profiles")
@@ -337,6 +339,19 @@ async function ensureProfile({
   if (error) {
     throw new Error(
       `Nepodařilo se uložit profil uživatele: ${error.message}`
+    );
+  }
+}
+
+async function setActiveOrganization(userId, organizationId) {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ active_organization_id: organizationId })
+    .eq("id", userId);
+
+  if (error) {
+    throw new Error(
+      `Nepodařilo se nastavit aktivní organizaci uživatele: ${error.message}`
     );
   }
 }
@@ -463,35 +478,6 @@ async function ensureMembership({
   return inserted?.id || null;
 }
 
-async function removeDemoMembershipsForUser(userId, targetOrganizationId) {
-  const memberships = await getUserActiveMemberships(userId);
-
-  const otherOrgIds = memberships
-    .map((m) => m.organization_id)
-    .filter((orgId) => orgId && orgId !== targetOrganizationId);
-
-  if (!otherOrgIds.length) return;
-
-  const orgs = await getOrganizationsByIds(otherOrgIds);
-  const demoOrgIds = orgs
-    .filter((org) => normalizeText(org.name) === DEMO_ORG_NAME)
-    .map((org) => org.id);
-
-  if (!demoOrgIds.length) return;
-
-  const { error } = await supabase
-    .from("organization_members")
-    .delete()
-    .eq("user_id", userId)
-    .in("organization_id", demoOrgIds);
-
-  if (error) {
-    throw new Error(
-      `Nepodařilo se odebrat demo členství uživatele: ${error.message}`
-    );
-  }
-}
-
 async function findAuthUserByEmail(email) {
   const target = normalizeEmail(email);
   let page = 1;
@@ -517,27 +503,73 @@ async function findAuthUserByEmail(email) {
   }
 }
 
-async function inviteAdminUser({ adminEmail, contactName }) {
-  const { data, error } = await supabase.auth.admin.inviteUserByEmail(
-    adminEmail,
-    {
-      redirectTo: REDIRECT_TO,
-      data: {
-        full_name: contactName,
-      },
-    }
-  );
+async function inviteUser({
+  email,
+  fullName,
+}) {
+  const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
+    redirectTo: REDIRECT_TO,
+    data: {
+      full_name: fullName,
+    },
+  });
 
   if (error) {
-    throw new Error(`Nepodařilo se pozvat administrátora: ${error.message}`);
+    throw new Error(`Nepodařilo se pozvat uživatele ${email}: ${error.message}`);
   }
 
-  const adminUserId = data?.user?.id;
-  if (!adminUserId) {
-    throw new Error("Nepodařilo se získat ID administrátora školy.");
+  const userId = data?.user?.id;
+  if (!userId) {
+    throw new Error(`Nepodařilo se získat ID uživatele ${email}.`);
   }
 
-  return adminUserId;
+  return userId;
+}
+
+async function resolveUserForEmail({
+  targetEmail,
+  fullName,
+  authenticatedUser,
+}) {
+  const normalizedTargetEmail = normalizeEmail(targetEmail);
+
+  if (
+    authenticatedUser?.id &&
+    normalizeEmail(authenticatedUser.email || "") === normalizedTargetEmail
+  ) {
+    return {
+      userId: authenticatedUser.id,
+      source: "authenticated_user",
+      inviteSent: false,
+      isNewUser: false,
+      mustSetPassword: false,
+    };
+  }
+
+  const existingAuthUser = await findAuthUserByEmail(normalizedTargetEmail);
+
+  if (existingAuthUser?.id) {
+    return {
+      userId: existingAuthUser.id,
+      source: "existing_auth_user",
+      inviteSent: false,
+      isNewUser: false,
+      mustSetPassword: false,
+    };
+  }
+
+  const invitedUserId = await inviteUser({
+    email: normalizedTargetEmail,
+    fullName,
+  });
+
+  return {
+    userId: invitedUserId,
+    source: "invited_new_user",
+    inviteSent: true,
+    isNewUser: true,
+    mustSetPassword: true,
+  };
 }
 
 export default async function handler(req, res) {
@@ -600,9 +632,9 @@ export default async function handler(req, res) {
       });
     }
 
-    const authUser = await getAuthenticatedUserFromRequest(req);
-    const authenticatedUserId = authUser?.id || null;
-    const authenticatedUserEmail = normalizeEmail(authUser?.email || "");
+    const authenticatedUser = await getAuthenticatedUserFromRequest(req);
+    const authenticatedUserId = authenticatedUser?.id || null;
+    const authenticatedUserEmail = normalizeEmail(authenticatedUser?.email || "");
 
     const clientIp = getClientIp(req);
     const userAgent = req.headers["user-agent"] || "";
@@ -647,15 +679,16 @@ export default async function handler(req, res) {
 
     let onboardingStatus = "completed";
     let onboardingError = null;
-    let onboardingMode = "new_user";
+    let onboardingMode = "homepage";
     let resolvedCurrentUserEmail = authenticatedUserEmail || "";
-    let currentUserMatchesAdmin = false;
-    let currentUserMatchesOrderer = false;
-    let inviteSentToAdmin = false;
-    let adminSource = "invited_new_admin";
-    let orderingUserAdded = false;
     let orderingUserRole = "";
+    let orderingInviteSent = false;
+    let adminInviteSent = false;
+    let orderingSource = "";
+    let adminSource = "";
     let resolvedOrganizationName = "";
+    let activeOrganizationSetForOrdering = false;
+    let activeOrganizationSetForAdmin = false;
 
     try {
       let organization = await getOrganizationByIco(icoRaw);
@@ -665,39 +698,80 @@ export default async function handler(req, res) {
           name: schoolNameRaw,
           ico: icoRaw,
         });
-        onboardingMode = "new_organization";
+        onboardingMode = authenticatedUserId ? "demo_or_logged_new_school" : "homepage_new_school";
       } else {
-        onboardingMode = authenticatedUserId
-          ? "existing_user_matched_by_ico"
-          : "matched_by_ico";
+        onboardingMode = authenticatedUserId ? "demo_or_logged_existing_school" : "homepage_existing_school";
       }
 
       organizationId = organization.id;
       joinCode = organization.join_code;
       resolvedOrganizationName = organization.name || schoolNameRaw;
 
-      if (authenticatedUserId) {
-        currentUserMatchesAdmin =
-          !!resolvedCurrentUserEmail &&
-          resolvedCurrentUserEmail === adminEmailRaw;
+      const orderingResolution = await resolveUserForEmail({
+        targetEmail: emailRaw,
+        fullName: contactNameRaw,
+        authenticatedUser,
+      });
 
-        currentUserMatchesOrderer =
-          !!resolvedCurrentUserEmail &&
-          resolvedCurrentUserEmail === emailRaw;
-      }
+      orderingUserId = orderingResolution.userId;
+      orderingInviteSent = orderingResolution.inviteSent;
+      orderingSource = orderingResolution.source;
 
-      // 1) administrátor organizace
-      if (authenticatedUserId && currentUserMatchesAdmin) {
-        adminUserId = authenticatedUserId;
-        adminSource = "logged_in_user_matches_admin";
+      await assertNoConflictingRealOrgMemberships(orderingUserId, organizationId);
+
+      await upsertProfile({
+        userId: orderingUserId,
+        email: emailRaw,
+        fullName: contactNameRaw,
+        userType: "organization",
+        mustSetPassword: orderingResolution.mustSetPassword,
+      });
+
+      if (emailRaw === adminEmailRaw) {
+        adminUserId = orderingUserId;
+        adminInviteSent = orderingInviteSent;
+        adminSource = orderingSource;
+        orderingUserRole = "organization_admin";
+
+        await ensureMembership({
+          organizationId,
+          userId: orderingUserId,
+          roleInOrg: "organization_admin",
+        });
+
+        await setActiveOrganization(orderingUserId, organizationId);
+        activeOrganizationSetForOrdering = true;
+        activeOrganizationSetForAdmin = true;
+      } else {
+        orderingUserRole = "member";
+
+        await ensureMembership({
+          organizationId,
+          userId: orderingUserId,
+          roleInOrg: "member",
+        });
+
+        await setActiveOrganization(orderingUserId, organizationId);
+        activeOrganizationSetForOrdering = true;
+
+        const adminResolution = await resolveUserForEmail({
+          targetEmail: adminEmailRaw,
+          fullName: contactNameRaw,
+          authenticatedUser,
+        });
+
+        adminUserId = adminResolution.userId;
+        adminInviteSent = adminResolution.inviteSent;
+        adminSource = adminResolution.source;
 
         await assertNoConflictingRealOrgMemberships(adminUserId, organizationId);
 
-        await ensureProfile({
+        await upsertProfile({
           userId: adminUserId,
-          email: resolvedCurrentUserEmail || adminEmailRaw,
+          email: adminEmailRaw,
           fullName: contactNameRaw,
-          mustSetPassword: false,
+          userType: "organization",
+          mustSetPassword: adminResolution.mustSetPassword,
         });
 
         await ensureMembership({
@@ -705,95 +779,9 @@ export default async function handler(req, res) {
           userId: adminUserId,
           roleInOrg: "organization_admin",
         });
-      } else {
-        const existingAuthUser = await findAuthUserByEmail(adminEmailRaw);
 
-        if (existingAuthUser?.id) {
-          adminUserId = existingAuthUser.id;
-          adminSource = authenticatedUserId
-            ? "existing_auth_user_as_separate_admin"
-            : "existing_auth_user_admin";
-
-          await assertNoConflictingRealOrgMemberships(adminUserId, organizationId);
-
-          await ensureProfile({
-            userId: adminUserId,
-            email: adminEmailRaw,
-            fullName: contactNameRaw,
-            mustSetPassword: false,
-          });
-
-          await ensureMembership({
-            organizationId,
-            userId: adminUserId,
-            roleInOrg: "organization_admin",
-          });
-        } else {
-          adminUserId = await inviteAdminUser({
-            adminEmail: adminEmailRaw,
-            contactName: contactNameRaw,
-          });
-
-          inviteSentToAdmin = true;
-          adminSource = authenticatedUserId
-            ? "invited_separate_admin"
-            : "invited_new_admin";
-
-          await ensureProfile({
-            userId: adminUserId,
-            email: adminEmailRaw,
-            fullName: contactNameRaw,
-            mustSetPassword: true,
-          });
-
-          await ensureMembership({
-            organizationId,
-            userId: adminUserId,
-            roleInOrg: "organization_admin",
-          });
-        }
-      }
-
-      // 2) objednatel / ředitel
-      // Přidáváme pouze tehdy, když je serverem ověřeno,
-      // že právě přihlášený uživatel je skutečně objednatel.
-      if (authenticatedUserId && currentUserMatchesOrderer) {
-        orderingUserId = authenticatedUserId;
-
-        await assertNoConflictingRealOrgMemberships(
-          orderingUserId,
-          organizationId
-        );
-
-        await ensureProfile({
-          userId: orderingUserId,
-          email: resolvedCurrentUserEmail || emailRaw,
-          fullName: contactNameRaw,
-          mustSetPassword: false,
-        });
-
-        if (orderingUserId === adminUserId) {
-          orderingUserRole = "organization_admin";
-        } else {
-          orderingUserRole = "member";
-
-          await ensureMembership({
-            organizationId,
-            userId: orderingUserId,
-            roleInOrg: "member",
-          });
-        }
-
-        orderingUserAdded = true;
-      }
-
-      // 3) odstranit demo membership po úspěšném START
-      if (adminUserId) {
-        await removeDemoMembershipsForUser(adminUserId, organizationId);
-      }
-
-      if (orderingUserId && orderingUserId !== adminUserId) {
-        await removeDemoMembershipsForUser(orderingUserId, organizationId);
+        await setActiveOrganization(adminUserId, organizationId);
+        activeOrganizationSetForAdmin = true;
       }
 
       const { error: onboardingUpdateError } = await supabase
@@ -851,16 +839,18 @@ export default async function handler(req, res) {
     const safeOnboardingError = escapeHtml(onboardingError || "-");
     const safeOnboardingMode = escapeHtml(onboardingMode);
     const safeCurrentUserEmail = escapeHtml(resolvedCurrentUserEmail || "-");
-    const safeCurrentUserMatchesAdmin = currentUserMatchesAdmin ? "ano" : "ne";
-    const safeCurrentUserMatchesOrderer = currentUserMatchesOrderer ? "ano" : "ne";
-    const safeInviteSentToAdmin = inviteSentToAdmin ? "ano" : "ne";
-    const safeAdminSource = escapeHtml(adminSource);
-    const safeOrderingUserAdded = orderingUserAdded ? "ano" : "ne";
     const safeOrderingUserRole = escapeHtml(orderingUserRole || "-");
+    const safeOrderingSource = escapeHtml(orderingSource || "-");
+    const safeAdminSource = escapeHtml(adminSource || "-");
+    const safeOrderingInviteSent = orderingInviteSent ? "ano" : "ne";
+    const safeAdminInviteSent = adminInviteSent ? "ano" : "ne";
     const safeResolvedOrganizationName = escapeHtml(
       resolvedOrganizationName || schoolNameRaw
     );
     const safeAuthUserPresent = authenticatedUserId ? "ano" : "ne";
+    const safeActiveOrgOrdering = activeOrganizationSetForOrdering ? "ano" : "ne";
+    const safeActiveOrgAdmin = activeOrganizationSetForAdmin ? "ano" : "ne";
+    const samePerson = orderingUserId && adminUserId && orderingUserId === adminUserId;
 
     const subject = `🟢 START – ${schoolNameRaw} (IČO: ${icoRaw})`;
 
@@ -906,15 +896,17 @@ export default async function handler(req, res) {
         <hr/>
 
         <p><strong>Serverem ověřený přihlášený uživatel:</strong> ${safeAuthUserPresent}</p>
+        <p><strong>Přihlášený uživatel:</strong> ${safeCurrentUserEmail}</p>
         <p><strong>Režim objednávky:</strong> ${safeOnboardingMode}</p>
         <p><strong>Vyřešená organizace:</strong> ${safeResolvedOrganizationName}</p>
-        <p><strong>Přihlášený uživatel:</strong> ${safeCurrentUserEmail}</p>
-        <p><strong>Admin email = přihlášený uživatel:</strong> ${safeCurrentUserMatchesAdmin}</p>
-        <p><strong>Objednatel email = přihlášený uživatel:</strong> ${safeCurrentUserMatchesOrderer}</p>
-        <p><strong>Zdroj admin účtu:</strong> ${safeAdminSource}</p>
-        <p><strong>Byla odeslána pozvánka adminovi:</strong> ${safeInviteSentToAdmin}</p>
-        <p><strong>Objednatel přidán do organizace:</strong> ${safeOrderingUserAdded}</p>
+        <p><strong>Ordering source:</strong> ${safeOrderingSource}</p>
+        <p><strong>Admin source:</strong> ${safeAdminSource}</p>
+        <p><strong>Invite odeslán objednateli:</strong> ${safeOrderingInviteSent}</p>
+        <p><strong>Invite odeslán adminovi:</strong> ${safeAdminInviteSent}</p>
         <p><strong>Role objednatele:</strong> ${safeOrderingUserRole}</p>
+        <p><strong>Objednatel = admin:</strong> ${samePerson ? "ano" : "ne"}</p>
+        <p><strong>active_organization_id nastaven objednateli:</strong> ${safeActiveOrgOrdering}</p>
+        <p><strong>active_organization_id nastaven adminovi:</strong> ${safeActiveOrgAdmin}</p>
         <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
         <p><strong>Onboarding stav:</strong> ${safeOnboardingStatus}</p>
         <p><strong>Onboarding chyba:</strong> ${safeOnboardingError}</p>
@@ -945,14 +937,27 @@ export default async function handler(req, res) {
             ? `
         <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
         <p>
-          Organizace byla připravena${
-            orderingUserAdded
-              ? orderingUserRole === "organization_admin"
-                ? " a objednatel byl do organizace zařazen jako administrátor."
-                : " a objednatel byl do organizace zařazen jako člen."
-              : "."
-          }
+          Škola byla založena nebo spárována a váš uživatelský přístup byl přiřazen do organizace jako
+          <strong> ${safeOrderingUserRole}</strong>.
         </p>
+        ${
+          orderingInviteSent
+            ? `
+        <p>
+          Na váš e-mail byl současně odeslán systémový e-mail pro nastavení hesla.
+          Po jeho dokončení se můžete přihlásit zde:
+          <br/>
+          <a href="${SITE_URL}/login">${SITE_URL}/login</a>
+        </p>
+        `
+            : `
+        <p>
+          Váš přístup je připraven. Přihlásit se můžete zde:
+          <br/>
+          <a href="${SITE_URL}/login">${SITE_URL}/login</a>
+        </p>
+        `
+        }
         `
             : `
         <p>
@@ -961,14 +966,22 @@ export default async function handler(req, res) {
         `
         }
 
+        ${
+          emailRaw !== adminEmailRaw
+            ? `
         <p>
-          Odesláním objednávky došlo k objednání balíčku START programu
-          ARCHIMEDES Live.
+          Administrátor školy obdrží samostatný e-mail s informací o přístupu.
         </p>
+        `
+            : `
+        <p>
+          Jste zároveň veden/a jako administrátor školy.
+        </p>
+        `
+        }
 
         <p>
-          V nejbližším kroku vám zašleme fakturační podklady. Administrátor programu
-          obdrží samostatný e-mail s informací o přístupu.
+          V nejbližším kroku vám zašleme fakturační podklady a další organizační informace.
         </p>
 
         <p>
@@ -986,8 +999,8 @@ export default async function handler(req, res) {
       `,
     });
 
-    if (onboardingStatus === "completed") {
-      if (inviteSentToAdmin) {
+    if (onboardingStatus === "completed" && !samePerson) {
+      if (adminInviteSent) {
         await sendMailLogged(transporter, {
           label: "start_admin_invited",
           from: process.env.MAIL_FROM,
@@ -996,22 +1009,21 @@ export default async function handler(req, res) {
           html: `
             <h2>Byl vám vytvořen administrátorský přístup</h2>
 
-            <p>Pro školu <strong>${schoolName}</strong> jsme připravili přístup do ARCHIMEDES Live.</p>
+            <p>Pro školu <strong>${schoolName}</strong> jsme připravili administrátorský přístup do ARCHIMEDES Live.</p>
 
             <p><strong>Vaše role:</strong> administrátor školy</p>
             <p><strong>E-mail administrátora:</strong> ${adminEmail}</p>
             <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
 
             <p>
-              Pro dokončení přístupu použijte odkaz z pozvánky, který vám byl odeslán
-              systémem, a následně nastavte heslo zde:
+              Na váš e-mail byl současně odeslán systémový e-mail pro nastavení hesla.
+              Po dokončení aktivace se přihlásíte zde:
               <br/>
-              <a href="${REDIRECT_TO}">${REDIRECT_TO}</a>
+              <a href="${SITE_URL}/login">${SITE_URL}/login</a>
             </p>
 
             <p>
-              Po přihlášení můžete v portálu přidávat další kolegy učitele a spravovat
-              přístup školy.
+              Po přihlášení můžete spravovat přístup školy a přidávat další kolegy.
             </p>
 
             <p>S pozdravem,<br/>
@@ -1028,7 +1040,7 @@ export default async function handler(req, res) {
           html: `
             <h2>Administrátorský přístup je připraven</h2>
 
-            <p>Pro školu <strong>${schoolName}</strong> je administrátorský přístup do ARCHIMEDES Live nastaven.</p>
+            <p>Pro školu <strong>${schoolName}</strong> je váš administrátorský přístup do ARCHIMEDES Live připraven.</p>
 
             <p><strong>Vaše role:</strong> administrátor školy</p>
             <p><strong>E-mail administrátora:</strong> ${adminEmail}</p>
@@ -1041,8 +1053,7 @@ export default async function handler(req, res) {
             </p>
 
             <p>
-              Po přihlášení můžete v portálu spravovat přístup školy a případně
-              přidávat další kolegy.
+              Po přihlášení můžete spravovat přístup školy a případně přidávat další kolegy.
             </p>
 
             <p>S pozdravem,<br/>
@@ -1051,7 +1062,9 @@ export default async function handler(req, res) {
           `,
         });
       }
-    } else {
+    }
+
+    if (onboardingStatus === "failed" && emailRaw !== adminEmailRaw) {
       await sendMailLogged(transporter, {
         label: "start_admin_pending",
         from: process.env.MAIL_FROM,
