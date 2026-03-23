@@ -144,7 +144,7 @@ async function ensureProfile({
   const payload = {
     id: userId,
     email,
-    full_name: fullName,
+    full_name: fullName || null,
     is_active: true,
     must_set_password: mustSetPassword,
   };
@@ -198,22 +198,6 @@ async function checkUserActiveMemberships(userId) {
   return data || [];
 }
 
-async function getProfileByEmail(email) {
-  if (!email) return null;
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, email, full_name")
-    .eq("email", email)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(`Nepodařilo se načíst profil podle e-mailu: ${error.message}`);
-  }
-
-  return data || null;
-}
-
 async function getAuthUserEmailById(userId) {
   if (!userId) return "";
 
@@ -224,6 +208,33 @@ async function getAuthUserEmailById(userId) {
   }
 
   return normalizeEmail(data?.user?.email || "");
+}
+
+async function findAuthUserByEmail(email) {
+  const target = normalizeEmail(email);
+  let page = 1;
+  const perPage = 200;
+
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage,
+    });
+
+    if (error) {
+      throw new Error(`Nepodařilo se načíst auth uživatele: ${error.message}`);
+    }
+
+    const users = data?.users || [];
+    const found = users.find(
+      (u) => normalizeEmail(u.email || "") === target
+    );
+
+    if (found) return found;
+    if (users.length < perPage) return null;
+
+    page += 1;
+  }
 }
 
 async function inviteAdminUser({ adminEmail, contactName }) {
@@ -330,13 +341,11 @@ export default async function handler(req, res) {
           admin_email: adminEmailRaw,
           phone: phoneRaw || null,
           note: noteRaw || null,
-
           agree_vop: !!data.agreeVop,
           agree_dpa: !!data.agreeDpa,
           agree_recordings: !!data.agreeRecordings,
           agree_authority: !!data.agreeAuthority,
           agree_contract: !!data.agreeContract,
-
           onboarding_status: "pending",
           legal_version: "2026-03-start-v2",
           ip_address: clientIp,
@@ -429,13 +438,13 @@ export default async function handler(req, res) {
           roleInOrg: "organization_admin",
         });
       } else {
-        const existingAdminProfile = await getProfileByEmail(adminEmailRaw);
+        const existingAuthUser = await findAuthUserByEmail(adminEmailRaw);
 
-        if (existingAdminProfile?.id) {
-          adminUserId = existingAdminProfile.id;
+        if (existingAuthUser?.id) {
+          adminUserId = existingAuthUser.id;
           adminSource = currentUserId
-            ? "existing_profile_as_separate_admin"
-            : "existing_profile_admin";
+            ? "existing_auth_user_as_separate_admin"
+            : "existing_auth_user_admin";
 
           const memberships = await checkUserActiveMemberships(adminUserId);
           const hasOtherActiveOrg = memberships.some(
@@ -629,7 +638,11 @@ export default async function handler(req, res) {
           ARCHIMEDES Live.
         </p>
 
-        <p>Na základě objednávky vám bude vystavena faktura.</p>
+        <p>
+          V nejbližším kroku vám zašleme fakturační podklady. Pokud byl pro
+          administrátora programu zřízen nový přístup, obdrží samostatný e-mail
+          s pozvánkou k dokončení přístupu.
+        </p>
 
         <p>
           Důležité dokumenty:
