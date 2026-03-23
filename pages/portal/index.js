@@ -83,14 +83,16 @@ export default function PortalIndex() {
   const [licenseMode, setLicenseMode] = useState("default");
 
   useEffect(() => {
-    (async () => {
+    let alive = true;
+
+    async function loadPortalData() {
       try {
         const { data, error } = await supabase.rpc("is_admin");
-        if (!error) setIsAdmin(!!data);
+        if (!error && alive) setIsAdmin(!!data);
       } catch (_e) {
         // no-op
       } finally {
-        setCheckingAdmin(false);
+        if (alive) setCheckingAdmin(false);
       }
 
       try {
@@ -105,10 +107,14 @@ export default function PortalIndex() {
           .order("starts_at", { ascending: true })
           .limit(3);
 
+        if (!alive) return;
+
         if (error) setEventsErr(error.message);
         else setNextEvents(data || []);
       } catch (e) {
-        setEventsErr(e?.message || "Nepodařilo se načíst nejbližší vysílání.");
+        if (alive) {
+          setEventsErr(e?.message || "Nepodařilo se načíst nejbližší vysílání.");
+        }
       }
 
       try {
@@ -118,6 +124,8 @@ export default function PortalIndex() {
         } = await supabase.auth.getUser();
 
         if (userError) throw userError;
+        if (!alive) return;
+
         if (!user) {
           setDashboardType("default");
           setLicenseMode("default");
@@ -125,62 +133,94 @@ export default function PortalIndex() {
           return;
         }
 
-        const [
-          { data: profile, error: profileError },
-          { data: membership, error: membershipError },
-        ] = await Promise.all([
-          supabase.from("profiles").select("id, user_type").eq("id", user.id).maybeSingle(),
-          supabase
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, user_type, active_organization_id")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+        if (!alive) return;
+
+        if (profile?.active_organization_id) {
+          const { data: membership, error: membershipError } = await supabase
             .from("organization_members")
             .select("organization_id, status, role_in_org")
             .eq("user_id", user.id)
+            .eq("organization_id", profile.active_organization_id)
             .eq("status", "active")
-            .maybeSingle(),
-        ]);
-
-        if (profileError) throw profileError;
-        if (membershipError) throw membershipError;
-
-        const roleInOrg = membership?.role_in_org || "";
-        setMembershipRole(roleInOrg);
-
-        if (membership?.organization_id) {
-          const { data: org, error: orgError } = await supabase
-            .from("organizations")
-            .select("id, name, join_code, license_status, license_valid_until")
-            .eq("id", membership.organization_id)
             .maybeSingle();
 
-          if (orgError) throw orgError;
+          if (membershipError) throw membershipError;
+          if (!alive) return;
 
-          setOrganizationName(org?.name || "");
-          setOrganizationCode(org?.join_code || "");
-          setLicenseValidUntil(org?.license_valid_until || null);
-          setLicenseMode(resolveLicenseMode(org));
+          if (membership?.organization_id) {
+            const { data: org, error: orgError } = await supabase
+              .from("organizations")
+              .select("id, name, join_code, license_status, license_valid_until")
+              .eq("id", profile.active_organization_id)
+              .maybeSingle();
 
-          if (roleInOrg === "demo_viewer") {
-            setDashboardType("demo_viewer");
-          } else {
-            setDashboardType("organization");
+            if (orgError) throw orgError;
+            if (!alive) return;
+
+            const roleInOrg = membership?.role_in_org || "";
+            setMembershipRole(roleInOrg);
+            setOrganizationName(org?.name || "");
+            setOrganizationCode(org?.join_code || "");
+            setLicenseValidUntil(org?.license_valid_until || null);
+            setLicenseMode(resolveLicenseMode(org));
+
+            if (roleInOrg === "demo_viewer") {
+              setDashboardType("demo_viewer");
+            } else {
+              setDashboardType("organization");
+            }
+
+            setLoadingProfileType(false);
+            return;
           }
-        } else if (profile?.user_type === "individual") {
+        }
+
+        if (profile?.user_type === "individual") {
+          setMembershipRole("");
+          setOrganizationName("");
+          setOrganizationCode("");
+          setLicenseValidUntil(null);
           setDashboardType("individual");
           setLicenseMode("active");
         } else {
+          setMembershipRole("");
+          setOrganizationName("");
+          setOrganizationCode("");
+          setLicenseValidUntil(null);
           setDashboardType("default");
           setLicenseMode("default");
         }
       } catch (_e) {
-        setDashboardType("default");
-        setLicenseMode("default");
+        if (alive) {
+          setMembershipRole("");
+          setOrganizationName("");
+          setOrganizationCode("");
+          setLicenseValidUntil(null);
+          setDashboardType("default");
+          setLicenseMode("default");
+        }
       } finally {
-        setLoadingProfileType(false);
+        if (alive) setLoadingProfileType(false);
       }
-    })();
+    }
+
+    loadPortalData();
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const hasEvents = nextEvents && nextEvents.length > 0;
-  const isDemoViewer = membershipRole === "demo_viewer";
+  const isDemoViewer =
+    dashboardType === "demo_viewer" && membershipRole === "demo_viewer";
 
   const dashboard = useMemo(
     () =>
@@ -196,9 +236,11 @@ export default function PortalIndex() {
   const showGettingStarted =
     !loadingProfileType &&
     !!organizationName &&
+    dashboardType === "organization" &&
     membershipRole === "organization_admin";
 
-  const isProgramAdmin = isAdmin || membershipRole === "organization_admin";
+  const isProgramAdmin =
+    !isDemoViewer && (isAdmin || membershipRole === "organization_admin");
   const showAdminSection = !isDemoViewer;
 
   const showTrialBanner =
@@ -241,7 +283,8 @@ export default function PortalIndex() {
               text={
                 <>
                   Vaše organizace{organizationName ? ` ${organizationName}` : ""} má aktivní
-                  ukázkový přístup{licenseValidUntil ? (
+                  ukázkový přístup
+                  {licenseValidUntil ? (
                     <>
                       {" "}
                       do <strong>{formatDateCS(licenseValidUntil)}</strong>
