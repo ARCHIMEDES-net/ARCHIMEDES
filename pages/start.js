@@ -80,27 +80,26 @@ export default function StartPage() {
         let schoolName = "";
         let adminEmail = email;
 
-        const { data: membership, error: membershipError } = await supabase
-          .from("organization_members")
-          .select("organization_id, status")
-          .eq("user_id", user.id)
-          .eq("status", "active")
-          .maybeSingle();
+       const { data: profile, error: profileError } = await supabase
+  .from("profiles")
+  .select("id, active_organization_id")
+  .eq("id", user.id)
+  .maybeSingle();
 
-        if (membershipError) throw membershipError;
+if (profileError) throw profileError;
 
-        if (membership?.organization_id) {
-          const { data: org, error: orgError } = await supabase
-            .from("organizations")
-            .select("id, name")
-            .eq("id", membership.organization_id)
-            .maybeSingle();
+if (profile?.active_organization_id) {
+  const { data: org, error: orgError } = await supabase
+    .from("organizations")
+    .select("id, name")
+    .eq("id", profile.active_organization_id)
+    .maybeSingle();
 
-          if (orgError) throw orgError;
+  if (orgError) throw orgError;
 
-          schoolName = org?.name || "";
-        }
-
+  const orgName = org?.name || "";
+  schoolName = orgName === "ARCHIMEDES DEMO SKOLA" ? "" : orgName;
+}
         if (!mounted) return;
 
         setForm((prev) => ({
