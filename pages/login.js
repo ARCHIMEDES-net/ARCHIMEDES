@@ -1,3 +1,4 @@
+
 // pages/login.js
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -59,6 +60,46 @@ function humanizeAuthError(errorCode = "", errorDescription = "") {
   return "Odkaz pro přihlášení nebo obnovu hesla není platný.";
 }
 
+async function resolvePostLoginPath() {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw userError;
+  if (!user) return "/login";
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, user_type, active_organization_id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError) throw profileError;
+
+  if (profile?.active_organization_id) {
+    const { data: membership, error: membershipError } = await supabase
+      .from("organization_members")
+      .select("organization_id, status")
+      .eq("user_id", user.id)
+      .eq("organization_id", profile.active_organization_id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (membershipError) throw membershipError;
+
+    if (membership?.organization_id) {
+      return "/portal";
+    }
+  }
+
+  if (profile?.user_type === "individual") {
+    return "/portal";
+  }
+
+  return "/welcome";
+}
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -75,6 +116,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     let cancelled = false;
+
+    async function safeRedirectAfterAuth() {
+      const target = await resolvePostLoginPath();
+      if (!cancelled) {
+        router.replace(target);
+      }
+    }
 
     async function handleMagicLinkFlow() {
       try {
@@ -116,9 +164,12 @@ export default function LoginPage() {
 
           clearAuthUrl();
 
-          if (!cancelled) {
-            router.replace("/portal");
+          if (type === "recovery") {
+            if (!cancelled) router.replace("/nastavit-heslo");
+            return;
           }
+
+          await safeRedirectAfterAuth();
           return;
         }
 
@@ -141,13 +192,12 @@ export default function LoginPage() {
 
           clearAuthUrl();
 
-          if (!cancelled) {
-            if (type === "recovery") {
-              router.replace("/nastavit-heslo");
-            } else {
-              router.replace("/portal");
-            }
+          if (type === "recovery") {
+            if (!cancelled) router.replace("/nastavit-heslo");
+            return;
           }
+
+          await safeRedirectAfterAuth();
           return;
         }
 
@@ -170,9 +220,12 @@ export default function LoginPage() {
 
           clearAuthUrl();
 
-          if (!cancelled) {
-            router.replace(type === "recovery" ? "/nastavit-heslo" : "/portal");
+          if (type === "recovery") {
+            if (!cancelled) router.replace("/nastavit-heslo");
+            return;
           }
+
+          await safeRedirectAfterAuth();
           return;
         }
 
@@ -186,9 +239,7 @@ export default function LoginPage() {
         }
 
         if (session?.user) {
-          if (!cancelled) {
-            router.replace("/portal");
-          }
+          await safeRedirectAfterAuth();
           return;
         }
 
@@ -219,18 +270,24 @@ export default function LoginPage() {
     setError("");
     setMessage("");
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
-    if (signInError) {
-      setError("Neplatné přihlašovací údaje.");
+      if (signInError) {
+        setError("Neplatné přihlašovací údaje.");
+        setLoading(false);
+        return;
+      }
+
+      const target = await resolvePostLoginPath();
+      router.push(target);
+    } catch (e) {
+      setError(e?.message || "Přihlášení se nepodařilo.");
       setLoading(false);
-      return;
     }
-
-    router.push("/portal");
   }
 
   return (
