@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 
+const DEMO_ORG_NAME = "ARCHIMEDES DEMO SKOLA";
+
+function normalizeText(value = "") {
+  return String(value).trim();
+}
+
 export default function RequireAuth({ children }) {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
@@ -17,6 +23,84 @@ export default function RequireAuth({ children }) {
     async function allow() {
       if (!mounted) return;
       setChecking(false);
+    }
+
+    async function resolveActiveMembership(userId, profile) {
+      const { data: membershipRows, error: membershipError } = await supabase
+        .from("organization_members")
+        .select("organization_id, role_in_org, status")
+        .eq("user_id", userId)
+        .eq("status", "active");
+
+      if (membershipError) {
+        throw membershipError;
+      }
+
+      const memberships = Array.isArray(membershipRows) ? membershipRows : [];
+      if (!memberships.length) {
+        return null;
+      }
+
+      const orgIds = [...new Set(memberships.map((m) => m.organization_id).filter(Boolean))];
+      const { data: orgRows, error: orgError } = await supabase
+        .from("organizations")
+        .select("id, name")
+        .in("id", orgIds);
+
+      if (orgError) {
+        throw orgError;
+      }
+
+      const orgById = new Map((orgRows || []).map((org) => [org.id, org]));
+
+      const enriched = memberships.map((m) => ({
+        ...m,
+        organization_name: orgById.get(m.organization_id)?.name || "",
+      }));
+
+      let resolved =
+        profile?.active_organization_id
+          ? enriched.find(
+              (m) => m.organization_id === profile.active_organization_id
+            ) || null
+          : null;
+
+      if (!resolved) {
+        const realMemberships = enriched.filter(
+          (m) => normalizeText(m.organization_name) !== DEMO_ORG_NAME
+        );
+        const demoMemberships = enriched.filter(
+          (m) => normalizeText(m.organization_name) === DEMO_ORG_NAME
+        );
+
+        if (realMemberships.length === 1) {
+          resolved = realMemberships[0];
+        } else if (enriched.length === 1) {
+          resolved = enriched[0];
+        } else if (!realMemberships.length && demoMemberships.length === 1) {
+          resolved = demoMemberships[0];
+        } else {
+          console.error("RequireAuth: ambiguous memberships", {
+            userId,
+            memberships: enriched,
+            activeOrganizationId: profile?.active_organization_id || null,
+          });
+          return { ambiguous: true };
+        }
+
+        if (resolved?.organization_id && profile?.active_organization_id !== resolved.organization_id) {
+          try {
+            await supabase
+              .from("profiles")
+              .update({ active_organization_id: resolved.organization_id })
+              .eq("id", userId);
+          } catch (_e) {
+            // no-op
+          }
+        }
+      }
+
+      return resolved || null;
     }
 
     async function check() {
@@ -37,11 +121,12 @@ export default function RequireAuth({ children }) {
           { data: profile, error: profileError },
           { data: audRows, error: audError },
           { data: catRows, error: catError },
-          { data: membershipRows, error: membershipError },
         ] = await Promise.all([
           supabase
             .from("profiles")
-            .select("id, full_name, must_set_password")
+            .select(
+              "id, full_name, must_set_password, user_type, active_organization_id"
+            )
             .eq("id", user.id)
             .maybeSingle(),
 
@@ -56,13 +141,6 @@ export default function RequireAuth({ children }) {
             .select("id")
             .eq("user_id", user.id)
             .limit(1),
-
-          supabase
-            .from("organization_members")
-            .select("organization_id, role_in_org, status")
-            .eq("user_id", user.id)
-            .eq("status", "active")
-            .limit(2),
         ]);
 
         if (profileError || !profile) {
@@ -75,20 +153,14 @@ export default function RequireAuth({ children }) {
           return;
         }
 
-        if (audError || catError || membershipError) {
+        if (audError || catError) {
           await deny("/login");
           return;
         }
 
-        const memberships = Array.isArray(membershipRows) ? membershipRows : [];
-        const membership = memberships[0] || null;
+        const activeMembership = await resolveActiveMembership(user.id, profile);
 
-        // Bezpečnostní fallback: více aktivních členství nechceme tiše ignorovat
-        if (memberships.length > 1) {
-          console.error("RequireAuth: user has multiple active memberships", {
-            userId: user.id,
-            memberships,
-          });
+        if (activeMembership?.ambiguous) {
           await deny("/login");
           return;
         }
@@ -98,17 +170,17 @@ export default function RequireAuth({ children }) {
         const hasCategory = Array.isArray(catRows) && catRows.length > 0;
 
         const profileComplete = hasFullName && hasAudience && hasCategory;
-        const hasOrganization = !!membership?.organization_id;
-        const isOrgAdmin = membership?.role_in_org === "organization_admin";
+        const hasOrganization = !!activeMembership?.organization_id;
+        const isOrgAdmin = activeMembership?.role_in_org === "organization_admin";
+        const isIndividual = profile?.user_type === "individual";
 
         const isProfilePage = pathname === "/portal/muj-profil";
         const isUsersPage = pathname === "/portal/uzivatele";
         const isWelcomePage = pathname === "/welcome";
         const isCreateOrganizationPage = pathname === "/create-organization";
         const isJoinPage = pathname === "/join";
-        const isPortalPage = pathname === "/portal" || pathname.startsWith("/portal/");
 
-        // 1) Uživatel s organizací
+        // 1) Uživatel s aktivní organizací podle active_organization_id
         if (hasOrganization) {
           if (isUsersPage && !isOrgAdmin) {
             await deny("/portal");
@@ -119,7 +191,18 @@ export default function RequireAuth({ children }) {
           return;
         }
 
-        // 2) Uživatel bez organizace a bez kompletního profilu
+        // 2) Jednotlivec bez organizace
+        if (isIndividual) {
+          if (isUsersPage) {
+            await deny("/portal");
+            return;
+          }
+
+          await allow();
+          return;
+        }
+
+        // 3) Uživatel bez organizace a bez kompletního profilu
         if (!profileComplete) {
           if (
             isProfilePage ||
@@ -135,8 +218,7 @@ export default function RequireAuth({ children }) {
           return;
         }
 
-        // 3) Uživatel bez organizace, ale s hotovým profilem
-        // Bezpečněji ho nepouštíme do celého /portal/*
+        // 4) Uživatel bez organizace, ale s hotovým profilem
         if (!hasOrganization) {
           if (
             isWelcomePage ||
