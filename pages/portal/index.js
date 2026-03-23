@@ -239,9 +239,7 @@ export default function PortalIndex() {
     dashboardType === "organization" &&
     membershipRole === "organization_admin";
 
-  const isProgramAdmin =
-    !isDemoViewer && (isAdmin || membershipRole === "organization_admin");
-  const showAdminSection = !isDemoViewer;
+  const showAdminSection = !isDemoViewer && isAdmin;
 
   const showTrialBanner =
     dashboardType === "organization" && licenseMode === "trial";
@@ -749,7 +747,7 @@ export default function PortalIndex() {
                         color: "rgba(15,23,42,0.72)",
                       }}
                     >
-                      vidí jen správci
+                      vidí jen správci portálu
                     </div>
                   </div>
 
@@ -765,7 +763,7 @@ export default function PortalIndex() {
                     >
                       Načítám práva…
                     </div>
-                  ) : isProgramAdmin ? (
+                  ) : isAdmin ? (
                     <div className="tiles-grid admin-grid">
                       <Tile
                         href="/portal/admin-udalosti/novy"
@@ -788,31 +786,27 @@ export default function PortalIndex() {
                         desc="Kontrola záznamů, návazných materiálů a výsledného zobrazení pro uživatele."
                         cta="Otevřít"
                       />
-                      {isAdmin ? (
-                        <>
-                          <Tile
-                            href="/portal/admin-inzerce"
-                            icon="✅"
-                            title="Inzerce"
-                            desc="Moderace, TOP, ARCHIMEDES a správa příspěvků."
-                            cta="Otevřít"
-                          />
-                          <Tile
-                            href="/portal/admin-poptavky"
-                            icon="📨"
-                            title="Poptávky"
-                            desc="Přehled leadů a export do CSV."
-                            cta="Otevřít"
-                          />
-                          <Tile
-                            href="/portal/admin-skoly"
-                            icon="🏫"
-                            title="Školy"
-                            desc="Správa databáze učeben, fotek, kontaktů a publikace."
-                            cta="Otevřít"
-                          />
-                        </>
-                      ) : null}
+                      <Tile
+                        href="/portal/admin-inzerce"
+                        icon="✅"
+                        title="Inzerce"
+                        desc="Moderace, TOP, ARCHIMEDES a správa příspěvků."
+                        cta="Otevřít"
+                      />
+                      <Tile
+                        href="/portal/admin-poptavky"
+                        icon="📨"
+                        title="Poptávky"
+                        desc="Přehled leadů a export do CSV."
+                        cta="Otevřít"
+                      />
+                      <Tile
+                        href="/portal/admin-skoly"
+                        icon="🏫"
+                        title="Školy"
+                        desc="Správa databáze učeben, fotek, kontaktů a publikace."
+                        cta="Otevřít"
+                      />
                     </div>
                   ) : (
                     <div
@@ -825,7 +819,7 @@ export default function PortalIndex() {
                         fontSize: 15,
                       }}
                     >
-                      Administrace je dostupná jen správcům.
+                      Administrace je dostupná jen správcům portálu.
                     </div>
                   )}
                 </section>
