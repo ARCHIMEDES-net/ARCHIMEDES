@@ -152,34 +152,10 @@ async function ensureProfile({
   }
 }
 
-async function ensureMembership({
-  organizationId,
-  userId,
-  roleInOrg = "organization_admin",
-}) {
-  const { error } = await supabase
-    .from("organization_members")
-    .upsert(
-      {
-        organization_id: organizationId,
-        user_id: userId,
-        role_in_org: roleInOrg,
-        status: "active",
-      },
-      { onConflict: "user_id,organization_id" }
-    );
-
-  if (error) {
-    throw new Error(
-      `Nepodařilo se přiřadit uživatele do organizace: ${error.message}`
-    );
-  }
-}
-
 async function getUserActiveMemberships(userId) {
   const { data, error } = await supabase
     .from("organization_members")
-    .select("organization_id, status")
+    .select("id, organization_id, role_in_org, status")
     .eq("user_id", userId)
     .eq("status", "active");
 
@@ -228,6 +204,91 @@ async function assertNoConflictingRealOrgMemberships(userId, targetOrganizationI
   if (conflictingRealOrgs.length > 0) {
     throw new Error(
       "Uživatel už je přiřazen k jiné aktivní organizaci mimo demo."
+    );
+  }
+}
+
+async function ensureMembership({
+  organizationId,
+  userId,
+  roleInOrg = "organization_admin",
+}) {
+  const { data: existing, error: readError } = await supabase
+    .from("organization_members")
+    .select("id, role_in_org, status")
+    .eq("organization_id", organizationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (readError) {
+    throw new Error(
+      `Nepodařilo se načíst členství uživatele v organizaci: ${readError.message}`
+    );
+  }
+
+  if (existing?.id) {
+    const { error: updateError } = await supabase
+      .from("organization_members")
+      .update({
+        role_in_org: roleInOrg,
+        status: "active",
+      })
+      .eq("id", existing.id);
+
+    if (updateError) {
+      throw new Error(
+        `Nepodařilo se aktualizovat členství uživatele: ${updateError.message}`
+      );
+    }
+
+    return existing.id;
+  }
+
+  const { data: inserted, error: insertError } = await supabase
+    .from("organization_members")
+    .insert({
+      organization_id: organizationId,
+      user_id: userId,
+      role_in_org: roleInOrg,
+      status: "active",
+    })
+    .select("id")
+    .single();
+
+  if (insertError) {
+    throw new Error(
+      `Nepodařilo se přiřadit uživatele do organizace: ${insertError.message}`
+    );
+  }
+
+  return inserted?.id || null;
+}
+
+async function removeDemoMembershipsForUser(userId, targetOrganizationId) {
+  const memberships = await getUserActiveMemberships(userId);
+
+  const otherOrgIds = memberships
+    .map((m) => m.organization_id)
+    .filter((orgId) => orgId && orgId !== targetOrganizationId);
+
+  if (!otherOrgIds.length) return;
+
+  const orgs = await getOrganizationsByIds(otherOrgIds);
+  const demoOrgIds = orgs
+    .filter((org) => normalizeText(org.name) === DEMO_ORG_NAME)
+    .map((org) => org.id);
+
+  if (!demoOrgIds.length) return;
+
+  const { error } = await supabase
+    .from("organization_members")
+    .delete()
+    .eq("user_id", userId)
+    .in("organization_id", demoOrgIds);
+
+  if (error) {
+    throw new Error(
+      `Nepodařilo se odebrat demo členství uživatele: ${error.message}`
     );
   }
 }
@@ -415,7 +476,6 @@ export default async function handler(req, res) {
     let resolvedOrganizationName = "";
 
     try {
-      // START organizaci řeší vždy podle IČO objednávky, ne podle demo přihlášení.
       let organization = await getOrganizationByIco(icoRaw);
 
       if (!organization) {
@@ -499,8 +559,6 @@ export default async function handler(req, res) {
             ? "invited_separate_admin"
             : "invited_new_admin";
 
-          await assertNoConflictingRealOrgMemberships(adminUserId, organizationId);
-
           await ensureProfile({
             userId: adminUserId,
             email: adminEmailRaw,
@@ -541,6 +599,14 @@ export default async function handler(req, res) {
         }
 
         orderingUserAdded = true;
+      }
+
+      // 3) po úspěšném START onboardingu odstranit demo členství,
+      // aby se uživatel po přihlášení nevracel do demo režimu.
+      await removeDemoMembershipsForUser(adminUserId, organizationId);
+
+      if (orderingUserId && orderingUserId !== adminUserId) {
+        await removeDemoMembershipsForUser(orderingUserId, organizationId);
       }
 
       const { error: onboardingUpdateError } = await supabase
