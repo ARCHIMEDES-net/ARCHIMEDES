@@ -6,8 +6,9 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const SITE_URL = "https://www.archimedeslive.com";
-const REDIRECT_TO = `${SITE_URL}/login`;
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
+const REDIRECT_TO = `${SITE_URL}/nastavit-heslo`;
 
 function escapeHtml(value = "") {
   return String(value)
@@ -394,7 +395,9 @@ export default async function handler(req, res) {
           });
           onboardingMode = "new_organization";
         } else {
-          onboardingMode = currentUserId ? "existing_user_matched_by_ico" : "matched_by_ico";
+          onboardingMode = currentUserId
+            ? "existing_user_matched_by_ico"
+            : "matched_by_ico";
         }
 
         organizationId = organization.id;
