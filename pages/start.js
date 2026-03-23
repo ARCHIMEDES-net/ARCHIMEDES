@@ -53,11 +53,6 @@ export default function StartPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const [currentUserId, setCurrentUserId] = useState("");
-  const [currentUserEmail, setCurrentUserEmail] = useState("");
-  const [currentOrganizationId, setCurrentOrganizationId] = useState("");
-  const [currentOrganizationName, setCurrentOrganizationName] = useState("");
-
   useEffect(() => {
     let mounted = true;
 
@@ -69,8 +64,12 @@ export default function StartPage() {
         } = await supabase.auth.getUser();
 
         if (userError) throw userError;
+
         if (!user || !mounted) {
-          setPrefillLoading(false);
+          if (mounted) {
+            setPrefillLoading(false);
+            setPrefillReady(false);
+          }
           return;
         }
 
@@ -80,13 +79,6 @@ export default function StartPage() {
 
         let schoolName = "";
         let adminEmail = email;
-        let organizationId = "";
-        let organizationName = "";
-
-        if (mounted) {
-          setCurrentUserId(user.id || "");
-          setCurrentUserEmail(email || "");
-        }
 
         const { data: membership, error: membershipError } = await supabase
           .from("organization_members")
@@ -98,8 +90,6 @@ export default function StartPage() {
         if (membershipError) throw membershipError;
 
         if (membership?.organization_id) {
-          organizationId = membership.organization_id;
-
           const { data: org, error: orgError } = await supabase
             .from("organizations")
             .select("id, name")
@@ -109,13 +99,9 @@ export default function StartPage() {
           if (orgError) throw orgError;
 
           schoolName = org?.name || "";
-          organizationName = org?.name || "";
         }
 
         if (!mounted) return;
-
-        setCurrentOrganizationId(organizationId || "");
-        setCurrentOrganizationName(organizationName || "");
 
         setForm((prev) => ({
           ...prev,
@@ -128,9 +114,13 @@ export default function StartPage() {
 
         setPrefillReady(!!(schoolName || contactName || email));
       } catch (_err) {
-        // Záměrně bez hlášky do UI – stránka musí fungovat i bez předvyplnění.
+        if (mounted) {
+          setPrefillReady(false);
+        }
       } finally {
-        if (mounted) setPrefillLoading(false);
+        if (mounted) {
+          setPrefillLoading(false);
+        }
       }
     }
 
@@ -155,33 +145,46 @@ export default function StartPage() {
     setError("");
 
     try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      const accessToken = session?.access_token;
+      if (accessToken) {
+        headers.Authorization = `Bearer ${accessToken}`;
+      }
+
       const res = await fetch("/api/start-order", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify({
           ...form,
-          currentUserId,
-          currentUserEmail,
-          currentOrganizationId,
-          currentOrganizationName,
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         throw new Error(
-          data?.error || "Objednávku se nepodařilo odeslat. Zkuste to prosím znovu."
+          data?.error ||
+            "Objednávku se nepodařilo odeslat. Zkuste to prosím znovu."
         );
       }
 
       setSuccess(true);
-      setForm(initialForm);
     } catch (err) {
       setError(
-        err?.message || "Objednávku se nepodařilo odeslat. Zkuste to prosím znovu."
+        err?.message ||
+          "Objednávku se nepodařilo odeslat. Zkuste to prosím znovu."
       );
     } finally {
       setLoading(false);
@@ -450,7 +453,9 @@ export default function StartPage() {
             <div className="heroCard">
               <div className="heroGrid">
                 <div className="heroMain">
-                  <div className="eyebrow dark">Balíček START pro školy • jaro + září 2026</div>
+                  <div className="eyebrow dark">
+                    Balíček START pro školy • jaro + září 2026
+                  </div>
                   <h1>Pokračujte se školou do programu ARCHIMEDES Live</h1>
 
                   <p className="lead">
@@ -564,7 +569,9 @@ export default function StartPage() {
                         <span className="priceArrow">→</span>
                         <span className="priceNew">4.990 Kč</span>
                       </div>
-                      <div className="priceMeta">cena bez DPH · jednorázově · bez automatického prodloužení</div>
+                      <div className="priceMeta">
+                        cena bez DPH · jednorázově · bez automatického prodloužení
+                      </div>
                     </div>
 
                     <div className="summaryRow">
