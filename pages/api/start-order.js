@@ -295,7 +295,7 @@ async function createOrganization({ name, ico }) {
         org_type: "school",
         status: "active",
         join_code: joinCode,
-        license_status: "trial",
+        license_status: "active",
         ico,
       },
     ])
