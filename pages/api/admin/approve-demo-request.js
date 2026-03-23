@@ -6,6 +6,37 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+function normServer(v) {
+  return (v ?? "").toString().trim();
+}
+
+async function findAuthUserByEmail(email) {
+  const target = String(email || "").trim().toLowerCase();
+  let page = 1;
+  const perPage = 200;
+
+  while (true) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+      page,
+      perPage,
+    });
+
+    if (error) {
+      throw new Error(error.message || "Nepodařilo se načíst uživatele.");
+    }
+
+    const users = data?.users || [];
+    const found = users.find(
+      (u) => String(u.email || "").trim().toLowerCase() === target
+    );
+
+    if (found) return found;
+    if (users.length < perPage) return null;
+
+    page += 1;
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -61,17 +92,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // 3) najít existujícího uživatele podle emailu
-    const { data: usersData, error: listUsersError } =
-      await supabaseAdmin.auth.admin.listUsers();
-
-    if (listUsersError) {
-      return res.status(500).json({ error: listUsersError.message });
-    }
-
-    let user = (usersData?.users || []).find(
-      (u) => String(u.email || "").toLowerCase() === email
-    );
+    // 3) najít existujícího auth uživatele podle emailu
+    let user = await findAuthUserByEmail(email);
 
     // 4) pokud neexistuje, vytvořit usera bez hesla
     if (!user) {
@@ -97,13 +119,12 @@ export default async function handler(req, res) {
 
     // 5) doplnit profil
     const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
-      [
-        {
-          id: user.id,
-          full_name: contactName || null,
-          user_type: "organization",
-        },
-      ],
+      {
+        id: user.id,
+        email,
+        full_name: contactName || null,
+        user_type: "organization",
+      },
       { onConflict: "id" }
     );
 
@@ -111,27 +132,28 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: profileError.message });
     }
 
-    // 6) zkontrolovat existující membership
-    const { data: existingMembership, error: membershipReadError } =
-      await supabaseAdmin
-        .from("organization_members")
-        .select("id, organization_id, user_id, role_in_org, status")
-        .eq("user_id", user.id)
-        .maybeSingle();
+    // 6) zkontrolovat všechna existující membership tohoto usera
+    const { data: memberships, error: membershipReadError } = await supabaseAdmin
+      .from("organization_members")
+      .select("id, organization_id, user_id, role_in_org, status")
+      .eq("user_id", user.id);
 
     if (membershipReadError) {
       return res.status(500).json({ error: membershipReadError.message });
     }
 
-    if (existingMembership?.id) {
+    const existingDemoMembership = (memberships || []).find(
+      (m) => m.organization_id === demoOrg.id
+    );
+
+    if (existingDemoMembership?.id) {
       const { error: membershipUpdateError } = await supabaseAdmin
         .from("organization_members")
         .update({
-          organization_id: demoOrg.id,
           role_in_org: "demo_viewer",
           status: "active",
         })
-        .eq("id", existingMembership.id);
+        .eq("id", existingDemoMembership.id);
 
       if (membershipUpdateError) {
         return res.status(500).json({ error: membershipUpdateError.message });
@@ -139,14 +161,12 @@ export default async function handler(req, res) {
     } else {
       const { error: membershipInsertError } = await supabaseAdmin
         .from("organization_members")
-        .insert([
-          {
-            organization_id: demoOrg.id,
-            user_id: user.id,
-            role_in_org: "demo_viewer",
-            status: "active",
-          },
-        ]);
+        .insert({
+          organization_id: demoOrg.id,
+          user_id: user.id,
+          role_in_org: "demo_viewer",
+          status: "active",
+        });
 
       if (membershipInsertError) {
         return res.status(500).json({ error: membershipInsertError.message });
@@ -190,7 +210,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Demo přístup byl schválen a byl odeslán e-mail pro nastavení hesla.",
+      message:
+        "Demo přístup byl schválen a byl odeslán e-mail pro nastavení hesla.",
       email,
       userId: user.id,
       organizationId: demoOrg.id,
@@ -200,8 +221,4 @@ export default async function handler(req, res) {
       error: e?.message || "Schválení demo přístupu se nepodařilo.",
     });
   }
-}
-
-function normServer(v) {
-  return (v ?? "").toString().trim();
 }
