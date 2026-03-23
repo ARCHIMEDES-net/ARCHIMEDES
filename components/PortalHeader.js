@@ -83,8 +83,10 @@ export default function PortalHeader({ title = "" }) {
       try {
         const {
           data: { user },
+          error: userError,
         } = await supabase.auth.getUser();
 
+        if (userError) throw userError;
         if (!alive) return;
 
         if (!user) {
@@ -95,25 +97,43 @@ export default function PortalHeader({ title = "" }) {
           return;
         }
 
-        const { data: membership } = await supabase
-          .from("organization_members")
-          .select("role_in_org, status")
-          .eq("user_id", user.id)
-          .eq("status", "active")
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, active_organization_id")
+          .eq("id", user.id)
           .maybeSingle();
 
+        if (profileError) throw profileError;
         if (!alive) return;
 
-        const roleInOrg = membership?.role_in_org || "";
-        setIsOrgAdmin(roleInOrg === "organization_admin");
-        setIsDemoViewer(roleInOrg === "demo_viewer");
+        let roleInActiveOrg = "";
 
-        const { data: platformAdminRow } = await supabase
-          .from("platform_admins")
-          .select("user_id")
-          .eq("user_id", user.id)
-          .maybeSingle();
+        if (profile?.active_organization_id) {
+          const { data: membership, error: membershipError } = await supabase
+            .from("organization_members")
+            .select("role_in_org, status")
+            .eq("user_id", user.id)
+            .eq("organization_id", profile.active_organization_id)
+            .eq("status", "active")
+            .maybeSingle();
 
+          if (membershipError) throw membershipError;
+          if (!alive) return;
+
+          roleInActiveOrg = membership?.role_in_org || "";
+        }
+
+        setIsOrgAdmin(roleInActiveOrg === "organization_admin");
+        setIsDemoViewer(roleInActiveOrg === "demo_viewer");
+
+        const { data: platformAdminRow, error: platformAdminError } =
+          await supabase
+            .from("platform_admins")
+            .select("user_id")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+        if (platformAdminError) throw platformAdminError;
         if (!alive) return;
 
         setIsPlatformAdmin(!!platformAdminRow?.user_id);
