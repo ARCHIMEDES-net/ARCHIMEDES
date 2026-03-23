@@ -2,15 +2,30 @@
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const SUPABASE_URL =
+  process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error(
+    "Chybí SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL nebo SUPABASE_SERVICE_ROLE_KEY."
+  );
+}
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+const supabasePublic =
+  SUPABASE_URL && SUPABASE_ANON_KEY
+    ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
 const REDIRECT_TO = `${SITE_URL}/nastavit-heslo`;
 const DEMO_ORG_NAME = "ARCHIMEDES DEMO SKOLA";
+const LEGAL_VERSION = "2026-03-start-v2";
 
 function escapeHtml(value = "") {
   return String(value)
@@ -37,6 +52,10 @@ function normalizeText(value = "") {
   return String(value).trim();
 }
 
+function isValidEmail(value = "") {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
+}
+
 function randomCodePart(length = 8) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let result = "";
@@ -44,6 +63,130 @@ function randomCodePart(length = 8) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
+}
+
+function parseCookies(cookieHeader = "") {
+  const result = {};
+  if (!cookieHeader || typeof cookieHeader !== "string") return result;
+
+  cookieHeader.split(";").forEach((part) => {
+    const [rawKey, ...rawValueParts] = part.split("=");
+    const key = String(rawKey || "").trim();
+    const value = rawValueParts.join("=").trim();
+    if (!key) return;
+    result[key] = value;
+  });
+
+  return result;
+}
+
+function tryExtractTokenFromCookieValue(rawValue = "") {
+  if (!rawValue) return "";
+
+  let decoded = rawValue;
+  try {
+    decoded = decodeURIComponent(rawValue);
+  } catch (_) {
+    decoded = rawValue;
+  }
+
+  if (!decoded) return "";
+
+  if (
+    !decoded.startsWith("{") &&
+    !decoded.startsWith("[") &&
+    decoded.split(".").length === 3
+  ) {
+    return decoded;
+  }
+
+  try {
+    const parsed = JSON.parse(decoded);
+
+    if (typeof parsed === "string" && parsed.split(".").length === 3) {
+      return parsed;
+    }
+
+    if (Array.isArray(parsed)) {
+      const firstToken = parsed.find(
+        (item) => typeof item === "string" && item.split(".").length === 3
+      );
+      return firstToken || "";
+    }
+
+    if (parsed && typeof parsed === "object") {
+      if (
+        typeof parsed.access_token === "string" &&
+        parsed.access_token.split(".").length === 3
+      ) {
+        return parsed.access_token;
+      }
+
+      if (
+        typeof parsed.currentSession?.access_token === "string" &&
+        parsed.currentSession.access_token.split(".").length === 3
+      ) {
+        return parsed.currentSession.access_token;
+      }
+    }
+  } catch (_) {
+    return "";
+  }
+
+  return "";
+}
+
+function extractAccessTokenFromRequest(req) {
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+    const bearerToken = authHeader.slice(7).trim();
+    if (bearerToken) return bearerToken;
+  }
+
+  const cookies = parseCookies(req.headers.cookie || "");
+
+  if (cookies["sb-access-token"]) {
+    const token = tryExtractTokenFromCookieValue(cookies["sb-access-token"]);
+    if (token) return token;
+  }
+
+  const cookieKeys = Object.keys(cookies);
+  for (const key of cookieKeys) {
+    if (!/^sb-.*-auth-token(?:\.\d+)?$/.test(key)) continue;
+    const token = tryExtractTokenFromCookieValue(cookies[key]);
+    if (token) return token;
+  }
+
+  return "";
+}
+
+async function getAuthenticatedUserFromRequest(req) {
+  const accessToken = extractAccessTokenFromRequest(req);
+  if (!accessToken) {
+    return null;
+  }
+
+  if (!supabasePublic) {
+    console.error(
+      "AUTH WARNING: Chybí NEXT_PUBLIC_SUPABASE_ANON_KEY, nelze ověřit access token."
+    );
+    return null;
+  }
+
+  const { data, error } = await supabasePublic.auth.getUser(accessToken);
+
+  if (error) {
+    console.error("AUTH TOKEN VERIFY ERROR:", error);
+    return null;
+  }
+
+  const user = data?.user;
+  if (!user?.id) return null;
+
+  return {
+    id: user.id,
+    email: normalizeEmail(user.email || ""),
+  };
 }
 
 async function generateUniqueJoinCode() {
@@ -81,6 +224,29 @@ function createTransporter() {
   });
 }
 
+async function sendMailLogged(transporter, { label, ...message }) {
+  try {
+    const info = await transporter.sendMail(message);
+
+    console.log("MAIL SENT:", {
+      label,
+      accepted: info?.accepted || [],
+      rejected: info?.rejected || [],
+      messageId: info?.messageId || "",
+      response: info?.response || "",
+    });
+
+    return info;
+  } catch (error) {
+    console.error("MAIL ERROR:", {
+      label,
+      message: error?.message || "Neznámá chyba",
+      stack: error?.stack || "",
+    });
+    throw error;
+  }
+}
+
 async function getOrganizationByIco(ico) {
   if (!ico) return null;
 
@@ -106,7 +272,21 @@ async function getOrganizationByIco(ico) {
   return data[0];
 }
 
+async function assertOrganizationNameAllowed(name) {
+  const normalized = normalizeText(name);
+
+  if (!normalized) {
+    throw new Error("Název organizace je povinný.");
+  }
+
+  if (normalized === DEMO_ORG_NAME) {
+    throw new Error("Tento název organizace je rezervovaný.");
+  }
+}
+
 async function createOrganization({ name, ico }) {
+  await assertOrganizationNameAllowed(name);
+
   const joinCode = await generateUniqueJoinCode();
 
   const { data, error } = await supabase
@@ -195,7 +375,10 @@ async function getOrganizationsByIds(ids = []) {
   return data || [];
 }
 
-async function assertNoConflictingRealOrgMemberships(userId, targetOrganizationId) {
+async function assertNoConflictingRealOrgMemberships(
+  userId,
+  targetOrganizationId
+) {
   const memberships = await getUserActiveMemberships(userId);
 
   const otherOrgIds = memberships
@@ -309,20 +492,6 @@ async function removeDemoMembershipsForUser(userId, targetOrganizationId) {
   }
 }
 
-async function getAuthUserEmailById(userId) {
-  if (!userId) return "";
-
-  const { data, error } = await supabase.auth.admin.getUserById(userId);
-
-  if (error) {
-    throw new Error(
-      `Nepodařilo se načíst přihlášeného uživatele: ${error.message}`
-    );
-  }
-
-  return normalizeEmail(data?.user?.email || "");
-}
-
 async function findAuthUserByEmail(email) {
   const target = normalizeEmail(email);
   let page = 1;
@@ -335,15 +504,11 @@ async function findAuthUserByEmail(email) {
     });
 
     if (error) {
-      throw new Error(
-        `Nepodařilo se načíst auth uživatele: ${error.message}`
-      );
+      throw new Error(`Nepodařilo se načíst auth uživatele: ${error.message}`);
     }
 
     const users = data?.users || [];
-    const found = users.find(
-      (u) => normalizeEmail(u.email || "") === target
-    );
+    const found = users.find((u) => normalizeEmail(u.email || "") === target);
 
     if (found) return found;
     if (users.length < perPage) return null;
@@ -401,9 +566,6 @@ export default async function handler(req, res) {
     const phoneRaw = normalizeText(data.phone);
     const noteRaw = normalizeText(data.note);
 
-    const currentUserId = normalizeText(data.currentUserId);
-    const currentUserEmailFromClient = normalizeEmail(data.currentUserEmail);
-
     if (
       !schoolNameRaw ||
       !icoRaw ||
@@ -420,8 +582,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailRaw) || !emailRegex.test(adminEmailRaw)) {
+    if (!isValidEmail(emailRaw) || !isValidEmail(adminEmailRaw)) {
       return res.status(400).json({
         error: "Prosím zadejte platné e-mailové adresy.",
       });
@@ -438,6 +599,10 @@ export default async function handler(req, res) {
         error: "Pro odeslání objednávky je nutné potvrdit všechny souhlasy.",
       });
     }
+
+    const authUser = await getAuthenticatedUserFromRequest(req);
+    const authenticatedUserId = authUser?.id || null;
+    const authenticatedUserEmail = normalizeEmail(authUser?.email || "");
 
     const clientIp = getClientIp(req);
     const userAgent = req.headers["user-agent"] || "";
@@ -464,7 +629,7 @@ export default async function handler(req, res) {
           agree_authority: !!data.agreeAuthority,
           agree_contract: !!data.agreeContract,
           onboarding_status: "pending",
-          legal_version: "2026-03-start-v2",
+          legal_version: LEGAL_VERSION,
           ip_address: clientIp,
           user_agent: userAgent,
           submitted_at: now,
@@ -483,7 +648,7 @@ export default async function handler(req, res) {
     let onboardingStatus = "completed";
     let onboardingError = null;
     let onboardingMode = "new_user";
-    let resolvedCurrentUserEmail = currentUserEmailFromClient;
+    let resolvedCurrentUserEmail = authenticatedUserEmail || "";
     let currentUserMatchesAdmin = false;
     let currentUserMatchesOrderer = false;
     let inviteSentToAdmin = false;
@@ -502,7 +667,7 @@ export default async function handler(req, res) {
         });
         onboardingMode = "new_organization";
       } else {
-        onboardingMode = currentUserId
+        onboardingMode = authenticatedUserId
           ? "existing_user_matched_by_ico"
           : "matched_by_ico";
       }
@@ -511,13 +676,7 @@ export default async function handler(req, res) {
       joinCode = organization.join_code;
       resolvedOrganizationName = organization.name || schoolNameRaw;
 
-      if (currentUserId) {
-        try {
-          resolvedCurrentUserEmail = await getAuthUserEmailById(currentUserId);
-        } catch (authUserError) {
-          console.error("AUTH USER LOOKUP ERROR:", authUserError);
-        }
-
+      if (authenticatedUserId) {
         currentUserMatchesAdmin =
           !!resolvedCurrentUserEmail &&
           resolvedCurrentUserEmail === adminEmailRaw;
@@ -528,8 +687,8 @@ export default async function handler(req, res) {
       }
 
       // 1) administrátor organizace
-      if (currentUserId && currentUserMatchesAdmin) {
-        adminUserId = currentUserId;
+      if (authenticatedUserId && currentUserMatchesAdmin) {
+        adminUserId = authenticatedUserId;
         adminSource = "logged_in_user_matches_admin";
 
         await assertNoConflictingRealOrgMemberships(adminUserId, organizationId);
@@ -551,7 +710,7 @@ export default async function handler(req, res) {
 
         if (existingAuthUser?.id) {
           adminUserId = existingAuthUser.id;
-          adminSource = currentUserId
+          adminSource = authenticatedUserId
             ? "existing_auth_user_as_separate_admin"
             : "existing_auth_user_admin";
 
@@ -576,7 +735,7 @@ export default async function handler(req, res) {
           });
 
           inviteSentToAdmin = true;
-          adminSource = currentUserId
+          adminSource = authenticatedUserId
             ? "invited_separate_admin"
             : "invited_new_admin";
 
@@ -595,14 +754,16 @@ export default async function handler(req, res) {
         }
       }
 
-      // 2) objednatel / ředitel jako druhý člen organizace
-      // Přidáváme pouze tehdy, když je skutečně přihlášen právě objednatel.
-      // Tím zabráníme tomu, aby se do školy omylem zapsal interní admin,
-      // který objednávku jen technicky odesílá.
-      if (currentUserId && currentUserMatchesOrderer) {
-        orderingUserId = currentUserId;
+      // 2) objednatel / ředitel
+      // Přidáváme pouze tehdy, když je serverem ověřeno,
+      // že právě přihlášený uživatel je skutečně objednatel.
+      if (authenticatedUserId && currentUserMatchesOrderer) {
+        orderingUserId = authenticatedUserId;
 
-        await assertNoConflictingRealOrgMemberships(orderingUserId, organizationId);
+        await assertNoConflictingRealOrgMemberships(
+          orderingUserId,
+          organizationId
+        );
 
         await ensureProfile({
           userId: orderingUserId,
@@ -626,8 +787,7 @@ export default async function handler(req, res) {
         orderingUserAdded = true;
       }
 
-      // 3) po úspěšném START onboardingu odstranit demo členství,
-      // aby se uživatel po přihlášení nevracel do demo režimu
+      // 3) odstranit demo membership po úspěšném START
       if (adminUserId) {
         await removeDemoMembershipsForUser(adminUserId, organizationId);
       }
@@ -654,7 +814,7 @@ export default async function handler(req, res) {
     } catch (onboardingErr) {
       onboardingStatus = "failed";
       onboardingError =
-        onboardingErr.message || "Neznámá chyba onboardingu.";
+        onboardingErr?.message || "Neznámá chyba onboardingu.";
 
       console.error("ONBOARDING ERROR:", onboardingErr);
 
@@ -700,10 +860,12 @@ export default async function handler(req, res) {
     const safeResolvedOrganizationName = escapeHtml(
       resolvedOrganizationName || schoolNameRaw
     );
+    const safeAuthUserPresent = authenticatedUserId ? "ano" : "ne";
 
     const subject = `🟢 START – ${schoolNameRaw} (IČO: ${icoRaw})`;
 
-    await transporter.sendMail({
+    await sendMailLogged(transporter, {
+      label: "start_internal_notification",
       from: process.env.MAIL_FROM,
       to: process.env.MAIL_TO,
       subject,
@@ -743,6 +905,7 @@ export default async function handler(req, res) {
 
         <hr/>
 
+        <p><strong>Serverem ověřený přihlášený uživatel:</strong> ${safeAuthUserPresent}</p>
         <p><strong>Režim objednávky:</strong> ${safeOnboardingMode}</p>
         <p><strong>Vyřešená organizace:</strong> ${safeResolvedOrganizationName}</p>
         <p><strong>Přihlášený uživatel:</strong> ${safeCurrentUserEmail}</p>
@@ -755,13 +918,14 @@ export default async function handler(req, res) {
         <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
         <p><strong>Onboarding stav:</strong> ${safeOnboardingStatus}</p>
         <p><strong>Onboarding chyba:</strong> ${safeOnboardingError}</p>
-        <p><strong>Právní verze:</strong> 2026-03-start-v2</p>
+        <p><strong>Právní verze:</strong> ${escapeHtml(LEGAL_VERSION)}</p>
         <p><strong>Odesláno:</strong> ${escapeHtml(now)}</p>
         <p><strong>IP:</strong> ${escapeHtml(clientIp || "-")}</p>
       `,
     });
 
-    await transporter.sendMail({
+    await sendMailLogged(transporter, {
+      label: "start_confirmation_orderer",
       from: process.env.MAIL_FROM,
       to: emailRaw,
       subject: "Potvrzení objednávky – ARCHIMEDES Live",
@@ -824,7 +988,8 @@ export default async function handler(req, res) {
 
     if (onboardingStatus === "completed") {
       if (inviteSentToAdmin) {
-        await transporter.sendMail({
+        await sendMailLogged(transporter, {
+          label: "start_admin_invited",
           from: process.env.MAIL_FROM,
           to: adminEmailRaw,
           subject: "Administrátorský přístup – ARCHIMEDES Live",
@@ -855,7 +1020,8 @@ export default async function handler(req, res) {
           `,
         });
       } else {
-        await transporter.sendMail({
+        await sendMailLogged(transporter, {
+          label: "start_admin_existing",
           from: process.env.MAIL_FROM,
           to: adminEmailRaw,
           subject: "Administrátorský přístup – ARCHIMEDES Live",
@@ -886,7 +1052,8 @@ export default async function handler(req, res) {
         });
       }
     } else {
-      await transporter.sendMail({
+      await sendMailLogged(transporter, {
+        label: "start_admin_pending",
         from: process.env.MAIL_FROM,
         to: adminEmailRaw,
         subject: "Objednávka START přijata – přístup dokončujeme",
