@@ -145,24 +145,42 @@ export default function UdalostDetail() {
           return;
         }
 
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, active_organization_id")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+
+        if (!mounted) return;
+
+        if (!profile?.active_organization_id) {
+          setLicenseMode("active");
+          return;
+        }
+
         const { data: membership, error: membershipError } = await supabase
           .from("organization_members")
           .select("organization_id")
           .eq("user_id", user.id)
+          .eq("organization_id", profile.active_organization_id)
           .eq("status", "active")
           .maybeSingle();
 
         if (membershipError) throw membershipError;
 
+        if (!mounted) return;
+
         if (!membership?.organization_id) {
-          if (mounted) setLicenseMode("active");
+          setLicenseMode("active");
           return;
         }
 
         const { data: org, error: orgError } = await supabase
           .from("organizations")
           .select("license_status, license_valid_until")
-          .eq("id", membership.organization_id)
+          .eq("id", profile.active_organization_id)
           .maybeSingle();
 
         if (orgError) throw orgError;
@@ -276,8 +294,8 @@ export default function UdalostDetail() {
               </div>
 
               <div className="mt-2 text-slate-700 leading-7">
-                Tato událost je v portálu viditelná i v demo režimu, ale přímý vstup do vysílání
-                je dostupný pouze pro zapojené školy a organizace s aktivní licencí ARCHIMEDES Live.
+                Tato událost je v portálu viditelná, ale přímý vstup do vysílání
+                je dostupný pouze pro školy a organizace s aktivní licencí ARCHIMEDES Live.
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
@@ -292,7 +310,7 @@ export default function UdalostDetail() {
                   href="/poptavka"
                   className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
                 >
-                  Domluvit ukázkovou hodinu
+                  Domluvit další postup
                 </Link>
               </div>
             </div>
