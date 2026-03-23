@@ -3,9 +3,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useRouter } from "next/router";
 
-function parseAuthTokensFromUrl() {
+function parseAuthStateFromUrl() {
   if (typeof window === "undefined") {
-    return { accessToken: "", refreshToken: "" };
+    return {
+      accessToken: "",
+      refreshToken: "",
+      errorCode: "",
+      errorDescription: "",
+      type: "",
+    };
   }
 
   const hash = window.location.hash?.startsWith("#")
@@ -19,17 +25,50 @@ function parseAuthTokensFromUrl() {
   const hashParams = new URLSearchParams(hash);
   const searchParams = new URLSearchParams(search);
 
-  const accessToken =
-    hashParams.get("access_token") ||
-    searchParams.get("access_token") ||
-    "";
+  return {
+    accessToken:
+      hashParams.get("access_token") ||
+      searchParams.get("access_token") ||
+      "",
+    refreshToken:
+      hashParams.get("refresh_token") ||
+      searchParams.get("refresh_token") ||
+      "",
+    errorCode:
+      hashParams.get("error_code") ||
+      searchParams.get("error_code") ||
+      "",
+    errorDescription:
+      hashParams.get("error_description") ||
+      searchParams.get("error_description") ||
+      "",
+    type:
+      hashParams.get("type") ||
+      searchParams.get("type") ||
+      "",
+  };
+}
 
-  const refreshToken =
-    hashParams.get("refresh_token") ||
-    searchParams.get("refresh_token") ||
-    "";
+function cleanupUrl() {
+  if (typeof window === "undefined") return;
+  window.history.replaceState({}, document.title, "/nastavit-heslo");
+}
 
-  return { accessToken, refreshToken };
+function humanizeRecoveryError(errorCode = "", errorDescription = "") {
+  const code = String(errorCode || "").toLowerCase();
+  const description = decodeURIComponent(
+    String(errorDescription || "").replace(/\+/g, " ")
+  );
+
+  if (code === "otp_expired") {
+    return "Odkaz pro nastavení hesla vypršel. Požádejte o nový odkaz.";
+  }
+
+  if (description) {
+    return description;
+  }
+
+  return "Odkaz není platný nebo vypršel. Požádejte o nový odkaz.";
 }
 
 export default function NastavitHeslo() {
@@ -46,7 +85,21 @@ export default function NastavitHeslo() {
 
     async function init() {
       try {
-        const { accessToken, refreshToken } = parseAuthTokensFromUrl();
+        const {
+          accessToken,
+          refreshToken,
+          errorCode,
+          errorDescription,
+        } = parseAuthStateFromUrl();
+
+        if (errorCode) {
+          cleanupUrl();
+
+          if (!mounted) return;
+          setStatus("error");
+          setMessage(humanizeRecoveryError(errorCode, errorDescription));
+          return;
+        }
 
         if (accessToken && refreshToken) {
           const { error: sessionError } = await supabase.auth.setSession({
@@ -58,10 +111,7 @@ export default function NastavitHeslo() {
             throw sessionError;
           }
 
-          // Po úspěšném převzetí session uklidíme URL, ať tam nezůstávají tokeny.
-          if (typeof window !== "undefined") {
-            window.history.replaceState({}, document.title, "/nastavit-heslo");
-          }
+          cleanupUrl();
         }
 
         const {
@@ -80,13 +130,13 @@ export default function NastavitHeslo() {
           setMessage("");
         } else {
           setStatus("error");
-          setMessage("Odkaz není platný nebo vypršel. Zkuste požádat o nový.");
+          setMessage("Odkaz není platný nebo vypršel. Požádejte o nový odkaz.");
         }
       } catch (err) {
         if (!mounted) return;
         setStatus("error");
         setMessage(
-          err?.message || "Odkaz není platný nebo vypršel. Zkuste požádat o nový."
+          err?.message || "Odkaz není platný nebo vypršel. Požádejte o nový odkaz."
         );
       }
     }
@@ -135,14 +185,11 @@ export default function NastavitHeslo() {
         throw passwordError;
       }
 
-      // Volitelný, ale důležitý krok: po nastavení hesla zrušit příznak must_set_password.
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ must_set_password: false })
         .eq("id", user.id);
 
-      // Tady chybu profilu nezastavujeme tvrdě, protože heslo už je správně nastavené.
-      // Jen ji vypíšeme do konzole.
       if (profileError) {
         console.error("PROFILE UPDATE ERROR:", profileError);
       }
@@ -170,13 +217,23 @@ export default function NastavitHeslo() {
         {status === "error" && (
           <div style={styles.errorBox}>
             <p style={styles.errorText}>{message}</p>
-            <button
-              type="button"
-              onClick={() => router.push("/login")}
-              style={styles.secondaryButton}
-            >
-              Přejít na přihlášení
-            </button>
+            <div style={styles.actions}>
+              <button
+                type="button"
+                onClick={() => router.push("/reset-hesla")}
+                style={styles.button}
+              >
+                Požádat o nový odkaz
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push("/login")}
+                style={styles.secondaryButton}
+              >
+                Zpět na přihlášení
+              </button>
+            </div>
           </div>
         )}
 
@@ -281,6 +338,11 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: "14px",
+  },
+  actions: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
   },
   errorText: {
     margin: 0,
