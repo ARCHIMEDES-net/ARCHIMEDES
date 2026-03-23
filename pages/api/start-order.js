@@ -1,3 +1,4 @@
+// pages/api/start-order.js
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 
@@ -86,8 +87,7 @@ async function getOrganizationByIco(ico) {
   const { data, error } = await supabase
     .from("organizations")
     .select("id, name, ico, join_code")
-    .eq("ico", ico)
-    .maybeSingle();
+    .eq("ico", ico);
 
   if (error) {
     throw new Error(
@@ -95,7 +95,15 @@ async function getOrganizationByIco(ico) {
     );
   }
 
-  return data || null;
+  if (!data || data.length === 0) return null;
+
+  if (data.length > 1) {
+    throw new Error(
+      "Pro zadané IČO existuje více organizací. Nejprve je potřeba odstranit duplicity."
+    );
+  }
+
+  return data[0];
 }
 
 async function createOrganization({ name, ico }) {
@@ -137,6 +145,7 @@ async function ensureProfile({
     id: userId,
     email,
     full_name: fullName || null,
+    user_type: "organization",
     is_active: true,
     must_set_password: mustSetPassword,
   };
@@ -213,12 +222,11 @@ async function ensureMembership({
   userId,
   roleInOrg = "organization_admin",
 }) {
-  const { data: existing, error: readError } = await supabase
+  const { data: existingRows, error: readError } = await supabase
     .from("organization_members")
     .select("id, role_in_org, status")
     .eq("organization_id", organizationId)
-    .eq("user_id", userId)
-    .maybeSingle();
+    .eq("user_id", userId);
 
   if (readError) {
     throw new Error(
@@ -226,14 +234,22 @@ async function ensureMembership({
     );
   }
 
-  if (existing?.id) {
+  const existing = existingRows || [];
+
+  if (existing.length > 1) {
+    throw new Error(
+      "Uživatel má v této organizaci více členství. Nejprve je potřeba odstranit duplicity."
+    );
+  }
+
+  if (existing[0]?.id) {
     const { error: updateError } = await supabase
       .from("organization_members")
       .update({
         role_in_org: roleInOrg,
         status: "active",
       })
-      .eq("id", existing.id);
+      .eq("id", existing[0].id);
 
     if (updateError) {
       throw new Error(
@@ -241,7 +257,7 @@ async function ensureMembership({
       );
     }
 
-    return existing.id;
+    return existing[0].id;
   }
 
   const { data: inserted, error: insertError } = await supabase
@@ -469,6 +485,7 @@ export default async function handler(req, res) {
     let onboardingMode = "new_user";
     let resolvedCurrentUserEmail = currentUserEmailFromClient;
     let currentUserMatchesAdmin = false;
+    let currentUserMatchesOrderer = false;
     let inviteSentToAdmin = false;
     let adminSource = "invited_new_admin";
     let orderingUserAdded = false;
@@ -504,9 +521,13 @@ export default async function handler(req, res) {
         currentUserMatchesAdmin =
           !!resolvedCurrentUserEmail &&
           resolvedCurrentUserEmail === adminEmailRaw;
+
+        currentUserMatchesOrderer =
+          !!resolvedCurrentUserEmail &&
+          resolvedCurrentUserEmail === emailRaw;
       }
 
-      // 1) admin organizace
+      // 1) administrátor organizace
       if (currentUserId && currentUserMatchesAdmin) {
         adminUserId = currentUserId;
         adminSource = "logged_in_user_matches_admin";
@@ -575,7 +596,10 @@ export default async function handler(req, res) {
       }
 
       // 2) objednatel / ředitel jako druhý člen organizace
-      if (currentUserId) {
+      // Přidáváme pouze tehdy, když je skutečně přihlášen právě objednatel.
+      // Tím zabráníme tomu, aby se do školy omylem zapsal interní admin,
+      // který objednávku jen technicky odesílá.
+      if (currentUserId && currentUserMatchesOrderer) {
         orderingUserId = currentUserId;
 
         await assertNoConflictingRealOrgMemberships(orderingUserId, organizationId);
@@ -591,6 +615,7 @@ export default async function handler(req, res) {
           orderingUserRole = "organization_admin";
         } else {
           orderingUserRole = "member";
+
           await ensureMembership({
             organizationId,
             userId: orderingUserId,
@@ -602,8 +627,10 @@ export default async function handler(req, res) {
       }
 
       // 3) po úspěšném START onboardingu odstranit demo členství,
-      // aby se uživatel po přihlášení nevracel do demo režimu.
-      await removeDemoMembershipsForUser(adminUserId, organizationId);
+      // aby se uživatel po přihlášení nevracel do demo režimu
+      if (adminUserId) {
+        await removeDemoMembershipsForUser(adminUserId, organizationId);
+      }
 
       if (orderingUserId && orderingUserId !== adminUserId) {
         await removeDemoMembershipsForUser(orderingUserId, organizationId);
@@ -665,6 +692,7 @@ export default async function handler(req, res) {
     const safeOnboardingMode = escapeHtml(onboardingMode);
     const safeCurrentUserEmail = escapeHtml(resolvedCurrentUserEmail || "-");
     const safeCurrentUserMatchesAdmin = currentUserMatchesAdmin ? "ano" : "ne";
+    const safeCurrentUserMatchesOrderer = currentUserMatchesOrderer ? "ano" : "ne";
     const safeInviteSentToAdmin = inviteSentToAdmin ? "ano" : "ne";
     const safeAdminSource = escapeHtml(adminSource);
     const safeOrderingUserAdded = orderingUserAdded ? "ano" : "ne";
@@ -719,6 +747,7 @@ export default async function handler(req, res) {
         <p><strong>Vyřešená organizace:</strong> ${safeResolvedOrganizationName}</p>
         <p><strong>Přihlášený uživatel:</strong> ${safeCurrentUserEmail}</p>
         <p><strong>Admin email = přihlášený uživatel:</strong> ${safeCurrentUserMatchesAdmin}</p>
+        <p><strong>Objednatel email = přihlášený uživatel:</strong> ${safeCurrentUserMatchesOrderer}</p>
         <p><strong>Zdroj admin účtu:</strong> ${safeAdminSource}</p>
         <p><strong>Byla odeslána pozvánka adminovi:</strong> ${safeInviteSentToAdmin}</p>
         <p><strong>Objednatel přidán do organizace:</strong> ${safeOrderingUserAdded}</p>
@@ -752,11 +781,11 @@ export default async function handler(req, res) {
             ? `
         <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
         <p>
-          Organizace byla připravena a objednatel byl do organizace zařazen${
+          Organizace byla připravena${
             orderingUserAdded
               ? orderingUserRole === "organization_admin"
-                ? " jako administrátor."
-                : " jako člen."
+                ? " a objednatel byl do organizace zařazen jako administrátor."
+                : " a objednatel byl do organizace zařazen jako člen."
               : "."
           }
         </p>
@@ -774,18 +803,17 @@ export default async function handler(req, res) {
         </p>
 
         <p>
-          V nejbližším kroku vám zašleme fakturační podklady. Pokud byl pro
-          administrátora programu zřízen nový přístup, obdrží samostatný e-mail
-          s pozvánkou k dokončení přístupu.
+          V nejbližším kroku vám zašleme fakturační podklady. Administrátor programu
+          obdrží samostatný e-mail s informací o přístupu.
         </p>
 
         <p>
           Důležité dokumenty:
           <br/>
-          <a href="https://www.archimedeslive.com/vop">VOP</a><br/>
-          <a href="https://www.archimedeslive.com/dpa">DPA</a><br/>
-          <a href="https://www.archimedeslive.com/pravidla-zaznamu">Pravidla záznamů a archivu</a><br/>
-          <a href="https://www.archimedeslive.com/ochrana-osobnich-udaju">Ochrana osobních údajů</a>
+          <a href="${SITE_URL}/vop">${SITE_URL}/vop</a><br/>
+          <a href="${SITE_URL}/dpa">${SITE_URL}/dpa</a><br/>
+          <a href="${SITE_URL}/pravidla-zaznamu">${SITE_URL}/pravidla-zaznamu</a><br/>
+          <a href="${SITE_URL}/ochrana-osobnich-udaju">${SITE_URL}/ochrana-osobnich-udaju</a>
         </p>
 
         <p>S pozdravem,<br/>
@@ -857,6 +885,28 @@ export default async function handler(req, res) {
           `,
         });
       }
+    } else {
+      await transporter.sendMail({
+        from: process.env.MAIL_FROM,
+        to: adminEmailRaw,
+        subject: "Objednávka START přijata – přístup dokončujeme",
+        html: `
+          <h2>Objednávka START byla přijata</h2>
+
+          <p>Pro školu <strong>${schoolName}</strong> jsme přijali objednávku programu ARCHIMEDES Live.</p>
+
+          <p><strong>E-mail administrátora:</strong> ${adminEmail}</p>
+
+          <p>
+            Přístup administrátora právě dokončujeme. Jakmile bude připraven,
+            obdržíte další pokyny e-mailem.
+          </p>
+
+          <p>S pozdravem,<br/>
+          <strong>ARCHIMEDES Live</strong><br/>
+          EduVision s.r.o.</p>
+        `,
+      });
     }
 
     return res.status(200).json({
