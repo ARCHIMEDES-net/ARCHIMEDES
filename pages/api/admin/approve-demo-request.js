@@ -6,6 +6,8 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+const DEMO_ORG_NAME = "ARCHIMEDES DEMO SKOLA";
+
 function normServer(v) {
   return (v ?? "").toString().trim();
 }
@@ -75,22 +77,29 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Žádost nemá e-mail." });
     }
 
-    // 2) najít demo organizaci
-    const { data: demoOrg, error: demoOrgError } = await supabaseAdmin
+    // 2) najít demo organizaci bezpečně
+    const { data: demoOrgs, error: demoOrgError } = await supabaseAdmin
       .from("organizations")
       .select("id, name")
-      .eq("name", "ARCHIMEDES DEMO SKOLA")
-      .maybeSingle();
+      .eq("name", DEMO_ORG_NAME);
 
     if (demoOrgError) {
       return res.status(500).json({ error: demoOrgError.message });
     }
 
-    if (!demoOrg?.id) {
+    if (!demoOrgs || demoOrgs.length === 0) {
       return res.status(404).json({
-        error: "Demo organizace ARCHIMEDES DEMO SKOLA nebyla nalezena.",
+        error: `Demo organizace ${DEMO_ORG_NAME} nebyla nalezena.`,
       });
     }
+
+    if (demoOrgs.length > 1) {
+      return res.status(500).json({
+        error: `V databázi existuje více organizací se jménem ${DEMO_ORG_NAME}. Nejprve je potřeba odstranit duplicity.`,
+      });
+    }
+
+    const demoOrg = demoOrgs[0];
 
     // 3) najít existujícího auth uživatele podle emailu
     let user = await findAuthUserByEmail(email);
@@ -142,9 +151,18 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: membershipReadError.message });
     }
 
-    const existingDemoMembership = (memberships || []).find(
+    const demoMemberships = (memberships || []).filter(
       (m) => m.organization_id === demoOrg.id
     );
+
+    if (demoMemberships.length > 1) {
+      return res.status(500).json({
+        error:
+          "U uživatele existuje více členství ve stejné demo organizaci. Nejprve je potřeba odstranit duplicity.",
+      });
+    }
+
+    const existingDemoMembership = demoMemberships[0];
 
     if (existingDemoMembership?.id) {
       const { error: membershipUpdateError } = await supabaseAdmin
