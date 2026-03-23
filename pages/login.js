@@ -1,3 +1,4 @@
+// pages/login.js
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -10,6 +11,8 @@ function readAuthParams() {
       tokenHash: "",
       type: "",
       accessTokenInHash: false,
+      accessToken: "",
+      refreshToken: "",
       errorCode: "",
       errorDescription: "",
     };
@@ -27,10 +30,33 @@ function readAuthParams() {
     tokenHash: search.get("token_hash") || "",
     type: search.get("type") || hash.get("type") || "",
     accessTokenInHash: !!hash.get("access_token"),
+    accessToken: hash.get("access_token") || search.get("access_token") || "",
+    refreshToken:
+      hash.get("refresh_token") || search.get("refresh_token") || "",
     errorCode: hash.get("error_code") || search.get("error_code") || "",
     errorDescription:
       hash.get("error_description") || search.get("error_description") || "",
   };
+}
+
+function clearAuthUrl() {
+  if (typeof window === "undefined") return;
+  window.history.replaceState({}, document.title, "/login");
+}
+
+function humanizeAuthError(errorCode = "", errorDescription = "") {
+  const code = String(errorCode || "").toLowerCase();
+  const description = decodeURIComponent(
+    String(errorDescription || "").replace(/\+/g, " ")
+  );
+
+  if (code === "otp_expired") {
+    return "Odkaz vypršel. Požádejte o nový odkaz pro nastavení hesla.";
+  }
+
+  if (description) return description;
+
+  return "Odkaz pro přihlášení nebo obnovu hesla není platný.";
 }
 
 export default function LoginPage() {
@@ -57,17 +83,17 @@ export default function LoginPage() {
           tokenHash,
           type,
           accessTokenInHash,
+          accessToken,
+          refreshToken,
           errorCode,
           errorDescription,
         } = readAuthParams();
 
         if (errorCode) {
+          clearAuthUrl();
+
           if (!cancelled) {
-            setError(
-              errorDescription
-                ? decodeURIComponent(errorDescription.replace(/\+/g, " "))
-                : "Odkaz pro přihlášení nebo obnovu hesla není platný."
-            );
+            setError(humanizeAuthError(errorCode, errorDescription));
             setCheckingLink(false);
           }
           return;
@@ -83,13 +109,16 @@ export default function LoginPage() {
                 exchangeError.message ||
                   "Nepodařilo se dokončit přihlášení přes odkaz."
               );
+              setCheckingLink(false);
             }
-          } else if (!cancelled) {
-            router.replace("/portal");
             return;
           }
 
-          if (!cancelled) setCheckingLink(false);
+          clearAuthUrl();
+
+          if (!cancelled) {
+            router.replace("/portal");
+          }
           return;
         }
 
@@ -105,41 +134,70 @@ export default function LoginPage() {
                 verifyError.message ||
                   "Ověřovací odkaz je neplatný nebo expiroval."
               );
+              setCheckingLink(false);
             }
-            if (!cancelled) setCheckingLink(false);
             return;
           }
+
+          clearAuthUrl();
 
           if (!cancelled) {
             if (type === "recovery") {
-              setMessage(
-                "Ověření proběhlo úspěšně. Nyní se můžete přihlásit novým heslem nebo pokračovat do portálu."
-              );
+              router.replace("/nastavit-heslo");
             } else {
               router.replace("/portal");
-              return;
             }
           }
-
-          if (!cancelled) setCheckingLink(false);
           return;
         }
 
-        if (accessTokenInHash) {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
+        if (accessTokenInHash && accessToken && refreshToken) {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
 
-          if (session && !cancelled) {
-            router.replace("/portal");
+          if (sessionError) {
+            if (!cancelled) {
+              setError(
+                sessionError.message ||
+                  "Nepodařilo se dokončit přihlášení přes odkaz."
+              );
+              setCheckingLink(false);
+            }
             return;
           }
+
+          clearAuthUrl();
+
+          if (!cancelled) {
+            router.replace(type === "recovery" ? "/nastavit-heslo" : "/portal");
+          }
+          return;
+        }
+
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          throw sessionError;
+        }
+
+        if (session?.user) {
+          if (!cancelled) {
+            router.replace("/portal");
+          }
+          return;
         }
 
         if (!cancelled) setCheckingLink(false);
       } catch (e) {
         if (!cancelled) {
-          setError("Nepodařilo se zpracovat přihlašovací odkaz.");
+          setError(
+            e?.message || "Nepodařilo se zpracovat přihlašovací odkaz."
+          );
           setCheckingLink(false);
         }
       }
