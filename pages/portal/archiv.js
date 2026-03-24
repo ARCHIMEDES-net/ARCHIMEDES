@@ -331,6 +331,7 @@ export default function Archiv() {
   const [licenseLoading, setLicenseLoading] = useState(true);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [isOrgAdmin, setIsOrgAdmin] = useState(false);
+  const [isDemoViewer, setIsDemoViewer] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -349,6 +350,8 @@ export default function Archiv() {
 
         if (!user) {
           if (!isMounted) return;
+          setIsOrgAdmin(false);
+          setIsDemoViewer(false);
           setLicenseMode("default");
           return;
         }
@@ -365,6 +368,7 @@ export default function Archiv() {
 
         if (!profile?.active_organization_id) {
           setIsOrgAdmin(false);
+          setIsDemoViewer(false);
           setLicenseMode("active");
           return;
         }
@@ -382,8 +386,10 @@ export default function Archiv() {
         if (!isMounted) return;
 
         setIsOrgAdmin(membership?.role_in_org === "organization_admin");
+        setIsDemoViewer(membership?.role_in_org === "demo_viewer");
 
         if (!membership?.organization_id) {
+          setIsDemoViewer(false);
           setLicenseMode("active");
           return;
         }
@@ -402,6 +408,7 @@ export default function Archiv() {
         if (!isMounted) return;
         setLicenseMode("expired");
         setIsOrgAdmin(false);
+        setIsDemoViewer(false);
       } finally {
         if (isMounted) setLicenseLoading(false);
       }
@@ -495,7 +502,9 @@ export default function Archiv() {
 
     return prepared
       .filter((r) => (filterCategory === "Vše" ? true : r.category === filterCategory))
-      .filter((r) => (filterAudience === "Vše" ? true : (r._groups || []).includes(filterAudience)))
+      .filter((r) =>
+        filterAudience === "Vše" ? true : (r._groups || []).includes(filterAudience)
+      )
       .filter((r) => (qq ? String(r.title || "").toLowerCase().includes(qq) : true));
   }, [prepared, filterCategory, filterAudience, q]);
 
@@ -507,9 +516,10 @@ export default function Archiv() {
   const isArchiveAdmin = isPlatformAdmin || isOrgAdmin;
   const effectiveMode = isPlatformAdmin ? "active" : licenseMode;
   const isLocked =
-    effectiveMode === "trial" ||
-    effectiveMode === "expired" ||
-    effectiveMode === "suspended";
+    !isDemoViewer &&
+    (effectiveMode === "trial" ||
+      effectiveMode === "expired" ||
+      effectiveMode === "suspended");
 
   if (licenseLoading) {
     return (
@@ -996,26 +1006,51 @@ export default function Archiv() {
                         ) : null}
                       </div>
 
-                      <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <div
+                        style={{
+                          marginTop: 10,
+                          display: "flex",
+                          gap: 10,
+                          flexWrap: "wrap",
+                        }}
+                      >
                         {r._archiveUrl ? (
-                          <a
-                            href={r._archiveUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            style={{
-                              textDecoration: "none",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              padding: "10px 14px",
-                              borderRadius: 12,
-                              background: "#0f172a",
-                              color: "white",
-                              fontWeight: 900,
-                            }}
-                          >
-                            ▶ Otevřít video z archivu
-                          </a>
+                          isDemoViewer ? (
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "10px 14px",
+                                borderRadius: 12,
+                                background: "#f8fafc",
+                                color: "#6b7280",
+                                border: "1px solid #e5e7eb",
+                                fontWeight: 700,
+                              }}
+                            >
+                              ▶ Video dostupné v plné licenci
+                            </span>
+                          ) : (
+                            <a
+                              href={r._archiveUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                textDecoration: "none",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "10px 14px",
+                                borderRadius: 12,
+                                background: "#0f172a",
+                                color: "white",
+                                fontWeight: 900,
+                              }}
+                            >
+                              ▶ Otevřít video z archivu
+                            </a>
+                          )
                         ) : (
                           <Link
                             href={`/portal/udalost/${r.id}`}
