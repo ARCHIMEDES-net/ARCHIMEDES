@@ -503,10 +503,7 @@ async function findAuthUserByEmail(email) {
   }
 }
 
-async function inviteUser({
-  email,
-  fullName,
-}) {
+async function inviteUser({ email, fullName }) {
   const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
     redirectTo: REDIRECT_TO,
     data: {
@@ -698,9 +695,13 @@ export default async function handler(req, res) {
           name: schoolNameRaw,
           ico: icoRaw,
         });
-        onboardingMode = authenticatedUserId ? "demo_or_logged_new_school" : "homepage_new_school";
+        onboardingMode = authenticatedUserId
+          ? "demo_or_logged_new_school"
+          : "homepage_new_school";
       } else {
-        onboardingMode = authenticatedUserId ? "demo_or_logged_existing_school" : "homepage_existing_school";
+        onboardingMode = authenticatedUserId
+          ? "demo_or_logged_existing_school"
+          : "homepage_existing_school";
       }
 
       organizationId = organization.id;
@@ -784,6 +785,17 @@ export default async function handler(req, res) {
         activeOrganizationSetForAdmin = true;
       }
 
+      // Jistota, že objednatel je opravdu členem školy i v případě,
+      // že admin je jiný účet a onboarding probíhal přes více kroků.
+      await ensureMembership({
+        organizationId,
+        userId: orderingUserId,
+        roleInOrg:
+          orderingUserRole === "organization_admin"
+            ? "organization_admin"
+            : "member",
+      });
+
       const { error: onboardingUpdateError } = await supabase
         .from("orders_start")
         .update({
@@ -850,7 +862,8 @@ export default async function handler(req, res) {
     const safeAuthUserPresent = authenticatedUserId ? "ano" : "ne";
     const safeActiveOrgOrdering = activeOrganizationSetForOrdering ? "ano" : "ne";
     const safeActiveOrgAdmin = activeOrganizationSetForAdmin ? "ano" : "ne";
-    const samePerson = orderingUserId && adminUserId && orderingUserId === adminUserId;
+    const samePerson =
+      orderingUserId && adminUserId && orderingUserId === adminUserId;
 
     const subject = `🟢 START – ${schoolNameRaw} (IČO: ${icoRaw})`;
 
