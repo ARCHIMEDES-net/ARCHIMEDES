@@ -281,14 +281,7 @@ export default function PortalIndex() {
               text={
                 <>
                   Vaše organizace{organizationName ? ` ${organizationName}` : ""} má aktivní
-                  ukázkový přístup
-                  {licenseValidUntil ? (
-                    <>
-                      {" "}
-                      do <strong>{formatDateCS(licenseValidUntil)}</strong>
-                    </>
-                  ) : null}
-                  . Můžete si projít portál, podívat se na program a připravit si další krok
+                  ukázkový přístup. Můžete si projít portál, podívat se na program a připravit si další krok
                   pro zapojení školy.
                 </>
               }
@@ -1012,14 +1005,13 @@ function getDashboardConfig(
   licenseValidUntil = null
 ) {
   const orgLabel = organizationName ? ` pro ${organizationName}` : "";
-  const trialUntilText = licenseValidUntil ? formatDateCS(licenseValidUntil) : null;
 
   if (type === "demo_viewer") {
     return {
       badge: "ARCHIMEDES Live • ukázkové prostředí",
       heroTitleLine1: "Vítejte v ukázkovém",
       heroTitleLine2: "prostředí portálu",
-      heroText: `Tady si můžete bezpečně projít, jak ARCHIMEDES Live funguje${orgLabel}. Ukázka slouží k orientaci v programu, archivu, kalendáři a síti učeben${trialUntilText ? ` do ${trialUntilText}` : ""}.`,
+      heroText: `Tady si můžete bezpečně projít, jak ARCHIMEDES Live funguje${orgLabel}. Ukázka slouží k orientaci v programu, archivu, kalendáři a síti učeben.`,
       tipBold: "Program",
       quickTitle: "Co si projít dál v portálu",
       quickSubtitle: "Po zhlédnutí ukázky živého vstupu si projděte další části, které škola běžně používá.",
@@ -1084,7 +1076,7 @@ function getDashboardConfig(
         badge: "ARCHIMEDES Live • demo organizace",
         heroTitleLine1: "Vítejte v ukázkovém",
         heroTitleLine2: "režimu ARCHIMEDES Live",
-        heroText: `Tady si můžete vyzkoušet fungování portálu${orgLabel}. Ukázka slouží k orientaci v programu, archivu, kalendáři a síti učeben${trialUntilText ? ` do ${trialUntilText}` : ""}.`,
+        heroText: `Tady si můžete vyzkoušet fungování portálu${orgLabel}. Ukázka slouží k orientaci v programu, archivu, kalendáři a síti učeben.`,
         tipBold: "Program",
         quickTitle: "Doporučené první kroky",
         quickSubtitle: "Začněte tím, co vám nejrychleji ukáže hodnotu programu pro školu.",
@@ -1941,12 +1933,6 @@ function DemoFeaturedSection({ organizationName, validUntil }) {
           >
             Nejde o technickou ukázku systému. Jde o rychlou a srozumitelnou představu,
             co může škola získat po zapojení do programu.
-            {validUntil ? (
-              <>
-                {" "}
-                Ukázkový přístup je dostupný do <strong>{formatDateCS(validUntil)}</strong>.
-              </>
-            ) : null}
           </p>
 
           <div
