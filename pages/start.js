@@ -57,6 +57,7 @@ export default function StartPage() {
     orderingEmail: "",
     adminEmail: "",
     sameAdmin: true,
+    orderingHasOwnAccess: true,
   });
 
   useEffect(() => {
@@ -191,6 +192,7 @@ export default function StartPage() {
         adminEmail: form.adminEmail.trim(),
         sameAdmin:
           form.email.trim().toLowerCase() === form.adminEmail.trim().toLowerCase(),
+        orderingHasOwnAccess: true,
       });
       setSuccessMode(
         data?.onboardingStatus === "failed" ? "failed" : "completed"
@@ -228,21 +230,22 @@ export default function StartPage() {
             <div className="container narrow">
               <div className="successCard">
                 <div className="eyebrow dark">
-                  {isCompleted ? "Škola připravena" : "Objednávka přijata"}
+                  {isCompleted ? "Objednávka dokončena" : "Objednávka přijata"}
                 </div>
 
                 <h1>
                   {isCompleted
-                    ? "Váš přístup do školy je připraven"
+                    ? "Škola byla připravena v ARCHIMEDES Live"
                     : "Děkujeme, objednávka byla přijata"}
                 </h1>
 
                 <p className="lead">
                   {isCompleted ? (
                     <>
-                      Objednávka balíčku START byla přijata a přístup školy byl
-                      připraven pro vstup do ARCHIMEDES Live. Můžete pokračovat
-                      rovnou do portálu a pracovat už ve školní verzi programu.
+                      Objednávka balíčku START byla přijata a škola byla
+                      připravena v systému ARCHIMEDES Live. Potvrzení objednávky
+                      a další informace k přístupu jsme odeslali na uvedené
+                      e-maily.
                     </>
                   ) : (
                     <>
@@ -254,18 +257,25 @@ export default function StartPage() {
                 </p>
 
                 <div className="successBox">
-                  {isCompleted ? (
+                  {isCompleted ? successData.sameAdmin ? (
                     <>
-                      Balíček START na období duben–září 2026 je pro vaši školu
-                      připraven. Pokud jste objednávku odeslali z ukázkového
-                      prostředí, po vstupu do portálu už budete pokračovat ve
-                      školní verzi, ne v DEMU.
+                      Objednávka byla úspěšně zpracována. Pokud jste v systému už
+                      účet měli, škola byla přiřazena k vašemu stávajícímu
+                      přístupu. Pokud jste účet ještě neměli, přišel vám
+                      samostatný e-mail pro nastavení hesla.
+                    </>
+                  ) : (
+                    <>
+                      Objednávka byla úspěšně zpracována. Objednatel i správce
+                      programu nyní obdrží e-maily podle své role. Objednatel
+                      dostává potvrzení objednávky a správce programu navazující
+                      informace k přístupu do portálu.
                     </>
                   ) : (
                     <>
                       Objednávku jsme přijali, ale automatické dokončení přístupu
-                      neproběhlo úplně správně. Nic se neztratilo — navážeme na vás
-                      e-mailem a přístup dokončíme ručně.
+                      neproběhlo úplně správně. Nic se neztratilo — navážeme na
+                      vás e-mailem a přístup dokončíme ručně.
                     </>
                   )}
                 </div>
@@ -276,28 +286,35 @@ export default function StartPage() {
                   </div>
 
                   {isCompleted ? (
-                    <ul>
-                      <li>objednávka START byla uložena,</li>
-                      <li>škola byla vytvořena nebo spárována,</li>
-                      <li>objednávající byl přiřazen do školy,</li>
-                      <li>
-                        na e-mail objednatele{" "}
-                        <strong>{successData.orderingEmail || "—"}</strong> odejde
-                        potvrzení objednávky,
-                      </li>
-                      {successData.sameAdmin ? (
+                    successData.sameAdmin ? (
+                      <ul>
+                        <li>objednávka byla přijata,</li>
+                        <li>škola byla připravena v systému ARCHIMEDES Live,</li>
                         <li>
-                          objednávající je zároveň správcem přístupu školy a může
-                          pokračovat rovnou do portálu.
+                          na e-mail objednatele{" "}
+                          <strong>{successData.orderingEmail || "—"}</strong>{" "}
+                          odešlo potvrzení objednávky,
                         </li>
-                      ) : (
+                        <li>
+                          další informace k přístupu byly odeslány také vám.
+                        </li>
+                      </ul>
+                    ) : (
+                      <ul>
+                        <li>objednávka byla přijata,</li>
+                        <li>škola byla připravena v systému ARCHIMEDES Live,</li>
+                        <li>
+                          na e-mail objednatele{" "}
+                          <strong>{successData.orderingEmail || "—"}</strong>{" "}
+                          odešlo potvrzení objednávky,
+                        </li>
                         <li>
                           na e-mail správce programu{" "}
-                          <strong>{successData.adminEmail || "—"}</strong> odejdou
-                          další informace k přístupu.
+                          <strong>{successData.adminEmail || "—"}</strong> byly
+                          odeslány informace k přístupu.
                         </li>
-                      )}
-                    </ul>
+                      </ul>
+                    )
                   ) : (
                     <ul>
                       <li>zašleme vám potvrzení objednávky,</li>
@@ -317,11 +334,18 @@ export default function StartPage() {
                   {isCompleted ? (
                     <>
                       <Link href="/portal" className="primaryLink">
-                        Vstoupit do portálu školy
+                        Přejít do portálu
                       </Link>
-                      <Link href="/portal/kalendar" className="secondaryLink">
-                        Otevřít program
-                      </Link>
+
+                      {successData.sameAdmin ? (
+                        <Link href="/portal/kalendar" className="secondaryLink">
+                          Otevřít program
+                        </Link>
+                      ) : (
+                        <Link href="/" className="secondaryLink">
+                          Zpět na hlavní stránku
+                        </Link>
+                      )}
                     </>
                   ) : (
                     <>
@@ -549,9 +573,9 @@ export default function StartPage() {
                   <h1>Zapojte školu do programu ARCHIMEDES Live</h1>
 
                   <p className="lead">
-                    Pokud jste si právě prošli ukázkové prostředí, jste na správném
-                    místě. Níže potvrďte nebo upravte údaje a odešlete objednávku
-                    balíčku START pro vaši školu.
+                    Vyplňte nebo zkontrolujte údaje školy a odešlete objednávku
+                    balíčku START pro vaši školu. Pokud jste přišli z ukázkového
+                    prostředí, část údajů už může být předvyplněna.
                   </p>
 
                   {prefillLoading ? (
@@ -618,8 +642,10 @@ export default function StartPage() {
                       <div className="processStep">
                         <span className="processNumber">4</span>
                         <p>
-                          Po dokončení objednávky můžete pokračovat do portálu a
-                          začít program používat.
+                          Po dokončení objednávky odešleme potvrzení a navazující
+                          informace k přístupu. Pokud už účet máte, můžete
+                          pokračovat svými dosavadními údaji. Pokud účet teprve
+                          vzniká, dokončíte nejprve nastavení hesla.
                         </p>
                       </div>
                     </div>
@@ -860,9 +886,11 @@ export default function StartPage() {
 
                   <div className="field fieldHintBox">
                     <div className="fieldHint">
-                      Správce programu je osoba, na jejíž e-mail budeme navazovat
-                      při zřízení přístupu do portálu a při další organizaci programu.
-                      Pokud jste to vy, uveďte stejný e-mail jako u objednatele.
+                      Správce programu je osoba, která bude mít
+                      administrátorský přístup do školy v portálu ARCHIMEDES
+                      Live. Objednatel získává svůj uživatelský přístup také.
+                      Pokud jste správcem programu vy, uveďte stejný e-mail jako
+                      u objednatele.
                     </div>
                   </div>
                 </div>
