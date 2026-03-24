@@ -63,7 +63,7 @@ export default function DemoPage() {
             className="demoMainTitle"
             style={{ marginTop: 0, marginBottom: 14 }}
           >
-            Prohlédněte si, jak vypadá ARCHIMEDES Live po přihlášení
+            Podívejte se, jak vypadá ARCHIMEDES Live po přihlášení
           </h1>
 
           <p
@@ -75,9 +75,8 @@ export default function DemoPage() {
             }}
           >
             ARCHIMEDES Live je živý vzdělávací program pro školy a komunitu obce.
-            Ukázkový přístup slouží k tomu, aby si ředitel, učitel nebo zájemce
-            mohl předem prohlédnout prostředí portálu a získat jasnou představu o
-            tom, co škola po aktivaci uvidí.
+            Ukázkový přístup vám pomůže rychle pochopit, jak vypadá prostředí
+            portálu, co v něm škola najde a jak může program využívat v praxi.
           </p>
 
           <div
@@ -124,8 +123,8 @@ export default function DemoPage() {
               marginBottom: 18,
             }}
           >
-            Ukázkový přístup je pouze pro prohlížení. Neumožňuje správu školy,
-            spouštění vysílání ani jiné administrativní zásahy.
+            Ukázkový přístup slouží pouze k prohlédnutí prostředí. Neumožňuje
+            správu školy, spouštění vysílání ani jiné administrativní zásahy.
           </div>
 
           <div
@@ -138,9 +137,8 @@ export default function DemoPage() {
               lineHeight: 1.7,
             }}
           >
-            Přístup do ukázky poskytujeme na základě krátké žádosti. Díky tomu
-            máme přehled o zájmu škol a můžeme navázat konkrétní nabídkou pro
-            školu.
+            Přístup do ukázky poskytujeme na základě krátké žádosti. Po jejím
+            odeslání vám zašleme další informace a přístup do ukázkového prostředí.
           </div>
         </div>
 
@@ -166,8 +164,8 @@ export default function DemoPage() {
               lineHeight: 1.7,
             }}
           >
-            Pošlete nám krátkou žádost o přístup do ukázkového prostředí.
-            Následně vám zašleme další informace a přístup do dema.
+            Vyplňte krátkou žádost o přístup do ukázkového prostředí. Následně
+            vám pošleme email s dalšími kroky a vstupem do ukázky.
           </p>
 
           <div
@@ -198,11 +196,11 @@ export default function DemoPage() {
           >
             Doporučený postup:
             <br />
-            1. požádáte o ukázkový přístup
+            1. odešlete krátkou žádost o ukázkový přístup
             <br />
-            2. získáte vstup do demo prostředí
+            2. do emailu vám pošleme další kroky a vstup do ukázky
             <br />
-            3. po prohlédnutí navážeme konkrétním řešením pro vaši školu
+            3. po prohlédnutí můžete navázat zapojením školy do programu
           </div>
         </div>
       </div>
