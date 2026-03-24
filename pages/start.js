@@ -214,7 +214,7 @@ export default function StartPage() {
         <Head>
           <title>
             {isCompleted
-              ? "Škola aktivována | ARCHIMEDES Live"
+              ? "Škola připravena | ARCHIMEDES Live"
               : "Objednávka přijata | ARCHIMEDES Live"}
           </title>
           <meta
@@ -240,13 +240,13 @@ export default function StartPage() {
                 <p className="lead">
                   {isCompleted ? (
                     <>
-                      Objednávka balíčku START byla přijata a vaše škola byla
-                      připravena pro vstup do ARCHIMEDES Live. Můžete pokračovat
-                      rovnou do portálu a pracovat už v plné školní verzi.
+                      Objednávka balíčku START byla přijata a přístup školy byl
+                      připraven pro vstup do ARCHIMEDES Live. Můžete pokračovat
+                      rovnou do portálu a pracovat už ve školní verzi programu.
                     </>
                   ) : (
                     <>
-                      Objednávka balíčku START byla přijata. Přístup školy teď
+                      Objednávka balíčku START byla přijata. Přístup školy nyní
                       ještě vyžaduje naši krátkou kontrolu. Potvrzení objednávky
                       a další instrukce vám pošleme na uvedený e-mail.
                     </>
@@ -258,14 +258,14 @@ export default function StartPage() {
                     <>
                       Balíček START na období duben–září 2026 je pro vaši školu
                       připraven. Pokud jste objednávku odeslali z ukázkového
-                      prostředí, po vstupu do portálu už máte pracovat ve školní
-                      verzi, ne v DEMU.
+                      prostředí, po vstupu do portálu už budete pokračovat ve
+                      školní verzi, ne v DEMU.
                     </>
                   ) : (
                     <>
                       Objednávku jsme přijali, ale automatické dokončení přístupu
                       neproběhlo úplně správně. Nic se neztratilo — navážeme na vás
-                      e-mailem a přístup dokončíme.
+                      e-mailem a přístup dokončíme ručně.
                     </>
                   )}
                 </div>
@@ -287,12 +287,12 @@ export default function StartPage() {
                       </li>
                       {successData.sameAdmin ? (
                         <li>
-                          objednávající je zároveň administrátor školy a může
+                          objednávající je zároveň správcem přístupu školy a může
                           pokračovat rovnou do portálu.
                         </li>
                       ) : (
                         <li>
-                          na e-mail administrátora{" "}
+                          na e-mail správce programu{" "}
                           <strong>{successData.adminEmail || "—"}</strong> odejdou
                           další informace k přístupu.
                         </li>
@@ -546,11 +546,11 @@ export default function StartPage() {
                   <div className="eyebrow dark">
                     Balíček START pro školy • jaro + září 2026
                   </div>
-                  <h1>Pokračujte se školou do programu ARCHIMEDES Live</h1>
+                  <h1>Zapojte školu do programu ARCHIMEDES Live</h1>
 
                   <p className="lead">
                     Pokud jste si právě prošli ukázkové prostředí, jste na správném
-                    místě. Níže jen potvrďte nebo upravte údaje a odešlete objednávku
+                    místě. Níže potvrďte nebo upravte údaje a odešlete objednávku
                     balíčku START pro vaši školu.
                   </p>
 
@@ -560,8 +560,8 @@ export default function StartPage() {
                     </div>
                   ) : prefillReady ? (
                     <div className="prefillInfo ready">
-                      Údaje jsme předvyplnili podle vašeho přístupu do ukázkového
-                      prostředí. Před odesláním je můžete upravit.
+                      Část údajů jsme předvyplnili podle vašeho přístupu. Před
+                      odesláním je můžete upravit.
                     </div>
                   ) : (
                     <div className="prefillInfo neutral">
@@ -581,8 +581,8 @@ export default function StartPage() {
                     <strong>Odesláním formuláře objednáváte balíček START</strong>{" "}
                     na období duben–září 2026. Po odeslání vám zašleme potvrzení
                     objednávky, fakturační podklady a další informace k zahájení
-                    programu. Na zadaný e-mail administrátora programu budeme
-                    navazovat při zřízení přístupu do ARCHIMEDES Live.
+                    programu. Na e-mail správce programu budeme navazovat při
+                    zřízení přístupu do ARCHIMEDES Live.
                   </div>
 
                   <div className="opjakBox">
@@ -611,15 +611,15 @@ export default function StartPage() {
                       <div className="processStep">
                         <span className="processNumber">3</span>
                         <p>
-                          Objednateli přijde potvrzení objednávky. Pokud je administrátor
-                          jiný než objednatel, navážeme také na jeho e-mail.
+                          Objednateli přijde potvrzení objednávky. Pokud je správce
+                          programu jiný než objednatel, navážeme také na jeho e-mail.
                         </p>
                       </div>
                       <div className="processStep">
                         <span className="processNumber">4</span>
                         <p>
                           Po dokončení objednávky můžete pokračovat do portálu a
-                          začít školu používat v programu.
+                          začít program používat.
                         </p>
                       </div>
                     </div>
@@ -832,7 +832,7 @@ export default function StartPage() {
 
                   <div className="field">
                     <label htmlFor="adminEmail">
-                      E-mail administrátora programu *
+                      E-mail správce programu *
                     </label>
                     <input
                       id="adminEmail"
@@ -860,9 +860,9 @@ export default function StartPage() {
 
                   <div className="field fieldHintBox">
                     <div className="fieldHint">
-                      Na tento e-mail budeme navazovat při zřízení přístupu do
-                      portálu, zasílání organizačních informací a další správě
-                      programu ve škole nebo organizaci.
+                      Správce programu je osoba, na jejíž e-mail budeme navazovat
+                      při zřízení přístupu do portálu a při další organizaci programu.
+                      Pokud jste to vy, uveďte stejný e-mail jako u objednatele.
                     </div>
                   </div>
                 </div>
@@ -886,7 +886,7 @@ export default function StartPage() {
 
                   <ul className="submitChecklist">
                     <li>potvrzení objednávky obdrží objednatel e-mailem</li>
-                    <li>e-mail administrátora použijeme pro další nastavení přístupu</li>
+                    <li>e-mail správce programu použijeme pro další nastavení přístupu</li>
                     <li>fakturace probíhá po potvrzení objednávky</li>
                     <li>balíček START je na období duben–září 2026</li>
                   </ul>
