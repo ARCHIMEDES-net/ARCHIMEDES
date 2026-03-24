@@ -52,6 +52,12 @@ export default function StartPage() {
   const [prefillReady, setPrefillReady] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [successMode, setSuccessMode] = useState("completed");
+  const [successData, setSuccessData] = useState({
+    orderingEmail: "",
+    adminEmail: "",
+    sameAdmin: true,
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -78,28 +84,29 @@ export default function StartPage() {
         const role = getBestRole(user);
 
         let schoolName = "";
-        let adminEmail = email;
+        const adminEmail = email;
 
-       const { data: profile, error: profileError } = await supabase
-  .from("profiles")
-  .select("id, active_organization_id")
-  .eq("id", user.id)
-  .maybeSingle();
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, active_organization_id")
+          .eq("id", user.id)
+          .maybeSingle();
 
-if (profileError) throw profileError;
+        if (profileError) throw profileError;
 
-if (profile?.active_organization_id) {
-  const { data: org, error: orgError } = await supabase
-    .from("organizations")
-    .select("id, name")
-    .eq("id", profile.active_organization_id)
-    .maybeSingle();
+        if (profile?.active_organization_id) {
+          const { data: org, error: orgError } = await supabase
+            .from("organizations")
+            .select("id, name")
+            .eq("id", profile.active_organization_id)
+            .maybeSingle();
 
-  if (orgError) throw orgError;
+          if (orgError) throw orgError;
 
-  const orgName = org?.name || "";
-  schoolName = orgName === "ARCHIMEDES DEMO SKOLA" ? "" : orgName;
-}
+          const orgName = org?.name || "";
+          schoolName = orgName === "ARCHIMEDES DEMO SKOLA" ? "" : orgName;
+        }
+
         if (!mounted) return;
 
         setForm((prev) => ({
@@ -179,6 +186,15 @@ if (profile?.active_organization_id) {
         );
       }
 
+      setSuccessData({
+        orderingEmail: form.email.trim(),
+        adminEmail: form.adminEmail.trim(),
+        sameAdmin:
+          form.email.trim().toLowerCase() === form.adminEmail.trim().toLowerCase(),
+      });
+      setSuccessMode(
+        data?.onboardingStatus === "failed" ? "failed" : "completed"
+      );
       setSuccess(true);
     } catch (err) {
       setError(
@@ -191,10 +207,16 @@ if (profile?.active_organization_id) {
   }
 
   if (success) {
+    const isCompleted = successMode === "completed";
+
     return (
       <>
         <Head>
-          <title>Objednávka přijata | ARCHIMEDES Live</title>
+          <title>
+            {isCompleted
+              ? "Škola aktivována | ARCHIMEDES Live"
+              : "Objednávka přijata | ARCHIMEDES Live"}
+          </title>
           <meta
             name="description"
             content="Potvrzení přijetí objednávky balíčku START programu ARCHIMEDES Live pro školy."
@@ -205,29 +227,85 @@ if (profile?.active_organization_id) {
           <section className="successSection">
             <div className="container narrow">
               <div className="successCard">
-                <div className="eyebrow dark">Objednávka přijata</div>
-                <h1>Děkujeme, objednávka byla přijata</h1>
+                <div className="eyebrow dark">
+                  {isCompleted ? "Škola připravena" : "Objednávka přijata"}
+                </div>
+
+                <h1>
+                  {isCompleted
+                    ? "Váš přístup do školy je připraven"
+                    : "Děkujeme, objednávka byla přijata"}
+                </h1>
+
                 <p className="lead">
-                  Na uvedený e-mail vám zašleme potvrzení objednávky a fakturační
-                  podklady. Na e-mail administrátora programu odešleme další
-                  informace k přístupu do ARCHIMEDES Live.
+                  {isCompleted ? (
+                    <>
+                      Objednávka balíčku START byla přijata a vaše škola byla
+                      připravena pro vstup do ARCHIMEDES Live. Můžete pokračovat
+                      rovnou do portálu a pracovat už v plné školní verzi.
+                    </>
+                  ) : (
+                    <>
+                      Objednávka balíčku START byla přijata. Přístup školy teď
+                      ještě vyžaduje naši krátkou kontrolu. Potvrzení objednávky
+                      a další instrukce vám pošleme na uvedený e-mail.
+                    </>
+                  )}
                 </p>
 
                 <div className="successBox">
-                  Objednali jste balíček START na období duben–září 2026 bez
-                  automatického prodloužení. Škola si tak může program vyzkoušet
-                  ještě letos a připravit se na další zapojení v novém školním
-                  roce.
+                  {isCompleted ? (
+                    <>
+                      Balíček START na období duben–září 2026 je pro vaši školu
+                      připraven. Pokud jste objednávku odeslali z ukázkového
+                      prostředí, po vstupu do portálu už máte pracovat ve školní
+                      verzi, ne v DEMU.
+                    </>
+                  ) : (
+                    <>
+                      Objednávku jsme přijali, ale automatické dokončení přístupu
+                      neproběhlo úplně správně. Nic se neztratilo — navážeme na vás
+                      e-mailem a přístup dokončíme.
+                    </>
+                  )}
                 </div>
 
                 <div className="nextSteps">
-                  <div className="nextStepsTitle">Co bude následovat</div>
-                  <ul>
-                    <li>zašleme vám potvrzení objednávky,</li>
-                    <li>obdržíte fakturační podklady,</li>
-                    <li>e-mail administrátora jsme zařadili pro přístup do programu,</li>
-                    <li>následně vám pošleme další organizační informace.</li>
-                  </ul>
+                  <div className="nextStepsTitle">
+                    {isCompleted ? "Co se stalo právě teď" : "Co bude následovat"}
+                  </div>
+
+                  {isCompleted ? (
+                    <ul>
+                      <li>objednávka START byla uložena,</li>
+                      <li>škola byla vytvořena nebo spárována,</li>
+                      <li>objednávající byl přiřazen do školy,</li>
+                      <li>
+                        na e-mail objednatele{" "}
+                        <strong>{successData.orderingEmail || "—"}</strong> odejde
+                        potvrzení objednávky,
+                      </li>
+                      {successData.sameAdmin ? (
+                        <li>
+                          objednávající je zároveň administrátor školy a může
+                          pokračovat rovnou do portálu.
+                        </li>
+                      ) : (
+                        <li>
+                          na e-mail administrátora{" "}
+                          <strong>{successData.adminEmail || "—"}</strong> odejdou
+                          další informace k přístupu.
+                        </li>
+                      )}
+                    </ul>
+                  ) : (
+                    <ul>
+                      <li>zašleme vám potvrzení objednávky,</li>
+                      <li>obdržíte fakturační podklady,</li>
+                      <li>ověříme dokončení přístupu školy,</li>
+                      <li>následně vám pošleme další organizační informace.</li>
+                    </ul>
+                  )}
                 </div>
 
                 <p className="smallText">
@@ -236,12 +314,25 @@ if (profile?.active_organization_id) {
                 </p>
 
                 <div className="successActions">
-                  <Link href="/portal" className="primaryLink">
-                    Zpět do portálu
-                  </Link>
-                  <Link href="/portal/kalendar" className="secondaryLink">
-                    Otevřít program
-                  </Link>
+                  {isCompleted ? (
+                    <>
+                      <Link href="/portal" className="primaryLink">
+                        Vstoupit do portálu školy
+                      </Link>
+                      <Link href="/portal/kalendar" className="secondaryLink">
+                        Otevřít program
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/portal" className="primaryLink">
+                        Zpět do portálu
+                      </Link>
+                      <Link href="/poptavka" className="secondaryLink">
+                        Kontaktovat EduVision
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -513,23 +604,22 @@ if (profile?.active_organization_id) {
                       <div className="processStep">
                         <span className="processNumber">2</span>
                         <p>
-                          Zašleme vám potvrzení objednávky, fakturační podklady a
-                          administrátora programu zařadíme pro další nastavení přístupu.
+                          Objednávka se uloží a škola se připraví pro vstup do
+                          programu ARCHIMEDES Live.
                         </p>
                       </div>
                       <div className="processStep">
                         <span className="processNumber">3</span>
                         <p>
-                          Na e-mail administrátora navážeme s dalšími kroky k přístupu
-                          do ARCHIMEDES Live.
+                          Objednateli přijde potvrzení objednávky. Pokud je administrátor
+                          jiný než objednatel, navážeme také na jeho e-mail.
                         </p>
                       </div>
                       <div className="processStep">
                         <span className="processNumber">4</span>
                         <p>
-                          Můžete zapojit třídy do online vzdělávacích aktivit v
-                          období duben–září 2026 a ověřit si program ještě letos
-                          v praxi.
+                          Po dokončení objednávky můžete pokračovat do portálu a
+                          začít školu používat v programu.
                         </p>
                       </div>
                     </div>
