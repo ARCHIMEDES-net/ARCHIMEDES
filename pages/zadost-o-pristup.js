@@ -26,6 +26,7 @@ export default function ZadostPristupPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     setForm((prev) => ({
@@ -43,6 +44,7 @@ export default function ZadostPristupPage() {
     setSaving(true);
     setError("");
     setMessage("");
+    setSubmitted(false);
 
     try {
       const trimmedName = form.name.trim();
@@ -114,8 +116,10 @@ export default function ZadostPristupPage() {
       setMessage(
         isDemoRequest
           ? "Děkujeme. Žádost o ukázkový přístup byla úspěšně odeslána.\n\nPo schválení Vám zašleme e-mail s odkazem pro vytvoření přístupu (nastavení hesla) do prostředí ARCHIMEDES Live.\n\nE-mail může obsahovat označení „Reset Password“ – jedná se o standardní krok pro bezpečné nastavení Vašeho přístupu.\n\nPokud e-mail nenajdete během několika minut, zkontrolujte prosím i složku spam."
-          : "Děkujeme. Žádost o přístup byla úspěšně odeslána. Ozveme se vám s dalším postupem."
+          : "Děkujeme. Žádost o přístup byla úspěšně odeslána.\n\nOzveme se vám s dalším postupem."
       );
+
+      setSubmitted(true);
 
       setForm({
         name: "",
@@ -151,18 +155,18 @@ export default function ZadostPristupPage() {
     lineHeight: 1.5,
   };
 
+  const cardStyle = {
+    background: "#fff",
+    borderRadius: 24,
+    padding: 28,
+    boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+    border: "1px solid rgba(0,0,0,0.08)",
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
       <main style={{ maxWidth: 760, margin: "0 auto", padding: "40px 16px" }}>
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 24,
-            padding: 28,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-            border: "1px solid rgba(0,0,0,0.08)",
-          }}
-        >
+        <div style={cardStyle}>
           <div
             style={{
               display: "inline-flex",
@@ -176,283 +180,377 @@ export default function ZadostPristupPage() {
               marginBottom: 16,
             }}
           >
-            {isDemoRequest ? "Ukázkový přístup pro školy" : "Žádost o přístup"}
+            {submitted
+              ? isDemoRequest
+                ? "Žádost přijata"
+                : "Odesláno"
+              : isDemoRequest
+              ? "Ukázkový přístup pro školy"
+              : "Žádost o přístup"}
           </div>
 
-          <h1 style={{ marginTop: 0, fontSize: 34, lineHeight: 1.12 }}>
-            {isDemoRequest
-              ? "Požádejte o ukázkový přístup do ARCHIMEDES Live"
-              : "Požádejte o přístup do ARCHIMEDES Live"}
-          </h1>
-
-          <p
-            style={{
-              color: "rgba(0,0,0,0.72)",
-              lineHeight: 1.7,
-              marginBottom: 20,
-              fontSize: 17,
-            }}
-          >
-            {isDemoRequest
-              ? "Ukázkové prostředí vám umožní projít si ARCHIMEDES Live z pohledu školy. Uvidíte, jak vypadá program, archiv i celkové prostředí portálu, které může škola po aktivaci využívat."
-              : "Vyplňte krátký formulář a ozveme se vám s dalším postupem, vhodným typem přístupu a možnostmi zapojení do ARCHIMEDES Live."}
-          </p>
-
-          {isDemoRequest ? (
-            <div
-              style={{
-                marginBottom: 18,
-                padding: 16,
-                borderRadius: 16,
-                background: "#eefaf0",
-                color: "#166534",
-                border: "1px solid #cfe8d3",
-                lineHeight: 1.7,
-              }}
-            >
-              Ukázkový přístup je určen pouze k prohlížení prostředí ARCHIMEDES
-              Live. Neumožňuje správu školy, vytváření událostí ani spuštění
-              vysílání.
-            </div>
-          ) : null}
-
-          {error ? (
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 12,
-                borderRadius: 12,
-                background: "#fff1f1",
-                color: "#a40000",
-                border: "1px solid #f2c9c9",
-              }}
-            >
-              Chyba: {error}
-            </div>
-          ) : null}
-
-          {message ? (
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 14,
-                borderRadius: 14,
-                background: "#eefaf0",
-                color: "#166534",
-                border: "1px solid #cfe8d3",
-                lineHeight: 1.7,
-                whiteSpace: "pre-line",
-              }}
-            >
-              {message}
-            </div>
-          ) : null}
-
-          <form
-            onSubmit={submitForm}
-            style={{
-              display: "grid",
-              gap: 16,
-            }}
-          >
-            <input
-              type="text"
-              name="company"
-              value={form.company}
-              onChange={updateField}
-              autoComplete="off"
-              tabIndex={-1}
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                left: "-9999px",
-                opacity: 0,
-                pointerEvents: "none",
-                height: 0,
-                width: 0,
-              }}
-            />
-
-            <div>
-              <label
-                style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-              >
-                Jméno a příjmení*
-              </label>
-              <input
-                name="name"
-                required
-                value={form.name}
-                onChange={updateField}
-                style={fieldStyle}
-              />
-            </div>
-
-            <div>
-              <label
-                style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-              >
-                E-mail*
-              </label>
-              <input
-                type="email"
-                name="email"
-                required
-                value={form.email}
-                onChange={updateField}
-                style={fieldStyle}
-              />
-            </div>
-
-            <div>
-              <label
-                style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-              >
-                Telefon (volitelně)
-              </label>
-              <input
-                name="phone"
-                value={form.phone}
-                onChange={updateField}
-                style={fieldStyle}
-              />
-            </div>
-
-            <div>
-              <label
-                style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-              >
+          {!submitted ? (
+            <>
+              <h1 style={{ marginTop: 0, fontSize: 34, lineHeight: 1.12 }}>
                 {isDemoRequest
-                  ? "Škola / organizace*"
-                  : "Škola / obec / organizace / místo zájmu*"}
-              </label>
-              <input
-                name="organization"
-                required
-                value={form.organization}
-                onChange={updateField}
-                placeholder={
-                  isDemoRequest
-                    ? "Např. ZŠ Hodonín, Gymnázium Vyškov..."
-                    : "Např. ZŠ Hodonín, Obec Křenov, Hodonín..."
-                }
-                style={fieldStyle}
-              />
-              <div style={helperStyle}>
-                {isDemoRequest
-                  ? "Napište prosím školu nebo organizaci, pro kterou chcete ukázkové prostředí zobrazit."
-                  : "Pokud zatím nežádáte za konkrétní organizaci, napište prosím obec, město nebo stručně popište, kde chcete ARCHIMEDES Live využít."}
-              </div>
-            </div>
+                  ? "Požádejte o ukázkový přístup do ARCHIMEDES Live"
+                  : "Požádejte o přístup do ARCHIMEDES Live"}
+              </h1>
 
-            <div>
-              <label
-                style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-              >
-                Adresa*
-              </label>
-              <input
-                name="address"
-                required
-                value={form.address}
-                onChange={updateField}
-                placeholder="Ulice, číslo popisné, město, PSČ"
-                style={fieldStyle}
-              />
-            </div>
-
-            <div>
-              <label
-                style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-              >
-                Typ organizace
-              </label>
-              <select
-                name="type"
-                value={form.type}
-                onChange={updateField}
-                style={fieldStyle}
-              >
-                <option value="">Vyberte</option>
-                <option value="škola">Škola</option>
-                <option value="obec">Obec / město</option>
-                <option value="spolek">Spolek</option>
-                <option value="senior-klub">Senior klub</option>
-                <option value="partner">Partner</option>
-                <option value="jine">Jiné / zatím neurčeno</option>
-              </select>
-              <div style={helperStyle}>
-                Pokud zatím nevystupujete za konkrétní organizaci, zvolte „Jiné /
-                zatím neurčeno“.
-              </div>
-            </div>
-
-            <div>
-              <label
-                style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-              >
-                {isDemoRequest ? "Poznámka" : "Zpráva"}
-              </label>
-              <textarea
-                name="message"
-                rows={5}
-                value={form.message}
-                onChange={updateField}
-                style={{ ...fieldStyle, resize: "vertical" }}
-                placeholder={
-                  isDemoRequest
-                    ? "Můžete doplnit, jakou roli ve škole máte, co vás zajímá nejvíce nebo co byste si chtěli v ukázce ověřit."
-                    : "Můžete doplnit, pro koho o přístup usilujete, koho chcete zapojit nebo v jaké fázi zájmu jste."
-                }
-              />
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                gap: 10,
-                flexWrap: "wrap",
-                marginTop: 4,
-              }}
-            >
-              <button
-                type="submit"
-                disabled={saving}
+              <p
                 style={{
-                  padding: "12px 16px",
-                  borderRadius: 12,
-                  background: "#111827",
-                  color: "#fff",
-                  fontWeight: 700,
-                  border: "none",
-                  cursor: saving ? "default" : "pointer",
-                  opacity: saving ? 0.7 : 1,
+                  color: "rgba(0,0,0,0.72)",
+                  lineHeight: 1.7,
+                  marginBottom: 20,
+                  fontSize: 17,
                 }}
               >
-                {saving
-                  ? "Odesílám..."
-                  : isDemoRequest
-                  ? "Požádat o ukázkový přístup"
-                  : "Odeslat žádost"}
-              </button>
+                {isDemoRequest
+                  ? "Ukázkové prostředí vám umožní projít si ARCHIMEDES Live z pohledu školy. Uvidíte, jak vypadá program, archiv i celkové prostředí portálu, které může škola po aktivaci využívat."
+                  : "Vyplňte krátký formulář a ozveme se vám s dalším postupem, vhodným typem přístupu a možnostmi zapojení do ARCHIMEDES Live."}
+              </p>
 
-              <Link
-                href={isDemoRequest ? "/demo" : "/login"}
+              {isDemoRequest ? (
+                <div
+                  style={{
+                    marginBottom: 18,
+                    padding: 16,
+                    borderRadius: 16,
+                    background: "#eefaf0",
+                    color: "#166534",
+                    border: "1px solid #cfe8d3",
+                    lineHeight: 1.7,
+                  }}
+                >
+                  Ukázkový přístup je určen pouze k prohlížení prostředí
+                  ARCHIMEDES Live. Neumožňuje správu školy, vytváření událostí
+                  ani spuštění vysílání.
+                </div>
+              ) : null}
+
+              {error ? (
+                <div
+                  style={{
+                    marginBottom: 16,
+                    padding: 12,
+                    borderRadius: 12,
+                    background: "#fff1f1",
+                    color: "#a40000",
+                    border: "1px solid #f2c9c9",
+                  }}
+                >
+                  Chyba: {error}
+                </div>
+              ) : null}
+
+              <form
+                onSubmit={submitForm}
                 style={{
-                  display: "inline-block",
-                  padding: "12px 16px",
-                  borderRadius: 12,
-                  background: "#fff",
-                  color: "#111827",
-                  textDecoration: "none",
-                  fontWeight: 700,
-                  border: "1px solid rgba(0,0,0,0.12)",
+                  display: "grid",
+                  gap: 16,
                 }}
               >
-                {isDemoRequest ? "Zpět na ukázku" : "Zpět na přihlášení"}
-              </Link>
-            </div>
-          </form>
+                <input
+                  type="text"
+                  name="company"
+                  value={form.company}
+                  onChange={updateField}
+                  autoComplete="off"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    left: "-9999px",
+                    opacity: 0,
+                    pointerEvents: "none",
+                    height: 0,
+                    width: 0,
+                  }}
+                />
+
+                <div>
+                  <label
+                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
+                  >
+                    Jméno a příjmení*
+                  </label>
+                  <input
+                    name="name"
+                    required
+                    value={form.name}
+                    onChange={updateField}
+                    style={fieldStyle}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
+                  >
+                    E-mail*
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    value={form.email}
+                    onChange={updateField}
+                    style={fieldStyle}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
+                  >
+                    Telefon (volitelně)
+                  </label>
+                  <input
+                    name="phone"
+                    value={form.phone}
+                    onChange={updateField}
+                    style={fieldStyle}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
+                  >
+                    {isDemoRequest
+                      ? "Škola / organizace*"
+                      : "Škola / obec / organizace / místo zájmu*"}
+                  </label>
+                  <input
+                    name="organization"
+                    required
+                    value={form.organization}
+                    onChange={updateField}
+                    placeholder={
+                      isDemoRequest
+                        ? "Např. ZŠ Hodonín, Gymnázium Vyškov..."
+                        : "Např. ZŠ Hodonín, Obec Křenov, Hodonín..."
+                    }
+                    style={fieldStyle}
+                  />
+                  <div style={helperStyle}>
+                    {isDemoRequest
+                      ? "Napište prosím školu nebo organizaci, pro kterou chcete ukázkové prostředí zobrazit."
+                      : "Pokud zatím nežádáte za konkrétní organizaci, napište prosím obec, město nebo stručně popište, kde chcete ARCHIMEDES Live využít."}
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
+                  >
+                    Adresa*
+                  </label>
+                  <input
+                    name="address"
+                    required
+                    value={form.address}
+                    onChange={updateField}
+                    placeholder="Ulice, číslo popisné, město, PSČ"
+                    style={fieldStyle}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
+                  >
+                    Typ organizace
+                  </label>
+                  <select
+                    name="type"
+                    value={form.type}
+                    onChange={updateField}
+                    style={fieldStyle}
+                  >
+                    <option value="">Vyberte</option>
+                    <option value="škola">Škola</option>
+                    <option value="obec">Obec / město</option>
+                    <option value="spolek">Spolek</option>
+                    <option value="senior-klub">Senior klub</option>
+                    <option value="partner">Partner</option>
+                    <option value="jine">Jiné / zatím neurčeno</option>
+                  </select>
+                  <div style={helperStyle}>
+                    Pokud zatím nevystupujete za konkrétní organizaci, zvolte
+                    „Jiné / zatím neurčeno“.
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
+                  >
+                    {isDemoRequest ? "Poznámka" : "Zpráva"}
+                  </label>
+                  <textarea
+                    name="message"
+                    rows={5}
+                    value={form.message}
+                    onChange={updateField}
+                    style={{ ...fieldStyle, resize: "vertical" }}
+                    placeholder={
+                      isDemoRequest
+                        ? "Můžete doplnit, jakou roli ve škole máte, co vás zajímá nejvíce nebo co byste si chtěli v ukázce ověřit."
+                        : "Můžete doplnit, pro koho o přístup usilujete, koho chcete zapojit nebo v jaké fázi zájmu jste."
+                    }
+                  />
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    flexWrap: "wrap",
+                    marginTop: 4,
+                  }}
+                >
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    style={{
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      background: "#111827",
+                      color: "#fff",
+                      fontWeight: 700,
+                      border: "none",
+                      cursor: saving ? "default" : "pointer",
+                      opacity: saving ? 0.7 : 1,
+                    }}
+                  >
+                    {saving
+                      ? "Odesílám..."
+                      : isDemoRequest
+                      ? "Požádat o ukázkový přístup"
+                      : "Odeslat žádost"}
+                  </button>
+
+                  <Link
+                    href={isDemoRequest ? "/demo" : "/login"}
+                    style={{
+                      display: "inline-block",
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      background: "#fff",
+                      color: "#111827",
+                      textDecoration: "none",
+                      fontWeight: 700,
+                      border: "1px solid rgba(0,0,0,0.12)",
+                    }}
+                  >
+                    {isDemoRequest ? "Zpět na ukázku" : "Zpět na přihlášení"}
+                  </Link>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              <h1 style={{ marginTop: 0, fontSize: 34, lineHeight: 1.12 }}>
+                {isDemoRequest
+                  ? "Žádost o ukázkový přístup jsme přijali"
+                  : "Žádost jsme přijali"}
+              </h1>
+
+              <div
+                style={{
+                  marginTop: 20,
+                  marginBottom: 24,
+                  padding: 18,
+                  borderRadius: 18,
+                  background: "#eefaf0",
+                  color: "#166534",
+                  border: "1px solid #cfe8d3",
+                  lineHeight: 1.8,
+                  whiteSpace: "pre-line",
+                  fontSize: 16,
+                }}
+              >
+                {message}
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gap: 12,
+                  marginBottom: 26,
+                  color: "rgba(0,0,0,0.72)",
+                  lineHeight: 1.7,
+                }}
+              >
+                <div>
+                  <strong>Co bude následovat:</strong>
+                </div>
+                {isDemoRequest ? (
+                  <>
+                    <div>1. Vaši žádost zkontrolujeme a schválíme.</div>
+                    <div>
+                      2. Na zadaný e-mail vám přijde zpráva s odkazem pro
+                      nastavení hesla.
+                    </div>
+                    <div>
+                      3. Poté se přihlásíte do ukázkového prostředí ARCHIMEDES
+                      Live.
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>1. Vaši žádost zaevidujeme.</div>
+                    <div>2. Ozveme se vám s dalším postupem.</div>
+                    <div>
+                      3. Společně vybereme nejvhodnější formu zapojení do
+                      ARCHIMEDES Live.
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  flexWrap: "wrap",
+                }}
+              >
+                <Link
+                  href="/"
+                  style={{
+                    display: "inline-block",
+                    padding: "12px 16px",
+                    borderRadius: 12,
+                    background: "#111827",
+                    color: "#fff",
+                    textDecoration: "none",
+                    fontWeight: 700,
+                    border: "none",
+                  }}
+                >
+                  Zpět na hlavní stránku
+                </Link>
+
+                <Link
+                  href={isDemoRequest ? "/demo" : "/login"}
+                  style={{
+                    display: "inline-block",
+                    padding: "12px 16px",
+                    borderRadius: 12,
+                    background: "#fff",
+                    color: "#111827",
+                    textDecoration: "none",
+                    fontWeight: 700,
+                    border: "1px solid rgba(0,0,0,0.12)",
+                  }}
+                >
+                  {isDemoRequest ? "Zpět na ukázku" : "Přejít na přihlášení"}
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </main>
     </div>
