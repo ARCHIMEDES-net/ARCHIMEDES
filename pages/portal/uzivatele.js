@@ -1,4 +1,3 @@
-// pages/portal/uzivatele.js
 import { useEffect, useState } from "react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
@@ -43,15 +42,62 @@ export default function UzivateleSkolyPage() {
 
       setCurrentUserId(user.id);
 
-      const { data: membership, error: membershipError } = await supabase
-        .from("organization_members")
-        .select("organization_id, role_in_org, status")
-        .eq("user_id", user.id)
-        .eq("status", "active")
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, active_organization_id")
+        .eq("id", user.id)
         .maybeSingle();
 
-      if (membershipError) throw membershipError;
-      if (!membership) throw new Error("Uživatel není přiřazen k žádné organizaci.");
+      if (profileError) throw profileError;
+
+      const activeOrganizationId = profile?.active_organization_id || null;
+
+      let membership = null;
+
+      if (activeOrganizationId) {
+        const { data: activeMembership, error: activeMembershipError } =
+          await supabase
+            .from("organization_members")
+            .select("organization_id, role_in_org, status")
+            .eq("user_id", user.id)
+            .eq("organization_id", activeOrganizationId)
+            .eq("status", "active")
+            .maybeSingle();
+
+        if (activeMembershipError) throw activeMembershipError;
+        membership = activeMembership || null;
+      }
+
+      if (!membership) {
+        const { data: fallbackMembership, error: fallbackMembershipError } =
+          await supabase
+            .from("organization_members")
+            .select("organization_id, role_in_org, status")
+            .eq("user_id", user.id)
+            .eq("status", "active")
+            .limit(1000);
+
+        if (fallbackMembershipError) throw fallbackMembershipError;
+
+        const fallbackRows = Array.isArray(fallbackMembership)
+          ? fallbackMembership
+          : [];
+
+        if (activeOrganizationId) {
+          membership =
+            fallbackRows.find(
+              (row) => row.organization_id === activeOrganizationId
+            ) || null;
+        }
+
+        if (!membership && fallbackRows.length === 1) {
+          membership = fallbackRows[0];
+        }
+      }
+
+      if (!membership) {
+        throw new Error("Uživatel není přiřazen k žádné organizaci.");
+      }
 
       const { data: organization, error: organizationError } = await supabase
         .from("organizations")
@@ -71,7 +117,6 @@ export default function UzivateleSkolyPage() {
 
       if (!admin) {
         setRows([]);
-        setLoading(false);
         return;
       }
 
@@ -79,18 +124,22 @@ export default function UzivateleSkolyPage() {
         .from("organization_members")
         .select("user_id, role_in_org, status, created_at")
         .eq("organization_id", organization.id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(1000);
 
       if (membersError) throw membersError;
 
-      const userIds = (members || []).map((m) => String(m.user_id));
+      const memberRows = Array.isArray(members) ? members : [];
+      const userIds = [...new Set(memberRows.map((m) => String(m.user_id)).filter(Boolean))];
 
       let profilesById = {};
+
       if (userIds.length > 0) {
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
           .select("id, full_name, email, is_active")
-          .in("id", userIds);
+          .in("id", userIds)
+          .limit(1000);
 
         if (profilesError) throw profilesError;
 
@@ -99,21 +148,22 @@ export default function UzivateleSkolyPage() {
         });
       }
 
-      const mergedRows = (members || []).map((m) => {
-        const profile = profilesById[String(m.user_id)];
+      const mergedRows = memberRows.map((m) => {
+        const profileRow = profilesById[String(m.user_id)] || null;
 
         return {
-          id: m.user_id,
-          full_name: profile?.full_name || "",
-          email: profile?.email || "",
+          id: String(m.user_id),
+          full_name: profileRow?.full_name || "",
+          email: profileRow?.email || "",
           is_active: m.status === "active",
-          role_in_org: m.role_in_org,
-          created_at: m.created_at,
+          role_in_org: m.role_in_org || "member",
+          created_at: m.created_at || null,
         };
       });
 
       setRows(mergedRows);
     } catch (e) {
+      setRows([]);
       setError(e.message || "Nepodařilo se načíst uživatele organizace.");
     } finally {
       setLoading(false);
@@ -549,6 +599,7 @@ export default function UzivateleSkolyPage() {
                     </td>
                     <td style={{ padding: "12px 10px" }}>
                       <button
+                        type="button"
                         onClick={() => toggleActive(row)}
                         disabled={row.id === currentUserId}
                         style={{
