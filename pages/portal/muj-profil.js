@@ -93,7 +93,6 @@ export default function MujProfilPage() {
 
       const [
         profileRes,
-        membershipRes,
         audPrefRes,
         catPrefRes,
         audienceOptionsRes,
@@ -101,15 +100,8 @@ export default function MujProfilPage() {
       ] = await Promise.all([
         supabase
           .from("profiles")
-          .select("id, email, full_name, is_active")
+          .select("id, email, full_name, is_active, active_organization_id")
           .eq("id", user.id)
-          .maybeSingle(),
-
-        supabase
-          .from("organization_members")
-          .select("organization_id, role_in_org, status")
-          .eq("user_id", user.id)
-          .eq("status", "active")
           .maybeSingle(),
 
         supabase
@@ -134,43 +126,56 @@ export default function MujProfilPage() {
       ]);
 
       if (profileRes.error) throw profileRes.error;
-      if (membershipRes.error) throw membershipRes.error;
       if (audPrefRes.error) throw audPrefRes.error;
       if (catPrefRes.error) throw catPrefRes.error;
 
       const profile = profileRes.data;
+
       if (profile) {
         setFullName(profile.full_name || "");
       } else {
         setFullName("");
       }
 
-      const membership = membershipRes.data;
-      if (membership) {
-        setOrganizationId(membership.organization_id || null);
-        setRoleInOrg(membership.role_in_org || "");
-      } else {
-        setOrganizationId(null);
-        setRoleInOrg("");
-      }
+      const activeOrganizationId = profile?.active_organization_id || null;
 
-      if (membership?.organization_id) {
-        const { data: org, error: orgError } = await supabase
-          .from("organizations")
-          .select("id, name, join_code")
-          .eq("id", membership.organization_id)
-          .maybeSingle();
+      if (activeOrganizationId) {
+        const [membershipResult, orgResult] = await Promise.all([
+          supabase
+            .from("organization_members")
+            .select("organization_id, role_in_org, status")
+            .eq("user_id", user.id)
+            .eq("organization_id", activeOrganizationId)
+            .eq("status", "active")
+            .maybeSingle(),
 
-        if (orgError) throw orgError;
+          supabase
+            .from("organizations")
+            .select("id, name, join_code")
+            .eq("id", activeOrganizationId)
+            .maybeSingle(),
+        ]);
 
-        if (org) {
+        if (membershipResult.error) throw membershipResult.error;
+        if (orgResult.error) throw orgResult.error;
+
+        const membership = membershipResult.data;
+        const org = orgResult.data;
+
+        if (membership?.organization_id && org?.id) {
+          setOrganizationId(org.id);
+          setRoleInOrg(membership.role_in_org || "");
           setOrganizationName(org.name || "");
           setOrganizationJoinCode(org.join_code || "");
         } else {
+          setOrganizationId(null);
+          setRoleInOrg("");
           setOrganizationName("");
           setOrganizationJoinCode("");
         }
       } else {
+        setOrganizationId(null);
+        setRoleInOrg("");
         setOrganizationName("");
         setOrganizationJoinCode("");
       }
@@ -279,17 +284,33 @@ export default function MujProfilPage() {
         if (insertCatError) throw insertCatError;
       }
 
-      const { data: membershipAfterSave, error: membershipAfterSaveError } =
+      const { data: profileAfterSave, error: profileAfterSaveError } =
         await supabase
-          .from("organization_members")
-          .select("organization_id")
-          .eq("user_id", userId)
-          .eq("status", "active")
+          .from("profiles")
+          .select("active_organization_id")
+          .eq("id", userId)
           .maybeSingle();
 
-      if (membershipAfterSaveError) throw membershipAfterSaveError;
+      if (profileAfterSaveError) throw profileAfterSaveError;
 
-      const hasOrganization = !!membershipAfterSave?.organization_id;
+      const activeOrganizationId =
+        profileAfterSave?.active_organization_id || null;
+
+      let hasOrganization = false;
+
+      if (activeOrganizationId) {
+        const { data: membershipAfterSave, error: membershipAfterSaveError } =
+          await supabase
+            .from("organization_members")
+            .select("organization_id")
+            .eq("user_id", userId)
+            .eq("organization_id", activeOrganizationId)
+            .eq("status", "active")
+            .maybeSingle();
+
+        if (membershipAfterSaveError) throw membershipAfterSaveError;
+        hasOrganization = !!membershipAfterSave?.organization_id;
+      }
 
       setMessage(
         hasOrganization
