@@ -115,7 +115,7 @@ export default function ZadostPristupPage() {
 
       setMessage(
         isDemoRequest
-          ? "Děkujeme. Žádost o ukázkový přístup byla úspěšně odeslána.\n\nPo schválení Vám zašleme e-mail s odkazem pro vytvoření přístupu (nastavení hesla) do prostředí ARCHIMEDES Live.\n\nE-mail může obsahovat označení „Reset Password“ – jedná se o standardní krok pro bezpečné nastavení Vašeho přístupu.\n\nPokud e-mail nenajdete během několika minut, zkontrolujte prosím i složku spam."
+          ? "Děkujeme. Žádost o ukázkový přístup byla úspěšně odeslána.\n\nPo schválení vám zašleme e-mail s odkazem pro vytvoření přístupu do prostředí ARCHIMEDES Live.\n\nV některých případech může mít tento e-mail technické označení „Reset Password“. Jde o standardní bezpečný krok pro nastavení vašeho hesla a prvního vstupu.\n\nPokud zprávu během několika minut nenajdete, zkontrolujte prosím i složku spam nebo hromadnou poštu."
           : "Děkujeme. Žádost o přístup byla úspěšně odeslána.\n\nOzveme se vám s dalším postupem."
       );
 
@@ -206,7 +206,7 @@ export default function ZadostPristupPage() {
                 }}
               >
                 {isDemoRequest
-                  ? "Ukázkové prostředí vám umožní projít si ARCHIMEDES Live z pohledu školy. Uvidíte, jak vypadá program, archiv i celkové prostředí portálu, které může škola po aktivaci využívat."
+                  ? "Vyplňte krátký formulář a po schválení vám pošleme přístup do ukázkového prostředí. Uvidíte, jak vypadá program, archiv i celkové prostředí portálu z pohledu školy."
                   : "Vyplňte krátký formulář a ozveme se vám s dalším postupem, vhodným typem přístupu a možnostmi zapojení do ARCHIMEDES Live."}
               </p>
 
@@ -222,7 +222,7 @@ export default function ZadostPristupPage() {
                     lineHeight: 1.7,
                   }}
                 >
-                  Ukázkový přístup je určen pouze k prohlížení prostředí
+                  Ukázkový přístup slouží pouze k prohlížení prostředí
                   ARCHIMEDES Live. Neumožňuje správu školy, vytváření událostí
                   ani spuštění vysílání.
                 </div>
@@ -354,6 +354,9 @@ export default function ZadostPristupPage() {
                     placeholder="Ulice, číslo popisné, město, PSČ"
                     style={fieldStyle}
                   />
+                  <div style={helperStyle}>
+                    Uveďte prosím adresu školy nebo organizace.
+                  </div>
                 </div>
 
                 <div>
@@ -491,7 +494,7 @@ export default function ZadostPristupPage() {
                     <div>1. Vaši žádost zkontrolujeme a schválíme.</div>
                     <div>
                       2. Na zadaný e-mail vám přijde zpráva s odkazem pro
-                      nastavení hesla.
+                      nastavení hesla a vstup do ukázky.
                     </div>
                     <div>
                       3. Poté se přihlásíte do ukázkového prostředí ARCHIMEDES
