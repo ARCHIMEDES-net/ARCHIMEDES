@@ -1,4 +1,4 @@
-// pages/api/start-order.js
+
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 
@@ -785,8 +785,6 @@ export default async function handler(req, res) {
         activeOrganizationSetForAdmin = true;
       }
 
-      // Jistota, že objednatel je opravdu členem školy i v případě,
-      // že admin je jiný účet a onboarding probíhal přes více kroků.
       await ensureMembership({
         organizationId,
         userId: orderingUserId,
@@ -865,6 +863,11 @@ export default async function handler(req, res) {
     const samePerson =
       orderingUserId && adminUserId && orderingUserId === adminUserId;
 
+    const ordererIsAdmin = !!samePerson;
+    const adminNeedsActivation = !!adminInviteSent;
+    const adminHasExistingAccess = !adminInviteSent;
+    const orderingNeedsActivation = !!orderingInviteSent;
+
     const subject = `🟢 START – ${schoolNameRaw} (IČO: ${icoRaw})`;
 
     await sendMailLogged(transporter, {
@@ -935,9 +938,9 @@ export default async function handler(req, res) {
       to: emailRaw,
       subject: "Potvrzení objednávky – ARCHIMEDES Live",
       html: `
-        <h2>Děkujeme za objednávku</h2>
+        <h2>Děkujeme, objednávka byla přijata</h2>
 
-        <p>Vaše objednávka balíčku <strong>START</strong> byla přijata.</p>
+        <p>Vaši objednávku balíčku <strong>START</strong> jsme přijali.</p>
 
         <p><strong>Škola / organizace:</strong> ${schoolName}</p>
         <p><strong>Objednatel:</strong> ${contactName}</p>
@@ -950,24 +953,33 @@ export default async function handler(req, res) {
             ? `
         <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
         <p>
-          Škola byla založena nebo spárována a váš uživatelský přístup byl přiřazen do organizace jako
-          <strong> ${safeOrderingUserRole}</strong>.
+          Škola byla připravena v systému ARCHIMEDES Live.
         </p>
+
         ${
-          orderingInviteSent
+          orderingNeedsActivation
             ? `
         <p>
-          Na váš e-mail byl současně odeslán systémový e-mail pro nastavení hesla.
-          Po jeho dokončení se můžete přihlásit zde:
-          <br/>
-          <a href="${SITE_URL}/login">${SITE_URL}/login</a>
+          Na váš e-mail byl odeslán samostatný e-mail pro nastavení vašeho přístupu.
         </p>
         `
             : `
         <p>
-          Váš přístup je připraven. Přihlásit se můžete zde:
-          <br/>
-          <a href="${SITE_URL}/login">${SITE_URL}/login</a>
+          Pokud již máte účet v ARCHIMEDES Live, škola byla přiřazena k vašemu stávajícímu přístupu.
+        </p>
+        `
+        }
+
+        ${
+          ordererIsAdmin
+            ? `
+        <p>
+          Jste zároveň správcem programu. Další informace k přístupu jsme vám odeslali samostatně.
+        </p>
+        `
+            : `
+        <p>
+          Správci programu byl odeslán samostatný e-mail s informacemi k přístupu do portálu.
         </p>
         `
         }
@@ -975,20 +987,6 @@ export default async function handler(req, res) {
             : `
         <p>
           Objednávku jsme přijali, ale dokončení přístupu ještě vyžaduje naši kontrolu.
-        </p>
-        `
-        }
-
-        ${
-          emailRaw !== adminEmailRaw
-            ? `
-        <p>
-          Administrátor školy obdrží samostatný e-mail s informací o přístupu.
-        </p>
-        `
-            : `
-        <p>
-          Jste zároveň veden/a jako administrátor školy.
         </p>
         `
         }
@@ -1012,25 +1010,30 @@ export default async function handler(req, res) {
       `,
     });
 
-    if (onboardingStatus === "completed" && !samePerson) {
+    if (onboardingStatus === "completed") {
       if (adminInviteSent) {
         await sendMailLogged(transporter, {
           label: "start_admin_invited",
           from: process.env.MAIL_FROM,
           to: adminEmailRaw,
-          subject: "Administrátorský přístup – ARCHIMEDES Live",
+          subject: "Dokončete nastavení přístupu – ARCHIMEDES Live",
           html: `
-            <h2>Byl vám vytvořen administrátorský přístup</h2>
+            <h2>Dokončete nastavení přístupu</h2>
 
-            <p>Pro školu <strong>${schoolName}</strong> jsme připravili administrátorský přístup do ARCHIMEDES Live.</p>
+            <p>
+              Pro školu <strong>${schoolName}</strong> jsme pro vás připravili přístup do ARCHIMEDES Live.
+            </p>
 
             <p><strong>Vaše role:</strong> administrátor školy</p>
             <p><strong>E-mail administrátora:</strong> ${adminEmail}</p>
             <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
 
             <p>
-              Na váš e-mail byl současně odeslán systémový e-mail pro nastavení hesla.
-              Po dokončení aktivace se přihlásíte zde:
+              Pro dokončení přístupu si nejprve nastavte heslo pomocí samostatného systémového e-mailu, který jsme vám právě odeslali.
+            </p>
+
+            <p>
+              Po nastavení hesla se přihlásíte zde:
               <br/>
               <a href="${SITE_URL}/login">${SITE_URL}/login</a>
             </p>
@@ -1044,25 +1047,31 @@ export default async function handler(req, res) {
             EduVision s.r.o.</p>
           `,
         });
-      } else {
+      } else if (adminHasExistingAccess) {
         await sendMailLogged(transporter, {
           label: "start_admin_existing",
           from: process.env.MAIL_FROM,
           to: adminEmailRaw,
-          subject: "Administrátorský přístup – ARCHIMEDES Live",
+          subject: "Přístup ke škole – ARCHIMEDES Live",
           html: `
-            <h2>Administrátorský přístup je připraven</h2>
+            <h2>Přístup ke škole je připraven</h2>
 
-            <p>Pro školu <strong>${schoolName}</strong> je váš administrátorský přístup do ARCHIMEDES Live připraven.</p>
+            <p>
+              Škola <strong>${schoolName}</strong> byla přiřazena k vašemu účtu v ARCHIMEDES Live.
+            </p>
 
             <p><strong>Vaše role:</strong> administrátor školy</p>
             <p><strong>E-mail administrátora:</strong> ${adminEmail}</p>
             <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
 
             <p>
-              Přihlaste se do portálu zde:
+              Přihlaste se svým stávajícím účtem zde:
               <br/>
               <a href="${SITE_URL}/login">${SITE_URL}/login</a>
+            </p>
+
+            <p>
+              Pokud si heslo nepamatujete, použijte obnovu hesla na přihlašovací stránce.
             </p>
 
             <p>
