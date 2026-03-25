@@ -635,8 +635,12 @@ function buildEmailLayout({
                     }
 
                     <div style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(15,23,42,0.08);font-size:14px;line-height:1.7;color:#667085;">
-                      <strong style="color:#0f172a;">ARCHIMEDES Live</strong><br />
+                      <strong style="color:#0f172a;">Tým ARCHIMEDES Live</strong><br />
                       EduVision s.r.o.<br />
+                      Purkyňova 649/127<br />
+                      Medlánky<br />
+                      612 00 Brno/>
+                      IČ: 17803039 DIČ: CZ17803039<br />
                       <a href="${escapeHtml(SITE_URL)}" style="color:#1d4ed8;text-decoration:none;">${escapeHtml(SITE_URL)}</a>
                     </div>
                   </td>
@@ -825,7 +829,7 @@ function buildOrdererEmailHtml({
   `;
 
   const note = `
-    V nejbližším kroku vám zašleme fakturační podklady a další organizační informace.<br/><br/>
+    V nejbližším kroku vám zašleme fakturu a navazující dokumenty.<br/><br/>
     Důležité dokumenty:<br/>
     <a href="${SITE_URL}/vop" style="color:#1d4ed8;text-decoration:none;">${SITE_URL}/vop</a><br/>
     <a href="${SITE_URL}/dpa" style="color:#1d4ed8;text-decoration:none;">${SITE_URL}/dpa</a><br/>
