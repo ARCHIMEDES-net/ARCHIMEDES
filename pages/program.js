@@ -49,7 +49,7 @@ const communityItems = [
   },
   {
     title: "Servis pro zastupitele a komunitu",
-    text: "sdílení dobré praxe, inspirace a témata pro rozvoj obce a komunitního života",
+    text: "sdílení dobré praxe, inspirace a témata pro rozvoj obce a komunitního života, výrazná podpora živé spolupráce s partnerskými městy",
   },
 ];
 
@@ -60,7 +60,7 @@ const cultureItems = [
   },
   {
     title: "Mimořádné tematické vstupy",
-    text: "výročí, aktuální události, sezónní programy a speciální hosté",
+    text: "výročí, aktuální události, sezónní programy a speciální hosté, živé interaktivní vysílání z aktuálních akcí a další aktivity, podporující posílení komunity",
   },
 ];
 
