@@ -157,12 +157,42 @@ export default function AdminPoptavky() {
 
     setApprovingId(row.id);
     setActionMsg("");
+    setErr("");
 
     try {
+      const [
+        {
+          data: { user },
+          error: userError,
+        },
+        {
+          data: { session },
+          error: sessionError,
+        },
+      ] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.auth.getSession(),
+      ]);
+
+      if (userError) {
+        throw userError;
+      }
+
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      const accessToken = session?.access_token;
+
+      if (!user || !accessToken) {
+        throw new Error("Nejste přihlášen.");
+      }
+
       const response = await fetch("/api/admin/approve-demo-request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           requestId: row.id,
@@ -185,7 +215,9 @@ export default function AdminPoptavky() {
 
       setActionMsg(`Demo přístup schválen pro ${email}.`);
     } catch (e) {
-      alert(e.message || "Schválení demo přístupu se nepodařilo.");
+      const message = e?.message || "Schválení demo přístupu se nepodařilo.";
+      setErr(message);
+      alert(message);
     } finally {
       setApprovingId("");
     }
