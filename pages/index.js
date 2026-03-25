@@ -221,7 +221,7 @@ export default function Home() {
                 </div>
                 <h2>Objednejte si balíček START, podívejte se na ukázkovou hodinu nebo si nejdříve vyžádejte DEMO</h2>
                 <p>
-                  Jednoduché a rychlé - začněte balíčkem START a vyzkoučejte si živý program s kolegy a žáky přímo u vás. Připojte se ko komunitě ARCHIMEDES. 
+                  Jednoduché a rychlé - začněte balíčkem START a vyzkoučejte si živý program s kolegy a žáky přímo u vás. Připojte se ke komunitě ARCHIMEDES. 
                   
                 </p>
               </div>
