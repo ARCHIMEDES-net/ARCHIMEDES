@@ -25,6 +25,7 @@ export default function AktualniPozvankyPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [invites, setInvites] = useState(fallbackInvites);
   const [loadingInvites, setLoadingInvites] = useState(true);
+  const [source, setSource] = useState("fallback");
 
   useEffect(() => {
     let active = true;
@@ -38,6 +39,7 @@ export default function AktualniPozvankyPage() {
           headers: {
             Accept: "application/json",
           },
+          cache: "no-store",
         });
 
         const data = await response.json();
@@ -48,7 +50,11 @@ export default function AktualniPozvankyPage() {
           ? data.items
           : [];
 
-        if (active && items.length > 0) {
+        if (!active) return;
+
+        setSource(data?.source || "fallback");
+
+        if (items.length > 0) {
           setInvites(
             items.map((item) => ({
               title: item.title || "Pozvánka",
@@ -111,6 +117,12 @@ export default function AktualniPozvankyPage() {
                   </span>
                   <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
                     inspirativní hosté
+                  </span>
+                </div>
+
+                <div className="mt-4">
+                  <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500">
+                    Zdroj pozvánek: {source}
                   </span>
                 </div>
 
