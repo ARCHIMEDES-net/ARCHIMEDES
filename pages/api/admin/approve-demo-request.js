@@ -1,4 +1,3 @@
-
 // pages/api/admin/approve-demo-request.js
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
@@ -41,6 +40,14 @@ function escapeHtml(value = "") {
     .replace(/'/g, "&#039;");
 }
 
+function getBearerToken(req) {
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (!authHeader || typeof authHeader !== "string") return null;
+
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1] : null;
+}
+
 function assertMailConfig() {
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = Number(process.env.SMTP_PORT);
@@ -66,7 +73,7 @@ function createTransporter() {
 
   return nodemailer.createTransport({
     host: smtpHost,
-    port: smtpPort,
+    port: smtpPort === 465 ? 465 : smtpPort,
     secure: smtpPort === 465,
     auth: {
       user: smtpUser,
@@ -261,9 +268,7 @@ async function generateRecoveryLink(email) {
     "";
 
   if (!actionLink) {
-    throw new Error(
-      "Nepodařilo se získat odkaz pro nastavení hesla."
-    );
+    throw new Error("Nepodařilo se získat odkaz pro nastavení hesla.");
   }
 
   return actionLink;
@@ -353,6 +358,37 @@ export default async function handler(req, res) {
   }
 
   try {
+    const token = getBearerToken(req);
+
+    if (!token) {
+      return res.status(401).json({ error: "Chybí autorizace uživatele." });
+    }
+
+    const {
+      data: { user: actingUser },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(token);
+
+    if (userError || !actingUser) {
+      return res.status(401).json({ error: "Neplatné nebo expirované přihlášení." });
+    }
+
+    const { data: adminRow, error: adminCheckError } = await supabaseAdmin
+      .from("platform_admins")
+      .select("user_id")
+      .eq("user_id", actingUser.id)
+      .maybeSingle();
+
+    if (adminCheckError) {
+      throw adminCheckError;
+    }
+
+    if (!adminRow?.user_id) {
+      return res.status(403).json({
+        error: "Tuto akci může provádět pouze platform admin.",
+      });
+    }
+
     const { requestId } = req.body || {};
 
     if (!requestId) {
@@ -441,6 +477,7 @@ export default async function handler(req, res) {
       normServer(lead.note),
       "",
       `Demo schváleno: ${new Date().toISOString()}`,
+      `Schválil platform admin: ${actingUser.email || actingUser.id}`,
       `Demo organizace: ${demoOrg.name}`,
       `Uživatel: ${email}`,
       `Nastaven active_organization_id: ${demoOrg.id}`,
