@@ -698,7 +698,7 @@ export default function PoptavkaPage() {
               className="trust-grid"
             >
               <div style={trustCard}>
-                <div style={trustTitle}>20+ realizovaných učeben</div>
+                <div style={trustTitle}>25+ realizovaných učeben</div>
                 <div style={trustText}>
                   Místa, kde se potkává výuka, komunita a inspirativní hosté.
                 </div>
