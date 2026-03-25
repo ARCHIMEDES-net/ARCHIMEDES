@@ -76,9 +76,10 @@ export default function DemoPage() {
               color: "rgba(0,0,0,0.72)",
             }}
           >
-            Ukázkové prostředí vám pomůže rychle pochopit, co škola po zapojení
-            získá: podobu portálu, strukturu programu, ukázky záznamů, pracovní
-            listy i celkový dojem z prostředí, ve kterém bude škola fungovat.
+            Ukázkové prostředí vám pomůže rychle pochopit,{" "}
+            <strong>co škola po zapojení získá</strong>: podobu portálu,
+            strukturu programu, ukázky záznamů, pracovní listy i celkový dojem
+            z prostředí, ve kterém bude škola fungovat.
           </p>
 
           <div className="benefitGrid">
@@ -130,28 +131,13 @@ export default function DemoPage() {
               border: "1px solid #cfe8d3",
               color: "#166534",
               lineHeight: 1.7,
-              marginBottom: 16,
+              marginBottom: 0,
             }}
           >
             <strong>Ukázka slouží k rychlé orientaci.</strong>
             <br />
             Uvidíte prostředí a obsah programu, ale bez možnosti správy školy,
             spouštění vysílání nebo jiných administrativních zásahů.
-          </div>
-
-          <div
-            style={{
-              background: "#fff8e8",
-              padding: 18,
-              borderRadius: 18,
-              border: "1px solid #f1dfac",
-              color: "#7a5a00",
-              lineHeight: 1.7,
-            }}
-          >
-            Přístup do ukázky poskytujeme na základě krátké žádosti. Je to
-            jednoduchý první krok pro školy, které si chtějí prostředí nejprve
-            prohlédnout a teprve potom rozhodnout o dalším zapojení.
           </div>
         </div>
 
@@ -179,6 +165,8 @@ export default function DemoPage() {
               lineHeight: 1.7,
             }}
           >
+            <strong>Nejprve si prostředí prohlédnete, potom se rozhodnete.</strong>
+            <br />
             Vyplníte krátkou žádost a pošleme vám e-mail s dalšími kroky a
             vstupem do ukázkového prostředí.
           </p>
@@ -321,7 +309,7 @@ export default function DemoPage() {
 
         .ctaSummary {
           padding: 18px;
-          borderRadius: 18px;
+          border-radius: 18px;
           background: #f8f9fc;
           border: 1px solid rgba(0, 0, 0, 0.06);
         }
