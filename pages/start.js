@@ -251,15 +251,15 @@ export default function StartPage() {
                 <p className="lead">
                   {isCompleted ? (
                     <>
-                      Vaši objednávku jsme přijali a školu jsme připravili v systému
-                      ARCHIMEDES Live. Další krok nyní dokončíte přes e-mail, který
-                      jsme odeslali podle role objednatele a správce programu.
+                      Objednávku jsme přijali a školu jsme připravili v systému
+                      ARCHIMEDES Live. Další krok dokončíte přes e-mail, který
+                      jsme právě odeslali.
                     </>
                   ) : (
                     <>
-                      Objednávka balíčku START byla přijata. Přístup školy nyní ještě
-                      vyžaduje naši krátkou kontrolu. Potvrzení objednávky a další
-                      instrukce vám pošleme na uvedený e-mail.
+                      Objednávka balíčku START byla přijata. Přístup školy nyní
+                      ještě vyžaduje naši krátkou kontrolu. Další instrukce
+                      pošleme na uvedený e-mail.
                     </>
                   )}
                 </p>
@@ -272,7 +272,7 @@ export default function StartPage() {
                         <div>
                           <div className="statusTitle">Objednávka přijata</div>
                           <div className="statusText">
-                            Objednávka balíčku START byla úspěšně zapsána.
+                            Balíček START byl úspěšně zapsán.
                           </div>
                         </div>
                       </div>
@@ -290,10 +290,9 @@ export default function StartPage() {
                       <div className="statusItem waiting">
                         <div className="statusIcon">→</div>
                         <div>
-                          <div className="statusTitle">Dokončení přístupu</div>
+                          <div className="statusTitle">Další krok</div>
                           <div className="statusText">
-                            Pro další krok použijte odkaz v e-mailu, který jsme vám
-                            právě odeslali.
+                            Otevřete e-mail a pokračujte podle zaslaných pokynů.
                           </div>
                         </div>
                       </div>
@@ -303,18 +302,18 @@ export default function StartPage() {
                       {successData.sameAdmin ? (
                         <>
                           Na e-mail <strong>{successData.orderingEmail || "—"}</strong>{" "}
-                          jsme odeslali potvrzení objednávky a navazující informace k
-                          přístupu. Pokud už účet v ARCHIMEDES Live máte, můžete
-                          pokračovat svými dosavadními údaji. Pokud účet teprve vzniká,
-                          dokončíte nejprve nastavení hesla přes e-mail.
+                          jsme odeslali potvrzení objednávky i informace k přístupu.
+                          Pokud už účet v ARCHIMEDES Live máte, pokračujete svými
+                          dosavadními údaji. Pokud účet teprve vzniká, dokončíte
+                          nejprve nastavení hesla přes e-mail.
                         </>
                       ) : (
                         <>
-                          Na e-mail objednatele{" "}
-                          <strong>{successData.orderingEmail || "—"}</strong> bylo
-                          odesláno potvrzení objednávky. Na e-mail správce programu{" "}
-                          <strong>{successData.adminEmail || "—"}</strong> byly
-                          odeslány navazující informace k přístupu do portálu.
+                          Potvrzení objednávky bylo odesláno na e-mail objednatele{" "}
+                          <strong>{successData.orderingEmail || "—"}</strong>. Na
+                          e-mail správce programu{" "}
+                          <strong>{successData.adminEmail || "—"}</strong> jsme
+                          poslali navazující informace k přístupu.
                         </>
                       )}
                     </div>
@@ -323,13 +322,8 @@ export default function StartPage() {
                       <div className="nextStepsTitle">Jak pokračovat</div>
                       <ol className="stepsList">
                         <li>Otevřete e-mail, který jsme vám právě odeslali.</li>
-                        <li>
-                          Pokud je to potřeba, nastavte si heslo pomocí odkazu v
-                          e-mailu.
-                        </li>
-                        <li>
-                          Poté se přihlaste do ARCHIMEDES Live svými přístupovými údaji.
-                        </li>
+                        <li>Pokud je to potřeba, nastavte si heslo.</li>
+                        <li>Poté se přihlaste do ARCHIMEDES Live.</li>
                       </ol>
                     </div>
                   </>
@@ -347,15 +341,15 @@ export default function StartPage() {
                         <li>Zašleme vám potvrzení objednávky.</li>
                         <li>Obdržíte fakturační podklady.</li>
                         <li>Ověříme dokončení přístupu školy.</li>
-                        <li>Následně vám pošleme další organizační informace.</li>
+                        <li>Následně pošleme další organizační informace.</li>
                       </ul>
                     </div>
                   </>
                 )}
 
                 <p className="smallText">
-                  Pokud e-mail během několika minut neobdržíte, zkontrolujte prosím
-                  složku Hromadné nebo Spam.
+                  Pokud e-mail během několika minut neobdržíte, zkontrolujte
+                  prosím složku Hromadné nebo Spam.
                 </p>
 
                 <div className="successActions">
@@ -659,17 +653,19 @@ export default function StartPage() {
                   <div className="eyebrow dark">
                     Balíček START pro školy • jaro + září 2026
                   </div>
+
                   <h1>Zapojte školu do programu ARCHIMEDES Live</h1>
 
                   <p className="lead">
-                    Vyplňte nebo zkontrolujte údaje školy a odešlete objednávku
-                    balíčku START pro vaši školu. Pokud jste přišli z ukázkového
-                    prostředí, část údajů už může být předvyplněna.
+                    Balíček START je nejrychlejší cesta, jak si škola může
+                    program ověřit v praxi ještě v tomto školním roce a zároveň
+                    se připravit na září 2026.
                   </p>
 
                   {prefillLoading ? (
                     <div className="prefillInfo loading">
-                      Ověřuji údaje z vašeho přístupu a připravuji předvyplnění formuláře…
+                      Ověřuji údaje z vašeho přístupu a připravuji předvyplnění
+                      formuláře…
                     </div>
                   ) : prefillReady ? (
                     <div className="prefillInfo ready">
@@ -678,79 +674,48 @@ export default function StartPage() {
                     </div>
                   ) : (
                     <div className="prefillInfo neutral">
-                      Formulář můžete vyplnit ručně. Pokud jste přišli z ukázkového
-                      prostředí bez navázaných údajů školy, stačí vše doplnit níže.
+                      Formulář můžete vyplnit ručně.
                     </div>
                   )}
 
-                  <div className="proofBox">
-                    ARCHIMEDES Live je vzdělávací program pro školy a další
-                    organizace. Obsahuje připravené online vzdělávací aktivity
-                    zaměřené na rozvoj žáků, aktuální témata, wellbeing,
-                    kariérovou orientaci a jazykové vzdělávání.
+                  <div className="quickBenefits">
+                    <div className="benefitItem">duben–září 2026</div>
+                    <div className="benefitItem">4 990 Kč bez DPH jednorázově</div>
+                    <div className="benefitItem">bez automatického prodloužení</div>
+                    <div className="benefitItem">
+                      potvrzení objednávky + faktura + přístup pro školu
+                    </div>
                   </div>
 
-                  <div className="noticeBox">
-                    <strong>Odesláním formuláře objednáváte balíček START</strong>{" "}
-                    na období duben–září 2026. Po odeslání vám zašleme potvrzení
-                    objednávky, fakturační podklady a další informace k zahájení
-                    programu. Na e-mail správce programu budeme navazovat při
-                    zřízení přístupu do ARCHIMEDES Live.
-                  </div>
-
-                  <div className="opjakBox">
-                    Program ARCHIMEDES Live může škola využít také jako součást
-                    vzdělávacích aktivit financovaných z projektů a šablon, pokud
-                    jeho zařazení odpovídá zvolené aktivitě projektu, podmínkám
-                    výzvy a vnitřním pravidlům školy. Na vyžádání dodáme potvrzení
-                    objednávky, fakturu, specifikaci plnění a další podklady pro
-                    interní administraci školy.
-                  </div>
-
-                  <div className="processBox">
-                    <div className="processTitle">Jak to probíhá</div>
-                    <div className="processSteps">
-                      <div className="processStep">
-                        <span className="processNumber">1</span>
-                        <p>Potvrdíte nebo upravíte údaje školy a odešlete objednávku.</p>
+                  <div className="howItWorksBox">
+                    <div className="miniTitle">Jak to probíhá</div>
+                    <div className="simpleSteps">
+                      <div className="simpleStep">
+                        <span className="stepNumber">1</span>
+                        <p>Vyplníte údaje školy a odešlete objednávku.</p>
                       </div>
-                      <div className="processStep">
-                        <span className="processNumber">2</span>
-                        <p>
-                          Objednávka se uloží a škola se připraví pro vstup do
-                          programu ARCHIMEDES Live.
-                        </p>
+                      <div className="simpleStep">
+                        <span className="stepNumber">2</span>
+                        <p>Pošleme potvrzení objednávky a fakturační podklady.</p>
                       </div>
-                      <div className="processStep">
-                        <span className="processNumber">3</span>
-                        <p>
-                          Objednateli přijde potvrzení objednávky. Pokud je správce
-                          programu jiný než objednatel, navážeme také na jeho e-mail.
-                        </p>
-                      </div>
-                      <div className="processStep">
-                        <span className="processNumber">4</span>
-                        <p>
-                          Po dokončení objednávky odešleme potvrzení a navazující
-                          informace k přístupu. Pokud už účet máte, můžete
-                          pokračovat svými dosavadními údaji. Pokud účet teprve
-                          vzniká, dokončíte nejprve nastavení hesla.
-                        </p>
+                      <div className="simpleStep">
+                        <span className="stepNumber">3</span>
+                        <p>Správce programu dostane informace k přístupu.</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="supplierInline">
-                    <div className="supplierInlineLabel">Dodavatel</div>
-                    <div className="supplierInlineText">
-                      <strong>EduVision s.r.o.</strong> · Purkyňova 649/127,
-                      Medlánky, 612 00 Brno · IČ: 17803039 · DIČ: CZ17803039
-                    </div>
-                    <div className="supplierInlineMeta">
-                      Poskytovatel vzdělávacího programu a provozovatel služby
-                      ARCHIMEDES Live. Zapsána pod značkou C 131579/KSBR Krajským
-                      soudem v Brně.
-                    </div>
+                  <div className="schoolAdminBox">
+                    <div className="miniTitle">Podklady pro školu</div>
+                    <p>
+                      Na vyžádání dodáme potvrzení objednávky, fakturu,
+                      specifikaci plnění a další podklady pro interní
+                      administraci školy.
+                    </p>
+                    <p className="smallLegal">
+                      Zařazení programu do financování školy posuzuje škola podle
+                      své projektové a účetní dokumentace.
+                    </p>
                   </div>
 
                   <div className="demoInline">
@@ -778,28 +743,9 @@ export default function StartPage() {
                       </div>
                     </div>
 
-                    <div className="summaryRow">
-                      <span>Období</span>
-                      <strong>duben–září 2026</strong>
-                    </div>
-
-                    <div className="summaryRow">
-                      <span>Forma plnění</span>
-                      <strong>online vzdělávací program</strong>
-                    </div>
-
-                    <div className="summaryRow">
-                      <span>Doklady</span>
-                      <strong>
-                        potvrzení objednávky, faktura, specifikace plnění
-                      </strong>
-                    </div>
-
-                    <div className="summaryRow">
-                      <span>Využití</span>
-                      <strong>
-                        ověření programu ještě letos + příprava na září
-                      </strong>
+                    <div className="summaryBadge">
+                      Vhodné pro školu, která si chce program ověřit v praxi ještě
+                      letos.
                     </div>
 
                     <div className="summaryDivider" />
@@ -808,20 +754,15 @@ export default function StartPage() {
                     <ul className="summaryList">
                       <li>4× online vzdělávací program pro I. stupeň ZŠ</li>
                       <li>4× online vzdělávací program pro II. stupeň ZŠ</li>
-                      <li>4× vzdělávací program zaměřený na wellbeing žáků</li>
-                      <li>4× vzdělávací program zaměřený na kariérovou orientaci</li>
+                      <li>4× program zaměřený na wellbeing žáků</li>
+                      <li>4× program zaměřený na kariérovou orientaci</li>
                       <li>4× vzdělávací program v anglickém jazyce</li>
                     </ul>
 
                     <p className="summaryNote">
-                      Konkrétní termíny online vzdělávacích aktivit budou
-                      zveřejňovány průběžně v programu ARCHIMEDES Live.
+                      Konkrétní termíny budou zveřejňovány průběžně v programu
+                      ARCHIMEDES Live.
                     </p>
-
-                    <div className="capacityHint">
-                      Nejrychlejší cesta, jak si škola může program ověřit v praxi ještě
-                      v tomto školním roce.
-                    </div>
                   </div>
                 </div>
               </div>
@@ -946,9 +887,7 @@ export default function StartPage() {
                   </div>
 
                   <div className="field">
-                    <label htmlFor="adminEmail">
-                      E-mail správce programu *
-                    </label>
+                    <label htmlFor="adminEmail">E-mail správce programu *</label>
                     <input
                       id="adminEmail"
                       name="adminEmail"
@@ -958,6 +897,11 @@ export default function StartPage() {
                       placeholder="např. skola@skola.cz"
                       required
                     />
+                    <div className="inlineHint">
+                      Správce programu je osoba, která bude spravovat přístup
+                      školy v portálu. Pokud jste jí vy, uveďte stejný e-mail
+                      jako u objednatele.
+                    </div>
                   </div>
                 </div>
 
@@ -973,40 +917,24 @@ export default function StartPage() {
                     />
                   </div>
 
-                  <div className="field fieldHintBox">
-                    <div className="fieldHint">
-                      Správce programu je osoba, která bude mít
-                      administrátorský přístup do školy v portálu ARCHIMEDES
-                      Live. Objednatel získává svůj uživatelský přístup také.
-                      Pokud jste správcem programu vy, uveďte stejný e-mail jako
-                      u objednatele.
-                    </div>
+                  <div className="field">
+                    <label htmlFor="note">Poznámka</label>
+                    <textarea
+                      id="note"
+                      name="note"
+                      value={form.note}
+                      onChange={handleChange}
+                      rows={4}
+                      placeholder="Např. preferovaný způsob kontaktu nebo doplňující informace."
+                    />
                   </div>
-                </div>
-
-                <div className="field">
-                  <label htmlFor="note">Poznámka</label>
-                  <textarea
-                    id="note"
-                    name="note"
-                    value={form.note}
-                    onChange={handleChange}
-                    rows={4}
-                    placeholder="Např. preferovaný způsob kontaktu nebo doplňující informace."
-                  />
                 </div>
               </div>
 
               <div className="sectionBlock">
-                <div className="submitInfoBox">
-                  <div className="submitInfoTitle">Před odesláním</div>
-
-                  <ul className="submitChecklist">
-                    <li>potvrzení objednávky obdrží objednatel e-mailem</li>
-                    <li>e-mail správce programu použijeme pro další nastavení přístupu</li>
-                    <li>fakturace probíhá po potvrzení objednávky</li>
-                    <li>balíček START je na období duben–září 2026</li>
-                  </ul>
+                <div className="submitInfoLine">
+                  Po odeslání přijde objednateli potvrzení e-mailem a správci
+                  programu informace k přístupu.
                 </div>
               </div>
 
@@ -1065,8 +993,8 @@ export default function StartPage() {
                       >
                         pravidla pořizování a zpřístupnění záznamů
                       </a>{" "}
-                      v rámci služby ARCHIMEDES Live, včetně zpřístupnění záznamů
-                      registrovaným uživatelům v archivu.
+                      včetně zpřístupnění záznamů registrovaným uživatelům v
+                      archivu.
                     </span>
                   </label>
 
@@ -1093,12 +1021,10 @@ export default function StartPage() {
                       required
                     />
                     <span>
-                      Odesláním objednávky objednávám za školu / organizaci
-                      balíček START služby ARCHIMEDES Live na období duben–září
-                      2026 a potvrzuji, že škola / organizace uhradí cenu
-                      uvedenou v objednávce na základě vystaveného daňového
-                      dokladu, případně podle navazující smluvní dokumentace,
-                      je-li vyžadována.
+                      Odesláním objednávky závazně objednávám za školu /
+                      organizaci balíček START ARCHIMEDES Live na období
+                      duben–září 2026 za cenu uvedenou na této stránce a potvrzuji
+                      povinnost uhradit vystavený daňový doklad.
                     </span>
                   </label>
                 </div>
@@ -1137,11 +1063,11 @@ export default function StartPage() {
                 <p className="submitNote">
                   Po odeslání objednávky vám přijde potvrzení e-mailem.
                 </p>
-                <p className="submitSubnote">
-                  Zařazení programu do financování školy posuzuje škola podle své
-                  projektové a účetní dokumentace. V případě potřeby doporučujeme
-                  ověření na konzultační lince pro šablony OP JAK.
-                </p>
+              </div>
+
+              <div className="supplierFootnote">
+                <strong>Dodavatel:</strong> EduVision s.r.o., Purkyňova 649/127,
+                Medlánky, 612 00 Brno · IČ: 17803039 · DIČ: CZ17803039
               </div>
             </form>
           </div>
@@ -1176,7 +1102,7 @@ export default function StartPage() {
 
           .heroGrid {
             display: grid;
-            grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+            grid-template-columns: minmax(0, 1.18fr) minmax(340px, 0.82fr);
             gap: 28px;
             align-items: start;
           }
@@ -1224,7 +1150,7 @@ export default function StartPage() {
           }
 
           .prefillInfo {
-            margin-top: 16px;
+            margin-top: 18px;
             padding: 16px 18px;
             border-radius: 18px;
             font-size: 15px;
@@ -1250,53 +1176,40 @@ export default function StartPage() {
             color: #475467;
           }
 
-          .proofBox {
+          .quickBenefits {
             margin-top: 18px;
-            padding: 16px 18px;
-            border-radius: 18px;
-            background: #eef6ff;
-            border: 1px solid rgba(37, 99, 235, 0.12);
-            color: #1f3b75;
+            display: grid;
+            gap: 10px;
+          }
+
+          .benefitItem {
+            position: relative;
+            padding: 0 0 0 28px;
             font-size: 15px;
-            line-height: 1.7;
+            line-height: 1.65;
+            color: #334155;
             font-weight: 700;
           }
 
-          .noticeBox {
-            margin-top: 18px;
-            padding: 18px 20px;
-            border-radius: 18px;
-            background: #fff8e8;
-            border: 1px solid #f0dfaf;
-            color: #6b4f00;
-            font-size: 15px;
-            line-height: 1.7;
-          }
-
-          .noticeBox strong {
+          .benefitItem::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #16a34a;
             font-weight: 900;
           }
 
-          .opjakBox {
-            margin-top: 18px;
-            padding: 18px 20px;
-            border-radius: 18px;
-            background: #eefaf0;
-            border: 1px solid #cfe8d3;
-            color: #166534;
-            font-size: 15px;
-            line-height: 1.7;
-          }
-
-          .processBox {
-            margin-top: 18px;
+          .howItWorksBox,
+          .schoolAdminBox {
+            margin-top: 20px;
             padding: 20px 20px 18px;
             border-radius: 18px;
             background: #f8fafc;
             border: 1px solid rgba(15, 23, 42, 0.08);
           }
 
-          .processTitle {
+          .miniTitle {
             font-size: 15px;
             line-height: 1.5;
             font-weight: 800;
@@ -1304,19 +1217,19 @@ export default function StartPage() {
             margin-bottom: 12px;
           }
 
-          .processSteps {
+          .simpleSteps {
             display: grid;
             gap: 12px;
           }
 
-          .processStep {
+          .simpleStep {
             display: grid;
             grid-template-columns: 32px 1fr;
             gap: 12px;
             align-items: start;
           }
 
-          .processNumber {
+          .stepNumber {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -1331,46 +1244,18 @@ export default function StartPage() {
             box-shadow: inset 0 0 0 1px rgba(34, 50, 82, 0.08);
           }
 
-          .processStep p {
-            margin: 3px 0 0;
+          .simpleStep p,
+          .schoolAdminBox p {
+            margin: 0;
             color: #334155;
             font-size: 15px;
             line-height: 1.65;
           }
 
-          .supplierInline {
-            margin-top: 18px;
-            padding: 16px 18px;
-            border-radius: 18px;
-            background: #eef3fb;
-            border: 1px solid rgba(30, 64, 175, 0.1);
-          }
-
-          .supplierInlineLabel {
-            font-size: 12px;
-            line-height: 1.4;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            color: #1e3a8a;
-            margin-bottom: 8px;
-          }
-
-          .supplierInlineText {
-            font-size: 14px;
-            line-height: 1.65;
-            color: #223252;
-          }
-
-          .supplierInlineText strong {
-            color: #0f172a;
-          }
-
-          .supplierInlineMeta {
-            margin-top: 6px;
-            font-size: 13px;
-            line-height: 1.55;
-            color: #667085;
+          .smallLegal {
+            margin-top: 10px !important;
+            color: #667085 !important;
+            font-size: 14px !important;
           }
 
           .demoInline {
@@ -1378,7 +1263,7 @@ export default function StartPage() {
             flex-wrap: wrap;
             gap: 10px 12px;
             align-items: center;
-            margin-top: 16px;
+            margin-top: 18px;
             font-size: 14px;
             line-height: 1.6;
             color: #475467;
@@ -1488,24 +1373,15 @@ export default function StartPage() {
             color: rgba(255, 255, 255, 0.72);
           }
 
-          .summaryRow {
-            display: flex;
-            justify-content: space-between;
-            gap: 18px;
-            padding: 14px 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
-            margin-top: 14px;
-            font-size: 15px;
-            line-height: 1.5;
-          }
-
-          .summaryRow span {
-            color: rgba(255, 255, 255, 0.74);
-          }
-
-          .summaryRow strong {
-            text-align: right;
+          .summaryBadge {
+            margin-top: 18px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             color: #ffffff;
+            font-size: 14px;
+            line-height: 1.55;
             font-weight: 800;
           }
 
@@ -1544,18 +1420,6 @@ export default function StartPage() {
             font-size: 13px;
             line-height: 1.6;
             color: rgba(255, 255, 255, 0.68);
-          }
-
-          .capacityHint {
-            margin-top: 18px;
-            padding: 14px 16px;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #ffffff;
-            font-size: 14px;
-            line-height: 1.55;
-            font-weight: 800;
           }
 
           .formSection {
@@ -1636,61 +1500,22 @@ export default function StartPage() {
             box-shadow: 0 0 0 4px rgba(27, 80, 156, 0.08);
           }
 
-          .fieldHintBox {
-            justify-content: flex-end;
-          }
-
-          .fieldHint {
-            min-height: 54px;
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
-            border-radius: 14px;
-            background: #f8fafc;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            color: #475467;
+          .inlineHint {
+            margin-top: 4px;
             font-size: 14px;
             line-height: 1.55;
+            color: #667085;
           }
 
-          .submitInfoBox {
-            padding: 20px 22px;
+          .submitInfoLine {
+            padding: 18px 20px;
             border-radius: 18px;
             background: #f8fafc;
             border: 1px solid rgba(15, 23, 42, 0.08);
-          }
-
-          .submitInfoTitle {
-            font-size: 15px;
-            line-height: 1.5;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 12px;
-          }
-
-          .submitChecklist {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: grid;
-            gap: 10px;
-          }
-
-          .submitChecklist li {
-            position: relative;
-            padding-left: 28px;
             font-size: 15px;
             line-height: 1.65;
             color: #334155;
-          }
-
-          .submitChecklist li::before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            top: 0;
-            color: #16a34a;
-            font-weight: 900;
+            font-weight: 700;
           }
 
           .checkboxList {
@@ -1805,12 +1630,13 @@ export default function StartPage() {
             font-weight: 700;
           }
 
-          .submitSubnote {
-            margin: -2px 0 0;
+          .supplierFootnote {
+            margin-top: 28px;
             font-size: 13px;
-            line-height: 1.65;
+            line-height: 1.7;
             color: #667085;
-            max-width: 760px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(15, 23, 42, 0.08);
           }
 
           @media (max-width: 980px) {
@@ -1818,10 +1644,6 @@ export default function StartPage() {
             .twoCols,
             .oneColNarrow {
               grid-template-columns: 1fr;
-            }
-
-            .fieldHintBox {
-              justify-content: stretch;
             }
           }
 
@@ -1860,21 +1682,12 @@ export default function StartPage() {
               font-size: 30px;
             }
 
-            .summaryRow {
-              flex-direction: column;
-              gap: 4px;
-            }
-
-            .summaryRow strong {
-              text-align: left;
-            }
-
-            .processStep {
+            .simpleStep {
               grid-template-columns: 28px 1fr;
               gap: 10px;
             }
 
-            .processNumber {
+            .stepNumber {
               width: 28px;
               height: 28px;
               font-size: 13px;
