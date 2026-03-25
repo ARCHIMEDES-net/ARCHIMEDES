@@ -1,4 +1,3 @@
-
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 
@@ -6,6 +5,9 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
@@ -27,6 +29,198 @@ function normalizeLeadType(value, isDemoRequest = false) {
   return "obec";
 }
 
+function escapeHtml(value = "") {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function buildEmailLayout({
+  preheader = "",
+  eyebrow = "",
+  title = "",
+  intro = "",
+  bodyHtml = "",
+  noteHtml = "",
+}) {
+  const safePreheader = escapeHtml(preheader);
+  const safeEyebrow = escapeHtml(eyebrow);
+  const safeTitle = escapeHtml(title);
+
+  return `
+    <!doctype html>
+    <html lang="cs">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${safeTitle}</title>
+      </head>
+      <body style="margin:0;padding:0;background:#f4f6fb;font-family:Segoe UI,Arial,sans-serif;color:#0f172a;">
+        <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">
+          ${safePreheader}
+        </div>
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#f4f6fb;">
+          <tr>
+            <td align="center" style="padding:32px 16px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;max-width:720px;">
+                <tr>
+                  <td style="padding:0 0 14px 4px;font-size:28px;line-height:1.1;font-weight:900;color:#0f172a;">
+                    archimedes <span style="display:inline-block;padding:3px 8px;border-radius:8px;background:#ef4444;color:#ffffff;font-size:18px;vertical-align:middle;">live</span>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="background:#ffffff;border:1px solid rgba(15,23,42,0.08);border-radius:26px;padding:34px 30px;box-shadow:0 12px 34px rgba(15,23,42,0.05);">
+                    ${
+                      safeEyebrow
+                        ? `<div style="display:inline-flex;align-items:center;min-height:34px;padding:0 14px;border-radius:999px;background:#e9eef8;color:#223252;font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:18px;">${safeEyebrow}</div>`
+                        : ""
+                    }
+
+                    <h1 style="margin:0;font-size:34px;line-height:1.08;letter-spacing:-0.03em;font-weight:900;color:#0f172a;">
+                      ${safeTitle}
+                    </h1>
+
+                    ${
+                      intro
+                        ? `<div style="margin-top:16px;font-size:17px;line-height:1.75;color:#475467;">${intro}</div>`
+                        : ""
+                    }
+
+                    <div style="margin-top:22px;font-size:16px;line-height:1.75;color:#334155;">
+                      ${bodyHtml}
+                    </div>
+
+                    ${
+                      noteHtml
+                        ? `<div style="margin-top:22px;padding:18px 20px;border-radius:18px;background:#f8fafc;border:1px solid rgba(15,23,42,0.08);font-size:15px;line-height:1.7;color:#475467;">${noteHtml}</div>`
+                        : ""
+                    }
+
+                    <div style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(15,23,42,0.08);font-size:14px;line-height:1.7;color:#667085;">
+                      <strong style="color:#0f172a;">Tým ARCHIMEDES Live</strong><br />
+                      <a href="${escapeHtml(SITE_URL)}" style="color:#1d4ed8;text-decoration:none;">${escapeHtml(SITE_URL)}</a>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:14px 6px 0;font-size:12px;line-height:1.6;color:#94a3b8;text-align:center;">
+                    Tento e-mail byl odeslán v souvislosti s žádostí o přístup do ARCHIMEDES Live.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+}
+
+function buildApplicantEmail({ name, isDemoRequest }) {
+  const safeName = escapeHtml(name || "");
+
+  const intro = `
+    <p style="margin:0 0 12px;">Dobrý den${safeName ? ` ${safeName}` : ""},</p>
+    <p style="margin:0;">děkujeme za Váš zájem o ARCHIMEDES Live.</p>
+  `;
+
+  const bodyHtml = isDemoRequest
+    ? `
+      <div style="padding:18px 20px;border-radius:18px;background:#eefaf0;border:1px solid #cfe8d3;color:#166534;">
+        <strong>Vaši žádost o ukázkový přístup jsme v pořádku přijali.</strong>
+      </div>
+
+      <div style="margin-top:20px;">
+        <p style="margin:0 0 12px;">
+          Nyní ji zpracujeme a po schválení Vám pošleme e-mail s tlačítkem pro vstup do ukázkového prostředí ARCHIMEDES Live.
+        </p>
+
+        <p style="margin:0 0 12px;">
+          V ukázce si můžete projít, jak ARCHIMEDES Live funguje z pohledu školy a jak vypadá prostředí programu, archivu a pracovních materiálů.
+        </p>
+      </div>
+    `
+    : `
+      <div style="padding:18px 20px;border-radius:18px;background:#eefaf0;border:1px solid #cfe8d3;color:#166534;">
+        <strong>Vaši žádost o přístup jsme v pořádku přijali.</strong>
+      </div>
+
+      <div style="margin-top:20px;">
+        <p style="margin:0 0 12px;">
+          Ozveme se Vám s dalším postupem, vhodným typem přístupu a možnostmi zapojení do ARCHIMEDES Live.
+        </p>
+      </div>
+    `;
+
+  const noteHtml = isDemoRequest
+    ? `
+      Pokud e-mail během několika minut nenajdete, zkontrolujte prosím i složku Hromadné nebo Spam.<br /><br />
+      Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
+    `
+    : `
+      Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
+    `;
+
+  return {
+    subject: "ARCHIMEDES Live – přijali jsme Vaši žádost",
+    text: isDemoRequest
+      ? `
+Dobrý den${name ? ` ${name}` : ""},
+
+děkujeme za Váš zájem o ARCHIMEDES Live.
+
+Vaši žádost o ukázkový přístup jsme v pořádku přijali.
+
+Nyní ji zpracujeme a po schválení Vám pošleme e-mail s tlačítkem pro vstup do ukázkového prostředí ARCHIMEDES Live.
+
+V ukázce si můžete projít, jak ARCHIMEDES Live funguje z pohledu školy a jak vypadá prostředí programu, archivu a pracovních materiálů.
+
+Pokud e-mail během několika minut nenajdete, zkontrolujte prosím i složku Hromadné nebo Spam.
+
+Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
+
+S pozdravem,
+
+Tým ARCHIMEDES Live
+${SITE_URL}
+      `.trim()
+      : `
+Dobrý den${name ? ` ${name}` : ""},
+
+děkujeme za Váš zájem o ARCHIMEDES Live.
+
+Vaši žádost o přístup jsme v pořádku přijali.
+
+Ozveme se Vám s dalším postupem, vhodným typem přístupu a možnostmi zapojení do ARCHIMEDES Live.
+
+Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
+
+S pozdravem,
+
+Tým ARCHIMEDES Live
+${SITE_URL}
+      `.trim(),
+    html: buildEmailLayout({
+      preheader: isDemoRequest
+        ? "Vaši žádost o ukázkový přístup jsme přijali."
+        : "Vaši žádost o přístup jsme přijali.",
+      eyebrow: isDemoRequest ? "Ukázkový přístup" : "Žádost o přístup",
+      title: isDemoRequest
+        ? "Žádost o ukázkový přístup jsme přijali"
+        : "Žádost jsme přijali",
+      intro,
+      bodyHtml,
+      noteHtml,
+    }),
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -45,7 +239,6 @@ export default async function handler(req, res) {
       company,
     } = req.body || {};
 
-    // Honeypot ochrana
     if (company) {
       return res.status(200).json({
         ok: true,
@@ -149,14 +342,13 @@ export default async function handler(req, res) {
     const transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
-      secure: true,
+      secure: smtpPort === 465,
       auth: {
         user: smtpUser,
         pass: smtpPass,
       },
     });
 
-    // 1) Interní notifikace pro vás
     await transporter.sendMail({
       from: mailFrom,
       to: mailTo,
@@ -199,40 +391,17 @@ ${createdAt}
       `.trim(),
     });
 
-    // 2) Potvrzovací e-mail žadateli
+    const applicantMail = buildApplicantEmail({
+      name: cleanName,
+      isDemoRequest: demoMode,
+    });
+
     await transporter.sendMail({
       from: mailFrom,
       to: cleanEmail,
-      subject: "ARCHIMEDES Live – přijali jsme Vaši žádost",
-      text: `
-Dobrý den,
-
-děkujeme za Váš zájem o ARCHIMEDES Live.
-
-Vaši žádost jsme v pořádku přijali a nyní ji zpracováváme.
-
-V nejbližší době Vám zašleme přístup do ukázkového prostředí,
-kde si můžete projít, jak ARCHIMEDES Live funguje ve škole i v obci.
-
-Součástí přístupu bude:
-– ukázka programu
-– reálné vysílání
-– archiv a pracovní materiály
-
-Po schválení Vám přijde e-mail s výzvou „Reset Password“.
-Jedná se o standardní bezpečnostní krok pro vytvoření Vašeho přístupu.
-
-Stačí kliknout na odkaz v tomto e-mailu a nastavit si vlastní heslo.
-
-Pokud e-mail nenajdete během několika minut, zkontrolujte prosím i složku spam.
-
-Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
-
-Těšíme se na spolupráci.
-
-ARCHIMEDES Live
-www.archimedeslive.com
-      `.trim(),
+      subject: applicantMail.subject,
+      text: applicantMail.text,
+      html: applicantMail.html,
     });
 
     return res.status(200).json({
