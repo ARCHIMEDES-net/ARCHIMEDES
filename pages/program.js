@@ -71,7 +71,7 @@ const priceCards = [
     suffix: "/ měsíc",
     badge: "doporučená varianta",
     description:
-      "Pravidelný vzdělávací a komunitní program pro školu i obec během celého roku.",
+      "Nejkomplexnější varianta pro školy a obce, které chtějí během roku využívat školní program, senior klub i komunitní část.",
     items: [
       "živá vysílání pro školy",
       "program pro seniory a komunitu",
@@ -84,7 +84,7 @@ const priceCards = [
     suffix: "/ měsíc",
     badge: "samostatný formát",
     description:
-      "Samostatný vzdělávací formát pro školu se zaměřením na živé vstupy a práci s třídou.",
+      "Samostatná varianta pro školy, které chtějí pravidelně využívat živé vstupy pro výuku a práci s třídou.",
     items: [
       "živá vysílání pro I. a II. stupeň",
       "vhodné i jako startovní varianta",
@@ -97,7 +97,7 @@ const priceCards = [
     suffix: "/ měsíc",
     badge: "pro seniory",
     description:
-      "Pravidelný program pro seniory s inspirativními hosty, setkáváním a tématy pro každodenní život.",
+      "Pravidelný program pro seniory s inspirativními hosty, setkáváním a tématy pro každodenní život v obci.",
     items: [
       "pravidelné setkávání během roku",
       "vhodné i pro menší obce a komunitní skupiny",
@@ -109,7 +109,7 @@ const priceCards = [
     suffix: "/ měsíc",
     badge: "pro komunitu",
     description:
-      "Pravidelný komunitní nebo tematický program pro veřejnost, spolky a místní setkávání.",
+      "Program pro obec, spolky a veřejnost zaměřený na komunitní setkávání, tematické vstupy a místní život.",
     items: [
       "kulturní a komunitní rozměr",
       "mimořádné tematické vstupy a speciály",
@@ -834,8 +834,8 @@ export default function ProgramPage() {
           <section id="zapojeni" style={{ marginTop: 84 }}>
             <SectionTitle
               eyebrow="Zapojení do programu"
-              title="Jak se škola nebo obec může zapojit"
-              text="Vyberte si variantu, která odpovídá tomu, jak chcete program využívat. Smyslem je, aby škola i obec rychle pochopily, co v programu získají a jak jednoduše ho mohou zapojit do svého roku."
+              title="Jakou variantu programu můžete využít"
+              text="Nejčastěji školy a obce volí společnou variantu, která propojuje školní program, senior klub i komunitní část. Menší formáty lze využít i samostatně."
             />
 
             <div
@@ -850,6 +850,59 @@ export default function ProgramPage() {
               {priceCards.map((card, idx) => (
                 <PriceCard key={card.title} {...card} featured={idx === 0} />
               ))}
+            </div>
+
+            <div
+              style={{
+                marginTop: 26,
+                background: "#fff",
+                border: "1px solid #e2e8f0",
+                borderRadius: 22,
+                padding: "24px 22px",
+                boxShadow: "0 14px 36px rgba(15,23,42,0.05)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 18,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ maxWidth: 720 }}>
+                <div
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 800,
+                    color: "#0f172a",
+                    lineHeight: 1.3,
+                  }}
+                >
+                  Nejste si jistí, která varianta je pro vás vhodná?
+                </div>
+                <p
+                  style={{
+                    margin: "10px 0 0",
+                    fontSize: 16,
+                    lineHeight: 1.7,
+                    color: "#475569",
+                  }}
+                >
+                  Nejrychlejší je vidět program naživo nebo se krátce poradit podle
+                  toho, zda řešíte školu, obec, seniory nebo kombinaci více formátů.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  flexWrap: "wrap",
+                }}
+              >
+                <PrimaryButton href="/demo">Chci vidět demo</PrimaryButton>
+                <SecondaryButton href="/poptavka">
+                  Chci doporučit vhodnou variantu
+                </SecondaryButton>
+              </div>
             </div>
           </section>
 
