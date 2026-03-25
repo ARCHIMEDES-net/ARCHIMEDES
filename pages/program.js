@@ -10,7 +10,7 @@ const schoolItems = [
   },
   {
     title: "II. stupeň – Svět v souvislostech",
-    text: "aktuální témata společnosti, veřejného prostoru, Evropy a života kolem nás",
+    text: "aktuální témata, rozhovory a exkurze v angličtině ze zahraničí, výuka živě z praxe ",
   },
   {
     title: "Kariérní poradenství jinak",
