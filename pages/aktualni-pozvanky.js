@@ -1,9 +1,9 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
 
-const invites = [
+const fallbackInvites = [
   {
     title: "Pozvánka",
     href: "https://www.instagram.com/p/DVvUBXDCMYC/",
@@ -23,6 +23,53 @@ const invites = [
 
 export default function AktualniPozvankyPage() {
   const [isOpen, setIsOpen] = useState(false);
+  const [invites, setInvites] = useState(fallbackInvites);
+  const [loadingInvites, setLoadingInvites] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadInvites() {
+      try {
+        setLoadingInvites(true);
+
+        const response = await fetch("/api/instagram", {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        const items = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.items)
+          ? data.items
+          : [];
+
+        if (active && items.length > 0) {
+          setInvites(
+            items.map((item) => ({
+              title: item.title || "Pozvánka",
+              href: item.href,
+              embed: item.embed,
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Nepodařilo se načíst Instagram pozvánky:", error);
+      } finally {
+        if (active) setLoadingInvites(false);
+      }
+    }
+
+    loadInvites();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <>
@@ -135,6 +182,12 @@ export default function AktualniPozvankyPage() {
               Aktuální videopozvánky
             </h2>
           </div>
+
+          {loadingInvites && (
+            <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+              Načítám aktuální videopozvánky…
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
             {invites.map((item) => (
