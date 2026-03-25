@@ -97,9 +97,9 @@ const priceCards = [
     suffix: "/ měsíc",
     badge: "pro seniory",
     description:
-      "Jednorázový vstup do Senior klubu s inspirativním hostem a společným setkáním.",
+      "Pravidelný program pro seniory s inspirativními hosty, setkáváním a tématy pro každodenní život.",
     items: [
-      "rychlá cesta, jak si formát vyzkoušet",
+      "pravidelné setkávání během roku",
       "vhodné i pro menší obce a komunitní skupiny",
     ],
   },
@@ -109,7 +109,7 @@ const priceCards = [
     suffix: "/ měsíc",
     badge: "pro komunitu",
     description:
-      "Jednorázový komunitní nebo tematický program pro veřejnost, spolky a místní setkávání.",
+      "Pravidelný komunitní nebo tematický program pro veřejnost, spolky a místní setkávání.",
     items: [
       "kulturní a komunitní rozměr",
       "mimořádné tematické vstupy a speciály",
@@ -246,34 +246,6 @@ function TertiaryButton({ href, children }) {
   );
 }
 
-function SeniorButton({ href, children }) {
-  return (
-    <Link
-      href={href}
-      className="senior-cta"
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 22px",
-        borderRadius: 14,
-        background: "linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)",
-        color: "#9a3412",
-        textDecoration: "none",
-        fontWeight: 800,
-        fontSize: 16,
-        border: "1px solid #fdba74",
-        boxShadow: "0 10px 24px rgba(154,52,18,0.08)",
-        transition:
-          "transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease",
-      }}
-    >
-      {children}
-    </Link>
-  );
-}
-
 function ProgramCard({ color, title, intro, items }) {
   return (
     <div
@@ -359,59 +331,6 @@ function ProgramCard({ color, title, intro, items }) {
             </div>
           </div>
         ))}
-      </div>
-    </div>
-  );
-}
-
-function FeatureRow({ image, title, text, reverse = false }) {
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1.1fr 1fr",
-        gap: 28,
-        alignItems: "center",
-        marginTop: 34,
-      }}
-      className={reverse ? "feature-row reverse" : "feature-row"}
-    >
-      <div style={{ order: reverse ? 2 : 1 }}>
-        <img
-          src={image}
-          alt={title}
-          style={{
-            width: "100%",
-            display: "block",
-            borderRadius: 24,
-            objectFit: "cover",
-            boxShadow: "0 18px 44px rgba(15,23,42,0.10)",
-          }}
-        />
-      </div>
-
-      <div style={{ order: reverse ? 1 : 2 }}>
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 32,
-            lineHeight: 1.15,
-            color: "#0f172a",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {title}
-        </h3>
-        <p
-          style={{
-            margin: "16px 0 0",
-            fontSize: 18,
-            lineHeight: 1.75,
-            color: "#475569",
-          }}
-        >
-          {text}
-        </p>
       </div>
     </div>
   );
@@ -651,7 +570,7 @@ export default function ProgramPage() {
                     marginBottom: 18,
                   }}
                 >
-                  Živý program pro školy a obce
+                  Živý program pro školu a obec
                 </div>
 
                 <h1
@@ -663,7 +582,7 @@ export default function ProgramPage() {
                     letterSpacing: "-0.04em",
                   }}
                 >
-                  Program pro školy,
+                  Živý program pro školu,
                   <br />
                   seniory a komunitu obce
                 </h1>
@@ -677,9 +596,8 @@ export default function ProgramPage() {
                     maxWidth: 620,
                   }}
                 >
-                  ARCHIMEDES Live propojuje školu, seniory a komunitní život obce.
-                  Během roku přináší živá vysílání, inspirativní hosty a tematické
-                  programy pro různé generace.
+                  ARCHIMEDES Live přináší během roku živá vysílání, inspirativní
+                  hosty a pravidelný obsah pro výuku, seniory i komunitní život obce.
                 </p>
 
                 <p
@@ -691,8 +609,8 @@ export default function ProgramPage() {
                     maxWidth: 620,
                   }}
                 >
-                  Jednoduchý způsob, jak dát obci pravidelný vzdělávací a komunitní
-                  program.
+                  Jednoduchý způsob, jak dát škole i obci smysluplný program, který
+                  běží pravidelně a je snadné ho využívat.
                 </p>
 
                 <p
@@ -720,15 +638,13 @@ export default function ProgramPage() {
                 >
                   <PrimaryButton href="/demo">Mám zájem o demo</PrimaryButton>
 
-                  <SecondaryButton href="#zapojeni">Jak se zapojit</SecondaryButton>
+                  <SecondaryButton href="#zapojeni">
+                    Jak se škola nebo obec zapojí
+                  </SecondaryButton>
 
                   <TertiaryButton href="/financovani-skoly">
                     Pro školy – financování z OP JAK
                   </TertiaryButton>
-
-                  <SeniorButton href="/poptavka">
-                    Senior klub - registrace
-                  </SeniorButton>
                 </div>
               </div>
 
@@ -842,7 +758,7 @@ export default function ProgramPage() {
           <section id="ukazky-vysilani" style={{ marginTop: 84 }}>
             <SectionTitle
               eyebrow="Ukázky vysílání"
-              title="Jak vypadá ARCHIMEDES Live naživo"
+              title="Jak vypadá jedna hodina s ARCHIMEDES Live"
               text="Krátké ukázky z reálných vysílání pomáhají rychle pochopit atmosféru, formát i možnosti programu."
             />
 
@@ -876,7 +792,7 @@ export default function ProgramPage() {
           <section style={{ marginTop: 72 }}>
             <SectionTitle
               title="Hlavní rubriky programu"
-              text="Program ARCHIMEDES Live propojuje školu, seniory i komunitní život obce. Během roku přináší živá vysílání, inspirativní hosty a tematické formáty, které mohou školy i obce pravidelně využívat."
+              text="Součástí ARCHIMEDES Live jsou živé vstupy pro výuku, program pro seniory i komunitní formáty, které může škola a obec využívat během celého roku."
             />
 
             <div
@@ -915,38 +831,11 @@ export default function ProgramPage() {
             </div>
           </section>
 
-          <section style={{ marginTop: 78 }}>
-            <SectionTitle
-              eyebrow="Interaktivní ARCHIMEDES Live v praxi"
-              title="Živý program, který baví"
-              text="ARCHIMEDES Live je pravidelný program, který přináší do školy i obce energii, témata a posiluje komunitu."
-            />
-
-            <FeatureRow
-              image="/komunita.jpg"
-              title="Pro školy, které chtějí děti opravdu vtáhnout do dění"
-              text="Program pro školy staví na tématech, která žáky baví a pomáhají jim vnímat svět v souvislostech. Díky živým vstupům, hostům z praxe a aktuálním tématům získává výuka větší energii, přirozenou pozornost i prostor pro otázky."
-            />
-
-            <FeatureRow
-              image="/program-seniori.jpg"
-              title="Pro seniory, kteří chtějí zůstat v kontaktu, aktivní a spolu"
-              text="Senior klub a navazující formáty dávají obci pravidelný program pro starší generaci. Vzniká prostor pro setkávání, rozhovory, inspiraci i sdílení témat, která mají smysl pro každodenní život."
-              reverse
-            />
-
-            <FeatureRow
-              image="/program-vysilani.webp"
-              title="Jedno místo, odkud program běží do školy i celé komunity"
-              text="Program může obec využívat jako živé vysílání, společné promítání i navazující komunitní setkání. Díky tomu vzniká jednoduchý a přehledný model, který je srozumitelný pro školu, obec i veřejnost."
-            />
-          </section>
-
           <section id="zapojeni" style={{ marginTop: 84 }}>
             <SectionTitle
               eyebrow="Zapojení do programu"
               title="Jak se škola nebo obec může zapojit"
-              text="Cena je součástí programu. Smyslem je, aby škola i obec rychle pochopily, jaké formáty mohou využívat a co v programu získají."
+              text="Vyberte si variantu, která odpovídá tomu, jak chcete program využívat. Smyslem je, aby škola i obec rychle pochopily, co v programu získají a jak jednoduše ho mohou zapojit do svého roku."
             />
 
             <div
@@ -1017,11 +906,6 @@ export default function ProgramPage() {
           transform: translateY(-1px);
         }
 
-        .hero-cta-grid :global(.senior-cta:hover) {
-          box-shadow: 0 16px 30px rgba(154, 52, 18, 0.14);
-          background: linear-gradient(135deg, #fff1e6 0%, #fed7aa 100%);
-        }
-
         @media (max-width: 1100px) {
           .program-grid,
           .price-grid {
@@ -1032,13 +916,8 @@ export default function ProgramPage() {
             grid-template-columns: 1fr !important;
           }
 
-          .hero-grid,
-          .feature-row {
+          .hero-grid {
             grid-template-columns: 1fr !important;
-          }
-
-          .feature-row.reverse > div {
-            order: initial !important;
           }
 
           .program-poster-hero {
