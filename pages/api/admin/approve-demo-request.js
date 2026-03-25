@@ -291,62 +291,118 @@ Dobrý den${contactName ? ` ${contactName}` : ""},
 váš ukázkový přístup do ARCHIMEDES Live byl schválen.
 
 ${organization ? `Organizace uvedená v žádosti: ${organization}\n` : ""}
-Pro nastavení hesla a vstup do ukázkového prostředí použijte tento odkaz:
+Pro nastavení hesla a vstup do ukázkového prostředí použijte tlačítko nebo odkaz níže:
 ${actionLink}
-
-Po nastavení hesla se můžete přihlásit do ukázkového režimu ARCHIMEDES Live.
 
 Pokud by odkaz nefungoval nebo vypršel, ozvěte se prosím a pošleme vám nový.
 
-ARCHIMEDES Live
+S pozdravem,
+
+Tým ARCHIMEDES Live
 ${SITE_URL}
   `.trim();
 
   const html = `
-    <div style="font-family:Segoe UI,Arial,sans-serif;color:#0f172a;line-height:1.6;">
-      <p>Dobrý den${safeName ? ` ${safeName}` : ""},</p>
+    <!doctype html>
+    <html lang="cs">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ARCHIMEDES Live – schválený ukázkový přístup</title>
+      </head>
+      <body style="margin:0;padding:0;background:#f4f6fb;font-family:Segoe UI,Arial,sans-serif;color:#0f172a;">
+        <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">
+          Váš ukázkový přístup do ARCHIMEDES Live byl schválen.
+        </div>
 
-      <p>váš <strong>ukázkový přístup do ARCHIMEDES Live</strong> byl schválen.</p>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#f4f6fb;">
+          <tr>
+            <td align="center" style="padding:32px 16px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;max-width:720px;">
+                <tr>
+                  <td style="padding:0 0 14px 4px;font-size:28px;line-height:1.1;font-weight:900;color:#0f172a;">
+                    archimedes <span style="display:inline-block;padding:3px 8px;border-radius:8px;background:#ef4444;color:#ffffff;font-size:18px;vertical-align:middle;">live</span>
+                  </td>
+                </tr>
 
-      ${
-        safeOrganization
-          ? `<p><strong>Organizace uvedená v žádosti:</strong> ${safeOrganization}</p>`
-          : ""
-      }
+                <tr>
+                  <td style="background:#ffffff;border:1px solid rgba(15,23,42,0.08);border-radius:26px;padding:34px 30px;box-shadow:0 12px 34px rgba(15,23,42,0.05);">
+                    <div style="display:inline-flex;align-items:center;min-height:34px;padding:0 14px;border-radius:999px;background:#e9eef8;color:#223252;font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:18px;">
+                      Ukázkový přístup
+                    </div>
 
-      <p>Pro nastavení hesla a vstup do ukázkového prostředí použijte toto tlačítko:</p>
+                    <h1 style="margin:0;font-size:34px;line-height:1.08;letter-spacing:-0.03em;font-weight:900;color:#0f172a;">
+                      Váš ukázkový přístup byl schválen
+                    </h1>
 
-      <p style="margin:24px 0;">
-        <a
-          href="${safeActionLink}"
-          style="
-            display:inline-block;
-            padding:14px 20px;
-            border-radius:14px;
-            background:#0f172a;
-            color:#ffffff;
-            text-decoration:none;
-            font-weight:700;
-          "
-        >
-          Nastavit heslo a otevřít DEMO
-        </a>
-      </p>
+                    <div style="margin-top:16px;font-size:17px;line-height:1.75;color:#475467;">
+                      <p style="margin:0 0 12px;">Dobrý den${safeName ? ` ${safeName}` : ""},</p>
+                      <p style="margin:0;">váš ukázkový přístup do ARCHIMEDES Live je připraven.</p>
+                    </div>
 
-      <p>Pokud by tlačítko nefungovalo, použijte tento odkaz:</p>
-      <p style="word-break:break-all;">
-        <a href="${safeActionLink}">${safeActionLink}</a>
-      </p>
+                    ${
+                      safeOrganization
+                        ? `
+                    <div style="margin-top:22px;padding:18px 20px;border-radius:18px;background:#f8fafc;border:1px solid rgba(15,23,42,0.08);font-size:15px;line-height:1.7;color:#334155;">
+                      <strong style="color:#0f172a;">Organizace uvedená v žádosti:</strong><br />
+                      ${safeOrganization}
+                    </div>
+                    `
+                        : ""
+                    }
 
-      <p>Po nastavení hesla se můžete přihlásit do ukázkového režimu ARCHIMEDES Live.</p>
+                    <div style="margin-top:22px;padding:18px 20px;border-radius:18px;background:#eef6ff;border:1px solid rgba(37,99,235,0.12);font-size:16px;line-height:1.75;color:#1f3b75;">
+                      Pro nastavení hesla a vstup do ukázkového prostředí použijte tlačítko níže.
+                    </div>
 
-      <p>Pokud by odkaz nefungoval nebo vypršel, ozvěte se prosím a pošleme vám nový.</p>
+                    <p style="margin:24px 0 0;">
+                      <a
+                        href="${safeActionLink}"
+                        style="
+                          display:inline-block;
+                          padding:15px 22px;
+                          border-radius:14px;
+                          background:#0f172a;
+                          color:#ffffff;
+                          text-decoration:none;
+                          font-weight:800;
+                          font-size:16px;
+                          line-height:1.2;
+                        "
+                      >
+                        Nastavit heslo a otevřít DEMO
+                      </a>
+                    </p>
 
-      <p style="margin-top:28px;">
-        ARCHIMEDES Live<br />
-        <a href="${escapeHtml(SITE_URL)}">${escapeHtml(SITE_URL)}</a>
-      </p>
-    </div>
+                    <div style="margin-top:22px;font-size:15px;line-height:1.75;color:#334155;">
+                      <p style="margin:0 0 12px;">Pokud by tlačítko nefungovalo, použijte tento odkaz:</p>
+                      <p style="margin:0;word-break:break-all;">
+                        <a href="${safeActionLink}" style="color:#1d4ed8;text-decoration:none;">${safeActionLink}</a>
+                      </p>
+                    </div>
+
+                    <div style="margin-top:22px;padding:18px 20px;border-radius:18px;background:#f8fafc;border:1px solid rgba(15,23,42,0.08);font-size:15px;line-height:1.7;color:#475467;">
+                      Pokud by odkaz nefungoval nebo vypršel, ozvěte se prosím a pošleme vám nový.
+                    </div>
+
+                    <div style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(15,23,42,0.08);font-size:14px;line-height:1.7;color:#667085;">
+                      <strong style="color:#0f172a;">Tým ARCHIMEDES Live</strong><br />
+                      <a href="${escapeHtml(SITE_URL)}" style="color:#1d4ed8;text-decoration:none;">${escapeHtml(SITE_URL)}</a>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:14px 6px 0;font-size:12px;line-height:1.6;color:#94a3b8;text-align:center;">
+                    Tento e-mail byl odeslán v souvislosti se schválením ukázkového přístupu do ARCHIMEDES Live.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
   `.trim();
 
   return { subject, text, html };
