@@ -1,4 +1,3 @@
-
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 
@@ -569,6 +568,409 @@ async function resolveUserForEmail({
   };
 }
 
+function buildEmailLayout({
+  preheader = "",
+  eyebrow = "",
+  title = "",
+  intro = "",
+  bodyHtml = "",
+  noteHtml = "",
+}) {
+  const safePreheader = escapeHtml(preheader);
+  const safeEyebrow = escapeHtml(eyebrow);
+  const safeTitle = escapeHtml(title);
+  const safeIntro = intro || "";
+  const safeBodyHtml = bodyHtml || "";
+  const safeNoteHtml = noteHtml || "";
+
+  return `
+    <!doctype html>
+    <html lang="cs">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${safeTitle}</title>
+      </head>
+      <body style="margin:0;padding:0;background:#f4f6fb;font-family:Segoe UI,Arial,sans-serif;color:#0f172a;">
+        <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">
+          ${safePreheader}
+        </div>
+
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#f4f6fb;">
+          <tr>
+            <td align="center" style="padding:32px 16px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;max-width:720px;">
+                <tr>
+                  <td style="padding:0 0 14px 4px;font-size:28px;line-height:1.1;font-weight:900;color:#0f172a;">
+                    archimedes <span style="display:inline-block;padding:3px 8px;border-radius:8px;background:#ef4444;color:#ffffff;font-size:18px;vertical-align:middle;">live</span>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="background:#ffffff;border:1px solid rgba(15,23,42,0.08);border-radius:26px;padding:34px 30px;box-shadow:0 12px 34px rgba(15,23,42,0.05);">
+                    ${
+                      safeEyebrow
+                        ? `<div style="display:inline-flex;align-items:center;min-height:34px;padding:0 14px;border-radius:999px;background:#e9eef8;color:#223252;font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:18px;">${safeEyebrow}</div>`
+                        : ""
+                    }
+
+                    <h1 style="margin:0;font-size:34px;line-height:1.08;letter-spacing:-0.03em;font-weight:900;color:#0f172a;">
+                      ${safeTitle}
+                    </h1>
+
+                    ${
+                      safeIntro
+                        ? `<div style="margin-top:16px;font-size:17px;line-height:1.75;color:#475467;">${safeIntro}</div>`
+                        : ""
+                    }
+
+                    <div style="margin-top:22px;font-size:16px;line-height:1.75;color:#334155;">
+                      ${safeBodyHtml}
+                    </div>
+
+                    ${
+                      safeNoteHtml
+                        ? `<div style="margin-top:22px;padding:18px 20px;border-radius:18px;background:#f8fafc;border:1px solid rgba(15,23,42,0.08);font-size:15px;line-height:1.7;color:#475467;">${safeNoteHtml}</div>`
+                        : ""
+                    }
+
+                    <div style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(15,23,42,0.08);font-size:14px;line-height:1.7;color:#667085;">
+                      <strong style="color:#0f172a;">ARCHIMEDES Live</strong><br />
+                      EduVision s.r.o.<br />
+                      <a href="${escapeHtml(SITE_URL)}" style="color:#1d4ed8;text-decoration:none;">${escapeHtml(SITE_URL)}</a>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:14px 6px 0;font-size:12px;line-height:1.6;color:#94a3b8;text-align:center;">
+                    Tento e-mail byl odeslán v souvislosti s objednávkou nebo přístupem do ARCHIMEDES Live.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+}
+
+function buildInternalOrderHtml({
+  schoolName,
+  ico,
+  street,
+  city,
+  zip,
+  contactName,
+  role,
+  email,
+  adminEmail,
+  phone,
+  note,
+  safeAuthUserPresent,
+  safeCurrentUserEmail,
+  safeOnboardingMode,
+  safeResolvedOrganizationName,
+  safeOrderingSource,
+  safeAdminSource,
+  safeOrderingInviteSent,
+  safeAdminInviteSent,
+  safeOrderingUserRole,
+  samePerson,
+  safeActiveOrgOrdering,
+  safeActiveOrgAdmin,
+  safeJoinCode,
+  safeOnboardingStatus,
+  safeOnboardingError,
+  now,
+  clientIp,
+}) {
+  return `
+    <h2 style="margin:0 0 16px;font-size:24px;line-height:1.2;color:#0f172a;">Nová objednávka – ARCHIMEDES START</h2>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin-top:8px;">
+      <tr>
+        <td style="padding:8px 0;font-weight:700;color:#0f172a;">Škola:</td>
+        <td style="padding:8px 0;color:#334155;">${schoolName}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;font-weight:700;color:#0f172a;">IČO:</td>
+        <td style="padding:8px 0;color:#334155;">${ico}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;font-weight:700;color:#0f172a;">Kontakt:</td>
+        <td style="padding:8px 0;color:#334155;">${contactName}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;font-weight:700;color:#0f172a;">Funkce:</td>
+        <td style="padding:8px 0;color:#334155;">${role}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;font-weight:700;color:#0f172a;">E-mail objednatele:</td>
+        <td style="padding:8px 0;color:#334155;">${email}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;font-weight:700;color:#0f172a;">E-mail admina:</td>
+        <td style="padding:8px 0;color:#334155;">${adminEmail}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;font-weight:700;color:#0f172a;">Telefon:</td>
+        <td style="padding:8px 0;color:#334155;">${phone}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;font-weight:700;color:#0f172a;vertical-align:top;">Adresa:</td>
+        <td style="padding:8px 0;color:#334155;">${street}<br/>${city} ${zip}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;font-weight:700;color:#0f172a;vertical-align:top;">Poznámka:</td>
+        <td style="padding:8px 0;color:#334155;">${note}</td>
+      </tr>
+    </table>
+
+    <div style="margin-top:24px;padding:18px 20px;border-radius:18px;background:#f8fafc;border:1px solid rgba(15,23,42,0.08);">
+      <div style="font-size:14px;font-weight:900;color:#0f172a;margin-bottom:10px;">Technické shrnutí onboardingu</div>
+      <div style="font-size:14px;line-height:1.7;color:#334155;">
+        <strong>Serverem ověřený přihlášený uživatel:</strong> ${safeAuthUserPresent}<br/>
+        <strong>Přihlášený uživatel:</strong> ${safeCurrentUserEmail}<br/>
+        <strong>Režim objednávky:</strong> ${safeOnboardingMode}<br/>
+        <strong>Vyřešená organizace:</strong> ${safeResolvedOrganizationName}<br/>
+        <strong>Ordering source:</strong> ${safeOrderingSource}<br/>
+        <strong>Admin source:</strong> ${safeAdminSource}<br/>
+        <strong>Invite odeslán objednateli:</strong> ${safeOrderingInviteSent}<br/>
+        <strong>Invite odeslán adminovi:</strong> ${safeAdminInviteSent}<br/>
+        <strong>Role objednatele:</strong> ${safeOrderingUserRole}<br/>
+        <strong>Objednatel = admin:</strong> ${samePerson ? "ano" : "ne"}<br/>
+        <strong>active_organization_id nastaven objednateli:</strong> ${safeActiveOrgOrdering}<br/>
+        <strong>active_organization_id nastaven adminovi:</strong> ${safeActiveOrgAdmin}<br/>
+        <strong>Kód organizace:</strong> ${safeJoinCode}<br/>
+        <strong>Onboarding stav:</strong> ${safeOnboardingStatus}<br/>
+        <strong>Onboarding chyba:</strong> ${safeOnboardingError}<br/>
+        <strong>Právní verze:</strong> ${escapeHtml(LEGAL_VERSION)}<br/>
+        <strong>Odesláno:</strong> ${escapeHtml(now)}<br/>
+        <strong>IP:</strong> ${escapeHtml(clientIp || "-")}
+      </div>
+    </div>
+
+    <div style="margin-top:20px;padding:18px 20px;border-radius:18px;background:#eefaf0;border:1px solid #cfe8d3;color:#166534;font-size:15px;line-height:1.7;">
+      <strong>Souhlasy:</strong><br/>
+      VOP: ano<br/>
+      DPA: ano<br/>
+      Pravidla záznamů: ano<br/>
+      Oprávnění jednat za organizaci: ano<br/>
+      Objednání START s povinností úhrady: ano
+    </div>
+  `;
+}
+
+function buildOrdererEmailHtml({
+  schoolName,
+  contactName,
+  adminEmail,
+  safeJoinCode,
+  onboardingStatus,
+  orderingNeedsActivation,
+  ordererIsAdmin,
+}) {
+  const intro = `
+    <p style="margin:0 0 12px;">Dobrý den${contactName ? ` ${contactName}` : ""},</p>
+    <p style="margin:0;">vaši objednávku balíčku <strong>START</strong> jsme přijali.</p>
+  `;
+
+  const body = `
+    <div style="padding:18px 20px;border-radius:18px;background:#f8fafc;border:1px solid rgba(15,23,42,0.08);">
+      <div style="font-size:14px;font-weight:900;color:#0f172a;margin-bottom:10px;">Shrnutí objednávky</div>
+      <div style="font-size:15px;line-height:1.7;color:#334155;">
+        <strong>Škola / organizace:</strong> ${schoolName}<br/>
+        <strong>Administrátor programu:</strong> ${adminEmail}<br/>
+        <strong>Období:</strong> duben–září 2026<br/>
+        <strong>Cena:</strong> 4 990 Kč bez DPH
+        ${
+          onboardingStatus === "completed"
+            ? `<br/><strong>Kód organizace:</strong> ${safeJoinCode}`
+            : ""
+        }
+      </div>
+    </div>
+
+    ${
+      onboardingStatus === "completed"
+        ? `
+      <div style="margin-top:20px;padding:18px 20px;border-radius:18px;background:#eefaf0;border:1px solid #cfe8d3;color:#166534;">
+        <strong>Objednávka byla úspěšně zpracována.</strong><br/>
+        Škola byla připravena v systému ARCHIMEDES Live.
+      </div>
+
+      <div style="margin-top:20px;">
+        ${
+          orderingNeedsActivation
+            ? `<p style="margin:0 0 12px;">Na váš e-mail byl odeslán také samostatný systémový e-mail pro nastavení přístupu.</p>`
+            : `<p style="margin:0 0 12px;">Pokud už máte účet v ARCHIMEDES Live, škola byla přiřazena k vašemu stávajícímu přístupu.</p>`
+        }
+
+        ${
+          ordererIsAdmin
+            ? `<p style="margin:0;">Jste zároveň správcem programu. Další informace k přístupu jsme vám poslali samostatně.</p>`
+            : `<p style="margin:0;">Správci programu byly odeslány samostatné informace k přístupu do portálu.</p>`
+        }
+      </div>
+    `
+        : `
+      <div style="margin-top:20px;padding:18px 20px;border-radius:18px;background:#fff8e8;border:1px solid #f0dfaf;color:#6b4f00;">
+        <strong>Objednávku jsme přijali, ale dokončení přístupu ještě vyžaduje naši krátkou kontrolu.</strong><br/>
+        Navážeme na vás e-mailem a vše dokončíme.
+      </div>
+    `
+    }
+  `;
+
+  const note = `
+    V nejbližším kroku vám zašleme fakturační podklady a další organizační informace.<br/><br/>
+    Důležité dokumenty:<br/>
+    <a href="${SITE_URL}/vop" style="color:#1d4ed8;text-decoration:none;">${SITE_URL}/vop</a><br/>
+    <a href="${SITE_URL}/dpa" style="color:#1d4ed8;text-decoration:none;">${SITE_URL}/dpa</a><br/>
+    <a href="${SITE_URL}/pravidla-zaznamu" style="color:#1d4ed8;text-decoration:none;">${SITE_URL}/pravidla-zaznamu</a><br/>
+    <a href="${SITE_URL}/ochrana-osobnich-udaju" style="color:#1d4ed8;text-decoration:none;">${SITE_URL}/ochrana-osobnich-udaju</a>
+  `;
+
+  return buildEmailLayout({
+    preheader: "Potvrzení objednávky START programu ARCHIMEDES Live.",
+    eyebrow: "Potvrzení objednávky",
+    title: "Objednávka START byla přijata",
+    intro,
+    bodyHtml: body,
+    noteHtml: note,
+  });
+}
+
+function buildAdminInvitedEmailHtml({
+  schoolName,
+  adminEmail,
+  safeJoinCode,
+}) {
+  const intro = `
+    <p style="margin:0 0 12px;">Dobrý den,</p>
+    <p style="margin:0;">pro školu <strong>${schoolName}</strong> jsme pro vás připravili přístup do ARCHIMEDES Live.</p>
+  `;
+
+  const body = `
+    <div style="padding:18px 20px;border-radius:18px;background:#f8fafc;border:1px solid rgba(15,23,42,0.08);">
+      <div style="font-size:14px;font-weight:900;color:#0f172a;margin-bottom:10px;">Vaše role a údaje</div>
+      <div style="font-size:15px;line-height:1.7;color:#334155;">
+        <strong>Vaše role:</strong> administrátor školy<br/>
+        <strong>E-mail administrátora:</strong> ${adminEmail}<br/>
+        <strong>Kód organizace:</strong> ${safeJoinCode}
+      </div>
+    </div>
+
+    <div style="margin-top:20px;padding:18px 20px;border-radius:18px;background:#eef6ff;border:1px solid rgba(37,99,235,0.12);color:#1f3b75;">
+      <strong>Další krok:</strong><br/>
+      Za chvíli vám přijde také automatický systémový e-mail pro nastavení hesla. Pro dokončení přístupu použijte odkaz právě v tomto e-mailu.
+    </div>
+
+    <div style="margin-top:20px;">
+      <p style="margin:0 0 12px;">
+        Po nastavení hesla se přihlásíte zde:<br/>
+        <a href="${SITE_URL}/login" style="color:#1d4ed8;text-decoration:none;">${SITE_URL}/login</a>
+      </p>
+
+      <p style="margin:0;">
+        Po přihlášení můžete spravovat přístup školy a přidávat další kolegy.
+      </p>
+    </div>
+  `;
+
+  const note = `
+    Pokud by automatický systémový e-mail během několika minut nedorazil, zkontrolujte prosím složku Hromadné nebo Spam.
+  `;
+
+  return buildEmailLayout({
+    preheader: "Dokončete nastavení přístupu do ARCHIMEDES Live.",
+    eyebrow: "Přístup do školy",
+    title: "Dokončete nastavení přístupu",
+    intro,
+    bodyHtml: body,
+    noteHtml: note,
+  });
+}
+
+function buildAdminExistingEmailHtml({
+  schoolName,
+  adminEmail,
+  safeJoinCode,
+}) {
+  const intro = `
+    <p style="margin:0 0 12px;">Dobrý den,</p>
+    <p style="margin:0;">škola <strong>${schoolName}</strong> byla přiřazena k vašemu účtu v ARCHIMEDES Live.</p>
+  `;
+
+  const body = `
+    <div style="padding:18px 20px;border-radius:18px;background:#f8fafc;border:1px solid rgba(15,23,42,0.08);">
+      <div style="font-size:14px;font-weight:900;color:#0f172a;margin-bottom:10px;">Vaše role a údaje</div>
+      <div style="font-size:15px;line-height:1.7;color:#334155;">
+        <strong>Vaše role:</strong> administrátor školy<br/>
+        <strong>E-mail administrátora:</strong> ${adminEmail}<br/>
+        <strong>Kód organizace:</strong> ${safeJoinCode}
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <p style="margin:0 0 12px;">
+        Přihlaste se svým stávajícím účtem zde:<br/>
+        <a href="${SITE_URL}/login" style="color:#1d4ed8;text-decoration:none;">${SITE_URL}/login</a>
+      </p>
+
+      <p style="margin:0 0 12px;">
+        Pokud si heslo nepamatujete, použijte obnovu hesla na přihlašovací stránce.
+      </p>
+
+      <p style="margin:0;">
+        Po přihlášení můžete spravovat přístup školy a případně přidávat další kolegy.
+      </p>
+    </div>
+  `;
+
+  return buildEmailLayout({
+    preheader: "Přístup ke škole v ARCHIMEDES Live je připraven.",
+    eyebrow: "Přístup do školy",
+    title: "Přístup ke škole je připraven",
+    intro,
+    bodyHtml: body,
+  });
+}
+
+function buildAdminPendingEmailHtml({
+  schoolName,
+  adminEmail,
+}) {
+  const intro = `
+    <p style="margin:0 0 12px;">Dobrý den,</p>
+    <p style="margin:0;">pro školu <strong>${schoolName}</strong> jsme přijali objednávku programu ARCHIMEDES Live.</p>
+  `;
+
+  const body = `
+    <div style="padding:18px 20px;border-radius:18px;background:#f8fafc;border:1px solid rgba(15,23,42,0.08);">
+      <div style="font-size:14px;font-weight:900;color:#0f172a;margin-bottom:10px;">Údaj správce programu</div>
+      <div style="font-size:15px;line-height:1.7;color:#334155;">
+        <strong>E-mail administrátora:</strong> ${adminEmail}
+      </div>
+    </div>
+
+    <div style="margin-top:20px;padding:18px 20px;border-radius:18px;background:#fff8e8;border:1px solid #f0dfaf;color:#6b4f00;">
+      <strong>Přístup administrátora právě dokončujeme.</strong><br/>
+      Jakmile bude připraven, obdržíte další pokyny e-mailem.
+    </div>
+  `;
+
+  return buildEmailLayout({
+    preheader: "Objednávka START byla přijata, přístup administrátora dokončujeme.",
+    eyebrow: "Objednávka START",
+    title: "Přístup právě dokončujeme",
+    intro,
+    bodyHtml: body,
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -875,61 +1277,36 @@ export default async function handler(req, res) {
       from: process.env.MAIL_FROM,
       to: process.env.MAIL_TO,
       subject,
-      html: `
-        <h2>Nová objednávka – ARCHIMEDES START</h2>
-
-        <p><strong>Škola:</strong> ${schoolName}</p>
-        <p><strong>IČO:</strong> ${ico}</p>
-
-        <hr/>
-
-        <p><strong>Kontakt:</strong> ${contactName}</p>
-        <p><strong>Funkce:</strong> ${role}</p>
-        <p><strong>Email objednatele:</strong> ${email}</p>
-        <p><strong>Admin email (portál):</strong> ${adminEmail}</p>
-        <p><strong>Telefon:</strong> ${phone}</p>
-
-        <hr/>
-
-        <p><strong>Adresa:</strong><br/>
-        ${street}<br/>
-        ${city} ${zip}
-        </p>
-
-        <p><strong>Poznámka:</strong><br/>${note}</p>
-
-        <hr/>
-
-        <p><strong>Souhlasy:</strong></p>
-        <ul>
-          <li>VOP: ano</li>
-          <li>DPA: ano</li>
-          <li>Pravidla záznamů: ano</li>
-          <li>Oprávnění jednat za organizaci: ano</li>
-          <li>Objednání START s povinností úhrady: ano</li>
-        </ul>
-
-        <hr/>
-
-        <p><strong>Serverem ověřený přihlášený uživatel:</strong> ${safeAuthUserPresent}</p>
-        <p><strong>Přihlášený uživatel:</strong> ${safeCurrentUserEmail}</p>
-        <p><strong>Režim objednávky:</strong> ${safeOnboardingMode}</p>
-        <p><strong>Vyřešená organizace:</strong> ${safeResolvedOrganizationName}</p>
-        <p><strong>Ordering source:</strong> ${safeOrderingSource}</p>
-        <p><strong>Admin source:</strong> ${safeAdminSource}</p>
-        <p><strong>Invite odeslán objednateli:</strong> ${safeOrderingInviteSent}</p>
-        <p><strong>Invite odeslán adminovi:</strong> ${safeAdminInviteSent}</p>
-        <p><strong>Role objednatele:</strong> ${safeOrderingUserRole}</p>
-        <p><strong>Objednatel = admin:</strong> ${samePerson ? "ano" : "ne"}</p>
-        <p><strong>active_organization_id nastaven objednateli:</strong> ${safeActiveOrgOrdering}</p>
-        <p><strong>active_organization_id nastaven adminovi:</strong> ${safeActiveOrgAdmin}</p>
-        <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
-        <p><strong>Onboarding stav:</strong> ${safeOnboardingStatus}</p>
-        <p><strong>Onboarding chyba:</strong> ${safeOnboardingError}</p>
-        <p><strong>Právní verze:</strong> ${escapeHtml(LEGAL_VERSION)}</p>
-        <p><strong>Odesláno:</strong> ${escapeHtml(now)}</p>
-        <p><strong>IP:</strong> ${escapeHtml(clientIp || "-")}</p>
-      `,
+      html: buildInternalOrderHtml({
+        schoolName,
+        ico,
+        street,
+        city,
+        zip,
+        contactName,
+        role,
+        email,
+        adminEmail,
+        phone,
+        note,
+        safeAuthUserPresent,
+        safeCurrentUserEmail,
+        safeOnboardingMode,
+        safeResolvedOrganizationName,
+        safeOrderingSource,
+        safeAdminSource,
+        safeOrderingInviteSent,
+        safeAdminInviteSent,
+        safeOrderingUserRole,
+        samePerson,
+        safeActiveOrgOrdering,
+        safeActiveOrgAdmin,
+        safeJoinCode,
+        safeOnboardingStatus,
+        safeOnboardingError,
+        now,
+        clientIp,
+      }),
     });
 
     await sendMailLogged(transporter, {
@@ -937,115 +1314,29 @@ export default async function handler(req, res) {
       from: process.env.MAIL_FROM,
       to: emailRaw,
       subject: "Potvrzení objednávky – ARCHIMEDES Live",
-      html: `
-        <h2>Děkujeme, objednávka byla přijata</h2>
-
-        <p>Vaši objednávku balíčku <strong>START</strong> jsme přijali.</p>
-
-        <p><strong>Škola / organizace:</strong> ${schoolName}</p>
-        <p><strong>Objednatel:</strong> ${contactName}</p>
-        <p><strong>Administrátor programu:</strong> ${adminEmail}</p>
-        <p><strong>Období:</strong> duben–září 2026</p>
-        <p><strong>Cena:</strong> 4 990 Kč bez DPH</p>
-
-        ${
-          onboardingStatus === "completed"
-            ? `
-        <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
-        <p>
-          Škola byla připravena v systému ARCHIMEDES Live.
-        </p>
-
-        ${
-          orderingNeedsActivation
-            ? `
-        <p>
-          Na váš e-mail byl odeslán samostatný e-mail pro nastavení vašeho přístupu.
-        </p>
-        `
-            : `
-        <p>
-          Pokud již máte účet v ARCHIMEDES Live, škola byla přiřazena k vašemu stávajícímu přístupu.
-        </p>
-        `
-        }
-
-        ${
-          ordererIsAdmin
-            ? `
-        <p>
-          Jste zároveň správcem programu. Další informace k přístupu jsme vám odeslali samostatně.
-        </p>
-        `
-            : `
-        <p>
-          Správci programu byl odeslán samostatný e-mail s informacemi k přístupu do portálu.
-        </p>
-        `
-        }
-        `
-            : `
-        <p>
-          Objednávku jsme přijali, ale dokončení přístupu ještě vyžaduje naši kontrolu.
-        </p>
-        `
-        }
-
-        <p>
-          V nejbližším kroku vám zašleme fakturační podklady a další organizační informace.
-        </p>
-
-        <p>
-          Důležité dokumenty:
-          <br/>
-          <a href="${SITE_URL}/vop">${SITE_URL}/vop</a><br/>
-          <a href="${SITE_URL}/dpa">${SITE_URL}/dpa</a><br/>
-          <a href="${SITE_URL}/pravidla-zaznamu">${SITE_URL}/pravidla-zaznamu</a><br/>
-          <a href="${SITE_URL}/ochrana-osobnich-udaju">${SITE_URL}/ochrana-osobnich-udaju</a>
-        </p>
-
-        <p>S pozdravem,<br/>
-        <strong>ARCHIMEDES Live</strong><br/>
-        EduVision s.r.o.</p>
-      `,
+      html: buildOrdererEmailHtml({
+        schoolName,
+        contactName,
+        adminEmail,
+        safeJoinCode,
+        onboardingStatus,
+        orderingNeedsActivation,
+        ordererIsAdmin,
+      }),
     });
 
     if (onboardingStatus === "completed") {
-      if (adminInviteSent) {
+      if (adminNeedsActivation) {
         await sendMailLogged(transporter, {
           label: "start_admin_invited",
           from: process.env.MAIL_FROM,
           to: adminEmailRaw,
           subject: "Dokončete nastavení přístupu – ARCHIMEDES Live",
-          html: `
-            <h2>Dokončete nastavení přístupu</h2>
-
-            <p>
-              Pro školu <strong>${schoolName}</strong> jsme pro vás připravili přístup do ARCHIMEDES Live.
-            </p>
-
-            <p><strong>Vaše role:</strong> administrátor školy</p>
-            <p><strong>E-mail administrátora:</strong> ${adminEmail}</p>
-            <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
-
-            <p>
-              Pro dokončení přístupu si nejprve nastavte heslo pomocí samostatného systémového e-mailu, který jsme vám právě odeslali.
-            </p>
-
-            <p>
-              Po nastavení hesla se přihlásíte zde:
-              <br/>
-              <a href="${SITE_URL}/login">${SITE_URL}/login</a>
-            </p>
-
-            <p>
-              Po přihlášení můžete spravovat přístup školy a přidávat další kolegy.
-            </p>
-
-            <p>S pozdravem,<br/>
-            <strong>ARCHIMEDES Live</strong><br/>
-            EduVision s.r.o.</p>
-          `,
+          html: buildAdminInvitedEmailHtml({
+            schoolName,
+            adminEmail,
+            safeJoinCode,
+          }),
         });
       } else if (adminHasExistingAccess) {
         await sendMailLogged(transporter, {
@@ -1053,35 +1344,11 @@ export default async function handler(req, res) {
           from: process.env.MAIL_FROM,
           to: adminEmailRaw,
           subject: "Přístup ke škole – ARCHIMEDES Live",
-          html: `
-            <h2>Přístup ke škole je připraven</h2>
-
-            <p>
-              Škola <strong>${schoolName}</strong> byla přiřazena k vašemu účtu v ARCHIMEDES Live.
-            </p>
-
-            <p><strong>Vaše role:</strong> administrátor školy</p>
-            <p><strong>E-mail administrátora:</strong> ${adminEmail}</p>
-            <p><strong>Kód organizace:</strong> ${safeJoinCode}</p>
-
-            <p>
-              Přihlaste se svým stávajícím účtem zde:
-              <br/>
-              <a href="${SITE_URL}/login">${SITE_URL}/login</a>
-            </p>
-
-            <p>
-              Pokud si heslo nepamatujete, použijte obnovu hesla na přihlašovací stránce.
-            </p>
-
-            <p>
-              Po přihlášení můžete spravovat přístup školy a případně přidávat další kolegy.
-            </p>
-
-            <p>S pozdravem,<br/>
-            <strong>ARCHIMEDES Live</strong><br/>
-            EduVision s.r.o.</p>
-          `,
+          html: buildAdminExistingEmailHtml({
+            schoolName,
+            adminEmail,
+            safeJoinCode,
+          }),
         });
       }
     }
@@ -1092,22 +1359,10 @@ export default async function handler(req, res) {
         from: process.env.MAIL_FROM,
         to: adminEmailRaw,
         subject: "Objednávka START přijata – přístup dokončujeme",
-        html: `
-          <h2>Objednávka START byla přijata</h2>
-
-          <p>Pro školu <strong>${schoolName}</strong> jsme přijali objednávku programu ARCHIMEDES Live.</p>
-
-          <p><strong>E-mail administrátora:</strong> ${adminEmail}</p>
-
-          <p>
-            Přístup administrátora právě dokončujeme. Jakmile bude připraven,
-            obdržíte další pokyny e-mailem.
-          </p>
-
-          <p>S pozdravem,<br/>
-          <strong>ARCHIMEDES Live</strong><br/>
-          EduVision s.r.o.</p>
-        `,
+        html: buildAdminPendingEmailHtml({
+          schoolName,
+          adminEmail,
+        }),
       });
     }
 
