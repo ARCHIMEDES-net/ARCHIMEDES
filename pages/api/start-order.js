@@ -639,7 +639,7 @@ function buildEmailLayout({
                       EduVision s.r.o.<br />
                       Purkyňova 649/127<br />
                       Medlánky<br />
-                      612 00 Brno/>
+                      612 00 Brno<br />                      
                       IČ: 17803039 DIČ: CZ17803039<br />
                       <a href="${escapeHtml(SITE_URL)}" style="color:#1d4ed8;text-decoration:none;">${escapeHtml(SITE_URL)}</a>
                     </div>
