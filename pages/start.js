@@ -138,6 +138,15 @@ export default function StartPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!success) return;
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [success]);
+
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
