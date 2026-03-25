@@ -115,7 +115,7 @@ export default function ZadostPristupPage() {
 
       setMessage(
         isDemoRequest
-          ? "Děkujeme. Žádost o ukázkový přístup byla úspěšně odeslána.\n\nPo schválení vám zašleme e-mail s odkazem pro vytvoření přístupu do prostředí ARCHIMEDES Live.\n\nV některých případech může mít tento e-mail technické označení „Reset Password“. Jde o standardní bezpečný krok pro nastavení vašeho hesla a prvního vstupu.\n\nPokud zprávu během několika minut nenajdete, zkontrolujte prosím i složku spam nebo hromadnou poštu."
+          ? "Děkujeme. Žádost o ukázkový přístup byla úspěšně odeslána.\n\nJakmile bude přístup schválen, pošleme vám e-mail s tlačítkem nebo odkazem pro vstup do ukázkového prostředí ARCHIMEDES Live.\n\nPokud zprávu během několika minut nenajdete, zkontrolujte prosím i složku Spam nebo Hromadné."
           : "Děkujeme. Žádost o přístup byla úspěšně odeslána.\n\nOzveme se vám s dalším postupem."
       );
 
@@ -185,8 +185,8 @@ export default function ZadostPristupPage() {
                 ? "Žádost přijata"
                 : "Odesláno"
               : isDemoRequest
-              ? "Ukázkový přístup pro školy"
-              : "Žádost o přístup"}
+                ? "Ukázkový přístup pro školy"
+                : "Žádost o přístup"}
           </div>
 
           {!submitted ? (
@@ -430,8 +430,8 @@ export default function ZadostPristupPage() {
                     {saving
                       ? "Odesílám..."
                       : isDemoRequest
-                      ? "Požádat o ukázkový přístup"
-                      : "Odeslat žádost"}
+                        ? "Požádat o ukázkový přístup"
+                        : "Odeslat žádost"}
                   </button>
 
                   <Link
@@ -493,12 +493,11 @@ export default function ZadostPristupPage() {
                   <>
                     <div>1. Vaši žádost zkontrolujeme a schválíme.</div>
                     <div>
-                      2. Na zadaný e-mail vám přijde zpráva s odkazem pro
-                      nastavení hesla a vstup do ukázky.
+                      2. Na zadaný e-mail vám přijde zpráva s tlačítkem nebo
+                      odkazem pro vstup do ukázkového prostředí.
                     </div>
                     <div>
-                      3. Poté se přihlásíte do ukázkového prostředí ARCHIMEDES
-                      Live.
+                      3. Poté vstoupíte do ukázkového prostředí ARCHIMEDES Live.
                     </div>
                   </>
                 ) : (
