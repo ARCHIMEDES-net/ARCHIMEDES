@@ -339,8 +339,8 @@ export default function StartPage() {
                       <div className="nextStepsTitle">Co bude následovat</div>
                       <ul>
                         <li>Zašleme vám potvrzení objednávky.</li>
-                        <li>Obdržíte fakturační podklady.</li>
-                        <li>Ověříme dokončení přístupu školy.</li>
+                        <li>Obratem vám vytvoříme přístup.</li>
+                        <li>Odešleme fakturu a podklady.</li>
                         <li>Následně pošleme další organizační informace.</li>
                       </ul>
                     </div>
@@ -651,7 +651,7 @@ export default function StartPage() {
               <div className="heroGrid">
                 <div className="heroMain">
                   <div className="eyebrow dark">
-                    Balíček START pro školy • jaro + září 2026
+                    Balíček START pro školy • duben - září 2026
                   </div>
 
                   <h1>Zapojte školu do programu ARCHIMEDES Live</h1>
@@ -696,11 +696,11 @@ export default function StartPage() {
                       </div>
                       <div className="simpleStep">
                         <span className="stepNumber">2</span>
-                        <p>Pošleme potvrzení objednávky a fakturační podklady.</p>
+                        <p>Pošleme potvrzení objednávky a vytvoříme přístup pro školu.</p>
                       </div>
                       <div className="simpleStep">
                         <span className="stepNumber">3</span>
-                        <p>Správce programu dostane informace k přístupu.</p>
+                        <p>Obratem dostanete informace k přístupu.</p>
                       </div>
                     </div>
                   </div>
@@ -708,7 +708,7 @@ export default function StartPage() {
                   <div className="schoolAdminBox">
                     <div className="miniTitle">Podklady pro školu</div>
                     <p>
-                      Na vyžádání dodáme potvrzení objednávky, fakturu,
+                      Zašleme potvrzení objednávky, fakturu,
                       specifikaci plnění a další podklady pro interní
                       administraci školy.
                     </p>
@@ -729,7 +729,7 @@ export default function StartPage() {
                 <div className="summaryColumn">
                   <div className="summaryCard">
                     <div className="summaryLabel">Balíček START</div>
-                    <div className="summaryTitle">Jaro + září 2026</div>
+                    <div className="summaryTitle">Duben - září 2026</div>
 
                     <div className="priceHighlight">
                       <div className="priceTop">Cena za celé období</div>
@@ -898,7 +898,7 @@ export default function StartPage() {
                       required
                     />
                     <div className="inlineHint">
-                      Správce programu je osoba, která bude spravovat přístup
+                      Správce programu/admin je osoba, která bude spravovat přístup
                       školy v portálu. Pokud jste jí vy, uveďte stejný e-mail
                       jako u objednatele.
                     </div>
