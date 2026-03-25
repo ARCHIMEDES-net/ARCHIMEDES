@@ -121,7 +121,7 @@ export default function Home() {
                   <div className="stepNumber">2</div>
                   <h3>Žáci sledují, reagují a vnímají</h3>
                   <p>
-                    Výuka není pasivní. Děti se zapojují, sledují, přemýšlejí a
+                    Výuka je aktivní. Děti se zapojují, sledují, přemýšlejí a
                     pracují s tématem přímo ve třídě.
                   </p>
                 </div>
@@ -219,10 +219,10 @@ export default function Home() {
                 <div className="eyebrow light">
                   Chcete živý program ve vlastní škole?
                 </div>
-                <h2>Objednejte balíček START nebo si nejdřív vyžádejte DEMO</h2>
+                <h2>Objednejte si balíček START, podívejte se na ukázkovou hodinu nebo si nejdříve vyžádejte DEMO</h2>
                 <p>
-                  Začněte jednoduše. Vyberte si balíček START nebo si nejprve
-                  prohlédněte ARCHIMEDES Live v ukázce.
+                  Jednoduché a rychlé - začněte balíčkem START a vyzkoučejte si živý program s kolegy a žáky přímo u vás. Připojte se ko komunitě ARCHIMEDES. 
+                  
                 </p>
               </div>
 
