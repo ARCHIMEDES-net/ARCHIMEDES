@@ -25,7 +25,7 @@ const schoolItems = [
 const seniorItems = [
   {
     title: "Senior klub",
-    text: "setkání a rozhovory s inspirativními hosty, například prof. Janem Pirkem nebo Viktorem Špačkem",
+    text: "interaktivní rozhovory s inspirativními hosty, aktuální témata, vzdělávání, partnerství, setkávání s jinými seniory a krajanskými spolky ",
   },
   {
     title: "Čtenářský klub",
