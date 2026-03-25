@@ -197,15 +197,15 @@ export default function Home() {
               <div className="trustStats">
                 <div className="trustStat">
                   <strong>20+</strong>
-                  <span>míst v síti ARCHIMEDES</span>
+                  <span>učeben v síti ARCHIMEDES</span>
                 </div>
                 <div className="trustStat">
-                  <strong>živě</strong>
-                  <span>pro školy i komunitu</span>
+                  <strong>100+</strong>
+                  <span>živých programů pro školy a komunity</span>
                 </div>
                 <div className="trustStat">
-                  <strong>reálně</strong>
-                  <span>ověřeno ve výuce</span>
+                  <strong>100+</strong>
+                  <span>partnerů vysílání po světě</span>
                 </div>
               </div>
             </div>
