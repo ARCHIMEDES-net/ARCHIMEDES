@@ -865,7 +865,7 @@ function buildAdminInvitedEmailHtml({
 
     <div style="margin-top:20px;padding:18px 20px;border-radius:18px;background:#eef6ff;border:1px solid rgba(37,99,235,0.12);color:#1f3b75;">
       <strong>Další krok:</strong><br/>
-      Za chvíli vám přijde také automatický systémový e-mail pro nastavení hesla. Pro dokončení přístupu použijte odkaz právě v tomto e-mailu.
+      Za chvíli vám přijde automatický systémový e-mail pro nastavení hesla. Pro dokončení přístupu použijte odkaz v e-mailu.
     </div>
 
     <div style="margin-top:20px;">
