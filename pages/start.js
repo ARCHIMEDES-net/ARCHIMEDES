@@ -235,95 +235,114 @@ export default function StartPage() {
 
                 <h1>
                   {isCompleted
-                    ? "Škola byla připravena v ARCHIMEDES Live"
+                    ? "Škola byla připravena"
                     : "Děkujeme, objednávka byla přijata"}
                 </h1>
 
                 <p className="lead">
                   {isCompleted ? (
                     <>
-                      Objednávka balíčku START byla přijata a škola byla
-                      připravena v systému ARCHIMEDES Live. Potvrzení objednávky
-                      a další informace k přístupu jsme odeslali na uvedené
-                      e-maily.
+                      Vaši objednávku jsme přijali a školu jsme připravili v systému
+                      ARCHIMEDES Live. Další krok nyní dokončíte přes e-mail, který
+                      jsme odeslali podle role objednatele a správce programu.
                     </>
                   ) : (
                     <>
-                      Objednávka balíčku START byla přijata. Přístup školy nyní
-                      ještě vyžaduje naši krátkou kontrolu. Potvrzení objednávky
-                      a další instrukce vám pošleme na uvedený e-mail.
+                      Objednávka balíčku START byla přijata. Přístup školy nyní ještě
+                      vyžaduje naši krátkou kontrolu. Potvrzení objednávky a další
+                      instrukce vám pošleme na uvedený e-mail.
                     </>
                   )}
                 </p>
 
-                <div className="successBox">
-                  {isCompleted ? successData.sameAdmin ? (
-                    <>
-                      Objednávka byla úspěšně zpracována. Pokud jste v systému už
-                      účet měli, škola byla přiřazena k vašemu stávajícímu
-                      přístupu. Pokud jste účet ještě neměli, přišel vám
-                      samostatný e-mail pro nastavení hesla.
-                    </>
-                  ) : (
-                    <>
-                      Objednávka byla úspěšně zpracována. Objednatel i správce
-                      programu nyní obdrží e-maily podle své role. Objednatel
-                      dostává potvrzení objednávky a správce programu navazující
-                      informace k přístupu do portálu.
-                    </>
-                  ) : (
-                    <>
-                      Objednávku jsme přijali, ale automatické dokončení přístupu
-                      neproběhlo úplně správně. Nic se neztratilo — navážeme na
-                      vás e-mailem a přístup dokončíme ručně.
-                    </>
-                  )}
-                </div>
+                {isCompleted ? (
+                  <>
+                    <div className="statusGrid">
+                      <div className="statusItem done">
+                        <div className="statusIcon">✓</div>
+                        <div>
+                          <div className="statusTitle">Objednávka přijata</div>
+                          <div className="statusText">
+                            Objednávka balíčku START byla úspěšně zapsána.
+                          </div>
+                        </div>
+                      </div>
 
-                <div className="nextSteps">
-                  <div className="nextStepsTitle">
-                    {isCompleted ? "Co se stalo právě teď" : "Co bude následovat"}
-                  </div>
+                      <div className="statusItem done">
+                        <div className="statusIcon">✓</div>
+                        <div>
+                          <div className="statusTitle">Škola připravena</div>
+                          <div className="statusText">
+                            Škola byla připravena pro vstup do ARCHIMEDES Live.
+                          </div>
+                        </div>
+                      </div>
 
-                  {isCompleted ? (
-                    successData.sameAdmin ? (
-                      <ul>
-                        <li>objednávka byla přijata,</li>
-                        <li>škola byla připravena v systému ARCHIMEDES Live,</li>
-                        <li>
-                          na e-mail objednatele{" "}
-                          <strong>{successData.orderingEmail || "—"}</strong>{" "}
-                          odešlo potvrzení objednávky,
-                        </li>
-                        <li>
-                          další informace k přístupu byly odeslány také vám.
-                        </li>
-                      </ul>
-                    ) : (
-                      <ul>
-                        <li>objednávka byla přijata,</li>
-                        <li>škola byla připravena v systému ARCHIMEDES Live,</li>
-                        <li>
-                          na e-mail objednatele{" "}
-                          <strong>{successData.orderingEmail || "—"}</strong>{" "}
-                          odešlo potvrzení objednávky,
-                        </li>
-                        <li>
-                          na e-mail správce programu{" "}
+                      <div className="statusItem waiting">
+                        <div className="statusIcon">→</div>
+                        <div>
+                          <div className="statusTitle">Dokončení přístupu</div>
+                          <div className="statusText">
+                            Pro další krok použijte odkaz v e-mailu, který jsme vám
+                            právě odeslali.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="successBox">
+                      {successData.sameAdmin ? (
+                        <>
+                          Na e-mail <strong>{successData.orderingEmail || "—"}</strong>{" "}
+                          jsme odeslali potvrzení objednávky a navazující informace k
+                          přístupu. Pokud už účet v ARCHIMEDES Live máte, můžete
+                          pokračovat svými dosavadními údaji. Pokud účet teprve vzniká,
+                          dokončíte nejprve nastavení hesla přes e-mail.
+                        </>
+                      ) : (
+                        <>
+                          Na e-mail objednatele{" "}
+                          <strong>{successData.orderingEmail || "—"}</strong> bylo
+                          odesláno potvrzení objednávky. Na e-mail správce programu{" "}
                           <strong>{successData.adminEmail || "—"}</strong> byly
-                          odeslány informace k přístupu.
+                          odeslány navazující informace k přístupu do portálu.
+                        </>
+                      )}
+                    </div>
+
+                    <div className="nextSteps">
+                      <div className="nextStepsTitle">Jak pokračovat</div>
+                      <ol className="stepsList">
+                        <li>Otevřete e-mail, který jsme vám právě odeslali.</li>
+                        <li>
+                          Pokud je to potřeba, nastavte si heslo pomocí odkazu v
+                          e-mailu.
                         </li>
+                        <li>
+                          Poté se přihlaste do ARCHIMEDES Live svými přístupovými údaji.
+                        </li>
+                      </ol>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="warningBox">
+                      Objednávku jsme přijali, ale automatické dokončení přístupu
+                      neproběhlo úplně správně. Nic se neztratilo — navážeme na vás
+                      e-mailem a přístup dokončíme ručně.
+                    </div>
+
+                    <div className="nextSteps">
+                      <div className="nextStepsTitle">Co bude následovat</div>
+                      <ul>
+                        <li>Zašleme vám potvrzení objednávky.</li>
+                        <li>Obdržíte fakturační podklady.</li>
+                        <li>Ověříme dokončení přístupu školy.</li>
+                        <li>Následně vám pošleme další organizační informace.</li>
                       </ul>
-                    )
-                  ) : (
-                    <ul>
-                      <li>zašleme vám potvrzení objednávky,</li>
-                      <li>obdržíte fakturační podklady,</li>
-                      <li>ověříme dokončení přístupu školy,</li>
-                      <li>následně vám pošleme další organizační informace.</li>
-                    </ul>
-                  )}
-                </div>
+                    </div>
+                  </>
+                )}
 
                 <p className="smallText">
                   Pokud e-mail během několika minut neobdržíte, zkontrolujte prosím
@@ -331,32 +350,13 @@ export default function StartPage() {
                 </p>
 
                 <div className="successActions">
-                  {isCompleted ? (
-                    <>
-                      <Link href="/portal" className="primaryLink">
-                        Přejít do portálu
-                      </Link>
+                  <Link href="/" className="primaryLink">
+                    Zpět na hlavní stránku
+                  </Link>
 
-                      {successData.sameAdmin ? (
-                        <Link href="/portal/kalendar" className="secondaryLink">
-                          Otevřít program
-                        </Link>
-                      ) : (
-                        <Link href="/" className="secondaryLink">
-                          Zpět na hlavní stránku
-                        </Link>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <Link href="/portal" className="primaryLink">
-                        Zpět do portálu
-                      </Link>
-                      <Link href="/poptavka" className="secondaryLink">
-                        Kontaktovat EduVision
-                      </Link>
-                    </>
-                  )}
+                  <Link href="/poptavka" className="secondaryLink">
+                    Kontaktovat EduVision
+                  </Link>
                 </div>
               </div>
             </div>
@@ -426,13 +426,79 @@ export default function StartPage() {
               max-width: 760px;
             }
 
+            .statusGrid {
+              margin-top: 24px;
+              display: grid;
+              gap: 14px;
+            }
+
+            .statusItem {
+              display: grid;
+              grid-template-columns: 48px 1fr;
+              gap: 14px;
+              align-items: start;
+              padding: 18px 20px;
+              border-radius: 18px;
+              border: 1px solid rgba(15, 23, 42, 0.08);
+            }
+
+            .statusItem.done {
+              background: #eefaf0;
+              border-color: #cfe8d3;
+            }
+
+            .statusItem.waiting {
+              background: #eef6ff;
+              border-color: rgba(37, 99, 235, 0.12);
+            }
+
+            .statusIcon {
+              width: 48px;
+              height: 48px;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: 999px;
+              font-size: 20px;
+              font-weight: 900;
+              background: #ffffff;
+              color: #0f172a;
+              box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+            }
+
+            .statusTitle {
+              font-size: 16px;
+              line-height: 1.4;
+              font-weight: 900;
+              color: #0f172a;
+            }
+
+            .statusText {
+              margin-top: 4px;
+              font-size: 15px;
+              line-height: 1.7;
+              color: #334155;
+            }
+
             .successBox {
               margin-top: 22px;
               padding: 18px 20px;
               border-radius: 18px;
-              background: #eefaf0;
-              border: 1px solid #cfe8d3;
-              color: #166534;
+              background: #f8fafc;
+              border: 1px solid rgba(15, 23, 42, 0.08);
+              color: #334155;
+              font-size: 16px;
+              line-height: 1.7;
+              font-weight: 700;
+            }
+
+            .warningBox {
+              margin-top: 22px;
+              padding: 18px 20px;
+              border-radius: 18px;
+              background: #fff8e8;
+              border: 1px solid #f0dfaf;
+              color: #6b4f00;
               font-size: 16px;
               line-height: 1.7;
               font-weight: 700;
@@ -451,17 +517,19 @@ export default function StartPage() {
               line-height: 1.5;
               font-weight: 800;
               color: #0f172a;
-              margin-bottom: 8px;
+              margin-bottom: 10px;
             }
 
-            .nextSteps ul {
+            .nextSteps ul,
+            .stepsList {
               margin: 0;
-              padding-left: 18px;
+              padding-left: 20px;
               display: grid;
               gap: 8px;
             }
 
-            .nextSteps li {
+            .nextSteps li,
+            .stepsList li {
               color: #334155;
               font-size: 15px;
               line-height: 1.65;
@@ -534,6 +602,18 @@ export default function StartPage() {
 
               .lead {
                 font-size: 16px;
+              }
+
+              .statusItem {
+                grid-template-columns: 40px 1fr;
+                gap: 12px;
+                padding: 16px 16px;
+              }
+
+              .statusIcon {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
               }
 
               .successActions {
