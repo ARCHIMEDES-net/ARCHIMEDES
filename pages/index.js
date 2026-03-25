@@ -148,7 +148,7 @@ export default function Home() {
           <div className="container">
             <div className="sectionIntro">
               <div className="eyebrow dark">Co to přináší</div>
-              <h2>Program, který dává hodnotu škole i obci</h2>
+              <h2>Program, který dává přidanou hodnotu škole i obci</h2>
             </div>
 
             <div className="benefitsGrid">
@@ -189,14 +189,14 @@ export default function Home() {
                 <div className="eyebrow dark">Ověřeno v praxi</div>
                 <h2>ARCHIMEDES už funguje v desítkách škol a obcí</h2>
                 <p>
-                  Nejde o teorii. Jde o model, který je možné ukázat v provozu a
-                  který už má za sebou konkrétní zkušenosti z terénu.
+                  Živý program tvoříme se školami a komunitami. Interaktivně ukazujeme a vysvětlujeme témata z celého světa a různých oborů. 
+                
                 </p>
               </div>
 
               <div className="trustStats">
                 <div className="trustStat">
-                  <strong>20+</strong>
+                  <strong>25+</strong>
                   <span>učeben v síti ARCHIMEDES</span>
                 </div>
                 <div className="trustStat">
@@ -204,7 +204,7 @@ export default function Home() {
                   <span>živých programů pro školy a komunity</span>
                 </div>
                 <div className="trustStat">
-                  <strong>100+</strong>
+                  <strong>200+</strong>
                   <span>partnerů vysílání po světě</span>
                 </div>
               </div>
