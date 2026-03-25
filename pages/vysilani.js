@@ -264,9 +264,7 @@ export default function ProbehlaVysilaniPage() {
                   color: "#475569",
                 }}
               >
-                Kliknutím na libovolný plakát otevřete větší náhled. Stačí do
-                složky <strong>public</strong> nahrát soubory pojmenované{" "}
-                <strong>pl1.webp</strong> až <strong>pl30.webp</strong>.
+                Kliknutím na libovolný plakát otevřete větší náhled. 
               </p>
             </div>
 
