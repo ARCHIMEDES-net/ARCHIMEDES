@@ -6,6 +6,8 @@ import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
 const BUCKET = "portal-posts";
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10 MB
 
 function slugFileName(name = "") {
   return String(name)
@@ -96,7 +98,25 @@ export default function AdminPrispevkyPage() {
       imagePath,
       attachmentPath,
       attachmentName,
+      uploadedFiles: [imagePath, attachmentPath].filter(Boolean),
     };
+  }
+
+  function validateFiles() {
+    if (imageFile) {
+      if (!String(imageFile.type || "").startsWith("image/")) {
+        throw new Error("Obrázek musí být ve formátu JPG, PNG nebo WebP.");
+      }
+      if (imageFile.size > MAX_IMAGE_SIZE) {
+        throw new Error("Obrázek je příliš velký. Maximální velikost je 5 MB.");
+      }
+    }
+
+    if (attachmentFile) {
+      if (attachmentFile.size > MAX_ATTACHMENT_SIZE) {
+        throw new Error("Příloha je příliš velká. Maximální velikost je 10 MB.");
+      }
+    }
   }
 
   async function handleSubmit(e) {
@@ -107,12 +127,16 @@ export default function AdminPrispevkyPage() {
     setError("");
     setMessage("");
 
+    let uploadedFiles = [];
+
     try {
       const cleanTitle = String(title || "").trim();
       const cleanContent = String(content || "").trim();
 
       if (!cleanTitle) throw new Error("Vyplňte nadpis.");
       if (!cleanContent) throw new Error("Vyplňte text příspěvku.");
+
+      validateFiles();
 
       const {
         data: { session },
@@ -122,7 +146,14 @@ export default function AdminPrispevkyPage() {
       if (sessionError) throw sessionError;
       if (!session?.access_token) throw new Error("Nejste přihlášený.");
 
-      const { imagePath, attachmentPath, attachmentName } = await uploadOptionalFiles();
+      const {
+        imagePath,
+        attachmentPath,
+        attachmentName,
+        uploadedFiles: files,
+      } = await uploadOptionalFiles();
+
+      uploadedFiles = files;
 
       const response = await fetch("/api/portal-posts-create", {
         method: "POST",
@@ -154,6 +185,14 @@ export default function AdminPrispevkyPage() {
       setAttachmentFile(null);
       setMessage("Příspěvek byl uložen.");
     } catch (e) {
+      if (uploadedFiles.length > 0) {
+        try {
+          await supabase.storage.from(BUCKET).remove(uploadedFiles);
+        } catch (cleanupError) {
+          console.warn("Cleanup nahraných souborů selhal:", cleanupError);
+        }
+      }
+
       setError(e?.message || "Nepodařilo se uložit příspěvek.");
     } finally {
       setSaving(false);
@@ -275,6 +314,7 @@ export default function AdminPrispevkyPage() {
                       onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                     />
                     {imageFile ? <div style={hintStyle}>Vybraný soubor: {imageFile.name}</div> : null}
+                    <div style={hintStyle}>Povolené jsou běžné obrázky. Maximální velikost 5 MB.</div>
                   </div>
 
                   <div>
@@ -286,6 +326,7 @@ export default function AdminPrispevkyPage() {
                     {attachmentFile ? (
                       <div style={hintStyle}>Vybraný soubor: {attachmentFile.name}</div>
                     ) : null}
+                    <div style={hintStyle}>Maximální velikost přílohy je 10 MB.</div>
                   </div>
 
                   <label
