@@ -1,30 +1,61 @@
+// pages/api/instagram.js
+
 export default async function handler(req, res) {
-  const posts = [
-    { type: "p", id: "DVvUBXDCMYC" },
-    { type: "p", id: "DVyqPmiiLKF" },
-    { type: "p", id: "DVqEttcjpu0" },
-  ];
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-  const items = posts.map((post) => {
-    const kind = post.type === "reel" ? "reel" : "p";
-    const href = `https://www.instagram.com/${kind}/${post.id}/`;
+  const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
 
-    return {
-      type: kind,
-      id: post.id,
-      href,
-      embed: `${href}embed`,
-      title: "Pozvánka",
-    };
-  });
+  if (!accessToken) {
+    return res.status(500).json({
+      error: "Chybí INSTAGRAM_ACCESS_TOKEN",
+      items: [],
+    });
+  }
 
-  res.setHeader(
-    "Cache-Control",
-    "no-store, no-cache, must-revalidate, max-age=0"
-  );
+  try {
+    const response = await fetch(
+      `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,permalink,thumbnail_url,timestamp&access_token=${accessToken}`
+    );
 
-  return res.status(200).json({
-    source: "manual",
-    items,
-  });
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Instagram API error:", data);
+      return res.status(500).json({
+        error: data,
+        items: [],
+      });
+    }
+
+    const items = (data.data || [])
+      .slice(0, 3)
+      .map((item) => ({
+        id: item.id,
+        href: item.permalink,
+        embed: item.permalink.endsWith("/")
+          ? `${item.permalink}embed`
+          : `${item.permalink}/embed`,
+        title:
+          item.caption?.split("\n")[0]?.slice(0, 80) || "Pozvánka",
+      }));
+
+    res.setHeader(
+      "Cache-Control",
+      "s-maxage=300, stale-while-revalidate=600"
+    );
+
+    return res.status(200).json({
+      source: "instagram_live",
+      items,
+    });
+  } catch (err) {
+    console.error("Server error:", err);
+
+    return res.status(500).json({
+      error: err.message,
+      items: [],
+    });
+  }
 }
