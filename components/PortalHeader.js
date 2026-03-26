@@ -268,6 +268,8 @@ export default function PortalHeader({ title = "" }) {
     if (key === "portal") return path === "/portal" || path === "/portal/";
     if (key === "program") return path.startsWith("/portal/kalendar");
     if (key === "archiv") return path.startsWith("/portal/archiv");
+    if (key === "komunita") return path.startsWith("/portal/komunita");
+    if (key === "souteze") return path.startsWith("/portal/souteze");
     if (key === "profil") return path.startsWith("/portal/muj-profil");
     if (key === "uzivatele") return path.startsWith("/portal/uzivatele");
     if (key === "sprava-vysilani") return path.startsWith("/portal/admin-udalosti");
@@ -287,6 +289,8 @@ export default function PortalHeader({ title = "" }) {
     { key: "portal", href: "/portal", label: "Portál" },
     { key: "program", href: "/portal/kalendar", label: "Program" },
     { key: "archiv", href: "/portal/archiv", label: "Archiv" },
+    { key: "komunita", href: "/portal/komunita", label: "Komunita" },
+    { key: "souteze", href: "/portal/souteze", label: "Soutěže a projekty" },
     { key: "profil", href: "/portal/muj-profil", label: "Můj profil" },
   ];
 
