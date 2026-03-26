@@ -52,7 +52,10 @@ export default function Home() {
                 </p>
 
                 <div className="heroActions">
-                  <ButtonLink href="/program#ukazky-vysilani" variant="primary">
+                  <ButtonLink href="/aktualni-pozvanky" variant="primary">
+                    Aktuální pozvánky
+                  </ButtonLink>
+                  <ButtonLink href="/program#ukazky-vysilani" variant="secondary">
                     Ukázková hodina
                   </ButtonLink>
                   <ButtonLink href="/demo" variant="secondary">
@@ -60,9 +63,6 @@ export default function Home() {
                   </ButtonLink>
                   <ButtonLink href="/start" variant="secondary">
                     Balíček START
-                  </ButtonLink>
-                  <ButtonLink href="/aktualni-pozvanky" variant="ghost">
-                    Aktuální pozvánky
                   </ButtonLink>
                 </div>
 
