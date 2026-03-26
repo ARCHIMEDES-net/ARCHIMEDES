@@ -1,51 +1,77 @@
 // pages/portal/souteze.js
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
+import { supabase } from "../../lib/supabaseClient";
 
-const contestCards = [
-  {
-    icon: "🏙️",
-    title: "Navrhni své město",
-    text:
-      "Jak by mohla vypadat obec nebo město budoucnosti? Prostor pro nápady žáků, škol i komunit.",
-    note: "Doporučeno",
-  },
-  {
-    icon: "🧪",
-    title: "Experiment týdne",
-    text:
-      "Jednoduché zadání pro školy, které chtějí sdílet pokus, pozorování nebo zajímavý výsledek své práce.",
-    note: "Škola a věda",
-  },
-  {
-    icon: "🎥",
-    title: "Příběh z vaší obce",
-    text:
-      "Krátký projekt, reportáž, video nebo prezentace o lidech, místech a nápadech ve vaší obci.",
-    note: "Komunita",
-  },
-];
+const BUCKET = "portal-posts";
 
-const nextStepCards = [
-  {
-    title: "Odevzdávání projektů",
-    text:
-      "V další fázi lze doplnit formulář pro přihlášení nebo odevzdání výstupu přímo přes portál.",
-  },
-  {
-    title: "Galerie výsledků",
-    text:
-      "Později může vzniknout galerie projektů, kde budou vidět práce škol, obcí a dalších zapojených partnerů.",
-  },
-  {
-    title: "Vyhodnocení a ocenění",
-    text:
-      "Dalším krokem může být výběr inspirativních projektů, zveřejnění výsledků nebo veřejné představení prací.",
-  },
-];
+function formatDateCS(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("cs-CZ", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function getPublicUrl(path) {
+  if (!path) return "";
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data?.publicUrl || "";
+}
 
 export default function SoutezePage() {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadData() {
+      try {
+        setError("");
+
+        const { data: adminData, error: adminError } = await supabase.rpc("is_admin");
+        if (!alive) return;
+        if (!adminError) setIsAdmin(!!adminData);
+
+        const { data, error } = await supabase
+          .from("portal_posts")
+          .select(
+            "id, title, content, image_path, attachment_path, attachment_name, created_at"
+          )
+          .eq("section", "contests")
+          .eq("is_published", true)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        if (!alive) return;
+
+        setPosts(data || []);
+      } catch (e) {
+        if (!alive) return;
+        setError(e?.message || "Nepodařilo se načíst soutěže a projekty.");
+      } finally {
+        if (alive) setLoading(false);
+      }
+    }
+
+    loadData();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const featuredPost = useMemo(() => (posts.length > 0 ? posts[0] : null), [posts]);
+  const otherPosts = useMemo(() => (posts.length > 1 ? posts.slice(1) : []), [posts]);
+
   return (
     <RequireAuth>
       <PortalHeader title="Soutěže a projekty" />
@@ -71,7 +97,7 @@ export default function SoutezePage() {
                 flexWrap: "wrap",
               }}
             >
-              <div style={{ minWidth: 0, flex: "1 1 520px" }}>
+              <div style={{ minWidth: 0, flex: "1 1 620px" }}>
                 <div
                   style={{
                     display: "inline-flex",
@@ -98,447 +124,242 @@ export default function SoutezePage() {
                     letterSpacing: "-0.02em",
                   }}
                 >
-                  Program nekončí sledováním.
+                  Aktivní výzvy,
                   <br />
-                  Má vést k vlastní aktivitě.
+                  projekty a inspirace
                 </h1>
 
                 <p
                   style={{
                     margin: "14px 0 0",
                     fontSize: 16,
-                    lineHeight: 1.55,
+                    lineHeight: 1.6,
                     color: "rgba(15,23,42,0.72)",
                     maxWidth: 760,
                   }}
                 >
-                  Tato sekce je místem pro výzvy, projekty a soutěže, které mohou školy
-                  a komunity rozvíjet po zhlédnutí programu nebo jako samostatnou aktivitu.
-                  Cílem je, aby ARCHIMEDES Live nebyl jen pasivní, ale také tvůrčí a akční.
+                  Přehled soutěží, projektových zadání, ukázek výstupů a inspirace
+                  pro školy, obce i další členy sítě.
                 </p>
               </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(130px, 1fr))",
-                  gap: 10,
-                  flex: "0 1 320px",
-                  width: "100%",
-                  maxWidth: 320,
-                }}
-              >
-                <StatCard value="3" label="ukázky výzev" />
-                <StatCard value="1" label="bezpečná MVP vrstva" />
-                <StatCard value="škola" label="hlavní účastník" />
-                <StatCard value="projekt" label="další logický krok" />
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <Link href="/portal/komunita" style={secondaryBtnStyle}>
+                  Komunita
+                </Link>
+
+                {isAdmin ? (
+                  <Link href="/portal/admin-prispevky?section=contests" style={primaryBtnStyle}>
+                    Přidat příspěvek
+                  </Link>
+                ) : null}
               </div>
             </div>
           </section>
 
-          <div className="projects-main-grid">
-            <div style={{ display: "grid", gap: 16 }}>
-              <section
-                style={{
-                  background: "white",
-                  border: "1px solid rgba(15,23,42,0.08)",
-                  borderRadius: 24,
-                  padding: 18,
-                  boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    marginBottom: 14,
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: 30, fontWeight: 900, lineHeight: 1.05, color: "#0f172a" }}>
-                      Ukázky soutěží a projektových výzev
-                    </div>
-                    <div style={{ marginTop: 6, fontSize: 14, color: "rgba(15,23,42,0.68)" }}>
-                      Obsahová vrstva, kterou lze později napojit na data, formuláře a správu.
-                    </div>
-                  </div>
-                </div>
+          {error ? <div style={errorBoxStyle}>Chyba: {error}</div> : null}
 
-                <div className="tiles-grid">
-                  {contestCards.map((item, idx) => (
-                    <Tile
-                      key={item.title}
-                      href="/portal/komunita"
-                      icon={item.icon}
-                      title={item.title}
-                      desc={item.text}
-                      cta="Zjistit více"
-                      note={item.note}
-                      highlight={idx === 0}
-                      large={idx === 0}
-                    />
-                  ))}
-                </div>
-              </section>
+          {loading ? <div style={emptyBoxStyle}>Načítám soutěže a projekty…</div> : null}
 
-              <section
-                style={{
-                  background: "white",
-                  border: "1px solid rgba(15,23,42,0.08)",
-                  borderRadius: 24,
-                  padding: 18,
-                  boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    marginBottom: 14,
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: 30, fontWeight: 900, lineHeight: 1.05, color: "#0f172a" }}>
-                      Proč tato sekce dává smysl
-                    </div>
-                    <div style={{ marginTop: 6, fontSize: 14, color: "rgba(15,23,42,0.68)" }}>
-                      Posouvá portál od sledování obsahu k aktivnímu zapojení.
-                    </div>
-                  </div>
-                </div>
-
-                <div className="info-grid">
-                  <InfoCard
-                    title="Vyšší zapojení"
-                    text="Žáci, škola i komunita získají důvod s programem dále pracovat."
-                  />
-                  <InfoCard
-                    title="Silnější hodnota pro školu"
-                    text="Portál působí jako prostředí pro činnost, ne jen jako přehled vysílání."
-                  />
-                  <InfoCard
-                    title="Obsah pro síť a marketing"
-                    text="Výstupy projektů mohou později vytvářet přirozený obsah pro další komunikaci."
-                  />
-                </div>
-              </section>
+          {!loading && !error && !featuredPost ? (
+            <div style={emptyBoxStyle}>
+              Zatím tu nejsou žádné příspěvky. Jakmile správce přidá první soutěž
+              nebo projekt, objeví se zde jako hlavní výzva.
             </div>
+          ) : null}
 
-            <aside
+          {featuredPost ? (
+            <section
               style={{
                 background: "white",
                 border: "1px solid rgba(15,23,42,0.08)",
                 borderRadius: 24,
-                padding: 18,
+                overflow: "hidden",
                 boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
+                marginBottom: 18,
               }}
             >
-              <div style={{ fontSize: 28, fontWeight: 900, lineHeight: 1.05, color: "#0f172a" }}>
-                Co může přijít dál
-              </div>
-              <div style={{ marginTop: 6, fontSize: 14, color: "rgba(15,23,42,0.68)" }}>
-                Další kroky až ve chvíli, kdy budeš spokojený s texty a strukturou.
-              </div>
-
-              <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
-                {nextStepCards.map((item) => (
-                  <SideInfoCard key={item.title} title={item.title} text={item.text} />
-                ))}
-              </div>
-
-              <Link
-                href="/portal/komunita"
-                style={{
-                  display: "inline-flex",
-                  marginTop: 16,
-                  textDecoration: "none",
-                  padding: "14px 16px",
-                  borderRadius: 16,
-                  border: "1px solid rgba(15,23,42,0.18)",
-                  background: "#0f172a",
-                  color: "white",
-                  fontWeight: 900,
-                  justifyContent: "center",
-                  width: "100%",
-                  fontSize: 16,
-                }}
-              >
-                Přejít do Komunity
-              </Link>
-
-              <div
-                style={{
-                  marginTop: 14,
-                  padding: 14,
-                  borderRadius: 16,
-                  background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
-                  border: "1px solid rgba(15,23,42,0.08)",
-                }}
-              >
-                <div style={{ fontWeight: 900, fontSize: 16, color: "#0f172a" }}>
-                  Doporučený další krok
-                </div>
-                <div
+              {featuredPost.image_path ? (
+                <img
+                  src={getPublicUrl(featuredPost.image_path)}
+                  alt={featuredPost.title}
                   style={{
-                    marginTop: 6,
-                    fontSize: 14,
-                    lineHeight: 1.5,
-                    color: "rgba(15,23,42,0.70)",
+                    width: "100%",
+                    maxHeight: 460,
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+              ) : null}
+
+              <div style={{ padding: 22 }}>
+                <div style={dateBadgeStyle}>{formatDateCS(featuredPost.created_at)}</div>
+
+                <h2
+                  style={{
+                    margin: "12px 0 10px",
+                    fontSize: 30,
+                    lineHeight: 1.1,
+                    color: "#0f172a",
                   }}
                 >
-                  Nejdřív nech tuto sekci jako bezpečnou obsahovou vrstvu. Až potom případně
-                  doplníme přihlášení do projektů, uploady, galerii nebo správu přes admin.
+                  {featuredPost.title}
+                </h2>
+
+                <div
+                  style={{
+                    fontSize: 16,
+                    lineHeight: 1.7,
+                    color: "rgba(15,23,42,0.76)",
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {featuredPost.content}
                 </div>
+
+                {featuredPost.attachment_path ? (
+                  <a
+                    href={getPublicUrl(featuredPost.attachment_path)}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ ...secondaryBtnStyle, display: "inline-flex", marginTop: 16 }}
+                  >
+                    {featuredPost.attachment_name || "Otevřít přílohu"}
+                  </a>
+                ) : null}
               </div>
-            </aside>
-          </div>
+            </section>
+          ) : null}
 
-          <style jsx>{`
-            .projects-main-grid {
-              display: grid;
-              grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.9fr);
-              gap: 18px;
-              align-items: start;
-            }
+          {otherPosts.length > 0 ? (
+            <section>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: 16,
+                }}
+              >
+                {otherPosts.map((post) => (
+                  <article key={post.id} style={postCardStyle}>
+                    {post.image_path ? (
+                      <img
+                        src={getPublicUrl(post.image_path)}
+                        alt={post.title}
+                        style={{
+                          width: "100%",
+                          height: 200,
+                          objectFit: "cover",
+                          display: "block",
+                        }}
+                      />
+                    ) : null}
 
-            .tiles-grid {
-              display: grid;
-              grid-template-columns: repeat(2, minmax(0, 1fr));
-              gap: 14px;
-            }
+                    <div style={{ padding: 18 }}>
+                      <div style={dateBadgeStyle}>{formatDateCS(post.created_at)}</div>
 
-            .info-grid {
-              display: grid;
-              grid-template-columns: repeat(3, minmax(0, 1fr));
-              gap: 14px;
-            }
+                      <h3
+                        style={{
+                          margin: "12px 0 8px",
+                          fontSize: 22,
+                          lineHeight: 1.15,
+                          color: "#0f172a",
+                        }}
+                      >
+                        {post.title}
+                      </h3>
 
-            @media (max-width: 1080px) {
-              .projects-main-grid {
-                grid-template-columns: 1fr;
-              }
-            }
+                      <div
+                        style={{
+                          fontSize: 14,
+                          lineHeight: 1.65,
+                          color: "rgba(15,23,42,0.72)",
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {post.content}
+                      </div>
 
-            @media (max-width: 900px) {
-              .info-grid {
-                grid-template-columns: 1fr;
-              }
-            }
-
-            @media (max-width: 760px) {
-              .tiles-grid {
-                grid-template-columns: 1fr;
-              }
-            }
-          `}</style>
+                      {post.attachment_path ? (
+                        <a
+                          href={getPublicUrl(post.attachment_path)}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ ...secondaryBtnStyle, display: "inline-flex", marginTop: 14 }}
+                        >
+                          {post.attachment_name || "Otevřít přílohu"}
+                        </a>
+                      ) : null}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
       </div>
     </RequireAuth>
   );
 }
 
-function StatCard({ value, label }) {
-  return (
-    <div
-      style={{
-        background: "white",
-        border: "1px solid rgba(15,23,42,0.08)",
-        borderRadius: 18,
-        padding: "14px 14px 12px",
-        boxShadow: "0 8px 24px rgba(15,23,42,0.04)",
-      }}
-    >
-      <div
-        style={{
-          fontSize: 24,
-          fontWeight: 900,
-          lineHeight: 1,
-          color: "#0f172a",
-        }}
-      >
-        {value}
-      </div>
-      <div
-        style={{
-          marginTop: 8,
-          fontSize: 12,
-          lineHeight: 1.4,
-          color: "rgba(15,23,42,0.68)",
-        }}
-      >
-        {label}
-      </div>
-    </div>
-  );
-}
+const primaryBtnStyle = {
+  textDecoration: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "12px 16px",
+  borderRadius: 14,
+  background: "#0f172a",
+  color: "white",
+  fontWeight: 900,
+  whiteSpace: "nowrap",
+};
 
-function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note, large = false }) {
-  return (
-    <Link
-      href={href}
-      style={{
-        display: "block",
-        textDecoration: "none",
-        color: "#0f172a",
-        borderRadius: 20,
-        border: highlight ? "2px solid rgba(15,23,42,0.92)" : "1px solid rgba(15,23,42,0.10)",
-        background: highlight ? "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)" : "white",
-        padding: large ? 18 : 16,
-        boxShadow: highlight
-          ? "0 16px 36px rgba(15,23,42,0.08)"
-          : "0 10px 28px rgba(15,23,42,0.05)",
-        minHeight: large ? 210 : 190,
-        transition: "transform 0.16s ease, box-shadow 0.16s ease",
-      }}
-    >
-      <div style={{ display: "flex", gap: 12, alignItems: "center", minWidth: 0 }}>
-        <div
-          style={{
-            width: large ? 52 : 46,
-            height: large ? 52 : 46,
-            borderRadius: 16,
-            border: "1px solid rgba(15,23,42,0.10)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(15,23,42,0.03)",
-            fontSize: large ? 24 : 22,
-            flex: "0 0 auto",
-          }}
-        >
-          {icon}
-        </div>
+const secondaryBtnStyle = {
+  textDecoration: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "12px 16px",
+  borderRadius: 14,
+  background: "white",
+  color: "#0f172a",
+  border: "1px solid rgba(15,23,42,0.12)",
+  fontWeight: 900,
+  whiteSpace: "nowrap",
+};
 
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <div
-              style={{
-                fontWeight: 900,
-                lineHeight: 1.15,
-                fontSize: large ? 18 : 16,
-              }}
-            >
-              {title}
-            </div>
+const postCardStyle = {
+  background: "white",
+  border: "1px solid rgba(15,23,42,0.08)",
+  borderRadius: 24,
+  overflow: "hidden",
+  boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
+};
 
-            {note ? (
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 900,
-                  padding: "4px 9px",
-                  borderRadius: 999,
-                  background: highlight ? "#0f172a" : "rgba(15,23,42,0.06)",
-                  color: highlight ? "white" : "#0f172a",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {note}
-              </span>
-            ) : null}
-          </div>
-        </div>
-      </div>
+const emptyBoxStyle = {
+  background: "white",
+  border: "1px dashed rgba(15,23,42,0.16)",
+  borderRadius: 24,
+  padding: 24,
+  color: "rgba(15,23,42,0.68)",
+};
 
-      <div
-        style={{
-          marginTop: 16,
-          display: "flex",
-          flexDirection: "column",
-          gap: 16,
-          height: "calc(100% - 64px)",
-        }}
-      >
-        <div style={{ minWidth: 0, flex: 1 }}>
-          {desc ? (
-            <div
-              style={{
-                fontSize: large ? 15 : 14,
-                opacity: 0.76,
-                lineHeight: 1.5,
-              }}
-            >
-              {desc}
-            </div>
-          ) : null}
-        </div>
+const errorBoxStyle = {
+  background: "#fff3f3",
+  border: "1px solid #ffd0d0",
+  borderRadius: 18,
+  padding: 16,
+  color: "#8a1f1f",
+  marginBottom: 18,
+};
 
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            alignSelf: "flex-start",
-            padding: "11px 14px",
-            borderRadius: 14,
-            background: highlight ? "#0f172a" : "rgba(15,23,42,0.06)",
-            color: highlight ? "white" : "#0f172a",
-            fontWeight: 900,
-            fontSize: 14,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {cta}
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function InfoCard({ title, text }) {
-  return (
-    <div
-      style={{
-        background: "linear-gradient(180deg, #ffffff 0%, #fbfcff 100%)",
-        border: "1px solid rgba(15,23,42,0.10)",
-        borderRadius: 18,
-        padding: 16,
-      }}
-    >
-      <div style={{ fontSize: 18, fontWeight: 900, lineHeight: 1.2, color: "#0f172a" }}>
-        {title}
-      </div>
-      <div
-        style={{
-          marginTop: 8,
-          fontSize: 14,
-          lineHeight: 1.6,
-          color: "rgba(15,23,42,0.72)",
-        }}
-      >
-        {text}
-      </div>
-    </div>
-  );
-}
-
-function SideInfoCard({ title, text }) {
-  return (
-    <div
-      style={{
-        padding: 14,
-        borderRadius: 16,
-        border: "1px solid rgba(15,23,42,0.10)",
-        background: "linear-gradient(180deg, #ffffff 0%, #fbfcff 100%)",
-      }}
-    >
-      <div style={{ fontWeight: 900, fontSize: 16, color: "#0f172a" }}>{title}</div>
-      <div
-        style={{
-          marginTop: 6,
-          fontSize: 14,
-          lineHeight: 1.5,
-          color: "rgba(15,23,42,0.70)",
-        }}
-      >
-        {text}
-      </div>
-    </div>
-  );
-}
+const dateBadgeStyle = {
+  display: "inline-flex",
+  padding: "6px 10px",
+  borderRadius: 999,
+  background: "rgba(15,23,42,0.06)",
+  color: "rgba(15,23,42,0.72)",
+  fontSize: 12,
+  fontWeight: 800,
+};
