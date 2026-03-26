@@ -66,6 +66,39 @@ export default function AdminPrispevkyPage() {
     };
   }, []);
 
+  async function uploadOptionalFiles() {
+    let imagePath = null;
+    let attachmentPath = null;
+    let attachmentName = null;
+
+    if (imageFile) {
+      const fileName = `${section}/${Date.now()}-${slugFileName(imageFile.name)}`;
+      const { error: uploadImageError } = await supabase.storage
+        .from(BUCKET)
+        .upload(fileName, imageFile, { upsert: false });
+
+      if (uploadImageError) throw uploadImageError;
+      imagePath = fileName;
+    }
+
+    if (attachmentFile) {
+      const fileName = `${section}/${Date.now()}-${slugFileName(attachmentFile.name)}`;
+      const { error: uploadAttachmentError } = await supabase.storage
+        .from(BUCKET)
+        .upload(fileName, attachmentFile, { upsert: false });
+
+      if (uploadAttachmentError) throw uploadAttachmentError;
+      attachmentPath = fileName;
+      attachmentName = attachmentFile.name;
+    }
+
+    return {
+      imagePath,
+      attachmentPath,
+      attachmentName,
+    };
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (saving) return;
@@ -78,59 +111,41 @@ export default function AdminPrispevkyPage() {
       const cleanTitle = String(title || "").trim();
       const cleanContent = String(content || "").trim();
 
-      if (!cleanTitle) {
-        throw new Error("Vyplňte nadpis.");
-      }
-
-      if (!cleanContent) {
-        throw new Error("Vyplňte text příspěvku.");
-      }
+      if (!cleanTitle) throw new Error("Vyplňte nadpis.");
+      if (!cleanContent) throw new Error("Vyplňte text příspěvku.");
 
       const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-      if (userError) throw userError;
-      if (!user) throw new Error("Nejste přihlášený.");
+      if (sessionError) throw sessionError;
+      if (!session?.access_token) throw new Error("Nejste přihlášený.");
 
-      let imagePath = null;
-      let attachmentPath = null;
-      let attachmentName = null;
+      const { imagePath, attachmentPath, attachmentName } = await uploadOptionalFiles();
 
-      if (imageFile) {
-        const fileName = `${section}/${Date.now()}-${slugFileName(imageFile.name)}`;
-        const { error: uploadImageError } = await supabase.storage
-          .from(BUCKET)
-          .upload(fileName, imageFile, { upsert: false });
-
-        if (uploadImageError) throw uploadImageError;
-        imagePath = fileName;
-      }
-
-      if (attachmentFile) {
-        const fileName = `${section}/${Date.now()}-${slugFileName(attachmentFile.name)}`;
-        const { error: uploadAttachmentError } = await supabase.storage
-          .from(BUCKET)
-          .upload(fileName, attachmentFile, { upsert: false });
-
-        if (uploadAttachmentError) throw uploadAttachmentError;
-        attachmentPath = fileName;
-        attachmentName = attachmentFile.name;
-      }
-
-      const { error: insertError } = await supabase.from("portal_posts").insert({
-        section,
-        title: cleanTitle,
-        content: cleanContent,
-        image_path: imagePath,
-        attachment_path: attachmentPath,
-        attachment_name: attachmentName,
-        is_published: !!isPublished,
-        created_by: user.id,
+      const response = await fetch("/api/portal-posts-create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          section,
+          title: cleanTitle,
+          content: cleanContent,
+          is_published: !!isPublished,
+          image_path: imagePath,
+          attachment_path: attachmentPath,
+          attachment_name: attachmentName,
+        }),
       });
 
-      if (insertError) throw insertError;
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result?.error || "Nepodařilo se uložit příspěvek.");
+      }
 
       setTitle("");
       setContent("");
@@ -259,9 +274,7 @@ export default function AdminPrispevkyPage() {
                       accept="image/*"
                       onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                     />
-                    {imageFile ? (
-                      <div style={hintStyle}>Vybraný soubor: {imageFile.name}</div>
-                    ) : null}
+                    {imageFile ? <div style={hintStyle}>Vybraný soubor: {imageFile.name}</div> : null}
                   </div>
 
                   <div>
