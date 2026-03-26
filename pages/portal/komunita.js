@@ -1,209 +1,365 @@
 // pages/portal/komunita.js
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
+import { supabase } from "../../lib/supabaseClient";
 
-const communityBlocks = [
-  {
-    icon: "🤝",
-    title: "Sdílení dobré praxe",
-    text:
-      "Místo pro inspiraci mezi školami, obcemi a dalšími zapojenými partnery. Postupně zde mohou být ukázky aktivit, projektů a nápadů z různých míst.",
-    note: "Postupně rozšiřujeme",
-  },
-  {
-    icon: "🏫",
-    title: "Propojení škol a obcí",
-    text:
-      "ARCHIMEDES Live může být prostorem, kde se nepotkává jen výuka, ale také komunita, zřizovatel a místní spolupráce.",
-  },
-  {
-    icon: "🌍",
-    title: "Živá síť ARCHIMEDES",
-    text:
-      "Cílem je, aby portál nebyl jen místem pro sledování programu, ale také prostředím pro sdílení, inspiraci a spolupráci.",
-  },
-];
+const BUCKET = "portal-posts";
 
-const clubCards = [
-  {
-    icon: "📖",
-    title: "Čtenářský klub",
-    text:
-      "Společné čtení, doporučené knihy, setkání nad texty a kulturní přesah pro děti i dospělé.",
-    href: "/portal/kalendar",
-    cta: "Zobrazit program",
-    note: "Klub",
-  },
-  {
-    icon: "🧓",
-    title: "Senior klub",
-    text:
-      "Pravidelný program pro seniory zaměřený na aktivní život, setkávání, inspiraci a nové podněty.",
-    href: "/portal/kalendar",
-    cta: "Zobrazit program",
-    note: "Komunita",
-  },
-  {
-    icon: "🏙️",
-    title: "Smart City klub",
-    text:
-      "Program pro žáky, kteří chtějí přemýšlet o městě, obci, veřejném prostoru a budoucnosti svého okolí.",
-    href: "/portal/kalendar",
-    cta: "Zobrazit program",
-    note: "Projekty",
-  },
-];
+function formatDateCS(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("cs-CZ", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function getPublicUrl(path) {
+  if (!path) return "";
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data?.publicUrl || "";
+}
 
 export default function KomunitaPage() {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadData() {
+      try {
+        setError("");
+
+        const { data: adminData, error: adminError } = await supabase.rpc("is_admin");
+        if (!alive) return;
+        if (!adminError) setIsAdmin(!!adminData);
+
+        const { data, error } = await supabase
+          .from("portal_posts")
+          .select(
+            "id, title, content, image_path, attachment_path, attachment_name, created_at"
+          )
+          .eq("section", "community")
+          .eq("is_published", true)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        if (!alive) return;
+
+        setPosts(data || []);
+      } catch (e) {
+        if (!alive) return;
+        setError(e?.message || "Nepodařilo se načíst příspěvky.");
+      } finally {
+        if (alive) setLoading(false);
+      }
+    }
+
+    loadData();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const featuredPost = useMemo(() => (posts.length > 0 ? posts[0] : null), [posts]);
+  const otherPosts = useMemo(() => (posts.length > 1 ? posts.slice(1) : []), [posts]);
+
   return (
     <RequireAuth>
       <PortalHeader title="Komunita" />
 
       <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto", padding: "24px 16px 48px" }}>
-
-          {/* HERO */}
           <section
             style={{
               background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
               border: "1px solid rgba(15,23,42,0.08)",
               borderRadius: 24,
-              padding: "22px",
+              padding: "22px 22px 20px",
               boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
               marginBottom: 18,
             }}
           >
-            <div style={{ maxWidth: 760 }}>
-              <div
-                style={{
-                  display: "inline-flex",
-                  padding: "6px 10px",
-                  borderRadius: 999,
-                  background: "rgba(15,23,42,0.06)",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  marginBottom: 12,
-                }}
-              >
-                ARCHIMEDES Live • komunita
+            <div
+              style={{
+                display: "flex",
+                gap: 16,
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ minWidth: 0, flex: "1 1 620px" }}>
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "6px 10px",
+                    borderRadius: 999,
+                    background: "rgba(15,23,42,0.06)",
+                    color: "#0f172a",
+                    fontSize: 12,
+                    fontWeight: 800,
+                    marginBottom: 12,
+                  }}
+                >
+                  ARCHIMEDES Live • komunita
+                </div>
+
+                <h1
+                  style={{
+                    margin: 0,
+                    fontSize: 34,
+                    lineHeight: 1.08,
+                    color: "#0f172a",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  Co se děje v síti
+                  <br />
+                  ARCHIMEDES Live
+                </h1>
+
+                <p
+                  style={{
+                    margin: "14px 0 0",
+                    fontSize: 16,
+                    lineHeight: 1.6,
+                    color: "rgba(15,23,42,0.72)",
+                    maxWidth: 760,
+                  }}
+                >
+                  Novinky, fotografie, krátké zprávy a inspirace od členů sítě,
+                  škol, obcí a partnerů.
+                </p>
               </div>
 
-              <h1 style={{ margin: 0, fontSize: 34, fontWeight: 900 }}>
-                Komunita není doplněk.
-                <br />
-                Je to součást programu.
-              </h1>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <Link href="/portal/kalendar" style={secondaryBtnStyle}>
+                  Program
+                </Link>
 
-              <p style={{ marginTop: 14, fontSize: 16, lineHeight: 1.6 }}>
-                ARCHIMEDES Live nemá být jen místem sledování programu,
-                ale také prostorem pro sdílení, spolupráci a inspiraci mezi školami a komunitami.
-              </p>
+                {isAdmin ? (
+                  <Link href="/portal/admin-prispevky?section=community" style={primaryBtnStyle}>
+                    Přidat příspěvek
+                  </Link>
+                ) : null}
+              </div>
             </div>
           </section>
 
-          {/* OBSAH */}
-          <div style={{ display: "grid", gap: 18 }}>
+          {error ? <div style={errorBoxStyle}>Chyba: {error}</div> : null}
 
-            {/* BLOKY */}
-            <section style={cardStyle}>
-              <h2 style={sectionTitle}>Komunitní rozměr portálu</h2>
+          {loading ? <div style={emptyBoxStyle}>Načítám příspěvky…</div> : null}
 
-              <div style={gridStyle}>
-                {communityBlocks.map((item, i) => (
-                  <Tile key={i} {...item} href="/portal/kalendar" highlight={i === 0} />
+          {!loading && !error && !featuredPost ? (
+            <div style={emptyBoxStyle}>
+              Zatím tu nejsou žádné příspěvky. Jakmile správce přidá první novinku,
+              objeví se tady jako nástěnka komunity.
+            </div>
+          ) : null}
+
+          {featuredPost ? (
+            <section
+              style={{
+                background: "white",
+                border: "1px solid rgba(15,23,42,0.08)",
+                borderRadius: 24,
+                overflow: "hidden",
+                boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
+                marginBottom: 18,
+              }}
+            >
+              {featuredPost.image_path ? (
+                <img
+                  src={getPublicUrl(featuredPost.image_path)}
+                  alt={featuredPost.title}
+                  style={{
+                    width: "100%",
+                    maxHeight: 460,
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+              ) : null}
+
+              <div style={{ padding: 22 }}>
+                <div style={dateBadgeStyle}>{formatDateCS(featuredPost.created_at)}</div>
+
+                <h2
+                  style={{
+                    margin: "12px 0 10px",
+                    fontSize: 30,
+                    lineHeight: 1.1,
+                    color: "#0f172a",
+                  }}
+                >
+                  {featuredPost.title}
+                </h2>
+
+                <div
+                  style={{
+                    fontSize: 16,
+                    lineHeight: 1.7,
+                    color: "rgba(15,23,42,0.76)",
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {featuredPost.content}
+                </div>
+
+                {featuredPost.attachment_path ? (
+                  <a
+                    href={getPublicUrl(featuredPost.attachment_path)}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ ...secondaryBtnStyle, display: "inline-flex", marginTop: 16 }}
+                  >
+                    {featuredPost.attachment_name || "Otevřít přílohu"}
+                  </a>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+
+          {otherPosts.length > 0 ? (
+            <section>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: 16,
+                }}
+              >
+                {otherPosts.map((post) => (
+                  <article key={post.id} style={postCardStyle}>
+                    {post.image_path ? (
+                      <img
+                        src={getPublicUrl(post.image_path)}
+                        alt={post.title}
+                        style={{
+                          width: "100%",
+                          height: 200,
+                          objectFit: "cover",
+                          display: "block",
+                        }}
+                      />
+                    ) : null}
+
+                    <div style={{ padding: 18 }}>
+                      <div style={dateBadgeStyle}>{formatDateCS(post.created_at)}</div>
+
+                      <h3
+                        style={{
+                          margin: "12px 0 8px",
+                          fontSize: 22,
+                          lineHeight: 1.15,
+                          color: "#0f172a",
+                        }}
+                      >
+                        {post.title}
+                      </h3>
+
+                      <div
+                        style={{
+                          fontSize: 14,
+                          lineHeight: 1.65,
+                          color: "rgba(15,23,42,0.72)",
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {post.content}
+                      </div>
+
+                      {post.attachment_path ? (
+                        <a
+                          href={getPublicUrl(post.attachment_path)}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ ...secondaryBtnStyle, display: "inline-flex", marginTop: 14 }}
+                        >
+                          {post.attachment_name || "Otevřít přílohu"}
+                        </a>
+                      ) : null}
+                    </div>
+                  </article>
                 ))}
               </div>
             </section>
-
-            {/* KLUBY */}
-            <section style={cardStyle}>
-              <h2 style={sectionTitle}>Kluby a komunitní programy</h2>
-
-              <div style={gridStyle}>
-                {clubCards.map((item, i) => (
-                  <Tile key={i} {...item} highlight={i === 0} />
-                ))}
-              </div>
-            </section>
-
-            {/* SIDEBAR / DALŠÍ KROKY */}
-            <section style={cardStyle}>
-              <h2 style={sectionTitle}>Co může přijít dál</h2>
-
-              <div style={{ display: "grid", gap: 10 }}>
-                <SideInfoCard title="Sdílení projektů" text="Ukázky aktivit škol a obcí." />
-                <SideInfoCard title="Galerie dobré praxe" text="Inspirace z reálného použití." />
-                <SideInfoCard title="Komunitní výzvy" text="Jednoduché aktivity pro zapojení." />
-              </div>
-
-              <Link href="/portal/souteze" style={ctaStyle}>
-                Přejít na Soutěže a projekty
-              </Link>
-            </section>
-
-          </div>
+          ) : null}
         </div>
       </div>
     </RequireAuth>
   );
 }
 
-/* STYLY */
-const cardStyle = {
-  background: "white",
-  border: "1px solid rgba(15,23,42,0.08)",
-  borderRadius: 24,
-  padding: 18,
-};
-
-const sectionTitle = {
-  fontSize: 26,
-  fontWeight: 900,
-  marginBottom: 14,
-};
-
-const gridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-  gap: 14,
-};
-
-const ctaStyle = {
-  display: "block",
-  marginTop: 16,
-  padding: "14px",
-  textAlign: "center",
+const primaryBtnStyle = {
+  textDecoration: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "12px 16px",
   borderRadius: 14,
   background: "#0f172a",
   color: "white",
   fontWeight: 900,
-  textDecoration: "none",
+  whiteSpace: "nowrap",
 };
 
-/* KOMPONENTY */
-function Tile({ icon, title, text, href, highlight }) {
-  return (
-    <Link href={href} style={{
-      display: "block",
-      padding: 16,
-      borderRadius: 18,
-      border: highlight ? "2px solid #0f172a" : "1px solid rgba(15,23,42,0.1)",
-      textDecoration: "none",
-      color: "#0f172a"
-    }}>
-      <div style={{ fontSize: 24 }}>{icon}</div>
-      <div style={{ fontWeight: 900, marginTop: 8 }}>{title}</div>
-      <div style={{ fontSize: 14, marginTop: 6 }}>{text}</div>
-    </Link>
-  );
-}
+const secondaryBtnStyle = {
+  textDecoration: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "12px 16px",
+  borderRadius: 14,
+  background: "white",
+  color: "#0f172a",
+  border: "1px solid rgba(15,23,42,0.12)",
+  fontWeight: 900,
+  whiteSpace: "nowrap",
+};
 
-function SideInfoCard({ title, text }) {
-  return (
-    <div style={{ padding: 12, border: "1px solid rgba(15,23,42,0.1)", borderRadius: 14 }}>
-      <div style={{ fontWeight: 900 }}>{title}</div>
-      <div style={{ fontSize: 14, marginTop: 4 }}>{text}</div>
-    </div>
-  );
-}
+const postCardStyle = {
+  background: "white",
+  border: "1px solid rgba(15,23,42,0.08)",
+  borderRadius: 24,
+  overflow: "hidden",
+  boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
+};
+
+const emptyBoxStyle = {
+  background: "white",
+  border: "1px dashed rgba(15,23,42,0.16)",
+  borderRadius: 24,
+  padding: 24,
+  color: "rgba(15,23,42,0.68)",
+};
+
+const errorBoxStyle = {
+  background: "#fff3f3",
+  border: "1px solid #ffd0d0",
+  borderRadius: 18,
+  padding: 16,
+  color: "#8a1f1f",
+  marginBottom: 18,
+};
+
+const dateBadgeStyle = {
+  display: "inline-flex",
+  padding: "6px 10px",
+  borderRadius: 999,
+  background: "rgba(15,23,42,0.06)",
+  color: "rgba(15,23,42,0.72)",
+  fontSize: 12,
+  fontWeight: 800,
+};
