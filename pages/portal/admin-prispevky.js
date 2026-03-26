@@ -5,119 +5,44 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
-const BUCKET = "portal-posts";
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
-const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10 MB
-
-function slugFileName(name = "") {
-  return String(name)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/[^a-zA-Z0-9._-]/g, "")
-    .toLowerCase();
-}
-
 export default function AdminPrispevkyPage() {
   const router = useRouter();
 
+  const postId = router.query.id;
+
   const section = useMemo(() => {
-    const raw = String(router.query.section || "").toLowerCase().trim();
+    const raw = String(router.query.section || "").toLowerCase();
     return raw === "contests" ? "contests" : "community";
   }, [router.query.section]);
-
-  const backHref = section === "contests" ? "/portal/souteze" : "/portal/komunita";
-  const sectionLabel = section === "contests" ? "Soutěže a projekty" : "Komunita";
-
-  const [checking, setChecking] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isPublished, setIsPublished] = useState(true);
 
-  const [imageFile, setImageFile] = useState(null);
-  const [attachmentFile, setAttachmentFile] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
+  // 🔥 NAČTENÍ PŘÍSPĚVKU PRO EDITACI
   useEffect(() => {
-    let alive = true;
+    if (!postId) return;
 
-    async function checkAdmin() {
-      try {
-        const { data, error } = await supabase.rpc("is_admin");
-        if (!alive) return;
-        if (error) throw error;
-        setIsAdmin(!!data);
-      } catch (e) {
-        if (!alive) return;
-        setIsAdmin(false);
-        setError(e?.message || "Nepodařilo se ověřit oprávnění.");
-      } finally {
-        if (alive) setChecking(false);
+    async function loadPost() {
+      const { data, error } = await supabase
+        .from("portal_posts")
+        .select("*")
+        .eq("id", postId)
+        .single();
+
+      if (!error && data) {
+        setTitle(data.title || "");
+        setContent(data.content || "");
+        setIsPublished(!!data.is_published);
       }
     }
 
-    checkAdmin();
-
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  async function uploadOptionalFiles() {
-    let imagePath = null;
-    let attachmentPath = null;
-    let attachmentName = null;
-
-    if (imageFile) {
-      const fileName = `${section}/${Date.now()}-${slugFileName(imageFile.name)}`;
-      const { error: uploadImageError } = await supabase.storage
-        .from(BUCKET)
-        .upload(fileName, imageFile, { upsert: false });
-
-      if (uploadImageError) throw uploadImageError;
-      imagePath = fileName;
-    }
-
-    if (attachmentFile) {
-      const fileName = `${section}/${Date.now()}-${slugFileName(attachmentFile.name)}`;
-      const { error: uploadAttachmentError } = await supabase.storage
-        .from(BUCKET)
-        .upload(fileName, attachmentFile, { upsert: false });
-
-      if (uploadAttachmentError) throw uploadAttachmentError;
-      attachmentPath = fileName;
-      attachmentName = attachmentFile.name;
-    }
-
-    return {
-      imagePath,
-      attachmentPath,
-      attachmentName,
-      uploadedFiles: [imagePath, attachmentPath].filter(Boolean),
-    };
-  }
-
-  function validateFiles() {
-    if (imageFile) {
-      if (!String(imageFile.type || "").startsWith("image/")) {
-        throw new Error("Obrázek musí být ve formátu JPG, PNG nebo WebP.");
-      }
-      if (imageFile.size > MAX_IMAGE_SIZE) {
-        throw new Error("Obrázek je příliš velký. Maximální velikost je 5 MB.");
-      }
-    }
-
-    if (attachmentFile) {
-      if (attachmentFile.size > MAX_ATTACHMENT_SIZE) {
-        throw new Error("Příloha je příliš velká. Maximální velikost je 10 MB.");
-      }
-    }
-  }
+    loadPost();
+  }, [postId]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -127,73 +52,56 @@ export default function AdminPrispevkyPage() {
     setError("");
     setMessage("");
 
-    let uploadedFiles = [];
-
     try {
-      const cleanTitle = String(title || "").trim();
-      const cleanContent = String(content || "").trim();
+      const cleanTitle = title.trim();
+      const cleanContent = content.trim();
 
-      if (!cleanTitle) throw new Error("Vyplňte nadpis.");
-      if (!cleanContent) throw new Error("Vyplňte text příspěvku.");
-
-      validateFiles();
+      if (!cleanTitle) throw new Error("Vyplň nadpis");
+      if (!cleanContent) throw new Error("Vyplň text");
 
       const {
         data: { session },
-        error: sessionError,
       } = await supabase.auth.getSession();
 
-      if (sessionError) throw sessionError;
-      if (!session?.access_token) throw new Error("Nejste přihlášený.");
+      const endpoint = postId
+        ? "/api/portal-posts-update"
+        : "/api/portal-posts-create";
 
-      const {
-        imagePath,
-        attachmentPath,
-        attachmentName,
-        uploadedFiles: files,
-      } = await uploadOptionalFiles();
+      const body = postId
+        ? {
+            id: postId,
+            title: cleanTitle,
+            content: cleanContent,
+            is_published: isPublished,
+          }
+        : {
+            section,
+            title: cleanTitle,
+            content: cleanContent,
+            is_published: isPublished,
+          };
 
-      uploadedFiles = files;
-
-      const response = await fetch("/api/portal-posts-create", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
-          section,
-          title: cleanTitle,
-          content: cleanContent,
-          is_published: !!isPublished,
-          image_path: imagePath,
-          attachment_path: attachmentPath,
-          attachment_name: attachmentName,
-        }),
+        body: JSON.stringify(body),
       });
 
-      const result = await response.json().catch(() => ({}));
+      const result = await res.json();
 
-      if (!response.ok) {
-        throw new Error(result?.error || "Nepodařilo se uložit příspěvek.");
+      if (!res.ok) throw new Error(result.error);
+
+      setMessage(postId ? "Uloženo" : "Vytvořeno");
+
+      if (!postId) {
+        setTitle("");
+        setContent("");
       }
-
-      setTitle("");
-      setContent("");
-      setIsPublished(true);
-      setImageFile(null);
-      setAttachmentFile(null);
-      setMessage("Příspěvek byl uložen.");
     } catch (e) {
-      if (uploadedFiles.length > 0) {
-        try {
-          await supabase.storage.from(BUCKET).remove(uploadedFiles);
-        } catch (cleanupError) {
-          console.warn("Cleanup nahraných souborů selhal:", cleanupError);
-        }
-      }
-
-      setError(e?.message || "Nepodařilo se uložit příspěvek.");
+      setError(e.message);
     } finally {
       setSaving(false);
     }
@@ -201,241 +109,47 @@ export default function AdminPrispevkyPage() {
 
   return (
     <RequireAuth>
-      <PortalHeader title="Přidat příspěvek" />
+      <PortalHeader title={postId ? "Upravit příspěvek" : "Přidat příspěvek"} />
 
-      <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", padding: "24px 16px 48px" }}>
-          <section
-            style={{
-              background: "white",
-              border: "1px solid rgba(15,23,42,0.08)",
-              borderRadius: 24,
-              padding: 22,
-              boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
-            }}
-          >
-            {checking ? (
-              <div style={infoBoxStyle}>Načítám oprávnění…</div>
-            ) : !isAdmin ? (
-              <div style={errorBoxStyle}>Tato stránka je dostupná jen správcům portálu.</div>
-            ) : (
-              <>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 12,
-                    alignItems: "flex-start",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    marginBottom: 18,
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        padding: "6px 10px",
-                        borderRadius: 999,
-                        background: "rgba(15,23,42,0.06)",
-                        color: "#0f172a",
-                        fontSize: 12,
-                        fontWeight: 800,
-                        marginBottom: 12,
-                      }}
-                    >
-                      {sectionLabel}
-                    </div>
+      <div style={{ padding: 20, maxWidth: 600 }}>
+        <form onSubmit={handleSubmit}>
+          {error && <div style={{ color: "red" }}>{error}</div>}
+          {message && <div style={{ color: "green" }}>{message}</div>}
 
-                    <h1
-                      style={{
-                        margin: 0,
-                        fontSize: 32,
-                        lineHeight: 1.08,
-                        color: "#0f172a",
-                        letterSpacing: "-0.02em",
-                      }}
-                    >
-                      Přidat příspěvek
-                    </h1>
+          <div>
+            <label>Nadpis</label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              style={{ width: "100%" }}
+            />
+          </div>
 
-                    <p
-                      style={{
-                        margin: "10px 0 0",
-                        fontSize: 15,
-                        lineHeight: 1.6,
-                        color: "rgba(15,23,42,0.72)",
-                        maxWidth: 720,
-                      }}
-                    >
-                      Zadejte nadpis, text a případně přiložte obrázek nebo soubor.
-                    </p>
-                  </div>
+          <div>
+            <label>Text</label>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              style={{ width: "100%", height: 150 }}
+            />
+          </div>
 
-                  <button
-                    type="button"
-                    onClick={() => router.push(backHref)}
-                    style={secondaryBtnStyle}
-                  >
-                    Zpět
-                  </button>
-                </div>
+          <div>
+            <label>
+              <input
+                type="checkbox"
+                checked={isPublished}
+                onChange={(e) => setIsPublished(e.target.checked)}
+              />
+              Publikovat
+            </label>
+          </div>
 
-                {error ? <div style={errorBoxStyle}>{error}</div> : null}
-                {message ? <div style={successBoxStyle}>{message}</div> : null}
-
-                <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
-                  <div>
-                    <label style={labelStyle}>Nadpis</label>
-                    <input
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Např. Nový projekt, pozvánka, výzva, zpráva ze školy…"
-                      style={inputStyle}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Text příspěvku</label>
-                    <textarea
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      placeholder="Napište obsah příspěvku…"
-                      rows={8}
-                      style={{ ...inputStyle, minHeight: 180, resize: "vertical" }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Obrázek</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                    />
-                    {imageFile ? <div style={hintStyle}>Vybraný soubor: {imageFile.name}</div> : null}
-                    <div style={hintStyle}>Povolené jsou běžné obrázky. Maximální velikost 5 MB.</div>
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Příloha</label>
-                    <input
-                      type="file"
-                      onChange={(e) => setAttachmentFile(e.target.files?.[0] || null)}
-                    />
-                    {attachmentFile ? (
-                      <div style={hintStyle}>Vybraný soubor: {attachmentFile.name}</div>
-                    ) : null}
-                    <div style={hintStyle}>Maximální velikost přílohy je 10 MB.</div>
-                  </div>
-
-                  <label
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 10,
-                      fontWeight: 700,
-                      color: "#0f172a",
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isPublished}
-                      onChange={(e) => setIsPublished(e.target.checked)}
-                    />
-                    Publikovat ihned
-                  </label>
-
-                  <button type="submit" disabled={saving} style={primaryBtnStyle}>
-                    {saving ? "Ukládám…" : "Uložit příspěvek"}
-                  </button>
-                </form>
-              </>
-            )}
-          </section>
-        </div>
+          <button disabled={saving}>
+            {saving ? "Ukládám..." : "Uložit"}
+          </button>
+        </form>
       </div>
     </RequireAuth>
   );
 }
-
-const labelStyle = {
-  display: "block",
-  fontSize: 14,
-  fontWeight: 800,
-  color: "#0f172a",
-  marginBottom: 8,
-};
-
-const inputStyle = {
-  width: "100%",
-  minHeight: 48,
-  padding: "12px 14px",
-  borderRadius: 14,
-  border: "1px solid rgba(15,23,42,0.14)",
-  background: "white",
-  fontSize: 15,
-  boxSizing: "border-box",
-};
-
-const primaryBtnStyle = {
-  border: "none",
-  textDecoration: "none",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "12px 16px",
-  borderRadius: 14,
-  background: "#0f172a",
-  color: "white",
-  fontWeight: 900,
-  whiteSpace: "nowrap",
-  cursor: "pointer",
-};
-
-const secondaryBtnStyle = {
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "white",
-  color: "#0f172a",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "12px 16px",
-  borderRadius: 14,
-  fontWeight: 900,
-  whiteSpace: "nowrap",
-  cursor: "pointer",
-};
-
-const infoBoxStyle = {
-  background: "white",
-  border: "1px dashed rgba(15,23,42,0.16)",
-  borderRadius: 18,
-  padding: 16,
-  color: "rgba(15,23,42,0.72)",
-};
-
-const errorBoxStyle = {
-  background: "#fff3f3",
-  border: "1px solid #ffd0d0",
-  borderRadius: 16,
-  padding: 14,
-  color: "#8a1f1f",
-  marginBottom: 16,
-};
-
-const successBoxStyle = {
-  background: "#f3fff3",
-  border: "1px solid #cfeecf",
-  borderRadius: 16,
-  padding: 14,
-  color: "#166534",
-  marginBottom: 16,
-};
-
-const hintStyle = {
-  marginTop: 8,
-  fontSize: 13,
-  lineHeight: 1.5,
-  color: "rgba(15,23,42,0.64)",
-};
