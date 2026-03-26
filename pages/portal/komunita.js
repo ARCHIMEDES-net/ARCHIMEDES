@@ -29,6 +29,7 @@ export default function KomunitaPage() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -68,6 +69,45 @@ export default function KomunitaPage() {
       alive = false;
     };
   }, []);
+
+  async function handleDelete(id) {
+    if (!id || deletingId) return;
+    if (!window.confirm("Opravdu chcete příspěvek smazat?")) return;
+
+    try {
+      setDeletingId(id);
+      setError("");
+
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) throw sessionError;
+      if (!session?.access_token) throw new Error("Nejste přihlášený.");
+
+      const res = await fetch("/api/portal-posts-delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const result = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(result?.error || "Nepodařilo se smazat příspěvek.");
+      }
+
+      setPosts((prev) => prev.filter((post) => post.id !== id));
+    } catch (e) {
+      setError(e?.message || "Chyba při mazání příspěvku.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   const featuredPost = useMemo(() => (posts.length > 0 ? posts[0] : null), [posts]);
   const otherPosts = useMemo(() => (posts.length > 1 ? posts.slice(1) : []), [posts]);
@@ -217,16 +257,29 @@ export default function KomunitaPage() {
                   {featuredPost.content}
                 </div>
 
-                {featuredPost.attachment_path ? (
-                  <a
-                    href={getPublicUrl(featuredPost.attachment_path)}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ ...secondaryBtnStyle, display: "inline-flex", marginTop: 16 }}
-                  >
-                    {featuredPost.attachment_name || "Otevřít přílohu"}
-                  </a>
-                ) : null}
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 16 }}>
+                  {featuredPost.attachment_path ? (
+                    <a
+                      href={getPublicUrl(featuredPost.attachment_path)}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ ...secondaryBtnStyle, display: "inline-flex" }}
+                    >
+                      {featuredPost.attachment_name || "Otevřít přílohu"}
+                    </a>
+                  ) : null}
+
+                  {isAdmin ? (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(featuredPost.id)}
+                      disabled={deletingId === featuredPost.id}
+                      style={dangerBtnStyle}
+                    >
+                      {deletingId === featuredPost.id ? "Mažu…" : "Smazat"}
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </section>
           ) : null}
@@ -280,16 +333,29 @@ export default function KomunitaPage() {
                         {post.content}
                       </div>
 
-                      {post.attachment_path ? (
-                        <a
-                          href={getPublicUrl(post.attachment_path)}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{ ...secondaryBtnStyle, display: "inline-flex", marginTop: 14 }}
-                        >
-                          {post.attachment_name || "Otevřít přílohu"}
-                        </a>
-                      ) : null}
+                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+                        {post.attachment_path ? (
+                          <a
+                            href={getPublicUrl(post.attachment_path)}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ ...secondaryBtnStyle, display: "inline-flex" }}
+                          >
+                            {post.attachment_name || "Otevřít přílohu"}
+                          </a>
+                        ) : null}
+
+                        {isAdmin ? (
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(post.id)}
+                            disabled={deletingId === post.id}
+                            style={dangerBtnStyle}
+                          >
+                            {deletingId === post.id ? "Mažu…" : "Smazat"}
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
                   </article>
                 ))}
@@ -327,6 +393,20 @@ const secondaryBtnStyle = {
   border: "1px solid rgba(15,23,42,0.12)",
   fontWeight: 900,
   whiteSpace: "nowrap",
+};
+
+const dangerBtnStyle = {
+  border: "1px solid rgba(185,28,28,0.18)",
+  background: "#fff5f5",
+  color: "#b91c1c",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "12px 16px",
+  borderRadius: 14,
+  fontWeight: 900,
+  whiteSpace: "nowrap",
+  cursor: "pointer",
 };
 
 const postCardStyle = {
