@@ -1,47 +1,39 @@
 export default async function handler(req, res) {
-  const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
-
-  if (!accessToken) {
-    return res.status(500).json({
-      error: "Chybí INSTAGRAM_ACCESS_TOKEN",
-      items: [],
-    });
-  }
+  const ACCESS_TOKEN = process.env.INSTAGRAM_ACCESS_TOKEN;
+  const ACCOUNT_ID = process.env.INSTAGRAM_ACCOUNT_ID;
 
   try {
     const response = await fetch(
-      `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,permalink,thumbnail_url,timestamp&access_token=${accessToken}`
+      `https://graph.facebook.com/v19.0/${ACCOUNT_ID}/media?fields=id,caption,media_type,media_url,permalink,thumbnail_url,timestamp&limit=6&access_token=${ACCESS_TOKEN}`
     );
 
     const data = await response.json();
 
-    if (!response.ok) {
-      return res.status(500).json({
-        error: data,
-        items: [],
-      });
+    if (!data.data) {
+      throw new Error("No data from Instagram");
     }
 
-    const items = (data.data || [])
+    // vezmeme jen poslední 3 videa
+    const videos = data.data
+      .filter((item) => item.media_type === "VIDEO" || item.media_type === "REEL")
       .slice(0, 3)
       .map((item) => ({
+        type: "p",
         id: item.id,
         href: item.permalink,
-        embed: item.permalink.endsWith("/")
-          ? `${item.permalink}embed`
-          : `${item.permalink}/embed`,
-        title:
-          item.caption?.split("\n")[0]?.slice(0, 80) || "Pozvánka",
+        embed: `${item.permalink}embed`,
+        title: "Pozvánka",
       }));
 
-    return res.status(200).json({
-      source: "instagram_live",
-      items,
-    });
-  } catch (err) {
-    return res.status(500).json({
-      error: err.message,
-      items: [],
-    });
+    res.setHeader(
+      "Cache-Control",
+      "s-maxage=300, stale-while-revalidate"
+    );
+
+    return res.status(200).json(videos);
+  } catch (error) {
+    console.error(error);
+
+    return res.status(200).json([]);
   }
 }
