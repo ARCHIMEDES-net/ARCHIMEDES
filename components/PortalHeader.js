@@ -126,18 +126,14 @@ export default function PortalHeader({ title = "" }) {
         setIsOrgAdmin(roleInActiveOrg === "organization_admin");
         setIsDemoViewer(roleInActiveOrg === "demo_viewer");
 
-        const { data: platformAdminRow, error: platformAdminError } =
-          await supabase
-            .from("platform_admins")
-            .select("user_id")
-            .eq("user_id", user.id)
-            .maybeSingle();
+        const { data: isAdminResult, error: isAdminError } = await supabase.rpc("is_admin");
 
-        if (platformAdminError) throw platformAdminError;
+        if (isAdminError) throw isAdminError;
         if (!alive) return;
 
-        setIsPlatformAdmin(!!platformAdminRow?.user_id);
-      } catch {
+        setIsPlatformAdmin(!!isAdminResult);
+      } catch (err) {
+        console.error("PortalHeader loadRole error:", err);
         if (!alive) return;
         setIsOrgAdmin(false);
         setIsPlatformAdmin(false);
