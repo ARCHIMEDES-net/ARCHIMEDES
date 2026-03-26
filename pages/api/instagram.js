@@ -1,10 +1,4 @@
-// pages/api/instagram.js
-
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
   const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
 
   if (!accessToken) {
@@ -22,7 +16,6 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Instagram API error:", data);
       return res.status(500).json({
         error: data,
         items: [],
@@ -41,18 +34,11 @@ export default async function handler(req, res) {
           item.caption?.split("\n")[0]?.slice(0, 80) || "Pozvánka",
       }));
 
-    res.setHeader(
-      "Cache-Control",
-      "s-maxage=300, stale-while-revalidate=600"
-    );
-
     return res.status(200).json({
       source: "instagram_live",
       items,
     });
   } catch (err) {
-    console.error("Server error:", err);
-
     return res.status(500).json({
       error: err.message,
       items: [],
