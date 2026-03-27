@@ -713,7 +713,7 @@ export default function StartPage() {
                       administraci školy.
                     </p>
                     <p className="smallLegal">
-                      Zařazení programu do financování školy posuzuje škola podle
+                      Zařazení programu do financování školy (šablony a pod.) posuzuje škola podle
                       své projektové a účetní dokumentace.
                     </p>
                   </div>
