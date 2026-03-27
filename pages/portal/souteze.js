@@ -221,7 +221,7 @@ export default function SoutezePage() {
                   }}
                 >
                   Přehled soutěží, projektových zadání, ukázek výstupů a inspirace
-                  pro školy, obce i další členy sítě.
+                  pro školy, obce i další členy.
                 </p>
               </div>
 
