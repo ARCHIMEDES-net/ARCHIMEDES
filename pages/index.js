@@ -174,8 +174,8 @@ export default function Home() {
                 <div className="benefitTag">Pro obec</div>
                 <h3>Obsah, který může sloužit celé komunitě</h3>
                 <p>
-                  Program může využívat nejen škola, ale i obec, komunitu,
-                  seniory a další společné aktivity v místě.
+                  Program může využívat nejen škola, ale i obec, senioři,
+                  dobrovolní hasiči a jiné komunitní spolky.
                 </p>
               </div>
             </div>
