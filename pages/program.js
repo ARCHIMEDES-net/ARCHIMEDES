@@ -639,7 +639,7 @@ export default function ProgramPage() {
                   <PrimaryButton href="/demo">Mám zájem o demo</PrimaryButton>
 
                   <SecondaryButton href="#zapojeni">
-                    Jak se škola nebo obec zapojí
+                    Ceník programů
                   </SecondaryButton>
 
                   <TertiaryButton href="/financovani-skoly">
