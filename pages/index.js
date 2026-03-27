@@ -135,8 +135,8 @@ export default function Home() {
                   <div className="stepNumber">3</div>
                   <h3>Interaktivní práce a návaznost</h3>
                   <p>
-                    Škola má k dispozici pracovní listy, návaznost do výuky i
-                    možnost vracet se k tématům v archivu.
+                    Škola má k dispozici pracovní listy, které přímo navazují na výuku
+                    a také přístup do archivu pro opakování témat.
                   </p>
                 </div>
               </article>
