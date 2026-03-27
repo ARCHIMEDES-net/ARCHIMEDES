@@ -744,7 +744,7 @@ export default function StartPage() {
                     </ul>
 
                     <p className="summaryNote">
-                      Konkrétní termíny budou zveřejňovány průběžně v programu
+                      Konkrétní termíny jsou zveřejňovány průběžně v programu
                       ARCHIMEDES Live.
                     </p>
                   </div>
