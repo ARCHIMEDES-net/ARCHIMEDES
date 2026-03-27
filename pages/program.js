@@ -944,8 +944,8 @@ export default function ProgramPage() {
                   color: "rgba(255,255,255,0.82)",
                 }}
               >
-                Krátká ukázka během několika minut ukáže, jak může ARCHIMEDES Live
-                obohatit školu i komunitní život obce.
+                Během pár minut se sami přesvědčíte, jak ARCHIMEDES Live dokáže
+                oživit výuku ve škole i společenské dění v obci. 
               </p>
             </div>
 
