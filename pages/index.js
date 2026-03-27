@@ -352,7 +352,7 @@ export default function Home() {
 
           .heroContent {
             max-width: 720px;
-            padding: 116px 0 84px;
+            padding: 116px 0 72px;
             color: white;
           }
 
@@ -365,7 +365,7 @@ export default function Home() {
             font-size: 13px;
             font-weight: 800;
             letter-spacing: 0.02em;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
           }
 
           .eyebrow.dark {
@@ -392,7 +392,7 @@ export default function Home() {
           }
 
           .heroLead {
-            margin: 22px 0 0;
+            margin: 20px 0 0;
             font-size: 21px;
             line-height: 1.5;
             color: rgba(255, 255, 255, 0.92);
@@ -412,11 +412,11 @@ export default function Home() {
           }
 
           .heroActions {
-            margin-top: 26px;
+            margin-top: 24px;
           }
 
           .heroGuestLinkWrap {
-            margin-top: 16px;
+            margin-top: 14px;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -450,11 +450,11 @@ export default function Home() {
           }
 
           .section {
-            padding: 82px 0;
+            padding: 64px 0;
           }
 
           .sectionTightTop {
-            padding-top: 64px;
+            padding-top: 36px;
           }
 
           .sectionSoft {
@@ -462,17 +462,18 @@ export default function Home() {
           }
 
           .sectionUkazky {
-            padding-top: 0;
+            padding-top: 24px;
+            padding-bottom: 56px;
           }
 
           .sectionIntro {
-            margin-bottom: 26px;
+            margin-bottom: 22px;
           }
 
           .sectionIntro.center {
             text-align: center;
             max-width: 860px;
-            margin: 0 auto 32px;
+            margin: 0 auto 28px;
           }
 
           h2 {
@@ -487,7 +488,7 @@ export default function Home() {
           .sectionIntro p,
           .trustPanel p,
           .ctaBox p {
-            margin: 14px 0 0;
+            margin: 12px 0 0;
             font-size: 18px;
             line-height: 1.68;
             color: #4b5563;
@@ -503,8 +504,8 @@ export default function Home() {
           .videosGrid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 22px;
-            margin-top: 24px;
+            gap: 18px;
+            margin-top: 20px;
           }
 
           .stepCard,
@@ -536,7 +537,7 @@ export default function Home() {
           }
 
           .videoBody {
-            padding: 18px;
+            padding: 16px 18px 18px;
           }
 
           .videoTitle {
@@ -659,7 +660,7 @@ export default function Home() {
           }
 
           .ctaSection {
-            padding: 0 0 88px;
+            padding: 0 0 72px;
           }
 
           .ctaBox {
@@ -731,6 +732,19 @@ export default function Home() {
               font-size: 18px;
             }
 
+            .section {
+              padding: 56px 0;
+            }
+
+            .sectionUkazky {
+              padding-top: 20px;
+              padding-bottom: 48px;
+            }
+
+            .sectionTightTop {
+              padding-top: 32px;
+            }
+
             .stepImage img {
               height: 208px;
             }
@@ -756,7 +770,7 @@ export default function Home() {
 
             .heroContent {
               max-width: none;
-              padding: 82px 0 56px;
+              padding: 82px 0 52px;
             }
 
             h1 {
@@ -769,6 +783,27 @@ export default function Home() {
             .trustPanel p,
             .ctaBox p {
               font-size: 16px;
+            }
+
+            .section {
+              padding: 44px 0;
+            }
+
+            .sectionUkazky {
+              padding-top: 16px;
+              padding-bottom: 40px;
+            }
+
+            .sectionTightTop {
+              padding-top: 24px;
+            }
+
+            .sectionIntro {
+              margin-bottom: 18px;
+            }
+
+            .sectionIntro.center {
+              margin: 0 auto 22px;
             }
 
             .heroLeadBreak {
