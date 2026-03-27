@@ -225,9 +225,12 @@ export default function KomunitaPage() {
                 <div
                   style={{
                     width: "100%",
-                    height: "clamp(240px, 42vw, 460px)",
+                    height: 420,
                     overflow: "hidden",
-                    background: "#eef2f7",
+                    background: "#ffffff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   <img
@@ -236,9 +239,11 @@ export default function KomunitaPage() {
                     style={{
                       width: "100%",
                       height: "100%",
-                      objectFit: "cover",
+                      objectFit: "contain",
                       objectPosition: "center",
                       display: "block",
+                      padding: 24,
+                      boxSizing: "border-box",
                     }}
                   />
                 </div>
@@ -327,7 +332,10 @@ export default function KomunitaPage() {
                           width: "100%",
                           height: 200,
                           overflow: "hidden",
-                          background: "#eef2f7",
+                          background: "#ffffff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
                         <img
@@ -336,9 +344,11 @@ export default function KomunitaPage() {
                           style={{
                             width: "100%",
                             height: "100%",
-                            objectFit: "cover",
+                            objectFit: "contain",
                             objectPosition: "center",
                             display: "block",
+                            padding: 16,
+                            boxSizing: "border-box",
                           }}
                         />
                       </div>
