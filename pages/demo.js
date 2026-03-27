@@ -175,7 +175,7 @@ export default function DemoPage() {
             <div className="ctaSummaryTitle">Proč začít právě ukázkou</div>
             <ul className="ctaSummaryList">
               <li>rychle uvidíte, jak prostředí funguje</li>
-              <li>snadno si ověříte, zda je program pro vaši školu vhodný</li>
+              <li>snadno si ověříte vhodnost programu pro vaši školu</li>
               <li>na ukázku lze navázat objednávkou START</li>
             </ul>
           </div>
