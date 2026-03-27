@@ -220,7 +220,7 @@ export default function KomunitaPage() {
                     maxWidth: 760,
                   }}
                 >
-                  Novinky, fotografie, krátké zprávy a inspirace od členů sítě,
+                  Novinky, fotografie, krátké zprávy a inspirace od členů,
                   škol, obcí a partnerů.
                 </p>
               </div>
