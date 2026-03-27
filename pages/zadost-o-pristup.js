@@ -493,8 +493,7 @@ export default function ZadostPristupPage() {
                   <>
                     <div>1. Vaši žádost zkontrolujeme a schválíme.</div>
                     <div>
-                      2. Na zadaný e-mail vám přijde zpráva s tlačítkem nebo
-                      odkazem pro vstup do ukázkového prostředí.
+                      2. Na zadaný e-mail obdržíte zprávu s přístupem, který vás jedním kliknutím zavede přímo do ukázkového prostředí.
                     </div>
                     <div>
                       3. Poté vstoupíte do ukázkového prostředí ARCHIMEDES Live.
