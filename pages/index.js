@@ -78,7 +78,7 @@ export default function Home() {
                   <ButtonLink href="/aktualni-pozvanky" variant="primary">
                     Aktuální pozvánky
                   </ButtonLink>
-                  <ButtonLink href="/program#ukazky-vysilani" variant="secondary">
+                  <ButtonLink href="/#ukazky-vysilani" variant="secondary">
                     Ukázková hodina
                   </ButtonLink>
                   <ButtonLink href="/demo" variant="secondary">
