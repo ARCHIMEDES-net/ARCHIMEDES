@@ -510,12 +510,14 @@ export default function Home() {
           }
 
           .sectionShowcase {
-            padding-top: 10px;
-            padding-bottom: 64px;
+            padding-top: 6px;
+            padding-bottom: 36px;
           }
 
           .sectionBenefits {
             position: relative;
+            padding-top: 54px;
+            padding-bottom: 72px;
             background:
               linear-gradient(180deg, rgba(234, 239, 247, 0.86) 0%, rgba(240, 244, 250, 0.98) 100%);
             border-top: 1px solid rgba(15, 23, 42, 0.04);
@@ -543,7 +545,7 @@ export default function Home() {
 
           .sectionIntroShowcase {
             max-width: 720px;
-            margin-bottom: 30px;
+            margin-bottom: 18px;
           }
 
           h2 {
@@ -648,23 +650,11 @@ export default function Home() {
             position: relative;
           }
 
-          .showcaseShell::before {
-            content: "";
-            position: absolute;
-            top: 68px;
-            left: 0;
-            width: 64px;
-            height: 4px;
-            border-radius: 999px;
-            background: linear-gradient(90deg, #1d4ed8 0%, #60a5fa 100%);
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.2);
-          }
-
           .videosGrid {
             display: grid;
             grid-template-columns: repeat(12, minmax(0, 1fr));
             gap: 22px;
-            margin-top: 34px;
+            margin-top: 20px;
             align-items: stretch;
           }
 
@@ -720,26 +710,26 @@ export default function Home() {
           }
 
           .videoBody {
-            padding: 18px 18px 20px;
+            padding: 14px 16px 12px;
           }
 
           .videoTitle {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
             color: #0f172a;
-            line-height: 1.34;
+            line-height: 1.3;
             letter-spacing: -0.02em;
             text-wrap: balance;
           }
 
           .videosGrid :global(.videoCard:nth-child(1) .videoTitle) {
-            font-size: 22px;
+            font-size: 19px;
           }
 
           .videoSubtitle {
-            margin-top: 6px;
-            font-size: 14px;
-            line-height: 1.64;
+            margin-top: 4px;
+            font-size: 13px;
+            line-height: 1.5;
             color: #667387;
           }
 
@@ -942,8 +932,8 @@ export default function Home() {
             }
 
             .sectionShowcase {
-              padding-top: 4px;
-              padding-bottom: 52px;
+              padding-top: 0;
+              padding-bottom: 28px;
             }
 
             .sectionTrust {
@@ -958,10 +948,6 @@ export default function Home() {
             .trustPanel,
             .ctaBox {
               padding: 28px;
-            }
-
-            .showcaseShell::before {
-              top: 60px;
             }
           }
 
@@ -1022,7 +1008,12 @@ export default function Home() {
 
             .sectionShowcase {
               padding-top: 0;
-              padding-bottom: 42px;
+              padding-bottom: 24px;
+            }
+
+            .sectionBenefits {
+              padding-top: 42px;
+              padding-bottom: 54px;
             }
 
             .sectionTrust {
@@ -1036,11 +1027,6 @@ export default function Home() {
 
             .sectionIntro.center {
               margin: 0 auto 22px;
-            }
-
-            .showcaseShell::before {
-              top: 56px;
-              width: 52px;
             }
 
             .stepBody,
