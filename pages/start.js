@@ -684,7 +684,7 @@ export default function StartPage() {
                       </div>
                       <div className="simpleStep">
                         <span className="stepNumber">3</span>
-                        <p>Obratem dostanete informace k přístupu.</p>
+                        <p>Obratem obdržíte přístupové údaje.</p>
                       </div>
                     </div>
                   </div>
