@@ -179,7 +179,7 @@ export default function PoptavkaPage() {
             }}
           >
             ARCHIMEDES propojuje vzdělávání, komunitní život a inspirativní
-            setkávání lidí.
+            setkávání.
           </p>
 
           <p
@@ -192,7 +192,7 @@ export default function PoptavkaPage() {
           >
             Můžete využívat živý program <strong>ARCHIMEDES Live</strong>,
             zapojit <strong>Senior klub</strong>, postavit{" "}
-            <strong>učebnu ARCHIMEDES</strong> nebo obojí propojit.
+            <strong>učebnu ARCHIMEDES</strong> nebo vše propojit.
           </p>
 
           <p
