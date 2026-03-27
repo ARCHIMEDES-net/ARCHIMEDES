@@ -189,8 +189,7 @@ export default function Home() {
                 <div className="eyebrow dark">Ověřeno v praxi</div>
                 <h2>ARCHIMEDES už funguje v desítkách škol a obcí</h2>
                 <p>
-                  Živý program tvoříme se školami a komunitami. Interaktivně ukazujeme a vysvětlujeme témata z celého světa a různých oborů. 
-                
+Ve spolupráci s pedagogy a místními komunitami připravujeme interaktivní programy, které srozumitelně představují komplexní témata z celého světa.
                 </p>
               </div>
 
