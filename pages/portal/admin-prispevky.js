@@ -22,6 +22,7 @@ export default function AdminPrispevky() {
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
+  const [existingImagePath, setExistingImagePath] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -44,6 +45,7 @@ export default function AdminPrispevky() {
         setTitle(data.title || "");
         setContent(data.content || "");
         setIsPublished(Boolean(data.is_published));
+        setExistingImagePath(data.image_path || "");
 
         if (data.image_path) {
           const { data: urlData } = supabase.storage
@@ -101,39 +103,55 @@ export default function AdminPrispevky() {
     setLoading(true);
 
     try {
-      let imagePath = null;
+      let imagePath = existingImagePath || null;
 
       if (imageFile) {
         imagePath = await uploadImage(imageFile);
       }
 
-      if (id) {
-        const payload = {
-          title: title.trim(),
-          content: content.trim(),
-          is_published: isPublished,
-        };
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-        if (imagePath) {
-          payload.image_path = imagePath;
-        }
+      if (sessionError) throw sessionError;
+      if (!session?.access_token) {
+        throw new Error("Nejste přihlášený.");
+      }
 
-        const { error } = await supabase
-          .from("portal_posts")
-          .update(payload)
-          .eq("id", id);
+      const endpoint = id
+        ? "/api/portal-posts-update"
+        : "/api/portal-posts-create";
 
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("portal_posts").insert({
-          title: title.trim(),
-          content: content.trim(),
-          section: resolvedSection,
-          is_published: isPublished,
-          image_path: imagePath,
-        });
+      const payload = id
+        ? {
+            id,
+            title: title.trim(),
+            content: content.trim(),
+            is_published: isPublished,
+            image_path: imagePath,
+          }
+        : {
+            section: resolvedSection,
+            title: title.trim(),
+            content: content.trim(),
+            is_published: isPublished,
+            image_path: imagePath,
+          };
 
-        if (error) throw error;
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(result?.error || "Nepodařilo se uložit příspěvek.");
       }
 
       router.push(
