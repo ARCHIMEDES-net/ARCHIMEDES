@@ -79,7 +79,7 @@ export default function DemoPage() {
             Ukázkové prostředí vám pomůže rychle pochopit,{" "}
             <strong>co škola po zapojení získá</strong>: podobu portálu,
             strukturu programu, ukázky záznamů, pracovní listy i celkový dojem
-            z prostředí, ve kterém bude škola fungovat.
+            z prostředí, které může škola využívat.
           </p>
 
           <div className="benefitGrid">
