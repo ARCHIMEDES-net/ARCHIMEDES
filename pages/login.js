@@ -1,4 +1,3 @@
-
 // pages/login.js
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -239,6 +238,7 @@ export default function LoginPage() {
         }
 
         if (session?.user) {
+          await new Promise((r) => setTimeout(r, 50));
           await safeRedirectAfterAuth();
           return;
         }
