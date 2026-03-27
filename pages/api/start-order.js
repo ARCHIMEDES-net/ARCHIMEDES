@@ -770,6 +770,7 @@ function buildInternalOrderHtml({
 function buildOrdererEmailHtml({
   schoolName,
   contactName,
+  ordererEmail,
   adminEmail,
   safeJoinCode,
   onboardingStatus,
@@ -786,6 +787,8 @@ function buildOrdererEmailHtml({
       <div style="font-size:14px;font-weight:900;color:#0f172a;margin-bottom:10px;">Shrnutí objednávky</div>
       <div style="font-size:15px;line-height:1.7;color:#334155;">
         <strong>Škola / organizace:</strong> ${schoolName}<br/>
+        <strong>Objednatel:</strong> ${contactName || "-"}<br/>
+        <strong>E-mail objednatele:</strong> ${ordererEmail}<br/>
         <strong>Administrátor programu:</strong> ${adminEmail}<br/>
         <strong>Období:</strong> duben–září 2026<br/>
         <strong>Cena:</strong> 4 990 Kč bez DPH
@@ -1321,6 +1324,7 @@ export default async function handler(req, res) {
       html: buildOrdererEmailHtml({
         schoolName,
         contactName,
+        ordererEmail: email,
         adminEmail,
         safeJoinCode,
         onboardingStatus,
