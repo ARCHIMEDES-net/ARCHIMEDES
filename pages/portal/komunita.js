@@ -7,6 +7,7 @@ import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
 const BUCKET = "portal-posts";
+const TEXT_PREVIEW_LENGTH = 260;
 
 function formatDateCS(value) {
   if (!value) return "";
@@ -25,6 +26,18 @@ function getPublicUrl(path) {
   return data?.publicUrl || "";
 }
 
+function getPreviewText(text, maxLength = TEXT_PREVIEW_LENGTH) {
+  const clean = String(text || "");
+  if (clean.length <= maxLength) return clean;
+
+  const sliced = clean.slice(0, maxLength);
+  const lastSpace = sliced.lastIndexOf(" ");
+  if (lastSpace > 120) {
+    return `${sliced.slice(0, lastSpace)}…`;
+  }
+  return `${sliced}…`;
+}
+
 export default function KomunitaPage() {
   const router = useRouter();
   const [posts, setPosts] = useState([]);
@@ -33,6 +46,7 @@ export default function KomunitaPage() {
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
   const [lightboxImage, setLightboxImage] = useState("");
+  const [expandedPostIds, setExpandedPostIds] = useState({});
 
   useEffect(() => {
     let alive = true;
@@ -89,6 +103,13 @@ export default function KomunitaPage() {
     };
   }, [lightboxImage]);
 
+  function toggleExpanded(postId) {
+    setExpandedPostIds((prev) => ({
+      ...prev,
+      [postId]: !prev[postId],
+    }));
+  }
+
   async function handleDelete(id) {
     if (!id || deletingId) return;
     if (!window.confirm("Opravdu chcete příspěvek smazat?")) return;
@@ -121,6 +142,11 @@ export default function KomunitaPage() {
       }
 
       setPosts((prev) => prev.filter((post) => post.id !== id));
+      setExpandedPostIds((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
     } catch (e) {
       setError(e?.message || "Chyba při mazání příspěvku.");
     } finally {
@@ -227,6 +253,10 @@ export default function KomunitaPage() {
           {posts.map((post) => {
             const imageUrl = getPublicUrl(post.image_path);
             const attachmentUrl = getPublicUrl(post.attachment_path);
+            const isExpanded = !!expandedPostIds[post.id];
+            const fullText = String(post.content || "");
+            const previewText = getPreviewText(fullText);
+            const isLongText = fullText.length > TEXT_PREVIEW_LENGTH;
 
             return (
               <article key={post.id} style={postRowStyle}>
@@ -274,8 +304,18 @@ export default function KomunitaPage() {
                         whiteSpace: "pre-wrap",
                       }}
                     >
-                      {post.content}
+                      {isExpanded ? fullText : previewText}
                     </div>
+
+                    {isLongText ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(post.id)}
+                        style={readMoreBtnStyle}
+                      >
+                        {isExpanded ? "Zobrazit méně" : "Číst více"}
+                      </button>
+                    ) : null}
 
                     <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
                       {post.attachment_path ? (
@@ -406,6 +446,16 @@ const dangerBtnStyle = {
   borderRadius: 14,
   fontWeight: 900,
   whiteSpace: "nowrap",
+  cursor: "pointer",
+};
+
+const readMoreBtnStyle = {
+  marginTop: 10,
+  padding: 0,
+  border: "none",
+  background: "transparent",
+  color: "#2563eb",
+  fontWeight: 800,
   cursor: "pointer",
 };
 
