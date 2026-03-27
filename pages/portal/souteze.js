@@ -222,16 +222,31 @@ export default function SoutezePage() {
               }}
             >
               {featuredPost.image_path ? (
-                <img
-                  src={getPublicUrl(featuredPost.image_path)}
-                  alt={featuredPost.title}
+                <div
                   style={{
                     width: "100%",
-                    maxHeight: 460,
-                    objectFit: "cover",
-                    display: "block",
+                    height: 420,
+                    overflow: "hidden",
+                    background: "#ffffff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                />
+                >
+                  <img
+                    src={getPublicUrl(featuredPost.image_path)}
+                    alt={featuredPost.title}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      objectPosition: "center",
+                      display: "block",
+                      padding: 24,
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </div>
               ) : null}
 
               <div style={{ padding: 22 }}>
@@ -312,16 +327,31 @@ export default function SoutezePage() {
                 {otherPosts.map((post) => (
                   <article key={post.id} style={postCardStyle}>
                     {post.image_path ? (
-                      <img
-                        src={getPublicUrl(post.image_path)}
-                        alt={post.title}
+                      <div
                         style={{
                           width: "100%",
                           height: 200,
-                          objectFit: "cover",
-                          display: "block",
+                          overflow: "hidden",
+                          background: "#ffffff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
-                      />
+                      >
+                        <img
+                          src={getPublicUrl(post.image_path)}
+                          alt={post.title}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                            objectPosition: "center",
+                            display: "block",
+                            padding: 16,
+                            boxSizing: "border-box",
+                          }}
+                        />
+                      </div>
                     ) : null}
 
                     <div style={{ padding: 18 }}>
