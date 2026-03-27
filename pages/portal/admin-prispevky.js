@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
@@ -8,7 +8,13 @@ const BUCKET = "portal-posts";
 
 export default function AdminPrispevky() {
   const router = useRouter();
-  const { id, section } = router.query;
+  const { id } = router.query;
+
+  const resolvedSection = useMemo(() => {
+    const raw = String(router.query.section || "").trim().toLowerCase();
+    if (raw === "contests") return "contests";
+    return "community";
+  }, [router.query.section]);
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -23,23 +29,30 @@ export default function AdminPrispevky() {
     if (!id) return;
 
     async function loadPost() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("portal_posts")
         .select("*")
         .eq("id", id)
         .single();
 
+      if (error) {
+        alert(error.message || "Nepodařilo se načíst příspěvek.");
+        return;
+      }
+
       if (data) {
         setTitle(data.title || "");
         setContent(data.content || "");
-        setIsPublished(data.is_published);
+        setIsPublished(Boolean(data.is_published));
 
         if (data.image_path) {
           const { data: urlData } = supabase.storage
             .from(BUCKET)
             .getPublicUrl(data.image_path);
 
-          setImagePreview(urlData.publicUrl);
+          setImagePreview(urlData?.publicUrl || "");
+        } else {
+          setImagePreview("");
         }
       }
     }
@@ -48,7 +61,7 @@ export default function AdminPrispevky() {
   }, [id]);
 
   function handleImageChange(e) {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
     setImageFile(file);
@@ -56,14 +69,11 @@ export default function AdminPrispevky() {
   }
 
   async function uploadImage(file) {
-    const ext = file.name.split(".").pop();
+    const ext = String(file.name.split(".").pop() || "jpg").toLowerCase();
     const fileName = `${Date.now()}.${ext}`;
+    const path = `${resolvedSection}/${fileName}`;
 
-    const path = `${section}/${fileName}`;
-
-    const { error } = await supabase.storage
-      .from(BUCKET)
-      .upload(path, file);
+    const { error } = await supabase.storage.from(BUCKET).upload(path, file);
 
     if (error) throw error;
 
@@ -72,6 +82,22 @@ export default function AdminPrispevky() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+
+    if (!router.isReady) {
+      alert("Stránka ještě není plně načtená. Zkuste to prosím znovu.");
+      return;
+    }
+
+    if (!title.trim()) {
+      alert("Vyplňte nadpis.");
+      return;
+    }
+
+    if (!content.trim()) {
+      alert("Vyplňte text.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -82,33 +108,42 @@ export default function AdminPrispevky() {
       }
 
       if (id) {
-        // UPDATE
-        await supabase
+        const payload = {
+          title: title.trim(),
+          content: content.trim(),
+          is_published: isPublished,
+        };
+
+        if (imagePath) {
+          payload.image_path = imagePath;
+        }
+
+        const { error } = await supabase
           .from("portal_posts")
-          .update({
-            title,
-            content,
-            is_published: isPublished,
-            ...(imagePath && { image_path: imagePath }),
-          })
+          .update(payload)
           .eq("id", id);
+
+        if (error) throw error;
       } else {
-        // INSERT
-        await supabase.from("portal_posts").insert({
-          title,
-          content,
-          section,
+        const { error } = await supabase.from("portal_posts").insert({
+          title: title.trim(),
+          content: content.trim(),
+          section: resolvedSection,
           is_published: isPublished,
           image_path: imagePath,
         });
+
+        if (error) throw error;
       }
 
-      router.push(section === "contests" ? "/portal/souteze" : "/portal/komunita");
+      router.push(
+        resolvedSection === "contests" ? "/portal/souteze" : "/portal/komunita"
+      );
     } catch (err) {
-      alert(err.message);
+      alert(err?.message || "Nepodařilo se uložit příspěvek.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
@@ -131,7 +166,6 @@ export default function AdminPrispevky() {
             style={{ width: "100%", height: 120, marginBottom: 10 }}
           />
 
-          {/* IMAGE UPLOAD */}
           <div style={{ marginBottom: 10 }}>
             <input type="file" accept="image/*" onChange={handleImageChange} />
           </div>
@@ -139,6 +173,7 @@ export default function AdminPrispevky() {
           {imagePreview && (
             <img
               src={imagePreview}
+              alt="Náhled obrázku"
               style={{ width: "100%", marginBottom: 10 }}
             />
           )}
