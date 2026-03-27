@@ -642,9 +642,13 @@ export default function ProgramPage() {
                     Ceník programů
                   </SecondaryButton>
 
-                  <TertiaryButton href="/financovani-skoly">
+                  <SecondaryButton href="/financovani-skoly">
                     Pro školy – financování z OP JAK
-                  </TertiaryButton>
+                  </SecondaryButton>
+
+                  <SecondaryButton href="/aktualni-pozvanky">
+                    Aktuální pozvánky
+                  </SecondaryButton>
                 </div>
               </div>
 
