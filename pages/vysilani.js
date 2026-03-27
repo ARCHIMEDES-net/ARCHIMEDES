@@ -78,8 +78,7 @@ export default function ProbehlaVysilaniPage() {
                   }}
                 >
                   Podívejte se na výběr z vysílání, která už v programu
-                  ARCHIMEDES Live proběhla. Přehled vybraných
-                  témat, hostů a šíře programu pro školy, obce i komunitu.
+                  ARCHIMEDES Live proběhla.    
                 </p>
 
                 <div
