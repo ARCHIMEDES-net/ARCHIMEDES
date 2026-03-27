@@ -636,7 +636,11 @@ export default function ProgramPage() {
                   }}
                   className="hero-cta-grid"
                 >
-                  <PrimaryButton href="/demo">Mám zájem o demo</PrimaryButton>
+                  <PrimaryButton href="/aktualni-pozvanky">
+                    Aktuální pozvánky
+                  </PrimaryButton>
+
+                  <SecondaryButton href="/demo">Mám zájem o demo</SecondaryButton>
 
                   <SecondaryButton href="#zapojeni">
                     Ceník programů
@@ -644,10 +648,6 @@ export default function ProgramPage() {
 
                   <SecondaryButton href="/financovani-skoly">
                     Pro školy – financování z OP JAK
-                  </SecondaryButton>
-
-                  <SecondaryButton href="/aktualni-pozvanky">
-                    Aktuální pozvánky
                   </SecondaryButton>
                 </div>
               </div>
