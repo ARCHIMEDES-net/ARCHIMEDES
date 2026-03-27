@@ -596,7 +596,7 @@ export default function ProgramPage() {
                     maxWidth: 620,
                   }}
                 >
-                  ARCHIMEDES Live přináší během roku živá vysílání, inspirativní
+                  ARCHIMEDES Live přináší během roku živá interaktivní vysílání, inspirativní
                   hosty a pravidelný obsah pro výuku, seniory i komunitní život obce.
                 </p>
 
