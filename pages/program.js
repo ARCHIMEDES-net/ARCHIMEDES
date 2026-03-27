@@ -336,55 +336,6 @@ function ProgramCard({ color, title, intro, items }) {
   );
 }
 
-function VideoCard({ title, subtitle, src }) {
-  return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: 22,
-        overflow: "hidden",
-        border: "1px solid #e2e8f0",
-        boxShadow: "0 14px 36px rgba(15,23,42,0.06)",
-      }}
-    >
-      <div style={{ aspectRatio: "16 / 9", background: "#e5e7eb" }}>
-        <iframe
-          width="100%"
-          height="100%"
-          src={src}
-          title={title}
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-          style={{ display: "block", width: "100%", height: "100%" }}
-        />
-      </div>
-      <div style={{ padding: 18 }}>
-        <div
-          style={{
-            fontSize: 18,
-            fontWeight: 800,
-            color: "#0f172a",
-            lineHeight: 1.35,
-          }}
-        >
-          {title}
-        </div>
-        <div
-          style={{
-            marginTop: 6,
-            fontSize: 15,
-            lineHeight: 1.6,
-            color: "#64748b",
-          }}
-        >
-          {subtitle}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function PriceCard({
   title,
   price,
@@ -759,40 +710,6 @@ export default function ProgramPage() {
             </div>
           </section>
 
-          <section id="ukazky-vysilani" style={{ marginTop: 84 }}>
-            <SectionTitle
-              eyebrow="Ukázky vysílání"
-              title="Jak vypadá jedna hodina s ARCHIMEDES Live"
-              text="Krátké ukázky z reálných vysílání pomáhají rychle pochopit atmosféru, formát i možnosti programu."
-            />
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: 22,
-                marginTop: 24,
-              }}
-              className="video-grid"
-            >
-              <VideoCard
-                title="Ukázka vysílání pro školy"
-                subtitle="ZOO Praha – výukový vstup pro školní program"
-                src="https://www.youtube.com/embed/yvelfGeL6Jg"
-              />
-              <VideoCard
-                title="Angličtina s rodilým mluvčím"
-                subtitle="Paul Wade – ukázka živého vstupu"
-                src="https://www.youtube.com/embed/bX2y0Uxw-Dg"
-              />
-              <VideoCard
-                title="Senior klub"
-                subtitle="Prof. Jan Pirk a spisovatel Viktor Špaček"
-                src="https://www.youtube.com/embed/-VV3PYdWPUo"
-              />
-            </div>
-          </section>
-
           <section style={{ marginTop: 72 }}>
             <SectionTitle
               title="Hlavní rubriky programu"
@@ -945,7 +862,7 @@ export default function ProgramPage() {
                 }}
               >
                 Během pár minut se sami přesvědčíte, jak ARCHIMEDES Live dokáže
-                oživit výuku ve škole i společenské dění v obci. 
+                oživit výuku ve škole i společenské dění v obci.
               </p>
             </div>
 
@@ -967,10 +884,6 @@ export default function ProgramPage() {
           .program-grid,
           .price-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          }
-
-          .video-grid {
-            grid-template-columns: 1fr !important;
           }
 
           .hero-grid {
