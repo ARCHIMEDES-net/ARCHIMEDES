@@ -1,6 +1,6 @@
 // pages/portal/souteze.js
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
@@ -32,6 +32,7 @@ export default function SoutezePage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -72,6 +73,22 @@ export default function SoutezePage() {
     };
   }, []);
 
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === "Escape") setLightboxImage("");
+    }
+
+    if (lightboxImage) {
+      window.addEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [lightboxImage]);
+
   async function handleDelete(id) {
     if (!id || deletingId) return;
     if (!window.confirm("Opravdu chcete příspěvek smazat?")) return;
@@ -110,9 +127,6 @@ export default function SoutezePage() {
       setDeletingId(null);
     }
   }
-
-  const featuredPost = useMemo(() => (posts.length > 0 ? posts[0] : null), [posts]);
-  const otherPosts = useMemo(() => (posts.length > 1 ? posts.slice(1) : []), [posts]);
 
   return (
     <RequireAuth>
@@ -203,227 +217,139 @@ export default function SoutezePage() {
 
           {loading ? <div style={emptyBoxStyle}>Načítám soutěže a projekty…</div> : null}
 
-          {!loading && !error && !featuredPost ? (
+          {!loading && !error && posts.length === 0 ? (
             <div style={emptyBoxStyle}>
               Zatím tu nejsou žádné příspěvky. Jakmile správce přidá první soutěž
               nebo projekt, objeví se zde jako hlavní výzva.
             </div>
           ) : null}
 
-          {featuredPost ? (
-            <section
-              style={{
-                background: "white",
-                border: "1px solid rgba(15,23,42,0.08)",
-                borderRadius: 24,
-                overflow: "hidden",
-                boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
-                marginBottom: 18,
-              }}
-            >
-              {featuredPost.image_path ? (
-                <div
-                  style={{
-                    width: "100%",
-                    height: 420,
-                    overflow: "hidden",
-                    background: "#ffffff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <img
-                    src={getPublicUrl(featuredPost.image_path)}
-                    alt={featuredPost.title}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                      objectPosition: "center",
-                      display: "block",
-                      padding: 24,
-                      boxSizing: "border-box",
-                    }}
-                  />
-                </div>
-              ) : null}
+          {posts.map((post) => {
+            const imageUrl = getPublicUrl(post.image_path);
+            const attachmentUrl = getPublicUrl(post.attachment_path);
 
-              <div style={{ padding: 22 }}>
-                <div style={dateBadgeStyle}>{formatDateCS(featuredPost.created_at)}</div>
-
-                <h2
-                  style={{
-                    margin: "12px 0 10px",
-                    fontSize: 30,
-                    lineHeight: 1.1,
-                    color: "#0f172a",
-                  }}
-                >
-                  {featuredPost.title}
-                </h2>
-
-                <div
-                  style={{
-                    fontSize: 16,
-                    lineHeight: 1.7,
-                    color: "rgba(15,23,42,0.76)",
-                    whiteSpace: "pre-wrap",
-                  }}
-                >
-                  {featuredPost.content}
-                </div>
-
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 16 }}>
-                  {featuredPost.attachment_path ? (
-                    <a
-                      href={getPublicUrl(featuredPost.attachment_path)}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ ...secondaryBtnStyle, display: "inline-flex" }}
-                    >
-                      {featuredPost.attachment_name || "Otevřít přílohu"}
-                    </a>
-                  ) : null}
-
-                  {isAdmin ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          router.push(
-                            `/portal/admin-prispevky?id=${featuredPost.id}&section=contests`
-                          )
-                        }
-                        style={secondaryButtonElementStyle}
-                      >
-                        Upravit
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(featuredPost.id)}
-                        disabled={deletingId === featuredPost.id}
-                        style={dangerBtnStyle}
-                      >
-                        {deletingId === featuredPost.id ? "Mažu…" : "Smazat"}
-                      </button>
-                    </>
-                  ) : null}
-                </div>
-              </div>
-            </section>
-          ) : null}
-
-          {otherPosts.length > 0 ? (
-            <section>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                  gap: 16,
-                }}
-              >
-                {otherPosts.map((post) => (
-                  <article key={post.id} style={postCardStyle}>
+            return (
+              <article key={post.id} style={postRowStyle}>
+                <div style={postInnerStyle}>
+                  <div style={mediaColStyle}>
                     {post.image_path ? (
-                      <div
-                        style={{
-                          width: "100%",
-                          height: 200,
-                          overflow: "hidden",
-                          background: "#ffffff",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
+                      <button
+                        type="button"
+                        onClick={() => setLightboxImage(imageUrl)}
+                        style={imageButtonStyle}
+                        aria-label={`Zvětšit obrázek: ${post.title}`}
                       >
-                        <img
-                          src={getPublicUrl(post.image_path)}
-                          alt={post.title}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "contain",
-                            objectPosition: "center",
-                            display: "block",
-                            padding: 16,
-                            boxSizing: "border-box",
-                          }}
-                        />
-                      </div>
-                    ) : null}
+                        <div style={imageFrameStyle}>
+                          <img
+                            src={imageUrl}
+                            alt={post.title}
+                            style={imageStyle}
+                          />
+                        </div>
+                      </button>
+                    ) : (
+                      <div style={imagePlaceholderStyle}>Bez obrázku</div>
+                    )}
+                  </div>
 
-                    <div style={{ padding: 18 }}>
-                      <div style={dateBadgeStyle}>{formatDateCS(post.created_at)}</div>
+                  <div style={contentColStyle}>
+                    <div style={dateBadgeStyle}>{formatDateCS(post.created_at)}</div>
 
-                      <h3
-                        style={{
-                          margin: "12px 0 8px",
-                          fontSize: 22,
-                          lineHeight: 1.15,
-                          color: "#0f172a",
-                        }}
-                      >
-                        {post.title}
-                      </h3>
+                    <h2
+                      style={{
+                        margin: "12px 0 10px",
+                        fontSize: 32,
+                        lineHeight: 1.12,
+                        color: "#0f172a",
+                      }}
+                    >
+                      {post.title}
+                    </h2>
 
-                      <div
-                        style={{
-                          fontSize: 14,
-                          lineHeight: 1.65,
-                          color: "rgba(15,23,42,0.72)",
-                          whiteSpace: "pre-wrap",
-                        }}
-                      >
-                        {post.content}
-                      </div>
-
-                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
-                        {post.attachment_path ? (
-                          <a
-                            href={getPublicUrl(post.attachment_path)}
-                            target="_blank"
-                            rel="noreferrer"
-                            style={{ ...secondaryBtnStyle, display: "inline-flex" }}
-                          >
-                            {post.attachment_name || "Otevřít přílohu"}
-                          </a>
-                        ) : null}
-
-                        {isAdmin ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                router.push(
-                                  `/portal/admin-prispevky?id=${post.id}&section=contests`
-                                )
-                              }
-                              style={secondaryButtonElementStyle}
-                            >
-                              Upravit
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(post.id)}
-                              disabled={deletingId === post.id}
-                              style={dangerBtnStyle}
-                            >
-                              {deletingId === post.id ? "Mažu…" : "Smazat"}
-                            </button>
-                          </>
-                        ) : null}
-                      </div>
+                    <div
+                      style={{
+                        fontSize: 16,
+                        lineHeight: 1.72,
+                        color: "rgba(15,23,42,0.76)",
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {post.content}
                     </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-          ) : null}
+
+                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
+                      {post.attachment_path ? (
+                        <a
+                          href={attachmentUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ ...secondaryBtnStyle, display: "inline-flex" }}
+                        >
+                          {post.attachment_name || "Otevřít přílohu"}
+                        </a>
+                      ) : null}
+
+                      {isAdmin ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              router.push(
+                                `/portal/admin-prispevky?id=${post.id}&section=contests`
+                              )
+                            }
+                            style={secondaryButtonElementStyle}
+                          >
+                            Upravit
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(post.id)}
+                            disabled={deletingId === post.id}
+                            style={dangerBtnStyle}
+                          >
+                            {deletingId === post.id ? "Mažu…" : "Smazat"}
+                          </button>
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </div>
+
+      {lightboxImage ? (
+        <div
+          onClick={() => setLightboxImage("")}
+          style={lightboxOverlayStyle}
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxImage("")}
+            style={lightboxCloseStyle}
+            aria-label="Zavřít náhled"
+          >
+            ×
+          </button>
+
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={lightboxContentStyle}
+          >
+            <img
+              src={lightboxImage}
+              alt="Zvětšený obrázek"
+              style={lightboxImageStyle}
+            />
+          </div>
+        </div>
+      ) : null}
     </RequireAuth>
   );
 }
@@ -483,14 +409,6 @@ const dangerBtnStyle = {
   cursor: "pointer",
 };
 
-const postCardStyle = {
-  background: "white",
-  border: "1px solid rgba(15,23,42,0.08)",
-  borderRadius: 24,
-  overflow: "hidden",
-  boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
-};
-
 const emptyBoxStyle = {
   background: "white",
   border: "1px dashed rgba(15,23,42,0.16)",
@@ -516,4 +434,118 @@ const dateBadgeStyle = {
   color: "rgba(15,23,42,0.72)",
   fontSize: 12,
   fontWeight: 800,
+};
+
+const postRowStyle = {
+  background: "white",
+  border: "1px solid rgba(15,23,42,0.08)",
+  borderRadius: 24,
+  boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
+  marginBottom: 18,
+  overflow: "hidden",
+};
+
+const postInnerStyle = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 24,
+  padding: 22,
+  alignItems: "flex-start",
+};
+
+const mediaColStyle = {
+  flex: "0 0 320px",
+  maxWidth: 320,
+  width: "100%",
+};
+
+const contentColStyle = {
+  flex: "1 1 420px",
+  minWidth: 0,
+};
+
+const imageButtonStyle = {
+  display: "block",
+  width: "100%",
+  padding: 0,
+  border: "none",
+  background: "transparent",
+  cursor: "zoom-in",
+};
+
+const imageFrameStyle = {
+  width: "100%",
+  height: 260,
+  background: "#ffffff",
+  borderRadius: 18,
+  border: "1px solid rgba(15,23,42,0.08)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  overflow: "hidden",
+};
+
+const imagePlaceholderStyle = {
+  width: "100%",
+  height: 260,
+  background: "#f8fafc",
+  borderRadius: 18,
+  border: "1px dashed rgba(15,23,42,0.14)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "rgba(15,23,42,0.45)",
+  fontWeight: 700,
+};
+
+const imageStyle = {
+  width: "100%",
+  height: "100%",
+  objectFit: "contain",
+  objectPosition: "center",
+  display: "block",
+  padding: 18,
+  boxSizing: "border-box",
+};
+
+const lightboxOverlayStyle = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(2,6,23,0.82)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 24,
+  zIndex: 9999,
+};
+
+const lightboxContentStyle = {
+  maxWidth: "92vw",
+  maxHeight: "88vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const lightboxImageStyle = {
+  maxWidth: "92vw",
+  maxHeight: "88vh",
+  objectFit: "contain",
+  borderRadius: 16,
+  background: "white",
+};
+
+const lightboxCloseStyle = {
+  position: "fixed",
+  top: 18,
+  right: 22,
+  width: 44,
+  height: 44,
+  borderRadius: 999,
+  border: "none",
+  background: "rgba(255,255,255,0.12)",
+  color: "white",
+  fontSize: 30,
+  lineHeight: 1,
+  cursor: "pointer",
 };
