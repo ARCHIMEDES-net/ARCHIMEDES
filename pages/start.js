@@ -658,8 +658,8 @@ export default function StartPage() {
 
                   <p className="lead">
                     Balíček START je nejrychlejší cesta, jak si škola může
-                    program ověřit v praxi ještě v tomto školním roce a zároveň
-                    se připravit na září 2026.
+                    program ověřit v praxi ještě v tomto školním roce, zároveň
+                    se připravit na září 2026 a využít financování ze šablon.
                   </p>
 
                   {prefillLoading ? (
