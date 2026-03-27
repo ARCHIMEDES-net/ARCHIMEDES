@@ -640,7 +640,7 @@ export default function StartPage() {
         <title>Balíček START | ARCHIMEDES Live</title>
         <meta
           name="description"
-          content="Objednejte pro školu balíček START programu ARCHIMEDES Live. Pokud jste přišli z ukázkového prostředí, část údajů jsme vám předvyplnili."
+          content="Objednejte pro školu balíček START programu ARCHIMEDES Live."
         />
       </Head>
 
@@ -661,22 +661,6 @@ export default function StartPage() {
                     program ověřit v praxi ještě v tomto školním roce, zároveň
                     se připravit na září 2026 a využít financování ze šablon.
                   </p>
-
-                  {prefillLoading ? (
-                    <div className="prefillInfo loading">
-                      Ověřuji údaje z vašeho přístupu a připravuji předvyplnění
-                      formuláře…
-                    </div>
-                  ) : prefillReady ? (
-                    <div className="prefillInfo ready">
-                      Část údajů jsme předvyplnili podle vašeho přístupu. Před
-                      odesláním je můžete upravit.
-                    </div>
-                  ) : (
-                    <div className="prefillInfo neutral">
-                      Formulář můžete vyplnit ručně.
-                    </div>
-                  )}
 
                   <div className="quickBenefits">
                     <div className="benefitItem">duben–září 2026</div>
