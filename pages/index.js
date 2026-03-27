@@ -108,7 +108,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section">
+        <section className="section sectionIntroBlock">
           <div className="container">
             <div className="sectionIntro center">
               <div className="eyebrow dark">Jak to funguje</div>
@@ -158,8 +158,8 @@ export default function Home() {
                   <div className="stepNumber">3</div>
                   <h3>Interaktivní práce a návaznost</h3>
                   <p>
-                    Škola má k dispozici pracovní listy, které přímo navazují na výuku
-                    a také přístup do archivu pro opakování témat.
+                    Škola má k dispozici pracovní listy, které přímo navazují na
+                    výuku a také přístup do archivu pro opakování témat.
                   </p>
                 </div>
               </article>
@@ -169,7 +169,7 @@ export default function Home() {
 
         <section id="ukazky-vysilani" className="section sectionUkazky">
           <div className="container">
-            <div className="sectionIntro">
+            <div className="sectionIntro sectionIntroWide">
               <div className="eyebrow dark">Ukázky vysílání</div>
               <h2>Jak vypadá jedna hodina s ARCHIMEDES Live</h2>
               <p>
@@ -200,7 +200,7 @@ export default function Home() {
 
         <section className="section sectionSoft">
           <div className="container">
-            <div className="sectionIntro">
+            <div className="sectionIntro sectionIntroWide">
               <div className="eyebrow dark">Co to přináší</div>
               <h2>Program, který dává přidanou hodnotu škole i obci</h2>
             </div>
@@ -236,14 +236,16 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section sectionTightTop">
+        <section className="section sectionTrust">
           <div className="container">
             <div className="trustPanel">
-              <div>
+              <div className="trustMain">
                 <div className="eyebrow dark">Ověřeno v praxi</div>
                 <h2>ARCHIMEDES už funguje v desítkách škol a obcí</h2>
                 <p>
-                  Ve spolupráci s pedagogy a místními komunitami připravujeme interaktivní programy, které srozumitelně představují komplexní témata z celého světa.
+                  Ve spolupráci s pedagogy a místními komunitami připravujeme
+                  interaktivní programy, které srozumitelně představují komplexní
+                  témata z celého světa.
                 </p>
               </div>
 
@@ -268,13 +270,18 @@ export default function Home() {
         <section className="ctaSection">
           <div className="container">
             <div className="ctaBox">
-              <div>
+              <div className="ctaMain">
                 <div className="eyebrow light">
                   Chcete živý program ve vlastní škole?
                 </div>
-                <h2>Objednejte si balíček START, podívejte se na ukázkovou hodinu nebo si nejdříve vyžádejte DEMO</h2>
+                <h2>
+                  Objednejte si balíček START, podívejte se na ukázkovou hodinu
+                  nebo si nejdříve vyžádejte DEMO
+                </h2>
                 <p>
-                  Jednoduché a rychlé - začněte balíčkem START a vyzkoučejte si živý program s kolegy a žáky přímo u vás. Připojte se ke komunitě ARCHIMEDES.
+                  Jednoduché a rychlé - začněte balíčkem START a vyzkoušejte si
+                  živý program s kolegy a žáky přímo u vás. Připojte se ke
+                  komunitě ARCHIMEDES.
                 </p>
               </div>
 
@@ -299,7 +306,9 @@ export default function Home() {
 
         <style jsx>{`
           .page {
-            background: #f7f8fb;
+            background:
+              radial-gradient(circle at top left, rgba(221, 231, 247, 0.55), transparent 32%),
+              linear-gradient(180deg, #f8fafd 0%, #f5f7fb 100%);
             color: #0f172a;
           }
 
@@ -311,7 +320,7 @@ export default function Home() {
 
           .hero {
             position: relative;
-            min-height: 720px;
+            min-height: 700px;
             display: flex;
             align-items: stretch;
             overflow: hidden;
@@ -328,18 +337,26 @@ export default function Home() {
             object-fit: cover;
             object-position: center center;
             display: block;
+            transform: scale(1.01);
           }
 
           .heroOverlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(
-              90deg,
-              rgba(8, 15, 34, 0.72) 0%,
-              rgba(8, 15, 34, 0.52) 28%,
-              rgba(8, 15, 34, 0.2) 56%,
-              rgba(8, 15, 34, 0.04) 100%
-            );
+            background:
+              linear-gradient(
+                90deg,
+                rgba(8, 15, 34, 0.82) 0%,
+                rgba(8, 15, 34, 0.62) 26%,
+                rgba(8, 15, 34, 0.28) 56%,
+                rgba(8, 15, 34, 0.08) 100%
+              ),
+              linear-gradient(
+                180deg,
+                rgba(8, 15, 34, 0.18) 0%,
+                rgba(8, 15, 34, 0.04) 44%,
+                rgba(8, 15, 34, 0.22) 100%
+              );
           }
 
           .heroContentWrap {
@@ -351,51 +368,53 @@ export default function Home() {
           }
 
           .heroContent {
-            max-width: 720px;
-            padding: 116px 0 72px;
+            max-width: 760px;
+            padding: 112px 0 76px;
             color: white;
           }
 
           .eyebrow {
             display: inline-flex;
             align-items: center;
-            min-height: 36px;
+            min-height: 34px;
             padding: 0 14px;
             border-radius: 999px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 800;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
             margin-bottom: 16px;
           }
 
           .eyebrow.dark {
-            background: #e9eef8;
-            color: #223252;
+            background: #e8eef9;
+            color: #253756;
           }
 
           .eyebrow.light {
-            background: rgba(255, 255, 255, 0.14);
-            color: rgba(255, 255, 255, 0.94);
+            background: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.95);
           }
 
           .heroContent .eyebrow {
-            background: rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.12);
             color: rgba(255, 255, 255, 0.94);
           }
 
           h1 {
             margin: 0;
-            font-size: 62px;
-            line-height: 1.02;
-            letter-spacing: -0.02em;
-            font-weight: 800;
+            font-size: 66px;
+            line-height: 0.98;
+            letter-spacing: -0.04em;
+            font-weight: 900;
+            max-width: 720px;
           }
 
           .heroLead {
-            margin: 20px 0 0;
+            margin: 22px 0 0;
             font-size: 21px;
-            line-height: 1.5;
-            color: rgba(255, 255, 255, 0.92);
+            line-height: 1.55;
+            color: rgba(255, 255, 255, 0.9);
             max-width: 650px;
           }
 
@@ -412,11 +431,11 @@ export default function Home() {
           }
 
           .heroActions {
-            margin-top: 24px;
+            margin-top: 28px;
           }
 
           .heroGuestLinkWrap {
-            margin-top: 14px;
+            margin-top: 18px;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
@@ -424,10 +443,10 @@ export default function Home() {
           }
 
           .heroGuestLabel {
-            font-size: 12px;
-            line-height: 1.4;
+            font-size: 11px;
+            line-height: 1.35;
             font-weight: 800;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.14em;
             text-transform: uppercase;
             color: rgba(255, 255, 255, 0.52);
           }
@@ -450,37 +469,50 @@ export default function Home() {
           }
 
           .section {
-            padding: 64px 0;
+            padding: 72px 0;
           }
 
-          .sectionTightTop {
-            padding-top: 36px;
-          }
-
-          .sectionSoft {
-            background: #eef2f7;
-          }
-
-          .sectionUkazky {
-            padding-top: 24px;
+          .sectionIntroBlock {
+            padding-top: 60px;
             padding-bottom: 56px;
           }
 
+          .sectionUkazky {
+            padding-top: 14px;
+            padding-bottom: 66px;
+          }
+
+          .sectionSoft {
+            background:
+              linear-gradient(180deg, rgba(234, 240, 249, 0.8) 0%, rgba(239, 243, 249, 0.92) 100%);
+            border-top: 1px solid rgba(15, 23, 42, 0.04);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+          }
+
+          .sectionTrust {
+            padding-top: 40px;
+            padding-bottom: 70px;
+          }
+
           .sectionIntro {
-            margin-bottom: 22px;
+            margin-bottom: 26px;
+          }
+
+          .sectionIntroWide {
+            max-width: 820px;
           }
 
           .sectionIntro.center {
             text-align: center;
             max-width: 860px;
-            margin: 0 auto 28px;
+            margin: 0 auto 30px;
           }
 
           h2 {
             margin: 0;
-            font-size: 44px;
+            font-size: 46px;
             line-height: 1.02;
-            letter-spacing: -0.045em;
+            letter-spacing: -0.05em;
             font-weight: 900;
             color: #0f172a;
           }
@@ -488,41 +520,93 @@ export default function Home() {
           .sectionIntro p,
           .trustPanel p,
           .ctaBox p {
-            margin: 12px 0 0;
+            margin: 14px 0 0;
             font-size: 18px;
-            line-height: 1.68;
-            color: #4b5563;
+            line-height: 1.7;
+            color: #556070;
             max-width: 780px;
           }
 
           .stepsGrid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 18px;
-          }
-
-          .videosGrid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 18px;
-            margin-top: 20px;
+            gap: 22px;
           }
 
           .stepCard,
           .benefitCard,
           .videoCard {
-            background: white;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(15, 23, 42, 0.07);
+            border-radius: 28px;
             overflow: hidden;
-            box-shadow: 0 12px 34px rgba(15, 23, 42, 0.04);
+            box-shadow:
+              0 12px 34px rgba(15, 23, 42, 0.045),
+              0 2px 8px rgba(15, 23, 42, 0.03);
           }
 
           .stepImage img {
             width: 100%;
-            height: 220px;
+            height: 228px;
             object-fit: cover;
             display: block;
+          }
+
+          .stepBody {
+            padding: 22px 22px 24px;
+          }
+
+          .stepNumber {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            background: #0f172a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 900;
+            margin-bottom: 14px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
+          }
+
+          .stepBody h3,
+          .benefitCard h3 {
+            margin: 0;
+            font-size: 24px;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            font-weight: 900;
+            color: #0f172a;
+          }
+
+          .stepBody p,
+          .benefitCard p {
+            margin: 11px 0 0;
+            font-size: 16px;
+            line-height: 1.66;
+            color: #5b6676;
+          }
+
+          .videosGrid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 22px;
+            margin-top: 24px;
+            align-items: stretch;
+          }
+
+          .videosGrid :global(.videoCard:nth-child(1)) {
+            grid-column: span 6;
+          }
+
+          .videosGrid :global(.videoCard:nth-child(2)) {
+            grid-column: span 3;
+          }
+
+          .videosGrid :global(.videoCard:nth-child(3)) {
+            grid-column: span 3;
           }
 
           .videoFrameWrap {
@@ -537,71 +621,45 @@ export default function Home() {
           }
 
           .videoBody {
-            padding: 16px 18px 18px;
+            padding: 18px 18px 20px;
           }
 
           .videoTitle {
             font-size: 18px;
             font-weight: 800;
             color: #0f172a;
-            line-height: 1.35;
+            line-height: 1.32;
+            letter-spacing: -0.02em;
+          }
+
+          .videosGrid :global(.videoCard:nth-child(1) .videoTitle) {
+            font-size: 22px;
           }
 
           .videoSubtitle {
             margin-top: 6px;
             font-size: 15px;
-            line-height: 1.6;
+            line-height: 1.62;
             color: #64748b;
-          }
-
-          .stepBody {
-            padding: 20px 20px 22px;
-          }
-
-          .stepNumber {
-            width: 34px;
-            height: 34px;
-            border-radius: 999px;
-            background: #0f172a;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: 900;
-            margin-bottom: 14px;
-          }
-
-          .stepBody h3,
-          .benefitCard h3 {
-            margin: 0;
-            font-size: 24px;
-            line-height: 1.12;
-            font-weight: 900;
-            color: #0f172a;
-          }
-
-          .stepBody p,
-          .benefitCard p {
-            margin: 10px 0 0;
-            font-size: 16px;
-            line-height: 1.6;
-            color: #556070;
           }
 
           .benefitsGrid {
             display: grid;
-            grid-template-columns: 1.08fr 1fr 1fr;
-            gap: 18px;
+            grid-template-columns: 1.14fr 1fr 1fr;
+            gap: 22px;
           }
 
           .benefitCard {
-            padding: 24px;
+            padding: 28px 26px;
           }
 
           .benefitCardPrimary {
-            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-            border-color: rgba(28, 72, 132, 0.12);
+            background:
+              linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 250, 255, 0.98) 100%);
+            border-color: rgba(37, 68, 121, 0.12);
+            box-shadow:
+              0 16px 42px rgba(24, 48, 88, 0.07),
+              0 2px 8px rgba(15, 23, 42, 0.03);
           }
 
           .benefitTag {
@@ -614,19 +672,28 @@ export default function Home() {
             color: #223252;
             font-size: 13px;
             font-weight: 800;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
           }
 
           .trustPanel {
             display: grid;
             grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
-            gap: 26px;
-            align-items: start;
-            background: white;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 28px;
-            padding: 30px;
-            box-shadow: 0 12px 34px rgba(15, 23, 42, 0.04);
+            gap: 28px;
+            align-items: stretch;
+            background:
+              linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(252, 253, 255, 0.96) 100%);
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            border-radius: 32px;
+            padding: 34px;
+            box-shadow:
+              0 16px 42px rgba(15, 23, 42, 0.05),
+              0 2px 8px rgba(15, 23, 42, 0.03);
+          }
+
+          .trustMain {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
           }
 
           .trustStats {
@@ -636,43 +703,53 @@ export default function Home() {
           }
 
           .trustStat {
-            border-radius: 20px;
-            background: #f6f8fb;
-            padding: 18px 18px 16px;
-            border: 1px solid rgba(15, 23, 42, 0.06);
+            border-radius: 22px;
+            background:
+              linear-gradient(180deg, #f7f9fc 0%, #f2f6fb 100%);
+            padding: 20px 20px 18px;
+            border: 1px solid rgba(15, 23, 42, 0.05);
           }
 
           .trustStat strong {
             display: block;
-            font-size: 28px;
+            font-size: 30px;
             line-height: 1;
+            letter-spacing: -0.04em;
             font-weight: 900;
             color: #0f172a;
           }
 
           .trustStat span {
             display: block;
-            margin-top: 8px;
+            margin-top: 9px;
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.55;
             color: #5b6472;
             font-weight: 700;
           }
 
           .ctaSection {
-            padding: 0 0 72px;
+            padding: 0 0 82px;
           }
 
           .ctaBox {
-            background: linear-gradient(135deg, #071225 0%, #0a1730 100%);
+            background:
+              radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 28%),
+              linear-gradient(135deg, #071225 0%, #0b1832 100%);
             color: white;
-            border-radius: 30px;
-            padding: 36px 30px;
+            border-radius: 34px;
+            padding: 38px 34px;
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
-            gap: 24px;
+            gap: 26px;
             align-items: center;
-            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+            box-shadow:
+              0 24px 60px rgba(15, 23, 42, 0.16),
+              inset 0 1px 0 rgba(255, 255, 255, 0.04);
+          }
+
+          .ctaMain {
+            max-width: 780px;
           }
 
           .ctaBox h2 {
@@ -709,6 +786,12 @@ export default function Home() {
               grid-template-columns: 1fr;
             }
 
+            .videosGrid :global(.videoCard:nth-child(1)),
+            .videosGrid :global(.videoCard:nth-child(2)),
+            .videosGrid :global(.videoCard:nth-child(3)) {
+              grid-column: auto;
+            }
+
             .ctaSide {
               align-items: flex-start;
             }
@@ -716,16 +799,20 @@ export default function Home() {
 
           @media (max-width: 900px) {
             .hero {
-              min-height: 640px;
+              min-height: 630px;
+            }
+
+            .heroContent {
+              padding: 96px 0 68px;
             }
 
             h1 {
-              font-size: 50px;
-              line-height: 1.02;
+              font-size: 52px;
+              line-height: 1.01;
             }
 
             h2 {
-              font-size: 34px;
+              font-size: 36px;
             }
 
             .heroLead {
@@ -733,20 +820,31 @@ export default function Home() {
             }
 
             .section {
-              padding: 56px 0;
+              padding: 60px 0;
+            }
+
+            .sectionIntroBlock {
+              padding-top: 52px;
+              padding-bottom: 46px;
             }
 
             .sectionUkazky {
-              padding-top: 20px;
-              padding-bottom: 48px;
+              padding-top: 6px;
+              padding-bottom: 54px;
             }
 
-            .sectionTightTop {
-              padding-top: 32px;
+            .sectionTrust {
+              padding-top: 30px;
+              padding-bottom: 58px;
             }
 
             .stepImage img {
               height: 208px;
+            }
+
+            .trustPanel,
+            .ctaBox {
+              padding: 28px;
             }
           }
 
@@ -760,22 +858,28 @@ export default function Home() {
             }
 
             .heroOverlay {
-              background: linear-gradient(
-                180deg,
-                rgba(8, 15, 34, 0.72) 0%,
-                rgba(8, 15, 34, 0.46) 45%,
-                rgba(8, 15, 34, 0.3) 100%
-              );
+              background:
+                linear-gradient(
+                  180deg,
+                  rgba(8, 15, 34, 0.78) 0%,
+                  rgba(8, 15, 34, 0.48) 48%,
+                  rgba(8, 15, 34, 0.26) 100%
+                );
             }
 
             .heroContent {
               max-width: none;
-              padding: 82px 0 52px;
+              padding: 82px 0 54px;
             }
 
             h1 {
               font-size: 40px;
-              letter-spacing: -0.02em;
+              letter-spacing: -0.03em;
+            }
+
+            h2 {
+              font-size: 34px;
+              letter-spacing: -0.045em;
             }
 
             .heroLead,
@@ -786,24 +890,48 @@ export default function Home() {
             }
 
             .section {
-              padding: 44px 0;
+              padding: 46px 0;
+            }
+
+            .sectionIntroBlock {
+              padding-top: 40px;
+              padding-bottom: 36px;
             }
 
             .sectionUkazky {
-              padding-top: 16px;
-              padding-bottom: 40px;
+              padding-top: 0;
+              padding-bottom: 44px;
             }
 
-            .sectionTightTop {
-              padding-top: 24px;
+            .sectionTrust {
+              padding-top: 20px;
+              padding-bottom: 44px;
             }
 
             .sectionIntro {
-              margin-bottom: 18px;
+              margin-bottom: 20px;
             }
 
             .sectionIntro.center {
               margin: 0 auto 22px;
+            }
+
+            .stepBody,
+            .benefitCard,
+            .videoBody {
+              padding-left: 18px;
+              padding-right: 18px;
+            }
+
+            .benefitCard {
+              padding-top: 22px;
+              padding-bottom: 22px;
+            }
+
+            .trustPanel,
+            .ctaBox {
+              padding: 22px;
+              border-radius: 26px;
             }
 
             .heroLeadBreak {
@@ -859,8 +987,11 @@ export default function Home() {
             font-size: 15px;
             line-height: 1.2;
             white-space: nowrap;
-            transition: transform 0.18s ease, box-shadow 0.18s ease,
-              background 0.18s ease, border-color 0.18s ease,
+            transition:
+              transform 0.18s ease,
+              box-shadow 0.18s ease,
+              background 0.18s ease,
+              border-color 0.18s ease,
               color 0.18s ease;
           }
 
@@ -871,8 +1002,10 @@ export default function Home() {
           .al-btn-primary {
             background: #ffffff;
             color: #0f172a;
-            border: 1px solid rgba(255, 255, 255, 0.88);
-            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow:
+              0 12px 26px rgba(15, 23, 42, 0.16),
+              inset 0 1px 0 rgba(255, 255, 255, 0.55);
           }
 
           .al-btn-primary:hover {
@@ -883,7 +1016,7 @@ export default function Home() {
           }
 
           .al-btn-secondary {
-            background: rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.12);
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.18);
             backdrop-filter: blur(10px);
@@ -893,9 +1026,9 @@ export default function Home() {
 
           .al-btn-secondary:hover {
             transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.22);
+            background: rgba(255, 255, 255, 0.2);
             color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.28);
+            border-color: rgba(255, 255, 255, 0.3);
             box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
           }
 
@@ -916,7 +1049,9 @@ export default function Home() {
             background: #ffffff;
             color: #0f172a;
             border: 1px solid rgba(255, 255, 255, 0.92);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+            box-shadow:
+              0 10px 24px rgba(15, 23, 42, 0.14),
+              inset 0 1px 0 rgba(255, 255, 255, 0.56);
           }
 
           .al-btn-light:hover {
