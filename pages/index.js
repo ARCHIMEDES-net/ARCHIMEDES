@@ -15,6 +15,29 @@ function ButtonLink({ href, children, variant = "primary" }) {
   );
 }
 
+function VideoCard({ title, subtitle, src }) {
+  return (
+    <div className="videoCard">
+      <div className="videoFrameWrap">
+        <iframe
+          width="100%"
+          height="100%"
+          src={src}
+          title={title}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          className="videoFrame"
+        />
+      </div>
+      <div className="videoBody">
+        <div className="videoTitle">{title}</div>
+        <div className="videoSubtitle">{subtitle}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   return (
     <>
@@ -144,6 +167,37 @@ export default function Home() {
           </div>
         </section>
 
+        <section id="ukazky-vysilani" className="section sectionUkazky">
+          <div className="container">
+            <div className="sectionIntro">
+              <div className="eyebrow dark">Ukázky vysílání</div>
+              <h2>Jak vypadá jedna hodina s ARCHIMEDES Live</h2>
+              <p>
+                Krátké ukázky z reálných vysílání pomáhají rychle pochopit
+                atmosféru, formát i možnosti programu.
+              </p>
+            </div>
+
+            <div className="videosGrid">
+              <VideoCard
+                title="Ukázka vysílání pro školy"
+                subtitle="ZOO Praha – výukový vstup pro školní program"
+                src="https://www.youtube.com/embed/yvelfGeL6Jg"
+              />
+              <VideoCard
+                title="Angličtina s rodilým mluvčím"
+                subtitle="Paul Wade – ukázka živého vstupu"
+                src="https://www.youtube.com/embed/bX2y0Uxw-Dg"
+              />
+              <VideoCard
+                title="Senior klub"
+                subtitle="Prof. Jan Pirk a spisovatel Viktor Špaček"
+                src="https://www.youtube.com/embed/-VV3PYdWPUo"
+              />
+            </div>
+          </div>
+        </section>
+
         <section className="section sectionSoft">
           <div className="container">
             <div className="sectionIntro">
@@ -189,7 +243,7 @@ export default function Home() {
                 <div className="eyebrow dark">Ověřeno v praxi</div>
                 <h2>ARCHIMEDES už funguje v desítkách škol a obcí</h2>
                 <p>
-Ve spolupráci s pedagogy a místními komunitami připravujeme interaktivní programy, které srozumitelně představují komplexní témata z celého světa.
+                  Ve spolupráci s pedagogy a místními komunitami připravujeme interaktivní programy, které srozumitelně představují komplexní témata z celého světa.
                 </p>
               </div>
 
@@ -220,8 +274,7 @@ Ve spolupráci s pedagogy a místními komunitami připravujeme interaktivní pr
                 </div>
                 <h2>Objednejte si balíček START, podívejte se na ukázkovou hodinu nebo si nejdříve vyžádejte DEMO</h2>
                 <p>
-                  Jednoduché a rychlé - začněte balíčkem START a vyzkoučejte si živý program s kolegy a žáky přímo u vás. Připojte se ke komunitě ARCHIMEDES. 
-                  
+                  Jednoduché a rychlé - začněte balíčkem START a vyzkoučejte si živý program s kolegy a žáky přímo u vás. Připojte se ke komunitě ARCHIMEDES.
                 </p>
               </div>
 
@@ -408,6 +461,10 @@ Ve spolupráci s pedagogy a místními komunitami připravujeme interaktivní pr
             background: #eef2f7;
           }
 
+          .sectionUkazky {
+            padding-top: 0;
+          }
+
           .sectionIntro {
             margin-bottom: 26px;
           }
@@ -443,8 +500,16 @@ Ve spolupráci s pedagogy a místními komunitami připravujeme interaktivní pr
             gap: 18px;
           }
 
+          .videosGrid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 22px;
+            margin-top: 24px;
+          }
+
           .stepCard,
-          .benefitCard {
+          .benefitCard,
+          .videoCard {
             background: white;
             border: 1px solid rgba(15, 23, 42, 0.08);
             border-radius: 24px;
@@ -457,6 +522,35 @@ Ve spolupráci s pedagogy a místními komunitami připravujeme interaktivní pr
             height: 220px;
             object-fit: cover;
             display: block;
+          }
+
+          .videoFrameWrap {
+            aspect-ratio: 16 / 9;
+            background: #e5e7eb;
+          }
+
+          .videoFrame {
+            display: block;
+            width: 100%;
+            height: 100%;
+          }
+
+          .videoBody {
+            padding: 18px;
+          }
+
+          .videoTitle {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.35;
+          }
+
+          .videoSubtitle {
+            margin-top: 6px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #64748b;
           }
 
           .stepBody {
@@ -607,6 +701,10 @@ Ve spolupráci s pedagogy a místními komunitami připravujeme interaktivní pr
             .benefitsGrid,
             .trustPanel,
             .ctaBox {
+              grid-template-columns: 1fr;
+            }
+
+            .videosGrid {
               grid-template-columns: 1fr;
             }
 
