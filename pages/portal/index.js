@@ -127,6 +127,10 @@ export default function PortalIndex() {
         if (!alive) return;
 
         if (!user) {
+          setMembershipRole("");
+          setOrganizationName("");
+          setOrganizationCode("");
+          setLicenseValidUntil(null);
           setDashboardType("default");
           setLicenseMode("default");
           setLoadingProfileType(false);
@@ -142,8 +146,11 @@ export default function PortalIndex() {
         if (profileError) throw profileError;
         if (!alive) return;
 
+        let membership = null;
+        let resolvedOrganizationId = null;
+
         if (profile?.active_organization_id) {
-          const { data: membership, error: membershipError } = await supabase
+          const { data: membershipByActiveOrg, error: membershipByActiveOrgError } = await supabase
             .from("organization_members")
             .select("organization_id, status, role_in_org")
             .eq("user_id", user.id)
@@ -151,35 +158,59 @@ export default function PortalIndex() {
             .eq("status", "active")
             .maybeSingle();
 
-          if (membershipError) throw membershipError;
+          if (membershipByActiveOrgError) throw membershipByActiveOrgError;
           if (!alive) return;
 
-          if (membership?.organization_id) {
-            const { data: org, error: orgError } = await supabase
-              .from("organizations")
-              .select("id, name, join_code, license_status, license_valid_until")
-              .eq("id", profile.active_organization_id)
-              .maybeSingle();
-
-            if (orgError) throw orgError;
-            if (!alive) return;
-
-            const roleInOrg = membership?.role_in_org || "";
-            setMembershipRole(roleInOrg);
-            setOrganizationName(org?.name || "");
-            setOrganizationCode(org?.join_code || "");
-            setLicenseValidUntil(org?.license_valid_until || null);
-            setLicenseMode(resolveLicenseMode(org));
-
-            if (roleInOrg === "demo_viewer") {
-              setDashboardType("demo_viewer");
-            } else {
-              setDashboardType("organization");
-            }
-
-            setLoadingProfileType(false);
-            return;
+          if (membershipByActiveOrg?.organization_id) {
+            membership = membershipByActiveOrg;
+            resolvedOrganizationId = membershipByActiveOrg.organization_id;
           }
+        }
+
+        if (!membership) {
+          const { data: fallbackMembership, error: fallbackMembershipError } = await supabase
+            .from("organization_members")
+            .select("organization_id, status, role_in_org")
+            .eq("user_id", user.id)
+            .eq("status", "active")
+            .order("organization_id", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
+          if (fallbackMembershipError) throw fallbackMembershipError;
+          if (!alive) return;
+
+          if (fallbackMembership?.organization_id) {
+            membership = fallbackMembership;
+            resolvedOrganizationId = fallbackMembership.organization_id;
+          }
+        }
+
+        if (membership?.organization_id && resolvedOrganizationId) {
+          const { data: org, error: orgError } = await supabase
+            .from("organizations")
+            .select("id, name, join_code, license_status, license_valid_until")
+            .eq("id", resolvedOrganizationId)
+            .maybeSingle();
+
+          if (orgError) throw orgError;
+          if (!alive) return;
+
+          const roleInOrg = membership?.role_in_org || "";
+          setMembershipRole(roleInOrg);
+          setOrganizationName(org?.name || "");
+          setOrganizationCode(org?.join_code || "");
+          setLicenseValidUntil(org?.license_valid_until || null);
+          setLicenseMode(resolveLicenseMode(org));
+
+          if (roleInOrg === "demo_viewer") {
+            setDashboardType("demo_viewer");
+          } else {
+            setDashboardType("organization");
+          }
+
+          setLoadingProfileType(false);
+          return;
         }
 
         if (profile?.user_type === "individual") {
