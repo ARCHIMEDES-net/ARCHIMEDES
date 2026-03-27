@@ -14,7 +14,7 @@ const OPTIONS = [
   {
     key: "ucebna",
     title: "Učebna ARCHIMEDES",
-    text: "Moderní venkovní učebna jako prostor pro výuku, setkávání lidí a komunitní aktivity.",
+    text: "Moderní venkovní učebna jako prostor pro výuku, setkávání a komunitní aktivity.",
   },
   {
     key: "oboji",
