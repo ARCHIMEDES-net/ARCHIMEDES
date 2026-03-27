@@ -206,7 +206,7 @@ export default function KomunitaPage() {
                     letterSpacing: "-0.02em",
                   }}
                 >
-                  Co se děje v síti
+                  Co se děje v komunitě
                   <br />
                   ARCHIMEDES Live
                 </h1>
