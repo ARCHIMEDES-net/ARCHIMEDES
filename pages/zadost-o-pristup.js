@@ -115,7 +115,7 @@ export default function ZadostPristupPage() {
 
       setMessage(
         isDemoRequest
-          ? "Děkujeme. Žádost o ukázkový přístup byla úspěšně odeslána.\n\nJakmile bude přístup schválen, pošleme vám e-mail s tlačítkem nebo odkazem pro vstup do ukázkového prostředí ARCHIMEDES Live.\n\nPokud zprávu během několika minut nenajdete, zkontrolujte prosím i složku Spam nebo Hromadné."
+          ? "Děkujeme. Žádost o ukázkový přístup byla úspěšně odeslána.\n\nJakmile bude přístup schválen, na zadaný e-mail obdržíte zprávu s přístupem, který vás jedním kliknutím zavede přímo do ukázkového prostředí.n\nPokud zprávu během několika minut nenajdete, zkontrolujte prosím i složku Spam nebo Hromadné."
           : "Děkujeme. Žádost o přístup byla úspěšně odeslána.\n\nOzveme se vám s dalším postupem."
       );
 
