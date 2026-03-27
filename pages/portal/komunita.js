@@ -222,16 +222,26 @@ export default function KomunitaPage() {
               }}
             >
               {featuredPost.image_path ? (
-                <img
-                  src={getPublicUrl(featuredPost.image_path)}
-                  alt={featuredPost.title}
+                <div
                   style={{
                     width: "100%",
-                    maxHeight: 460,
-                    objectFit: "cover",
-                    display: "block",
+                    height: "clamp(240px, 42vw, 460px)",
+                    overflow: "hidden",
+                    background: "#eef2f7",
                   }}
-                />
+                >
+                  <img
+                    src={getPublicUrl(featuredPost.image_path)}
+                    alt={featuredPost.title}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      objectPosition: "center",
+                      display: "block",
+                    }}
+                  />
+                </div>
               ) : null}
 
               <div style={{ padding: 22 }}>
@@ -312,16 +322,26 @@ export default function KomunitaPage() {
                 {otherPosts.map((post) => (
                   <article key={post.id} style={postCardStyle}>
                     {post.image_path ? (
-                      <img
-                        src={getPublicUrl(post.image_path)}
-                        alt={post.title}
+                      <div
                         style={{
                           width: "100%",
                           height: 200,
-                          objectFit: "cover",
-                          display: "block",
+                          overflow: "hidden",
+                          background: "#eef2f7",
                         }}
-                      />
+                      >
+                        <img
+                          src={getPublicUrl(post.image_path)}
+                          alt={post.title}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            objectPosition: "center",
+                            display: "block",
+                          }}
+                        />
+                      </div>
                     ) : null}
 
                     <div style={{ padding: 18 }}>
