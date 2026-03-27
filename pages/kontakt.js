@@ -297,7 +297,7 @@ export default function KontaktPage() {
         <title>Kontakt | ARCHIMEDES Live</title>
         <meta
           name="description"
-          content="Kontakt na tým projektu ARCHIMEDES Live. Ozvěte se nám kvůli programu pro školy, obce, komunitní spolupráci nebo vzorové učebně."
+          content="Kontakt na tým ARCHIMEDES Live. Ozvěte se nám kvůli programu pro školy, obce, komunitní spolupráci nebo vzorové učebně."
         />
       </Head>
 
@@ -535,7 +535,7 @@ export default function KontaktPage() {
                 marginBottom: 12,
               }}
             >
-              Tým projektu
+              Tým ARCHIMEDES Live
             </div>
 
             <h2
