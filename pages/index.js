@@ -15,9 +15,9 @@ function ButtonLink({ href, children, variant = "primary" }) {
   );
 }
 
-function VideoCard({ title, subtitle, src }) {
+function VideoCard({ title, subtitle, src, featured = false }) {
   return (
-    <div className="videoCard">
+    <div className={`videoCard${featured ? " videoCardFeatured" : ""}`}>
       <div className="videoFrameWrap">
         <iframe
           width="100%"
@@ -54,6 +54,8 @@ export default function Home() {
           <div className="heroMedia">
             <img src={heroImg} alt="ARCHIMEDES Live ve škole" />
             <div className="heroOverlay" />
+            <div className="heroGlow heroGlowOne" />
+            <div className="heroGlow heroGlowTwo" />
           </div>
 
           <div className="heroContentWrap">
@@ -108,7 +110,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section sectionIntroBlock">
+        <section className="section sectionHow">
           <div className="container">
             <div className="sectionIntro center">
               <div className="eyebrow dark">Jak to funguje</div>
@@ -167,38 +169,41 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="ukazky-vysilani" className="section sectionUkazky">
+        <section id="ukazky-vysilani" className="section sectionShowcase">
           <div className="container">
-            <div className="sectionIntro sectionIntroWide">
-              <div className="eyebrow dark">Ukázky vysílání</div>
-              <h2>Jak vypadá jedna hodina s ARCHIMEDES Live</h2>
-              <p>
-                Krátké ukázky z reálných vysílání pomáhají rychle pochopit
-                atmosféru, formát i možnosti programu.
-              </p>
-            </div>
+            <div className="showcaseShell">
+              <div className="sectionIntro sectionIntroShowcase">
+                <div className="eyebrow dark">Ukázky vysílání</div>
+                <h2>Jak vypadá jedna hodina s ARCHIMEDES Live</h2>
+                <p>
+                  Krátké ukázky z reálných vysílání pomáhají rychle pochopit
+                  atmosféru, formát i možnosti programu.
+                </p>
+              </div>
 
-            <div className="videosGrid">
-              <VideoCard
-                title="Ukázka vysílání pro školy"
-                subtitle="ZOO Praha – výukový vstup pro školní program"
-                src="https://www.youtube.com/embed/yvelfGeL6Jg"
-              />
-              <VideoCard
-                title="Angličtina s rodilým mluvčím"
-                subtitle="Paul Wade – ukázka živého vstupu"
-                src="https://www.youtube.com/embed/bX2y0Uxw-Dg"
-              />
-              <VideoCard
-                title="Senior klub"
-                subtitle="Prof. Jan Pirk a spisovatel Viktor Špaček"
-                src="https://www.youtube.com/embed/-VV3PYdWPUo"
-              />
+              <div className="videosGrid">
+                <VideoCard
+                  featured
+                  title="Ukázka vysílání pro školy"
+                  subtitle="ZOO Praha – výukový vstup pro školní program"
+                  src="https://www.youtube.com/embed/yvelfGeL6Jg"
+                />
+                <VideoCard
+                  title="Angličtina s rodilým mluvčím"
+                  subtitle="Paul Wade – ukázka živého vstupu"
+                  src="https://www.youtube.com/embed/bX2y0Uxw-Dg"
+                />
+                <VideoCard
+                  title="Senior klub"
+                  subtitle="Prof. Jan Pirk a spisovatel Viktor Špaček"
+                  src="https://www.youtube.com/embed/-VV3PYdWPUo"
+                />
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="section sectionSoft">
+        <section className="section sectionBenefits">
           <div className="container">
             <div className="sectionIntro sectionIntroWide">
               <div className="eyebrow dark">Co to přináší</div>
@@ -307,8 +312,8 @@ export default function Home() {
         <style jsx>{`
           .page {
             background:
-              radial-gradient(circle at top left, rgba(221, 231, 247, 0.55), transparent 32%),
-              linear-gradient(180deg, #f8fafd 0%, #f5f7fb 100%);
+              radial-gradient(circle at top left, rgba(221, 231, 247, 0.55), transparent 30%),
+              linear-gradient(180deg, #f8fafd 0%, #f4f7fb 100%);
             color: #0f172a;
           }
 
@@ -320,7 +325,7 @@ export default function Home() {
 
           .hero {
             position: relative;
-            min-height: 700px;
+            min-height: 720px;
             display: flex;
             align-items: stretch;
             overflow: hidden;
@@ -337,7 +342,7 @@ export default function Home() {
             object-fit: cover;
             object-position: center center;
             display: block;
-            transform: scale(1.01);
+            transform: scale(1.015);
           }
 
           .heroOverlay {
@@ -345,18 +350,42 @@ export default function Home() {
             inset: 0;
             background:
               linear-gradient(
-                90deg,
-                rgba(8, 15, 34, 0.82) 0%,
-                rgba(8, 15, 34, 0.62) 26%,
-                rgba(8, 15, 34, 0.28) 56%,
-                rgba(8, 15, 34, 0.08) 100%
+                92deg,
+                rgba(7, 14, 31, 0.84) 0%,
+                rgba(7, 14, 31, 0.66) 25%,
+                rgba(7, 14, 31, 0.28) 56%,
+                rgba(7, 14, 31, 0.08) 100%
               ),
               linear-gradient(
                 180deg,
                 rgba(8, 15, 34, 0.18) 0%,
-                rgba(8, 15, 34, 0.04) 44%,
-                rgba(8, 15, 34, 0.22) 100%
+                rgba(8, 15, 34, 0.02) 48%,
+                rgba(8, 15, 34, 0.18) 100%
               );
+          }
+
+          .heroGlow {
+            position: absolute;
+            border-radius: 999px;
+            filter: blur(70px);
+            pointer-events: none;
+            opacity: 0.34;
+          }
+
+          .heroGlowOne {
+            width: 280px;
+            height: 280px;
+            right: 8%;
+            top: 12%;
+            background: rgba(78, 132, 223, 0.28);
+          }
+
+          .heroGlowTwo {
+            width: 220px;
+            height: 220px;
+            left: 2%;
+            bottom: 8%;
+            background: rgba(255, 255, 255, 0.12);
           }
 
           .heroContentWrap {
@@ -369,7 +398,7 @@ export default function Home() {
 
           .heroContent {
             max-width: 760px;
-            padding: 112px 0 76px;
+            padding: 118px 0 82px;
             color: white;
           }
 
@@ -381,14 +410,15 @@ export default function Home() {
             border-radius: 999px;
             font-size: 12px;
             font-weight: 800;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
             margin-bottom: 16px;
           }
 
           .eyebrow.dark {
-            background: #e8eef9;
-            color: #253756;
+            background: #e9eef8;
+            color: #223252;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
           }
 
           .eyebrow.light {
@@ -399,15 +429,17 @@ export default function Home() {
           .heroContent .eyebrow {
             background: rgba(255, 255, 255, 0.12);
             color: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.14);
           }
 
           h1 {
             margin: 0;
-            font-size: 66px;
-            line-height: 0.98;
-            letter-spacing: -0.04em;
+            font-size: 68px;
+            line-height: 0.97;
+            letter-spacing: -0.05em;
             font-weight: 900;
             max-width: 720px;
+            text-wrap: balance;
           }
 
           .heroLead {
@@ -415,7 +447,7 @@ export default function Home() {
             font-size: 21px;
             line-height: 1.55;
             color: rgba(255, 255, 255, 0.9);
-            max-width: 650px;
+            max-width: 660px;
           }
 
           .heroLeadBreak {
@@ -431,7 +463,7 @@ export default function Home() {
           }
 
           .heroActions {
-            margin-top: 28px;
+            margin-top: 30px;
           }
 
           .heroGuestLinkWrap {
@@ -444,11 +476,11 @@ export default function Home() {
 
           .heroGuestLabel {
             font-size: 11px;
-            line-height: 1.35;
+            line-height: 1.4;
             font-weight: 800;
             letter-spacing: 0.14em;
             text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.52);
+            color: rgba(255, 255, 255, 0.54);
           }
 
           .heroGuestLink {
@@ -469,52 +501,59 @@ export default function Home() {
           }
 
           .section {
-            padding: 72px 0;
+            padding: 76px 0;
           }
 
-          .sectionIntroBlock {
-            padding-top: 60px;
-            padding-bottom: 56px;
+          .sectionHow {
+            padding-top: 58px;
+            padding-bottom: 54px;
           }
 
-          .sectionUkazky {
-            padding-top: 14px;
-            padding-bottom: 66px;
+          .sectionShowcase {
+            padding-top: 10px;
+            padding-bottom: 64px;
           }
 
-          .sectionSoft {
+          .sectionBenefits {
+            position: relative;
             background:
-              linear-gradient(180deg, rgba(234, 240, 249, 0.8) 0%, rgba(239, 243, 249, 0.92) 100%);
+              linear-gradient(180deg, rgba(234, 239, 247, 0.86) 0%, rgba(240, 244, 250, 0.98) 100%);
             border-top: 1px solid rgba(15, 23, 42, 0.04);
             border-bottom: 1px solid rgba(15, 23, 42, 0.04);
           }
 
           .sectionTrust {
-            padding-top: 40px;
+            padding-top: 42px;
             padding-bottom: 70px;
           }
 
           .sectionIntro {
-            margin-bottom: 26px;
+            margin-bottom: 28px;
           }
 
           .sectionIntroWide {
-            max-width: 820px;
+            max-width: 760px;
           }
 
           .sectionIntro.center {
             text-align: center;
             max-width: 860px;
-            margin: 0 auto 30px;
+            margin: 0 auto 32px;
+          }
+
+          .sectionIntroShowcase {
+            max-width: 720px;
+            margin-bottom: 30px;
           }
 
           h2 {
             margin: 0;
-            font-size: 46px;
-            line-height: 1.02;
-            letter-spacing: -0.05em;
+            font-size: 48px;
+            line-height: 1.01;
+            letter-spacing: -0.055em;
             font-weight: 900;
             color: #0f172a;
+            text-wrap: balance;
           }
 
           .sectionIntro p,
@@ -522,8 +561,8 @@ export default function Home() {
           .ctaBox p {
             margin: 14px 0 0;
             font-size: 18px;
-            line-height: 1.7;
-            color: #556070;
+            line-height: 1.72;
+            color: #5a6474;
             max-width: 780px;
           }
 
@@ -536,13 +575,28 @@ export default function Home() {
           .stepCard,
           .benefitCard,
           .videoCard {
-            background: rgba(255, 255, 255, 0.96);
+            background: rgba(255, 255, 255, 0.97);
             border: 1px solid rgba(15, 23, 42, 0.07);
             border-radius: 28px;
             overflow: hidden;
             box-shadow:
-              0 12px 34px rgba(15, 23, 42, 0.045),
-              0 2px 8px rgba(15, 23, 42, 0.03);
+              0 14px 36px rgba(15, 23, 42, 0.045),
+              0 2px 8px rgba(15, 23, 42, 0.028);
+          }
+
+          .stepCard {
+            transition:
+              transform 0.22s ease,
+              box-shadow 0.22s ease,
+              border-color 0.22s ease;
+          }
+
+          .stepCard:hover {
+            transform: translateY(-4px);
+            box-shadow:
+              0 22px 48px rgba(15, 23, 42, 0.08),
+              0 4px 14px rgba(15, 23, 42, 0.05);
+            border-color: rgba(37, 68, 121, 0.14);
           }
 
           .stepImage img {
@@ -568,7 +622,7 @@ export default function Home() {
             font-size: 14px;
             font-weight: 900;
             margin-bottom: 14px;
-            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
           }
 
           .stepBody h3,
@@ -579,6 +633,7 @@ export default function Home() {
             letter-spacing: -0.03em;
             font-weight: 900;
             color: #0f172a;
+            text-wrap: balance;
           }
 
           .stepBody p,
@@ -589,12 +644,56 @@ export default function Home() {
             color: #5b6676;
           }
 
+          .showcaseShell {
+            position: relative;
+          }
+
+          .showcaseShell::before {
+            content: "";
+            position: absolute;
+            top: 68px;
+            left: 0;
+            width: 64px;
+            height: 4px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #1d4ed8 0%, #60a5fa 100%);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.2);
+          }
+
           .videosGrid {
             display: grid;
             grid-template-columns: repeat(12, minmax(0, 1fr));
             gap: 22px;
-            margin-top: 24px;
+            margin-top: 34px;
             align-items: stretch;
+          }
+
+          .videoCard {
+            transition:
+              transform 0.22s ease,
+              box-shadow 0.22s ease,
+              border-color 0.22s ease;
+          }
+
+          .videoCard:hover {
+            transform: translateY(-5px);
+            box-shadow:
+              0 24px 54px rgba(15, 23, 42, 0.1),
+              0 6px 16px rgba(15, 23, 42, 0.045);
+            border-color: rgba(37, 68, 121, 0.14);
+          }
+
+          .videoCardFeatured {
+            position: relative;
+          }
+
+          .videoCardFeatured::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            border-radius: 28px;
+            box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.08);
           }
 
           .videosGrid :global(.videoCard:nth-child(1)) {
@@ -628,8 +727,9 @@ export default function Home() {
             font-size: 18px;
             font-weight: 800;
             color: #0f172a;
-            line-height: 1.32;
+            line-height: 1.34;
             letter-spacing: -0.02em;
+            text-wrap: balance;
           }
 
           .videosGrid :global(.videoCard:nth-child(1) .videoTitle) {
@@ -638,9 +738,9 @@ export default function Home() {
 
           .videoSubtitle {
             margin-top: 6px;
-            font-size: 15px;
-            line-height: 1.62;
-            color: #64748b;
+            font-size: 14px;
+            line-height: 1.64;
+            color: #667387;
           }
 
           .benefitsGrid {
@@ -651,14 +751,26 @@ export default function Home() {
 
           .benefitCard {
             padding: 28px 26px;
+            transition:
+              transform 0.22s ease,
+              box-shadow 0.22s ease,
+              border-color 0.22s ease;
+          }
+
+          .benefitCard:hover {
+            transform: translateY(-4px);
+            box-shadow:
+              0 22px 48px rgba(15, 23, 42, 0.08),
+              0 4px 14px rgba(15, 23, 42, 0.05);
+            border-color: rgba(37, 68, 121, 0.14);
           }
 
           .benefitCardPrimary {
             background:
-              linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 250, 255, 0.98) 100%);
-            border-color: rgba(37, 68, 121, 0.12);
+              linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(246, 250, 255, 0.99) 100%);
+            border-color: rgba(37, 68, 121, 0.11);
             box-shadow:
-              0 16px 42px rgba(24, 48, 88, 0.07),
+              0 18px 46px rgba(24, 48, 88, 0.07),
               0 2px 8px rgba(15, 23, 42, 0.03);
           }
 
@@ -678,15 +790,15 @@ export default function Home() {
           .trustPanel {
             display: grid;
             grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
-            gap: 28px;
+            gap: 30px;
             align-items: stretch;
             background:
-              linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(252, 253, 255, 0.96) 100%);
+              linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 253, 255, 0.98) 100%);
             border: 1px solid rgba(15, 23, 42, 0.06);
             border-radius: 32px;
             padding: 34px;
             box-shadow:
-              0 16px 42px rgba(15, 23, 42, 0.05),
+              0 18px 44px rgba(15, 23, 42, 0.05),
               0 2px 8px rgba(15, 23, 42, 0.03);
           }
 
@@ -708,11 +820,12 @@ export default function Home() {
               linear-gradient(180deg, #f7f9fc 0%, #f2f6fb 100%);
             padding: 20px 20px 18px;
             border: 1px solid rgba(15, 23, 42, 0.05);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
           }
 
           .trustStat strong {
             display: block;
-            font-size: 30px;
+            font-size: 31px;
             line-height: 1;
             letter-spacing: -0.04em;
             font-weight: 900;
@@ -729,7 +842,7 @@ export default function Home() {
           }
 
           .ctaSection {
-            padding: 0 0 82px;
+            padding: 0 0 84px;
           }
 
           .ctaBox {
@@ -744,7 +857,7 @@ export default function Home() {
             gap: 26px;
             align-items: center;
             box-shadow:
-              0 24px 60px rgba(15, 23, 42, 0.16),
+              0 28px 62px rgba(15, 23, 42, 0.16),
               inset 0 1px 0 rgba(255, 255, 255, 0.04);
           }
 
@@ -799,20 +912,20 @@ export default function Home() {
 
           @media (max-width: 900px) {
             .hero {
-              min-height: 630px;
+              min-height: 640px;
             }
 
             .heroContent {
-              padding: 96px 0 68px;
+              padding: 98px 0 70px;
             }
 
             h1 {
-              font-size: 52px;
-              line-height: 1.01;
+              font-size: 54px;
+              line-height: 1;
             }
 
             h2 {
-              font-size: 36px;
+              font-size: 38px;
             }
 
             .heroLead {
@@ -820,22 +933,22 @@ export default function Home() {
             }
 
             .section {
-              padding: 60px 0;
+              padding: 62px 0;
             }
 
-            .sectionIntroBlock {
-              padding-top: 52px;
-              padding-bottom: 46px;
+            .sectionHow {
+              padding-top: 48px;
+              padding-bottom: 44px;
             }
 
-            .sectionUkazky {
-              padding-top: 6px;
-              padding-bottom: 54px;
+            .sectionShowcase {
+              padding-top: 4px;
+              padding-bottom: 52px;
             }
 
             .sectionTrust {
               padding-top: 30px;
-              padding-bottom: 58px;
+              padding-bottom: 56px;
             }
 
             .stepImage img {
@@ -845,6 +958,10 @@ export default function Home() {
             .trustPanel,
             .ctaBox {
               padding: 28px;
+            }
+
+            .showcaseShell::before {
+              top: 60px;
             }
           }
 
@@ -861,10 +978,15 @@ export default function Home() {
               background:
                 linear-gradient(
                   180deg,
-                  rgba(8, 15, 34, 0.78) 0%,
-                  rgba(8, 15, 34, 0.48) 48%,
-                  rgba(8, 15, 34, 0.26) 100%
+                  rgba(8, 15, 34, 0.8) 0%,
+                  rgba(8, 15, 34, 0.5) 48%,
+                  rgba(8, 15, 34, 0.28) 100%
                 );
+            }
+
+            .heroGlowOne,
+            .heroGlowTwo {
+              display: none;
             }
 
             .heroContent {
@@ -874,12 +996,12 @@ export default function Home() {
 
             h1 {
               font-size: 40px;
-              letter-spacing: -0.03em;
+              letter-spacing: -0.04em;
             }
 
             h2 {
               font-size: 34px;
-              letter-spacing: -0.045em;
+              letter-spacing: -0.05em;
             }
 
             .heroLead,
@@ -890,22 +1012,22 @@ export default function Home() {
             }
 
             .section {
-              padding: 46px 0;
+              padding: 48px 0;
             }
 
-            .sectionIntroBlock {
-              padding-top: 40px;
-              padding-bottom: 36px;
+            .sectionHow {
+              padding-top: 38px;
+              padding-bottom: 34px;
             }
 
-            .sectionUkazky {
+            .sectionShowcase {
               padding-top: 0;
-              padding-bottom: 44px;
+              padding-bottom: 42px;
             }
 
             .sectionTrust {
-              padding-top: 20px;
-              padding-bottom: 44px;
+              padding-top: 18px;
+              padding-bottom: 42px;
             }
 
             .sectionIntro {
@@ -914,6 +1036,11 @@ export default function Home() {
 
             .sectionIntro.center {
               margin: 0 auto 22px;
+            }
+
+            .showcaseShell::before {
+              top: 56px;
+              width: 52px;
             }
 
             .stepBody,
@@ -1004,7 +1131,7 @@ export default function Home() {
             color: #0f172a;
             border: 1px solid rgba(255, 255, 255, 0.9);
             box-shadow:
-              0 12px 26px rgba(15, 23, 42, 0.16),
+              0 12px 28px rgba(15, 23, 42, 0.16),
               inset 0 1px 0 rgba(255, 255, 255, 0.55);
           }
 
