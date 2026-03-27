@@ -313,7 +313,7 @@ export default function StartPage() {
                           <strong>{successData.orderingEmail || "—"}</strong>. Na
                           e-mail správce programu{" "}
                           <strong>{successData.adminEmail || "—"}</strong> jsme
-                          poslali navazující informace k přístupu.
+                          poslali navazující přístupové informace.
                         </>
                       )}
                     </div>
