@@ -186,12 +186,29 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: membershipError.message });
     }
 
+    let profileSyncWarning = "";
+
+    const { error: profileUpdateError } = await supabaseAdmin
+      .from("profiles")
+      .update({
+        active_organization_id: organization.id,
+        user_type: "organization",
+      })
+      .eq("id", cleanUserId);
+
+    if (profileUpdateError) {
+      console.error("create-organization profile sync warning:", profileUpdateError);
+      profileSyncWarning =
+        "Organizace byla vytvořena, ale nepodařilo se plně synchronizovat profil.";
+    }
+
     return res.status(200).json({
       success: true,
       organizationId: organization.id,
       organizationName: organization.name,
       orgType: organization.org_type,
       joinCode: organization.join_code,
+      ...(profileSyncWarning ? { profileSyncWarning } : {}),
     });
   } catch (err) {
     return res.status(500).json({
