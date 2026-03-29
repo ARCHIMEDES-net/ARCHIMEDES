@@ -1,7 +1,7 @@
 // pages/portal/admin-skoly.js
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import RequireAuth from "../../components/RequireAuth";
+import RequirePlatformAdmin from "../../components/RequirePlatformAdmin";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
@@ -53,7 +53,6 @@ function buildGeoQuery(form) {
   if (c) parts.push(c);
   if (co) parts.push(co);
 
-  // fallback: když není adresa, použij aspoň název školy
   if (parts.length === 0) {
     const n = String(form.name || "").trim();
     if (n) parts.push(n);
@@ -85,16 +84,12 @@ function emptyForm() {
     contact_phone: "",
     contact_email: "",
     archimedes_since: "",
-
     short_description: "",
     classroom_description: "",
-
     latitude: "",
     longitude: "",
-
     has_archimedes_classroom: true,
     is_published: true,
-
     photo_path: "",
   };
 }
@@ -177,16 +172,12 @@ export default function AdminSkoly() {
       contact_phone: r.contact_phone || "",
       contact_email: r.contact_email || "",
       archimedes_since: toDateInputValue(r.archimedes_since),
-
       short_description: r.short_description || "",
       classroom_description: r.classroom_description || "",
-
       latitude: r.latitude ?? "",
       longitude: r.longitude ?? "",
-
       has_archimedes_classroom: !!r.has_archimedes_classroom,
       is_published: !!r.is_published,
-
       photo_path: r.photo_path || "",
     });
 
@@ -227,19 +218,14 @@ export default function AdminSkoly() {
         city: String(form.city || "").trim() || null,
         country: String(form.country || "").trim() || null,
         school_type: String(form.school_type || "").trim() || null,
-
         contact_name: String(form.contact_name || "").trim() || null,
         contact_phone: String(form.contact_phone || "").trim() || null,
         contact_email: String(form.contact_email || "").trim() || null,
-
         archimedes_since: form.archimedes_since ? new Date(form.archimedes_since).toISOString() : null,
-
         short_description: String(form.short_description || "").trim() || null,
         classroom_description: String(form.classroom_description || "").trim() || null,
-
         latitude: toNumOrNull(form.latitude),
         longitude: toNumOrNull(form.longitude),
-
         has_archimedes_classroom: !!form.has_archimedes_classroom,
         is_published: !!form.is_published,
       };
@@ -247,7 +233,12 @@ export default function AdminSkoly() {
       let schoolId = editingId;
 
       if (!editingId) {
-        const { data, error } = await supabase.from("schools").insert([{ ...payload }]).select("id").single();
+        const { data, error } = await supabase
+          .from("schools")
+          .insert([{ ...payload }])
+          .select("id")
+          .single();
+
         if (error) throw new Error(error.message);
         schoolId = data?.id;
         setEditingId(schoolId);
@@ -303,7 +294,7 @@ export default function AdminSkoly() {
   const websiteHref = useMemo(() => normalizeHttp(form.website), [form.website]);
 
   return (
-    <RequireAuth>
+    <RequirePlatformAdmin>
       <PortalHeader title="Admin – Školy" />
 
       <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
@@ -835,6 +826,6 @@ export default function AdminSkoly() {
           </div>
         </div>
       </div>
-    </RequireAuth>
+    </RequirePlatformAdmin>
   );
 }
