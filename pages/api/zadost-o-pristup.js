@@ -1,5 +1,7 @@
+
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -281,6 +283,10 @@ export default async function handler(req, res) {
 
     const createdAt = new Date().toISOString();
 
+    const approveToken = demoMode
+      ? crypto.randomBytes(32).toString("hex")
+      : null;
+
     const requestHeader = demoMode
       ? "Typ žádosti: demo přístup"
       : "Typ žádosti: standardní přístup";
@@ -313,6 +319,8 @@ export default async function handler(req, res) {
           note: composedMessage,
           status: "new",
           created_at: createdAt,
+          approve_token: approveToken,
+          approve_token_created_at: approveToken ? createdAt : null,
         },
       ])
       .select("id")
@@ -324,6 +332,11 @@ export default async function handler(req, res) {
     }
 
     const leadId = data?.id || "-";
+
+    const approveUrl =
+      demoMode && approveToken
+        ? `${SITE_URL}/api/demo-approve-from-email?token=${approveToken}`
+        : null;
 
     const smtpHost = process.env.SMTP_HOST;
     const smtpPort = Number(process.env.SMTP_PORT);
@@ -388,7 +401,40 @@ ${cleanMessage || "-"}
 
 Datum:
 ${createdAt}
+
+${approveUrl ? `Schválit demo: ${approveUrl}` : ""}
       `.trim(),
+      html: `
+        <div style="font-family:Segoe UI,Arial,sans-serif;color:#0f172a;line-height:1.6;">
+          <h2 style="margin:0 0 16px;">Přišla nová žádost z webu ARCHIMEDES Live</h2>
+
+          <p><strong>ID:</strong> ${escapeHtml(String(leadId))}</p>
+          <p><strong>Typ žádosti:</strong> ${demoMode ? "Ukázkový přístup" : "Standardní přístup"}</p>
+          <p><strong>Typ organizace:</strong> ${escapeHtml(cleanType || "-")}</p>
+          <p><strong>Jméno:</strong> ${escapeHtml(cleanName)}</p>
+          <p><strong>Organizace:</strong> ${escapeHtml(cleanOrganization)}</p>
+          <p><strong>Adresa:</strong> ${escapeHtml(cleanAddress)}</p>
+          <p><strong>Email:</strong> ${escapeHtml(cleanEmail)}</p>
+          <p><strong>Telefon:</strong> ${escapeHtml(cleanPhone || "-")}</p>
+          <p><strong>Zpráva:</strong><br />${escapeHtml(cleanMessage || "-").replace(/\n/g, "<br />")}</p>
+          <p><strong>Datum:</strong> ${escapeHtml(createdAt)}</p>
+
+          ${
+            approveUrl
+              ? `
+                <div style="margin-top:24px;">
+                  <a
+                    href="${escapeHtml(approveUrl)}"
+                    style="display:inline-block;padding:12px 18px;background:#111827;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;"
+                  >
+                    Schválit demo
+                  </a>
+                </div>
+              `
+              : ""
+          }
+        </div>
+      `,
     });
 
     const applicantMail = buildApplicantEmail({
