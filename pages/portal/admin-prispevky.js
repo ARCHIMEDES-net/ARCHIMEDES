@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import RequireAuth from "../../components/RequireAuth";
+import RequirePlatformAdmin from "../../components/RequirePlatformAdmin";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
 
@@ -165,7 +165,7 @@ export default function AdminPrispevky() {
   }
 
   return (
-    <RequireAuth>
+    <RequirePlatformAdmin>
       <PortalHeader title="Admin - příspěvek" />
 
       <div style={{ background: "#f6f7fb", minHeight: "100vh", padding: 20 }}>
@@ -287,7 +287,7 @@ export default function AdminPrispevky() {
           </form>
         </div>
       </div>
-    </RequireAuth>
+    </RequirePlatformAdmin>
   );
 }
 
