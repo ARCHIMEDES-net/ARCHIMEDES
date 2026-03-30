@@ -344,117 +344,162 @@ function PriceCard({
   description,
   items,
   featured,
+  href = "/poptavka",
 }) {
   return (
-    <div
+    <Link
+      href={href}
       style={{
-        background: "#fff",
-        borderRadius: 24,
-        padding: 28,
-        border: featured ? "2px solid #2563eb" : "1px solid #e2e8f0",
-        boxShadow: featured
-          ? "0 18px 46px rgba(37,99,235,0.12)"
-          : "0 14px 36px rgba(15,23,42,0.06)",
-        minHeight: "100%",
+        display: "block",
+        textDecoration: "none",
+        color: "inherit",
+        height: "100%",
       }}
     >
       <div
         style={{
-          display: "inline-flex",
-          alignItems: "center",
-          minHeight: 34,
-          padding: "0 14px",
-          borderRadius: 999,
-          background: featured ? "#2563eb" : "#f1f5f9",
-          color: featured ? "#fff" : "#334155",
-          fontSize: 14,
-          fontWeight: 800,
-          marginBottom: 18,
+          background: "#fff",
+          borderRadius: 24,
+          padding: 28,
+          border: featured ? "2px solid #2563eb" : "1px solid #e2e8f0",
+          boxShadow: featured
+            ? "0 18px 46px rgba(37,99,235,0.12)"
+            : "0 14px 36px rgba(15,23,42,0.06)",
+          minHeight: "100%",
+          cursor: "pointer",
+          transition:
+            "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
         }}
-      >
-        {badge}
-      </div>
-
-      <h3
-        style={{
-          margin: 0,
-          fontSize: 21,
-          lineHeight: 1.25,
-          color: "#0f172a",
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-4px)";
+          e.currentTarget.style.boxShadow = featured
+            ? "0 24px 56px rgba(37,99,235,0.16)"
+            : "0 18px 40px rgba(15,23,42,0.10)";
         }}
-      >
-        {title}
-      </h3>
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          gap: 8,
-          marginTop: 14,
-          flexWrap: "wrap",
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = featured
+            ? "0 18px 46px rgba(37,99,235,0.12)"
+            : "0 14px 36px rgba(15,23,42,0.06)";
         }}
       >
         <div
           style={{
-            fontSize: 32,
-            lineHeight: 1,
-            fontWeight: 900,
+            display: "inline-flex",
+            alignItems: "center",
+            minHeight: 34,
+            padding: "0 14px",
+            borderRadius: 999,
+            background: featured ? "#2563eb" : "#f1f5f9",
+            color: featured ? "#fff" : "#334155",
+            fontSize: 14,
+            fontWeight: 800,
+            marginBottom: 18,
+          }}
+        >
+          {badge}
+        </div>
+
+        <h3
+          style={{
+            margin: 0,
+            fontSize: 21,
+            lineHeight: 1.25,
             color: "#0f172a",
-            letterSpacing: "-0.03em",
           }}
         >
-          {price}
-        </div>
+          {title}
+        </h3>
+
         <div
           style={{
-            fontSize: 16,
-            fontWeight: 700,
-            color: "#475569",
-            marginBottom: 3,
+            display: "flex",
+            alignItems: "flex-end",
+            gap: 8,
+            marginTop: 14,
+            flexWrap: "wrap",
           }}
         >
-          {suffix}
+          <div
+            style={{
+              fontSize: 32,
+              lineHeight: 1,
+              fontWeight: 900,
+              color: "#0f172a",
+              letterSpacing: "-0.03em",
+            }}
+          >
+            {price}
+          </div>
+          <div
+            style={{
+              fontSize: 16,
+              fontWeight: 700,
+              color: "#475569",
+              marginBottom: 3,
+            }}
+          >
+            {suffix}
+          </div>
+        </div>
+
+        <p
+          style={{
+            margin: "16px 0 0",
+            color: "#475569",
+            fontSize: 16,
+            lineHeight: 1.65,
+          }}
+        >
+          {description}
+        </p>
+
+        <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
+          {items.map((item) => (
+            <div key={item} style={{ display: "flex", gap: 10 }}>
+              <div
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 999,
+                  background: "#2563eb",
+                  marginTop: 8,
+                  flex: "0 0 auto",
+                }}
+              />
+              <div
+                style={{
+                  color: "#334155",
+                  fontSize: 15,
+                  lineHeight: 1.6,
+                }}
+              >
+                {item}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div
+          style={{
+            marginTop: 22,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: 46,
+            padding: "0 16px",
+            borderRadius: 12,
+            background: featured ? "#2563eb" : "#f8fafc",
+            color: featured ? "#ffffff" : "#0f172a",
+            border: featured ? "1px solid #2563eb" : "1px solid #cbd5e1",
+            fontSize: 15,
+            fontWeight: 800,
+          }}
+        >
+          Mám zájem o tuto variantu →
         </div>
       </div>
-
-      <p
-        style={{
-          margin: "16px 0 0",
-          color: "#475569",
-          fontSize: 16,
-          lineHeight: 1.65,
-        }}
-      >
-        {description}
-      </p>
-
-      <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
-        {items.map((item) => (
-          <div key={item} style={{ display: "flex", gap: 10 }}>
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 999,
-                background: "#2563eb",
-                marginTop: 8,
-                flex: "0 0 auto",
-              }}
-            />
-            <div
-              style={{
-                color: "#334155",
-                fontSize: 15,
-                lineHeight: 1.6,
-              }}
-            >
-              {item}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    </Link>
   );
 }
 
@@ -768,9 +813,28 @@ export default function ProgramPage() {
               }}
               className="price-grid"
             >
-              {priceCards.map((card, idx) => (
-                <PriceCard key={card.title} {...card} featured={idx === 0} />
-              ))}
+              {priceCards.map((card, idx) => {
+                let href = "/poptavka";
+
+                if (card.title === "Program pro školu a obec") {
+                  href = "/poptavka?interest=program-obec";
+                } else if (card.title === "Škola") {
+                  href = "/poptavka?interest=skola";
+                } else if (card.title === "Senior klub") {
+                  href = "/poptavka?interest=senior";
+                } else if (card.title === "Komunitní program") {
+                  href = "/poptavka?interest=komunita";
+                }
+
+                return (
+                  <PriceCard
+                    key={card.title}
+                    {...card}
+                    featured={idx === 0}
+                    href={href}
+                  />
+                );
+              })}
             </div>
 
             <div
