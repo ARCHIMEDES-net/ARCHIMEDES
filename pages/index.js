@@ -70,17 +70,14 @@ export default function Home() {
                 </h1>
 
                 <p className="heroIntro">
-                  Živá vzdělávací interaktivní platforma, která propojuje školy, obce a
-                  komunity.
+                  Živá vzdělávací interaktivní platforma, která propojuje školy,
+                  obce a komunity.
                 </p>
 
                 <p className="heroLead">
-                  Na jednom místě přináší živé vysílání, interaktivní workshopy, tematické kluby,
-soutěže a archiv vzdělávacích materiálů. 
-                    <span className="heroLeadBreak">
-                    Do výuky přichází reálný svět - živě a jednoduše.
-                  </span>
-                </p
+                  Na jednom místě přináší živé vysílání, interaktivní workshopy,
+                  tematické kluby, soutěže a archiv vzdělávacích materiálů.
+                </p>
 
                 <div className="heroActions">
                   <ButtonLink href="/demo" variant="primary">
@@ -255,8 +252,8 @@ soutěže a archiv vzdělávacích materiálů.
                 <h2>ARCHIMEDES už funguje v desítkách škol a obcí</h2>
                 <p>
                   Ve spolupráci s pedagogy a místními komunitami připravujeme
-                  interaktivní programy, které srozumitelně představují komplexní
-                  témata z celého světa.
+                  interaktivní programy, které srozumitelně představují
+                  komplexní témata z celého světa.
                 </p>
               </div>
 
