@@ -1,3 +1,4 @@
+
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -83,6 +84,79 @@ function resolveLicenseMode(org) {
   }
 
   return "expired";
+}
+
+function formatGoogleDate(date) {
+  const yyyy = date.getUTCFullYear();
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(date.getUTCDate()).padStart(2, "0");
+  const hh = String(date.getUTCHours()).padStart(2, "0");
+  const min = String(date.getUTCMinutes()).padStart(2, "0");
+  const sec = String(date.getUTCSeconds()).padStart(2, "0");
+  return `${yyyy}${mm}${dd}T${hh}${min}${sec}Z`;
+}
+
+function escapeIcsText(value = "") {
+  return String(value || "")
+    .replace(/\\/g, "\\\\")
+    .replace(/\r?\n/g, "\\n")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;");
+}
+
+function buildGoogleCalendarUrl({ title, start, end, details, location }) {
+  if (!title || !start || !end) return "";
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: title,
+    dates: `${formatGoogleDate(start)}/${formatGoogleDate(end)}`,
+    details: details || "",
+    location: location || "",
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function downloadIcsFile({ title, start, end, details, location, filename }) {
+  if (!title || !start || !end) return;
+
+  const now = new Date();
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//ARCHIMEDES Live//CZ",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${start.getTime()}-${Math.random().toString(36).slice(2)}@archimedeslive.com`,
+    `DTSTAMP:${formatGoogleDate(now)}`,
+    `DTSTART:${formatGoogleDate(start)}`,
+    `DTEND:${formatGoogleDate(end)}`,
+    `SUMMARY:${escapeIcsText(title)}`,
+    `DESCRIPTION:${escapeIcsText(details || "")}`,
+    `LOCATION:${escapeIcsText(location || "")}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename || "udalost.ics";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+function slugifyFileName(value = "") {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .toLowerCase();
 }
 
 export default function UdalostDetail() {
@@ -210,7 +284,6 @@ export default function UdalostDetail() {
 
   const streamUrl = row?.stream_url || row?.streamUrl || "";
   const worksheetUrl = row?.worksheet_url || "";
-
   const posterUrl = useMemo(() => resolvePosterUrl(row), [row]);
 
   const canAccessStream =
@@ -221,6 +294,57 @@ export default function UdalostDetail() {
     !!streamUrl &&
     !canAccessStream &&
     !licenseLoading;
+
+  const eventTitle = row?.title || row?.name || "Událost";
+  const eventDescription =
+    row?.full_description || row?.description || row?.short_description || "";
+  const eventLocation = streamUrl || "ARCHIMEDES Live";
+
+  const calendarStart = starts;
+  const calendarEnd = useMemo(() => {
+    if (!starts) return null;
+    return new Date(starts.getTime() + 60 * 60 * 1000);
+  }, [starts]);
+
+  const calendarDetails = useMemo(() => {
+    const parts = [];
+
+    if (eventDescription) {
+      parts.push(eventDescription);
+    }
+
+    if (streamUrl) {
+      parts.push(`Odkaz na vysílání: ${streamUrl}`);
+    }
+
+    parts.push("Událost z portálu ARCHIMEDES Live.");
+
+    return parts.join("\n\n");
+  }, [eventDescription, streamUrl]);
+
+  const googleCalendarUrl = useMemo(() => {
+    if (!calendarStart || !calendarEnd) return "";
+    return buildGoogleCalendarUrl({
+      title: eventTitle,
+      start: calendarStart,
+      end: calendarEnd,
+      details: calendarDetails,
+      location: eventLocation,
+    });
+  }, [eventTitle, calendarStart, calendarEnd, calendarDetails, eventLocation]);
+
+  function handleDownloadIcs() {
+    if (!calendarStart || !calendarEnd) return;
+
+    downloadIcsFile({
+      title: eventTitle,
+      start: calendarStart,
+      end: calendarEnd,
+      details: calendarDetails,
+      location: eventLocation,
+      filename: `${slugifyFileName(eventTitle) || "udalost"}.ics`,
+    });
+  }
 
   if (loading) return <div className="p-6">Načítám…</div>;
   if (err) return <div className="p-6 text-red-600">{err}</div>;
@@ -262,7 +386,7 @@ export default function UdalostDetail() {
           </div>
 
           <h1 className="text-2xl font-semibold mt-2">
-            {row.title || row.name || "Událost"}
+            {eventTitle}
           </h1>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -279,9 +403,9 @@ export default function UdalostDetail() {
             ))}
           </div>
 
-          {row.full_description || row.description || row.short_description ? (
+          {eventDescription ? (
             <div className="mt-5 text-slate-700 whitespace-pre-wrap">
-              {row.full_description || row.description || row.short_description}
+              {eventDescription}
             </div>
           ) : (
             <div className="mt-5 text-slate-500">Popis zatím není vyplněn.</div>
@@ -334,6 +458,29 @@ export default function UdalostDetail() {
                 title="Dostupné pouze pro aktivní organizace"
               >
                 🔒 Odkaz na vysílání
+              </button>
+            ) : null}
+
+            {calendarStart && calendarEnd && googleCalendarUrl ? (
+              <a
+                href={googleCalendarUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
+                title="Přidat událost do Google kalendáře"
+              >
+                📅 Přidat do Google kalendáře
+              </a>
+            ) : null}
+
+            {calendarStart && calendarEnd ? (
+              <button
+                type="button"
+                onClick={handleDownloadIcs}
+                className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
+                title="Stáhnout událost do kalendáře"
+              >
+                📆 Stáhnout do kalendáře
               </button>
             ) : null}
 
