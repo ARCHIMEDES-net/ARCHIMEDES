@@ -84,7 +84,7 @@ export default function Home() {
                     Ukázková hodina
                   </ButtonLink>
                   <ButtonLink href="/demo" variant="secondary">
-                    DEMO platformy
+                    DEMO portál
                   </ButtonLink>
                   <ButtonLink href="/start" variant="secondary">
                     Balíček START
