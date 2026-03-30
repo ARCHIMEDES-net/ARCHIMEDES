@@ -1,15 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 const OPTIONS = [
   {
-    key: "program",
-    title: "Program ARCHIMEDES Live",
-    text: "Živý vzdělávací a komunitní program s inspirativními hosty, který mohou využívat školy, obce i místní komunity během celého roku.",
+    key: "program-obec",
+    title: "Program pro školu a obec",
+    text: "Nejkomplexnější varianta, která propojuje školní program, senior klub i komunitní část pro obec.",
+  },
+  {
+    key: "skola",
+    title: "Školní program",
+    text: "Živý vzdělávací program pro školy s inspirativními hosty, který lze jednoduše zapojit do výuky během roku.",
   },
   {
     key: "senior",
     title: "Senior klub",
     text: "Pravidelný program pro seniory zaměřený na inspiraci, setkávání, rozhovory a aktivní komunitní život v obci.",
+  },
+  {
+    key: "komunita",
+    title: "Komunitní program",
+    text: "Program pro obec, spolky a veřejnost zaměřený na komunitní setkávání, tematické vstupy a místní život.",
+  },
+  {
+    key: "program",
+    title: "Program ARCHIMEDES Live",
+    text: "Živý vzdělávací a komunitní program s inspirativními hosty, který mohou využívat školy, obce i místní komunity během celého roku.",
   },
   {
     key: "ucebna",
@@ -31,12 +47,14 @@ const OPTIONS = [
 function getOptionTitleColor(key) {
   switch (key) {
     case "program":
+    case "program-obec":
+    case "skola":
       return "#3b82f6";
     case "senior":
       return "#f59e0b";
     case "ucebna":
-      return "#22c55e";
     case "oboji":
+    case "komunita":
       return "#22c55e";
     case "navsteva":
       return "#a855f7";
@@ -46,6 +64,8 @@ function getOptionTitleColor(key) {
 }
 
 export default function PoptavkaPage() {
+  const router = useRouter();
+
   const [selectedOption, setSelectedOption] = useState("");
   const [name, setName] = useState("");
   const [place, setPlace] = useState("");
@@ -58,6 +78,33 @@ export default function PoptavkaPage() {
 
   const selectedLabel =
     OPTIONS.find((item) => item.key === selectedOption)?.title || "";
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    const interest = String(router.query.interest || "").trim();
+    if (!interest) return;
+
+    const exists = OPTIONS.some((item) => item.key === interest);
+    if (!exists) return;
+
+    setSelectedOption(interest);
+
+    const presetMessages = {
+      "program-obec":
+        "Mám zájem o variantu Program pro školu a obec. Prosím o více informací.",
+      skola:
+        "Mám zájem o školní program. Prosím o více informací.",
+      senior:
+        "Mám zájem o Senior klub. Prosím o více informací.",
+      komunita:
+        "Mám zájem o komunitní program. Prosím o více informací.",
+    };
+
+    if (!message && presetMessages[interest]) {
+      setMessage(presetMessages[interest]);
+    }
+  }, [router.isReady, router.query.interest]);
 
   function scrollToForm() {
     const form = document.getElementById("formular");
@@ -129,7 +176,6 @@ export default function PoptavkaPage() {
         padding: "56px 20px 90px",
       }}
     >
-      {/* HERO */}
       <section
         style={{
           background: "#ffffff",
@@ -209,7 +255,6 @@ export default function PoptavkaPage() {
         </div>
       </section>
 
-      {/* KARTY */}
       <section style={{ marginBottom: 24 }}>
         <div
           style={{
@@ -374,7 +419,6 @@ export default function PoptavkaPage() {
         </button>
       </div>
 
-      {/* FORMULÁŘ */}
       <section
         id="formular"
         style={{
@@ -554,7 +598,6 @@ export default function PoptavkaPage() {
         </form>
       </section>
 
-      {/* BVV */}
       <section
         style={{
           background: "#ffffff",
@@ -650,7 +693,6 @@ export default function PoptavkaPage() {
         </div>
       </section>
 
-      {/* DŮVĚRA */}
       <section
         style={{
           background: "#ffffff",
