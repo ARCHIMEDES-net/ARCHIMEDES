@@ -69,22 +69,28 @@ export default function Home() {
                   se nezapomíná.
                 </h1>
 
+                <p className="heroIntro">
+                  Živý vzdělávací program, který propojuje školy, obce a
+                  komunitu.
+                </p>
+
                 <p className="heroLead">
-                  Do výuky přichází reálný svět – živě a interaktivně.
+                  Pustíte vysílání, otevřete pracovní list a učíte.
                   <span className="heroLeadBreak">
-                    S lidmi, kteří ho opravdu tvoří.
+                    Do výuky přichází reálný svět – živě, jednoduše a bez složité
+                    přípravy.
                   </span>
                 </p>
 
                 <div className="heroActions">
-                  <ButtonLink href="/aktualni-pozvanky" variant="primary">
-                    Co připravujeme
+                  <ButtonLink href="/demo" variant="primary">
+                    Vyzkoušet ukázku programu
                   </ButtonLink>
                   <ButtonLink href="/#ukazky-vysilani" variant="secondary">
-                    Ukázková hodina
+                    Jak funguje jedna hodina
                   </ButtonLink>
-                  <ButtonLink href="/demo" variant="secondary">
-                    DEMO portál
+                  <ButtonLink href="/aktualni-pozvanky" variant="secondary">
+                    Co se chystá
                   </ButtonLink>
                   <ButtonLink href="/start" variant="secondary">
                     Balíček START
@@ -442,17 +448,28 @@ export default function Home() {
             text-wrap: balance;
           }
 
-          .heroLead {
+          .heroIntro {
             margin: 22px 0 0;
+            font-size: 24px;
+            line-height: 1.4;
+            color: #ffffff;
+            font-weight: 800;
+            max-width: 760px;
+            letter-spacing: -0.02em;
+            text-wrap: balance;
+          }
+
+          .heroLead {
+            margin: 18px 0 0;
             font-size: 21px;
             line-height: 1.55;
             color: rgba(255, 255, 255, 0.9);
-            max-width: 660px;
+            max-width: 680px;
           }
 
           .heroLeadBreak {
             display: block;
-            margin-top: 2px;
+            margin-top: 6px;
           }
 
           .heroActions,
@@ -918,6 +935,10 @@ export default function Home() {
               font-size: 38px;
             }
 
+            .heroIntro {
+              font-size: 21px;
+            }
+
             .heroLead {
               font-size: 18px;
             }
@@ -988,6 +1009,11 @@ export default function Home() {
             h2 {
               font-size: 34px;
               letter-spacing: -0.05em;
+            }
+
+            .heroIntro {
+              font-size: 18px;
+              line-height: 1.45;
             }
 
             .heroLead,
