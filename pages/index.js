@@ -78,7 +78,7 @@ export default function Home() {
 
                 <div className="heroActions">
                   <ButtonLink href="/aktualni-pozvanky" variant="primary">
-                    Aktuální pozvánky
+                    Co připravujeme
                   </ButtonLink>
                   <ButtonLink href="/#ukazky-vysilani" variant="secondary">
                     Ukázková hodina
