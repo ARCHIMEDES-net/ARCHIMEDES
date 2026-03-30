@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { supabase } from "../lib/supabaseClient";
@@ -21,24 +21,13 @@ export default function JoinPage() {
   useEffect(() => {
     if (!router.isReady) return;
     if (typeof router.query.code === "string") {
-      setJoinCode(router.query.code);
+      setJoinCode(router.query.code.toUpperCase());
     }
   }, [router.isReady, router.query.code]);
 
   const passwordTooShort = password.length > 0 && password.length < 8;
   const passwordMismatch =
     passwordConfirm.length > 0 && password !== passwordConfirm;
-
-  const canSubmit = useMemo(() => {
-    return (
-      !saving &&
-      fullName.trim().length > 0 &&
-      email.trim().length > 0 &&
-      password.length >= 8 &&
-      password === passwordConfirm &&
-      joinCode.trim().length > 0
-    );
-  }, [saving, fullName, email, password, passwordConfirm, joinCode]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -57,6 +46,11 @@ export default function JoinPage() {
 
     if (password.length < 8) {
       setError("Heslo musí mít alespoň 8 znaků.");
+      return;
+    }
+
+    if (!passwordConfirm) {
+      setError("Potvrďte prosím heslo.");
       return;
     }
 
@@ -115,7 +109,7 @@ export default function JoinPage() {
     }
   }
 
-  const baseInputStyle = {
+  const inputStyle = {
     width: "100%",
     padding: "13px 14px",
     borderRadius: 12,
@@ -196,7 +190,7 @@ export default function JoinPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Např. Jana Nováková"
-                  style={baseInputStyle}
+                  style={inputStyle}
                   autoComplete="name"
                 />
               </div>
@@ -210,7 +204,7 @@ export default function JoinPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="jmeno@skola.cz"
-                  style={baseInputStyle}
+                  style={inputStyle}
                   autoComplete="email"
                 />
               </div>
@@ -225,11 +219,11 @@ export default function JoinPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Alespoň 8 znaků"
                   style={{
-                    ...baseInputStyle,
+                    ...inputStyle,
                     border:
                       passwordTooShort || passwordMismatch
                         ? "1px solid #ef4444"
-                        : baseInputStyle.border,
+                        : inputStyle.border,
                   }}
                   autoComplete="new-password"
                 />
@@ -257,10 +251,10 @@ export default function JoinPage() {
                   onChange={(e) => setPasswordConfirm(e.target.value)}
                   placeholder="Zadejte heslo znovu"
                   style={{
-                    ...baseInputStyle,
+                    ...inputStyle,
                     border: passwordMismatch
                       ? "1px solid #ef4444"
-                      : baseInputStyle.border,
+                      : inputStyle.border,
                   }}
                   autoComplete="new-password"
                 />
@@ -286,9 +280,9 @@ export default function JoinPage() {
                   type="text"
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                  placeholder="Např. ORG-A1B2C3D4"
+                  placeholder="NAPŘ. ORG-A1B2C3D4"
                   style={{
-                    ...baseInputStyle,
+                    ...inputStyle,
                     textTransform: "uppercase",
                   }}
                   autoComplete="off"
@@ -298,7 +292,7 @@ export default function JoinPage() {
               <div style={{ paddingTop: 6 }}>
                 <button
                   type="submit"
-                  disabled={!canSubmit}
+                  disabled={saving}
                   style={{
                     padding: "13px 18px",
                     borderRadius: 12,
@@ -306,8 +300,8 @@ export default function JoinPage() {
                     background: "#111827",
                     color: "#fff",
                     fontWeight: 700,
-                    cursor: canSubmit ? "pointer" : "default",
-                    opacity: canSubmit ? 1 : 0.7,
+                    cursor: saving ? "default" : "pointer",
+                    opacity: saving ? 0.7 : 1,
                   }}
                 >
                   {saving ? "Vytvářím účet…" : "Vytvořit účet a připojit se"}
