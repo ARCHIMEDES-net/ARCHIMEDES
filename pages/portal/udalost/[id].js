@@ -1,4 +1,3 @@
-
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -170,6 +169,7 @@ export default function UdalostDetail() {
   const [licenseMode, setLicenseMode] = useState("active");
   const [licenseLoading, setLicenseLoading] = useState(true);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [isPosterOpen, setIsPosterOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -276,6 +276,24 @@ export default function UdalostDetail() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isPosterOpen) return;
+
+    function handleKeyDown(e) {
+      if (e.key === "Escape") {
+        setIsPosterOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [isPosterOpen]);
+
   const starts = useMemo(() => safeDate(row?.starts_at), [row?.starts_at]);
   const aud = useMemo(
     () => normalizeAudience(row?.audience_groups || row?.audience),
@@ -371,13 +389,24 @@ export default function UdalostDetail() {
 
         <div className="mt-4 bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
           {posterUrl ? (
-            <div className="mb-5 border border-slate-200 rounded-2xl overflow-hidden">
-              <img
-                src={posterUrl}
-                alt="Plakát události"
-                className="w-full h-auto"
-                loading="lazy"
-              />
+            <div className="mb-5 border border-slate-200 rounded-2xl bg-slate-50 p-3">
+              <button
+                type="button"
+                onClick={() => setIsPosterOpen(true)}
+                className="block w-full text-left"
+                title="Klikněte pro zvětšení"
+              >
+                <img
+                  src={posterUrl}
+                  alt="Plakát události"
+                  className="mx-auto w-full max-w-2xl max-h-[520px] object-contain cursor-zoom-in rounded-xl hover:opacity-95 transition"
+                  loading="lazy"
+                />
+              </button>
+
+              <div className="mt-3 text-center text-sm text-slate-500">
+                Klikněte na plakát pro zvětšení
+              </div>
             </div>
           ) : null}
 
@@ -504,6 +533,35 @@ export default function UdalostDetail() {
           </div>
         </div>
       </div>
+
+      {isPosterOpen && posterUrl ? (
+        <div
+          className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setIsPosterOpen(false)}
+          aria-modal="true"
+          role="dialog"
+        >
+          <div
+            className="relative w-full max-w-6xl flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setIsPosterOpen(false)}
+              className="absolute top-2 right-2 z-10 rounded-full bg-white/95 px-3 py-2 text-sm font-medium text-slate-900 shadow hover:bg-white"
+              title="Zavřít"
+            >
+              ✕
+            </button>
+
+            <img
+              src={posterUrl}
+              alt="Plakát události – zvětšený náhled"
+              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+            />
+          </div>
+        </div>
+      ) : null}
     </RequireAuth>
   );
 }
