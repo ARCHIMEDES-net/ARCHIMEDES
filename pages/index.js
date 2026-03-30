@@ -78,10 +78,9 @@ export default function Home() {
                   Na jednom místě přináší živé vysílání, interaktivní workshopy, tematické kluby,
 soutěže a archiv vzdělávacích materiálů. 
                     <span className="heroLeadBreak">
-                    Do výuky přichází reálný svět – živě, jednoduše a bez složité
-                    přípravy.
+                    Do výuky přichází reálný svět - živě a jednoduše.
                   </span>
-                </p>
+                </p
 
                 <div className="heroActions">
                   <ButtonLink href="/demo" variant="primary">
