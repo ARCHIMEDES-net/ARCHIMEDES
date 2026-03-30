@@ -23,19 +23,9 @@ const OPTIONS = [
     text: "Program pro obec, spolky a veřejnost zaměřený na komunitní setkávání, tematické vstupy a místní život.",
   },
   {
-    key: "program",
-    title: "Program ARCHIMEDES Live",
-    text: "Živý vzdělávací a komunitní program s inspirativními hosty, který mohou využívat školy, obce i místní komunity během celého roku.",
-  },
-  {
     key: "ucebna",
     title: "Učebna ARCHIMEDES",
     text: "Moderní venkovní učebna jako prostor pro výuku, setkávání a komunitní aktivity.",
-  },
-  {
-    key: "oboji",
-    title: "Program a učebna",
-    text: "Propojení prostoru a programu vytváří místo, kde se mohou potkávat děti, senioři i obyvatelé obce.",
   },
   {
     key: "navsteva",
@@ -46,15 +36,13 @@ const OPTIONS = [
 
 function getOptionTitleColor(key) {
   switch (key) {
-    case "program":
     case "program-obec":
     case "skola":
       return "#3b82f6";
     case "senior":
       return "#f59e0b";
-    case "ucebna":
-    case "oboji":
     case "komunita":
+    case "ucebna":
       return "#22c55e";
     case "navsteva":
       return "#a855f7";
@@ -79,6 +67,13 @@ export default function PoptavkaPage() {
   const selectedLabel =
     OPTIONS.find((item) => item.key === selectedOption)?.title || "";
 
+  function scrollToForm() {
+    const form = document.getElementById("formular");
+    if (form) {
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   useEffect(() => {
     if (!router.isReady) return;
 
@@ -99,19 +94,23 @@ export default function PoptavkaPage() {
         "Mám zájem o Senior klub. Prosím o více informací.",
       komunita:
         "Mám zájem o komunitní program. Prosím o více informací.",
+      ucebna:
+        "Mám zájem o učebnu ARCHIMEDES. Prosím o více informací.",
+      navsteva:
+        "Mám zájem o návštěvu vzorové učebny ARCHIMEDES. Prosím o více informací.",
     };
 
     if (!message && presetMessages[interest]) {
       setMessage(presetMessages[interest]);
     }
-  }, [router.isReady, router.query.interest]);
 
-  function scrollToForm() {
-    const form = document.getElementById("formular");
-    if (form) {
-      form.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }
+    setTimeout(() => {
+      const form = document.getElementById("formular");
+      if (form) {
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 200);
+  }, [router.isReady, router.query.interest]);
 
   function handleSelect(optionKey) {
     setSelectedOption(optionKey);
@@ -236,9 +235,9 @@ export default function PoptavkaPage() {
               color: "#334155",
             }}
           >
-            Můžete využívat živý program <strong>ARCHIMEDES Live</strong>,
-            zapojit <strong>Senior klub</strong>, postavit{" "}
-            <strong>učebnu ARCHIMEDES</strong> nebo vše propojit.
+            Můžete využívat školní program, zapojit <strong>Senior klub</strong>,
+            rozvíjet <strong>komunitní program</strong> nebo postavit{" "}
+            <strong>učebnu ARCHIMEDES</strong>.
           </p>
 
           <p
@@ -259,7 +258,7 @@ export default function PoptavkaPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
             gap: 22,
           }}
           className="interest-grid"
@@ -285,7 +284,7 @@ export default function PoptavkaPage() {
                     : "0 12px 30px rgba(15,23,42,0.04)",
                   display: "flex",
                   flexDirection: "column",
-                  minHeight: 360,
+                  minHeight: 320,
                 }}
               >
                 <div
@@ -315,18 +314,7 @@ export default function PoptavkaPage() {
                     alignItems: "flex-start",
                   }}
                 >
-                  {item.key === "oboji" ? (
-                    <h3 style={cardTitle}>
-                      <span style={{ color: "#3b82f6", display: "block" }}>
-                        Program
-                      </span>
-                      <span style={{ color: "#22c55e", display: "block" }}>
-                        a učebna
-                      </span>
-                    </h3>
-                  ) : (
-                    <h3 style={{ ...cardTitle, color: titleColor }}>{item.title}</h3>
-                  )}
+                  <h3 style={{ ...cardTitle, color: titleColor }}>{item.title}</h3>
                 </div>
 
                 <div
@@ -430,6 +418,24 @@ export default function PoptavkaPage() {
           marginBottom: 34,
         }}
       >
+        {selectedOption ? (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: "12px 16px",
+              borderRadius: 12,
+              background: "#eff6ff",
+              border: "1px solid #bfdbfe",
+              color: "#1e3a8a",
+              fontSize: 15,
+              fontWeight: 700,
+              lineHeight: 1.55,
+            }}
+          >
+            Vybrali jste: <strong>{selectedLabel}</strong>
+          </div>
+        ) : null}
+
         <h2
           style={{
             margin: 0,
@@ -807,12 +813,6 @@ export default function PoptavkaPage() {
           grid-template-columns: 1.05fr 0.95fr;
           gap: 28px;
           align-items: center;
-        }
-
-        @media (max-width: 1280px) {
-          .interest-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-          }
         }
 
         @media (max-width: 1024px) {
