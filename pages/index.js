@@ -70,13 +70,14 @@ export default function Home() {
                 </h1>
 
                 <p className="heroIntro">
-                  Živý vzdělávací program, který propojuje školy, obce a
-                  komunitu.
+                  Živá vzdělávací interaktivní platforma, která propojuje školy, obce a
+                  komunity.
                 </p>
 
                 <p className="heroLead">
-                  Pustíte vysílání, otevřete pracovní list a učíte.
-                  <span className="heroLeadBreak">
+                  Na jednom místě přináší živé vysílání, interaktivní workshopy, tematické kluby,
+soutěže a archiv vzdělávacích materiálů. 
+                    <span className="heroLeadBreak">
                     Do výuky přichází reálný svět – živě, jednoduše a bez složité
                     přípravy.
                   </span>
