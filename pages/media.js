@@ -19,7 +19,7 @@ const EXCLUDED_REFERENCE_CITIES = [
 ];
 
 const mediaPoints = [
-  "reálné realizace v českých školách a obcích",
+  "realizace ve školách a v obcích",
   "reprezentativní prostor pro vzdělávání i komunitní život",
   "spojení kvalitní architektury, technologií a přírody",
   "silný vizuální i společenský přesah projektu",
