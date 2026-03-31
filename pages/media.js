@@ -53,6 +53,69 @@ const mediaPoints = [
   "silný vizuální i společenský přesah projektu",
 ];
 
+const mediaLinks = [
+  {
+    title: "BVV / URBIS",
+    text: "ARCHIMEDES® zahájil éru Living Lab na brněnském výstavišti.",
+    href: "https://www.bvv.cz/urbis/aktuality/archimedes-r-zahajil-eru-living-lab-na-vystavisti",
+    source: "bvv.cz",
+  },
+  {
+    title: "iDNES",
+    text: "Moderní venkovní učebna ARCHIMEDES® jako nový směr ve vzdělávání.",
+    href: "https://www.idnes.cz/brno/zpravy/venkovni-ucebna-archimedes-moderni-vyuka-antonin-koplik.A240403_092205_brno-zpravy_krut",
+    source: "idnes.cz",
+  },
+  {
+    title: "RTVJ",
+    text: "Hovorany sázejí na nejmodernější technologie ve vzdělávání.",
+    href: "https://www.rtvj.cz/hovorany-sazeji-na-nejmodernejsi-technologie-ve-vzdelavani/",
+    source: "rtvj.cz",
+  },
+  {
+    title: "Česká televize",
+    text: "Zpravodajský výstup věnovaný projektu ARCHIMEDES®.",
+    href: "https://www.ceskatelevize.cz/porady/10253066674-zpravy-ve-12/223411012000328/",
+    source: "ceskatelevize.cz",
+  },
+  {
+    title: "iDNES / Hodonín",
+    text: "Venkovní učebna jako nová cesta, jak učit děti jinak.",
+    href: "https://www.idnes.cz/brno/zpravy/venkovni-ucebna-skola-vyuka-zaci-hodonin-archimedes-skolstvi.A230717_122219_brno-zpravy_krut",
+    source: "idnes.cz",
+  },
+  {
+    title: "Blesk",
+    text: "Reportáž o unikátním konceptu učeben ARCHIMEDES®.",
+    href: "https://www.blesk.cz/clanek/regiony-brno-brno-zpravy/748154/prevrat-ve-skolstvi-v-hodonine-vymysleli-unikatni-ucebny-chteji-je-na-celem-svete.html",
+    source: "blesk.cz",
+  },
+  {
+    title: "CzechCrunch",
+    text: "Český nápad, který přináší dětem nový typ vzdělávacího prostoru.",
+    href: "https://cc.cz/cech-vymyslel-specialni-ucebnu-deti-diky-ni-mohou-pozorovat-co-se-deje-v-ptaci-budce-nebo-u-pyramid/",
+    source: "cc.cz",
+  },
+  {
+    title: "ExportMag",
+    text: "Vize sítě chytrých učeben ARCHIMEDES® s českými technologiemi.",
+    href: "https://www.exportmag.cz/pribery-exporteru/ve-svete-vznikne-sit-chytrych-uceben-archimedes-s-ceskymi-technologiemi/",
+    source: "exportmag.cz",
+  },
+  {
+    title: "iBrno",
+    text: "Living Lab na brněnském výstavišti a prostor pro inovace.",
+    href: "https://www.ibrno.cz/business/67259-living-lab-na-brnenskem-vystavisti-nabidne-prostor-pro-inovace-a-spolupraci.html",
+    source: "ibrno.cz",
+  },
+  {
+    title: "Město Mikulov",
+    text: "Mikulovští žáci dostali moderní venkovní učebnu ARCHIMEDES®.",
+    href: "https://www.mikulov.cz/obcan/aktuality/702-mikulovsti-zaci-dostali-moderni-venkovni-ucebnu-archimedes",
+    source: "mikulov.cz",
+  },
+];
+
 function PrimaryButton({ href, children }) {
   return (
     <Link
@@ -233,8 +296,8 @@ export default function MediaPage() {
               >
                 ARCHIMEDES® je víc než stavba. Je to prostředí, které pomáhá školám
                 i obcím vytvářet silnější vztah ke vzdělávání, místu a společnému
-                prožívání. Na této stránce najdete výběr fotografií a materiálů,
-                které ukazují jeho reálné využití i veřejný přesah.
+                prožívání. Na této stránce najdete výběr fotografií i mediálních
+                výstupů, které ukazují jeho reálné využití a veřejný přesah.
               </p>
 
               <div
@@ -436,6 +499,58 @@ export default function MediaPage() {
           style={{
             maxWidth: 1240,
             margin: "0 auto",
+            padding: "8px 20px 24px",
+          }}
+        >
+          <div className="premiumCard">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-end",
+                justifyContent: "space-between",
+                gap: 18,
+                flexWrap: "wrap",
+                marginBottom: 20,
+              }}
+            >
+              <div>
+                <SectionEyebrow>ARCHIMEDES® v médiích</SectionEyebrow>
+                <SectionTitle style={{ fontSize: 42 }}>
+                  Výběr článků a reportáží
+                </SectionTitle>
+              </div>
+
+              <SecondaryButton
+                href="https://www.archimedesoec.com/media/"
+                tinted
+              >
+                Původní přehled médií
+              </SecondaryButton>
+            </div>
+
+            <div className="linksGrid">
+              {mediaLinks.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mediaLinkCard"
+                >
+                  <div className="mediaLinkSource">{item.source}</div>
+                  <div className="mediaLinkTitle">{item.title}</div>
+                  <div className="mediaLinkText">{item.text}</div>
+                  <div className="mediaLinkArrow">Otevřít článek ↗</div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section
+          style={{
+            maxWidth: 1240,
+            margin: "0 auto",
             padding: "8px 20px 84px",
           }}
         >
@@ -585,11 +700,69 @@ export default function MediaPage() {
             color: rgba(15, 23, 42, 0.72);
           }
 
+          .linksGrid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+          }
+
+          .mediaLinkCard {
+            display: block;
+            text-decoration: none;
+            background: linear-gradient(
+              180deg,
+              rgba(255,255,255,0.98) 0%,
+              rgba(247,249,252,0.98) 100%
+            );
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 24px;
+            padding: 20px 20px 18px;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+          }
+
+          .mediaLinkCard:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+          }
+
+          .mediaLinkSource {
+            font-size: 12px;
+            font-weight: 800;
+            color: rgba(15, 23, 42, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+          }
+
+          .mediaLinkTitle {
+            font-size: 23px;
+            line-height: 1.14;
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+          }
+
+          .mediaLinkText {
+            font-size: 15px;
+            line-height: 1.68;
+            color: rgba(15, 23, 42, 0.72);
+          }
+
+          .mediaLinkArrow {
+            margin-top: 14px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+          }
+
           @media (max-width: 1160px) {
             .heroShell,
             .infoGrid,
             .mediaGrid,
-            .galleryGrid {
+            .galleryGrid,
+            .linksGrid {
               grid-template-columns: 1fr;
             }
 
