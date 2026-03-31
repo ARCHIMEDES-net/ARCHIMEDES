@@ -379,7 +379,7 @@ export default function Ucebna() {
         >
           <div className="premiumCard">
             <div style={{ textAlign: "center", marginBottom: 26 }}>
-              <SectionEyebrow>Možnosti využití</SectionEyrow>
+              <SectionEyebrow>Možnosti využití</SectionEyebrow>
               <SectionTitle style={{ marginBottom: 12 }}>
                 Dva silné pilíře využití
               </SectionTitle>
