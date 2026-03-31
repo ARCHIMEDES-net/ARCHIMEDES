@@ -10,6 +10,14 @@ const mediaImg = "/ucebna-media.webp";
 
 const SCHOOLS_BUCKET = "schools";
 
+const EXCLUDED_REFERENCE_CITIES = [
+  "Břeclav",
+  "Prešov",
+  "Provodov",
+  "Žleby",
+  "Humpolec",
+];
+
 const mediaPoints = [
   "reálné realizace v českých školách a obcích",
   "reprezentativní prostor pro vzdělávání i komunitní život",
@@ -121,6 +129,16 @@ function publicUrlFromPath(path) {
 
 function getFavicon(domain) {
   return `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
+}
+
+function isExcludedReference(row) {
+  const city = (row?.city || "").trim().toLowerCase();
+  const name = (row?.name || "").trim().toLowerCase();
+
+  return EXCLUDED_REFERENCE_CITIES.some((excluded) => {
+    const value = excluded.toLowerCase();
+    return city === value || name === value;
+  });
 }
 
 function PrimaryButton({ href, children }) {
@@ -262,7 +280,6 @@ export default function MediaPage() {
         .from("schools")
         .select("id, name, city, photo_path, is_published, created_at")
         .eq("is_published", true)
-        .not("photo_path", "is", null)
         .order("created_at", { ascending: false });
 
       if (!mounted) return;
@@ -275,6 +292,7 @@ export default function MediaPage() {
       }
 
       const items = (data || [])
+        .filter((row) => !isExcludedReference(row))
         .map((row) => ({
           id: row.id,
           city: row.city || row.name || "Realizace ARCHIMEDES",
@@ -474,8 +492,8 @@ export default function MediaPage() {
                 </SectionTitle>
                 <p className="leadText" style={{ maxWidth: 900, marginBottom: 0 }}>
                   Níže vidíte výběr realizací přímo ze sítě učeben ARCHIMEDES®.
-                  Fotografie se načítají z portálu a ukazují skutečné stavby,
-                  které už slouží školám a obcím.
+                  Jsou zde všechny učebny kromě míst, kde zatím není k dispozici
+                  fotografie učebny.
                 </p>
               </div>
 
