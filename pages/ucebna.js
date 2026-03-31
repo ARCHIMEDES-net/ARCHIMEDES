@@ -1,10 +1,15 @@
 import Link from "next/link";
 
-const heroImg = "/ucebna-exterier.webp";
-const classImg = "/ucebna-deti.webp";
-const techImg = "/ucebna-technologie.webp";
-const communityImg = "/ucebna-komunita.webp";
-const mediaImg = "/ucebna-media.webp";
+const heroImg = "/DJI_20260202_100827_288_hero.webp";
+const classImg = "/detivetride.webp";
+const techImg = "/jak-funguje-tabule.jpg";
+const communityImg = "/komunita.jpg";
+const mediaImg = "/otevreni.webp";
+const klimaImg = "/otevrena-hero.webp";
+const interierImg = "/IMG_0228_content.webp";
+const auditoriumImg = "/jak-funguje-trida.jpg";
+const natureImg = "/DJI_20260202_104516_998_content.webp";
+const openHallImg = "/otevrena.jpg";
 
 const variants = [
   {
@@ -49,10 +54,13 @@ const variants = [
 ];
 
 const gallery = [
-  { src: heroImg, alt: "Exteriér učebny ARCHIMEDES®" },
+  {
+    src: "/DJI_20260202_100827_288_content.webp",
+    alt: "Exteriér učebny ARCHIMEDES®",
+  },
   { src: classImg, alt: "Výuka dětí v učebně ARCHIMEDES®" },
   { src: techImg, alt: "Technologie a interiér učebny ARCHIMEDES®" },
-  { src: communityImg, alt: "Komunitní využití učebny ARCHIMEDES®" },
+  { src: openHallImg, alt: "Komunitní využití učebny ARCHIMEDES®" },
 ];
 
 function PrimaryButton({ href, children }) {
@@ -569,8 +577,8 @@ export default function Ucebna() {
               <div className="zigzagRow reverse">
                 <div className="zigzagImage">
                   <img
-                    src={mediaImg}
-                    alt="Strop učebny s osvětlením a klimatizací"
+                    src={klimaImg}
+                    alt="Otevřená učebna ARCHIMEDES®"
                     style={{
                       width: "100%",
                       display: "block",
@@ -639,8 +647,8 @@ export default function Ucebna() {
 
                 <div className="zigzagImage">
                   <img
-                    src={communityImg}
-                    alt="Zelená stěna a badatelské prvky učebny"
+                    src={natureImg}
+                    alt="Badatelské a přírodní prvky učebny"
                     style={{
                       width: "100%",
                       display: "block",
@@ -727,7 +735,7 @@ export default function Ucebna() {
               <div className="visualTriple">
                 <div className="visualCard visualCardLarge">
                   <img
-                    src={classImg}
+                    src={interierImg}
                     alt="Variabilní interiér učebny ARCHIMEDES®"
                     style={{
                       width: "100%",
@@ -741,7 +749,7 @@ export default function Ucebna() {
                 <div className="doubleVisualGrid">
                   <div className="visualCard">
                     <img
-                      src={techImg}
+                      src={auditoriumImg}
                       alt="Učebna ve variantě auditorium"
                       style={{
                         width: "100%",
@@ -754,7 +762,7 @@ export default function Ucebna() {
 
                   <div className="visualCard">
                     <img
-                      src={communityImg}
+                      src={openHallImg}
                       alt="Učebna jako volná plocha a komunitní sál"
                       style={{
                         width: "100%",
