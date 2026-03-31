@@ -224,12 +224,11 @@ function SectionTitle({ children, style = {} }) {
   );
 }
 
-function SafeImage({ src, alt, style, className = "" }) {
+function SafeImage({ src, alt, style }) {
   return (
     <img
       src={src}
       alt={alt}
-      className={className}
       style={style}
       onError={(e) => {
         e.currentTarget.style.display = "none";
@@ -249,8 +248,7 @@ export default function MediaPage() {
   return (
     <div
       style={{
-        fontFamily:
-          "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+        fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
         background:
           "linear-gradient(180deg, #f6f7fb 0%, #f7f8fb 28%, #f3f5f9 100%)",
         minHeight: "100vh",
