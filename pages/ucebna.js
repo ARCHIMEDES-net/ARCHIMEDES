@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const heroImg = "/ratiskovice.webp";
+const heroImg = "/ucebna-exterier.webp";
 const classImg = "/cejc.webp";
 const techImg = "/jak-funguje-tabule.jpg";
 const communityImg = "/komunita.jpg";
