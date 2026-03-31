@@ -70,8 +70,8 @@ export default function Home() {
                 </h1>
 
                 <p className="heroIntro">
-                  Přinášíme živé hosty a interaktivní program do výuky,
-                  obcí a komunit.
+                  Živý vzdělávací a komunitní program, který propojuje školy, obce a lidi napříč generacemi i kontinenty.
+                Přináší obsah pro děti, dospělé i seniory a vytváří prostor pro sdílení, spolupráci a inspiraci.              
                 </p>
 
                 <p className="heroLead">
