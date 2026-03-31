@@ -58,63 +58,67 @@ const mediaLinks = [
     title: "BVV / URBIS",
     text: "ARCHIMEDES® zahájil éru Living Lab na brněnském výstavišti.",
     href: "https://www.bvv.cz/urbis/aktuality/archimedes-r-zahajil-eru-living-lab-na-vystavisti",
-    source: "bvv.cz",
+    domain: "bvv.cz",
   },
   {
     title: "iDNES",
     text: "Moderní venkovní učebna ARCHIMEDES® jako nový směr ve vzdělávání.",
     href: "https://www.idnes.cz/brno/zpravy/venkovni-ucebna-archimedes-moderni-vyuka-antonin-koplik.A240403_092205_brno-zpravy_krut",
-    source: "idnes.cz",
+    domain: "idnes.cz",
   },
   {
     title: "RTVJ",
     text: "Hovorany sázejí na nejmodernější technologie ve vzdělávání.",
     href: "https://www.rtvj.cz/hovorany-sazeji-na-nejmodernejsi-technologie-ve-vzdelavani/",
-    source: "rtvj.cz",
+    domain: "rtvj.cz",
   },
   {
     title: "Česká televize",
     text: "Zpravodajský výstup věnovaný projektu ARCHIMEDES®.",
     href: "https://www.ceskatelevize.cz/porady/10253066674-zpravy-ve-12/223411012000328/",
-    source: "ceskatelevize.cz",
+    domain: "ceskatelevize.cz",
   },
   {
     title: "iDNES / Hodonín",
     text: "Venkovní učebna jako nová cesta, jak učit děti jinak.",
     href: "https://www.idnes.cz/brno/zpravy/venkovni-ucebna-skola-vyuka-zaci-hodonin-archimedes-skolstvi.A230717_122219_brno-zpravy_krut",
-    source: "idnes.cz",
+    domain: "idnes.cz",
   },
   {
     title: "Blesk",
     text: "Reportáž o unikátním konceptu učeben ARCHIMEDES®.",
     href: "https://www.blesk.cz/clanek/regiony-brno-brno-zpravy/748154/prevrat-ve-skolstvi-v-hodonine-vymysleli-unikatni-ucebny-chteji-je-na-celem-svete.html",
-    source: "blesk.cz",
+    domain: "blesk.cz",
   },
   {
     title: "CzechCrunch",
     text: "Český nápad, který přináší dětem nový typ vzdělávacího prostoru.",
     href: "https://cc.cz/cech-vymyslel-specialni-ucebnu-deti-diky-ni-mohou-pozorovat-co-se-deje-v-ptaci-budce-nebo-u-pyramid/",
-    source: "cc.cz",
+    domain: "cc.cz",
   },
   {
     title: "ExportMag",
     text: "Vize sítě chytrých učeben ARCHIMEDES® s českými technologiemi.",
     href: "https://www.exportmag.cz/pribery-exporteru/ve-svete-vznikne-sit-chytrych-uceben-archimedes-s-ceskymi-technologiemi/",
-    source: "exportmag.cz",
+    domain: "exportmag.cz",
   },
   {
     title: "iBrno",
     text: "Living Lab na brněnském výstavišti a prostor pro inovace.",
     href: "https://www.ibrno.cz/business/67259-living-lab-na-brnenskem-vystavisti-nabidne-prostor-pro-inovace-a-spolupraci.html",
-    source: "ibrno.cz",
+    domain: "ibrno.cz",
   },
   {
-    title: "Město Mikulov",
+    title: "Mikulov",
     text: "Mikulovští žáci dostali moderní venkovní učebnu ARCHIMEDES®.",
     href: "https://www.mikulov.cz/obcan/aktuality/702-mikulovsti-zaci-dostali-moderni-venkovni-ucebnu-archimedes",
-    source: "mikulov.cz",
+    domain: "mikulov.cz",
   },
 ];
+
+function getFavicon(domain) {
+  return `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
+}
 
 function PrimaryButton({ href, children }) {
   return (
@@ -220,6 +224,27 @@ function SectionTitle({ children, style = {} }) {
   );
 }
 
+function SafeImage({ src, alt, style, className = "" }) {
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      style={style}
+      onError={(e) => {
+        e.currentTarget.style.display = "none";
+        const parent = e.currentTarget.parentElement;
+        if (parent && !parent.querySelector(".img-fallback")) {
+          const fallback = document.createElement("div");
+          fallback.className = "img-fallback";
+          fallback.innerText = alt;
+          parent.appendChild(fallback);
+        }
+      }}
+    />
+  );
+}
+
 export default function MediaPage() {
   return (
     <div
@@ -316,7 +341,7 @@ export default function MediaPage() {
             </div>
 
             <div className="heroImageCard">
-              <img
+              <SafeImage
                 src={heroImg}
                 alt="Venkovní učebna ARCHIMEDES®"
                 style={{
@@ -360,7 +385,7 @@ export default function MediaPage() {
               </div>
 
               <div className="sideCard">
-                <img
+                <SafeImage
                   src={classImg}
                   alt="Výuka v učebně ARCHIMEDES®"
                   style={{
@@ -414,7 +439,7 @@ export default function MediaPage() {
                   }`}
                 >
                   <div className="galleryImageWrap">
-                    <img
+                    <SafeImage
                       src={item.src}
                       alt={item.title}
                       style={{
@@ -480,7 +505,7 @@ export default function MediaPage() {
               </div>
 
               <div className="sideCard">
-                <img
+                <SafeImage
                   src={mediaImg}
                   alt="Mediální pozornost projektu ARCHIMEDES®"
                   style={{
@@ -520,12 +545,14 @@ export default function MediaPage() {
                 </SectionTitle>
               </div>
 
-              <SecondaryButton
+              <a
                 href="https://www.archimedesoec.com/media/"
-                tinted
+                target="_blank"
+                rel="noreferrer"
+                className="externalGhostBtn"
               >
-                Původní přehled médií
-              </SecondaryButton>
+                Původní přehled médií ↗
+              </a>
             </div>
 
             <div className="linksGrid">
@@ -537,7 +564,14 @@ export default function MediaPage() {
                   rel="noreferrer"
                   className="mediaLinkCard"
                 >
-                  <div className="mediaLinkSource">{item.source}</div>
+                  <div className="mediaLogoWrap">
+                    <img
+                      src={getFavicon(item.domain)}
+                      alt={item.title}
+                      className="mediaLogo"
+                    />
+                  </div>
+
                   <div className="mediaLinkTitle">{item.title}</div>
                   <div className="mediaLinkText">{item.text}</div>
                   <div className="mediaLinkArrow">Otevřít článek ↗</div>
@@ -679,6 +713,8 @@ export default function MediaPage() {
 
           .galleryImageWrap {
             overflow: hidden;
+            position: relative;
+            background: #eef2f7;
           }
 
           .galleryContent {
@@ -716,7 +752,7 @@ export default function MediaPage() {
             );
             border: 1px solid rgba(15, 23, 42, 0.08);
             border-radius: 24px;
-            padding: 20px 20px 18px;
+            padding: 22px 20px 18px;
             box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
             transition: transform 0.15s ease, box-shadow 0.15s ease;
           }
@@ -726,13 +762,24 @@ export default function MediaPage() {
             box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
           }
 
-          .mediaLinkSource {
-            font-size: 12px;
-            font-weight: 800;
-            color: rgba(15, 23, 42, 0.5);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 10px;
+          .mediaLogoWrap {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: #fff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+          }
+
+          .mediaLogo {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+            display: block;
           }
 
           .mediaLinkTitle {
@@ -755,6 +802,34 @@ export default function MediaPage() {
             font-size: 14px;
             font-weight: 800;
             color: #0f172a;
+          }
+
+          .externalGhostBtn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+            padding: 0 22px;
+            border-radius: 15px;
+            border: 1px solid rgba(15,23,42,0.10);
+            background: rgba(255,255,255,0.72);
+            color: #0f172a;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 10px 24px rgba(15,23,42,0.05);
+          }
+
+          .img-fallback {
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+            font-size: 15px;
+            line-height: 1.5;
+            color: rgba(15, 23, 42, 0.58);
+            background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
           }
 
           @media (max-width: 1160px) {
