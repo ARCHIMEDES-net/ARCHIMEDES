@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-const heroImg = "/DJI_20260202_100827_288_hero.webp";
-const classImg = "/detivetride.webp";
+const heroImg = "/ratiskovice.webp";
+const classImg = "/cejc.webp";
 const techImg = "/jak-funguje-tabule.jpg";
 const communityImg = "/komunita.jpg";
 const mediaImg = "/otevreni.webp";
