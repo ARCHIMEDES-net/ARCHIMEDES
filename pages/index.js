@@ -75,8 +75,8 @@ export default function Home() {
                 </p>
 
                 <p className="heroLead">
-                  Na jednom místě živě traktivní hosté,
-                  tematické kluby, soutěže, kumunitní informace a archiv vzdělávacích materiálů.
+                  Na jednom místě přináší živé vysílání, interaktivní workshopy, tematické kluby,
+                  soutěže a archiv vzdělávacích materiálů.                 
                 </p>
 
                 <div className="heroActions">
