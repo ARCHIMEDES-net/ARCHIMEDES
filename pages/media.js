@@ -1,0 +1,616 @@
+import Link from "next/link";
+
+const heroImg = "/ucebna-exterier.webp";
+const classImg = "/ucebna-deti.webp";
+const techImg = "/ucebna-technologie.webp";
+const communityImg = "/ucebna-komunita.webp";
+const mediaImg = "/ucebna-media.webp";
+const mapImg = "/ucebna-mapa.webp";
+
+const galleryItems = [
+  {
+    src: heroImg,
+    title: "Exteriér učebny ARCHIMEDES®",
+    text: "Reprezentativní venkovní učebna zasazená do přirozeného prostředí.",
+    ratio: "wide",
+  },
+  {
+    src: classImg,
+    title: "Výuka v praxi",
+    text: "ARCHIMEDES® jako živý prostor pro každodenní vzdělávání.",
+    ratio: "standard",
+  },
+  {
+    src: techImg,
+    title: "Moderní technologie",
+    text: "Interaktivní výuka, digitální vybavení a kvalitní zázemí.",
+    ratio: "standard",
+  },
+  {
+    src: communityImg,
+    title: "Komunitní život",
+    text: "Prostor pro akce obce, setkávání i společné zážitky.",
+    ratio: "standard",
+  },
+  {
+    src: mediaImg,
+    title: "Veřejná a mediální pozornost",
+    text: "Projekt, který vzbuzuje zájem odborníků i veřejnosti.",
+    ratio: "standard",
+  },
+  {
+    src: mapImg,
+    title: "Síť učeben ARCHIMEDES®",
+    text: "ARCHIMEDES® už funguje v reálných školách a obcích.",
+    ratio: "wide",
+  },
+];
+
+const mediaPoints = [
+  "reálné realizace v českých školách a obcích",
+  "reprezentativní prostor pro vzdělávání i komunitní život",
+  "spojení kvalitní architektury, technologií a přírody",
+  "silný vizuální i společenský přesah projektu",
+];
+
+function PrimaryButton({ href, children }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        textDecoration: "none",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: 52,
+        padding: "0 22px",
+        borderRadius: 15,
+        background: "#0f172a",
+        color: "white",
+        fontWeight: 800,
+        border: "1px solid #0f172a",
+        boxShadow: "0 14px 30px rgba(15,23,42,0.14)",
+        transition: "transform 0.15s ease, box-shadow 0.15s ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "0 18px 36px rgba(15,23,42,0.18)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "0 14px 30px rgba(15,23,42,0.14)";
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function SecondaryButton({ href, children, tinted = false }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        textDecoration: "none",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: 52,
+        padding: "0 22px",
+        borderRadius: 15,
+        border: tinted
+          ? "1px solid rgba(15,23,42,0.10)"
+          : "1px solid rgba(15,23,42,0.16)",
+        background: tinted ? "rgba(255,255,255,0.72)" : "white",
+        color: "#0f172a",
+        fontWeight: 800,
+        boxShadow: tinted ? "0 10px 24px rgba(15,23,42,0.05)" : "none",
+        transition:
+          "transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "0 12px 26px rgba(15,23,42,0.08)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = tinted
+          ? "0 10px 24px rgba(15,23,42,0.05)"
+          : "none";
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function SectionEyebrow({ children }) {
+  return (
+    <div
+      style={{
+        fontSize: 14,
+        fontWeight: 800,
+        color: "rgba(15,23,42,0.52)",
+        marginBottom: 10,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SectionTitle({ children, style = {} }) {
+  return (
+    <div
+      style={{
+        fontSize: 46,
+        lineHeight: 1.02,
+        fontWeight: 900,
+        color: "#0f172a",
+        letterSpacing: "-0.04em",
+        marginBottom: 16,
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+export default function MediaPage() {
+  return (
+    <div
+      style={{
+        fontFamily:
+          "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+        background:
+          "linear-gradient(180deg, #f6f7fb 0%, #f7f8fb 28%, #f3f5f9 100%)",
+        minHeight: "100vh",
+      }}
+    >
+      <main>
+        <section
+          style={{
+            maxWidth: 1240,
+            margin: "0 auto",
+            padding: "64px 20px 26px",
+          }}
+        >
+          <div className="heroShell">
+            <div>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "9px 15px",
+                  borderRadius: 999,
+                  background: "rgba(15,23,42,0.06)",
+                  color: "#0f172a",
+                  fontSize: 13,
+                  fontWeight: 800,
+                  marginBottom: 20,
+                }}
+              >
+                ARCHIMEDES® • média a fotogalerie
+              </div>
+
+              <h1
+                style={{
+                  fontSize: 62,
+                  lineHeight: 0.98,
+                  letterSpacing: "-0.05em",
+                  color: "#0f172a",
+                  margin: "0 0 18px",
+                }}
+              >
+                Média a galerie
+                <br />
+                ARCHIMEDES®
+              </h1>
+
+              <h2
+                style={{
+                  fontSize: 28,
+                  lineHeight: 1.22,
+                  color: "#334155",
+                  margin: "0 0 18px",
+                  fontWeight: 800,
+                  maxWidth: 720,
+                }}
+              >
+                Podívejte se na projekt, který spojuje vzdělávání, architekturu a komunitní život.
+              </h2>
+
+              <p
+                style={{
+                  fontSize: 20,
+                  lineHeight: 1.64,
+                  color: "rgba(15,23,42,0.74)",
+                  maxWidth: 760,
+                  margin: 0,
+                }}
+              >
+                ARCHIMEDES® je víc než stavba. Je to prostředí, které pomáhá školám
+                i obcím vytvářet silnější vztah ke vzdělávání, místu a společnému
+                prožívání. Na této stránce najdete výběr fotografií a materiálů,
+                které ukazují jeho reálné využití i veřejný přesah.
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 14,
+                  flexWrap: "wrap",
+                  marginTop: 30,
+                }}
+              >
+                <PrimaryButton href="/ucebna">Zpět na stránku učebny</PrimaryButton>
+                <SecondaryButton href="/poptavka">
+                  Mám zájem o učebnu
+                </SecondaryButton>
+              </div>
+            </div>
+
+            <div className="heroImageCard">
+              <img
+                src={heroImg}
+                alt="Venkovní učebna ARCHIMEDES®"
+                style={{
+                  width: "100%",
+                  display: "block",
+                  aspectRatio: "16/10",
+                  objectFit: "cover",
+                }}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section
+          style={{
+            maxWidth: 1240,
+            margin: "0 auto",
+            padding: "8px 20px 24px",
+          }}
+        >
+          <div className="premiumCard">
+            <div className="infoGrid">
+              <div>
+                <SectionEyebrow>O projektu</SectionEyebrow>
+                <SectionTitle style={{ fontSize: 42 }}>
+                  Co dělá ARCHIMEDES® výjimečným
+                </SectionTitle>
+
+                <p className="leadText" style={{ marginBottom: 18 }}>
+                  ARCHIMEDES® vznikl jako odpověď na potřebu moderního,
+                  reprezentativního a přitom lidského prostoru pro školy a obce.
+                  Nejde jen o technické řešení. Jde o místo, které má atmosféru,
+                  charakter a přirozeně zve děti i dospělé dovnitř.
+                </p>
+
+                <div className="bulletList">
+                  {mediaPoints.map((item) => (
+                    <div key={item}>• {item}</div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="sideCard">
+                <img
+                  src={classImg}
+                  alt="Výuka v učebně ARCHIMEDES®"
+                  style={{
+                    width: "100%",
+                    display: "block",
+                    aspectRatio: "16/11",
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          style={{
+            maxWidth: 1240,
+            margin: "0 auto",
+            padding: "8px 20px 24px",
+          }}
+        >
+          <div className="premiumCard">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-end",
+                justifyContent: "space-between",
+                gap: 18,
+                flexWrap: "wrap",
+                marginBottom: 20,
+              }}
+            >
+              <div>
+                <SectionEyebrow>Fotogalerie</SectionEyebrow>
+                <SectionTitle style={{ fontSize: 42 }}>
+                  Výběr z realizací a využití
+                </SectionTitle>
+              </div>
+
+              <SecondaryButton href="/kontakt" tinted>
+                Chci si domluvit návštěvu
+              </SecondaryButton>
+            </div>
+
+            <div className="galleryGrid">
+              {galleryItems.map((item) => (
+                <div
+                  key={item.title}
+                  className={`galleryCard ${
+                    item.ratio === "wide" ? "galleryCardWide" : ""
+                  }`}
+                >
+                  <div className="galleryImageWrap">
+                    <img
+                      src={item.src}
+                      alt={item.title}
+                      style={{
+                        width: "100%",
+                        display: "block",
+                        aspectRatio: item.ratio === "wide" ? "16/9" : "16/11",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </div>
+
+                  <div className="galleryContent">
+                    <div className="galleryTitle">{item.title}</div>
+                    <div className="galleryText">{item.text}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section
+          style={{
+            maxWidth: 1240,
+            margin: "0 auto",
+            padding: "8px 20px 24px",
+          }}
+        >
+          <div className="premiumCard">
+            <div className="mediaGrid">
+              <div>
+                <SectionEyebrow>Mediální přesah</SectionEyebrow>
+                <SectionTitle style={{ fontSize: 42 }}>
+                  Projekt, který je vidět
+                </SectionTitle>
+
+                <p className="leadText" style={{ marginBottom: 18 }}>
+                  ARCHIMEDES® zaujme nejen svým vzhledem, ale především tím,
+                  jak přirozeně propojuje vzdělávání, veřejný prostor a komunitní
+                  využití. Díky tomu budí pozornost partnerů, návštěvníků i médií.
+                </p>
+
+                <p className="leadText" style={{ marginBottom: 0 }}>
+                  Každá realizace posiluje důvěru v to, že kvalitní prostředí má
+                  ve vzdělávání i v životě obcí skutečný význam.
+                </p>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 14,
+                    flexWrap: "wrap",
+                    marginTop: 26,
+                  }}
+                >
+                  <PrimaryButton href="/poptavka">
+                    Chci navrhnout řešení
+                  </PrimaryButton>
+                  <SecondaryButton href="/ucebna" tinted>
+                    Zobrazit technické varianty
+                  </SecondaryButton>
+                </div>
+              </div>
+
+              <div className="sideCard">
+                <img
+                  src={mediaImg}
+                  alt="Mediální pozornost projektu ARCHIMEDES®"
+                  style={{
+                    width: "100%",
+                    display: "block",
+                    aspectRatio: "16/11",
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          style={{
+            maxWidth: 1240,
+            margin: "0 auto",
+            padding: "8px 20px 84px",
+          }}
+        >
+          <div className="ctaCard">
+            <SectionEyebrow>Další krok</SectionEyebrow>
+            <SectionTitle style={{ fontSize: 44 }}>
+              Chcete vidět, jak by ARCHIMEDES® fungoval u vás?
+            </SectionTitle>
+
+            <p
+              style={{
+                fontSize: 19,
+                lineHeight: 1.72,
+                color: "rgba(15,23,42,0.74)",
+                maxWidth: 840,
+                margin: "0 auto 26px",
+              }}
+            >
+              Rádi vám představíme vhodnou variantu, možnosti využití pro školu
+              i obec a navrhneme řešení, které bude odpovídat vašemu prostoru,
+              provozu i ambicím.
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: 14,
+                flexWrap: "wrap",
+              }}
+            >
+              <PrimaryButton href="/poptavka">Mám zájem o řešení</PrimaryButton>
+              <SecondaryButton href="/kontakt">
+                Domluvit osobní konzultaci
+              </SecondaryButton>
+            </div>
+          </div>
+        </section>
+
+        <style jsx global>{`
+          .heroShell {
+            display: grid;
+            grid-template-columns: minmax(0, 1.02fr) minmax(420px, 0.98fr);
+            gap: 42px;
+            align-items: center;
+          }
+
+          .heroImageCard {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 34px;
+            overflow: hidden;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow:
+              0 28px 80px rgba(15, 23, 42, 0.12),
+              0 8px 24px rgba(15, 23, 42, 0.05);
+            backdrop-filter: blur(8px);
+          }
+
+          .premiumCard {
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 32px;
+            padding: 30px 28px;
+            box-shadow:
+              0 18px 44px rgba(15, 23, 42, 0.06),
+              0 6px 18px rgba(15, 23, 42, 0.03);
+            backdrop-filter: blur(6px);
+          }
+
+          .ctaCard {
+            background: linear-gradient(
+              180deg,
+              rgba(255,255,255,0.92) 0%,
+              rgba(248,250,252,0.96) 100%
+            );
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 34px;
+            padding: 42px 28px;
+            box-shadow:
+              0 18px 44px rgba(15, 23, 42, 0.06),
+              0 6px 18px rgba(15, 23, 42, 0.03);
+            text-align: center;
+          }
+
+          .infoGrid,
+          .mediaGrid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(340px, 0.92fr);
+            gap: 28px;
+            align-items: center;
+          }
+
+          .leadText {
+            font-size: 18px;
+            line-height: 1.78;
+            color: rgba(15, 23, 42, 0.74);
+            margin: 0;
+          }
+
+          .bulletList {
+            display: grid;
+            gap: 10px;
+            font-size: 16px;
+            line-height: 1.7;
+            color: rgba(15, 23, 42, 0.74);
+          }
+
+          .sideCard,
+          .galleryCard {
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
+          }
+
+          .galleryGrid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+          }
+
+          .galleryCardWide {
+            grid-column: 1 / -1;
+          }
+
+          .galleryImageWrap {
+            overflow: hidden;
+          }
+
+          .galleryContent {
+            padding: 18px 18px 20px;
+          }
+
+          .galleryTitle {
+            font-size: 22px;
+            line-height: 1.15;
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+          }
+
+          .galleryText {
+            font-size: 15px;
+            line-height: 1.66;
+            color: rgba(15, 23, 42, 0.72);
+          }
+
+          @media (max-width: 1160px) {
+            .heroShell,
+            .infoGrid,
+            .mediaGrid,
+            .galleryGrid {
+              grid-template-columns: 1fr;
+            }
+
+            .galleryCardWide {
+              grid-column: auto;
+            }
+          }
+
+          @media (max-width: 760px) {
+            .premiumCard,
+            .ctaCard {
+              padding: 22px 18px;
+              border-radius: 24px;
+            }
+
+            h1 {
+              font-size: 46px !important;
+            }
+          }
+        `}</style>
+      </main>
+    </div>
+  );
+}
