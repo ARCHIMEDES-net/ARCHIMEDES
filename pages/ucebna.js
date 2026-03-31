@@ -1,15 +1,23 @@
 import Link from "next/link";
 
 const heroImg = "/ucebna-exterier.webp";
-const classImg = "/cejc.webp";
+
+const classImg = "/detivetride.webp";
 const techImg = "/jak-funguje-tabule.jpg";
 const communityImg = "/komunita.jpg";
-const mediaImg = "/otevreni.webp";
+
+const ecosystemMainImg = "/IMG_0228_content.webp";
+const ecosystemNatureImg = "/otevrena.jpg";
+const ecosystemOnlineImg = "/jak-funguje-online.jpg";
+
 const klimaImg = "/otevrena-hero.webp";
-const interierImg = "/IMG_0228_content.webp";
-const auditoriumImg = "/jak-funguje-trida.jpg";
 const natureImg = "/DJI_20260202_104516_998_content.webp";
-const openHallImg = "/otevrena.jpg";
+
+const interierImg = "/ucebna.jpg";
+const auditoriumImg = "/jak-funguje-trida.jpg";
+const openHallImg = "/otevreni.webp";
+
+const mediaSectionImg = "/prestrih.webp";
 
 const variants = [
   {
@@ -58,9 +66,18 @@ const gallery = [
     src: "/DJI_20260202_100827_288_content.webp",
     alt: "Exteriér učebny ARCHIMEDES®",
   },
-  { src: classImg, alt: "Výuka dětí v učebně ARCHIMEDES®" },
-  { src: techImg, alt: "Technologie a interiér učebny ARCHIMEDES®" },
-  { src: openHallImg, alt: "Komunitní využití učebny ARCHIMEDES®" },
+  {
+    src: "/deti.jpg",
+    alt: "Děti při výuce v učebně ARCHIMEDES®",
+  },
+  {
+    src: "/praxe.webp",
+    alt: "Praktická výuka v učebně ARCHIMEDES®",
+  },
+  {
+    src: "/ucebna2.webp",
+    alt: "Další pohled na učebnu ARCHIMEDES®",
+  },
 ];
 
 function PrimaryButton({ href, children }) {
@@ -335,8 +352,8 @@ export default function Ucebna() {
               <div className="visualTriple">
                 <div className="visualCard visualCardLarge">
                   <img
-                    src={heroImg}
-                    alt="Detail dřevostavby učebny ARCHIMEDES®"
+                    src={ecosystemMainImg}
+                    alt="Detail učebny ARCHIMEDES®"
                     style={{
                       width: "100%",
                       display: "block",
@@ -349,8 +366,8 @@ export default function Ucebna() {
                 <div className="doubleVisualGrid">
                   <div className="visualCard">
                     <img
-                      src={communityImg}
-                      alt="Zelená stěna a přírodní prvky učebny ARCHIMEDES®"
+                      src={ecosystemNatureImg}
+                      alt="Otevřený prostor učebny ARCHIMEDES®"
                       style={{
                         width: "100%",
                         display: "block",
@@ -362,8 +379,8 @@ export default function Ucebna() {
 
                   <div className="visualCard">
                     <img
-                      src={classImg}
-                      alt="Sdílená online výuka v učebně ARCHIMEDES®"
+                      src={ecosystemOnlineImg}
+                      alt="Online propojení a technologie učebny ARCHIMEDES®"
                       style={{
                         width: "100%",
                         display: "block",
@@ -986,7 +1003,7 @@ export default function Ucebna() {
 
               <div className="mediaVisual">
                 <img
-                  src={mediaImg}
+                  src={mediaSectionImg}
                   alt="Mediální a veřejná pozornost projektu ARCHIMEDES®"
                   style={{
                     width: "100%",
