@@ -1,13 +1,23 @@
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { supabase } from "../lib/supabaseClient";
 
 const heroImg = "/ucebna-exterier.webp";
 const classImg = "/ucebna-deti.webp";
 const techImg = "/ucebna-technologie.webp";
 const communityImg = "/ucebna-komunita.webp";
 const mediaImg = "/ucebna-media.webp";
-const mapImg = "/ucebna-mapa.webp";
 
-const galleryItems = [
+const SCHOOLS_BUCKET = "schools";
+
+const mediaPoints = [
+  "reálné realizace v českých školách a obcích",
+  "reprezentativní prostor pro vzdělávání i komunitní život",
+  "spojení kvalitní architektury, technologií a přírody",
+  "silný vizuální i společenský přesah projektu",
+];
+
+const storyGallery = [
   {
     src: heroImg,
     title: "Exteriér učebny ARCHIMEDES®",
@@ -38,19 +48,6 @@ const galleryItems = [
     text: "Projekt, který vzbuzuje zájem odborníků i veřejnosti.",
     ratio: "standard",
   },
-  {
-    src: mapImg,
-    title: "Síť učeben ARCHIMEDES®",
-    text: "ARCHIMEDES® už funguje v reálných školách a obcích.",
-    ratio: "wide",
-  },
-];
-
-const mediaPoints = [
-  "reálné realizace v českých školách a obcích",
-  "reprezentativní prostor pro vzdělávání i komunitní život",
-  "spojení kvalitní architektury, technologií a přírody",
-  "silný vizuální i společenský přesah projektu",
 ];
 
 const mediaLinks = [
@@ -115,6 +112,12 @@ const mediaLinks = [
     domain: "mikulov.cz",
   },
 ];
+
+function publicUrlFromPath(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from(SCHOOLS_BUCKET).getPublicUrl(path);
+  return data?.publicUrl || null;
+}
 
 function getFavicon(domain) {
   return `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
@@ -245,6 +248,53 @@ function SafeImage({ src, alt, style }) {
 }
 
 export default function MediaPage() {
+  const [activeImage, setActiveImage] = useState(null);
+  const [realizace, setRealizace] = useState([]);
+  const [loadingRealizace, setLoadingRealizace] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadRealizace() {
+      setLoadingRealizace(true);
+
+      const { data, error } = await supabase
+        .from("schools")
+        .select("id, name, city, photo_path, is_published, created_at")
+        .eq("is_published", true)
+        .not("photo_path", "is", null)
+        .order("created_at", { ascending: false });
+
+      if (!mounted) return;
+
+      if (error) {
+        console.error("Chyba při načítání referencí:", error.message);
+        setRealizace([]);
+        setLoadingRealizace(false);
+        return;
+      }
+
+      const items = (data || [])
+        .map((row) => ({
+          id: row.id,
+          city: row.city || row.name || "Realizace ARCHIMEDES",
+          title: row.name || row.city || "ARCHIMEDES",
+          img: publicUrlFromPath(row.photo_path),
+        }))
+        .filter((item) => item.img)
+        .slice(0, 18);
+
+      setRealizace(items);
+      setLoadingRealizace(false);
+    }
+
+    loadRealizace();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div
       style={{
@@ -278,7 +328,7 @@ export default function MediaPage() {
                   marginBottom: 20,
                 }}
               >
-                ARCHIMEDES® • média a fotogalerie
+                ARCHIMEDES® • média a reference
               </div>
 
               <h1
@@ -290,7 +340,7 @@ export default function MediaPage() {
                   margin: "0 0 18px",
                 }}
               >
-                Média a galerie
+                Média a reference
                 <br />
                 ARCHIMEDES®
               </h1>
@@ -319,8 +369,8 @@ export default function MediaPage() {
               >
                 ARCHIMEDES® je víc než stavba. Je to prostředí, které pomáhá školám
                 i obcím vytvářet silnější vztah ke vzdělávání, místu a společnému
-                prožívání. Na této stránce najdete výběr fotografií i mediálních
-                výstupů, které ukazují jeho reálné využití a veřejný přesah.
+                prožívání. Na této stránce najdete reálné realizace i výběr mediálních
+                výstupů, které ukazují jeho skutečné využití a veřejný přesah.
               </p>
 
               <div
@@ -399,6 +449,7 @@ export default function MediaPage() {
         </section>
 
         <section
+          id="reference"
           style={{
             maxWidth: 1240,
             margin: "0 auto",
@@ -417,9 +468,74 @@ export default function MediaPage() {
               }}
             >
               <div>
-                <SectionEyebrow>Fotogalerie</SectionEyebrow>
+                <SectionEyebrow>Reference</SectionEyebrow>
                 <SectionTitle style={{ fontSize: 42 }}>
-                  Výběr z realizací a využití
+                  Síť učeben ARCHIMEDES® v reálných obcích a školách
+                </SectionTitle>
+                <p className="leadText" style={{ maxWidth: 900, marginBottom: 0 }}>
+                  Níže vidíte výběr realizací přímo ze sítě učeben ARCHIMEDES®.
+                  Fotografie se načítají z portálu a ukazují skutečné stavby,
+                  které už slouží školám a obcím.
+                </p>
+              </div>
+
+              <SecondaryButton href="/poptavka" tinted>
+                Chci podobné řešení
+              </SecondaryButton>
+            </div>
+
+            {loadingRealizace ? (
+              <div className="referencesEmpty">Načítám reference…</div>
+            ) : realizace.length > 0 ? (
+              <div className="realizationsGrid">
+                {realizace.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="realizationCard"
+                    onClick={() => setActiveImage(item)}
+                  >
+                    <img
+                      src={item.img}
+                      alt={item.city}
+                      className="realizationImg"
+                    />
+                    <div className="realizationOverlay">
+                      <span className="realizationCity">{item.city}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="referencesEmpty">
+                Reference se zatím nepodařilo načíst.
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section
+          style={{
+            maxWidth: 1240,
+            margin: "0 auto",
+            padding: "8px 20px 24px",
+          }}
+        >
+          <div className="premiumCard">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-end",
+                justifyContent: "space-between",
+                gap: 18,
+                flexWrap: "wrap",
+                marginBottom: 20,
+              }}
+            >
+              <div>
+                <SectionEyebrow>Fotogalerie projektu</SectionEyebrow>
+                <SectionTitle style={{ fontSize: 42 }}>
+                  Atmosféra, technologie a využití
                 </SectionTitle>
               </div>
 
@@ -429,7 +545,7 @@ export default function MediaPage() {
             </div>
 
             <div className="galleryGrid">
-              {galleryItems.map((item) => (
+              {storyGallery.map((item) => (
                 <div
                   key={item.title}
                   className={`galleryCard ${
@@ -622,6 +738,32 @@ export default function MediaPage() {
           </div>
         </section>
 
+        {activeImage && (
+          <div className="lightbox" onClick={() => setActiveImage(null)}>
+            <div
+              className="lightboxInner"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="lightboxClose"
+                onClick={() => setActiveImage(null)}
+                aria-label="Zavřít"
+              >
+                ×
+              </button>
+
+              <img
+                src={activeImage.img}
+                alt={activeImage.city}
+                className="lightboxImg"
+              />
+
+              <div className="lightboxCaption">{activeImage.city}</div>
+            </div>
+          </div>
+        )}
+
         <style jsx global>{`
           .heroShell {
             display: grid;
@@ -697,6 +839,66 @@ export default function MediaPage() {
             overflow: hidden;
             border: 1px solid rgba(15, 23, 42, 0.08);
             box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
+          }
+
+          .realizationsGrid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+          }
+
+          .referencesEmpty {
+            background: rgba(248, 250, 252, 0.9);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 22px;
+            padding: 22px 18px;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.6;
+            color: rgba(15, 23, 42, 0.68);
+          }
+
+          .realizationCard {
+            position: relative;
+            padding: 0;
+            border: 0;
+            background: white;
+            border-radius: 22px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            transition: transform 0.16s ease, box-shadow 0.16s ease;
+          }
+
+          .realizationCard:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
+          }
+
+          .realizationImg {
+            width: 100%;
+            display: block;
+            aspect-ratio: 16 / 10;
+            object-fit: cover;
+          }
+
+          .realizationOverlay {
+            position: absolute;
+            inset: auto 0 0 0;
+            padding: 18px 16px 14px;
+            background: linear-gradient(
+              180deg,
+              rgba(15, 23, 42, 0) 0%,
+              rgba(15, 23, 42, 0.78) 100%
+            );
+            text-align: left;
+          }
+
+          .realizationCity {
+            color: white;
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 1.2;
           }
 
           .galleryGrid {
@@ -830,12 +1032,63 @@ export default function MediaPage() {
             background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
           }
 
+          .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.82);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 9999;
+          }
+
+          .lightboxInner {
+            position: relative;
+            max-width: 1100px;
+            width: 100%;
+          }
+
+          .lightboxClose {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            border: 0;
+            background: white;
+            color: #0f172a;
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
+          }
+
+          .lightboxImg {
+            width: 100%;
+            max-height: 82vh;
+            object-fit: contain;
+            display: block;
+            border-radius: 22px;
+            background: white;
+          }
+
+          .lightboxCaption {
+            margin-top: 12px;
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+            text-align: center;
+          }
+
           @media (max-width: 1160px) {
             .heroShell,
             .infoGrid,
             .mediaGrid,
             .galleryGrid,
-            .linksGrid {
+            .linksGrid,
+            .realizationsGrid {
               grid-template-columns: 1fr;
             }
 
