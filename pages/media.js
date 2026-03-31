@@ -300,7 +300,7 @@ export default function MediaPage() {
           img: publicUrlFromPath(row.photo_path),
         }))
         .filter((item) => item.img)
-        .slice(0, 18);
+        .sort((a, b) => a.city.localeCompare(b.city, "cs"));
 
       setRealizace(items);
       setLoadingRealizace(false);
@@ -491,7 +491,7 @@ export default function MediaPage() {
                   Síť učeben ARCHIMEDES® v reálných obcích a školách
                 </SectionTitle>
                 <p className="leadText" style={{ maxWidth: 900, marginBottom: 0 }}>
-                  Níže vidíte výběr realizací přímo ze sítě učeben ARCHIMEDES®.
+                  Níže vidíte realizace přímo ze sítě učeben ARCHIMEDES®.
                   Jsou zde všechny učebny kromě míst, kde zatím není k dispozici
                   fotografie učebny.
                 </p>
