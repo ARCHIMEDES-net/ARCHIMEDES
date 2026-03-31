@@ -131,13 +131,28 @@ function getFavicon(domain) {
   return `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
 }
 
+function normalizeText(value) {
+  return (value || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 function isExcludedReference(row) {
-  const city = (row?.city || "").trim().toLowerCase();
-  const name = (row?.name || "").trim().toLowerCase();
+  const city = normalizeText(row?.city);
+  const name = normalizeText(row?.name);
 
   return EXCLUDED_REFERENCE_CITIES.some((excluded) => {
-    const value = excluded.toLowerCase();
-    return city === value || name === value;
+    const value = normalizeText(excluded);
+
+    return (
+      city.includes(value) ||
+      name.includes(value) ||
+      city.startsWith(value) ||
+      name.startsWith(value)
+    );
   });
 }
 
