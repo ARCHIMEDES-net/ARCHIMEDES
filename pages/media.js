@@ -503,12 +503,10 @@ export default function MediaPage() {
               <div>
                 <SectionEyebrow>Reference</SectionEyebrow>
                 <SectionTitle style={{ fontSize: 42 }}>
-                  Síť učeben ARCHIMEDES® v reálných obcích a školách
+                  Síť učeben ARCHIMEDES® v obcích a školách
                 </SectionTitle>
                 <p className="leadText" style={{ maxWidth: 900, marginBottom: 0 }}>
-                  Níže vidíte realizace přímo ze sítě učeben ARCHIMEDES®.
-                  Jsou zde všechny učebny kromě míst, kde zatím není k dispozici
-                  fotografie učebny.
+                  Níže vidíte realizace vybraných učeben ze sítě ARCHIMEDES®.
                 </p>
               </div>
 
