@@ -70,13 +70,13 @@ export default function Home() {
                 </h1>
 
                 <p className="heroIntro">
-                  Interaktivní platforma, která propojuje školy,
-                  obce a komunity.
+                  Přinášíme živé hosty a interaktivní program do výuky,
+                  obcí a komunit.
                 </p>
 
                 <p className="heroLead">
-                  Na jednom místě přináší živý program, atraktivní hosty,
-                  tematické kluby, soutěže a archiv vzdělávacích materiálů.
+                  Na jednom místě živě traktivní hosté,
+                  tematické kluby, soutěže, kumunitní informace a archiv vzdělávacích materiálů.
                 </p>
 
                 <div className="heroActions">
