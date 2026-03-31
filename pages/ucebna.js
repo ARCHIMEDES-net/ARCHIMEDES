@@ -1,14 +1,10 @@
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase } from "../lib/supabaseClient";
 
 const heroImg = "/ucebna-exterier.webp";
 const classImg = "/ucebna-deti.webp";
 const techImg = "/ucebna-technologie.webp";
 const communityImg = "/ucebna-komunita.webp";
 const mediaImg = "/ucebna-media.webp";
-
-const SCHOOLS_BUCKET = "schools";
 
 const variants = [
   {
@@ -58,12 +54,6 @@ const gallery = [
   { src: techImg, alt: "Technologie a interiér učebny ARCHIMEDES®" },
   { src: communityImg, alt: "Komunitní využití učebny ARCHIMEDES®" },
 ];
-
-function publicUrlFromPath(path) {
-  if (!path) return null;
-  const { data } = supabase.storage.from(SCHOOLS_BUCKET).getPublicUrl(path);
-  return data?.publicUrl || null;
-}
 
 function PrimaryButton({ href, children }) {
   return (
@@ -170,53 +160,6 @@ function SectionTitle({ children, style = {} }) {
 }
 
 export default function Ucebna() {
-  const [activeImage, setActiveImage] = useState(null);
-  const [realizace, setRealizace] = useState([]);
-  const [loadingRealizace, setLoadingRealizace] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadRealizace() {
-      setLoadingRealizace(true);
-
-      const { data, error } = await supabase
-        .from("schools")
-        .select("id, name, city, photo_path, is_published, created_at")
-        .eq("is_published", true)
-        .not("photo_path", "is", null)
-        .order("created_at", { ascending: false });
-
-      if (!mounted) return;
-
-      if (error) {
-        console.error("Chyba při načítání referencí:", error.message);
-        setRealizace([]);
-        setLoadingRealizace(false);
-        return;
-      }
-
-      const items = (data || [])
-        .map((row) => ({
-          id: row.id,
-          city: row.city || row.name || "Realizace ARCHIMEDES",
-          title: row.name || row.city || "ARCHIMEDES",
-          img: publicUrlFromPath(row.photo_path),
-        }))
-        .filter((item) => item.img)
-        .slice(0, 18);
-
-      setRealizace(items);
-      setLoadingRealizace(false);
-    }
-
-    loadRealizace();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
   return (
     <div
       style={{
@@ -305,7 +248,7 @@ export default function Ucebna() {
                   marginTop: 30,
                 }}
               >
-                <PrimaryButton href="#realizace">
+                <PrimaryButton href="/media">
                   Prohlédnout reference
                 </PrimaryButton>
                 <SecondaryButton href="/poptavka">
@@ -436,7 +379,7 @@ export default function Ucebna() {
         >
           <div className="premiumCard">
             <div style={{ textAlign: "center", marginBottom: 26 }}>
-              <SectionEyebrow>Možnosti využití</SectionEyebrow>
+              <SectionEyebrow>Možnosti využití</SectionEyrow>
               <SectionTitle style={{ marginBottom: 12 }}>
                 Dva silné pilíře využití
               </SectionTitle>
@@ -538,73 +481,20 @@ export default function Ucebna() {
                 </div>
               </div>
             </div>
-          </div>
-        </section>
 
-        <section
-          id="realizace"
-          style={{
-            maxWidth: 1240,
-            margin: "0 auto",
-            padding: "10px 20px 24px",
-          }}
-        >
-          <div className="premiumCard">
             <div
               style={{
                 display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-end",
-                gap: 18,
+                justifyContent: "center",
+                gap: 14,
                 flexWrap: "wrap",
-                marginBottom: 22,
+                marginTop: 28,
               }}
             >
-              <div>
-                <SectionEyebrow>Reference</SectionEyebrow>
-                <SectionTitle style={{ fontSize: 42 }}>
-                  Reálné realizace učeben ARCHIMEDES®
-                </SectionTitle>
-
-                <p className="leadText" style={{ marginBottom: 0, maxWidth: 860 }}>
-                  Podívejte se na výběr realizací přímo ze sítě učeben
-                  ARCHIMEDES®. Fotografie níže se načítají z portálu a ukazují
-                  skutečné školy a obce, kde už učebna funguje.
-                </p>
-              </div>
-
               <SecondaryButton href="/media" tinted>
-                Zobrazit všechny reference a média
+                Zobrazit reference a média
               </SecondaryButton>
             </div>
-
-            {loadingRealizace ? (
-              <div className="referencesEmpty">Načítám reference…</div>
-            ) : realizace.length > 0 ? (
-              <div className="realizationsGrid">
-                {realizace.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className="realizationCard"
-                    onClick={() => setActiveImage(item)}
-                  >
-                    <img
-                      src={item.img}
-                      alt={item.city}
-                      className="realizationImg"
-                    />
-                    <div className="realizationOverlay">
-                      <span className="realizationCity">{item.city}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="referencesEmpty">
-                Reference se zatím nepodařilo načíst.
-              </div>
-            )}
           </div>
         </section>
 
@@ -1165,32 +1055,6 @@ export default function Ucebna() {
           </div>
         </section>
 
-        {activeImage && (
-          <div className="lightbox" onClick={() => setActiveImage(null)}>
-            <div
-              className="lightboxInner"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                type="button"
-                className="lightboxClose"
-                onClick={() => setActiveImage(null)}
-                aria-label="Zavřít"
-              >
-                ×
-              </button>
-
-              <img
-                src={activeImage.img}
-                alt={activeImage.city}
-                className="lightboxImg"
-              />
-
-              <div className="lightboxCaption">{activeImage.city}</div>
-            </div>
-          </div>
-        )}
-
         <style jsx global>{`
           .heroShell {
             display: grid;
@@ -1320,66 +1184,6 @@ export default function Ucebna() {
             overflow: hidden;
             box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
             border: 1px solid rgba(15, 23, 42, 0.08);
-          }
-
-          .realizationsGrid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-          }
-
-          .referencesEmpty {
-            background: rgba(248, 250, 252, 0.9);
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 22px;
-            padding: 22px 18px;
-            text-align: center;
-            font-size: 16px;
-            line-height: 1.6;
-            color: rgba(15, 23, 42, 0.68);
-          }
-
-          .realizationCard {
-            position: relative;
-            padding: 0;
-            border: 0;
-            background: white;
-            border-radius: 22px;
-            overflow: hidden;
-            cursor: pointer;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-            transition: transform 0.16s ease, box-shadow 0.16s ease;
-          }
-
-          .realizationCard:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
-          }
-
-          .realizationImg {
-            width: 100%;
-            display: block;
-            aspect-ratio: 16 / 10;
-            object-fit: cover;
-          }
-
-          .realizationOverlay {
-            position: absolute;
-            inset: auto 0 0 0;
-            padding: 18px 16px 14px;
-            background: linear-gradient(
-              180deg,
-              rgba(15, 23, 42, 0) 0%,
-              rgba(15, 23, 42, 0.78) 100%
-            );
-            text-align: left;
-          }
-
-          .realizationCity {
-            color: white;
-            font-size: 16px;
-            font-weight: 800;
-            line-height: 1.2;
           }
 
           .pillarsGrid {
@@ -1629,56 +1433,6 @@ export default function Ucebna() {
             gap: 18px;
           }
 
-          .lightbox {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.82);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            z-index: 9999;
-          }
-
-          .lightboxInner {
-            position: relative;
-            max-width: 1100px;
-            width: 100%;
-          }
-
-          .lightboxClose {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            width: 42px;
-            height: 42px;
-            border-radius: 999px;
-            border: 0;
-            background: white;
-            color: #0f172a;
-            font-size: 28px;
-            line-height: 1;
-            cursor: pointer;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
-          }
-
-          .lightboxImg {
-            width: 100%;
-            max-height: 82vh;
-            object-fit: contain;
-            display: block;
-            border-radius: 22px;
-            background: white;
-          }
-
-          .lightboxCaption {
-            margin-top: 12px;
-            color: white;
-            font-size: 18px;
-            font-weight: 800;
-            text-align: center;
-          }
-
           @media (max-width: 1160px) {
             .heroShell,
             .aboutGrid,
@@ -1687,7 +1441,6 @@ export default function Ucebna() {
             .variantGrid,
             .equipGrid,
             .galleryGrid,
-            .realizationsGrid,
             .pillarsGrid,
             .zigzagRow,
             .zigzagRow.reverse,
