@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { supabase } from "../lib/supabaseClient";
 
 const heroImg = "/ucebna-exterier.webp";
 const classImg = "/ucebna-deti.webp";
 const techImg = "/ucebna-technologie.webp";
 const communityImg = "/ucebna-komunita.webp";
 const mediaImg = "/ucebna-media.webp";
-const mapImg = "/ucebna-mapa.webp";
+
+const SCHOOLS_BUCKET = "schools";
 
 const variants = [
   {
@@ -50,21 +52,18 @@ const variants = [
   },
 ];
 
-const realizace = [
-  { city: "Ratíškovice", img: "/realizace/ratiskovice.jpg" },
-  { city: "Růžovka Frýdek-Místek", img: "/realizace/ruzovka-frydek-mistek.jpg" },
-  { city: "Čejč", img: "/realizace/cejc.jpg" },
-  { city: "Mikulov", img: "/realizace/mikulov.jpg" },
-  { city: "Hovorany", img: "/realizace/hovorany.jpg" },
-  { city: "Křenov", img: "/realizace/krenov.jpg" },
-];
-
 const gallery = [
   { src: heroImg, alt: "Exteriér učebny ARCHIMEDES®" },
   { src: classImg, alt: "Výuka dětí v učebně ARCHIMEDES®" },
   { src: techImg, alt: "Technologie a interiér učebny ARCHIMEDES®" },
   { src: communityImg, alt: "Komunitní využití učebny ARCHIMEDES®" },
 ];
+
+function publicUrlFromPath(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from(SCHOOLS_BUCKET).getPublicUrl(path);
+  return data?.publicUrl || null;
+}
 
 function PrimaryButton({ href, children }) {
   return (
@@ -172,6 +171,51 @@ function SectionTitle({ children, style = {} }) {
 
 export default function Ucebna() {
   const [activeImage, setActiveImage] = useState(null);
+  const [realizace, setRealizace] = useState([]);
+  const [loadingRealizace, setLoadingRealizace] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadRealizace() {
+      setLoadingRealizace(true);
+
+      const { data, error } = await supabase
+        .from("schools")
+        .select("id, name, city, photo_path, is_published, created_at")
+        .eq("is_published", true)
+        .not("photo_path", "is", null)
+        .order("created_at", { ascending: false });
+
+      if (!mounted) return;
+
+      if (error) {
+        console.error("Chyba při načítání referencí:", error.message);
+        setRealizace([]);
+        setLoadingRealizace(false);
+        return;
+      }
+
+      const items = (data || [])
+        .map((row) => ({
+          id: row.id,
+          city: row.city || row.name || "Realizace ARCHIMEDES",
+          title: row.name || row.city || "ARCHIMEDES",
+          img: publicUrlFromPath(row.photo_path),
+        }))
+        .filter((item) => item.img)
+        .slice(0, 18);
+
+      setRealizace(items);
+      setLoadingRealizace(false);
+    }
+
+    loadRealizace();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <div
@@ -262,7 +306,7 @@ export default function Ucebna() {
                 }}
               >
                 <PrimaryButton href="#realizace">
-                  Prohlédnout 18 realizací
+                  Prohlédnout reference
                 </PrimaryButton>
                 <SecondaryButton href="/poptavka">
                   Chci nezávaznou nabídku
@@ -506,54 +550,61 @@ export default function Ucebna() {
           }}
         >
           <div className="premiumCard">
-            <div className="networkTop">
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-end",
+                gap: 18,
+                flexWrap: "wrap",
+                marginBottom: 22,
+              }}
+            >
               <div>
                 <SectionEyebrow>Reference</SectionEyebrow>
                 <SectionTitle style={{ fontSize: 42 }}>
-                  Síť učeben ARCHIMEDES®
+                  Reálné realizace učeben ARCHIMEDES®
                 </SectionTitle>
 
-                <p className="leadText" style={{ marginBottom: 0 }}>
-                  ARCHIMEDES® dnes není prototyp. Je to ověřené řešení, které už
-                  funguje v reálných školách a obcích. Každá další realizace
-                  potvrzuje, že kvalitní vzdělávací prostor může být zároveň
-                  krásný, funkční i komunitní.
+                <p className="leadText" style={{ marginBottom: 0, maxWidth: 860 }}>
+                  Podívejte se na výběr realizací přímo ze sítě učeben
+                  ARCHIMEDES®. Fotografie níže se načítají z portálu a ukazují
+                  skutečné školy a obce, kde už učebna funguje.
                 </p>
               </div>
 
-              <div className="mapCard">
-                <img
-                  src={mapImg}
-                  alt="Mapa sítě učeben ARCHIMEDES®"
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    aspectRatio: "16/11",
-                    objectFit: "cover",
-                  }}
-                />
-              </div>
+              <SecondaryButton href="/media" tinted>
+                Zobrazit všechny reference a média
+              </SecondaryButton>
             </div>
 
-            <div className="realizationsGrid">
-              {realizace.map((item) => (
-                <button
-                  key={item.city}
-                  type="button"
-                  className="realizationCard"
-                  onClick={() => setActiveImage(item)}
-                >
-                  <img
-                    src={item.img}
-                    alt={item.city}
-                    className="realizationImg"
-                  />
-                  <div className="realizationOverlay">
-                    <span className="realizationCity">{item.city}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
+            {loadingRealizace ? (
+              <div className="referencesEmpty">Načítám reference…</div>
+            ) : realizace.length > 0 ? (
+              <div className="realizationsGrid">
+                {realizace.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="realizationCard"
+                    onClick={() => setActiveImage(item)}
+                  >
+                    <img
+                      src={item.img}
+                      alt={item.city}
+                      className="realizationImg"
+                    />
+                    <div className="realizationOverlay">
+                      <span className="realizationCity">{item.city}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="referencesEmpty">
+                Reference se zatím nepodařilo načíst.
+              </div>
+            )}
           </div>
         </section>
 
@@ -596,7 +647,10 @@ export default function Ucebna() {
                     vizualizér, díky kterým ožije každý výklad.
                   </p>
 
-                  <p className="leadText" style={{ marginTop: 14, marginBottom: 0 }}>
+                  <p
+                    className="leadText"
+                    style={{ marginTop: 14, marginBottom: 0 }}
+                  >
                     Pro dokonalé spojení v rámci globální sítě Archimedes Live
                     je prostor osazen profesionální zvukotechnikou a speciálním
                     videobarem – chytrou konferenční kamerou s audiotrackingem,
@@ -650,7 +704,10 @@ export default function Ucebna() {
                     jednotky.
                   </p>
 
-                  <p className="leadText" style={{ marginTop: 14, marginBottom: 0 }}>
+                  <p
+                    className="leadText"
+                    style={{ marginTop: 14, marginBottom: 0 }}
+                  >
                     Naprostou revolucí pro zdraví je pak systém
                     plnospektrálního osvětlení. Tato chytrá svítidla do detailu
                     simulují přirozené sluneční záření, čímž prokazatelně
@@ -676,7 +733,10 @@ export default function Ucebna() {
                     a zelených pěstebních stěn.
                   </p>
 
-                  <p className="leadText" style={{ marginTop: 14, marginBottom: 0 }}>
+                  <p
+                    className="leadText"
+                    style={{ marginTop: 14, marginBottom: 0 }}
+                  >
                     Koloběh živin v přírodě si děti osahají v praxi díky
                     vermikompostéru s kalifornskými žížalami a hmyzímu hotelu.
                     Naprostým unikátem je pak šetrné propojení fauny s
@@ -1168,14 +1228,6 @@ export default function Ucebna() {
             align-items: start;
           }
 
-          .networkTop {
-            display: grid;
-            grid-template-columns: minmax(0, 0.98fr) minmax(360px, 1.02fr);
-            gap: 28px;
-            align-items: center;
-            margin-bottom: 22px;
-          }
-
           .communityGrid,
           .mediaGrid {
             display: grid;
@@ -1260,7 +1312,6 @@ export default function Ucebna() {
             color: rgba(15, 23, 42, 0.72);
           }
 
-          .mapCard,
           .communityVisual,
           .mediaVisual,
           .galleryCard {
@@ -1275,6 +1326,17 @@ export default function Ucebna() {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 16px;
+          }
+
+          .referencesEmpty {
+            background: rgba(248, 250, 252, 0.9);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 22px;
+            padding: 22px 18px;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.6;
+            color: rgba(15, 23, 42, 0.68);
           }
 
           .realizationCard {
@@ -1620,7 +1682,6 @@ export default function Ucebna() {
           @media (max-width: 1160px) {
             .heroShell,
             .aboutGrid,
-            .networkTop,
             .communityGrid,
             .mediaGrid,
             .variantGrid,
