@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Link from "next/link";
 
 const heroImg = "/ucebna-exterier.webp";
@@ -49,32 +50,20 @@ const variants = [
   },
 ];
 
-const references = [
-  "Ratíškovice",
-  "Růžovka Frýdek-Místek",
-  "Čejč",
-  "Mikulov",
-  "Hovorany",
-  "Křenov",
+const realizace = [
+  { city: "Ratíškovice", img: "/realizace/ratiskovice.jpg" },
+  { city: "Růžovka Frýdek-Místek", img: "/realizace/ruzovka-frydek-mistek.jpg" },
+  { city: "Čejč", img: "/realizace/cejc.jpg" },
+  { city: "Mikulov", img: "/realizace/mikulov.jpg" },
+  { city: "Hovorany", img: "/realizace/hovorany.jpg" },
+  { city: "Křenov", img: "/realizace/krenov.jpg" },
 ];
 
 const gallery = [
-  {
-    src: heroImg,
-    alt: "Exteriér učebny ARCHIMEDES®",
-  },
-  {
-    src: classImg,
-    alt: "Výuka dětí v učebně ARCHIMEDES®",
-  },
-  {
-    src: techImg,
-    alt: "Technologie a interiér učebny ARCHIMEDES®",
-  },
-  {
-    src: communityImg,
-    alt: "Komunitní využití učebny ARCHIMEDES®",
-  },
+  { src: heroImg, alt: "Exteriér učebny ARCHIMEDES®" },
+  { src: classImg, alt: "Výuka dětí v učebně ARCHIMEDES®" },
+  { src: techImg, alt: "Technologie a interiér učebny ARCHIMEDES®" },
+  { src: communityImg, alt: "Komunitní využití učebny ARCHIMEDES®" },
 ];
 
 function PrimaryButton({ href, children }) {
@@ -182,11 +171,12 @@ function SectionTitle({ children, style = {} }) {
 }
 
 export default function Ucebna() {
+  const [activeImage, setActiveImage] = useState(null);
+
   return (
     <div
       style={{
-        fontFamily:
-          "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+        fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
         background:
           "linear-gradient(180deg, #f6f7fb 0%, #f7f8fb 28%, #f3f5f9 100%)",
         minHeight: "100vh",
@@ -390,27 +380,19 @@ export default function Ucebna() {
           }}
         >
           <div className="premiumCard">
-            <div className="networkGrid">
+            <div className="networkTop">
               <div>
                 <SectionEyebrow>Reference</SectionEyebrow>
                 <SectionTitle style={{ fontSize: 42 }}>
                   Síť učeben ARCHIMEDES®
                 </SectionTitle>
 
-                <p className="leadText" style={{ marginBottom: 20 }}>
+                <p className="leadText" style={{ marginBottom: 0 }}>
                   ARCHIMEDES® dnes není prototyp. Je to ověřené řešení, které už
                   funguje v reálných školách a obcích. Každá další realizace
                   potvrzuje, že kvalitní vzdělávací prostor může být zároveň
                   krásný, funkční i komunitní.
                 </p>
-
-                <div className="referenceGrid">
-                  {references.map((item) => (
-                    <div key={item} className="referenceCard">
-                      {item}
-                    </div>
-                  ))}
-                </div>
               </div>
 
               <div className="mapCard">
@@ -425,6 +407,26 @@ export default function Ucebna() {
                   }}
                 />
               </div>
+            </div>
+
+            <div className="realizationsGrid">
+              {realizace.map((item) => (
+                <button
+                  key={item.city}
+                  type="button"
+                  className="realizationCard"
+                  onClick={() => setActiveImage(item)}
+                >
+                  <img
+                    src={item.img}
+                    alt={item.city}
+                    className="realizationImg"
+                  />
+                  <div className="realizationOverlay">
+                    <span className="realizationCity">{item.city}</span>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
         </section>
@@ -746,6 +748,32 @@ export default function Ucebna() {
           </div>
         </section>
 
+        {activeImage && (
+          <div className="lightbox" onClick={() => setActiveImage(null)}>
+            <div
+              className="lightboxInner"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="lightboxClose"
+                onClick={() => setActiveImage(null)}
+                aria-label="Zavřít"
+              >
+                ×
+              </button>
+
+              <img
+                src={activeImage.img}
+                alt={activeImage.city}
+                className="lightboxImg"
+              />
+
+              <div className="lightboxCaption">{activeImage.city}</div>
+            </div>
+          </div>
+        )}
+
         <style jsx global>{`
           .heroShell {
             display: grid;
@@ -783,7 +811,14 @@ export default function Ucebna() {
             align-items: start;
           }
 
-          .networkGrid,
+          .networkTop {
+            display: grid;
+            grid-template-columns: minmax(0, 0.98fr) minmax(360px, 1.02fr);
+            gap: 28px;
+            align-items: center;
+            margin-bottom: 22px;
+          }
+
           .communityGrid,
           .mediaGrid {
             display: grid;
@@ -862,26 +897,6 @@ export default function Ucebna() {
             color: rgba(15, 23, 42, 0.72);
           }
 
-          .referenceGrid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-          }
-
-          .referenceCard {
-            padding: 14px 16px;
-            border-radius: 16px;
-            background: linear-gradient(
-              180deg,
-              rgba(248, 250, 252, 1) 0%,
-              rgba(242, 246, 250, 1) 100%
-            );
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            font-weight: 800;
-            color: #0f172a;
-            font-size: 15px;
-          }
-
           .mapCard,
           .communityVisual,
           .mediaVisual,
@@ -891,6 +906,55 @@ export default function Ucebna() {
             overflow: hidden;
             box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
             border: 1px solid rgba(15, 23, 42, 0.08);
+          }
+
+          .realizationsGrid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+          }
+
+          .realizationCard {
+            position: relative;
+            padding: 0;
+            border: 0;
+            background: white;
+            border-radius: 22px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            transition: transform 0.16s ease, box-shadow 0.16s ease;
+          }
+
+          .realizationCard:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
+          }
+
+          .realizationImg {
+            width: 100%;
+            display: block;
+            aspect-ratio: 16 / 10;
+            object-fit: cover;
+          }
+
+          .realizationOverlay {
+            position: absolute;
+            inset: auto 0 0 0;
+            padding: 18px 16px 14px;
+            background: linear-gradient(
+              180deg,
+              rgba(15, 23, 42, 0) 0%,
+              rgba(15, 23, 42, 0.78) 100%
+            );
+            text-align: left;
+          }
+
+          .realizationCity {
+            color: white;
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 1.2;
           }
 
           .bulletList {
@@ -1019,15 +1083,66 @@ export default function Ucebna() {
             gap: 18px;
           }
 
+          .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.82);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 9999;
+          }
+
+          .lightboxInner {
+            position: relative;
+            max-width: 1100px;
+            width: 100%;
+          }
+
+          .lightboxClose {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            border: 0;
+            background: white;
+            color: #0f172a;
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
+          }
+
+          .lightboxImg {
+            width: 100%;
+            max-height: 82vh;
+            object-fit: contain;
+            display: block;
+            border-radius: 22px;
+            background: white;
+          }
+
+          .lightboxCaption {
+            margin-top: 12px;
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+            text-align: center;
+          }
+
           @media (max-width: 1160px) {
             .heroShell,
             .aboutGrid,
-            .networkGrid,
+            .networkTop,
             .communityGrid,
             .mediaGrid,
             .variantGrid,
             .equipGrid,
-            .galleryGrid {
+            .galleryGrid,
+            .realizationsGrid {
               grid-template-columns: 1fr;
             }
 
@@ -1042,8 +1157,7 @@ export default function Ucebna() {
               border-radius: 24px;
             }
 
-            .modeGrid,
-            .referenceGrid {
+            .modeGrid {
               grid-template-columns: 1fr;
             }
 
