@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../lib/supabaseClient";
 
-const heroImg = "/ucebna-exterier.webp";
+const heroImg = "/kamera.webp";
 const classImg = "/ucebna-deti.webp";
 const techImg = "/ucebna-technologie.webp";
 const communityImg = "/ucebna-komunita.webp";
