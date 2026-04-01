@@ -11,6 +11,7 @@ function activeKeyFromPath(pathname = "") {
   if (pathname === "/program") return "program";
   if (pathname === "/cenik") return "cenik";
   if (pathname === "/poptavka") return "poptavka";
+  if (pathname === "/media") return "media";
   if (pathname === "/kontakt") return "kontakt";
   return "";
 }
