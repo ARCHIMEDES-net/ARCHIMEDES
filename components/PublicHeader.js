@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/vysilani", label: "Hosté a témata" },
   { href: "/ucebna", label: "Učebna" },
   { href: "/poptavka", label: "Poptávka" },
+  { href: "/media", label: "Reference/Média" },
   { href: "/kontakt", label: "Kontakt" },
 ];
 
@@ -37,6 +38,7 @@ export default function PublicHeader({ active = "" }) {
       if (href === "/program") return active === "program";
       if (href === "/cenik") return active === "cenik";
       if (href === "/poptavka") return active === "poptavka";
+      if (href === "/media") return active === "media";
       if (href === "/kontakt") return active === "kontakt";
     }
 
