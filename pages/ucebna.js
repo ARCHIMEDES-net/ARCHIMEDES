@@ -7,7 +7,7 @@ const techImg = "/jak-funguje-tabule.jpg";
 const communityImg = "/komunita.jpg";
 
 const ecosystemMainImg = "/IMG_0228_content.webp";
-const ecosystemNatureImg = "/tel.webp";
+const ecosystemNatureImg = "/zel.webp";
 const ecosystemOnlineImg = "/jak-funguje-online.jpg";
 
 const klimaImg = "/otevrena-hero.webp";
