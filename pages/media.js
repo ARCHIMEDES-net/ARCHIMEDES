@@ -12,7 +12,7 @@ const galleryCommunityImg = "/ucebna-komunita.webp";
 const galleryMediaImg = "/image-1.png";
 
 const mediaSectionImg = "/ucebna-media.webp";
-
+const galleryHeroImg = "/techn.webp";
 const SCHOOLS_BUCKET = "schools";
 
 const EXCLUDED_REFERENCE_CITIES = [
@@ -32,7 +32,7 @@ const mediaPoints = [
 
 const storyGallery = [
   {
-    src: heroImg,
+    src: galleryHeroImg,
     title: "Exteriér učebny ARCHIMEDES®",
     text: "Reprezentativní venkovní učebna zasazená do přirozeného prostředí.",
     ratio: "wide",
