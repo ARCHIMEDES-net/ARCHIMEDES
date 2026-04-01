@@ -3,10 +3,15 @@ import Link from "next/link";
 import { supabase } from "../lib/supabaseClient";
 
 const heroImg = "/kamera.webp";
-const classImg = "/detidoucebny.webp";
-const techImg = "/atmos.webp";
-const communityImg = "/ucebna-komunita.webp";
-const mediaImg = "/image-1.png";
+
+const aboutImg = "/detidoucebny.webp";
+
+const galleryClassImg = "/ucitelka.jpeg";
+const galleryTechImg = "/atmos.webp";
+const galleryCommunityImg = "/ucebna-komunita.webp";
+const galleryMediaImg = "/image-1.png";
+
+const mediaSectionImg = "/ucebna-media.webp";
 
 const SCHOOLS_BUCKET = "schools";
 
@@ -33,25 +38,25 @@ const storyGallery = [
     ratio: "wide",
   },
   {
-    src: classImg,
+    src: galleryClassImg,
     title: "Výuka v praxi",
     text: "ARCHIMEDES® jako živý prostor pro každodenní vzdělávání.",
     ratio: "standard",
   },
   {
-    src: techImg,
+    src: galleryTechImg,
     title: "Moderní technologie",
     text: "Interaktivní výuka, digitální vybavení a kvalitní zázemí.",
     ratio: "standard",
   },
   {
-    src: communityImg,
+    src: galleryCommunityImg,
     title: "Komunitní život",
     text: "Prostor pro akce obce, setkávání i společné zážitky.",
     ratio: "standard",
   },
   {
-    src: mediaImg,
+    src: galleryMediaImg,
     title: "Veřejná a mediální pozornost",
     text: "Projekt, který vzbuzuje zájem odborníků i veřejnosti.",
     ratio: "standard",
@@ -467,7 +472,7 @@ export default function MediaPage() {
 
               <div className="sideCard">
                 <SafeImage
-                  src={classImg}
+                  src={aboutImg}
                   alt="Výuka v učebně ARCHIMEDES®"
                   style={{
                     width: "100%",
@@ -651,7 +656,7 @@ export default function MediaPage() {
 
               <div className="sideCard">
                 <SafeImage
-                  src={mediaImg}
+                  src={mediaSectionImg}
                   alt="Mediální pozornost projektu ARCHIMEDES®"
                   style={{
                     width: "100%",
