@@ -4,7 +4,7 @@ const heroImg = "/ucebna-exterier.webp";
 
 const classImg = "/detivetride.webp";
 const techImg = "/jak-funguje-tabule.jpg";
-const communityImg = "/komunita.jpg";
+const communityImg = "/seni.webp";
 
 const ecosystemMainImg = "/IMG_0228_content.webp";
 const ecosystemNatureImg = "/zel.webp";
