@@ -7,11 +7,11 @@ const techImg = "/jak-funguje-tabule.jpg";
 const communityImg = "/komunita.jpg";
 
 const ecosystemMainImg = "/IMG_0228_content.webp";
-const ecosystemNatureImg = "/otevrena.jpg";
+const ecosystemNatureImg = "/tel.webp";
 const ecosystemOnlineImg = "/jak-funguje-online.jpg";
 
 const klimaImg = "/otevrena-hero.webp";
-const natureImg = "/DJI_20260202_104516_998_content.webp";
+const natureImg = "/mikro.jpeg";
 
 const interierImg = "/ucebna.jpg";
 const auditoriumImg = "/jak-funguje-trida.jpg";
