@@ -3,10 +3,10 @@ import Link from "next/link";
 import { supabase } from "../lib/supabaseClient";
 
 const heroImg = "/kamera.webp";
-const classImg = "/ucebna-deti.webp";
-const techImg = "/ucebna-technologie.webp";
+const classImg = "/detidoucebny.webp";
+const techImg = "/atmos.webp";
 const communityImg = "/ucebna-komunita.webp";
-const mediaImg = "/ucebna-media.webp";
+const mediaImg = "/image-1.png";
 
 const SCHOOLS_BUCKET = "schools";
 
