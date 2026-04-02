@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const heroImg = "/ucebna-exterier.webp";
 
-const classImg = "/detivetride.webp";
+const classImg = "/detipreducebnou.png";
 const techImg = "/dino.jpg";
 const communityImg = "/seni.webp";
 
