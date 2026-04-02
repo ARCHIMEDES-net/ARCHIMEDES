@@ -14,8 +14,7 @@ const klimaImg = "/otevrena-hero.webp";
 const natureImg = "/mikro.jpeg";
 
 const interierImg = "/ucebna.jpg";
-const auditoriumImg = "/jak-funguje-trida.jpg";
-const openHallImg = "/otevreni.webp";
+const salVideo = "/sal.mp4";
 
 const mediaSectionImg = "/prestrih.webp";
 
@@ -763,29 +762,22 @@ export default function Ucebna() {
                   />
                 </div>
 
-                <div className="doubleVisualGrid">
-                  <div className="visualCard">
-                    <img
-                      src={auditoriumImg}
-                      alt="Učebna ve variantě auditorium"
+                <div className="videoCardWrap">
+                  <div className="videoCardPortrait">
+                    <video
+                      src={salVideo}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      controls
+                      preload="metadata"
                       style={{
                         width: "100%",
                         display: "block",
-                        aspectRatio: "16/10",
+                        aspectRatio: "9/16",
                         objectFit: "cover",
-                      }}
-                    />
-                  </div>
-
-                  <div className="visualCard">
-                    <img
-                      src={openHallImg}
-                      alt="Učebna jako volná plocha a komunitní sál"
-                      style={{
-                        width: "100%",
-                        display: "block",
-                        aspectRatio: "16/10",
-                        objectFit: "cover",
+                        background: "#000",
                       }}
                     />
                   </div>
@@ -880,14 +872,16 @@ export default function Ucebna() {
         >
           <div className="equipmentStripe">
             <div className="equipmentStripeInner">
-              <div>
-                <SectionEyebrow>Špičková výbava bez rozdílu</SectionEyebrow>
-                <SectionTitle style={{ fontSize: 42 }}>
+              <div style={{ marginBottom: 14 }}>
+                <div className="equipmentEyebrow">
+                  Špičková výbava bez rozdílu
+                </div>
+                <div className="equipmentTitle">
                   Všechny varianty umíme dodat na klíč
-                </SectionTitle>
+                </div>
               </div>
 
-              <p className="leadText" style={{ marginBottom: 0 }}>
+              <p className="equipmentText">
                 Ať už si vyberete vzdušnou variantu OPTIMAL, nebo plně
                 izolovanou PREMIUM, o moderní technologie ani komfort
                 nepřijdete. Do každého modelu lze bez omezení integrovat chytré
@@ -1174,6 +1168,20 @@ export default function Ucebna() {
             box-shadow: 0 20px 46px rgba(15, 23, 42, 0.08);
           }
 
+          .videoCardWrap {
+            display: flex;
+            justify-content: center;
+          }
+
+          .videoCardPortrait {
+            width: min(100%, 360px);
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+          }
+
           .modeGrid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1394,17 +1402,26 @@ export default function Ucebna() {
             padding: 34px 30px;
           }
 
-          .equipmentStripe .leadText,
-          .equipmentStripe div {
-            color: white;
+          .equipmentEyebrow {
+            font-size: 14px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.68);
+            margin-bottom: 10px;
           }
 
-          .equipmentStripe .leadText {
-            color: rgba(255, 255, 255, 0.84);
+          .equipmentTitle {
+            font-size: 42px;
+            line-height: 1.06;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: -0.04em;
           }
 
-          .equipmentStripe :global(div[style*="rgba(15,23,42,0.52)"]) {
-            color: rgba(255, 255, 255, 0.6) !important;
+          .equipmentText {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.78;
+            color: rgba(255, 255, 255, 0.88);
           }
 
           .equipGrid {
@@ -1476,6 +1493,10 @@ export default function Ucebna() {
             .equipCardWide {
               grid-column: auto;
             }
+
+            .videoCardWrap {
+              justify-content: flex-start;
+            }
           }
 
           @media (max-width: 760px) {
@@ -1494,8 +1515,13 @@ export default function Ucebna() {
 
             .pillarTitle,
             .zigzagTitle,
-            .equipTitle {
+            .equipTitle,
+            .equipmentTitle {
               font-size: 24px;
+            }
+
+            .videoCardPortrait {
+              width: 100%;
             }
           }
         `}</style>
