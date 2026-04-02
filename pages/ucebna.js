@@ -14,8 +14,7 @@ const ecosystemOnlineImg = "/jak-funguje-online.jpg";
 const klimaImg = "/otevrena-hero.webp";
 const natureImg = "/mikro.jpeg";
 
-const salVideoMp4 = "/sal.mp4";
-const salVideoMov = "/sal.mov";
+const salVideo = "/sal.mp4";
 const salPoster = "/sal-poster.jpg";
 
 const mediaSectionImg = "/prestrih.webp";
@@ -176,6 +175,8 @@ export default function Ucebna() {
     const tryPlay = async () => {
       try {
         video.muted = true;
+        video.defaultMuted = true;
+        video.playsInline = true;
         await video.play();
       } catch (err) {
         // Pokud prohlížeč autoplay zablokuje, zůstane zobrazen poster.
@@ -759,11 +760,12 @@ export default function Ucebna() {
                     loop
                     playsInline
                     preload="auto"
-                    className="croppedVideo"
+                    className="croppedVideo cinematicVideo"
                   >
-                    <source src={salVideoMp4} type="video/mp4" />
-                    <source src={salVideoMov} type="video/quicktime" />
+                    <source src={salVideo} type="video/mp4" />
+                    Váš prohlížeč nepodporuje přehrávání videa.
                   </video>
+                  <div className="videoOverlayGlow" />
                 </div>
               </div>
             </div>
@@ -1120,20 +1122,57 @@ export default function Ucebna() {
             box-shadow: 0 18px 44px rgba(15, 23, 42, 0.09);
             border: 1px solid rgba(15, 23, 42, 0.08);
             position: relative;
+            isolation: isolate;
           }
 
           .croppedVideo {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            inset: 0;
+            width: 100%;
             height: 100%;
-            width: auto;
-            min-width: 100%;
-            transform: translate(-50%, -50%) scale(1.7);
-            transform-origin: center center;
-            display: block;
             object-fit: cover;
+            object-position: center 38%;
+            display: block;
             background: #0f172a;
+          }
+
+          .cinematicVideo {
+            transform: scale(1.16);
+            transform-origin: center center;
+            animation: cinematicFloat 18s ease-in-out infinite alternate;
+            filter: saturate(1.03) contrast(1.02);
+            will-change: transform;
+          }
+
+          .videoOverlayGlow {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+              linear-gradient(
+                to top,
+                rgba(15, 23, 42, 0.16) 0%,
+                rgba(15, 23, 42, 0.03) 28%,
+                rgba(255, 255, 255, 0) 58%
+              ),
+              radial-gradient(
+                circle at 50% 18%,
+                rgba(255, 255, 255, 0.16),
+                rgba(255, 255, 255, 0) 42%
+              );
+            z-index: 1;
+          }
+
+          @keyframes cinematicFloat {
+            0% {
+              transform: scale(1.16) translate3d(0, 0, 0);
+            }
+            50% {
+              transform: scale(1.2) translate3d(-1.5%, -1.2%, 0);
+            }
+            100% {
+              transform: scale(1.18) translate3d(1.2%, -2.2%, 0);
+            }
           }
 
           .modeGrid {
@@ -1471,7 +1510,23 @@ export default function Ucebna() {
             }
 
             .croppedVideo {
-              transform: translate(-50%, -50%) scale(1.45);
+              object-position: center 34%;
+            }
+
+            .cinematicVideo {
+              transform: scale(1.12);
+            }
+
+            @keyframes cinematicFloat {
+              0% {
+                transform: scale(1.12) translate3d(0, 0, 0);
+              }
+              50% {
+                transform: scale(1.15) translate3d(-1%, -1%, 0);
+              }
+              100% {
+                transform: scale(1.13) translate3d(1%, -1.8%, 0);
+              }
             }
           }
         `}</style>
