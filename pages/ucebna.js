@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 
 const heroImg = "/ucebna-exterier.webp";
 
@@ -165,6 +166,24 @@ function SectionTitle({ children, style = {} }) {
 }
 
 export default function Ucebna() {
+  const salVideoRef = useRef(null);
+
+  useEffect(() => {
+    const video = salVideoRef.current;
+    if (!video) return;
+
+    const tryPlay = async () => {
+      try {
+        video.muted = true;
+        await video.play();
+      } catch (err) {
+        // Pokud prohlížeč autoplay zablokuje, zůstane zobrazen poster.
+      }
+    };
+
+    tryPlay();
+  }, []);
+
   return (
     <div
       style={{
@@ -732,13 +751,13 @@ export default function Ucebna() {
               <div className="videoStage">
                 <div className="videoCardPortraitLarge">
                   <video
+                    ref={salVideoRef}
                     src={salVideo}
                     poster={salPoster}
                     autoPlay
                     muted
                     loop
                     playsInline
-                    controls
                     preload="auto"
                     style={{
                       width: "100%",
