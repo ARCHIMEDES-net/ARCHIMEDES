@@ -751,7 +751,7 @@ export default function Ucebna() {
               </div>
 
               <div className="videoStage">
-                <div className="videoCardPortraitLarge">
+                <div className="videoCardPortraitLarge videoCardAligned">
                   <video
                     ref={salVideoRef}
                     poster={salPoster}
@@ -760,6 +760,7 @@ export default function Ucebna() {
                     loop
                     playsInline
                     preload="auto"
+                    controls
                     className="croppedVideo cinematicVideo"
                   >
                     <source src={salVideo} type="video/mp4" />
@@ -1110,6 +1111,7 @@ export default function Ucebna() {
           .videoStage {
             display: flex;
             justify-content: center;
+            align-items: flex-start;
           }
 
           .videoCardPortraitLarge {
@@ -1125,19 +1127,23 @@ export default function Ucebna() {
             isolation: isolate;
           }
 
+          .videoCardAligned {
+            margin-top: 42px;
+          }
+
           .croppedVideo {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            object-position: center 38%;
+            object-position: center 52%;
             display: block;
             background: #0f172a;
           }
 
           .cinematicVideo {
-            transform: scale(1.16);
+            transform: scale(1.22);
             transform-origin: center center;
             animation: cinematicFloat 18s ease-in-out infinite alternate;
             filter: saturate(1.03) contrast(1.02);
@@ -1165,13 +1171,13 @@ export default function Ucebna() {
 
           @keyframes cinematicFloat {
             0% {
-              transform: scale(1.16) translate3d(0, 0, 0);
+              transform: scale(1.22) translate3d(0, 0, 0);
             }
             50% {
-              transform: scale(1.2) translate3d(-1.5%, -1.2%, 0);
+              transform: scale(1.26) translate3d(-1.2%, -0.6%, 0);
             }
             100% {
-              transform: scale(1.18) translate3d(1.2%, -2.2%, 0);
+              transform: scale(1.24) translate3d(1%, -1.4%, 0);
             }
           }
 
@@ -1509,23 +1515,27 @@ export default function Ucebna() {
               height: 500px;
             }
 
+            .videoCardAligned {
+              margin-top: 12px;
+            }
+
             .croppedVideo {
-              object-position: center 34%;
+              object-position: center 50%;
             }
 
             .cinematicVideo {
-              transform: scale(1.12);
+              transform: scale(1.16);
             }
 
             @keyframes cinematicFloat {
               0% {
-                transform: scale(1.12) translate3d(0, 0, 0);
+                transform: scale(1.16) translate3d(0, 0, 0);
               }
               50% {
-                transform: scale(1.15) translate3d(-1%, -1%, 0);
+                transform: scale(1.19) translate3d(-0.8%, -0.5%, 0);
               }
               100% {
-                transform: scale(1.13) translate3d(1%, -1.8%, 0);
+                transform: scale(1.17) translate3d(0.8%, -1.2%, 0);
               }
             }
           }
