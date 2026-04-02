@@ -14,7 +14,8 @@ const ecosystemOnlineImg = "/jak-funguje-online.jpg";
 const klimaImg = "/otevrena-hero.webp";
 const natureImg = "/mikro.jpeg";
 
-const salVideo = "/sal.mp4";
+const salVideoMp4 = "/sal.mp4";
+const salVideoMov = "/sal.mov";
 const salPoster = "/sal-poster.jpg";
 
 const mediaSectionImg = "/prestrih.webp";
@@ -752,21 +753,17 @@ export default function Ucebna() {
                 <div className="videoCardPortraitLarge">
                   <video
                     ref={salVideoRef}
-                    src={salVideo}
                     poster={salPoster}
                     autoPlay
                     muted
                     loop
                     playsInline
                     preload="auto"
-                    style={{
-                      width: "100%",
-                      display: "block",
-                      aspectRatio: "9/16",
-                      objectFit: "cover",
-                      background: "#111",
-                    }}
-                  />
+                    className="croppedVideo"
+                  >
+                    <source src={salVideoMp4} type="video/mp4" />
+                    <source src={salVideoMov} type="video/quicktime" />
+                  </video>
                 </div>
               </div>
             </div>
@@ -1116,11 +1113,27 @@ export default function Ucebna() {
           .videoCardPortraitLarge {
             width: 100%;
             max-width: 430px;
-            background: #fff;
+            height: 560px;
+            background: #0f172a;
             border-radius: 30px;
             overflow: hidden;
             box-shadow: 0 18px 44px rgba(15, 23, 42, 0.09);
             border: 1px solid rgba(15, 23, 42, 0.08);
+            position: relative;
+          }
+
+          .croppedVideo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            height: 100%;
+            width: auto;
+            min-width: 100%;
+            transform: translate(-50%, -50%) scale(1.7);
+            transform-origin: center center;
+            display: block;
+            object-fit: cover;
+            background: #0f172a;
           }
 
           .modeGrid {
@@ -1454,6 +1467,11 @@ export default function Ucebna() {
 
             .videoCardPortraitLarge {
               max-width: 100%;
+              height: 500px;
+            }
+
+            .croppedVideo {
+              transform: translate(-50%, -50%) scale(1.45);
             }
           }
         `}</style>
