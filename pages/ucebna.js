@@ -13,8 +13,8 @@ const ecosystemOnlineImg = "/jak-funguje-online.jpg";
 const klimaImg = "/otevrena-hero.webp";
 const natureImg = "/mikro.jpeg";
 
-const interierImg = "/ucebna.jpg";
 const salVideo = "/sal.mp4";
+const salPoster = "/sal-poster.jpg";
 
 const mediaSectionImg = "/prestrih.webp";
 
@@ -57,25 +57,6 @@ const variants = [
       "Pro zřizovatele, kteří chtějí 100% bezpečný a celoročně izolovaný prostor s maximální tepelnou stabilitou i v těch největších mrazech.",
     design:
       "Exteriér tvoří moderní fasáda v barvě dle vzorníku RAL, interiér hřeje příjemným dřevem. Podlaha je z vysoce odolného PVC. Konstrukce neumožňuje plné otevření stěn.",
-  },
-];
-
-const gallery = [
-  {
-    src: "/DJI_20260202_100827_288_content.webp",
-    alt: "Exteriér učebny ARCHIMEDES®",
-  },
-  {
-    src: "/deti.jpg",
-    alt: "Děti při výuce v učebně ARCHIMEDES®",
-  },
-  {
-    src: "/praxe.webp",
-    alt: "Praktická výuka v učebně ARCHIMEDES®",
-  },
-  {
-    src: "/ucebna2.webp",
-    alt: "Další pohled na učebnu ARCHIMEDES®",
   },
 ];
 
@@ -686,7 +667,7 @@ export default function Ucebna() {
           }}
         >
           <div className="premiumCard">
-            <div className="aboutGrid">
+            <div className="aboutGrid aboutGridVideoOnly">
               <div>
                 <SectionEyebrow>Proměnlivý interiér</SectionEyebrow>
                 <SectionTitle>Z učebny sálem během pár minut</SectionTitle>
@@ -748,39 +729,25 @@ export default function Ucebna() {
                 </div>
               </div>
 
-              <div className="visualTriple">
-                <div className="visualCard visualCardLarge">
-                  <img
-                    src={interierImg}
-                    alt="Variabilní interiér učebny ARCHIMEDES®"
+              <div className="videoStage">
+                <div className="videoCardPortraitLarge">
+                  <video
+                    src={salVideo}
+                    poster={salPoster}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    controls
+                    preload="auto"
                     style={{
                       width: "100%",
                       display: "block",
-                      aspectRatio: "16/10",
+                      aspectRatio: "9/16",
                       objectFit: "cover",
+                      background: "#111",
                     }}
                   />
-                </div>
-
-                <div className="videoCardWrap">
-                  <div className="videoCardPortrait">
-                    <video
-                      src={salVideo}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      controls
-                      preload="metadata"
-                      style={{
-                        width: "100%",
-                        display: "block",
-                        aspectRatio: "9/16",
-                        objectFit: "cover",
-                        background: "#000",
-                      }}
-                    />
-                  </div>
                 </div>
               </div>
             </div>
@@ -951,6 +918,19 @@ export default function Ucebna() {
                 </div>
               </div>
             </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: 14,
+                flexWrap: "wrap",
+                marginTop: 28,
+              }}
+            >
+              <PrimaryButton href="/poptavka?typ=navsteva-vzorove-ucebny">
+                Navštívit vzorovou učebnu BVV Brno
+              </PrimaryButton>
+            </div>
           </div>
         </section>
 
@@ -958,7 +938,7 @@ export default function Ucebna() {
           style={{
             maxWidth: 1240,
             margin: "0 auto",
-            padding: "10px 20px 24px",
+            padding: "10px 20px 80px",
           }}
         >
           <div className="premiumCard mediaSection">
@@ -1011,69 +991,6 @@ export default function Ucebna() {
           </div>
         </section>
 
-        <section
-          style={{
-            maxWidth: 1240,
-            margin: "0 auto",
-            padding: "10px 20px 80px",
-          }}
-        >
-          <div className="premiumCard">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-end",
-                justifyContent: "space-between",
-                gap: 18,
-                flexWrap: "wrap",
-                marginBottom: 20,
-              }}
-            >
-              <div>
-                <SectionEyebrow>Fotogalerie</SectionEyebrow>
-                <SectionTitle style={{ fontSize: 42 }}>
-                  Podívejte se na ARCHIMEDES® blíž
-                </SectionTitle>
-              </div>
-
-              <SecondaryButton href="/media" tinted>
-                Zobrazit další fotografie a média
-              </SecondaryButton>
-            </div>
-
-            <div className="galleryGrid">
-              {gallery.map((item) => (
-                <div key={item.alt} className="galleryCard">
-                  <img
-                    src={item.src}
-                    alt={item.alt}
-                    style={{
-                      width: "100%",
-                      display: "block",
-                      aspectRatio: "16/11",
-                      objectFit: "cover",
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                gap: 14,
-                flexWrap: "wrap",
-                marginTop: 26,
-              }}
-            >
-              <PrimaryButton href="/poptavka">Mám zájem o učebnu</PrimaryButton>
-              <SecondaryButton href="/media">
-                Otevřít stránku média
-              </SecondaryButton>
-            </div>
-          </div>
-        </section>
-
         <style jsx global>{`
           .heroShell {
             display: grid;
@@ -1111,7 +1028,11 @@ export default function Ucebna() {
             align-items: start;
           }
 
-          .communityGrid,
+          .aboutGridVideoOnly {
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 430px);
+            align-items: start;
+          }
+
           .mediaGrid {
             display: grid;
             grid-template-columns: minmax(0, 0.98fr) minmax(360px, 1.02fr);
@@ -1168,17 +1089,18 @@ export default function Ucebna() {
             box-shadow: 0 20px 46px rgba(15, 23, 42, 0.08);
           }
 
-          .videoCardWrap {
+          .videoStage {
             display: flex;
             justify-content: center;
           }
 
-          .videoCardPortrait {
-            width: min(100%, 360px);
-            background: white;
-            border-radius: 28px;
+          .videoCardPortraitLarge {
+            width: 100%;
+            max-width: 430px;
+            background: #fff;
+            border-radius: 30px;
             overflow: hidden;
-            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
+            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.09);
             border: 1px solid rgba(15, 23, 42, 0.08);
           }
 
@@ -1209,9 +1131,7 @@ export default function Ucebna() {
             color: rgba(15, 23, 42, 0.72);
           }
 
-          .communityVisual,
-          .mediaVisual,
-          .galleryCard {
+          .mediaVisual {
             background: white;
             border-radius: 28px;
             overflow: hidden;
@@ -1469,20 +1389,13 @@ export default function Ucebna() {
             color: rgba(15, 23, 42, 0.72);
           }
 
-          .galleryGrid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
-          }
-
           @media (max-width: 1160px) {
             .heroShell,
             .aboutGrid,
-            .communityGrid,
+            .aboutGridVideoOnly,
             .mediaGrid,
             .variantGrid,
             .equipGrid,
-            .galleryGrid,
             .pillarsGrid,
             .zigzagRow,
             .zigzagRow.reverse,
@@ -1494,7 +1407,7 @@ export default function Ucebna() {
               grid-column: auto;
             }
 
-            .videoCardWrap {
+            .videoStage {
               justify-content: flex-start;
             }
           }
@@ -1520,8 +1433,8 @@ export default function Ucebna() {
               font-size: 24px;
             }
 
-            .videoCardPortrait {
-              width: 100%;
+            .videoCardPortraitLarge {
+              max-width: 100%;
             }
           }
         `}</style>
