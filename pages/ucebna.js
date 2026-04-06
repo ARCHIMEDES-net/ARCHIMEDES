@@ -19,6 +19,9 @@ const salPoster = "/sal-poster.jpg";
 
 const mediaSectionImg = "/prestrih.webp";
 
+const awardHealthyCitiesImg = "/zdravamesta.jpg";
+const awardObec2030Img = "/obec2030.jpeg";
+
 const variants = [
   {
     icon: "☀️",
@@ -216,10 +219,50 @@ export default function Ucebna() {
                   color: "#0f172a",
                   fontSize: 13,
                   fontWeight: 800,
-                  marginBottom: 20,
+                  marginBottom: 18,
                 }}
               >
                 ARCHIMEDES® • venkovní učebna pro školy a obce
+              </div>
+
+              <div className="awardsStrip">
+                <div className="awardCard">
+                  <div className="awardThumb">
+                    <img
+                      src={awardObec2030Img}
+                      alt="Vítěz soutěže OBEC 2030"
+                    />
+                  </div>
+                  <div className="awardContent">
+                    <div className="awardKicker">Ocenění</div>
+                    <div className="awardTitle">
+                      Vítěz 5. ročníku soutěže OBEC 2030
+                    </div>
+                    <div className="awardText">
+                      ARCHIMEDES uspěl jako inspirativní řešení pro moderní obec
+                      a komunitní rozvoj.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="awardCard">
+                  <div className="awardThumb">
+                    <img
+                      src={awardHealthyCitiesImg}
+                      alt="NEJpraxe Zdravých měst 2023 za Přírodní učebnu Archimedes"
+                    />
+                  </div>
+                  <div className="awardContent">
+                    <div className="awardKicker">Dobrá praxe</div>
+                    <div className="awardTitle">
+                      NEJpraxe Zdravých měst 2023
+                    </div>
+                    <div className="awardText">
+                      Ocenění za excelentní praxi pro Přírodní učebnu
+                      ARCHIMEDES.
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <h1
@@ -1018,6 +1061,73 @@ export default function Ucebna() {
             align-items: center;
           }
 
+          .awardsStrip {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin: 0 0 24px;
+          }
+
+          .awardCard {
+            display: grid;
+            grid-template-columns: 118px minmax(0, 1fr);
+            gap: 14px;
+            align-items: center;
+            padding: 12px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.86);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow:
+              0 16px 34px rgba(15, 23, 42, 0.06),
+              0 5px 16px rgba(15, 23, 42, 0.03);
+            backdrop-filter: blur(8px);
+          }
+
+          .awardThumb {
+            border-radius: 16px;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+          }
+
+          .awardThumb img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+          }
+
+          .awardContent {
+            min-width: 0;
+          }
+
+          .awardKicker {
+            font-size: 12px;
+            line-height: 1.3;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(15, 23, 42, 0.46);
+            margin-bottom: 6px;
+          }
+
+          .awardTitle {
+            font-size: 19px;
+            line-height: 1.14;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -0.03em;
+            margin-bottom: 6px;
+          }
+
+          .awardText {
+            font-size: 14px;
+            line-height: 1.55;
+            color: rgba(15, 23, 42, 0.68);
+          }
+
           .heroImageCard {
             background: rgba(255, 255, 255, 0.8);
             border-radius: 34px;
@@ -1476,7 +1586,8 @@ export default function Ucebna() {
             .pillarsGrid,
             .zigzagRow,
             .zigzagRow.reverse,
-            .doubleVisualGrid {
+            .doubleVisualGrid,
+            .awardsStrip {
               grid-template-columns: 1fr;
             }
 
@@ -1525,6 +1636,21 @@ export default function Ucebna() {
 
             .cinematicVideo {
               transform: scale(1.16);
+            }
+
+            .awardCard {
+              grid-template-columns: 92px minmax(0, 1fr);
+              gap: 12px;
+              padding: 10px;
+              border-radius: 18px;
+            }
+
+            .awardTitle {
+              font-size: 16px;
+            }
+
+            .awardText {
+              font-size: 13px;
             }
 
             @keyframes cinematicFloat {
