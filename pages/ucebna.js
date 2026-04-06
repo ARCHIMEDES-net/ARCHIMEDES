@@ -349,7 +349,7 @@ export default function Ucebna() {
               <div>
                 <div className="awardsBandEyebrow">Ocenění projektu</div>
                 <div className="awardsBandTitle">
-                  Uznání, která potvrzují reálný dopad ARCHIMEDES
+                  Uznání, která potvrzují reálný přínos učebny ARCHIMEDES
                 </div>
               </div>
               <div className="awardsBandText">
