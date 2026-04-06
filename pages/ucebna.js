@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const heroImg = "/ucebna-exterier.webp";
 
@@ -21,6 +21,23 @@ const mediaSectionImg = "/prestrih.webp";
 
 const awardHealthyCitiesImg = "/zdravamesta.jpg";
 const awardObec2030Img = "/obec2030.jpeg";
+
+const awards = [
+  {
+    label: "Ocenění",
+    title: "Vítěz 5. ročníku soutěže OBEC 2030",
+    text: "ARCHIMEDES uspěl jako inspirativní řešení pro moderní obec a komunitní rozvoj.",
+    image: awardObec2030Img,
+    alt: "Vítěz 5. ročníku soutěže OBEC 2030",
+  },
+  {
+    label: "Dobrá praxe",
+    title: "NEJpraxe Zdravých měst 2023",
+    text: "Ocenění za excelentní praxi pro Přírodní učebnu ARCHIMEDES.",
+    image: awardHealthyCitiesImg,
+    alt: "NEJpraxe Zdravých měst 2023 za Přírodní učebnu ARCHIMEDES",
+  },
+];
 
 const variants = [
   {
@@ -170,6 +187,7 @@ function SectionTitle({ children, style = {} }) {
 
 export default function Ucebna() {
   const salVideoRef = useRef(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   useEffect(() => {
     const video = salVideoRef.current;
@@ -188,6 +206,22 @@ export default function Ucebna() {
 
     tryPlay();
   }, []);
+
+  useEffect(() => {
+    if (!lightboxImage) return;
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setLightboxImage(null);
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [lightboxImage]);
 
   return (
     <div
@@ -225,43 +259,30 @@ export default function Ucebna() {
                 ARCHIMEDES® • venkovní učebna pro školy a obce
               </div>
 
-              <div className="awardsStrip">
-                <div className="awardCard">
-                  <div className="awardThumb">
-                    <img
-                      src={awardObec2030Img}
-                      alt="Vítěz soutěže OBEC 2030"
-                    />
-                  </div>
-                  <div className="awardContent">
-                    <div className="awardKicker">Ocenění</div>
-                    <div className="awardTitle">
-                      Vítěz 5. ročníku soutěže OBEC 2030
-                    </div>
-                    <div className="awardText">
-                      ARCHIMEDES uspěl jako inspirativní řešení pro moderní obec
-                      a komunitní rozvoj.
-                    </div>
-                  </div>
+              <div className="awardsWrap">
+                <div className="awardsIntro">
+                  Ocenění a uznání, která potvrzují reálný přínos projektu
+                  ARCHIMEDES.
                 </div>
 
-                <div className="awardCard">
-                  <div className="awardThumb">
-                    <img
-                      src={awardHealthyCitiesImg}
-                      alt="NEJpraxe Zdravých měst 2023 za Přírodní učebnu Archimedes"
-                    />
-                  </div>
-                  <div className="awardContent">
-                    <div className="awardKicker">Dobrá praxe</div>
-                    <div className="awardTitle">
-                      NEJpraxe Zdravých měst 2023
+                <div className="awardsGrid">
+                  {awards.map((award) => (
+                    <div key={award.title} className="awardBlock">
+                      <div className="awardLabel">{award.label}</div>
+                      <div className="awardHeading">{award.title}</div>
+                      <div className="awardDescription">{award.text}</div>
+
+                      <button
+                        type="button"
+                        className="awardImageButton"
+                        onClick={() => setLightboxImage(award)}
+                        aria-label={`Zvětšit ocenění: ${award.title}`}
+                      >
+                        <img src={award.image} alt={award.alt} />
+                        <span className="zoomBadge">Zvětšit</span>
+                      </button>
                     </div>
-                    <div className="awardText">
-                      Ocenění za excelentní praxi pro Přírodní učebnu
-                      ARCHIMEDES.
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
@@ -1053,6 +1074,39 @@ export default function Ucebna() {
           </div>
         </section>
 
+        {lightboxImage && (
+          <div
+            className="lightboxOverlay"
+            onClick={() => setLightboxImage(null)}
+            role="button"
+            tabIndex={0}
+          >
+            <button
+              type="button"
+              className="lightboxClose"
+              onClick={() => setLightboxImage(null)}
+              aria-label="Zavřít náhled"
+            >
+              ×
+            </button>
+
+            <div
+              className="lightboxDialog"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="lightboxMeta">
+                <div className="lightboxKicker">{lightboxImage.label}</div>
+                <div className="lightboxTitle">{lightboxImage.title}</div>
+              </div>
+              <img
+                src={lightboxImage.image}
+                alt={lightboxImage.alt}
+                className="lightboxImg"
+              />
+            </div>
+          </div>
+        )}
+
         <style jsx global>{`
           .heroShell {
             display: grid;
@@ -1061,71 +1115,108 @@ export default function Ucebna() {
             align-items: center;
           }
 
-          .awardsStrip {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-            margin: 0 0 24px;
+          .awardsWrap {
+            margin: 0 0 28px;
+            max-width: 760px;
           }
 
-          .awardCard {
+          .awardsIntro {
+            font-size: 15px;
+            line-height: 1.6;
+            color: rgba(15, 23, 42, 0.6);
+            margin-bottom: 14px;
+            font-weight: 700;
+          }
+
+          .awardsGrid {
             display: grid;
-            grid-template-columns: 118px minmax(0, 1fr);
-            gap: 14px;
-            align-items: center;
-            padding: 12px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+          }
+
+          .awardBlock {
+            padding: 18px 18px 16px;
             border-radius: 24px;
-            background: rgba(255, 255, 255, 0.86);
+            background: rgba(255, 255, 255, 0.72);
             border: 1px solid rgba(15, 23, 42, 0.08);
             box-shadow:
-              0 16px 34px rgba(15, 23, 42, 0.06),
-              0 5px 16px rgba(15, 23, 42, 0.03);
+              0 16px 34px rgba(15, 23, 42, 0.05),
+              0 5px 16px rgba(15, 23, 42, 0.025);
             backdrop-filter: blur(8px);
           }
 
-          .awardThumb {
-            border-radius: 16px;
-            overflow: hidden;
-            background: #ffffff;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-          }
-
-          .awardThumb img {
-            width: 100%;
-            height: 100%;
-            display: block;
-            aspect-ratio: 4 / 3;
-            object-fit: cover;
-          }
-
-          .awardContent {
-            min-width: 0;
-          }
-
-          .awardKicker {
+          .awardLabel {
             font-size: 12px;
             line-height: 1.3;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: rgba(15, 23, 42, 0.46);
-            margin-bottom: 6px;
+            letter-spacing: 0.12em;
+            color: rgba(15, 23, 42, 0.42);
+            margin-bottom: 8px;
           }
 
-          .awardTitle {
-            font-size: 19px;
-            line-height: 1.14;
+          .awardHeading {
+            font-size: 21px;
+            line-height: 1.12;
             font-weight: 900;
             color: #0f172a;
-            letter-spacing: -0.03em;
-            margin-bottom: 6px;
+            letter-spacing: -0.035em;
+            margin-bottom: 8px;
+            max-width: 320px;
           }
 
-          .awardText {
-            font-size: 14px;
-            line-height: 1.55;
+          .awardDescription {
+            font-size: 15px;
+            line-height: 1.62;
             color: rgba(15, 23, 42, 0.68);
+            margin-bottom: 14px;
+            max-width: 340px;
+          }
+
+          .awardImageButton {
+            position: relative;
+            width: 100%;
+            border: 0;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            border-radius: 18px;
+            overflow: hidden;
+            display: block;
+            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+          }
+
+          .awardImageButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+          }
+
+          .awardImageButton img {
+            width: 100%;
+            display: block;
+            aspect-ratio: 16 / 10;
+            object-fit: cover;
+            background: white;
+          }
+
+          .zoomBadge {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 32px;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.8);
+            color: white;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            backdrop-filter: blur(6px);
           }
 
           .heroImageCard {
@@ -1576,6 +1667,74 @@ export default function Ucebna() {
             color: rgba(15, 23, 42, 0.72);
           }
 
+          .lightboxOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(2, 6, 23, 0.84);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+          }
+
+          .lightboxDialog {
+            width: min(1120px, 100%);
+            max-height: 90vh;
+            overflow: auto;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 40px 120px rgba(0, 0, 0, 0.35);
+            padding: 20px;
+          }
+
+          .lightboxMeta {
+            margin-bottom: 14px;
+          }
+
+          .lightboxKicker {
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(15, 23, 42, 0.46);
+            margin-bottom: 6px;
+          }
+
+          .lightboxTitle {
+            font-size: 28px;
+            line-height: 1.14;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -0.03em;
+          }
+
+          .lightboxImg {
+            width: 100%;
+            display: block;
+            border-radius: 20px;
+            background: white;
+          }
+
+          .lightboxClose {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 10000;
+            width: 48px;
+            height: 48px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            background: rgba(15, 23, 42, 0.72);
+            color: white;
+            font-size: 30px;
+            line-height: 1;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+          }
+
           @media (max-width: 1160px) {
             .heroShell,
             .aboutGrid,
@@ -1587,7 +1746,7 @@ export default function Ucebna() {
             .zigzagRow,
             .zigzagRow.reverse,
             .doubleVisualGrid,
-            .awardsStrip {
+            .awardsGrid {
               grid-template-columns: 1fr;
             }
 
@@ -1617,7 +1776,8 @@ export default function Ucebna() {
             .pillarTitle,
             .zigzagTitle,
             .equipTitle,
-            .equipmentTitle {
+            .equipmentTitle,
+            .lightboxTitle {
               font-size: 24px;
             }
 
@@ -1638,19 +1798,28 @@ export default function Ucebna() {
               transform: scale(1.16);
             }
 
-            .awardCard {
-              grid-template-columns: 92px minmax(0, 1fr);
-              gap: 12px;
-              padding: 10px;
-              border-radius: 18px;
+            .awardBlock {
+              padding: 16px;
+              border-radius: 20px;
             }
 
-            .awardTitle {
-              font-size: 16px;
+            .awardHeading {
+              font-size: 18px;
             }
 
-            .awardText {
-              font-size: 13px;
+            .awardDescription,
+            .awardsIntro {
+              font-size: 14px;
+            }
+
+            .zoomBadge {
+              min-height: 30px;
+              font-size: 11px;
+            }
+
+            .lightboxDialog {
+              padding: 14px;
+              border-radius: 22px;
             }
 
             @keyframes cinematicFloat {
