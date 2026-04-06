@@ -33,7 +33,7 @@ const awards = [
   {
     label: "Zdravá města ČR",
     title: "NEJpraxe 2023",
-    text: "Uznání za excelentní praxi projektu Přírodní učebna ARCHIMEDES.",
+    text: "Uznání za excelentní praxi projektu Přírodní učebna ARCHIMEDES®.",
     image: awardHealthyCitiesImg,
     alt: "NEJpraxe Zdravých měst 2023",
   },
@@ -270,7 +270,7 @@ export default function Ucebna() {
               >
                 Venkovní učebna
                 <br />
-                ARCHIMEDES
+                ARCHIMEDES®
               </h1>
 
               <h2
@@ -349,7 +349,7 @@ export default function Ucebna() {
               <div>
                 <div className="awardsBandEyebrow">Ocenění projektu</div>
                 <div className="awardsBandTitle">
-                  Uznání, která potvrzují reálný přínos učebny ARCHIMEDES
+                  Uznání, která potvrzují reálný přínos učebny ARCHIMEDES®
                 </div>
               </div>
               <div className="awardsBandText">
@@ -396,11 +396,11 @@ export default function Ucebna() {
           <div className="premiumCard">
             <div className="aboutGrid">
               <div>
-                <SectionEyebrow>Co je ARCHIMEDES?</SectionEyebrow>
+                <SectionEyebrow>Co je ARCHIMEDES®?</SectionEyebrow>
                 <SectionTitle>Víc než stavba. Celý ekosystém.</SectionTitle>
 
                 <p className="leadText" style={{ marginBottom: 18 }}>
-                  Zapomeňte na obyčejné dřevěné altány. ARCHIMEDES je
+                  Zapomeňte na obyčejné dřevěné altány. ARCHIMEDES® je
                   celosvětová síť high-tech venkovních učeben a edukativních
                   center. Stavíme z udržitelných přírodních materiálů a vracíme
                   děti i dospělé zpět k přírodě.
@@ -429,7 +429,7 @@ export default function Ucebna() {
                   </div>
 
                   <p className="softPanelText">
-                    ARCHIMEDES je navržen tak, aby fungoval přes den jako
+                    ARCHIMEDES® je navržen tak, aby fungoval přes den jako
                     moderní učebna a odpoledne nebo večer jako živé centrum
                     obce, setkávání a inspirace.
                   </p>
@@ -499,7 +499,7 @@ export default function Ucebna() {
                 className="leadText"
                 style={{ maxWidth: 900, margin: "0 auto" }}
               >
-                ARCHIMEDES je navržen tak, aby dával smysl škole i obci. Přes
+                ARCHIMEDES® je navržen tak, aby dával smysl škole i obci. Přes
                 den podporuje moderní vzdělávání, odpoledne a večer přirozeně
                 oživuje komunitní život.
               </p>
@@ -524,8 +524,8 @@ export default function Ucebna() {
                   <div className="pillarTitle">Pro školy a školky</div>
                   <p className="leadText" style={{ marginBottom: 16 }}>
                     Přeneste výuku ze čtyř stěn na čerstvý vzduch. Učebna
-                    ARCHIMEDES nabízí bezkonkurenční zázemí pro zážitkovou výuku
-                    přírodních věd i dalších předmětů.
+                    ARCHIMEDES® nabízí bezkonkurenční zázemí pro zážitkovou
+                    výuku přírodních věd i dalších předmětů.
                   </p>
 
                   <div className="bulletList">
@@ -567,7 +567,7 @@ export default function Ucebna() {
                 <div className="pillarBody">
                   <div className="pillarTitle">Pro obce a komunity</div>
                   <p className="leadText" style={{ marginBottom: 16 }}>
-                    ARCHIMEDES nežije jen dopoledne. Pro města a obce
+                    ARCHIMEDES® nežije jen dopoledne. Pro města a obce
                     představuje multifunkční prostor, který oživí veřejný život
                     a stane se srdcem komunity.
                   </p>
@@ -627,7 +627,7 @@ export default function Ucebna() {
                 className="leadText"
                 style={{ maxWidth: 930, margin: "0 auto" }}
               >
-                Učebna ARCHIMEDES je promyšlený ekosystém připravený na klíč.
+                Učebna ARCHIMEDES® je promyšlený ekosystém připravený na klíč.
                 Propojujeme to nejlepší z obou světů – od chytrých technologií
                 přes ideální klima až po badatelské prvky.
               </p>
@@ -700,10 +700,10 @@ export default function Ucebna() {
                   </div>
 
                   <p className="leadText" style={{ marginBottom: 0 }}>
-                    V učebně ARCHIMEDES se žáci i učitelé cítí skvěle za každého
-                    počasí. O okamžitý tepelný komfort v parném létě i mrazivé
-                    zimě se starají tiché a vysoce efektivní klimatizační
-                    jednotky.
+                    V učebně ARCHIMEDES® se žáci i učitelé cítí skvěle za
+                    každého počasí. O okamžitý tepelný komfort v parném létě i
+                    mrazivé zimě se starají tiché a vysoce efektivní
+                    klimatizační jednotky.
                   </p>
 
                   <p
@@ -780,11 +780,11 @@ export default function Ucebna() {
                 <SectionTitle>Z učebny sálem během pár minut</SectionTitle>
 
                 <p className="leadText" style={{ marginBottom: 18 }}>
-                  Interiér učebny ARCHIMEDES není statický. Zadní části prostoru
-                  dominuje fixní pódium, pod kterým se ukrývá chytře řešený
-                  výsuvný schod. Díky tomuto systému se prostor dokáže během
-                  chvíle proměnit přesně podle toho, co zrovna vyučujete nebo
-                  jakou akci pořádáte.
+                  Interiér učebny ARCHIMEDES® není statický. Zadní části
+                  prostoru dominuje fixní pódium, pod kterým se ukrývá chytře
+                  řešený výsuvný schod. Díky tomuto systému se prostor dokáže
+                  během chvíle proměnit přesně podle toho, co zrovna vyučujete
+                  nebo jakou akci pořádáte.
                 </p>
 
                 <div className="softPanel">
@@ -1009,7 +1009,7 @@ export default function Ucebna() {
               <div className="equipCard equipCardWide">
                 <div className="equipTitle">🏫 Nezávislá jednotka</div>
                 <div className="equipText">
-                  Díky rozšiřujícím modulům se ARCHIMEDES může stát naprosto
+                  Díky rozšiřujícím modulům se ARCHIMEDES® může stát naprosto
                   nezávislým prostorem bez nutnosti využívat hlavní budovu školy
                   nebo obecního úřadu.
                 </div>
@@ -1394,513 +1394,4 @@ export default function Ucebna() {
             position: absolute;
             inset: 0;
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center 52%;
-            display: block;
-            background: #0f172a;
-          }
-
-          .cinematicVideo {
-            transform: scale(1.22);
-            transform-origin: center center;
-            animation: cinematicFloat 18s ease-in-out infinite alternate;
-            filter: saturate(1.03) contrast(1.02);
-            will-change: transform;
-          }
-
-          .videoOverlayGlow {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background:
-              linear-gradient(
-                to top,
-                rgba(15, 23, 42, 0.16) 0%,
-                rgba(15, 23, 42, 0.03) 28%,
-                rgba(255, 255, 255, 0) 58%
-              ),
-              radial-gradient(
-                circle at 50% 18%,
-                rgba(255, 255, 255, 0.16),
-                rgba(255, 255, 255, 0) 42%
-              );
-            z-index: 1;
-          }
-
-          @keyframes cinematicFloat {
-            0% {
-              transform: scale(1.22) translate3d(0, 0, 0);
-            }
-            50% {
-              transform: scale(1.26) translate3d(-1.2%, -0.6%, 0);
-            }
-            100% {
-              transform: scale(1.24) translate3d(1%, -1.4%, 0);
-            }
-          }
-
-          .modeGrid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-          }
-
-          .miniCard {
-            background: white;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 18px;
-            padding: 18px;
-          }
-
-          .miniTitle {
-            font-size: 18px;
-            line-height: 1.2;
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 8px;
-          }
-
-          .miniText {
-            font-size: 15px;
-            line-height: 1.65;
-            color: rgba(15, 23, 42, 0.72);
-          }
-
-          .mediaVisual {
-            background: white;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
-            border: 1px solid rgba(15, 23, 42, 0.08);
-          }
-
-          .pillarsGrid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 20px;
-          }
-
-          .pillarCard {
-            background: linear-gradient(
-              180deg,
-              rgba(248, 250, 252, 1) 0%,
-              rgba(244, 247, 251, 1) 100%
-            );
-            border: 1px solid rgba(15, 23, 42, 0.07);
-            border-radius: 28px;
-            overflow: hidden;
-          }
-
-          .pillarImage {
-            background: white;
-          }
-
-          .pillarBody {
-            padding: 22px;
-          }
-
-          .pillarTitle {
-            font-size: 30px;
-            line-height: 1.1;
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 12px;
-            letter-spacing: -0.03em;
-          }
-
-          .bulletList {
-            display: grid;
-            gap: 10px;
-            font-size: 16px;
-            line-height: 1.7;
-            color: rgba(15, 23, 42, 0.74);
-          }
-
-          .zigzagWrap {
-            display: grid;
-            gap: 26px;
-          }
-
-          .zigzagRow {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(360px, 0.92fr);
-            gap: 26px;
-            align-items: center;
-          }
-
-          .zigzagRow.reverse {
-            grid-template-columns: minmax(360px, 0.92fr) minmax(0, 1fr);
-          }
-
-          .zigzagText {
-            padding: 6px 0;
-          }
-
-          .zigzagTitle {
-            font-size: 34px;
-            line-height: 1.08;
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 14px;
-            letter-spacing: -0.04em;
-          }
-
-          .zigzagTitle span {
-            font-size: 18px;
-            line-height: 1.4;
-            color: rgba(15, 23, 42, 0.58);
-            font-weight: 800;
-            letter-spacing: 0;
-          }
-
-          .zigzagImage {
-            background: white;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
-            border: 1px solid rgba(15, 23, 42, 0.08);
-          }
-
-          .variantGrid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 18px;
-          }
-
-          .variantCard {
-            background: rgba(255, 255, 255, 0.86);
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 28px;
-            padding: 24px;
-            box-shadow:
-              0 14px 34px rgba(15, 23, 42, 0.05),
-              0 4px 14px rgba(15, 23, 42, 0.025);
-          }
-
-          .variantHead {
-            display: flex;
-            gap: 14px;
-            align-items: flex-start;
-            margin-bottom: 16px;
-          }
-
-          .variantIcon {
-            font-size: 29px;
-            line-height: 1;
-          }
-
-          .variantTitle {
-            font-size: 24px;
-            line-height: 1.12;
-            font-weight: 900;
-            color: #0f172a;
-          }
-
-          .variantSubtitle {
-            margin-top: 6px;
-            font-size: 15px;
-            line-height: 1.45;
-            color: rgba(15, 23, 42, 0.62);
-            font-weight: 700;
-          }
-
-          .variantText {
-            margin: 0 0 14px;
-            font-size: 16px;
-            line-height: 1.74;
-            color: rgba(15, 23, 42, 0.74);
-          }
-
-          .variantBlock + .variantBlock {
-            margin-top: 12px;
-          }
-
-          .variantBlockTitle {
-            font-size: 14px;
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 6px;
-          }
-
-          .variantBlockText {
-            font-size: 15px;
-            line-height: 1.66;
-            color: rgba(15, 23, 42, 0.72);
-          }
-
-          .selectionHint {
-            margin-top: 18px;
-            background: rgba(255, 255, 255, 0.74);
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 22px;
-            padding: 18px 20px;
-            font-size: 16px;
-            line-height: 1.7;
-            color: rgba(15, 23, 42, 0.76);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
-          }
-
-          .equipmentStripe {
-            background: linear-gradient(
-              135deg,
-              rgba(15, 23, 42, 0.95) 0%,
-              rgba(30, 41, 59, 0.94) 100%
-            );
-            border-radius: 30px;
-            overflow: hidden;
-            box-shadow:
-              0 20px 50px rgba(15, 23, 42, 0.16),
-              0 6px 18px rgba(15, 23, 42, 0.08);
-          }
-
-          .equipmentStripeInner {
-            padding: 34px 30px;
-          }
-
-          .equipmentEyebrow {
-            font-size: 14px;
-            font-weight: 800;
-            color: rgba(255, 255, 255, 0.68);
-            margin-bottom: 10px;
-          }
-
-          .equipmentTitle {
-            font-size: 42px;
-            line-height: 1.06;
-            font-weight: 900;
-            color: #ffffff;
-            letter-spacing: -0.04em;
-          }
-
-          .equipmentText {
-            margin: 0;
-            font-size: 18px;
-            line-height: 1.78;
-            color: rgba(255, 255, 255, 0.88);
-          }
-
-          .equipGrid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px;
-          }
-
-          .equipCard {
-            background: linear-gradient(
-              180deg,
-              rgba(248, 250, 252, 1) 0%,
-              rgba(244, 247, 251, 1) 100%
-            );
-            border: 1px solid rgba(15, 23, 42, 0.07);
-            border-radius: 24px;
-            padding: 24px;
-          }
-
-          .equipCardWide {
-            grid-column: 1 / -1;
-          }
-
-          .equipTitle {
-            font-size: 28px;
-            line-height: 1.16;
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 12px;
-            letter-spacing: -0.03em;
-          }
-
-          .equipText {
-            font-size: 16px;
-            line-height: 1.72;
-            color: rgba(15, 23, 42, 0.74);
-            margin-bottom: 12px;
-          }
-
-          .equipList {
-            display: grid;
-            gap: 8px;
-            font-size: 15px;
-            line-height: 1.66;
-            color: rgba(15, 23, 42, 0.72);
-          }
-
-          .lightboxOverlay {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            background: rgba(2, 6, 23, 0.84);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-          }
-
-          .lightboxDialog {
-            width: min(1120px, 100%);
-            max-height: 90vh;
-            overflow: auto;
-            border-radius: 28px;
-            background: rgba(255, 255, 255, 0.96);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: 0 40px 120px rgba(0, 0, 0, 0.35);
-            padding: 20px;
-          }
-
-          .lightboxMeta {
-            margin-bottom: 14px;
-          }
-
-          .lightboxKicker {
-            font-size: 12px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: rgba(15, 23, 42, 0.46);
-            margin-bottom: 6px;
-          }
-
-          .lightboxTitle {
-            font-size: 28px;
-            line-height: 1.14;
-            font-weight: 900;
-            color: #0f172a;
-            letter-spacing: -0.03em;
-            margin-bottom: 6px;
-          }
-
-          .lightboxDescription {
-            font-size: 15px;
-            line-height: 1.62;
-            color: rgba(15, 23, 42, 0.68);
-          }
-
-          .lightboxImg {
-            width: 100%;
-            display: block;
-            border-radius: 20px;
-            background: white;
-          }
-
-          .lightboxClose {
-            position: fixed;
-            top: 18px;
-            right: 18px;
-            z-index: 10000;
-            width: 48px;
-            height: 48px;
-            border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            background: rgba(15, 23, 42, 0.72);
-            color: white;
-            font-size: 30px;
-            line-height: 1;
-            cursor: pointer;
-            backdrop-filter: blur(8px);
-          }
-
-          @media (max-width: 1160px) {
-            .heroShell,
-            .aboutGrid,
-            .aboutGridVideoOnly,
-            .mediaGrid,
-            .variantGrid,
-            .equipGrid,
-            .pillarsGrid,
-            .zigzagRow,
-            .zigzagRow.reverse,
-            .doubleVisualGrid,
-            .awardsTiles {
-              grid-template-columns: 1fr;
-            }
-
-            .equipCardWide {
-              grid-column: auto;
-            }
-
-            .videoStage {
-              justify-content: flex-start;
-            }
-          }
-
-          @media (max-width: 760px) {
-            .premiumCard,
-            .awardsBand {
-              padding: 22px 18px;
-              border-radius: 24px;
-            }
-
-            .modeGrid {
-              grid-template-columns: 1fr;
-            }
-
-            h1 {
-              font-size: 46px !important;
-            }
-
-            .pillarTitle,
-            .zigzagTitle,
-            .equipTitle,
-            .equipmentTitle,
-            .awardsBandTitle,
-            .awardTileTitle,
-            .lightboxTitle {
-              font-size: 24px;
-            }
-
-            .videoCardPortraitLarge {
-              max-width: 100%;
-              height: 500px;
-            }
-
-            .videoCardAligned {
-              margin-top: 12px;
-            }
-
-            .croppedVideo {
-              object-position: center 50%;
-            }
-
-            .cinematicVideo {
-              transform: scale(1.16);
-            }
-
-            .awardTile {
-              padding: 14px;
-              border-radius: 20px;
-            }
-
-            .awardTileText,
-            .awardsBandText,
-            .lightboxDescription {
-              font-size: 14px;
-            }
-
-            .awardTileZoom {
-              min-height: 30px;
-              font-size: 11px;
-            }
-
-            .lightboxDialog {
-              padding: 14px;
-              border-radius: 22px;
-            }
-
-            @keyframes cinematicFloat {
-              0% {
-                transform: scale(1.16) translate3d(0, 0, 0);
-              }
-              50% {
-                transform: scale(1.19) translate3d(-0.8%, -0.5%, 0);
-              }
-              100% {
-                transform: scale(1.17) translate3d(0.8%, -1.2%, 0);
-              }
-            }
-          }
-        `}</style>
-      </main>
-    </div>
-  );
-}
+            height: 
