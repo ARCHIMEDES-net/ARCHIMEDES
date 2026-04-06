@@ -24,18 +24,18 @@ const awardObec2030Img = "/obec2030.jpeg";
 
 const awards = [
   {
-    label: "Ocenění",
-    title: "Vítěz 5. ročníku soutěže OBEC 2030",
-    text: "ARCHIMEDES uspěl jako inspirativní řešení pro moderní obec a komunitní rozvoj.",
+    label: "OBEC 2030",
+    title: "Vítěz 5. ročníku",
+    text: "Ocenění za inspirativní řešení pro moderní obec a komunitní rozvoj.",
     image: awardObec2030Img,
-    alt: "Vítěz 5. ročníku soutěže OBEC 2030",
+    alt: "Vítěz soutěže OBEC 2030",
   },
   {
-    label: "Dobrá praxe",
-    title: "NEJpraxe Zdravých měst 2023",
-    text: "Ocenění za excelentní praxi pro Přírodní učebnu ARCHIMEDES.",
+    label: "Zdravá města ČR",
+    title: "NEJpraxe 2023",
+    text: "Uznání za excelentní praxi projektu Přírodní učebna ARCHIMEDES.",
     image: awardHealthyCitiesImg,
-    alt: "NEJpraxe Zdravých měst 2023 za Přírodní učebnu ARCHIMEDES",
+    alt: "NEJpraxe Zdravých měst 2023",
   },
 ];
 
@@ -237,7 +237,7 @@ export default function Ucebna() {
           style={{
             maxWidth: 1240,
             margin: "0 auto",
-            padding: "64px 20px 32px",
+            padding: "64px 20px 24px",
           }}
         >
           <div className="heroShell">
@@ -253,37 +253,10 @@ export default function Ucebna() {
                   color: "#0f172a",
                   fontSize: 13,
                   fontWeight: 800,
-                  marginBottom: 18,
+                  marginBottom: 20,
                 }}
               >
                 ARCHIMEDES® • venkovní učebna pro školy a obce
-              </div>
-
-              <div className="awardsWrap">
-                <div className="awardsIntro">
-                  Ocenění a uznání, která potvrzují reálný přínos projektu
-                  ARCHIMEDES.
-                </div>
-
-                <div className="awardsGrid">
-                  {awards.map((award) => (
-                    <div key={award.title} className="awardBlock">
-                      <div className="awardLabel">{award.label}</div>
-                      <div className="awardHeading">{award.title}</div>
-                      <div className="awardDescription">{award.text}</div>
-
-                      <button
-                        type="button"
-                        className="awardImageButton"
-                        onClick={() => setLightboxImage(award)}
-                        aria-label={`Zvětšit ocenění: ${award.title}`}
-                      >
-                        <img src={award.image} alt={award.alt} />
-                        <span className="zoomBadge">Zvětšit</span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
               </div>
 
               <h1
@@ -360,6 +333,55 @@ export default function Ucebna() {
                   }}
                 />
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          style={{
+            maxWidth: 1240,
+            margin: "0 auto",
+            padding: "0 20px 24px",
+          }}
+        >
+          <div className="awardsBand">
+            <div className="awardsBandTop">
+              <div>
+                <div className="awardsBandEyebrow">Ocenění projektu</div>
+                <div className="awardsBandTitle">
+                  Uznání, která potvrzují reálný dopad ARCHIMEDES
+                </div>
+              </div>
+              <div className="awardsBandText">
+                Dvě významná ocenění z oblasti rozvoje obcí a dobré praxe.
+              </div>
+            </div>
+
+            <div className="awardsTiles">
+              {awards.map((award) => (
+                <button
+                  key={award.title}
+                  type="button"
+                  className="awardTile"
+                  onClick={() => setLightboxImage(award)}
+                  aria-label={`Zvětšit ocenění: ${award.title}`}
+                >
+                  <div className="awardTileMeta">
+                    <div className="awardTileLabel">{award.label}</div>
+                    <div className="awardTileTitle">{award.title}</div>
+                    <div className="awardTileText">{award.text}</div>
+                  </div>
+
+                  <div className="awardTileImageWrap">
+                    <img
+                      src={award.image}
+                      alt={award.alt}
+                      className="awardTileImage"
+                    />
+                    <span className="awardTileZoom">Kliknutím zvětšíte</span>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
         </section>
@@ -1097,6 +1119,7 @@ export default function Ucebna() {
               <div className="lightboxMeta">
                 <div className="lightboxKicker">{lightboxImage.label}</div>
                 <div className="lightboxTitle">{lightboxImage.title}</div>
+                <div className="lightboxDescription">{lightboxImage.text}</div>
               </div>
               <img
                 src={lightboxImage.image}
@@ -1115,37 +1138,38 @@ export default function Ucebna() {
             align-items: center;
           }
 
-          .awardsWrap {
-            margin: 0 0 28px;
-            max-width: 760px;
-          }
-
-          .awardsIntro {
-            font-size: 15px;
-            line-height: 1.6;
-            color: rgba(15, 23, 42, 0.6);
-            margin-bottom: 14px;
-            font-weight: 700;
-          }
-
-          .awardsGrid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
-          }
-
-          .awardBlock {
-            padding: 18px 18px 16px;
-            border-radius: 24px;
-            background: rgba(255, 255, 255, 0.72);
+          .heroImageCard {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 34px;
+            overflow: hidden;
             border: 1px solid rgba(15, 23, 42, 0.08);
             box-shadow:
-              0 16px 34px rgba(15, 23, 42, 0.05),
-              0 5px 16px rgba(15, 23, 42, 0.025);
+              0 28px 80px rgba(15, 23, 42, 0.12),
+              0 8px 24px rgba(15, 23, 42, 0.05);
             backdrop-filter: blur(8px);
           }
 
-          .awardLabel {
+          .awardsBand {
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 30px;
+            padding: 24px;
+            box-shadow:
+              0 18px 44px rgba(15, 23, 42, 0.05),
+              0 6px 18px rgba(15, 23, 42, 0.025);
+            backdrop-filter: blur(8px);
+          }
+
+          .awardsBandTop {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+          }
+
+          .awardsBandEyebrow {
             font-size: 12px;
             line-height: 1.3;
             font-weight: 900;
@@ -1155,53 +1179,98 @@ export default function Ucebna() {
             margin-bottom: 8px;
           }
 
-          .awardHeading {
-            font-size: 21px;
-            line-height: 1.12;
+          .awardsBandTitle {
+            font-size: 30px;
+            line-height: 1.08;
             font-weight: 900;
             color: #0f172a;
             letter-spacing: -0.035em;
-            margin-bottom: 8px;
-            max-width: 320px;
+            max-width: 720px;
           }
 
-          .awardDescription {
+          .awardsBandText {
+            font-size: 15px;
+            line-height: 1.6;
+            color: rgba(15, 23, 42, 0.62);
+            max-width: 360px;
+          }
+
+          .awardsTiles {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+          }
+
+          .awardTile {
+            text-align: left;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 24px;
+            padding: 16px;
+            cursor: pointer;
+            transition:
+              transform 0.18s ease,
+              box-shadow 0.18s ease,
+              border-color 0.18s ease;
+            box-shadow:
+              0 14px 30px rgba(15, 23, 42, 0.04),
+              0 4px 14px rgba(15, 23, 42, 0.02);
+          }
+
+          .awardTile:hover {
+            transform: translateY(-3px);
+            box-shadow:
+              0 20px 38px rgba(15, 23, 42, 0.08),
+              0 6px 18px rgba(15, 23, 42, 0.03);
+            border-color: rgba(15, 23, 42, 0.12);
+          }
+
+          .awardTileMeta {
+            margin-bottom: 14px;
+          }
+
+          .awardTileLabel {
+            font-size: 12px;
+            line-height: 1.3;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(15, 23, 42, 0.42);
+            margin-bottom: 6px;
+          }
+
+          .awardTileTitle {
+            font-size: 24px;
+            line-height: 1.1;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+          }
+
+          .awardTileText {
             font-size: 15px;
             line-height: 1.62;
             color: rgba(15, 23, 42, 0.68);
-            margin-bottom: 14px;
-            max-width: 340px;
+            max-width: 480px;
           }
 
-          .awardImageButton {
+          .awardTileImageWrap {
             position: relative;
-            width: 100%;
-            border: 0;
-            background: transparent;
-            padding: 0;
-            margin: 0;
-            cursor: pointer;
-            border-radius: 18px;
             overflow: hidden;
-            display: block;
-            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
-            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            border-radius: 18px;
+            background: white;
+            border: 1px solid rgba(15, 23, 42, 0.08);
           }
 
-          .awardImageButton:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
-          }
-
-          .awardImageButton img {
+          .awardTileImage {
             width: 100%;
             display: block;
-            aspect-ratio: 16 / 10;
+            aspect-ratio: 16 / 9;
             object-fit: cover;
-            background: white;
           }
 
-          .zoomBadge {
+          .awardTileZoom {
             position: absolute;
             right: 12px;
             bottom: 12px;
@@ -1211,22 +1280,11 @@ export default function Ucebna() {
             min-height: 32px;
             padding: 0 12px;
             border-radius: 999px;
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(15, 23, 42, 0.78);
             color: white;
             font-size: 12px;
             font-weight: 800;
             letter-spacing: 0.02em;
-            backdrop-filter: blur(6px);
-          }
-
-          .heroImageCard {
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 34px;
-            overflow: hidden;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow:
-              0 28px 80px rgba(15, 23, 42, 0.12),
-              0 8px 24px rgba(15, 23, 42, 0.05);
             backdrop-filter: blur(8px);
           }
 
@@ -1709,6 +1767,13 @@ export default function Ucebna() {
             font-weight: 900;
             color: #0f172a;
             letter-spacing: -0.03em;
+            margin-bottom: 6px;
+          }
+
+          .lightboxDescription {
+            font-size: 15px;
+            line-height: 1.62;
+            color: rgba(15, 23, 42, 0.68);
           }
 
           .lightboxImg {
@@ -1746,7 +1811,7 @@ export default function Ucebna() {
             .zigzagRow,
             .zigzagRow.reverse,
             .doubleVisualGrid,
-            .awardsGrid {
+            .awardsTiles {
               grid-template-columns: 1fr;
             }
 
@@ -1760,7 +1825,8 @@ export default function Ucebna() {
           }
 
           @media (max-width: 760px) {
-            .premiumCard {
+            .premiumCard,
+            .awardsBand {
               padding: 22px 18px;
               border-radius: 24px;
             }
@@ -1777,6 +1843,8 @@ export default function Ucebna() {
             .zigzagTitle,
             .equipTitle,
             .equipmentTitle,
+            .awardsBandTitle,
+            .awardTileTitle,
             .lightboxTitle {
               font-size: 24px;
             }
@@ -1798,21 +1866,18 @@ export default function Ucebna() {
               transform: scale(1.16);
             }
 
-            .awardBlock {
-              padding: 16px;
+            .awardTile {
+              padding: 14px;
               border-radius: 20px;
             }
 
-            .awardHeading {
-              font-size: 18px;
-            }
-
-            .awardDescription,
-            .awardsIntro {
+            .awardTileText,
+            .awardsBandText,
+            .lightboxDescription {
               font-size: 14px;
             }
 
-            .zoomBadge {
+            .awardTileZoom {
               min-height: 30px;
               font-size: 11px;
             }
