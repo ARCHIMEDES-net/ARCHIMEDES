@@ -3,7 +3,7 @@ import Head from "next/head";
 import Footer from "../components/Footer";
 
 const FALLBACK_POSTS = [
-  "https://www.instagram.com/p/DWLeJoZRcrk/",
+  "https://www.instagram.com/p/DW0nmkFCHvB/",
   "https://www.instagram.com/p/DWIyikzRq8D/",
   "https://www.instagram.com/p/DVyqPmiiLKF/",
 ];
