@@ -60,15 +60,6 @@ function formatEventDate(dateString) {
   return `${datePart} • ${timePart}`;
 }
 
-function isWithinDays(dateString, days = 7) {
-  if (!dateString) return false;
-  const now = new Date();
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return false;
-  const diff = date.getTime() - now.getTime();
-  return diff >= 0 && diff <= days * 24 * 60 * 60 * 1000;
-}
-
 export default function Home() {
   const [nextEvent, setNextEvent] = useState(null);
   const [nextEventLoading, setNextEventLoading] = useState(true);
@@ -82,7 +73,7 @@ export default function Home() {
 
         const { data, error } = await supabase
           .from("events")
-          .select("id, title, starts_at, poster_path, category")
+          .select("id, title, starts_at, poster_path, poster_url, category")
           .eq("is_published", true)
           .gte("starts_at", nowIso)
           .order("starts_at", { ascending: true })
@@ -99,8 +90,9 @@ export default function Home() {
           return;
         }
 
-        let posterUrl = "";
-        if (event.poster_path) {
+        let posterUrl = event.poster_url || "";
+
+        if (!posterUrl && event.poster_path) {
           const { data: publicUrlData } = supabase.storage
             .from(POSTERS_BUCKET)
             .getPublicUrl(event.poster_path);
@@ -130,11 +122,6 @@ export default function Home() {
 
   const nextEventDate = useMemo(
     () => formatEventDate(nextEvent?.starts_at),
-    [nextEvent]
-  );
-
-  const nextEventSoon = useMemo(
-    () => isWithinDays(nextEvent?.starts_at, 7),
     [nextEvent]
   );
 
@@ -170,12 +157,16 @@ export default function Home() {
                   </h1>
 
                   <p className="heroIntro">
-                    Živá vzdělávací a interaktivní platforma, která propojuje školy, obce a komunity. Nabízí bohatý program pro všechny generace od dětí až po seniory a vytváří prostor pro sdílení, spolupráci a vzájemnou inspiraci.
+                    Živá vzdělávací a interaktivní platforma, která propojuje
+                    školy, obce a komunity. Nabízí bohatý program pro všechny
+                    generace od dětí až po seniory a vytváří prostor pro
+                    sdílení, spolupráci a vzájemnou inspiraci.
                   </p>
 
                   <p className="heroLead">
-                    Na jednom místě přináší živé vysílání, interaktivní workshopy, tematické kluby,
-                    soutěže a archiv vzdělávacích materiálů.
+                    Na jednom místě přináší živé vysílání, interaktivní
+                    workshopy, tematické kluby, soutěže a archiv vzdělávacích
+                    materiálů.
                   </p>
 
                   <div className="heroActions">
@@ -211,12 +202,7 @@ export default function Home() {
 
                 <div className="heroAside">
                   <Link href="/program" className="nextBroadcastCard">
-                    <div className="nextBroadcastTop">
-                      <div className="nextBroadcastLabel">Nejbližší živé vysílání</div>
-                      {nextEventSoon ? (
-                        <div className="nextBroadcastBadge">Již brzy</div>
-                      ) : null}
-                    </div>
+                    <div className="nextBroadcastLabel">Nejbližší vysílání</div>
 
                     {nextEventLoading ? (
                       <div className="nextBroadcastLoading">
@@ -239,18 +225,12 @@ export default function Home() {
                         </div>
 
                         <div className="nextBroadcastBody">
-                          <div className="nextBroadcastDate">{nextEventDate}</div>
-                          <div className="nextBroadcastTitle">{nextEvent.title}</div>
+                          <div className="nextBroadcastDate">
+                            {nextEventDate}
+                          </div>
 
-                          {nextEvent.category ? (
-                            <div className="nextBroadcastMeta">
-                              <span>{nextEvent.category}</span>
-                            </div>
-                          ) : null}
-
-                          <div className="nextBroadcastText">
-                            Po kliknutí se dostanete na stránku programu s přehledem
-                            dalších vysílání.
+                          <div className="nextBroadcastTitle">
+                            {nextEvent.title}
                           </div>
 
                           <div className="nextBroadcastAction">
@@ -265,8 +245,8 @@ export default function Home() {
                           Program připravujeme průběžně
                         </div>
                         <div className="nextBroadcastEmptyText">
-                          Otevřete si přehled programu a podívejte se na aktuální
-                          i připravovaná vysílání.
+                          Otevřete si přehled programu a podívejte se na
+                          aktuální i připravovaná vysílání.
                         </div>
                         <div className="nextBroadcastAction">
                           <span>Zobrazit program</span>
@@ -569,8 +549,8 @@ export default function Home() {
 
           .heroGrid {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(320px, 390px);
-            gap: 28px;
+            grid-template-columns: minmax(0, 1fr) minmax(280px, 330px);
+            gap: 24px;
             align-items: end;
           }
 
@@ -583,23 +563,24 @@ export default function Home() {
           .heroAside {
             padding: 118px 0 82px;
             display: flex;
-            align-items: flex-end;
+            align-items: center;
             justify-content: flex-end;
           }
 
           .nextBroadcastCard {
             display: block;
             width: 100%;
+            max-width: 320px;
             color: #ffffff;
             text-decoration: none;
-            border-radius: 28px;
-            padding: 18px;
-            background: rgba(9, 17, 34, 0.52);
+            border-radius: 24px;
+            padding: 14px;
+            background: rgba(9, 17, 34, 0.48);
             border: 1px solid rgba(255, 255, 255, 0.14);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
             box-shadow:
-              0 24px 54px rgba(15, 23, 42, 0.18),
+              0 18px 40px rgba(15, 23, 42, 0.16),
               inset 0 1px 0 rgba(255, 255, 255, 0.08);
             transition:
               transform 0.22s ease,
@@ -610,19 +591,11 @@ export default function Home() {
 
           .nextBroadcastCard:hover {
             transform: translateY(-4px);
-            background: rgba(9, 17, 34, 0.6);
-            border-color: rgba(255, 255, 255, 0.24);
+            background: rgba(9, 17, 34, 0.58);
+            border-color: rgba(255, 255, 255, 0.22);
             box-shadow:
-              0 30px 62px rgba(15, 23, 42, 0.24),
-              inset 0 1px 0 rgba(255, 255, 255, 0.12);
-          }
-
-          .nextBroadcastTop {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 14px;
+              0 24px 52px rgba(15, 23, 42, 0.22),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
           }
 
           .nextBroadcastLabel {
@@ -631,20 +604,8 @@ export default function Home() {
             font-weight: 800;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.78);
-          }
-
-          .nextBroadcastBadge {
-            display: inline-flex;
-            align-items: center;
-            min-height: 28px;
-            padding: 0 10px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.14);
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: 800;
-            white-space: nowrap;
+            color: rgba(255, 255, 255, 0.82);
+            margin-bottom: 12px;
           }
 
           .nextBroadcastLoading,
@@ -659,7 +620,7 @@ export default function Home() {
           }
 
           .nextBroadcastPosterWrap {
-            border-radius: 22px;
+            border-radius: 20px;
             overflow: hidden;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -668,8 +629,9 @@ export default function Home() {
           .nextBroadcastPoster {
             display: block;
             width: 100%;
-            aspect-ratio: 4 / 5;
+            aspect-ratio: 16 / 11;
             object-fit: cover;
+            object-position: center;
           }
 
           .nextBroadcastPosterPlaceholder {
@@ -677,10 +639,10 @@ export default function Home() {
             align-items: center;
             justify-content: center;
             width: 100%;
-            aspect-ratio: 4 / 5;
-            padding: 20px;
+            aspect-ratio: 16 / 11;
+            padding: 16px;
             text-align: center;
-            font-size: 18px;
+            font-size: 16px;
             line-height: 1.3;
             font-weight: 900;
             letter-spacing: -0.03em;
@@ -691,7 +653,7 @@ export default function Home() {
           }
 
           .nextBroadcastBody {
-            padding: 16px 2px 2px;
+            padding: 12px 2px 2px;
           }
 
           .nextBroadcastDate {
@@ -702,46 +664,17 @@ export default function Home() {
           }
 
           .nextBroadcastTitle {
-            margin-top: 8px;
-            font-size: 28px;
-            line-height: 1.06;
-            letter-spacing: -0.04em;
+            margin-top: 6px;
+            font-size: 18px;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
             font-weight: 900;
             color: #ffffff;
             text-wrap: balance;
           }
 
-          .nextBroadcastMeta {
-            margin-top: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-          }
-
-          .nextBroadcastMeta span {
-            display: inline-flex;
-            align-items: center;
-            min-height: 30px;
-            padding: 0 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            line-height: 1.4;
-            font-weight: 800;
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-          }
-
-          .nextBroadcastText,
-          .nextBroadcastEmptyText {
-            margin-top: 12px;
-            font-size: 15px;
-            line-height: 1.65;
-            color: rgba(255, 255, 255, 0.82);
-          }
-
           .nextBroadcastEmptyTitle {
-            font-size: 24px;
+            font-size: 22px;
             line-height: 1.08;
             letter-spacing: -0.03em;
             font-weight: 900;
@@ -749,12 +682,19 @@ export default function Home() {
             text-wrap: balance;
           }
 
+          .nextBroadcastEmptyText {
+            margin-top: 10px;
+            font-size: 13px;
+            line-height: 1.55;
+            color: rgba(255, 255, 255, 0.8);
+          }
+
           .nextBroadcastAction {
-            margin-top: 16px;
+            margin-top: 12px;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            font-size: 15px;
+            font-size: 14px;
             line-height: 1.4;
             font-weight: 800;
             color: #ffffff;
@@ -817,11 +757,6 @@ export default function Home() {
             line-height: 1.55;
             color: rgba(255, 255, 255, 0.9);
             max-width: 680px;
-          }
-
-          .heroLeadBreak {
-            display: block;
-            margin-top: 6px;
           }
 
           .heroActions,
@@ -1259,7 +1194,7 @@ export default function Home() {
             }
 
             .nextBroadcastCard {
-              max-width: 420px;
+              max-width: 320px;
             }
           }
 
@@ -1379,13 +1314,13 @@ export default function Home() {
             }
 
             .nextBroadcastCard {
-              max-width: none;
-              padding: 16px;
-              border-radius: 24px;
+              max-width: 100%;
+              padding: 14px;
+              border-radius: 22px;
             }
 
             .nextBroadcastTitle {
-              font-size: 24px;
+              font-size: 18px;
             }
 
             h1 {
@@ -1458,10 +1393,6 @@ export default function Home() {
             .ctaBox {
               padding: 22px;
               border-radius: 26px;
-            }
-
-            .heroLeadBreak {
-              margin-top: 4px;
             }
 
             .heroActions,
