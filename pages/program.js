@@ -2,6 +2,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
+const FALLBACK_POSTER = "/ucebna-exterier.webp";
+
 const schoolItems = [
   {
     title: "I. stupeň – Objevujeme svět",
@@ -9,7 +11,7 @@ const schoolItems = [
   },
   {
     title: "II. stupeň – Svět v souvislostech",
-    text: "aktuální témata, rozhovory a exkurze v angličtině ze zahraničí, výuka živě z praxe ",
+    text: "aktuální témata, rozhovory a exkurze v angličtině ze zahraničí, výuka živě z praxe",
   },
   {
     title: "Kariérní poradenství jinak",
@@ -24,7 +26,7 @@ const schoolItems = [
 const seniorItems = [
   {
     title: "Senior klub",
-    text: "interaktivní rozhovory s inspirativními hosty, aktuální témata, vzdělávání, partnerství, setkávání s jinými seniory a krajanskými spolky ",
+    text: "interaktivní rozhovory s inspirativními hosty, aktuální témata, vzdělávání, partnerství, setkávání s jinými seniory a krajanskými spolky",
   },
   {
     title: "Čtenářský klub",
@@ -492,11 +494,30 @@ function formatEventDate(value) {
   });
 }
 
-function getPosterUrl(path) {
-  if (!path) return "/ucebna-exterier.webp";
+function isAbsoluteUrl(value) {
+  return typeof value === "string" && /^https?:\/\//i.test(value);
+}
 
-  const { data } = supabase.storage.from("posters").getPublicUrl(path);
-  return data?.publicUrl || "/ucebna-exterier.webp";
+function getPosterUrl(event) {
+  if (!event) return FALLBACK_POSTER;
+
+  if (event.poster_url && isAbsoluteUrl(event.poster_url)) {
+    return event.poster_url;
+  }
+
+  if (event.poster_url && typeof event.poster_url === "string") {
+    const normalizedPosterUrl = event.poster_url.replace(/^\/+/, "");
+    const { data } = supabase.storage.from("posters").getPublicUrl(normalizedPosterUrl);
+    return data?.publicUrl || FALLBACK_POSTER;
+  }
+
+  if (event.poster_path && typeof event.poster_path === "string") {
+    const normalizedPosterPath = event.poster_path.replace(/^\/+/, "");
+    const { data } = supabase.storage.from("posters").getPublicUrl(normalizedPosterPath);
+    return data?.publicUrl || FALLBACK_POSTER;
+  }
+
+  return FALLBACK_POSTER;
 }
 
 function EventBadge({ children, variant = "default" }) {
@@ -551,7 +572,7 @@ function UpcomingEventItem({ event }) {
       }}
     >
       <img
-        src={getPosterUrl(event.poster_path)}
+        src={getPosterUrl(event)}
         alt={event.title || "Plakát vysílání"}
         style={{
           width: 88,
@@ -560,6 +581,10 @@ function UpcomingEventItem({ event }) {
           objectFit: "cover",
           display: "block",
           background: "#e2e8f0",
+        }}
+        onError={(e) => {
+          e.currentTarget.onerror = null;
+          e.currentTarget.src = FALLBACK_POSTER;
         }}
       />
 
@@ -651,9 +676,12 @@ export default function ProgramPage() {
       setEventsLoading(true);
 
       const now = new Date().toISOString();
+
       const { data, error } = await supabase
         .from("events")
-        .select("id, title, starts_at, poster_path, audience_groups, category, is_published")
+        .select(
+          "id, title, starts_at, poster_url, poster_path, audience_groups, category, is_published"
+        )
         .eq("is_published", true)
         .gte("starts_at", now)
         .order("starts_at", { ascending: true })
@@ -845,7 +873,9 @@ export default function ProgramPage() {
                       Načítám nadcházející vysílání…
                     </div>
                   ) : upcomingEvents.length > 0 ? (
-                    upcomingEvents.map((event) => <UpcomingEventItem key={event.id} event={event} />)
+                    upcomingEvents.map((event) => (
+                      <UpcomingEventItem key={event.id} event={event} />
+                    ))
                   ) : (
                     <div
                       style={{
@@ -938,7 +968,12 @@ export default function ProgramPage() {
                 }
 
                 return (
-                  <PriceCard key={card.title} {...card} featured={idx === 0} href={href} />
+                  <PriceCard
+                    key={card.title}
+                    {...card}
+                    featured={idx === 0}
+                    href={href}
+                  />
                 );
               })}
             </div>
