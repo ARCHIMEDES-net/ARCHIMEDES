@@ -252,14 +252,16 @@ export default function StartPage() {
                   {isCompleted ? (
                     <>
                       Objednávku jsme přijali a školu jsme připravili v systému
-                      ARCHIMEDES Live. Další krok dokončíte přes e-mail, který
-                      jsme právě odeslali.
+                      ARCHIMEDES Live. Přístup ke vysílání získáváte okamžitě po
+                      dokončení navazujícího kroku v e-mailu, který jsme právě
+                      odeslali.
                     </>
                   ) : (
                     <>
                       Objednávka balíčku START byla přijata. Přístup školy nyní
                       ještě vyžaduje naši krátkou kontrolu. Další instrukce
-                      pošleme na uvedený e-mail.
+                      pošleme na uvedený e-mail co nejdříve, aby škola mohla
+                      začít využívat program bez zbytečného čekání.
                     </>
                   )}
                 </p>
@@ -272,7 +274,7 @@ export default function StartPage() {
                         <div>
                           <div className="statusTitle">Objednávka přijata</div>
                           <div className="statusText">
-                            Balíček START byl úspěšně zapsán.
+                            Balíček START byl úspěšně zapsán za akční cenu.
                           </div>
                         </div>
                       </div>
@@ -282,7 +284,8 @@ export default function StartPage() {
                         <div>
                           <div className="statusTitle">Škola připravena</div>
                           <div className="statusText">
-                            Škola byla připravena pro vstup do ARCHIMEDES Live.
+                            Škola byla připravena pro vstup do ARCHIMEDES Live
+                            až do 31. 12. 2026.
                           </div>
                         </div>
                       </div>
@@ -292,7 +295,7 @@ export default function StartPage() {
                         <div>
                           <div className="statusTitle">Další krok</div>
                           <div className="statusText">
-                            Otevřete e-mail a pokračujte podle zaslaných pokynů.
+                            Otevřete e-mail a dokončete aktivaci přístupu.
                           </div>
                         </div>
                       </div>
@@ -305,7 +308,9 @@ export default function StartPage() {
                           jsme odeslali potvrzení objednávky i informace k přístupu.
                           Pokud už účet v ARCHIMEDES Live máte, pokračujete svými
                           dosavadními údaji. Pokud účet teprve vzniká, dokončíte
-                          nejprve nastavení hesla přes e-mail.
+                          nejprve nastavení hesla přes e-mail. Jakmile tento krok
+                          dokončíte, škola získává přístup k aktuálním vysíláním
+                          a programu až do 31. 12. 2026.
                         </>
                       ) : (
                         <>
@@ -313,7 +318,9 @@ export default function StartPage() {
                           <strong>{successData.orderingEmail || "—"}</strong>. Na
                           e-mail správce programu{" "}
                           <strong>{successData.adminEmail || "—"}</strong> jsme
-                          poslali navazující přístupové informace.
+                          poslali navazující přístupové informace. Po dokončení
+                          aktivace získá škola přístup k vysílání a programu až
+                          do 31. 12. 2026.
                         </>
                       )}
                     </div>
@@ -324,6 +331,7 @@ export default function StartPage() {
                         <li>Otevřete e-mail, který jsme vám právě odeslali.</li>
                         <li>Pokud je to potřeba, nastavte si heslo.</li>
                         <li>Poté se přihlaste do ARCHIMEDES Live.</li>
+                        <li>Po přihlášení můžete ihned sledovat aktuální vysílání a program.</li>
                       </ol>
                     </div>
                   </>
@@ -332,7 +340,8 @@ export default function StartPage() {
                     <div className="warningBox">
                       Objednávku jsme přijali, ale automatické dokončení přístupu
                       neproběhlo úplně správně. Nic se neztratilo — navážeme na vás
-                      e-mailem a přístup dokončíme ručně.
+                      e-mailem a přístup dokončíme ručně, aby škola mohla začít
+                      využívat program co nejdříve.
                     </div>
 
                     <div className="nextSteps">
@@ -640,7 +649,7 @@ export default function StartPage() {
         <title>Balíček START | ARCHIMEDES Live</title>
         <meta
           name="description"
-          content="Objednejte pro školu balíček START programu ARCHIMEDES Live."
+          content="Objednejte pro školu balíček START programu ARCHIMEDES Live až do 31. 12. 2026 za zvýhodněnou cenu při objednávce do 31. 8. 2026."
         />
       </Head>
 
@@ -651,20 +660,25 @@ export default function StartPage() {
               <div className="heroGrid">
                 <div className="heroMain">
                   <div className="eyebrow dark">
-                    Balíček START pro školy • duben - září 2026
+                    Balíček START pro školy • objednávka do 31. 8. 2026 • přístup do 31. 12. 2026
                   </div>
 
-                  <h1>Zapojte školu do programu ARCHIMEDES Live</h1>
+                  <h1>Zapojte školu do programu ARCHIMEDES Live až do konce roku 2026</h1>
 
                   <p className="lead">
-                    Balíček START je nejrychlejší cesta, jak si škola může
-                    program ověřit v praxi ještě v tomto školním roce, zároveň
-                    se připravit na září 2026 a využít financování ze šablon.
+                    Balíček START je nejrychlejší cesta, jak školu zapojit do
+                    programu ARCHIMEDES Live za zvýhodněnou cenu. Stačí odeslat
+                    objednávku do 31. 8. 2026 a škola získá přístup až do
+                    31. 12. 2026. Přístup k vysílání získáváte ihned po
+                    objednání — čím dříve se zapojíte, tím více programu škola
+                    využije.
                   </p>
 
                   <div className="quickBenefits">
-                    <div className="benefitItem">duben–září 2026</div>
-                    <div className="benefitItem">4 990 Kč bez DPH jednorázově</div>
+                    <div className="benefitItem">přístup do programu až do 31. 12. 2026</div>
+                    <div className="benefitItem">akční cena 4 990 Kč bez DPH při objednávce do 31. 8. 2026</div>
+                    <div className="benefitItem">přístup k vysílání ihned po objednání</div>
+                    <div className="benefitItem">čím dříve objednáte, tím více programu škola získá</div>
                     <div className="benefitItem">bez automatického prodloužení</div>
                     <div className="benefitItem">
                       potvrzení objednávky + faktura + přístup pro školu
@@ -676,7 +690,7 @@ export default function StartPage() {
                     <div className="simpleSteps">
                       <div className="simpleStep">
                         <span className="stepNumber">1</span>
-                        <p>Vyplníte údaje školy a odešlete objednávku.</p>
+                        <p>Vyplníte údaje školy a odešlete objednávku do 31. 8. 2026.</p>
                       </div>
                       <div className="simpleStep">
                         <span className="stepNumber">2</span>
@@ -684,7 +698,7 @@ export default function StartPage() {
                       </div>
                       <div className="simpleStep">
                         <span className="stepNumber">3</span>
-                        <p>Obratem obdržíte přístupové údaje.</p>
+                        <p>Obratem obdržíte přístupové údaje a škola může začít sledovat vysílání.</p>
                       </div>
                     </div>
                   </div>
@@ -692,9 +706,8 @@ export default function StartPage() {
                   <div className="schoolAdminBox">
                     <div className="miniTitle">Podklady pro školu</div>
                     <p>
-                      Zašleme potvrzení objednávky, fakturu,
-                      specifikaci plnění a další podklady pro interní
-                      administraci školy.
+                      Zašleme potvrzení objednávky, fakturu, specifikaci plnění
+                      a další podklady pro interní administraci školy.
                     </p>
                     <p className="smallLegal">
                       Zařazení programu do financování školy (šablony a pod.) posuzuje škola podle
@@ -713,7 +726,11 @@ export default function StartPage() {
                 <div className="summaryColumn">
                   <div className="summaryCard">
                     <div className="summaryLabel">Balíček START</div>
-                    <div className="summaryTitle">Duben - září 2026</div>
+                    <div className="summaryTitle">Do 31. 12. 2026</div>
+
+                    <div className="summaryDeadline">
+                      Akční cena při objednávce do 31. 8. 2026
+                    </div>
 
                     <div className="priceHighlight">
                       <div className="priceTop">Cena za celé období</div>
@@ -728,24 +745,27 @@ export default function StartPage() {
                     </div>
 
                     <div className="summaryBadge">
-                      Vhodné pro školu, která si chce program ověřit v praxi ještě
-                      letos.
+                      Přístup k vysílání získáváte ihned po objednání. Čím dříve
+                      školu zapojíte, tím více programu do konce roku využijete.
                     </div>
 
                     <div className="summaryDivider" />
 
                     <div className="summaryContentLabel">Součást balíčku</div>
                     <ul className="summaryList">
-                      <li>4× online vzdělávací program pro I. stupeň ZŠ</li>
-                      <li>4× online vzdělávací program pro II. stupeň ZŠ</li>
-                      <li>4× program zaměřený na wellbeing žáků</li>
-                      <li>4× program zaměřený na kariérovou orientaci</li>
-                      <li>4× vzdělávací program v anglickém jazyce</li>
+                      <li>online vzdělávací program pro I. stupeň ZŠ</li>
+                      <li>online vzdělávací program pro II. stupeň ZŠ</li>
+                      <li>program zaměřený na wellbeing žáků</li>
+                      <li>program zaměřený na kariérovou orientaci</li>
+                      <li>vybrané vzdělávací programy v anglickém jazyce</li>
+                      <li>průběžně zveřejňovaný program do 31. 12. 2026</li>
                     </ul>
 
                     <p className="summaryNote">
                       Konkrétní termíny jsou zveřejňovány průběžně v programu
-                      ARCHIMEDES Live.
+                      ARCHIMEDES Live. Balíček START umožňuje škole vstoupit do
+                      programu okamžitě po objednání a využívat jej až do konce
+                      roku 2026.
                     </p>
                   </div>
                 </div>
@@ -918,7 +938,8 @@ export default function StartPage() {
               <div className="sectionBlock">
                 <div className="submitInfoLine">
                   Po odeslání přijde objednateli potvrzení e-mailem a správci
-                  programu informace k přístupu.
+                  programu informace k přístupu. Přístup k vysílání získává škola
+                  ihned po objednání a dokončení aktivace.
                 </div>
               </div>
 
@@ -1006,8 +1027,9 @@ export default function StartPage() {
                     />
                     <span>
                       Odesláním objednávky závazně objednávám za školu /
-                      organizaci balíček START ARCHIMEDES Live na období
-                      duben–září 2026 za cenu uvedenou na této stránce a potvrzuji
+                      organizaci balíček START ARCHIMEDES Live s přístupem do
+                      31. 12. 2026 za akční cenu uvedenou na této stránce, a to
+                      při objednávce nejpozději do 31. 8. 2026. Zároveň potvrzuji
                       povinnost uhradit vystavený daňový doklad.
                     </span>
                   </label>
@@ -1045,7 +1067,8 @@ export default function StartPage() {
                 </button>
 
                 <p className="submitNote">
-                  Po odeslání objednávky vám přijde potvrzení e-mailem.
+                  Po odeslání objednávky vám přijde potvrzení e-mailem a škola
+                  získá přístup k programu po dokončení aktivace.
                 </p>
               </div>
 
@@ -1300,6 +1323,21 @@ export default function StartPage() {
             line-height: 1.05;
             font-weight: 900;
             letter-spacing: -0.03em;
+          }
+
+          .summaryDeadline {
+            margin-top: 12px;
+            display: inline-flex;
+            align-items: center;
+            min-height: 36px;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            font-size: 13px;
+            line-height: 1.4;
+            font-weight: 800;
           }
 
           .priceHighlight {
