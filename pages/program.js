@@ -220,31 +220,6 @@ function SecondaryButton({ href, children }) {
   );
 }
 
-function TertiaryButton({ href, children }) {
-  return (
-    <Link
-      href={href}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 22px",
-        borderRadius: 14,
-        background: "#eef2ff",
-        color: "#1e3a8a",
-        textDecoration: "none",
-        fontWeight: 800,
-        fontSize: 16,
-        border: "1px solid #c7d2fe",
-        transition: "transform 0.18s ease, box-shadow 0.18s ease",
-      }}
-    >
-      {children}
-    </Link>
-  );
-}
-
 function ProgramCard({ color, title, intro, items }) {
   return (
     <div
@@ -504,6 +479,7 @@ function PriceCard({
 
 function formatEventDate(value) {
   if (!value) return "";
+
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
 
@@ -518,6 +494,7 @@ function formatEventDate(value) {
 
 function getPosterUrl(path) {
   if (!path) return "/ucebna-exterier.webp";
+
   const { data } = supabase.storage.from("posters").getPublicUrl(path);
   return data?.publicUrl || "/ucebna-exterier.webp";
 }
@@ -627,7 +604,10 @@ function UpcomingEventItem({ event }) {
             }}
           >
             {badges.slice(0, 4).map((badge, i) => (
-              <EventBadge key={`${badge}-${i}`} variant={badge === "Komunita" ? "accent" : "default"}>
+              <EventBadge
+                key={`${badge}-${i}`}
+                variant={badge === "Komunita" ? "accent" : "default"}
+              >
                 {badge}
               </EventBadge>
             ))}
@@ -671,7 +651,6 @@ export default function ProgramPage() {
       setEventsLoading(true);
 
       const now = new Date().toISOString();
-
       const { data, error } = await supabase
         .from("events")
         .select("id, title, starts_at, poster_path, audience_groups, category, is_published")
@@ -780,8 +759,8 @@ export default function ProgramPage() {
                     maxWidth: 620,
                   }}
                 >
-                  Jednoduchý způsob, jak dát škole i obci smysluplný program, který
-                  běží pravidelně a je snadné ho využívat.
+                  Jednoduchý způsob, jak dát škole i obci smysluplný program, který běží
+                  pravidelně a je snadné ho využívat.
                 </p>
 
                 <p
@@ -793,8 +772,8 @@ export default function ProgramPage() {
                     maxWidth: 620,
                   }}
                 >
-                  Program vzniká ve spolupráci se školami, obcemi a partnery
-                  zapojenými do sítě ARCHIMEDES.
+                  Program vzniká ve spolupráci se školami, obcemi a partnery zapojenými do
+                  sítě ARCHIMEDES.
                 </p>
 
                 <div
@@ -807,16 +786,9 @@ export default function ProgramPage() {
                   }}
                   className="hero-cta-grid"
                 >
-                  <PrimaryButton href="/aktualni-pozvanky">
-                    Aktuální pozvánky
-                  </PrimaryButton>
-
+                  <PrimaryButton href="/aktualni-pozvanky">Aktuální pozvánky</PrimaryButton>
                   <SecondaryButton href="/demo">Mám zájem o demo</SecondaryButton>
-
-                  <SecondaryButton href="#zapojeni">
-                    Ceník programů
-                  </SecondaryButton>
-
+                  <SecondaryButton href="#zapojeni">Ceník programů</SecondaryButton>
                   <SecondaryButton href="/financovani-skoly">
                     Pro školy – financování z OP JAK
                   </SecondaryButton>
@@ -873,9 +845,7 @@ export default function ProgramPage() {
                       Načítám nadcházející vysílání…
                     </div>
                   ) : upcomingEvents.length > 0 ? (
-                    upcomingEvents.map((event) => (
-                      <UpcomingEventItem key={event.id} event={event} />
-                    ))
+                    upcomingEvents.map((event) => <UpcomingEventItem key={event.id} event={event} />)
                   ) : (
                     <div
                       style={{
@@ -940,3 +910,196 @@ export default function ProgramPage() {
 
           <section id="zapojeni" style={{ marginTop: 84 }}>
             <SectionTitle
+              eyebrow="Zapojení do programu"
+              title="Jakou variantu programu můžete využít"
+              text="Nejčastěji školy a obce volí společnou variantu, která propojuje školní program, senior klub i komunitní část. Menší formáty lze využít i samostatně."
+            />
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                gap: 22,
+                marginTop: 24,
+              }}
+              className="price-grid"
+            >
+              {priceCards.map((card, idx) => {
+                let href = "/poptavka";
+
+                if (card.title === "Program pro školu a obec") {
+                  href = "/poptavka?interest=program-obec";
+                } else if (card.title === "Škola") {
+                  href = "/poptavka?interest=skola";
+                } else if (card.title === "Senior klub") {
+                  href = "/poptavka?interest=senior";
+                } else if (card.title === "Komunitní program") {
+                  href = "/poptavka?interest=komunita";
+                }
+
+                return (
+                  <PriceCard key={card.title} {...card} featured={idx === 0} href={href} />
+                );
+              })}
+            </div>
+
+            <div
+              style={{
+                marginTop: 26,
+                background: "#fff",
+                border: "1px solid #e2e8f0",
+                borderRadius: 22,
+                padding: "24px 22px",
+                boxShadow: "0 14px 36px rgba(15,23,42,0.05)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 18,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ maxWidth: 720 }}>
+                <div
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 800,
+                    color: "#0f172a",
+                    lineHeight: 1.3,
+                  }}
+                >
+                  Nejste si jistí, která varianta je pro vás vhodná?
+                </div>
+                <p
+                  style={{
+                    margin: "10px 0 0",
+                    fontSize: 16,
+                    lineHeight: 1.7,
+                    color: "#475569",
+                  }}
+                >
+                  Nejrychlejší je vidět program naživo nebo se krátce poradit podle toho,
+                  zda řešíte školu, obec, seniory nebo kombinaci více formátů.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  flexWrap: "wrap",
+                }}
+              >
+                <PrimaryButton href="/demo">Chci vidět demo</PrimaryButton>
+                <SecondaryButton href="/poptavka">
+                  Chci doporučit vhodnou variantu
+                </SecondaryButton>
+              </div>
+            </div>
+          </section>
+
+          <section
+            style={{
+              marginTop: 86,
+              background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+              borderRadius: 28,
+              padding: "34px 30px",
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 24,
+              flexWrap: "wrap",
+              boxShadow: "0 24px 60px rgba(15,23,42,0.20)",
+            }}
+          >
+            <div style={{ maxWidth: 760 }}>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: "clamp(28px, 3.4vw, 40px)",
+                  lineHeight: 1.12,
+                  letterSpacing: "-0.03em",
+                }}
+              >
+                Nejlepší způsob, jak program poznat, je vidět ho naživo
+              </h2>
+              <p
+                style={{
+                  margin: "14px 0 0",
+                  fontSize: 18,
+                  lineHeight: 1.72,
+                  color: "rgba(255,255,255,0.82)",
+                }}
+              >
+                Během pár minut se sami přesvědčíte, jak ARCHIMEDES Live dokáže oživit
+                výuku ve škole i společenské dění v obci.
+              </p>
+            </div>
+
+            <PrimaryButton href="/demo">Mám zájem o demo</PrimaryButton>
+          </section>
+        </div>
+      </main>
+
+      <style jsx>{`
+        .hero-cta-grid :global(a) {
+          width: 100%;
+        }
+
+        .hero-cta-grid :global(a:hover) {
+          transform: translateY(-1px);
+        }
+
+        .upcoming-events-list::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .upcoming-events-list::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 999px;
+        }
+
+        @media (max-width: 1100px) {
+          .program-grid,
+          .price-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+
+          .hero-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .hero-cta-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+
+          .upcoming-events-list {
+            max-height: none !important;
+          }
+        }
+
+        @media (max-width: 760px) {
+          .program-grid,
+          .price-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .hero-grid > div:first-child {
+            padding: 30px 22px 26px !important;
+          }
+
+          .hero-cta-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 560px) {
+          .upcoming-events-list :global(img) {
+            width: 76px !important;
+            height: 104px !important;
+          }
+        }
+      `}</style>
+    </>
+  );
+}
