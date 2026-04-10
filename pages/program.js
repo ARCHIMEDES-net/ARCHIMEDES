@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-const PROGRAM_POSTERS = Array.from({ length: 30 }, (_, i) => `/pl${i + 1}.webp`);
+import { supabase } from "../lib/supabaseClient";
 
 const schoolItems = [
   {
@@ -503,27 +502,203 @@ function PriceCard({
   );
 }
 
+function formatEventDate(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+
+  return d.toLocaleString("cs-CZ", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getPosterUrl(path) {
+  if (!path) return "/ucebna-exterier.webp";
+  const { data } = supabase.storage.from("posters").getPublicUrl(path);
+  return data?.publicUrl || "/ucebna-exterier.webp";
+}
+
+function EventBadge({ children, variant = "default" }) {
+  const styles = {
+    default: {
+      background: "#f1f5f9",
+      color: "#475569",
+      border: "1px solid #e2e8f0",
+    },
+    accent: {
+      background: "#f3e8ff",
+      color: "#7c3aed",
+      border: "1px solid #e9d5ff",
+    },
+  };
+
+  const style = styles[variant] || styles.default;
+
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        minHeight: 28,
+        padding: "0 10px",
+        borderRadius: 999,
+        fontSize: 13,
+        fontWeight: 700,
+        ...style,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function UpcomingEventItem({ event }) {
+  const badges = Array.isArray(event.audience_groups) ? event.audience_groups : [];
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "88px 1fr",
+        gap: 14,
+        alignItems: "start",
+        padding: 14,
+        borderRadius: 20,
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        boxShadow: "0 10px 26px rgba(15,23,42,0.05)",
+      }}
+    >
+      <img
+        src={getPosterUrl(event.poster_path)}
+        alt={event.title || "Plakát vysílání"}
+        style={{
+          width: 88,
+          height: 118,
+          borderRadius: 14,
+          objectFit: "cover",
+          display: "block",
+          background: "#e2e8f0",
+        }}
+      />
+
+      <div>
+        <div
+          style={{
+            fontSize: 13,
+            lineHeight: 1.5,
+            color: "#64748b",
+            fontWeight: 700,
+            marginBottom: 6,
+          }}
+        >
+          {formatEventDate(event.starts_at)}
+        </div>
+
+        <div
+          style={{
+            fontSize: 19,
+            lineHeight: 1.32,
+            color: "#0f172a",
+            fontWeight: 800,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          {event.title}
+        </div>
+
+        {event.category ? (
+          <div style={{ marginTop: 10 }}>
+            <EventBadge>{event.category}</EventBadge>
+          </div>
+        ) : null}
+
+        {badges.length ? (
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 8,
+              marginTop: 10,
+            }}
+          >
+            {badges.slice(0, 4).map((badge, i) => (
+              <EventBadge key={`${badge}-${i}`} variant={badge === "Komunita" ? "accent" : "default"}>
+                {badge}
+              </EventBadge>
+            ))}
+          </div>
+        ) : null}
+
+        <div style={{ marginTop: 12 }}>
+          <Link
+            href="/start"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 40,
+              padding: "0 14px",
+              borderRadius: 12,
+              background: "#0f172a",
+              color: "#fff",
+              textDecoration: "none",
+              fontSize: 14,
+              fontWeight: 800,
+              boxShadow: "0 10px 22px rgba(15,23,42,0.16)",
+            }}
+          >
+            Odkaz na vysílání
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProgramPage() {
-  const [activePoster, setActivePoster] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
 
   useEffect(() => {
-    if (isPaused) return undefined;
+    let mounted = true;
 
-    const interval = setInterval(() => {
-      setIsVisible(false);
+    async function loadUpcomingEvents() {
+      setEventsLoading(true);
 
-      const timeout = setTimeout(() => {
-        setActivePoster((prev) => (prev + 1) % PROGRAM_POSTERS.length);
-        setIsVisible(true);
-      }, 350);
+      const now = new Date().toISOString();
 
-      return () => clearTimeout(timeout);
-    }, 4000);
+      const { data, error } = await supabase
+        .from("events")
+        .select("id, title, starts_at, poster_path, audience_groups, category, is_published")
+        .eq("is_published", true)
+        .gte("starts_at", now)
+        .order("starts_at", { ascending: true })
+        .limit(5);
 
-    return () => clearInterval(interval);
-  }, [isPaused]);
+      if (!mounted) return;
+
+      if (error) {
+        console.error("Nepodařilo se načíst nadcházející vysílání:", error);
+        setUpcomingEvents([]);
+        setEventsLoading(false);
+        return;
+      }
+
+      setUpcomingEvents(data || []);
+      setEventsLoading(false);
+    }
+
+    loadUpcomingEvents();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <>
@@ -650,107 +825,73 @@ export default function ProgramPage() {
 
               <div
                 style={{
-                  minHeight: 420,
-                  background: "#e2e8f0",
+                  background: "linear-gradient(180deg, #eef4ff 0%, #f8fafc 100%)",
+                  borderLeft: "1px solid #e2e8f0",
+                  padding: "22px 20px 22px",
                 }}
               >
-                <Link
-                  href="/vysilani"
-                  onMouseEnter={() => setIsPaused(true)}
-                  onMouseLeave={() => setIsPaused(false)}
-                  className="program-poster-hero"
+                <div
                   style={{
-                    position: "relative",
-                    display: "block",
-                    width: "100%",
-                    height: "100%",
-                    minHeight: 420,
-                    overflow: "hidden",
-                    textDecoration: "none",
-                    background: "#dbe4f0",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "10px 14px",
+                    borderRadius: 999,
+                    background: "rgba(15, 23, 42, 0.82)",
+                    color: "#fff",
+                    fontSize: 14,
+                    fontWeight: 800,
+                    marginBottom: 16,
+                    boxShadow: "0 10px 24px rgba(15,23,42,0.14)",
                   }}
                 >
-                  <img
-                    src={PROGRAM_POSTERS[activePoster]}
-                    alt={`Ukázka programu ARCHIMEDES Live ${activePoster + 1}`}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      display: "block",
-                      objectFit: "cover",
-                      opacity: isVisible ? 1 : 0.12,
-                      transition: "opacity 0.55s ease",
-                    }}
-                  />
+                  Nadcházející vysílání
+                </div>
 
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 18,
-                      left: 18,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "10px 14px",
-                      borderRadius: 999,
-                      background: "rgba(15, 23, 42, 0.72)",
-                      color: "#fff",
-                      fontSize: 14,
-                      fontWeight: 800,
-                      backdropFilter: "blur(8px)",
-                    }}
-                  >
-                    Ukázky z programu
-                  </div>
-
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 18,
-                      bottom: 18,
-                      right: 18,
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 12,
-                      flexWrap: "wrap",
-                    }}
-                  >
+                <div
+                  style={{
+                    display: "grid",
+                    gap: 14,
+                    maxHeight: 640,
+                    overflow: "auto",
+                    paddingRight: 4,
+                  }}
+                  className="upcoming-events-list"
+                >
+                  {eventsLoading ? (
                     <div
                       style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "10px 14px",
-                        borderRadius: 999,
-                        background: "rgba(255,255,255,0.90)",
-                        color: "#0f172a",
-                        fontSize: 14,
-                        fontWeight: 800,
-                        boxShadow: "0 10px 24px rgba(15,23,42,0.14)",
+                        background: "#fff",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: 20,
+                        padding: 18,
+                        color: "#64748b",
+                        fontSize: 15,
+                        lineHeight: 1.7,
                       }}
                     >
-                      Proběhlá vysílání
+                      Načítám nadcházející vysílání…
                     </div>
-
+                  ) : upcomingEvents.length > 0 ? (
+                    upcomingEvents.map((event) => (
+                      <UpcomingEventItem key={event.id} event={event} />
+                    ))
+                  ) : (
                     <div
                       style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        padding: "10px 14px",
-                        borderRadius: 999,
-                        background: "rgba(23, 59, 119, 0.88)",
-                        color: "#fff",
-                        fontSize: 14,
-                        fontWeight: 800,
-                        boxShadow: "0 10px 24px rgba(15,23,42,0.14)",
+                        background: "#fff",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: 20,
+                        padding: 18,
+                        color: "#64748b",
+                        fontSize: 15,
+                        lineHeight: 1.7,
                       }}
                     >
-                      Zobrazit galerii
+                      Aktuálně zde nejsou zveřejněna žádná nadcházející vysílání.
                     </div>
-                  </div>
-                </Link>
+                  )}
+                </div>
               </div>
             </div>
           </section>
@@ -799,189 +940,3 @@ export default function ProgramPage() {
 
           <section id="zapojeni" style={{ marginTop: 84 }}>
             <SectionTitle
-              eyebrow="Zapojení do programu"
-              title="Jakou variantu programu můžete využít"
-              text="Nejčastěji školy a obce volí společnou variantu, která propojuje školní program, senior klub i komunitní část. Menší formáty lze využít i samostatně."
-            />
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-                gap: 22,
-                marginTop: 24,
-              }}
-              className="price-grid"
-            >
-              {priceCards.map((card, idx) => {
-                let href = "/poptavka";
-
-                if (card.title === "Program pro školu a obec") {
-                  href = "/poptavka?interest=program-obec";
-                } else if (card.title === "Škola") {
-                  href = "/poptavka?interest=skola";
-                } else if (card.title === "Senior klub") {
-                  href = "/poptavka?interest=senior";
-                } else if (card.title === "Komunitní program") {
-                  href = "/poptavka?interest=komunita";
-                }
-
-                return (
-                  <PriceCard
-                    key={card.title}
-                    {...card}
-                    featured={idx === 0}
-                    href={href}
-                  />
-                );
-              })}
-            </div>
-
-            <div
-              style={{
-                marginTop: 26,
-                background: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 22,
-                padding: "24px 22px",
-                boxShadow: "0 14px 36px rgba(15,23,42,0.05)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 18,
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ maxWidth: 720 }}>
-                <div
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 800,
-                    color: "#0f172a",
-                    lineHeight: 1.3,
-                  }}
-                >
-                  Nejste si jistí, která varianta je pro vás vhodná?
-                </div>
-                <p
-                  style={{
-                    margin: "10px 0 0",
-                    fontSize: 16,
-                    lineHeight: 1.7,
-                    color: "#475569",
-                  }}
-                >
-                  Nejrychlejší je vidět program naživo nebo se krátce poradit podle
-                  toho, zda řešíte školu, obec, seniory nebo kombinaci více formátů.
-                </p>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: 12,
-                  flexWrap: "wrap",
-                }}
-              >
-                <PrimaryButton href="/demo">Chci vidět demo</PrimaryButton>
-                <SecondaryButton href="/poptavka">
-                  Chci doporučit vhodnou variantu
-                </SecondaryButton>
-              </div>
-            </div>
-          </section>
-
-          <section
-            style={{
-              marginTop: 86,
-              background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-              borderRadius: 28,
-              padding: "34px 30px",
-              color: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 24,
-              flexWrap: "wrap",
-              boxShadow: "0 24px 60px rgba(15,23,42,0.20)",
-            }}
-          >
-            <div style={{ maxWidth: 760 }}>
-              <h2
-                style={{
-                  margin: 0,
-                  fontSize: "clamp(28px, 3.4vw, 40px)",
-                  lineHeight: 1.12,
-                  letterSpacing: "-0.03em",
-                }}
-              >
-                Nejlepší způsob, jak program poznat, je vidět ho naživo
-              </h2>
-              <p
-                style={{
-                  margin: "14px 0 0",
-                  fontSize: 18,
-                  lineHeight: 1.72,
-                  color: "rgba(255,255,255,0.82)",
-                }}
-              >
-                Během pár minut se sami přesvědčíte, jak ARCHIMEDES Live dokáže
-                oživit výuku ve škole i společenské dění v obci.
-              </p>
-            </div>
-
-            <PrimaryButton href="/demo">Mám zájem o demo</PrimaryButton>
-          </section>
-        </div>
-      </main>
-
-      <style jsx>{`
-        .hero-cta-grid :global(a) {
-          width: 100%;
-        }
-
-        .hero-cta-grid :global(a:hover) {
-          transform: translateY(-1px);
-        }
-
-        @media (max-width: 1100px) {
-          .program-grid,
-          .price-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          }
-
-          .hero-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          .program-poster-hero {
-            min-height: 380px !important;
-          }
-
-          .hero-cta-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          }
-        }
-
-        @media (max-width: 760px) {
-          .program-grid,
-          .price-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          .hero-grid > div:first-child {
-            padding: 30px 22px 26px !important;
-          }
-
-          .program-poster-hero {
-            min-height: 320px !important;
-          }
-
-          .hero-cta-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
-    </>
-  );
-}
