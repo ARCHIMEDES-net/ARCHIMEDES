@@ -1,11 +1,14 @@
 import Head from "next/head";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import Footer from "../components/Footer";
+import { supabase } from "../lib/supabaseClient";
 
 const heroImg = "/jak-funguje-trida.jpg";
 const stepOnlineImg = "/jak-funguje-online.jpg";
 const stepClassImg = "/ella.jpg";
 const stepBoardImg = "/jak-funguje-tabule.jpg";
+const POSTERS_BUCKET = "posters";
 
 function ButtonLink({ href, children, variant = "primary" }) {
   return (
@@ -38,7 +41,103 @@ function VideoCard({ title, subtitle, src, featured = false }) {
   );
 }
 
+function formatEventDate(dateString) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const datePart = date.toLocaleDateString("cs-CZ", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+  const timePart = date.toLocaleTimeString("cs-CZ", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return `${datePart} • ${timePart}`;
+}
+
+function isWithinDays(dateString, days = 7) {
+  if (!dateString) return false;
+  const now = new Date();
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return false;
+  const diff = date.getTime() - now.getTime();
+  return diff >= 0 && diff <= days * 24 * 60 * 60 * 1000;
+}
+
 export default function Home() {
+  const [nextEvent, setNextEvent] = useState(null);
+  const [nextEventLoading, setNextEventLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadNextEvent() {
+      try {
+        const nowIso = new Date().toISOString();
+
+        const { data, error } = await supabase
+          .from("events")
+          .select("id, title, starts_at, poster_path, category")
+          .eq("is_published", true)
+          .gte("starts_at", nowIso)
+          .order("starts_at", { ascending: true })
+          .limit(1);
+
+        if (error) throw error;
+
+        const event = data?.[0] || null;
+
+        if (!active) return;
+
+        if (!event) {
+          setNextEvent(null);
+          return;
+        }
+
+        let posterUrl = "";
+        if (event.poster_path) {
+          const { data: publicUrlData } = supabase.storage
+            .from(POSTERS_BUCKET)
+            .getPublicUrl(event.poster_path);
+          posterUrl = publicUrlData?.publicUrl || "";
+        }
+
+        setNextEvent({
+          ...event,
+          posterUrl,
+        });
+      } catch (_err) {
+        if (!active) return;
+        setNextEvent(null);
+      } finally {
+        if (active) {
+          setNextEventLoading(false);
+        }
+      }
+    }
+
+    loadNextEvent();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const nextEventDate = useMemo(
+    () => formatEventDate(nextEvent?.starts_at),
+    [nextEvent]
+  );
+
+  const nextEventSoon = useMemo(
+    () => isWithinDays(nextEvent?.starts_at, 7),
+    [nextEvent]
+  );
+
   return (
     <>
       <Head>
@@ -60,51 +159,121 @@ export default function Home() {
 
           <div className="heroContentWrap">
             <div className="container">
-              <div className="heroContent">
-                <div className="eyebrow">ARCHIMEDES Live pro školy a obce</div>
+              <div className="heroGrid">
+                <div className="heroContent">
+                  <div className="eyebrow">ARCHIMEDES Live pro školy a obce</div>
 
-                <h1>
-                  Hodina, na kterou
-                  <br />
-                  se nezapomíná.
-                </h1>
+                  <h1>
+                    Hodina, na kterou
+                    <br />
+                    se nezapomíná.
+                  </h1>
 
-                <p className="heroIntro">
-                  Živá vzdělávací a interaktivní platforma, která propojuje školy, obce a komunity. Nabízí bohatý program pro všechny generace od dětí až po seniory a vytváří prostor pro sdílení, spolupráci a vzájemnou inspiraci.                             
-                </p>
+                  <p className="heroIntro">
+                    Živá vzdělávací a interaktivní platforma, která propojuje školy, obce a komunity. Nabízí bohatý program pro všechny generace od dětí až po seniory a vytváří prostor pro sdílení, spolupráci a vzájemnou inspiraci.
+                  </p>
 
-                <p className="heroLead">
-                  Na jednom místě přináší živé vysílání, interaktivní workshopy, tematické kluby,
-                  soutěže a archiv vzdělávacích materiálů.                 
-                </p>
+                  <p className="heroLead">
+                    Na jednom místě přináší živé vysílání, interaktivní workshopy, tematické kluby,
+                    soutěže a archiv vzdělávacích materiálů.
+                  </p>
 
-                <div className="heroActions">
-                  <ButtonLink href="/aktualni-pozvanky" variant="primary">
-                    Co se chystá
-                  </ButtonLink>
-                  <ButtonLink href="/demo" variant="secondary">
-                    Ukázka platformy
-                  </ButtonLink>
-                  <ButtonLink href="/#ukazky-vysilani" variant="secondary">
-                    Ukázková hodina
-                  </ButtonLink>
-                  <ButtonLink href="/start" variant="secondary">
-                    Balíček START
-                  </ButtonLink>
+                  <div className="heroActions">
+                    <ButtonLink href="/aktualni-pozvanky" variant="primary">
+                      Co se chystá
+                    </ButtonLink>
+                    <ButtonLink href="/demo" variant="secondary">
+                      Ukázka platformy
+                    </ButtonLink>
+                    <ButtonLink href="/#ukazky-vysilani" variant="secondary">
+                      Ukázková hodina
+                    </ButtonLink>
+                    <ButtonLink href="/start" variant="secondary">
+                      Balíček START
+                    </ButtonLink>
+                  </div>
+
+                  <div className="heroGuestLinkWrap">
+                    <div className="heroGuestLabel">International guest access</div>
+                    <Link
+                      href="/guest"
+                      className="heroGuestLink al-btn al-btn-ghost"
+                    >
+                      <span className="heroGuestTitle">
+                        For invited guest speakers
+                      </span>
+                      <span className="heroGuestArrow" aria-hidden="true">
+                        →
+                      </span>
+                    </Link>
+                  </div>
                 </div>
 
-                <div className="heroGuestLinkWrap">
-                  <div className="heroGuestLabel">International guest access</div>
-                  <Link
-                    href="/guest"
-                    className="heroGuestLink al-btn al-btn-ghost"
-                  >
-                    <span className="heroGuestTitle">
-                      For invited guest speakers
-                    </span>
-                    <span className="heroGuestArrow" aria-hidden="true">
-                      →
-                    </span>
+                <div className="heroAside">
+                  <Link href="/program" className="nextBroadcastCard">
+                    <div className="nextBroadcastTop">
+                      <div className="nextBroadcastLabel">Nejbližší živé vysílání</div>
+                      {nextEventSoon ? (
+                        <div className="nextBroadcastBadge">Již brzy</div>
+                      ) : null}
+                    </div>
+
+                    {nextEventLoading ? (
+                      <div className="nextBroadcastLoading">
+                        Načítáme nejbližší vysílání…
+                      </div>
+                    ) : nextEvent ? (
+                      <>
+                        <div className="nextBroadcastPosterWrap">
+                          {nextEvent.posterUrl ? (
+                            <img
+                              src={nextEvent.posterUrl}
+                              alt={nextEvent.title || "Plakát vysílání"}
+                              className="nextBroadcastPoster"
+                            />
+                          ) : (
+                            <div className="nextBroadcastPosterPlaceholder">
+                              ARCHIMEDES Live
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="nextBroadcastBody">
+                          <div className="nextBroadcastDate">{nextEventDate}</div>
+                          <div className="nextBroadcastTitle">{nextEvent.title}</div>
+
+                          {nextEvent.category ? (
+                            <div className="nextBroadcastMeta">
+                              <span>{nextEvent.category}</span>
+                            </div>
+                          ) : null}
+
+                          <div className="nextBroadcastText">
+                            Po kliknutí se dostanete na stránku programu s přehledem
+                            dalších vysílání.
+                          </div>
+
+                          <div className="nextBroadcastAction">
+                            <span>Zobrazit program</span>
+                            <span aria-hidden="true">→</span>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="nextBroadcastEmpty">
+                        <div className="nextBroadcastEmptyTitle">
+                          Program připravujeme průběžně
+                        </div>
+                        <div className="nextBroadcastEmptyText">
+                          Otevřete si přehled programu a podívejte se na aktuální
+                          i připravovaná vysílání.
+                        </div>
+                        <div className="nextBroadcastAction">
+                          <span>Zobrazit program</span>
+                          <span aria-hidden="true">→</span>
+                        </div>
+                      </div>
+                    )}
                   </Link>
                 </div>
               </div>
@@ -398,10 +567,197 @@ export default function Home() {
             align-items: center;
           }
 
+          .heroGrid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 390px);
+            gap: 28px;
+            align-items: end;
+          }
+
           .heroContent {
             max-width: 760px;
             padding: 118px 0 82px;
             color: white;
+          }
+
+          .heroAside {
+            padding: 118px 0 82px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+          }
+
+          .nextBroadcastCard {
+            display: block;
+            width: 100%;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 28px;
+            padding: 18px;
+            background: rgba(9, 17, 34, 0.52);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow:
+              0 24px 54px rgba(15, 23, 42, 0.18),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition:
+              transform 0.22s ease,
+              box-shadow 0.22s ease,
+              border-color 0.22s ease,
+              background 0.22s ease;
+          }
+
+          .nextBroadcastCard:hover {
+            transform: translateY(-4px);
+            background: rgba(9, 17, 34, 0.6);
+            border-color: rgba(255, 255, 255, 0.24);
+            box-shadow:
+              0 30px 62px rgba(15, 23, 42, 0.24),
+              inset 0 1px 0 rgba(255, 255, 255, 0.12);
+          }
+
+          .nextBroadcastTop {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+          }
+
+          .nextBroadcastLabel {
+            font-size: 12px;
+            line-height: 1.4;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.78);
+          }
+
+          .nextBroadcastBadge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+          }
+
+          .nextBroadcastLoading,
+          .nextBroadcastEmpty {
+            padding: 6px 2px 2px;
+          }
+
+          .nextBroadcastLoading {
+            font-size: 15px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.88);
+          }
+
+          .nextBroadcastPosterWrap {
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+          }
+
+          .nextBroadcastPoster {
+            display: block;
+            width: 100%;
+            aspect-ratio: 4 / 5;
+            object-fit: cover;
+          }
+
+          .nextBroadcastPosterPlaceholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            aspect-ratio: 4 / 5;
+            padding: 20px;
+            text-align: center;
+            font-size: 18px;
+            line-height: 1.3;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: rgba(255, 255, 255, 0.92);
+            background:
+              radial-gradient(circle at top right, rgba(255, 255, 255, 0.12), transparent 40%),
+              linear-gradient(135deg, rgba(31, 54, 99, 0.9), rgba(10, 20, 38, 0.92));
+          }
+
+          .nextBroadcastBody {
+            padding: 16px 2px 2px;
+          }
+
+          .nextBroadcastDate {
+            font-size: 14px;
+            line-height: 1.5;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.76);
+          }
+
+          .nextBroadcastTitle {
+            margin-top: 8px;
+            font-size: 28px;
+            line-height: 1.06;
+            letter-spacing: -0.04em;
+            font-weight: 900;
+            color: #ffffff;
+            text-wrap: balance;
+          }
+
+          .nextBroadcastMeta {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+          }
+
+          .nextBroadcastMeta span {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            line-height: 1.4;
+            font-weight: 800;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+          }
+
+          .nextBroadcastText,
+          .nextBroadcastEmptyText {
+            margin-top: 12px;
+            font-size: 15px;
+            line-height: 1.65;
+            color: rgba(255, 255, 255, 0.82);
+          }
+
+          .nextBroadcastEmptyTitle {
+            font-size: 24px;
+            line-height: 1.08;
+            letter-spacing: -0.03em;
+            font-weight: 900;
+            color: #ffffff;
+            text-wrap: balance;
+          }
+
+          .nextBroadcastAction {
+            margin-top: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            line-height: 1.4;
+            font-weight: 800;
+            color: #ffffff;
           }
 
           .eyebrow {
@@ -890,6 +1246,23 @@ export default function Home() {
             font-weight: 700;
           }
 
+          @media (max-width: 1180px) {
+            .heroGrid {
+              grid-template-columns: 1fr;
+              gap: 12px;
+            }
+
+            .heroAside {
+              padding-top: 0;
+              padding-bottom: 68px;
+              justify-content: flex-start;
+            }
+
+            .nextBroadcastCard {
+              max-width: 420px;
+            }
+          }
+
           @media (max-width: 1100px) {
             .stepsGrid,
             .benefitsGrid,
@@ -919,7 +1292,11 @@ export default function Home() {
             }
 
             .heroContent {
-              padding: 98px 0 70px;
+              padding: 98px 0 24px;
+            }
+
+            .heroAside {
+              padding: 0 0 56px;
             }
 
             h1 {
@@ -994,7 +1371,21 @@ export default function Home() {
 
             .heroContent {
               max-width: none;
-              padding: 82px 0 54px;
+              padding: 82px 0 18px;
+            }
+
+            .heroAside {
+              padding: 0 0 44px;
+            }
+
+            .nextBroadcastCard {
+              max-width: none;
+              padding: 16px;
+              border-radius: 24px;
+            }
+
+            .nextBroadcastTitle {
+              font-size: 24px;
             }
 
             h1 {
