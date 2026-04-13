@@ -1124,4 +1124,4 @@ const audCell = {
   border: "1px solid #f3f4f6",
   borderRadius: 10,
   background: "#fafafa",
-};nyni je to takto. co jeste chybi? opravdu to pojede? 
+};
