@@ -408,7 +408,7 @@ export default function Home() {
               <div className="trustStats">
                 <div className="trustStat">
                   <strong>25+</strong>
-                  <span>venkovních učeben ARCHIMEDES</span>
+                  <span>venkovních učeben ARCHIMEDES®/span>
                 </div>
                 <div className="trustStat">
                   <strong>200+</strong>
