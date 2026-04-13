@@ -139,6 +139,20 @@ function makePosterPath(file) {
   return `${ym}/${Date.now()}-${rand}.${ext}`;
 }
 
+function makeWorksheetPath(file) {
+  const ext = safeFileExt(file?.name) || "pdf";
+  const now = new Date();
+  const ym = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;
+  const rand = Math.random().toString(36).slice(2, 8);
+  const baseName = String(file?.name || "worksheet")
+    .replace(/\.[^.]+$/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `${ym}/${Date.now()}-${rand}-${baseName}.${ext}`;
+}
+
 function detectBroadcastState(row) {
   const status = row?.broadcast_status || "";
   const viewerUrl = normalizeText(row?.broadcast_viewer_url);
@@ -190,6 +204,7 @@ export default function AdminUdalosti() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingPoster, setUploadingPoster] = useState(false);
+  const [uploadingWorksheet, setUploadingWorksheet] = useState(false);
 
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
@@ -419,6 +434,64 @@ export default function AdminUdalosti() {
       setError(err?.message || "Chyba při nahrávání plakátu.");
     } finally {
       setUploadingPoster(false);
+    }
+  }
+
+  async function handleWorksheetUpload(file) {
+    setError("");
+    setInfo("");
+    if (!file) return;
+
+    const allowedTypes = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "application/vnd.ms-powerpoint",
+    ];
+
+    const ext = safeFileExt(file?.name);
+    const allowedExts = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"];
+
+    if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext)) {
+      setError("Pracovní list musí být PDF, DOC, DOCX, XLS, XLSX, PPT nebo PPTX.");
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      setError("Pracovní list je moc velký (max 15 MB).");
+      return;
+    }
+
+    setUploadingWorksheet(true);
+
+    try {
+      const path = makeWorksheetPath(file);
+
+      const { error: upErr } = await supabase.storage.from("worksheets").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || "application/octet-stream",
+      });
+
+      if (upErr) throw upErr;
+
+      const { data } = supabase.storage.from("worksheets").getPublicUrl(path);
+      const url = data?.publicUrl ? String(data.publicUrl) : "";
+
+      if (!url) {
+        setError("Upload proběhl, ale nepodařilo se získat veřejnou URL pracovního listu.");
+        return;
+      }
+
+      setWorksheetUrl(url);
+      setInfo("Pracovní list nahrán. Odkaz se vyplnil automaticky.");
+    } catch (err) {
+      setError(err?.message || "Chyba při nahrávání pracovního listu.");
+    } finally {
+      setUploadingWorksheet(false);
     }
   }
 
@@ -701,7 +774,37 @@ export default function AdminUdalosti() {
                 </Field>
 
                 <Field label="Pracovní list (worksheet_url)">
-                  <input value={worksheetUrl} onChange={(e) => setWorksheetUrl(e.target.value)} style={input} />
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10 }}>
+                    <input
+                      value={worksheetUrl}
+                      onChange={(e) => setWorksheetUrl(e.target.value)}
+                      style={input}
+                      placeholder="URL pracovního listu nebo nahrajte soubor z PC"
+                    />
+                    <label style={{ ...btnSecondary, display: "inline-flex", alignItems: "center" }}>
+                      {uploadingWorksheet ? "Nahrávám…" : "Nahrát z PC"}
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                        style={{ display: "none" }}
+                        onChange={(e) => handleWorksheetUpload(e.target.files?.[0])}
+                        disabled={uploadingWorksheet}
+                      />
+                    </label>
+                  </div>
+
+                  {worksheetUrl ? (
+                    <div style={{ marginTop: 10 }}>
+                      <a
+                        href={normalizeUrl(worksheetUrl)}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ color: "#1d4ed8", fontWeight: 700, textDecoration: "none" }}
+                      >
+                        Otevřít nahraný pracovní list
+                      </a>
+                    </div>
+                  ) : null}
                 </Field>
               </div>
 
@@ -1021,4 +1124,4 @@ const audCell = {
   border: "1px solid #f3f4f6",
   borderRadius: 10,
   background: "#fafafa",
-};
+};nyni je to takto. co jeste chybi? opravdu to pojede? 
