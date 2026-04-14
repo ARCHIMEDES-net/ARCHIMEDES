@@ -6,33 +6,47 @@ import { supabase } from "../../lib/supabaseClient";
 
 const DEFAULT_INTERESTS = ["prvni-stupen", "druhy-stupen"];
 
-const INTEREST_GROUPS = [
+const INTEREST_SECTIONS = [
   {
-    title: "Pro koho",
+    title: "🎓 Pro školu",
     items: [
       { slug: "prvni-stupen", label: "1. stupeň" },
       { slug: "druhy-stupen", label: "2. stupeň" },
       { slug: "ucitele", label: "Učitelé" },
-      { slug: "rodice", label: "Rodiče" },
-      { slug: "seniori", label: "Senioři" },
-      { slug: "komunita", label: "Komunita" },
-      { slug: "zajmove-skupiny", label: "Zájmové skupiny" },
+      { slug: "karierni-poradenstvi", label: "Kariérní poradenství" },
     ],
   },
   {
-    title: "Témata a programy",
+    title: "🌍 Témata",
     items: [
       { slug: "wellbeing", label: "Wellbeing" },
-      { slug: "karierni-poradenstvi", label: "Kariérní poradenství" },
+      { slug: "veda-a-objevy", label: "Věda a objevy" },
+      { slug: "svet-v-souvislostech", label: "Svět v souvislostech" },
+      { slug: "english-live", label: "Vysílání v angličtině" },
+    ],
+  },
+  {
+    title: "🏙️ Kluby a programy",
+    items: [
       { slug: "smart-city", label: "Smart City klub" },
       { slug: "ctenarsky-klub", label: "Čtenářský klub" },
       { slug: "filmovy-klub", label: "Filmový klub" },
-      { slug: "english-live", label: "English Live" },
-      { slug: "veda-a-objevy", label: "Věda a objevy" },
-      { slug: "svet-v-souvislostech", label: "Svět v souvislostech" },
+    ],
+  },
+  {
+    title: "👥 Pro komunitu",
+    items: [
+      { slug: "rodice", label: "Rodiče" },
+      { slug: "seniori", label: "Senioři" },
+      { slug: "komunita", label: "Komunita" },
+      { slug: "zajmove-skupiny", label: "Zájmové skupiny (hasiči, spolky, kluby)" },
     ],
   },
 ];
+
+const VISIBLE_INTEREST_SLUGS = new Set(
+  INTEREST_SECTIONS.flatMap((section) => section.items.map((item) => item.slug))
+);
 
 function roleLabel(roleInOrg) {
   switch (roleInOrg) {
@@ -57,6 +71,7 @@ export default function MujProfilPage() {
   const [roleText, setRoleText] = useState("Uživatel");
 
   const [selectedInterests, setSelectedInterests] = useState([]);
+  const [hiddenLegacyInterests, setHiddenLegacyInterests] = useState([]);
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
 
   const selectedCount = useMemo(() => selectedInterests.length, [selectedInterests]);
@@ -119,8 +134,17 @@ export default function MujProfilPage() {
         .map((item) => item.interest_slug)
         .filter(Boolean);
 
-      if (loadedInterests.length > 0) {
-        setSelectedInterests(loadedInterests);
+      const visibleInterests = loadedInterests.filter((slug) => VISIBLE_INTEREST_SLUGS.has(slug));
+      const hiddenInterests = loadedInterests.filter((slug) => !VISIBLE_INTEREST_SLUGS.has(slug));
+
+      setHiddenLegacyInterests(hiddenInterests);
+
+      if (visibleInterests.length > 0) {
+        setSelectedInterests(visibleInterests);
+      } else if (loadedInterests.length > 0) {
+        // Uživatel má jen starší/legacy zájmy mimo nové UI → nesaháme na ně,
+        // ale pro UI mu nabídneme rozumný základ.
+        setSelectedInterests(DEFAULT_INTERESTS);
       } else {
         setSelectedInterests(DEFAULT_INTERESTS);
       }
@@ -143,12 +167,14 @@ export default function MujProfilPage() {
         throw new Error("Chybí identita uživatele.");
       }
 
-      let interestsToSave = [...selectedInterests];
+      let visibleToSave = [...selectedInterests];
 
-      if (interestsToSave.length === 0) {
-        interestsToSave = [...DEFAULT_INTERESTS];
-        setSelectedInterests(interestsToSave);
+      if (visibleToSave.length === 0) {
+        visibleToSave = [...DEFAULT_INTERESTS];
+        setSelectedInterests(visibleToSave);
       }
+
+      const finalInterestSlugs = [...new Set([...visibleToSave, ...hiddenLegacyInterests])];
 
       const { error: profileUpdateError } = await supabase
         .from("profiles")
@@ -166,14 +192,12 @@ export default function MujProfilPage() {
 
       if (deleteError) throw deleteError;
 
-      const rows = interestsToSave.map((slug) => ({
+      const rows = finalInterestSlugs.map((slug) => ({
         user_id: userId,
         interest_slug: slug,
       }));
 
-      const { error: insertError } = await supabase
-        .from("user_interests")
-        .insert(rows);
+      const { error: insertError } = await supabase.from("user_interests").insert(rows);
 
       if (insertError) throw insertError;
 
@@ -204,11 +228,11 @@ export default function MujProfilPage() {
             <div className="header">
               <div>
                 <p className="eyebrow">Můj profil</p>
-                <h1>Nastavení zájmů a e-mailů</h1>
+                <h1>Zajímá mě</h1>
                 <p className="lead">
-                  Vyberte, o jaká vysílání máte zájem. Budeme vám posílat jen
-                  to, co si zvolíte. Pokud nic nevyberete, nastaví se základní
-                  program pro 1. a 2. stupeň.
+                  Vyberte, o jaká vysílání máte zájem. Budeme vám posílat jen to,
+                  co si zvolíte. Pokud nic nevyberete, nastaví se základní program
+                  pro 1. a 2. stupeň.
                 </p>
               </div>
             </div>
@@ -255,12 +279,19 @@ export default function MujProfilPage() {
                     </div>
                   ) : null}
 
+                  {hiddenLegacyInterests.length > 0 ? (
+                    <div className="infoBox">
+                      V profilu máte i dříve uložené starší zájmy, které zůstávají
+                      zachované.
+                    </div>
+                  ) : null}
+
                   <div className="interestSections">
-                    {INTEREST_GROUPS.map((group) => (
-                      <div key={group.title} className="interestGroup">
-                        <h3>{group.title}</h3>
+                    {INTEREST_SECTIONS.map((section) => (
+                      <div key={section.title} className="interestGroup">
+                        <h3>{section.title}</h3>
                         <div className="chips">
-                          {group.items.map((item) => {
+                          {section.items.map((item) => {
                             const active = selectedInterests.includes(item.slug);
                             return (
                               <button
@@ -377,7 +408,7 @@ export default function MujProfilPage() {
           align-items: center;
           justify-content: space-between;
           gap: 20px;
-          padding: 18px 18px;
+          padding: 18px;
           border: 1px solid #e5e7eb;
           border-radius: 20px;
           background: #f8fafc;
