@@ -273,6 +273,7 @@ export default function PortalHeader({ title = "" }) {
     if (key === "profil") return path.startsWith("/portal/muj-profil");
     if (key === "uzivatele") return path.startsWith("/portal/uzivatele");
     if (key === "sprava-vysilani") return path.startsWith("/portal/admin-udalosti");
+    if (key === "email-skupiny") return path.startsWith("/portal/email-skupiny");
     if (key === "admin") return path.startsWith("/portal/admin");
     return false;
   };
@@ -298,6 +299,13 @@ export default function PortalHeader({ title = "" }) {
   ];
 
   const adminLinks = [
+    !loadingRole && !isDemoViewer && isPlatformAdmin
+      ? {
+          key: "email-skupiny",
+          href: "/portal/email-skupiny",
+          label: "E-mailové skupiny",
+        }
+      : null,
     !loadingRole && !isDemoViewer && isPlatformAdmin
       ? {
           key: "sprava-vysilani",
