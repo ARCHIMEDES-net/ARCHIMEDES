@@ -70,6 +70,9 @@ export default function MujProfilPage() {
   const [userId, setUserId] = useState("");
   const [roleText, setRoleText] = useState("Uživatel");
 
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [hiddenLegacyInterests, setHiddenLegacyInterests] = useState([]);
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
@@ -97,6 +100,12 @@ export default function MujProfilPage() {
       if (!user) throw new Error("Uživatel není přihlášen.");
 
       setUserId(user.id);
+      setEmail(user.email || "");
+      setFullName(
+        user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          ""
+      );
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
@@ -142,8 +151,8 @@ export default function MujProfilPage() {
       if (visibleInterests.length > 0) {
         setSelectedInterests(visibleInterests);
       } else if (loadedInterests.length > 0) {
-        // Uživatel má jen starší/legacy zájmy mimo nové UI → nesaháme na ně,
-        // ale pro UI mu nabídneme rozumný základ.
+        // Uživatel má starší zájmy mimo nové UI.
+        // Zachováme je a do UI nabídneme smysluplný základ.
         setSelectedInterests(DEFAULT_INTERESTS);
       } else {
         setSelectedInterests(DEFAULT_INTERESTS);
@@ -175,6 +184,17 @@ export default function MujProfilPage() {
       }
 
       const finalInterestSlugs = [...new Set([...visibleToSave, ...hiddenLegacyInterests])];
+
+      const trimmedName = fullName.trim();
+
+      const { error: authUpdateError } = await supabase.auth.updateUser({
+        data: {
+          full_name: trimmedName,
+          name: trimmedName,
+        },
+      });
+
+      if (authUpdateError) throw authUpdateError;
 
       const { error: profileUpdateError } = await supabase
         .from("profiles")
@@ -242,6 +262,22 @@ export default function MujProfilPage() {
             ) : (
               <form onSubmit={handleSave}>
                 <div className="field">
+                  <label className="label">Jméno</label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="input"
+                    placeholder="Vaše jméno"
+                  />
+                </div>
+
+                <div className="field">
+                  <label className="label">E-mail</label>
+                  <div className="readonlyBox">{email || "—"}</div>
+                </div>
+
+                <div className="field">
                   <label className="label">Role</label>
                   <div className="readonlyBox">{roleText}</div>
                 </div>
@@ -281,8 +317,7 @@ export default function MujProfilPage() {
 
                   {hiddenLegacyInterests.length > 0 ? (
                     <div className="infoBox">
-                      V profilu máte i dříve uložené starší zájmy, které zůstávají
-                      zachované.
+                      V profilu máte i dříve uložené starší zájmy, které zůstávají zachované.
                     </div>
                   ) : null}
 
@@ -389,6 +424,18 @@ export default function MujProfilPage() {
           color: #64748b;
           line-height: 1.5;
           font-size: 14px;
+        }
+
+        .input {
+          width: 100%;
+          min-height: 52px;
+          padding: 0 16px;
+          border-radius: 16px;
+          border: 1px solid #d1d5db;
+          font-size: 16px;
+          background: #fff;
+          color: #0f172a;
+          box-sizing: border-box;
         }
 
         .readonlyBox {
