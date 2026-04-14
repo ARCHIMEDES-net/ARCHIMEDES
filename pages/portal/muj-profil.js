@@ -1,83 +1,76 @@
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
-import RequireAuth from "../../components/RequireAuth";
+import { useEffect, useMemo, useState } from "react";
+import Head from "next/head";
 import PortalHeader from "../../components/PortalHeader";
+import RequireAuth from "../../components/RequireAuth";
 import { supabase } from "../../lib/supabaseClient";
 
-const FALLBACK_AUDIENCES = [
-  "1. stupeň",
-  "2. stupeň",
-  "deváťáci",
-  "učitelé",
-  "rodiče",
-  "senioři",
-  "komunita",
+const DEFAULT_INTERESTS = ["prvni-stupen", "druhy-stupen"];
+
+const INTEREST_GROUPS = [
+  {
+    title: "Pro koho",
+    items: [
+      { slug: "prvni-stupen", label: "1. stupeň" },
+      { slug: "druhy-stupen", label: "2. stupeň" },
+      { slug: "ucitele", label: "Učitelé" },
+      { slug: "rodice", label: "Rodiče" },
+      { slug: "seniori", label: "Senioři" },
+      { slug: "komunita", label: "Komunita" },
+      { slug: "zajmove-skupiny", label: "Zájmové skupiny" },
+    ],
+  },
+  {
+    title: "Témata a programy",
+    items: [
+      { slug: "wellbeing", label: "Wellbeing" },
+      { slug: "karierni-poradenstvi", label: "Kariérní poradenství" },
+      { slug: "smart-city", label: "Smart City klub" },
+      { slug: "ctenarsky-klub", label: "Čtenářský klub" },
+      { slug: "filmovy-klub", label: "Filmový klub" },
+      { slug: "english-live", label: "English Live" },
+      { slug: "veda-a-objevy", label: "Věda a objevy" },
+      { slug: "svet-v-souvislostech", label: "Svět v souvislostech" },
+    ],
+  },
 ];
 
-const FALLBACK_CATEGORIES = [
-  "Science ON",
-  "Smart City Club",
-  "Kariérní poradenství",
-  "Generace Z",
-  "Wellbeing",
-  "Čtenářský klub",
-  "Senior klub",
-  "Komunita",
-  "Mezinárodní propojení",
-];
-
-function normalizeOptions(rows, fallback, preferredKeys = []) {
-  if (!Array.isArray(rows) || rows.length === 0) return fallback;
-
-  const values = rows
-    .map((row) => {
-      for (const key of preferredKeys) {
-        if (row && row[key] != null && String(row[key]).trim()) {
-          return String(row[key]).trim();
-        }
-      }
-
-      const firstStringValue = Object.values(row || {}).find(
-        (v) => typeof v === "string" && v.trim()
-      );
-
-      return firstStringValue ? String(firstStringValue).trim() : null;
-    })
-    .filter(Boolean);
-
-  return values.length > 0 ? Array.from(new Set(values)) : fallback;
+function roleLabel(roleInOrg) {
+  switch (roleInOrg) {
+    case "organization_admin":
+      return "Administrátor organizace";
+    case "member":
+      return "Člen organizace";
+    case "demo_viewer":
+      return "Demo přístup";
+    default:
+      return "Uživatel";
+  }
 }
 
 export default function MujProfilPage() {
-  const router = useRouter();
-
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const [userId, setUserId] = useState(null);
-  const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [roleInOrg, setRoleInOrg] = useState("");
-  const [organizationId, setOrganizationId] = useState(null);
-  const [organizationName, setOrganizationName] = useState("");
-  const [organizationJoinCode, setOrganizationJoinCode] = useState("");
+  const [userId, setUserId] = useState("");
+  const [roleText, setRoleText] = useState("Uživatel");
 
-  const [audienceOptions, setAudienceOptions] = useState(FALLBACK_AUDIENCES);
-  const [categoryOptions, setCategoryOptions] = useState(FALLBACK_CATEGORIES);
+  const [selectedInterests, setSelectedInterests] = useState([]);
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
 
-  const [selectedAudiences, setSelectedAudiences] = useState([]);
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  const selectedCount = useMemo(() => selectedInterests.length, [selectedInterests]);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  function toggleInterest(slug) {
+    setSelectedInterests((prev) =>
+      prev.includes(slug) ? prev.filter((item) => item !== slug) : [...prev, slug]
+    );
+  }
 
   async function loadProfile() {
     setLoading(true);
     setError("");
-    setMessage("");
+    setSuccess("");
 
     try {
       const {
@@ -89,498 +82,473 @@ export default function MujProfilPage() {
       if (!user) throw new Error("Uživatel není přihlášen.");
 
       setUserId(user.id);
-      setEmail(user.email || "");
 
-      const [
-        profileRes,
-        audPrefRes,
-        catPrefRes,
-        audienceOptionsRes,
-        categoryOptionsRes,
-      ] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("id, email, full_name, is_active, active_organization_id")
-          .eq("id", user.id)
-          .maybeSingle(),
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, active_organization_id, email_notifications_enabled")
+        .eq("id", user.id)
+        .maybeSingle();
 
-        supabase
-          .from("user_audience_preferences")
-          .select("audience_slug")
-          .eq("user_id", user.id),
+      if (profileError) throw profileError;
 
-        supabase
-          .from("user_category_preferences")
-          .select("category_slug")
-          .eq("user_id", user.id),
+      setEmailNotificationsEnabled(profile?.email_notifications_enabled !== false);
 
-        supabase
-          .from("audience_groups")
-          .select("*")
-          .order("created_at", { ascending: true }),
+      if (profile?.active_organization_id) {
+        const { data: membership, error: membershipError } = await supabase
+          .from("organization_members")
+          .select("role_in_org, status")
+          .eq("user_id", user.id)
+          .eq("organization_id", profile.active_organization_id)
+          .eq("status", "active")
+          .maybeSingle();
 
-        supabase
-          .from("categories")
-          .select("*")
-          .order("created_at", { ascending: true }),
-      ]);
-
-      if (profileRes.error) throw profileRes.error;
-      if (audPrefRes.error) throw audPrefRes.error;
-      if (catPrefRes.error) throw catPrefRes.error;
-
-      const profile = profileRes.data;
-
-      if (profile) {
-        setFullName(profile.full_name || "");
+        if (membershipError) throw membershipError;
+        setRoleText(roleLabel(membership?.role_in_org));
       } else {
-        setFullName("");
+        setRoleText("Uživatel");
       }
 
-      const activeOrganizationId = profile?.active_organization_id || null;
+      const { data: interests, error: interestsError } = await supabase
+        .from("user_interests")
+        .select("interest_slug")
+        .eq("user_id", user.id);
 
-      if (activeOrganizationId) {
-        const [membershipResult, orgResult] = await Promise.all([
-          supabase
-            .from("organization_members")
-            .select("organization_id, role_in_org, status")
-            .eq("user_id", user.id)
-            .eq("organization_id", activeOrganizationId)
-            .eq("status", "active")
-            .maybeSingle(),
+      if (interestsError) throw interestsError;
 
-          supabase
-            .from("organizations")
-            .select("id, name, join_code")
-            .eq("id", activeOrganizationId)
-            .maybeSingle(),
-        ]);
+      const loadedInterests = (interests || [])
+        .map((item) => item.interest_slug)
+        .filter(Boolean);
 
-        if (membershipResult.error) throw membershipResult.error;
-        if (orgResult.error) throw orgResult.error;
-
-        const membership = membershipResult.data;
-        const org = orgResult.data;
-
-        if (membership?.organization_id && org?.id) {
-          setOrganizationId(org.id);
-          setRoleInOrg(membership.role_in_org || "");
-          setOrganizationName(org.name || "");
-          setOrganizationJoinCode(org.join_code || "");
-        } else {
-          setOrganizationId(null);
-          setRoleInOrg("");
-          setOrganizationName("");
-          setOrganizationJoinCode("");
-        }
+      if (loadedInterests.length > 0) {
+        setSelectedInterests(loadedInterests);
       } else {
-        setOrganizationId(null);
-        setRoleInOrg("");
-        setOrganizationName("");
-        setOrganizationJoinCode("");
+        setSelectedInterests(DEFAULT_INTERESTS);
       }
-
-      setSelectedAudiences((audPrefRes.data || []).map((x) => x.audience_slug));
-      setSelectedCategories((catPrefRes.data || []).map((x) => x.category_slug));
-
-      const normalizedAudiences = normalizeOptions(
-        audienceOptionsRes.data,
-        FALLBACK_AUDIENCES,
-        ["name", "title", "label", "slug"]
-      );
-
-      const normalizedCategories = normalizeOptions(
-        categoryOptionsRes.data,
-        FALLBACK_CATEGORIES,
-        ["name", "title", "label", "slug"]
-      );
-
-      setAudienceOptions(normalizedAudiences);
-      setCategoryOptions(normalizedCategories);
-    } catch (e) {
-      setError(e.message || "Nepodařilo se načíst profil.");
+    } catch (err) {
+      console.error("muj-profil loadProfile error:", err);
+      setError(err.message || "Nepodařilo se načíst profil.");
     } finally {
       setLoading(false);
     }
-  }
-
-  function toggleValue(value, selected, setSelected) {
-    if (selected.includes(value)) {
-      setSelected(selected.filter((x) => x !== value));
-    } else {
-      setSelected([...selected, value]);
-    }
-  }
-
-  function roleLabel(value) {
-    if (value === "organization_admin") return "Administrátor organizace";
-    if (value === "platform_admin") return "Správce platformy";
-    if (!value) return "Jednotlivec";
-    return "Člen organizace";
   }
 
   async function handleSave(e) {
     e.preventDefault();
     setSaving(true);
     setError("");
-    setMessage("");
+    setSuccess("");
 
     try {
-      if (!userId) throw new Error("Chybí userId.");
-      if (!fullName.trim()) throw new Error("Vyplňte jméno.");
+      if (!userId) {
+        throw new Error("Chybí identita uživatele.");
+      }
 
-      const { error: profileError } = await supabase
+      let interestsToSave = [...selectedInterests];
+
+      if (interestsToSave.length === 0) {
+        interestsToSave = [...DEFAULT_INTERESTS];
+        setSelectedInterests(interestsToSave);
+      }
+
+      const { error: profileUpdateError } = await supabase
         .from("profiles")
-        .upsert(
-          {
-            id: userId,
-            email,
-            full_name: fullName.trim(),
-            is_active: true,
-            must_set_password: false,
-          },
-          { onConflict: "id" }
-        );
+        .update({
+          email_notifications_enabled: emailNotificationsEnabled,
+        })
+        .eq("id", userId);
 
-      if (profileError) throw profileError;
+      if (profileUpdateError) throw profileUpdateError;
 
-      const { error: deleteAudError } = await supabase
-        .from("user_audience_preferences")
+      const { error: deleteError } = await supabase
+        .from("user_interests")
         .delete()
         .eq("user_id", userId);
 
-      if (deleteAudError) throw deleteAudError;
+      if (deleteError) throw deleteError;
 
-      if (selectedAudiences.length > 0) {
-        const audPayload = selectedAudiences.map((audience) => ({
-          user_id: userId,
-          audience_slug: audience,
-        }));
+      const rows = interestsToSave.map((slug) => ({
+        user_id: userId,
+        interest_slug: slug,
+      }));
 
-        const { error: insertAudError } = await supabase
-          .from("user_audience_preferences")
-          .insert(audPayload);
+      const { error: insertError } = await supabase
+        .from("user_interests")
+        .insert(rows);
 
-        if (insertAudError) throw insertAudError;
-      }
+      if (insertError) throw insertError;
 
-      const { error: deleteCatError } = await supabase
-        .from("user_category_preferences")
-        .delete()
-        .eq("user_id", userId);
-
-      if (deleteCatError) throw deleteCatError;
-
-      if (selectedCategories.length > 0) {
-        const catPayload = selectedCategories.map((category) => ({
-          user_id: userId,
-          category_slug: category,
-        }));
-
-        const { error: insertCatError } = await supabase
-          .from("user_category_preferences")
-          .insert(catPayload);
-
-        if (insertCatError) throw insertCatError;
-      }
-
-      const { data: profileAfterSave, error: profileAfterSaveError } =
-        await supabase
-          .from("profiles")
-          .select("active_organization_id")
-          .eq("id", userId)
-          .maybeSingle();
-
-      if (profileAfterSaveError) throw profileAfterSaveError;
-
-      const activeOrganizationId =
-        profileAfterSave?.active_organization_id || null;
-
-      let hasOrganization = false;
-
-      if (activeOrganizationId) {
-        const { data: membershipAfterSave, error: membershipAfterSaveError } =
-          await supabase
-            .from("organization_members")
-            .select("organization_id")
-            .eq("user_id", userId)
-            .eq("organization_id", activeOrganizationId)
-            .eq("status", "active")
-            .maybeSingle();
-
-        if (membershipAfterSaveError) throw membershipAfterSaveError;
-        hasOrganization = !!membershipAfterSave?.organization_id;
-      }
-
-      setMessage(
-        hasOrganization
-          ? "Profil byl uložen. Přesměrovávám do portálu..."
-          : "Profil byl uložen. Přesměrovávám na výběr dalšího kroku..."
-      );
-
-      setTimeout(() => {
-        router.push(hasOrganization ? "/portal" : "/welcome");
-      }, 800);
-    } catch (e) {
-      setError(e.message || "Uložení se nepodařilo.");
+      setSuccess("Profil byl uložen.");
+    } catch (err) {
+      console.error("muj-profil handleSave error:", err);
+      setError(err.message || "Profil se nepodařilo uložit.");
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) {
-    return (
-      <RequireAuth>
-        <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
-          <PortalHeader />
-          <main style={{ maxWidth: 900, margin: "0 auto", padding: "32px 16px" }}>
-            Načítám profil…
-          </main>
-        </div>
-      </RequireAuth>
-    );
-  }
+  useEffect(() => {
+    loadProfile();
+  }, []);
 
   return (
     <RequireAuth>
-      <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
-        <PortalHeader />
+      <Head>
+        <title>Můj profil | ARCHIMEDES Live</title>
+      </Head>
 
-        <main style={{ maxWidth: 900, margin: "0 auto", padding: "32px 16px" }}>
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 20,
-              padding: 24,
-              boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-              border: "1px solid rgba(0,0,0,0.08)",
-            }}
-          >
-            <h1 style={{ marginTop: 0, marginBottom: 8, fontSize: 32 }}>
-              Můj profil
-            </h1>
+      <PortalHeader />
 
-            <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)" }}>
-              Nastavte si své údaje, cílovky a rubriky, které vás zajímají.
-            </p>
-
-            {error ? (
-              <div
-                style={{
-                  marginTop: 16,
-                  marginBottom: 16,
-                  padding: 12,
-                  borderRadius: 12,
-                  background: "#fff1f1",
-                  color: "#a40000",
-                  border: "1px solid #f2c9c9",
-                }}
-              >
-                Chyba: {error}
+      <main className="pageWrap">
+        <div className="pageInner">
+          <section className="card">
+            <div className="header">
+              <div>
+                <p className="eyebrow">Můj profil</p>
+                <h1>Nastavení zájmů a e-mailů</h1>
+                <p className="lead">
+                  Vyberte, o jaká vysílání máte zájem. Budeme vám posílat jen
+                  to, co si zvolíte. Pokud nic nevyberete, nastaví se základní
+                  program pro 1. a 2. stupeň.
+                </p>
               </div>
-            ) : null}
+            </div>
 
-            {message ? (
-              <div
-                style={{
-                  marginTop: 16,
-                  marginBottom: 16,
-                  padding: 12,
-                  borderRadius: 12,
-                  background: "#eefaf0",
-                  color: "#166534",
-                  border: "1px solid #cfe8d3",
-                }}
-              >
-                {message}
-              </div>
-            ) : null}
-
-            <form onSubmit={handleSave}>
-              <div style={{ display: "grid", gap: 18 }}>
-                <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    E-mail
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    disabled
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.15)",
-                      background: "#f3f4f6",
-                    }}
-                  />
+            {loading ? (
+              <div className="infoBox">Načítám profil…</div>
+            ) : (
+              <form onSubmit={handleSave}>
+                <div className="field">
+                  <label className="label">Role</label>
+                  <div className="readonlyBox">{roleText}</div>
                 </div>
 
-                <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Jméno a příjmení
-                  </label>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Např. Jana Nováková"
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.15)",
-                      background: "#fff",
-                    }}
-                  />
+                <div className="field">
+                  <div className="toggleRow">
+                    <div>
+                      <label className="label">E-mailové pozvánky</label>
+                      <p className="helper">
+                        Zapněte si pozvánky na vysílání podle vybraných zájmů.
+                      </p>
+                    </div>
+
+                    <label className="switch">
+                      <input
+                        type="checkbox"
+                        checked={emailNotificationsEnabled}
+                        onChange={(e) => setEmailNotificationsEnabled(e.target.checked)}
+                      />
+                      <span className="slider" />
+                    </label>
+                  </div>
                 </div>
 
-                <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Organizace
-                  </label>
-                  <input
-                    type="text"
-                    value={organizationName || "Nejste zatím přiřazen k organizaci"}
-                    disabled
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.15)",
-                      background: "#f3f4f6",
-                    }}
-                  />
-                </div>
+                <div className="field">
+                  <label className="label">Zajímá mě</label>
+                  <p className="helper">
+                    Vyberte oblasti, o kterých chcete dostávat informace e-mailem.
+                  </p>
 
-                <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Kód organizace
-                  </label>
-                  <input
-                    type="text"
-                    value={organizationJoinCode || "—"}
-                    disabled
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.15)",
-                      background: "#f3f4f6",
-                      fontFamily:
-                        "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                      letterSpacing: "0.02em",
-                    }}
-                  />
-                  {roleInOrg === "organization_admin" ? (
-                    <div style={{ marginTop: 8, color: "rgba(0,0,0,0.6)", fontSize: 14 }}>
-                      Tento kód můžete poslat kolegům. Připojí se přes stránku{" "}
-                      <strong>/join</strong>.
+                  {selectedCount === 0 ? (
+                    <div className="warningBox">
+                      Nevybrali jste žádné zájmy. Po uložení nastavíme automaticky
+                      1. stupeň a 2. stupeň.
                     </div>
                   ) : null}
-                </div>
 
-                <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Role
-                  </label>
-                  <input
-                    type="text"
-                    value={roleLabel(roleInOrg)}
-                    disabled
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.15)",
-                      background: "#f3f4f6",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <div style={{ marginBottom: 10, fontWeight: 600 }}>Zajímají mě cílovky</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    {audienceOptions.map((item) => {
-                      const active = selectedAudiences.includes(item);
-                      return (
-                        <button
-                          key={item}
-                          type="button"
-                          onClick={() =>
-                            toggleValue(item, selectedAudiences, setSelectedAudiences)
-                          }
-                          style={{
-                            padding: "10px 14px",
-                            borderRadius: 999,
-                            border: active
-                              ? "1px solid #111827"
-                              : "1px solid rgba(0,0,0,0.15)",
-                            background: active ? "#111827" : "#fff",
-                            color: active ? "#fff" : "#111827",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {item}
-                        </button>
-                      );
-                    })}
+                  <div className="interestSections">
+                    {INTEREST_GROUPS.map((group) => (
+                      <div key={group.title} className="interestGroup">
+                        <h3>{group.title}</h3>
+                        <div className="chips">
+                          {group.items.map((item) => {
+                            const active = selectedInterests.includes(item.slug);
+                            return (
+                              <button
+                                key={item.slug}
+                                type="button"
+                                className={`chip ${active ? "active" : ""}`}
+                                onClick={() => toggleInterest(item.slug)}
+                              >
+                                {item.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                <div>
-                  <div style={{ marginBottom: 10, fontWeight: 600 }}>Zajímají mě rubriky</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    {categoryOptions.map((item) => {
-                      const active = selectedCategories.includes(item);
-                      return (
-                        <button
-                          key={item}
-                          type="button"
-                          onClick={() =>
-                            toggleValue(item, selectedCategories, setSelectedCategories)
-                          }
-                          style={{
-                            padding: "10px 14px",
-                            borderRadius: 999,
-                            border: active
-                              ? "1px solid #111827"
-                              : "1px solid rgba(0,0,0,0.15)",
-                            background: active ? "#111827" : "#fff",
-                            color: active ? "#fff" : "#111827",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {item}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                {error ? <div className="errorBox">{error}</div> : null}
+                {success ? <div className="successBox">{success}</div> : null}
 
-                <div style={{ paddingTop: 8 }}>
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    style={{
-                      padding: "12px 18px",
-                      borderRadius: 12,
-                      border: "none",
-                      background: "#111827",
-                      color: "#fff",
-                      fontWeight: 600,
-                      cursor: saving ? "default" : "pointer",
-                      opacity: saving ? 0.7 : 1,
-                    }}
-                  >
+                <div className="actions">
+                  <button type="submit" className="primaryBtn" disabled={saving}>
                     {saving ? "Ukládám…" : "Uložit profil"}
                   </button>
                 </div>
-              </div>
-            </form>
-          </div>
-        </main>
-      </div>
+              </form>
+            )}
+          </section>
+        </div>
+      </main>
+
+      <style jsx>{`
+        .pageWrap {
+          min-height: 100vh;
+          background: #f3f5f8;
+        }
+
+        .pageInner {
+          max-width: 980px;
+          margin: 0 auto;
+          padding: 32px 20px 56px;
+        }
+
+        .card {
+          background: #fff;
+          border: 1px solid #e5e7eb;
+          border-radius: 28px;
+          box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+          padding: 28px;
+        }
+
+        .header {
+          margin-bottom: 20px;
+        }
+
+        .eyebrow {
+          margin: 0 0 8px;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #64748b;
+        }
+
+        h1 {
+          margin: 0 0 10px;
+          font-size: 34px;
+          line-height: 1.1;
+          color: #0f172a;
+        }
+
+        .lead {
+          margin: 0;
+          max-width: 760px;
+          color: #475569;
+          line-height: 1.6;
+          font-size: 16px;
+        }
+
+        .field {
+          margin-top: 26px;
+        }
+
+        .label {
+          display: block;
+          margin-bottom: 10px;
+          font-size: 14px;
+          font-weight: 800;
+          color: #0f172a;
+        }
+
+        .helper {
+          margin: 0 0 12px;
+          color: #64748b;
+          line-height: 1.5;
+          font-size: 14px;
+        }
+
+        .readonlyBox {
+          min-height: 52px;
+          display: flex;
+          align-items: center;
+          padding: 0 16px;
+          border: 1px solid #d1d5db;
+          border-radius: 16px;
+          background: #f8fafc;
+          color: #334155;
+          font-size: 16px;
+        }
+
+        .toggleRow {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          padding: 18px 18px;
+          border: 1px solid #e5e7eb;
+          border-radius: 20px;
+          background: #f8fafc;
+        }
+
+        .switch {
+          position: relative;
+          display: inline-block;
+          width: 58px;
+          height: 34px;
+          flex: 0 0 auto;
+        }
+
+        .switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          inset: 0;
+          background-color: #cbd5e1;
+          transition: 0.2s;
+          border-radius: 999px;
+        }
+
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 26px;
+          width: 26px;
+          left: 4px;
+          top: 4px;
+          background-color: white;
+          transition: 0.2s;
+          border-radius: 50%;
+          box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+        }
+
+        .switch input:checked + .slider {
+          background-color: #0f172a;
+        }
+
+        .switch input:checked + .slider:before {
+          transform: translateX(24px);
+        }
+
+        .interestSections {
+          display: grid;
+          gap: 22px;
+        }
+
+        .interestGroup h3 {
+          margin: 0 0 12px;
+          font-size: 18px;
+          color: #0f172a;
+        }
+
+        .chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+
+        .chip {
+          appearance: none;
+          border: 1px solid #d1d5db;
+          background: #fff;
+          color: #0f172a;
+          padding: 11px 16px;
+          border-radius: 999px;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.18s ease;
+        }
+
+        .chip:hover {
+          border-color: #94a3b8;
+          transform: translateY(-1px);
+        }
+
+        .chip.active {
+          background: #0f172a;
+          border-color: #0f172a;
+          color: #fff;
+        }
+
+        .warningBox,
+        .errorBox,
+        .successBox,
+        .infoBox {
+          margin-top: 14px;
+          padding: 14px 16px;
+          border-radius: 16px;
+          line-height: 1.5;
+          font-weight: 600;
+        }
+
+        .warningBox {
+          background: #fff7ed;
+          border: 1px solid #fdba74;
+          color: #9a3412;
+        }
+
+        .errorBox {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #991b1b;
+        }
+
+        .successBox {
+          background: #ecfdf5;
+          border: 1px solid #86efac;
+          color: #166534;
+        }
+
+        .infoBox {
+          background: #eff6ff;
+          border: 1px solid #bfdbfe;
+          color: #1d4ed8;
+        }
+
+        .actions {
+          margin-top: 28px;
+        }
+
+        .primaryBtn {
+          appearance: none;
+          border: none;
+          border-radius: 16px;
+          background: #0f172a;
+          color: #fff;
+          padding: 14px 20px;
+          min-height: 52px;
+          font-size: 15px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: opacity 0.18s ease;
+        }
+
+        .primaryBtn:hover {
+          opacity: 0.94;
+        }
+
+        .primaryBtn:disabled {
+          opacity: 0.6;
+          cursor: default;
+        }
+
+        @media (max-width: 760px) {
+          .pageInner {
+            padding: 20px 14px 40px;
+          }
+
+          .card {
+            padding: 20px;
+            border-radius: 22px;
+          }
+
+          h1 {
+            font-size: 28px;
+          }
+
+          .toggleRow {
+            align-items: flex-start;
+          }
+        }
+      `}</style>
     </RequireAuth>
   );
 }
