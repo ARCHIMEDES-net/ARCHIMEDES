@@ -69,6 +69,8 @@ export default function MujProfilPage() {
 
   const [userId, setUserId] = useState("");
   const [roleText, setRoleText] = useState("Uživatel");
+  const [organizationName, setOrganizationName] = useState("");
+  const [organizationCode, setOrganizationCode] = useState("");
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -118,18 +120,32 @@ export default function MujProfilPage() {
       setEmailNotificationsEnabled(profile?.email_notifications_enabled !== false);
 
       if (profile?.active_organization_id) {
-        const { data: membership, error: membershipError } = await supabase
-          .from("organization_members")
-          .select("role_in_org, status")
-          .eq("user_id", user.id)
-          .eq("organization_id", profile.active_organization_id)
-          .eq("status", "active")
-          .maybeSingle();
+        const [{ data: membership, error: membershipError }, { data: organization, error: organizationError }] =
+          await Promise.all([
+            supabase
+              .from("organization_members")
+              .select("role_in_org, status")
+              .eq("user_id", user.id)
+              .eq("organization_id", profile.active_organization_id)
+              .eq("status", "active")
+              .maybeSingle(),
+            supabase
+              .from("organizations")
+              .select("name, join_code")
+              .eq("id", profile.active_organization_id)
+              .maybeSingle(),
+          ]);
 
         if (membershipError) throw membershipError;
+        if (organizationError) throw organizationError;
+
         setRoleText(roleLabel(membership?.role_in_org));
+        setOrganizationName(organization?.name || "");
+        setOrganizationCode(organization?.join_code || "");
       } else {
         setRoleText("Uživatel");
+        setOrganizationName("");
+        setOrganizationCode("");
       }
 
       const { data: interests, error: interestsError } = await supabase
@@ -151,8 +167,6 @@ export default function MujProfilPage() {
       if (visibleInterests.length > 0) {
         setSelectedInterests(visibleInterests);
       } else if (loadedInterests.length > 0) {
-        // Uživatel má starší zájmy mimo nové UI.
-        // Zachováme je a do UI nabídneme smysluplný základ.
         setSelectedInterests(DEFAULT_INTERESTS);
       } else {
         setSelectedInterests(DEFAULT_INTERESTS);
@@ -280,6 +294,16 @@ export default function MujProfilPage() {
                 <div className="field">
                   <label className="label">Role</label>
                   <div className="readonlyBox">{roleText}</div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Organizace</label>
+                  <div className="readonlyBox">{organizationName || "—"}</div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Kód organizace</label>
+                  <div className="readonlyBox">{organizationCode || "—"}</div>
                 </div>
 
                 <div className="field">
