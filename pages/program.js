@@ -75,6 +75,7 @@ const priceCards = [
     items: schoolItems,
     href: "/poptavka?interest=skola",
     featured: true,
+    accentColor: "#2563eb",
     extraButton: {
       href: "/start",
       label: "Akční nabídka START",
@@ -92,6 +93,7 @@ const priceCards = [
     items: communityItems,
     href: "/poptavka?interest=komunita",
     featured: false,
+    accentColor: "#22c55e",
   },
 ];
 
@@ -210,16 +212,22 @@ function PriceProgramCard({
   featured,
   href = "/poptavka",
   extraButton,
+  accentColor = "#2563eb",
 }) {
+  const isBlue = accentColor === "#2563eb";
+  const isGreen = accentColor === "#22c55e";
+
   return (
     <div
       style={{
         background: "#fff",
         borderRadius: 24,
         padding: 28,
-        border: featured ? "2px solid #2563eb" : "1px solid #e2e8f0",
+        border: `2px solid ${accentColor}`,
         boxShadow: featured
           ? "0 18px 46px rgba(37,99,235,0.12)"
+          : isGreen
+          ? "0 14px 36px rgba(34,197,94,0.08)"
           : "0 14px 36px rgba(15,23,42,0.06)",
         minHeight: "100%",
         transition:
@@ -229,12 +237,16 @@ function PriceProgramCard({
         e.currentTarget.style.transform = "translateY(-4px)";
         e.currentTarget.style.boxShadow = featured
           ? "0 24px 56px rgba(37,99,235,0.16)"
+          : isGreen
+          ? "0 18px 42px rgba(34,197,94,0.12)"
           : "0 18px 40px rgba(15,23,42,0.10)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "translateY(0)";
         e.currentTarget.style.boxShadow = featured
           ? "0 18px 46px rgba(37,99,235,0.12)"
+          : isGreen
+          ? "0 14px 36px rgba(34,197,94,0.08)"
           : "0 14px 36px rgba(15,23,42,0.06)";
       }}
     >
@@ -245,8 +257,12 @@ function PriceProgramCard({
           minHeight: 34,
           padding: "0 14px",
           borderRadius: 999,
-          background: featured ? "#2563eb" : "#f1f5f9",
-          color: featured ? "#fff" : "#334155",
+          background: featured
+            ? accentColor
+            : isGreen
+            ? "#ecfdf5"
+            : "#f1f5f9",
+          color: featured ? "#fff" : isGreen ? "#166534" : "#334155",
           fontSize: 14,
           fontWeight: 800,
           marginBottom: 18,
@@ -315,8 +331,8 @@ function PriceProgramCard({
             marginTop: 18,
             padding: "16px 16px",
             borderRadius: 16,
-            background: featured ? "#f8fbff" : "#f8fafc",
-            border: featured ? "1px solid #dbeafe" : "1px solid #e2e8f0",
+            background: isBlue ? "#f8fbff" : "#f0fdf4",
+            border: isBlue ? "1px solid #dbeafe" : "1px solid #bbf7d0",
             color: "#334155",
             fontSize: 15,
             lineHeight: 1.7,
@@ -334,7 +350,7 @@ function PriceProgramCard({
                 width: 10,
                 height: 10,
                 borderRadius: 999,
-                background: featured ? "#2563eb" : "#22c55e",
+                background: accentColor,
                 marginTop: 9,
                 flex: "0 0 auto",
               }}
@@ -382,9 +398,9 @@ function PriceProgramCard({
             minHeight: 46,
             padding: "0 16px",
             borderRadius: 12,
-            background: featured ? "#2563eb" : "#f8fafc",
-            color: featured ? "#ffffff" : "#0f172a",
-            border: featured ? "1px solid #2563eb" : "1px solid #cbd5e1",
+            background: featured ? accentColor : "#ffffff",
+            color: featured ? "#ffffff" : isGreen ? "#166534" : "#0f172a",
+            border: `1px solid ${accentColor}`,
             fontSize: 15,
             fontWeight: 800,
             textDecoration: "none",
@@ -817,18 +833,6 @@ export default function ProgramPage() {
               title="Vyberte si variantu programu"
               text="Každá varianta má svůj vlastní obsah i zaměření. Školní část je určena pro výuku a práci s třídou, komunitní část pro seniory, spolky, veřejnost a život v obci. Níže vidíte, co jednotlivé varianty obsahují i kolik stojí."
             />
-
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                flexWrap: "wrap",
-                marginBottom: 24,
-              }}
-            >
-              <SecondaryButton href="/cenik">Zobrazit kompletní ceník</SecondaryButton>
-              <SecondaryButton href="/start">Zobrazit balíček START</SecondaryButton>
-            </div>
 
             <div
               style={{
