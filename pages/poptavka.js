@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { track } from "@vercel/analytics";
 
 const OPTIONS = [
   {
@@ -110,10 +111,11 @@ export default function PoptavkaPage() {
         form.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }, 200);
-  }, [router.isReady, router.query.interest]);
+  }, [router.isReady, router.query.interest, message]);
 
   function handleSelect(optionKey) {
     setSelectedOption(optionKey);
+    track(`klik_poptavka_karta_${optionKey}`);
     setTimeout(() => {
       scrollToForm();
     }, 80);
@@ -124,6 +126,10 @@ export default function PoptavkaPage() {
     setLoading(true);
     setError("");
     setSuccess(false);
+
+    track("odeslani_poptavky", {
+      selectedOption: selectedOption || "nezvoleno",
+    });
 
     try {
       const res = await fetch("/api/poptavka", {
@@ -152,6 +158,10 @@ export default function PoptavkaPage() {
       if (!res.ok) {
         throw new Error(data?.error || "Nepodařilo se odeslat poptávku.");
       }
+
+      track("uspech_poptavky", {
+        selectedOption: selectedOption || "nezvoleno",
+      });
 
       setSuccess(true);
       setSelectedOption("");
@@ -377,7 +387,10 @@ export default function PoptavkaPage() {
       >
         <button
           type="button"
-          onClick={scrollToForm}
+          onClick={() => {
+            track("klik_poptavka_kontaktujte_nas");
+            scrollToForm();
+          }}
           style={{
             minHeight: 52,
             padding: "0 22px",
@@ -675,6 +688,7 @@ export default function PoptavkaPage() {
               <button
                 type="button"
                 onClick={() => {
+                  track("klik_poptavka_navsteva_bvv");
                   setSelectedOption("navsteva");
                   setTimeout(() => {
                     scrollToForm();
