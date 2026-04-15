@@ -5,6 +5,7 @@ import "../styles/globals.css";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import PublicHeader from "../components/PublicHeader";
+import { Analytics } from "@vercel/analytics/react";
 
 function activeKeyFromPath(pathname = "") {
   if (pathname === "/") return "home";
@@ -66,7 +67,11 @@ export default function App({ Component, pageProps }) {
       </Head>
 
       {showPublicHeader && <PublicHeader active={active} />}
+
       <Component {...pageProps} />
+
+      {/* Vercel Analytics */}
+      <Analytics />
     </>
   );
 }
