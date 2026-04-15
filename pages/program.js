@@ -6,27 +6,39 @@ const FALLBACK_POSTER = "/ucebna-exterier.webp";
 
 const schoolItems = [
   {
-    title: "I. stupeň – Objevujeme svět",
+    title: "Živé vysílání pro I. stupeň ZŠ",
     text: "poznávání světa, přírody a společnosti ve spolupráci s odborníky a inspirativními partnery",
   },
   {
-    title: "II. stupeň – Svět v souvislostech",
+    title: "Živé vysílání pro II. stupeň ZŠ",
     text: "aktuální témata, rozhovory a exkurze v angličtině ze zahraničí, výuka živě z praxe",
+  },
+  {
+    title: "Wellbeing žáků",
+    text: "duševní zdraví, bezpečné klima ve třídě a témata důležitá pro dnešní žáky",
   },
   {
     title: "Kariérní poradenství jinak",
     text: "setkání s lidmi z praxe a inspirace pro další studium i životní směřování",
   },
   {
-    title: "Wellbeing – Generace Z navigátor",
-    text: "duševní zdraví, bezpečné klima ve třídě a témata důležitá pro dnešní žáky",
+    title: "Čtenářský klub Magnesia Litera",
+    text: "společné čtení a živé debaty s autory knih a osobnostmi spojenými s literaturou",
+  },
+  {
+    title: "Živý rozhovor s hostem v angličtině",
+    text: "inspirativní vstupy ze zahraničí a přirozený kontakt s jazykem v reálném kontextu",
+  },
+  {
+    title: "Možnost vysílání přímo z vaší školy",
+    text: "škola může být aktivní součástí programu a zapojit se i jako místo živého vstupu",
   },
 ];
 
 const communityItems = [
   {
     title: "Senior klub",
-    text: "interaktivní rozhovory s inspirativními hosty, aktuální témata, vzdělávání, partnerství, setkávání s jinými seniory a krajanskými spolky",
+    text: "interaktivní rozhovory s inspirativními hosty, aktuální témata, vzdělávání, partnerství a pravidelná setkávání",
   },
   {
     title: "Čtenářský klub",
@@ -42,15 +54,11 @@ const communityItems = [
   },
   {
     title: "Servis pro zastupitele a komunitu",
-    text: "sdílení dobré praxe, inspirace a témata pro rozvoj obce a komunitního života, výrazná podpora živé spolupráce s partnerskými městy",
+    text: "sdílení dobré praxe, inspirace a témata pro rozvoj obce a komunitního života",
   },
   {
-    title: "Filmový klub s Aerofilms",
+    title: "Letní filmový klub s Aerofilms",
     text: "výběr kvalitních filmů s úvodem hostů a možností společného zážitku v obci",
-  },
-  {
-    title: "Mimořádné tematické vstupy",
-    text: "výročí, aktuální události, sezónní programy a speciální hosté, živé interaktivní vysílání z aktuálních akcí a další aktivity podporující posílení komunity",
   },
 ];
 
@@ -61,12 +69,16 @@ const priceCards = [
     suffix: "/ měsíc",
     badge: "pro školy",
     description:
-      "Samostatná varianta pro školy, které chtějí pravidelně využívat živé vstupy pro výuku, práci s třídou a inspirativní hosty během školního roku.",
+      "Program pro školy, které chtějí pravidelně využívat živé vstupy, pracovní listy, archiv a inspirativní hosty během školního roku.",
     items: [
-      "živá vysílání pro I. a II. stupeň",
+      "živé vysílání pro I. stupeň ZŠ",
+      "živé vysílání pro II. stupeň ZŠ",
+      "wellbeing žáků",
+      "kariérní poradenství",
+      "čtenářský klub Magnesia Litera",
+      "živý host v angličtině",
+      "možnost vysílání přímo z vaší školy",
       "pracovní listy a archiv vysílání",
-      "vhodné i jako startovní varianta",
-      "pravidelný obsah během školního roku",
     ],
     href: "/poptavka?interest=skola",
     featured: true,
@@ -256,18 +268,6 @@ function ProgramCard({ color, title, intro, items }) {
                 }}
               >
                 {item.title}
-                {item.note ? (
-                  <span
-                    style={{
-                      marginLeft: 8,
-                      fontWeight: 700,
-                      color: "#64748b",
-                      fontSize: 13,
-                    }}
-                  >
-                    ({item.note})
-                  </span>
-                ) : null}
               </div>
               <div
                 style={{
@@ -757,9 +757,9 @@ export default function ProgramPage() {
                     letterSpacing: "-0.04em",
                   }}
                 >
-                  Živý program pro školu
+                  Vyberte si program
                   <br />
-                  a komunitní život obce
+                  pro školu nebo obec
                 </h1>
 
                 <p
@@ -771,35 +771,9 @@ export default function ProgramPage() {
                     maxWidth: 620,
                   }}
                 >
-                  ARCHIMEDES Live přináší během roku živá interaktivní vysílání,
-                  inspirativní hosty a pravidelný obsah pro výuku, seniory, komunitu i
-                  kulturní program v obci.
-                </p>
-
-                <p
-                  style={{
-                    margin: "14px 0 0",
-                    fontSize: 18,
-                    lineHeight: 1.72,
-                    color: "#475569",
-                    maxWidth: 620,
-                  }}
-                >
-                  Škola může využívat vlastní vzdělávací program a obec k tomu jednoduše
-                  přidat komunitní část pro seniory, spolky i veřejnost.
-                </p>
-
-                <p
-                  style={{
-                    margin: "18px 0 0",
-                    fontSize: 16,
-                    lineHeight: 1.7,
-                    color: "#64748b",
-                    maxWidth: 620,
-                  }}
-                >
-                  Program vzniká ve spolupráci se školami, obcemi a partnery zapojenými do
-                  sítě ARCHIMEDES.
+                  ARCHIMEDES Live přináší živý obsah pro výuku i komunitní život obce.
+                  Škola může využívat vlastní vzdělávací program a obec k němu může přidat
+                  komunitní část pro seniory, spolky i veřejnost.
                 </p>
 
                 <div
@@ -812,9 +786,9 @@ export default function ProgramPage() {
                   }}
                   className="hero-cta-grid"
                 >
-                  <PrimaryButton href="/aktualni-pozvanky">Aktuální pozvánky</PrimaryButton>
+                  <PrimaryButton href="#zapojeni">Ceník programů</PrimaryButton>
+                  <SecondaryButton href="/start">Akční nabídka START</SecondaryButton>
                   <SecondaryButton href="/demo">Mám zájem o demo</SecondaryButton>
-                  <SecondaryButton href="#zapojeni">Ceník programů</SecondaryButton>
                   <SecondaryButton href="/financovani-skoly">
                     Pro školy – financování z OP JAK
                   </SecondaryButton>
@@ -894,41 +868,11 @@ export default function ProgramPage() {
             </div>
           </section>
 
-          <section style={{ marginTop: 72 }}>
-            <SectionTitle
-              title="Hlavní rubriky programu"
-              text="Součástí ARCHIMEDES Live jsou živé vstupy pro výuku i komunitní formáty, které může škola a obec využívat během celého roku."
-            />
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                gap: 22,
-                marginTop: 24,
-              }}
-              className="program-grid"
-            >
-              <ProgramCard
-                color="#3b82f6"
-                title="Pro školy"
-                intro="Pravidelný program pro výuku, který přináší inspirativní témata a hosty z praxe."
-                items={schoolItems}
-              />
-              <ProgramCard
-                color="#22c55e"
-                title="Pro komunitu, seniory a obec"
-                intro="Program, který propojuje obec, seniory, spolky i veřejnost a dává vedení obce konkrétní obsah pro celý rok včetně kulturních a letních formátů."
-                items={communityItems}
-              />
-            </div>
-          </section>
-
           <section id="zapojeni" style={{ marginTop: 84 }}>
             <SectionTitle
               eyebrow="Zapojení do programu"
               title="Jakou variantu programu můžete využít"
-              text="Škola může využívat vlastní vzdělávací program a obec k němu může jednoduše přidat komunitní program pro seniory, spolky i veřejnost."
+              text="Vyberte si samostatný program pro školu nebo komunitní program pro obec, seniory, spolky a veřejnost."
             />
 
             <div
@@ -944,58 +888,36 @@ export default function ProgramPage() {
                 <PriceCard key={card.title} {...card} />
               ))}
             </div>
+          </section>
+
+          <section style={{ marginTop: 72 }}>
+            <SectionTitle
+              eyebrow="Co program obsahuje"
+              title="Přehled hlavních rubrik"
+              text="Každá varianta programu má svůj vlastní obsah. Školní část je zaměřena na výuku a práci s třídou, komunitní část na seniory, veřejnost a život v obci."
+            />
 
             <div
               style={{
-                marginTop: 26,
-                background: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 22,
-                padding: "24px 22px",
-                boxShadow: "0 14px 36px rgba(15,23,42,0.05)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 18,
-                flexWrap: "wrap",
+                display: "grid",
+                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                gap: 22,
+                marginTop: 24,
               }}
+              className="program-grid"
             >
-              <div style={{ maxWidth: 720 }}>
-                <div
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 800,
-                    color: "#0f172a",
-                    lineHeight: 1.3,
-                  }}
-                >
-                  Nejste si jistí, která varianta je pro vás vhodná?
-                </div>
-                <p
-                  style={{
-                    margin: "10px 0 0",
-                    fontSize: 16,
-                    lineHeight: 1.7,
-                    color: "#475569",
-                  }}
-                >
-                  Nejrychlejší je vidět program naživo nebo se krátce poradit podle toho,
-                  zda řešíte školu, obec nebo komunitní program pro seniory a veřejnost.
-                </p>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: 12,
-                  flexWrap: "wrap",
-                }}
-              >
-                <PrimaryButton href="/demo">Chci vidět demo</PrimaryButton>
-                <SecondaryButton href="/poptavka">
-                  Chci doporučit vhodnou variantu
-                </SecondaryButton>
-              </div>
+              <ProgramCard
+                color="#3b82f6"
+                title="Pro školy"
+                intro="Pravidelný vzdělávací program pro školy včetně témat, která jsou součástí nabídky START."
+                items={schoolItems}
+              />
+              <ProgramCard
+                color="#22c55e"
+                title="Pro komunitu, seniory a obec"
+                intro="Program pro komunitní život obce, seniory, spolky a veřejnost včetně kulturních a letních formátů."
+                items={communityItems}
+              />
             </div>
           </section>
 
