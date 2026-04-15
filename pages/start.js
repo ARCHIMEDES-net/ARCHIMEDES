@@ -759,7 +759,7 @@ export default function StartPage() {
                       <li>program zaměřený na kariérové poradenství</li>
                       <li>Čtenářský klub Magnesia Litera</li>
                       <li>živý rozhovor s hostem v angličtině</li>
-                      <li>průběžně zveřejňovaný program do 31. 12. 2026</li>
+                      <li>možnost vysílání přímo z vaší školy</li>
                     </ul>
 
                     <p className="summaryNote">
