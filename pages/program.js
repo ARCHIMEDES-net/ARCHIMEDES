@@ -69,17 +69,10 @@ const priceCards = [
     suffix: "/ měsíc",
     badge: "pro školy",
     description:
-      "Program pro školy, které chtějí pravidelně využívat živé vstupy, pracovní listy, archiv a inspirativní hosty během školního roku.",
-    items: [
-      "živé vysílání pro I. stupeň ZŠ",
-      "živé vysílání pro II. stupeň ZŠ",
-      "wellbeing žáků",
-      "kariérní poradenství",
-      "čtenářský klub Magnesia Litera",
-      "živý host v angličtině",
-      "možnost vysílání přímo z vaší školy",
-      "pracovní listy a archiv vysílání",
-    ],
+      "Pravidelný živý vzdělávací program pro školy, které chtějí během školního roku využívat inspirativní hosty, pracovní listy, archiv a témata využitelná přímo ve výuce.",
+    intro:
+      "Školní varianta je určena pro školy, které chtějí mít pravidelný obsah pro třídu, pedagogy i širší rozvoj školy. Součástí jsou i témata, která navazují na nabídku START.",
+    items: schoolItems,
     href: "/poptavka?interest=skola",
     featured: true,
     extraButton: {
@@ -93,13 +86,10 @@ const priceCards = [
     suffix: "/ měsíc",
     badge: "pro obec a komunitu",
     description:
-      "Program pro obec, seniory, spolky a veřejnost, který přináší pravidelný obsah pro komunitní život během roku včetně letního filmového klubu s Aerofilms.",
-    items: [
-      "senior klub a komunitní program",
-      "čtenářský klub a tematické vstupy",
-      "letní filmový klub s Aerofilms",
-      "vhodné i pro menší obce a komunitní skupiny",
-    ],
+      "Program pro obec, seniory, spolky a veřejnost, který přináší pravidelný obsah pro komunitní život během roku včetně kulturních a letních formátů.",
+    intro:
+      "Komunitní varianta rozšiřuje přínos ARCHIMEDES Live i mimo školu. Je vhodná pro obce, které chtějí pravidelný program pro seniory, veřejnost, spolky a místní komunitní život.",
+    items: communityItems,
     href: "/poptavka?interest=komunita",
     featured: false,
   },
@@ -109,7 +99,7 @@ function SectionTitle({ eyebrow, title, text, center = false }) {
   return (
     <div
       style={{
-        maxWidth: 840,
+        maxWidth: 900,
         margin: center ? "0 auto 28px" : "0 0 28px",
         textAlign: center ? "center" : "left",
       }}
@@ -209,90 +199,13 @@ function SecondaryButton({ href, children }) {
   );
 }
 
-function ProgramCard({ color, title, intro, items }) {
-  return (
-    <div
-      style={{
-        background: "#fff",
-        border: `1px solid ${color}33`,
-        borderRadius: 24,
-        padding: 28,
-        boxShadow: "0 14px 40px rgba(15,23,42,0.06)",
-        minHeight: "100%",
-      }}
-    >
-      <div
-        style={{
-          fontSize: 14,
-          fontWeight: 800,
-          color,
-          textTransform: "uppercase",
-          letterSpacing: "0.03em",
-          marginBottom: 14,
-        }}
-      >
-        {title}
-      </div>
-
-      <p
-        style={{
-          margin: "0 0 18px",
-          fontSize: 17,
-          lineHeight: 1.65,
-          color: "#334155",
-        }}
-      >
-        {intro}
-      </p>
-
-      <div style={{ display: "grid", gap: 16 }}>
-        {items.map((item) => (
-          <div key={item.title} style={{ display: "flex", gap: 12 }}>
-            <div
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 999,
-                background: color,
-                marginTop: 9,
-                flex: "0 0 auto",
-              }}
-            />
-            <div>
-              <div
-                style={{
-                  fontWeight: 800,
-                  color: "#0f172a",
-                  fontSize: 16,
-                  lineHeight: 1.45,
-                }}
-              >
-                {item.title}
-              </div>
-              <div
-                style={{
-                  marginTop: 2,
-                  color: "#475569",
-                  fontSize: 16,
-                  lineHeight: 1.6,
-                }}
-              >
-                {item.text}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function PriceCard({
+function PriceProgramCard({
   title,
   price,
   suffix,
   badge,
   description,
+  intro,
   items,
   featured,
   href = "/poptavka",
@@ -396,27 +309,57 @@ function PriceCard({
         {description}
       </p>
 
-      <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
+      {intro ? (
+        <div
+          style={{
+            marginTop: 18,
+            padding: "16px 16px",
+            borderRadius: 16,
+            background: featured ? "#f8fbff" : "#f8fafc",
+            border: featured ? "1px solid #dbeafe" : "1px solid #e2e8f0",
+            color: "#334155",
+            fontSize: 15,
+            lineHeight: 1.7,
+          }}
+        >
+          {intro}
+        </div>
+      ) : null}
+
+      <div style={{ display: "grid", gap: 14, marginTop: 18 }}>
         {items.map((item) => (
-          <div key={item} style={{ display: "flex", gap: 10 }}>
+          <div key={item.title} style={{ display: "flex", gap: 12 }}>
             <div
               style={{
-                width: 8,
-                height: 8,
+                width: 10,
+                height: 10,
                 borderRadius: 999,
-                background: "#2563eb",
-                marginTop: 8,
+                background: featured ? "#2563eb" : "#22c55e",
+                marginTop: 9,
                 flex: "0 0 auto",
               }}
             />
-            <div
-              style={{
-                color: "#334155",
-                fontSize: 15,
-                lineHeight: 1.6,
-              }}
-            >
-              {item}
+            <div>
+              <div
+                style={{
+                  fontWeight: 800,
+                  color: "#0f172a",
+                  fontSize: 16,
+                  lineHeight: 1.45,
+                }}
+              >
+                {item.title}
+              </div>
+              <div
+                style={{
+                  marginTop: 2,
+                  color: "#475569",
+                  fontSize: 15,
+                  lineHeight: 1.65,
+                }}
+              >
+                {item.text}
+              </div>
             </div>
           </div>
         ))}
@@ -786,7 +729,7 @@ export default function ProgramPage() {
                   }}
                   className="hero-cta-grid"
                 >
-                  <PrimaryButton href="#varianty">Varianty a ceník</PrimaryButton>
+                  <PrimaryButton href="#varianty">Program a ceník</PrimaryButton>
                   <SecondaryButton href="/start">Akční nabídka START</SecondaryButton>
                   <SecondaryButton href="/demo">Mám zájem o demo</SecondaryButton>
                   <SecondaryButton href="/financovani-skoly">
@@ -870,10 +813,22 @@ export default function ProgramPage() {
 
           <section id="varianty" style={{ marginTop: 84 }}>
             <SectionTitle
-              eyebrow="Programy a ceny"
+              eyebrow="Program a ceník"
               title="Vyberte si variantu programu"
-              text="Vyberte si samostatný program pro školu nebo komunitní program pro obec, seniory, spolky a veřejnost."
+              text="Každá varianta má svůj vlastní obsah i zaměření. Školní část je určena pro výuku a práci s třídou, komunitní část pro seniory, spolky, veřejnost a život v obci. Níže vidíte, co jednotlivé varianty obsahují i kolik stojí."
             />
+
+            <div
+              style={{
+                display: "flex",
+                gap: 12,
+                flexWrap: "wrap",
+                marginBottom: 24,
+              }}
+            >
+              <SecondaryButton href="/cenik">Zobrazit kompletní ceník</SecondaryButton>
+              <SecondaryButton href="/start">Zobrazit balíček START</SecondaryButton>
+            </div>
 
             <div
               style={{
@@ -885,7 +840,7 @@ export default function ProgramPage() {
               className="price-grid"
             >
               {priceCards.map((card) => (
-                <PriceCard key={card.title} {...card} />
+                <PriceProgramCard key={card.title} {...card} />
               ))}
             </div>
 
@@ -940,37 +895,6 @@ export default function ProgramPage() {
                   Chci doporučit vhodnou variantu
                 </SecondaryButton>
               </div>
-            </div>
-          </section>
-
-          <section style={{ marginTop: 72 }}>
-            <SectionTitle
-              eyebrow="Co program obsahuje"
-              title="Přehled hlavních rubrik"
-              text="Každá varianta programu má svůj vlastní obsah. Školní část je zaměřena na výuku a práci s třídou, komunitní část na seniory, veřejnost a život v obci."
-            />
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                gap: 22,
-                marginTop: 24,
-              }}
-              className="program-grid"
-            >
-              <ProgramCard
-                color="#3b82f6"
-                title="Pro školy"
-                intro="Pravidelný vzdělávací program pro školy včetně témat, která jsou součástí nabídky START."
-                items={schoolItems}
-              />
-              <ProgramCard
-                color="#22c55e"
-                title="Pro komunitu, seniory a obec"
-                intro="Program pro komunitní život obce, seniory, spolky a veřejnost včetně kulturních a letních formátů."
-                items={communityItems}
-              />
             </div>
           </section>
 
@@ -1037,7 +961,6 @@ export default function ProgramPage() {
         }
 
         @media (max-width: 1100px) {
-          .program-grid,
           .price-grid {
             grid-template-columns: 1fr !important;
           }
@@ -1056,7 +979,6 @@ export default function ProgramPage() {
         }
 
         @media (max-width: 760px) {
-          .program-grid,
           .price-grid {
             grid-template-columns: 1fr !important;
           }
