@@ -753,7 +753,7 @@ export default function PoptavkaPage() {
                 letterSpacing: "-0.02em",
               }}
             >
-              ARCHIMEDES už funguje v praxi
+              ARCHIMEDES® už funguje v praxi
             </h2>
 
             <p
@@ -765,7 +765,7 @@ export default function PoptavkaPage() {
                 color: "#475569",
               }}
             >
-              Projekt ARCHIMEDES dnes využívají školy a obce v různých regionech.
+              ARCHIMEDES® dnes využívají školy a obce v různých regionech.
               Učebny slouží pro výuku, komunitní setkávání i kulturní programy.
             </p>
 
