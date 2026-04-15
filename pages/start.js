@@ -751,13 +751,14 @@ export default function StartPage() {
 
                     <div className="summaryDivider" />
 
-                    <div className="summaryContentLabel">Součást balíčku</div>
-                    <ul className="summaryList">
-                      <li>online vzdělávací program pro I. stupeň ZŠ</li>
-                      <li>online vzdělávací program pro II. stupeň ZŠ</li>
+                    <div className="summaryContentLabel">Každý měsíc zažijete</div>
+                    <ul className="summaryList summaryFeatureList">
+                      <li>živé online vysílání pro I. stupeň ZŠ</li>
+                      <li>živé online vysílání pro II. stupeň ZŠ</li>
                       <li>program zaměřený na wellbeing žáků</li>
-                      <li>program zaměřený na kariérovou orientaci</li>
-                      <li>vybrané vzdělávací programy v anglickém jazyce</li>
+                      <li>program zaměřený na kariérové poradenství</li>
+                      <li>Čtenářský klub Magnesia Litera</li>
+                      <li>živý rozhovor s hostem v angličtině</li>
                       <li>průběžně zveřejňovaný program do 31. 12. 2026</li>
                     </ul>
 
@@ -1301,11 +1302,14 @@ export default function StartPage() {
           }
 
           .summaryCard {
-            border-radius: 24px;
+            border-radius: 26px;
             padding: 24px 22px;
-            background: #0f172a;
+            background:
+              radial-gradient(circle at top right, rgba(59, 130, 246, 0.22), transparent 34%),
+              linear-gradient(180deg, #0f172a 0%, #081122 100%);
             color: #ffffff;
             box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+            overflow: hidden;
           }
 
           .summaryLabel {
@@ -1346,6 +1350,7 @@ export default function StartPage() {
             border-radius: 18px;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(8px);
           }
 
           .priceTop {
@@ -1399,7 +1404,11 @@ export default function StartPage() {
             margin-top: 18px;
             padding: 14px 16px;
             border-radius: 16px;
-            background: rgba(255, 255, 255, 0.08);
+            background: linear-gradient(
+              135deg,
+              rgba(255, 255, 255, 0.08) 0%,
+              rgba(255, 255, 255, 0.04) 100%
+            );
             border: 1px solid rgba(255, 255, 255, 0.12);
             color: #ffffff;
             font-size: 14px;
@@ -1410,37 +1419,61 @@ export default function StartPage() {
           .summaryDivider {
             height: 1px;
             background: rgba(255, 255, 255, 0.12);
-            margin: 18px 0 16px;
+            margin: 20px 0 16px;
           }
 
           .summaryContentLabel {
             font-size: 13px;
             line-height: 1.4;
-            font-weight: 800;
-            letter-spacing: 0.04em;
+            font-weight: 900;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
-            margin-bottom: 12px;
-            color: rgba(255, 255, 255, 0.72);
+            margin-bottom: 14px;
+            color: rgba(255, 255, 255, 0.82);
           }
 
           .summaryList {
             margin: 0;
-            padding-left: 18px;
+            padding: 0;
+            list-style: none;
             display: grid;
-            gap: 8px;
+            gap: 10px;
           }
 
-          .summaryList li {
+          .summaryFeatureList li {
+            position: relative;
+            padding: 11px 12px 11px 40px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             color: #ffffff;
             font-size: 15px;
-            line-height: 1.55;
+            line-height: 1.5;
             font-weight: 800;
           }
 
+          .summaryFeatureList li::before {
+            content: "✓";
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(34, 197, 94, 0.18);
+            color: #86efac;
+            font-size: 12px;
+            font-weight: 900;
+          }
+
           .summaryNote {
-            margin: 14px 0 0;
+            margin: 16px 0 0;
             font-size: 13px;
-            line-height: 1.6;
+            line-height: 1.65;
             color: rgba(255, 255, 255, 0.68);
           }
 
@@ -1713,6 +1746,11 @@ export default function StartPage() {
               width: 28px;
               height: 28px;
               font-size: 13px;
+            }
+
+            .summaryFeatureList li {
+              padding: 10px 12px 10px 38px;
+              font-size: 14px;
             }
 
             .submitButton {
