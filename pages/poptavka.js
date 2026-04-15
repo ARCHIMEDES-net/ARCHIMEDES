@@ -15,13 +15,13 @@ const OPTIONS = [
   },
   {
     key: "ucebna",
-    title: "Učebna ARCHIMEDES",
+    title: "Učebna ARCHIMEDES®",
     text: "Moderní venkovní učebna jako prostor pro výuku, setkávání a komunitní aktivity.",
   },
   {
     key: "navsteva",
     title: "Návštěva vzorové učebny",
-    text: "Rádi vás provedeme vzorovou učebnou ARCHIMEDES na BVV v Brně a ukážeme vám, jak může projekt fungovat ve vaší škole nebo obci.",
+    text: "Rádi vás provedeme vzorovou učebnou ARCHIMEDES® na BVV v Brně a ukážeme vám, jak může projekt fungovat ve vaší škole nebo obci.",
   },
 ];
 
@@ -34,15 +34,25 @@ function getOptionAccent(key) {
         softBorder: "#bfdbfe",
         pillBg: "#2563eb",
         pillText: "#ffffff",
+        hoverShadow: "0 18px 42px rgba(37,99,235,0.12)",
       };
     case "komunita":
-    case "ucebna":
       return {
         color: "#22c55e",
         softBg: "#f0fdf4",
         softBorder: "#bbf7d0",
         pillBg: "#ecfdf5",
         pillText: "#166534",
+        hoverShadow: "0 18px 42px rgba(34,197,94,0.12)",
+      };
+    case "ucebna":
+      return {
+        color: "#0f172a",
+        softBg: "#f8fafc",
+        softBorder: "#cbd5e1",
+        pillBg: "#f1f5f9",
+        pillText: "#334155",
+        hoverShadow: "0 18px 42px rgba(15,23,42,0.12)",
       };
     case "navsteva":
       return {
@@ -51,6 +61,7 @@ function getOptionAccent(key) {
         softBorder: "#e9d5ff",
         pillBg: "#f3e8ff",
         pillText: "#7c3aed",
+        hoverShadow: "0 18px 42px rgba(168,85,247,0.12)",
       };
     default:
       return {
@@ -59,6 +70,7 @@ function getOptionAccent(key) {
         softBorder: "#e2e8f0",
         pillBg: "#f8fafc",
         pillText: "#334155",
+        hoverShadow: "0 18px 42px rgba(15,23,42,0.10)",
       };
   }
 }
@@ -98,14 +110,11 @@ export default function PoptavkaPage() {
     setSelectedOption(interest);
 
     const presetMessages = {
-      skola:
-        "Mám zájem o školní program. Prosím o více informací.",
-      komunita:
-        "Mám zájem o komunitní program. Prosím o více informací.",
-      ucebna:
-        "Mám zájem o učebnu ARCHIMEDES. Prosím o více informací.",
+      skola: "Mám zájem o školní program. Prosím o více informací.",
+      komunita: "Mám zájem o komunitní program. Prosím o více informací.",
+      ucebna: "Mám zájem o učebnu ARCHIMEDES®. Prosím o více informací.",
       navsteva:
-        "Mám zájem o návštěvu vzorové učebny ARCHIMEDES. Prosím o více informací.",
+        "Mám zájem o návštěvu vzorové učebny ARCHIMEDES®. Prosím o více informací.",
     };
 
     if (!message && presetMessages[interest]) {
@@ -255,7 +264,7 @@ export default function PoptavkaPage() {
           >
             Můžete využívat <strong>školní program</strong>, zapojit{" "}
             <strong>komunitní program pro obec, seniory a veřejnost</strong>,
-            postavit <strong>učebnu ARCHIMEDES</strong> nebo si domluvit{" "}
+            postavit <strong>učebnu ARCHIMEDES®</strong> nebo si domluvit{" "}
             <strong>návštěvu vzorové učebny</strong>.
           </p>
 
@@ -300,11 +309,7 @@ export default function PoptavkaPage() {
                     ? `2px solid ${accent.color}`
                     : "1px solid #e5e7eb",
                   boxShadow: isActive
-                    ? item.key === "skola"
-                      ? "0 18px 42px rgba(37,99,235,0.12)"
-                      : item.key === "komunita" || item.key === "ucebna"
-                      ? "0 18px 42px rgba(34,197,94,0.12)"
-                      : "0 18px 42px rgba(168,85,247,0.12)"
+                    ? accent.hoverShadow
                     : "0 12px 30px rgba(15,23,42,0.04)",
                   display: "flex",
                   flexDirection: "column",
@@ -668,7 +673,7 @@ export default function PoptavkaPage() {
                 letterSpacing: "-0.02em",
               }}
             >
-              Navštivte vzorovou učebnu ARCHIMEDES v areálu BVV
+              Navštivte vzorovou učebnu ARCHIMEDES® v areálu BVV
             </h2>
 
             <p
@@ -680,7 +685,7 @@ export default function PoptavkaPage() {
                 maxWidth: 560,
               }}
             >
-              V Brně vám rádi ukážeme reálnou podobu učebny ARCHIMEDES i to,
+              V Brně vám rádi ukážeme reálnou podobu učebny ARCHIMEDES® i to,
               jak může fungovat ve vaší škole, obci nebo komunitě.
             </p>
 
@@ -702,6 +707,9 @@ export default function PoptavkaPage() {
                 onClick={() => {
                   track("klik_poptavka_navsteva_bvv");
                   setSelectedOption("navsteva");
+                  setMessage(
+                    "Mám zájem o návštěvu vzorové učebny ARCHIMEDES®. Prosím o více informací."
+                  );
                   setTimeout(() => {
                     scrollToForm();
                   }, 80);
@@ -717,7 +725,7 @@ export default function PoptavkaPage() {
             <div style={imageWrapStyle}>
               <img
                 src="/bvv.jpg"
-                alt="Vzorová učebna ARCHIMEDES na BVV"
+                alt="Vzorová učebna ARCHIMEDES® na BVV"
                 style={imageStyle}
               />
             </div>
@@ -797,7 +805,7 @@ export default function PoptavkaPage() {
             <div style={imageWrapStyle}>
               <img
                 src="/prestrih.webp"
-                alt="Slavnostní otevření projektu ARCHIMEDES"
+                alt="Slavnostní otevření projektu ARCHIMEDES®"
                 style={imageStyle}
               />
             </div>
