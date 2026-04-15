@@ -1,6 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { track } from "@vercel/analytics";
 import Footer from "../components/Footer";
 import { supabase } from "../lib/supabaseClient";
 
@@ -141,11 +142,15 @@ export default function StartPage() {
   useEffect(() => {
     if (!success) return;
 
+    track("uspech_start_objednavky", {
+      mode: successMode,
+    });
+
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
-  }, [success]);
+  }, [success, successMode]);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -159,6 +164,8 @@ export default function StartPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    track("odeslani_start_objednavky");
 
     try {
       const {
@@ -362,11 +369,19 @@ export default function StartPage() {
                 </p>
 
                 <div className="successActions">
-                  <Link href="/" className="primaryLink">
+                  <Link
+                    href="/"
+                    className="primaryLink"
+                    onClick={() => track("klik_start_success_home")}
+                  >
                     Zpět na hlavní stránku
                   </Link>
 
-                  <Link href="/poptavka" className="secondaryLink">
+                  <Link
+                    href="/poptavka"
+                    className="secondaryLink"
+                    onClick={() => track("klik_start_success_kontakt")}
+                  >
                     Kontaktovat EduVision
                   </Link>
                 </div>
@@ -717,7 +732,11 @@ export default function StartPage() {
 
                   <div className="demoInline">
                     <span>Chcete se ještě vrátit do ukázkového prostředí?</span>
-                    <Link href="/portal" className="demoGhostButton">
+                    <Link
+                      href="/portal"
+                      className="demoGhostButton"
+                      onClick={() => track("klik_start_zpet_do_portalu")}
+                    >
                       Zpět do portálu
                     </Link>
                   </div>
