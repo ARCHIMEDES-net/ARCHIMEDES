@@ -4,24 +4,14 @@ import { track } from "@vercel/analytics";
 
 const OPTIONS = [
   {
-    key: "program-obec",
-    title: "Program pro školu a obec",
-    text: "Nejkomplexnější varianta, která propojuje školní program, senior klub i komunitní část pro obec.",
-  },
-  {
     key: "skola",
     title: "Školní program",
-    text: "Živý vzdělávací program pro školy s inspirativními hosty, který lze jednoduše zapojit do výuky během roku.",
-  },
-  {
-    key: "senior",
-    title: "Senior klub",
-    text: "Pravidelný program pro seniory zaměřený na inspiraci, setkávání, rozhovory a aktivní komunitní život v obci.",
+    text: "Živý vzdělávací program pro školy s inspirativními hosty, pracovními listy a archivem využitelným během školního roku.",
   },
   {
     key: "komunita",
     title: "Komunitní program",
-    text: "Program pro obec, spolky a veřejnost zaměřený na komunitní setkávání, tematické vstupy a místní život.",
+    text: "Program pro obec, seniory, spolky a veřejnost zaměřený na komunitní setkávání, tematické vstupy a život v obci během roku.",
   },
   {
     key: "ucebna",
@@ -31,24 +21,45 @@ const OPTIONS = [
   {
     key: "navsteva",
     title: "Návštěva vzorové učebny",
-    text: "Rádi vás provedeme vzorovou učebnou ARCHIMEDES na BVV v Brně a ukážeme vám, jak může projekt fungovat ve vaší obci.",
+    text: "Rádi vás provedeme vzorovou učebnou ARCHIMEDES na BVV v Brně a ukážeme vám, jak může projekt fungovat ve vaší škole nebo obci.",
   },
 ];
 
-function getOptionTitleColor(key) {
+function getOptionAccent(key) {
   switch (key) {
-    case "program-obec":
     case "skola":
-      return "#3b82f6";
-    case "senior":
-      return "#f59e0b";
+      return {
+        color: "#2563eb",
+        softBg: "#eff6ff",
+        softBorder: "#bfdbfe",
+        pillBg: "#2563eb",
+        pillText: "#ffffff",
+      };
     case "komunita":
     case "ucebna":
-      return "#22c55e";
+      return {
+        color: "#22c55e",
+        softBg: "#f0fdf4",
+        softBorder: "#bbf7d0",
+        pillBg: "#ecfdf5",
+        pillText: "#166534",
+      };
     case "navsteva":
-      return "#a855f7";
+      return {
+        color: "#a855f7",
+        softBg: "#faf5ff",
+        softBorder: "#e9d5ff",
+        pillBg: "#f3e8ff",
+        pillText: "#7c3aed",
+      };
     default:
-      return "#0f172a";
+      return {
+        color: "#0f172a",
+        softBg: "#f8fafc",
+        softBorder: "#e2e8f0",
+        pillBg: "#f8fafc",
+        pillText: "#334155",
+      };
   }
 }
 
@@ -87,12 +98,8 @@ export default function PoptavkaPage() {
     setSelectedOption(interest);
 
     const presetMessages = {
-      "program-obec":
-        "Mám zájem o variantu Program pro školu a obec. Prosím o více informací.",
       skola:
         "Mám zájem o školní program. Prosím o více informací.",
-      senior:
-        "Mám zájem o Senior klub. Prosím o více informací.",
       komunita:
         "Mám zájem o komunitní program. Prosím o více informací.",
       ucebna:
@@ -177,6 +184,8 @@ export default function PoptavkaPage() {
     }
   }
 
+  const selectedAccent = getOptionAccent(selectedOption);
+
   return (
     <main
       style={{
@@ -233,8 +242,7 @@ export default function PoptavkaPage() {
               color: "#334155",
             }}
           >
-            ARCHIMEDES propojuje vzdělávání, komunitní život a inspirativní
-            setkávání.
+            ARCHIMEDES Live propojuje školu, inspirativní hosty a komunitní život obce.
           </p>
 
           <p
@@ -245,9 +253,10 @@ export default function PoptavkaPage() {
               color: "#334155",
             }}
           >
-            Můžete využívat školní program, zapojit <strong>Senior klub</strong>,
-            rozvíjet <strong>komunitní program</strong> nebo postavit{" "}
-            <strong>učebnu ARCHIMEDES</strong>.
+            Můžete využívat <strong>školní program</strong>, zapojit{" "}
+            <strong>komunitní program pro obec, seniory a veřejnost</strong>,
+            postavit <strong>učebnu ARCHIMEDES</strong> nebo si domluvit{" "}
+            <strong>návštěvu vzorové učebny</strong>.
           </p>
 
           <p
@@ -258,8 +267,7 @@ export default function PoptavkaPage() {
               color: "#475569",
             }}
           >
-            Vyberte si, o co máte zájem. Formulář se vám podle toho automaticky
-            připraví.
+            Vyberte si, o co máte zájem. Formulář se vám podle toho automaticky připraví.
           </p>
         </div>
       </section>
@@ -268,14 +276,14 @@ export default function PoptavkaPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
             gap: 22,
           }}
           className="interest-grid"
         >
           {OPTIONS.map((item) => {
             const isActive = selectedOption === item.key;
-            const titleColor = getOptionTitleColor(item.key);
+            const accent = getOptionAccent(item.key);
 
             return (
               <button
@@ -287,14 +295,20 @@ export default function PoptavkaPage() {
                   ...cardStyle,
                   textAlign: "left",
                   cursor: "pointer",
-                  background: isActive ? "#eff6ff" : "#ffffff",
-                  border: isActive ? "2px solid #2563eb" : "1px solid #e5e7eb",
+                  background: isActive ? accent.softBg : "#ffffff",
+                  border: isActive
+                    ? `2px solid ${accent.color}`
+                    : "1px solid #e5e7eb",
                   boxShadow: isActive
-                    ? "0 18px 42px rgba(37,99,235,0.12)"
+                    ? item.key === "skola"
+                      ? "0 18px 42px rgba(37,99,235,0.12)"
+                      : item.key === "komunita" || item.key === "ucebna"
+                      ? "0 18px 42px rgba(34,197,94,0.12)"
+                      : "0 18px 42px rgba(168,85,247,0.12)"
                     : "0 12px 30px rgba(15,23,42,0.04)",
                   display: "flex",
                   flexDirection: "column",
-                  minHeight: 320,
+                  minHeight: 290,
                 }}
               >
                 <div
@@ -305,8 +319,8 @@ export default function PoptavkaPage() {
                     minHeight: 32,
                     padding: "0 13px",
                     borderRadius: 999,
-                    background: isActive ? "#2563eb" : "#f8fafc",
-                    color: isActive ? "#ffffff" : "#334155",
+                    background: isActive ? accent.color : accent.pillBg,
+                    color: isActive ? "#ffffff" : accent.pillText,
                     fontSize: 14,
                     fontWeight: 900,
                     letterSpacing: "-0.01em",
@@ -319,12 +333,12 @@ export default function PoptavkaPage() {
 
                 <div
                   style={{
-                    minHeight: 74,
+                    minHeight: 64,
                     display: "flex",
                     alignItems: "flex-start",
                   }}
                 >
-                  <h3 style={{ ...cardTitle, color: titleColor }}>{item.title}</h3>
+                  <h3 style={{ ...cardTitle, color: accent.color }}>{item.title}</h3>
                 </div>
 
                 <div
@@ -343,7 +357,7 @@ export default function PoptavkaPage() {
                     marginTop: 20,
                     fontSize: 16,
                     fontWeight: 800,
-                    color: isActive ? "#2563eb" : "#0f172a",
+                    color: isActive ? accent.color : "#0f172a",
                   }}
                 >
                   {isActive
@@ -374,7 +388,7 @@ export default function PoptavkaPage() {
           }}
         >
           Nejste si jistí? Vyberte nejbližší možnost nebo nám napište pár slov.
-          Společně najdeme vhodné řešení pro školu, obec, seniory i komunitu.
+          Společně najdeme vhodné řešení pro školu, obec, komunitu i samotnou učebnu.
         </p>
       </section>
 
@@ -437,9 +451,9 @@ export default function PoptavkaPage() {
               marginBottom: 16,
               padding: "12px 16px",
               borderRadius: 12,
-              background: "#eff6ff",
-              border: "1px solid #bfdbfe",
-              color: "#1e3a8a",
+              background: selectedAccent.softBg,
+              border: `1px solid ${selectedAccent.softBorder}`,
+              color: selectedAccent.color,
               fontSize: 15,
               fontWeight: 700,
               lineHeight: 1.55,
@@ -470,8 +484,7 @@ export default function PoptavkaPage() {
             maxWidth: 760,
           }}
         >
-          Napište nám pár informací o tom, o co máte zájem. Ozveme se vám a
-          domluvíme další postup.
+          Napište nám pár informací o tom, o co máte zájem. Ozveme se vám a domluvíme další postup.
         </p>
 
         <p
@@ -680,8 +693,7 @@ export default function PoptavkaPage() {
                 maxWidth: 560,
               }}
             >
-              Osobní návštěva pomůže nejlépe pochopit prostor, atmosféru i
-              možnosti využití v praxi.
+              Osobní návštěva pomůže nejlépe pochopit prostor, atmosféru i možnosti využití v praxi.
             </p>
 
             <div style={{ marginTop: 24 }}>
@@ -745,9 +757,8 @@ export default function PoptavkaPage() {
                 color: "#475569",
               }}
             >
-              Projekt ARCHIMEDES dnes využívají školy a obce v různých
-              regionech. Učebny slouží pro výuku, komunitní setkávání i kulturní
-              programy.
+              Projekt ARCHIMEDES dnes využívají školy a obce v různých regionech.
+              Učebny slouží pro výuku, komunitní setkávání i kulturní programy.
             </p>
 
             <div
@@ -776,8 +787,7 @@ export default function PoptavkaPage() {
               <div style={trustCard}>
                 <div style={trustTitle}>Oceněný projekt</div>
                 <div style={trustText}>
-                  ARCHIMEDES získal ocenění Obec 2030 za inovativní přístup k
-                  rozvoji obcí.
+                  ARCHIMEDES získal ocenění Obec 2030 za inovativní přístup k rozvoji obcí.
                 </div>
               </div>
             </div>
@@ -817,9 +827,6 @@ export default function PoptavkaPage() {
 
         .interest-card.active:hover {
           transform: translateY(-4px);
-          box-shadow: 0 22px 48px rgba(37, 99, 235, 0.16) !important;
-          border-color: #2563eb !important;
-          background: #eff6ff !important;
         }
 
         .visual-grid {
