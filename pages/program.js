@@ -23,7 +23,7 @@ const schoolItems = [
   },
 ];
 
-const seniorItems = [
+const communityItems = [
   {
     title: "Senior klub",
     text: "interaktivní rozhovory s inspirativními hosty, aktuální témata, vzdělávání, partnerství, setkávání s jinými seniory a krajanskými spolky",
@@ -32,14 +32,6 @@ const seniorItems = [
     title: "Čtenářský klub",
     text: "společné čtení a živé debaty s autory knih",
   },
-  {
-    title: "Akademie třetího věku",
-    text: "digitální gramotnost, zdraví a orientace v současném světě",
-    note: "připravujeme",
-  },
-];
-
-const communityItems = [
   {
     title: "Vzdělávání dobrovolných hasičů",
     text: "praktický obsah a online vstupy využitelné pro místní jednotky i vedení obce",
@@ -52,69 +44,52 @@ const communityItems = [
     title: "Servis pro zastupitele a komunitu",
     text: "sdílení dobré praxe, inspirace a témata pro rozvoj obce a komunitního života, výrazná podpora živé spolupráce s partnerskými městy",
   },
-];
-
-const cultureItems = [
   {
     title: "Filmový klub s Aerofilms",
     text: "výběr kvalitních filmů s úvodem hostů a možností společného zážitku v obci",
   },
   {
     title: "Mimořádné tematické vstupy",
-    text: "výročí, aktuální události, sezónní programy a speciální hosté, živé interaktivní vysílání z aktuálních akcí a další aktivity, podporující posílení komunity",
+    text: "výročí, aktuální události, sezónní programy a speciální hosté, živé interaktivní vysílání z aktuálních akcí a další aktivity podporující posílení komunity",
   },
 ];
 
 const priceCards = [
   {
-    title: "Program pro školu a obec",
-    price: "2 890 Kč",
-    suffix: "/ měsíc",
-    badge: "doporučená varianta",
-    description:
-      "Nejkomplexnější varianta pro školy a obce, které chtějí během roku využívat školní program, senior klub i komunitní část.",
-    items: [
-      "živá vysílání pro školy",
-      "program pro seniory a komunitu",
-      "přístup k archivu vysílání",
-    ],
-  },
-  {
     title: "Škola",
     price: "1 990 Kč",
     suffix: "/ měsíc",
-    badge: "samostatný formát",
+    badge: "pro školy",
     description:
-      "Samostatná varianta pro školy, které chtějí pravidelně využívat živé vstupy pro výuku a práci s třídou.",
+      "Samostatná varianta pro školy, které chtějí pravidelně využívat živé vstupy pro výuku, práci s třídou a inspirativní hosty během školního roku.",
     items: [
       "živá vysílání pro I. a II. stupeň",
+      "pracovní listy a archiv vysílání",
       "vhodné i jako startovní varianta",
       "pravidelný obsah během školního roku",
     ],
-  },
-  {
-    title: "Senior klub",
-    price: "490 Kč",
-    suffix: "/ měsíc",
-    badge: "pro seniory",
-    description:
-      "Pravidelný program pro seniory s inspirativními hosty, setkáváním a tématy pro každodenní život v obci.",
-    items: [
-      "pravidelné setkávání během roku",
-      "vhodné i pro menší obce a komunitní skupiny",
-    ],
+    href: "/poptavka?interest=skola",
+    featured: true,
+    extraButton: {
+      href: "/start",
+      label: "Akční nabídka START",
+    },
   },
   {
     title: "Komunitní program",
     price: "490 Kč",
     suffix: "/ měsíc",
-    badge: "pro komunitu",
+    badge: "pro obec a komunitu",
     description:
-      "Program pro obec, spolky a veřejnost zaměřený na komunitní setkávání, tematické vstupy a místní život.",
+      "Program pro obec, seniory, spolky a veřejnost, který přináší pravidelný obsah pro komunitní život během roku včetně letního filmového klubu s Aerofilms.",
     items: [
-      "kulturní a komunitní rozměr",
-      "mimořádné tematické vstupy a speciály",
+      "senior klub a komunitní program",
+      "čtenářský klub a tematické vstupy",
+      "letní filmový klub s Aerofilms",
+      "vhodné i pro menší obce a komunitní skupiny",
     ],
+    href: "/poptavka?interest=komunita",
+    featured: false,
   },
 ];
 
@@ -321,144 +296,143 @@ function PriceCard({
   items,
   featured,
   href = "/poptavka",
+  extraButton,
 }) {
   return (
-    <Link
-      href={href}
+    <div
       style={{
-        display: "block",
-        textDecoration: "none",
-        color: "inherit",
-        height: "100%",
+        background: "#fff",
+        borderRadius: 24,
+        padding: 28,
+        border: featured ? "2px solid #2563eb" : "1px solid #e2e8f0",
+        boxShadow: featured
+          ? "0 18px 46px rgba(37,99,235,0.12)"
+          : "0 14px 36px rgba(15,23,42,0.06)",
+        minHeight: "100%",
+        transition:
+          "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-4px)";
+        e.currentTarget.style.boxShadow = featured
+          ? "0 24px 56px rgba(37,99,235,0.16)"
+          : "0 18px 40px rgba(15,23,42,0.10)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = featured
+          ? "0 18px 46px rgba(37,99,235,0.12)"
+          : "0 14px 36px rgba(15,23,42,0.06)";
       }}
     >
       <div
         style={{
-          background: "#fff",
-          borderRadius: 24,
-          padding: 28,
-          border: featured ? "2px solid #2563eb" : "1px solid #e2e8f0",
-          boxShadow: featured
-            ? "0 18px 46px rgba(37,99,235,0.12)"
-            : "0 14px 36px rgba(15,23,42,0.06)",
-          minHeight: "100%",
-          cursor: "pointer",
-          transition:
-            "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
+          display: "inline-flex",
+          alignItems: "center",
+          minHeight: 34,
+          padding: "0 14px",
+          borderRadius: 999,
+          background: featured ? "#2563eb" : "#f1f5f9",
+          color: featured ? "#fff" : "#334155",
+          fontSize: 14,
+          fontWeight: 800,
+          marginBottom: 18,
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "translateY(-4px)";
-          e.currentTarget.style.boxShadow = featured
-            ? "0 24px 56px rgba(37,99,235,0.16)"
-            : "0 18px 40px rgba(15,23,42,0.10)";
+      >
+        {badge}
+      </div>
+
+      <h3
+        style={{
+          margin: 0,
+          fontSize: 21,
+          lineHeight: 1.25,
+          color: "#0f172a",
         }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = featured
-            ? "0 18px 46px rgba(37,99,235,0.12)"
-            : "0 14px 36px rgba(15,23,42,0.06)";
+      >
+        {title}
+      </h3>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-end",
+          gap: 8,
+          marginTop: 14,
+          flexWrap: "wrap",
         }}
       >
         <div
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            minHeight: 34,
-            padding: "0 14px",
-            borderRadius: 999,
-            background: featured ? "#2563eb" : "#f1f5f9",
-            color: featured ? "#fff" : "#334155",
-            fontSize: 14,
-            fontWeight: 800,
-            marginBottom: 18,
-          }}
-        >
-          {badge}
-        </div>
-
-        <h3
-          style={{
-            margin: 0,
-            fontSize: 21,
-            lineHeight: 1.25,
+            fontSize: 32,
+            lineHeight: 1,
+            fontWeight: 900,
             color: "#0f172a",
+            letterSpacing: "-0.03em",
           }}
         >
-          {title}
-        </h3>
-
+          {price}
+        </div>
         <div
           style={{
-            display: "flex",
-            alignItems: "flex-end",
-            gap: 8,
-            marginTop: 14,
-            flexWrap: "wrap",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 32,
-              lineHeight: 1,
-              fontWeight: 900,
-              color: "#0f172a",
-              letterSpacing: "-0.03em",
-            }}
-          >
-            {price}
-          </div>
-          <div
-            style={{
-              fontSize: 16,
-              fontWeight: 700,
-              color: "#475569",
-              marginBottom: 3,
-            }}
-          >
-            {suffix}
-          </div>
-        </div>
-
-        <p
-          style={{
-            margin: "16px 0 0",
-            color: "#475569",
             fontSize: 16,
-            lineHeight: 1.65,
+            fontWeight: 700,
+            color: "#475569",
+            marginBottom: 3,
           }}
         >
-          {description}
-        </p>
-
-        <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
-          {items.map((item) => (
-            <div key={item} style={{ display: "flex", gap: 10 }}>
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 999,
-                  background: "#2563eb",
-                  marginTop: 8,
-                  flex: "0 0 auto",
-                }}
-              />
-              <div
-                style={{
-                  color: "#334155",
-                  fontSize: 15,
-                  lineHeight: 1.6,
-                }}
-              >
-                {item}
-              </div>
-            </div>
-          ))}
+          {suffix}
         </div>
+      </div>
 
-        <div
+      <p
+        style={{
+          margin: "16px 0 0",
+          color: "#475569",
+          fontSize: 16,
+          lineHeight: 1.65,
+        }}
+      >
+        {description}
+      </p>
+
+      <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
+        {items.map((item) => (
+          <div key={item} style={{ display: "flex", gap: 10 }}>
+            <div
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 999,
+                background: "#2563eb",
+                marginTop: 8,
+                flex: "0 0 auto",
+              }}
+            />
+            <div
+              style={{
+                color: "#334155",
+                fontSize: 15,
+                lineHeight: 1.6,
+              }}
+            >
+              {item}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div
+        style={{
+          marginTop: 22,
+          display: "flex",
+          gap: 12,
+          flexWrap: "wrap",
+        }}
+      >
+        <Link
+          href={href}
           style={{
-            marginTop: 22,
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
@@ -470,12 +444,35 @@ function PriceCard({
             border: featured ? "1px solid #2563eb" : "1px solid #cbd5e1",
             fontSize: 15,
             fontWeight: 800,
+            textDecoration: "none",
           }}
         >
           Mám zájem o tuto variantu →
-        </div>
+        </Link>
+
+        {extraButton ? (
+          <Link
+            href={extraButton.href}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 46,
+              padding: "0 16px",
+              borderRadius: 12,
+              background: "#ffffff",
+              color: "#0f172a",
+              border: "1px solid #cbd5e1",
+              fontSize: 15,
+              fontWeight: 800,
+              textDecoration: "none",
+            }}
+          >
+            {extraButton.label}
+          </Link>
+        ) : null}
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -748,7 +745,7 @@ export default function ProgramPage() {
                     marginBottom: 18,
                   }}
                 >
-                  Živý program pro školu a obec
+                  Živý program pro školu a komunitu
                 </div>
 
                 <h1
@@ -760,9 +757,9 @@ export default function ProgramPage() {
                     letterSpacing: "-0.04em",
                   }}
                 >
-                  Živý program pro školu,
+                  Živý program pro školu
                   <br />
-                  seniory a komunitu obce
+                  a komunitní život obce
                 </h1>
 
                 <p
@@ -774,8 +771,9 @@ export default function ProgramPage() {
                     maxWidth: 620,
                   }}
                 >
-                  ARCHIMEDES Live přináší během roku živá interaktivní vysílání, inspirativní
-                  hosty a pravidelný obsah pro výuku, seniory i komunitní život obce.
+                  ARCHIMEDES Live přináší během roku živá interaktivní vysílání,
+                  inspirativní hosty a pravidelný obsah pro výuku, seniory, komunitu i
+                  kulturní program v obci.
                 </p>
 
                 <p
@@ -787,8 +785,8 @@ export default function ProgramPage() {
                     maxWidth: 620,
                   }}
                 >
-                  Jednoduchý způsob, jak dát škole i obci smysluplný program, který běží
-                  pravidelně a je snadné ho využívat.
+                  Škola může využívat vlastní vzdělávací program a obec k tomu jednoduše
+                  přidat komunitní část pro seniory, spolky i veřejnost.
                 </p>
 
                 <p
@@ -899,13 +897,13 @@ export default function ProgramPage() {
           <section style={{ marginTop: 72 }}>
             <SectionTitle
               title="Hlavní rubriky programu"
-              text="Součástí ARCHIMEDES Live jsou živé vstupy pro výuku, program pro seniory i komunitní formáty, které může škola a obec využívat během celého roku."
+              text="Součástí ARCHIMEDES Live jsou živé vstupy pro výuku i komunitní formáty, které může škola a obec využívat během celého roku."
             />
 
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
                 gap: 22,
                 marginTop: 24,
               }}
@@ -918,22 +916,10 @@ export default function ProgramPage() {
                 items={schoolItems}
               />
               <ProgramCard
-                color="#f59e0b"
-                title="Pro seniory a aktivní stárnutí"
-                intro="Klidný, srozumitelný a lidský formát, který vytváří pravidelná setkávání a dává obci další přirozený program."
-                items={seniorItems}
-              />
-              <ProgramCard
                 color="#22c55e"
-                title="Pro komunitu a rozvoj obce"
-                intro="Program, který propojuje školu, obec a místní komunitu a dává vedení obce konkrétní obsah pro celý rok."
+                title="Pro komunitu, seniory a obec"
+                intro="Program, který propojuje obec, seniory, spolky i veřejnost a dává vedení obce konkrétní obsah pro celý rok včetně kulturních a letních formátů."
                 items={communityItems}
-              />
-              <ProgramCard
-                color="#a855f7"
-                title="Letní speciál a kultura"
-                intro="Kulturní a sezónní formáty, které z programu dělají i společenskou a komunitní událost."
-                items={cultureItems}
               />
             </div>
           </section>
@@ -942,40 +928,21 @@ export default function ProgramPage() {
             <SectionTitle
               eyebrow="Zapojení do programu"
               title="Jakou variantu programu můžete využít"
-              text="Nejčastěji školy a obce volí společnou variantu, která propojuje školní program, senior klub i komunitní část. Menší formáty lze využít i samostatně."
+              text="Škola může využívat vlastní vzdělávací program a obec k němu může jednoduše přidat komunitní program pro seniory, spolky i veřejnost."
             />
 
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
                 gap: 22,
                 marginTop: 24,
               }}
               className="price-grid"
             >
-              {priceCards.map((card, idx) => {
-                let href = "/poptavka";
-
-                if (card.title === "Program pro školu a obec") {
-                  href = "/poptavka?interest=program-obec";
-                } else if (card.title === "Škola") {
-                  href = "/poptavka?interest=skola";
-                } else if (card.title === "Senior klub") {
-                  href = "/poptavka?interest=senior";
-                } else if (card.title === "Komunitní program") {
-                  href = "/poptavka?interest=komunita";
-                }
-
-                return (
-                  <PriceCard
-                    key={card.title}
-                    {...card}
-                    featured={idx === 0}
-                    href={href}
-                  />
-                );
-              })}
+              {priceCards.map((card) => (
+                <PriceCard key={card.title} {...card} />
+              ))}
             </div>
 
             <div
@@ -1013,7 +980,7 @@ export default function ProgramPage() {
                   }}
                 >
                   Nejrychlejší je vidět program naživo nebo se krátce poradit podle toho,
-                  zda řešíte školu, obec, seniory nebo kombinaci více formátů.
+                  zda řešíte školu, obec nebo komunitní program pro seniory a veřejnost.
                 </p>
               </div>
 
@@ -1097,7 +1064,7 @@ export default function ProgramPage() {
         @media (max-width: 1100px) {
           .program-grid,
           .price-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            grid-template-columns: 1fr !important;
           }
 
           .hero-grid {
