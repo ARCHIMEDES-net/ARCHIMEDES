@@ -786,7 +786,7 @@ export default function ProgramPage() {
                   }}
                   className="hero-cta-grid"
                 >
-                  <PrimaryButton href="#zapojeni">Ceník programů</PrimaryButton>
+                  <PrimaryButton href="#varianty">Varianty a ceník</PrimaryButton>
                   <SecondaryButton href="/start">Akční nabídka START</SecondaryButton>
                   <SecondaryButton href="/demo">Mám zájem o demo</SecondaryButton>
                   <SecondaryButton href="/financovani-skoly">
@@ -868,10 +868,10 @@ export default function ProgramPage() {
             </div>
           </section>
 
-          <section id="zapojeni" style={{ marginTop: 84 }}>
+          <section id="varianty" style={{ marginTop: 84 }}>
             <SectionTitle
-              eyebrow="Zapojení do programu"
-              title="Jakou variantu programu můžete využít"
+              eyebrow="Programy a ceny"
+              title="Vyberte si variantu programu"
               text="Vyberte si samostatný program pro školu nebo komunitní program pro obec, seniory, spolky a veřejnost."
             />
 
@@ -887,6 +887,59 @@ export default function ProgramPage() {
               {priceCards.map((card) => (
                 <PriceCard key={card.title} {...card} />
               ))}
+            </div>
+
+            <div
+              style={{
+                marginTop: 26,
+                background: "#fff",
+                border: "1px solid #e2e8f0",
+                borderRadius: 22,
+                padding: "24px 22px",
+                boxShadow: "0 14px 36px rgba(15,23,42,0.05)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 18,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ maxWidth: 720 }}>
+                <div
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 800,
+                    color: "#0f172a",
+                    lineHeight: 1.3,
+                  }}
+                >
+                  Nejste si jistí, která varianta je pro vás vhodná?
+                </div>
+                <p
+                  style={{
+                    margin: "10px 0 0",
+                    fontSize: 16,
+                    lineHeight: 1.7,
+                    color: "#475569",
+                  }}
+                >
+                  Nejrychlejší je vidět program naživo nebo se krátce poradit podle toho,
+                  zda řešíte školu, obec nebo komunitní program pro seniory a veřejnost.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  flexWrap: "wrap",
+                }}
+              >
+                <PrimaryButton href="/demo">Chci vidět demo</PrimaryButton>
+                <SecondaryButton href="/poptavka">
+                  Chci doporučit vhodnou variantu
+                </SecondaryButton>
+              </div>
             </div>
           </section>
 
