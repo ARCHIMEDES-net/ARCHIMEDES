@@ -1,6 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { track } from "@vercel/analytics";
 import Footer from "../components/Footer";
 import { supabase } from "../lib/supabaseClient";
 
@@ -10,9 +11,20 @@ const stepClassImg = "/ella.jpg";
 const stepBoardImg = "/jak-funguje-tabule.jpg";
 const POSTERS_BUCKET = "posters";
 
-function ButtonLink({ href, children, variant = "primary" }) {
+function ButtonLink({
+  href,
+  children,
+  variant = "primary",
+  eventName,
+  onClick,
+}) {
+  const handleClick = () => {
+    if (eventName) track(eventName);
+    if (onClick) onClick();
+  };
+
   return (
-    <Link href={href} className={`al-btn al-btn-${variant}`}>
+    <Link href={href} className={`al-btn al-btn-${variant}`} onClick={handleClick}>
       <span>{children}</span>
     </Link>
   );
@@ -170,16 +182,32 @@ export default function Home() {
                   </p>
 
                   <div className="heroActions">
-                    <ButtonLink href="/aktualni-pozvanky" variant="primary">
+                    <ButtonLink
+                      href="/aktualni-pozvanky"
+                      variant="primary"
+                      eventName="klik_home_co_se_chysta"
+                    >
                       Co se chystá
                     </ButtonLink>
-                    <ButtonLink href="/demo" variant="secondary">
+                    <ButtonLink
+                      href="/demo"
+                      variant="secondary"
+                      eventName="klik_home_ukazka_platformy"
+                    >
                       Ukázka platformy
                     </ButtonLink>
-                    <ButtonLink href="/#ukazky-vysilani" variant="secondary">
+                    <ButtonLink
+                      href="/#ukazky-vysilani"
+                      variant="secondary"
+                      eventName="klik_home_ukazkova_hodina"
+                    >
                       Ukázková hodina
                     </ButtonLink>
-                    <ButtonLink href="/start" variant="secondary">
+                    <ButtonLink
+                      href="/start"
+                      variant="secondary"
+                      eventName="klik_home_start"
+                    >
                       Balíček START
                     </ButtonLink>
                   </div>
@@ -189,6 +217,7 @@ export default function Home() {
                     <Link
                       href="/guest"
                       className="heroGuestLink al-btn al-btn-ghost"
+                      onClick={() => track("klik_home_guest")}
                     >
                       <span className="heroGuestTitle">
                         For invited guest speakers
@@ -201,7 +230,11 @@ export default function Home() {
                 </div>
 
                 <div className="heroAside">
-                  <Link href="/program" className="nextBroadcastCard">
+                  <Link
+                    href="/program"
+                    className="nextBroadcastCard"
+                    onClick={() => track("klik_home_program_karta")}
+                  >
                     <div className="nextBroadcastLabel">Nejbližší vysílání</div>
 
                     {nextEventLoading ? (
@@ -443,10 +476,18 @@ export default function Home() {
 
               <div className="ctaSide">
                 <div className="ctaActions">
-                  <ButtonLink href="/start" variant="light">
+                  <ButtonLink
+                    href="/start"
+                    variant="light"
+                    eventName="klik_home_cta_start"
+                  >
                     Balíček START
                   </ButtonLink>
-                  <ButtonLink href="/demo" variant="light">
+                  <ButtonLink
+                    href="/demo"
+                    variant="light"
+                    eventName="klik_home_cta_demo"
+                  >
                     Chci DEMO
                   </ButtonLink>
                 </div>
