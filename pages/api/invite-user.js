@@ -1,3 +1,4 @@
+
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseAdmin = createClient(
@@ -139,6 +140,7 @@ export default async function handler(req, res) {
           full_name: cleanFullName,
           is_active: true,
           must_set_password: true,
+          active_organization_id: organizationId,
         },
         { onConflict: "id" }
       );
