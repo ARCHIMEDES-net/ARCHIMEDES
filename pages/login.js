@@ -59,6 +59,11 @@ function humanizeAuthError(errorCode = "", errorDescription = "") {
   return "Odkaz pro přihlášení nebo obnovu hesla není platný.";
 }
 
+function isPasswordSetupFlow(type = "") {
+  const normalized = String(type || "").toLowerCase();
+  return normalized === "recovery" || normalized === "invite";
+}
+
 async function resolvePostLoginPath() {
   const {
     data: { user },
@@ -70,11 +75,15 @@ async function resolvePostLoginPath() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, user_type, active_organization_id")
+    .select("id, user_type, active_organization_id, must_set_password")
     .eq("id", user.id)
     .maybeSingle();
 
   if (profileError) throw profileError;
+
+  if (profile?.must_set_password) {
+    return "/nastavit-heslo";
+  }
 
   if (profile?.active_organization_id) {
     const { data: membership, error: membershipError } = await supabase
@@ -90,6 +99,34 @@ async function resolvePostLoginPath() {
     if (membership?.organization_id) {
       return "/portal";
     }
+  }
+
+  const { data: fallbackMembership, error: fallbackMembershipError } =
+    await supabase
+      .from("organization_members")
+      .select("organization_id, status")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle();
+
+  if (fallbackMembershipError) throw fallbackMembershipError;
+
+  if (fallbackMembership?.organization_id) {
+    if (profile?.active_organization_id !== fallbackMembership.organization_id) {
+      const { error: updateProfileError } = await supabase
+        .from("profiles")
+        .update({
+          active_organization_id: fallbackMembership.organization_id,
+        })
+        .eq("id", user.id);
+
+      if (updateProfileError) {
+        throw updateProfileError;
+      }
+    }
+
+    return "/portal";
   }
 
   if (profile?.user_type === "individual") {
@@ -163,7 +200,7 @@ export default function LoginPage() {
 
           clearAuthUrl();
 
-          if (type === "recovery") {
+          if (isPasswordSetupFlow(type)) {
             if (!cancelled) router.replace("/nastavit-heslo");
             return;
           }
@@ -191,7 +228,7 @@ export default function LoginPage() {
 
           clearAuthUrl();
 
-          if (type === "recovery") {
+          if (isPasswordSetupFlow(type)) {
             if (!cancelled) router.replace("/nastavit-heslo");
             return;
           }
@@ -219,7 +256,7 @@ export default function LoginPage() {
 
           clearAuthUrl();
 
-          if (type === "recovery") {
+          if (isPasswordSetupFlow(type)) {
             if (!cancelled) router.replace("/nastavit-heslo");
             return;
           }
