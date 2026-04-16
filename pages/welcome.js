@@ -1,4 +1,3 @@
-
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
@@ -19,11 +18,15 @@ async function resolveWelcomeState() {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, user_type, active_organization_id")
+    .select("id, user_type, active_organization_id, must_set_password")
     .eq("id", user.id)
     .maybeSingle();
 
   if (profileError) throw profileError;
+
+  if (profile?.must_set_password) {
+    return { target: "/nastavit-heslo", shouldRedirect: true };
+  }
 
   if (profile?.active_organization_id) {
     const { data: membership, error: membershipError } = await supabase
@@ -39,6 +42,32 @@ async function resolveWelcomeState() {
     if (membership?.organization_id) {
       return { target: "/portal", shouldRedirect: true };
     }
+  }
+
+  const { data: fallbackMembership, error: fallbackMembershipError } =
+    await supabase
+      .from("organization_members")
+      .select("organization_id, status")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle();
+
+  if (fallbackMembershipError) throw fallbackMembershipError;
+
+  if (fallbackMembership?.organization_id) {
+    if (profile?.active_organization_id !== fallbackMembership.organization_id) {
+      const { error: updateProfileError } = await supabase
+        .from("profiles")
+        .update({
+          active_organization_id: fallbackMembership.organization_id,
+        })
+        .eq("id", user.id);
+
+      if (updateProfileError) throw updateProfileError;
+    }
+
+    return { target: "/portal", shouldRedirect: true };
   }
 
   if (profile?.user_type === "individual") {
@@ -152,7 +181,9 @@ export default function WelcomePage() {
       <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
         <PortalHeader />
 
-        <main style={{ maxWidth: 1040, margin: "0 auto", padding: "40px 16px 56px" }}>
+        <main
+          style={{ maxWidth: 1040, margin: "0 auto", padding: "40px 16px 56px" }}
+        >
           {checkingAccess ? (
             <div
               style={{
@@ -163,7 +194,14 @@ export default function WelcomePage() {
                 border: "1px solid rgba(0,0,0,0.08)",
               }}
             >
-              <h1 style={{ marginTop: 0, marginBottom: 10, fontSize: 30, lineHeight: 1.15 }}>
+              <h1
+                style={{
+                  marginTop: 0,
+                  marginBottom: 10,
+                  fontSize: 30,
+                  lineHeight: 1.15,
+                }}
+              >
                 Ověřujeme váš přístup
               </h1>
               <p
@@ -190,7 +228,14 @@ export default function WelcomePage() {
                   marginBottom: 22,
                 }}
               >
-                <h1 style={{ marginTop: 0, marginBottom: 10, fontSize: 34, lineHeight: 1.15 }}>
+                <h1
+                  style={{
+                    marginTop: 0,
+                    marginBottom: 10,
+                    fontSize: 34,
+                    lineHeight: 1.15,
+                  }}
+                >
                   Vítejte v ARCHIMEDES Live
                 </h1>
 
@@ -204,8 +249,8 @@ export default function WelcomePage() {
                     maxWidth: 820,
                   }}
                 >
-                  Ještě nejste přiřazeni ke škole, obci ani jiné organizaci. Vyberte,
-                  jak chcete v ARCHIMEDES Live pokračovat.
+                  Ještě nejste přiřazeni ke škole, obci ani jiné organizaci.
+                  Vyberte, jak chcete v ARCHIMEDES Live pokračovat.
                 </p>
 
                 <p
@@ -218,9 +263,9 @@ export default function WelcomePage() {
                     maxWidth: 860,
                   }}
                 >
-                  Přístup do portálu je určen pro registrované organizace, jejich členy
-                  a vybrané jednotlivce. Pokud si nejste jistí správnou volbou, můžete
-                  jednoduše odeslat žádost o přístup.
+                  Přístup do portálu je určen pro registrované organizace, jejich
+                  členy a vybrané jednotlivce. Pokud si nejste jistí správnou
+                  volbou, můžete jednoduše odeslat žádost o přístup.
                 </p>
 
                 {error ? (
@@ -251,9 +296,15 @@ export default function WelcomePage() {
                     Připojit se k organizaci
                   </h2>
 
-                  <p style={{ color: "rgba(0,0,0,0.68)", lineHeight: 1.6, margin: 0 }}>
-                    Máte kód školy, obce, spolku nebo jiné organizace? Připojte se k již
-                    existujícímu účtu.
+                  <p
+                    style={{
+                      color: "rgba(0,0,0,0.68)",
+                      lineHeight: 1.6,
+                      margin: 0,
+                    }}
+                  >
+                    Máte kód školy, obce, spolku nebo jiné organizace? Připojte se
+                    k již existujícímu účtu.
                   </p>
 
                   <div style={{ marginTop: "auto" }}>
@@ -262,7 +313,8 @@ export default function WelcomePage() {
                     </Link>
 
                     <div style={secondaryTextStyle}>
-                      Vhodné pro členy školy, obce, senior klubu nebo partnerské organizace.
+                      Vhodné pro členy školy, obce, senior klubu nebo partnerské
+                      organizace.
                     </div>
                   </div>
                 </div>
@@ -272,9 +324,15 @@ export default function WelcomePage() {
                     Vytvořit organizaci
                   </h2>
 
-                  <p style={{ color: "rgba(0,0,0,0.68)", lineHeight: 1.6, margin: 0 }}>
-                    Jste oprávněný zástupce školy, obce nebo jiné organizace a chcete
-                    založit vlastní přístup?
+                  <p
+                    style={{
+                      color: "rgba(0,0,0,0.68)",
+                      lineHeight: 1.6,
+                      margin: 0,
+                    }}
+                  >
+                    Jste oprávněný zástupce školy, obce nebo jiné organizace a
+                    chcete založit vlastní přístup?
                   </p>
 
                   <div style={{ marginTop: "auto" }}>
@@ -283,7 +341,8 @@ export default function WelcomePage() {
                     </Link>
 
                     <div style={secondaryTextStyle}>
-                      Tato volba je určena zejména pro školy, obce, spolky a partnery.
+                      Tato volba je určena zejména pro školy, obce, spolky a
+                      partnery.
                     </div>
                   </div>
                 </div>
@@ -293,7 +352,13 @@ export default function WelcomePage() {
                     Pokračovat jako jednotlivec
                   </h2>
 
-                  <p style={{ color: "rgba(0,0,0,0.68)", lineHeight: 1.6, margin: 0 }}>
+                  <p
+                    style={{
+                      color: "rgba(0,0,0,0.68)",
+                      lineHeight: 1.6,
+                      margin: 0,
+                    }}
+                  >
                     Individuální přístup je určen pro vybrané uživatele, hosty,
                     moderátory, odborníky nebo partnery bez organizačního účtu.
                   </p>
@@ -330,9 +395,15 @@ export default function WelcomePage() {
                     Požádat o přístup
                   </h2>
 
-                  <p style={{ color: "rgba(0,0,0,0.68)", lineHeight: 1.6, margin: 0 }}>
-                    Nejste si jistí, jaký typ přístupu je pro vás správný? Pošlete nám
-                    krátkou žádost a ozveme se vám s dalším postupem.
+                  <p
+                    style={{
+                      color: "rgba(0,0,0,0.68)",
+                      lineHeight: 1.6,
+                      margin: 0,
+                    }}
+                  >
+                    Nejste si jistí, jaký typ přístupu je pro vás správný? Pošlete
+                    nám krátkou žádost a ozveme se vám s dalším postupem.
                   </p>
 
                   <div style={{ marginTop: "auto" }}>
@@ -341,7 +412,8 @@ export default function WelcomePage() {
                     </Link>
 
                     <div style={secondaryTextStyle}>
-                      Vhodné pro nové školy, obce, zájemce o licenci i individuální dotazy.
+                      Vhodné pro nové školy, obce, zájemce o licenci i
+                      individuální dotazy.
                     </div>
                   </div>
                 </div>
