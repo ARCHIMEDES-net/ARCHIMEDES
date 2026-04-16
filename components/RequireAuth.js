@@ -41,7 +41,10 @@ export default function RequireAuth({ children }) {
         return null;
       }
 
-      const orgIds = [...new Set(memberships.map((m) => m.organization_id).filter(Boolean))];
+      const orgIds = [
+        ...new Set(memberships.map((m) => m.organization_id).filter(Boolean)),
+      ];
+
       const { data: orgRows, error: orgError } = await supabase
         .from("organizations")
         .select("id, name")
@@ -58,12 +61,11 @@ export default function RequireAuth({ children }) {
         organization_name: orgById.get(m.organization_id)?.name || "",
       }));
 
-      let resolved =
-        profile?.active_organization_id
-          ? enriched.find(
-              (m) => m.organization_id === profile.active_organization_id
-            ) || null
-          : null;
+      let resolved = profile?.active_organization_id
+        ? enriched.find(
+            (m) => m.organization_id === profile.active_organization_id
+          ) || null
+        : null;
 
       if (!resolved) {
         const realMemberships = enriched.filter(
@@ -88,7 +90,10 @@ export default function RequireAuth({ children }) {
           return { ambiguous: true };
         }
 
-        if (resolved?.organization_id && profile?.active_organization_id !== resolved.organization_id) {
+        if (
+          resolved?.organization_id &&
+          profile?.active_organization_id !== resolved.organization_id
+        ) {
           try {
             await supabase
               .from("profiles")
@@ -149,7 +154,7 @@ export default function RequireAuth({ children }) {
         }
 
         if (profile.must_set_password) {
-          await deny("/login");
+          await deny("/nastavit-heslo");
           return;
         }
 
@@ -171,7 +176,8 @@ export default function RequireAuth({ children }) {
 
         const profileComplete = hasFullName && hasAudience && hasCategory;
         const hasOrganization = !!activeMembership?.organization_id;
-        const isOrgAdmin = activeMembership?.role_in_org === "organization_admin";
+        const isOrgAdmin =
+          activeMembership?.role_in_org === "organization_admin";
         const isIndividual = profile?.user_type === "individual";
 
         const isProfilePage = pathname === "/portal/muj-profil";
@@ -180,7 +186,7 @@ export default function RequireAuth({ children }) {
         const isCreateOrganizationPage = pathname === "/create-organization";
         const isJoinPage = pathname === "/join";
 
-        // 1) Uživatel s aktivní organizací podle active_organization_id
+        // 1) Uživatel s aktivní organizací
         if (hasOrganization) {
           if (isUsersPage && !isOrgAdmin) {
             await deny("/portal");
