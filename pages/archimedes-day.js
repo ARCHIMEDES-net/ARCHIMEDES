@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Footer from "../components/Footer";
 
 const LOGO_SRC = "/archimedes-day-logo.png";
-const CLASSROOM_SRC = "/archimedes-classroom.jpg";
+const CLASSROOM_SRC = "/archimedes-classroom.jpeg";
 
 const CONTENT = {
   cz: {
