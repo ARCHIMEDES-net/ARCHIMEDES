@@ -24,7 +24,11 @@ function ButtonLink({
   };
 
   return (
-    <Link href={href} className={`al-btn al-btn-${variant}`} onClick={handleClick}>
+    <Link
+      href={href}
+      className={`al-btn al-btn-${variant}`}
+      onClick={handleClick}
+    >
       <span>{children}</span>
     </Link>
   );
@@ -143,7 +147,7 @@ export default function Home() {
         <title>ARCHIMEDES Live | Živý program pro školy a obce</title>
         <meta
           name="description"
-          content="ARCHIMEDES Live přináší školám živé vstupy s odborníky, reálná témata a program, který propojuje výuku s praxí."
+          content="ARCHIMEDES Live přináší školám a obcím živé vstupy s odborníky, reálná témata, pracovní listy a program, který propojuje výuku s praxí i komunitním životem."
         />
       </Head>
 
@@ -162,6 +166,32 @@ export default function Home() {
                 <div className="heroContent">
                   <div className="eyebrow">ARCHIMEDES Live pro školy a obce</div>
 
+                  <div className="heroTopLinks">
+                    <Link
+                      href="/archimedes-day"
+                      className="heroSignal heroSignalGold"
+                      onClick={() => track("klik_home_archimedes_day")}
+                    >
+                      <span className="heroSignalLabel">Mezinárodní iniciativa</span>
+                      <span className="heroSignalTitle">ARCHIMEDES DAY</span>
+                      <span className="heroSignalArrow" aria-hidden="true">
+                        →
+                      </span>
+                    </Link>
+
+                    <Link
+                      href="/guest"
+                      className="heroSignal heroSignalGhost"
+                      onClick={() => track("klik_home_guest")}
+                    >
+                      <span className="heroSignalLabel">International guest access</span>
+                      <span className="heroSignalTitle">For invited guest speakers</span>
+                      <span className="heroSignalArrow" aria-hidden="true">
+                        →
+                      </span>
+                    </Link>
+                  </div>
+
                   <h1>
                     Hodina, na kterou
                     <br />
@@ -169,40 +199,26 @@ export default function Home() {
                   </h1>
 
                   <p className="heroIntro">
-                    Živá vzdělávací a interaktivní platforma, která propojuje
-                    školy, obce a komunity. Nabízí bohatý program pro všechny
-                    generace od dětí až po seniory a vytváří prostor pro
-                    sdílení, spolupráci a vzájemnou inspiraci.
+                    Živý program, který propojuje školy, obce a komunitní život.
+                    Přináší dětem i dospělým setkání s inspirativními hosty,
+                    témata z reálného světa a formát, který lze snadno zařadit do
+                    běžného dne školy i obce.
                   </p>
 
                   <p className="heroLead">
-                    Na jednom místě přináší živé vysílání, interaktivní
-                    workshopy, tematické kluby, soutěže a archiv vzdělávacích
-                    materiálů.
+                    Živé vysílání, tematické kluby, pracovní listy, archiv a
+                    program pro různé generace na jednom místě.
                   </p>
 
                   <div className="heroActions">
                     <ButtonLink
-                      href="/aktualni-pozvanky"
+                      href="/program"
                       variant="primary"
-                      eventName="klik_home_co_se_chysta"
+                      eventName="klik_home_program"
                     >
-                      Co se chystá
+                      Zobrazit program
                     </ButtonLink>
-                    <ButtonLink
-                      href="/demo"
-                      variant="secondary"
-                      eventName="klik_home_ukazka_platformy"
-                    >
-                      Ukázka platformy
-                    </ButtonLink>
-                    <ButtonLink
-                      href="/#ukazky-vysilani"
-                      variant="secondary"
-                      eventName="klik_home_ukazkova_hodina"
-                    >
-                      Ukázková hodina
-                    </ButtonLink>
+
                     <ButtonLink
                       href="/start"
                       variant="secondary"
@@ -210,21 +226,33 @@ export default function Home() {
                     >
                       Balíček START
                     </ButtonLink>
+
+                    <ButtonLink
+                      href="/demo"
+                      variant="secondary"
+                      eventName="klik_home_demo"
+                    >
+                      Ukázka platformy
+                    </ButtonLink>
                   </div>
 
-                  <div className="heroGuestLinkWrap">
-                    <div className="heroGuestLabel">International guest access</div>
+                  <div className="heroSubActions">
                     <Link
-                      href="/guest"
-                      className="heroGuestLink al-btn al-btn-ghost"
-                      onClick={() => track("klik_home_guest")}
+                      href="/aktualni-pozvanky"
+                      className="heroMiniLink"
+                      onClick={() => track("klik_home_co_se_chysta")}
                     >
-                      <span className="heroGuestTitle">
-                        For invited guest speakers
-                      </span>
-                      <span className="heroGuestArrow" aria-hidden="true">
-                        →
-                      </span>
+                      <span>Co se chystá</span>
+                      <span aria-hidden="true">→</span>
+                    </Link>
+
+                    <Link
+                      href="/#ukazky-vysilani"
+                      className="heroMiniLink"
+                      onClick={() => track("klik_home_ukazkova_hodina")}
+                    >
+                      <span>Jak vypadá ukázková hodina</span>
+                      <span aria-hidden="true">→</span>
                     </Link>
                   </div>
                 </div>
@@ -235,7 +263,10 @@ export default function Home() {
                     className="nextBroadcastCard"
                     onClick={() => track("klik_home_program_karta")}
                   >
-                    <div className="nextBroadcastLabel">Nejbližší vysílání</div>
+                    <div className="nextBroadcastHead">
+                      <div className="nextBroadcastLabel">Nejbližší vysílání</div>
+                      <div className="nextBroadcastBadge">Program</div>
+                    </div>
 
                     {nextEventLoading ? (
                       <div className="nextBroadcastLoading">
@@ -258,16 +289,14 @@ export default function Home() {
                         </div>
 
                         <div className="nextBroadcastBody">
-                          <div className="nextBroadcastDate">
-                            {nextEventDate}
-                          </div>
+                          <div className="nextBroadcastDate">{nextEventDate}</div>
 
                           <div className="nextBroadcastTitle">
                             {nextEvent.title}
                           </div>
 
                           <div className="nextBroadcastAction">
-                            <span>Zobrazit program</span>
+                            <span>Zobrazit detail programu</span>
                             <span aria-hidden="true">→</span>
                           </div>
                         </div>
@@ -278,8 +307,8 @@ export default function Home() {
                           Program připravujeme průběžně
                         </div>
                         <div className="nextBroadcastEmptyText">
-                          Otevřete si přehled programu a podívejte se na
-                          aktuální i připravovaná vysílání.
+                          Otevřete si přehled programu a podívejte se na aktuální
+                          i připravovaná vysílání.
                         </div>
                         <div className="nextBroadcastAction">
                           <span>Zobrazit program</span>
@@ -345,7 +374,7 @@ export default function Home() {
                   <h3>Interaktivní práce a návaznost</h3>
                   <p>
                     Škola má k dispozici pracovní listy, které přímo navazují na
-                    výuku a také přístup do archivu pro opakování témat.
+                    výuku, a také přístup do archivu pro opakování témat.
                   </p>
                 </div>
               </article>
@@ -418,7 +447,7 @@ export default function Home() {
                 <h3>Obsah, který může sloužit celé komunitě</h3>
                 <p>
                   Program může využívat nejen škola, ale i obec, senioři,
-                  dobrovolní hasiči a jiné komunitní spolky.
+                  dobrovolní hasiči a další komunitní skupiny.
                 </p>
               </div>
             </div>
@@ -436,6 +465,26 @@ export default function Home() {
                   interaktivní programy, které srozumitelně představují
                   komplexní témata z celého světa.
                 </p>
+
+                <div className="trustInlineLinks">
+                  <Link
+                    href="/ucebna"
+                    className="trustInlineLink"
+                    onClick={() => track("klik_home_trust_ucebna")}
+                  >
+                    <span>Venkovní učebna ARCHIMEDES®</span>
+                    <span aria-hidden="true">→</span>
+                  </Link>
+
+                  <Link
+                    href="/archimedes-day"
+                    className="trustInlineLink"
+                    onClick={() => track("klik_home_trust_archimedes_day")}
+                  >
+                    <span>ARCHIMEDES DAY 2026</span>
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
               </div>
 
               <div className="trustStats">
@@ -445,7 +494,7 @@ export default function Home() {
                 </div>
                 <div className="trustStat">
                   <strong>200+</strong>
-                  <span>partnerů vysílání po světě</span>
+                  <span>partnerů a hostů programu</span>
                 </div>
                 <div className="trustStat">
                   <strong>1000+</strong>
@@ -464,13 +513,13 @@ export default function Home() {
                   Chcete živý program ve vlastní škole?
                 </div>
                 <h2>
-                  Objednejte si balíček START, podívejte se na ukázkovou hodinu
-                  nebo si nejdříve vyžádejte DEMO
+                  Začněte ukázkou, DEMEM nebo balíčkem START a vyzkoušejte
+                  ARCHIMEDES Live přímo u vás
                 </h2>
                 <p>
-                  Jednoduché a rychlé - začněte balíčkem START a vyzkoušejte si
-                  živý program s kolegy a žáky přímo u vás. Připojte se ke
-                  komunitě ARCHIMEDES.
+                  Jednoduchý první krok pro školu i obec. Vyberte si variantu,
+                  která vám nejlépe sedí, a poznejte, jak může živý program
+                  obohatit výuku i komunitní život.
                 </p>
               </div>
 
@@ -544,8 +593,8 @@ export default function Home() {
               linear-gradient(
                 92deg,
                 rgba(7, 14, 31, 0.84) 0%,
-                rgba(7, 14, 31, 0.66) 25%,
-                rgba(7, 14, 31, 0.28) 56%,
+                rgba(7, 14, 31, 0.68) 25%,
+                rgba(7, 14, 31, 0.3) 56%,
                 rgba(7, 14, 31, 0.08) 100%
               ),
               linear-gradient(
@@ -590,33 +639,102 @@ export default function Home() {
 
           .heroGrid {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(280px, 330px);
-            gap: 24px;
+            grid-template-columns: minmax(0, 1fr) minmax(290px, 340px);
+            gap: 28px;
             align-items: end;
           }
 
           .heroContent {
-            max-width: 760px;
-            padding: 118px 0 82px;
+            max-width: 780px;
+            padding: 116px 0 82px;
             color: white;
           }
 
           .heroAside {
-            padding: 118px 0 82px;
+            padding: 116px 0 82px;
             display: flex;
             align-items: center;
             justify-content: flex-end;
           }
 
+          .heroTopLinks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 18px;
+          }
+
+          .heroSignal {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 42px;
+            padding: 0 14px;
+            border-radius: 999px;
+            text-decoration: none;
+            transition:
+              transform 0.2s ease,
+              background 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.2s ease;
+          }
+
+          .heroSignal:hover {
+            transform: translateY(-2px);
+          }
+
+          .heroSignalLabel {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            opacity: 0.82;
+          }
+
+          .heroSignalTitle {
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+          }
+
+          .heroSignalArrow {
+            font-size: 14px;
+            font-weight: 900;
+            line-height: 1;
+          }
+
+          .heroSignalGold {
+            color: #fff7e5;
+            background: rgba(193, 148, 62, 0.18);
+            border: 1px solid rgba(233, 191, 102, 0.38);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+          }
+
+          .heroSignalGold:hover {
+            background: rgba(193, 148, 62, 0.25);
+            border-color: rgba(233, 191, 102, 0.52);
+          }
+
+          .heroSignalGhost {
+            color: rgba(255, 255, 255, 0.94);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+          }
+
+          .heroSignalGhost:hover {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.24);
+          }
+
           .nextBroadcastCard {
             display: block;
             width: 100%;
-            max-width: 320px;
+            max-width: 328px;
             color: #ffffff;
             text-decoration: none;
             border-radius: 24px;
             padding: 14px;
-            background: rgba(9, 17, 34, 0.48);
+            background: rgba(9, 17, 34, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.14);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
@@ -639,6 +757,14 @@ export default function Home() {
               inset 0 1px 0 rgba(255, 255, 255, 0.1);
           }
 
+          .nextBroadcastHead {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+          }
+
           .nextBroadcastLabel {
             font-size: 12px;
             line-height: 1.4;
@@ -646,7 +772,22 @@ export default function Home() {
             letter-spacing: 0.08em;
             text-transform: uppercase;
             color: rgba(255, 255, 255, 0.82);
-            margin-bottom: 12px;
+          }
+
+          .nextBroadcastBadge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            padding: 0 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
           }
 
           .nextBroadcastLoading,
@@ -769,6 +910,7 @@ export default function Home() {
             background: rgba(255, 255, 255, 0.12);
             color: rgba(255, 255, 255, 0.94);
             border: 1px solid rgba(255, 255, 255, 0.14);
+            margin-bottom: 14px;
           }
 
           h1 {
@@ -794,7 +936,7 @@ export default function Home() {
 
           .heroLead {
             margin: 18px 0 0;
-            font-size: 21px;
+            font-size: 20px;
             line-height: 1.55;
             color: rgba(255, 255, 255, 0.9);
             max-width: 680px;
@@ -811,38 +953,28 @@ export default function Home() {
             margin-top: 30px;
           }
 
-          .heroGuestLinkWrap {
+          .heroSubActions {
             margin-top: 18px;
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
+            flex-wrap: wrap;
+            gap: 10px 18px;
           }
 
-          .heroGuestLabel {
-            font-size: 11px;
-            line-height: 1.4;
-            font-weight: 800;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.54);
-          }
-
-          .heroGuestLink {
-            gap: 8px;
-          }
-
-          .heroGuestTitle {
-            display: inline-block;
-          }
-
-          .heroGuestArrow {
+          .heroMiniLink {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: 900;
-            line-height: 1;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.88);
+            text-decoration: none;
+            font-size: 15px;
+            line-height: 1.4;
+            font-weight: 700;
+            transition: color 0.18s ease, transform 0.18s ease;
+          }
+
+          .heroMiniLink:hover {
+            color: #ffffff;
+            transform: translateX(2px);
           }
 
           .section {
@@ -1143,6 +1275,30 @@ export default function Home() {
             justify-content: center;
           }
 
+          .trustInlineLinks {
+            margin-top: 22px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 18px;
+          }
+
+          .trustInlineLink {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #18315e;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 800;
+            line-height: 1.4;
+            transition: color 0.18s ease, transform 0.18s ease;
+          }
+
+          .trustInlineLink:hover {
+            color: #0f172a;
+            transform: translateX(2px);
+          }
+
           .trustStats {
             display: grid;
             grid-template-columns: 1fr;
@@ -1235,7 +1391,7 @@ export default function Home() {
             }
 
             .nextBroadcastCard {
-              max-width: 320px;
+              max-width: 340px;
             }
           }
 
@@ -1334,9 +1490,9 @@ export default function Home() {
               background:
                 linear-gradient(
                   180deg,
-                  rgba(8, 15, 34, 0.8) 0%,
-                  rgba(8, 15, 34, 0.5) 48%,
-                  rgba(8, 15, 34, 0.28) 100%
+                  rgba(8, 15, 34, 0.82) 0%,
+                  rgba(8, 15, 34, 0.56) 48%,
+                  rgba(8, 15, 34, 0.3) 100%
                 );
             }
 
@@ -1352,6 +1508,17 @@ export default function Home() {
 
             .heroAside {
               padding: 0 0 44px;
+            }
+
+            .heroTopLinks {
+              flex-direction: column;
+              align-items: flex-start;
+            }
+
+            .heroSignal {
+              width: 100%;
+              min-height: 48px;
+              justify-content: space-between;
             }
 
             .nextBroadcastCard {
@@ -1446,28 +1613,10 @@ export default function Home() {
               width: 100%;
             }
 
-            .heroGuestLinkWrap {
-              margin-top: 14px;
+            .heroSubActions {
+              flex-direction: column;
               align-items: flex-start;
-            }
-
-            .heroGuestLabel {
-              font-size: 11px;
-            }
-
-            .heroGuestLink {
-              width: auto;
-              max-width: 100%;
-              min-height: 46px;
-              padding: 0 16px;
-            }
-
-            .heroGuestTitle {
-              font-size: 14px;
-            }
-
-            .heroGuestArrow {
-              font-size: 13px;
+              gap: 10px;
             }
           }
         `}</style>
@@ -1528,19 +1677,6 @@ export default function Home() {
             color: #ffffff;
             border-color: rgba(255, 255, 255, 0.3);
             box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
-          }
-
-          .al-btn-ghost {
-            background: transparent;
-            color: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-          }
-
-          .al-btn-ghost:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.08);
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.24);
           }
 
           .al-btn-light {
