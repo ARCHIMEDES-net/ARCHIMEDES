@@ -166,31 +166,21 @@ export default function Home() {
                 <div className="heroContent">
                   <div className="eyebrow">ARCHIMEDES Live pro školy a obce</div>
 
-                  <div className="heroTopLinks">
-                    <Link
-                      href="/archimedes-day"
-                      className="heroSignal heroSignalGold"
-                      onClick={() => track("klik_home_archimedes_day")}
-                    >
-                      <span className="heroSignalLabel">Mezinárodní iniciativa</span>
-                      <span className="heroSignalTitle">ARCHIMEDES DAY</span>
-                      <span className="heroSignalArrow" aria-hidden="true">
+                  <Link
+                    href="/archimedes-day"
+                    className="heroDayCard"
+                    onClick={() => track("klik_home_archimedes_day")}
+                  >
+                    <div className="heroDayCardInner">
+                      <div className="heroDayText">
+                        <div className="heroDayTitle">ARCHIMEDES DAY</div>
+                        <div className="heroDayMeta">19. 6. 2026</div>
+                      </div>
+                      <div className="heroDayArrow" aria-hidden="true">
                         →
-                      </span>
-                    </Link>
-
-                    <Link
-                      href="/guest"
-                      className="heroSignal heroSignalGhost"
-                      onClick={() => track("klik_home_guest")}
-                    >
-                      <span className="heroSignalLabel">International guest access</span>
-                      <span className="heroSignalTitle">For invited guest speakers</span>
-                      <span className="heroSignalArrow" aria-hidden="true">
-                        →
-                      </span>
-                    </Link>
-                  </div>
+                      </div>
+                    </div>
+                  </Link>
 
                   <h1>
                     Hodina, na kterou
@@ -252,6 +242,17 @@ export default function Home() {
                       onClick={() => track("klik_home_ukazkova_hodina")}
                     >
                       <span>Jak vypadá ukázková hodina</span>
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                  </div>
+
+                  <div className="heroGuestWrap">
+                    <Link
+                      href="/guest"
+                      className="heroGuestLink"
+                      onClick={() => track("klik_home_guest")}
+                    >
+                      <span>Welcome guests</span>
                       <span aria-hidden="true">→</span>
                     </Link>
                   </div>
@@ -657,73 +658,81 @@ export default function Home() {
             justify-content: flex-end;
           }
 
-          .heroTopLinks {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 18px;
-          }
-
-          .heroSignal {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            min-height: 42px;
-            padding: 0 14px;
-            border-radius: 999px;
+          .heroDayCard {
+            display: inline-block;
             text-decoration: none;
+            color: #fff7e5;
+            margin-bottom: 18px;
+            border-radius: 22px;
+            background:
+              linear-gradient(135deg, rgba(183, 138, 56, 0.28), rgba(95, 70, 26, 0.22));
+            border: 1px solid rgba(232, 193, 113, 0.42);
+            box-shadow:
+              0 16px 34px rgba(15, 23, 42, 0.18),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             transition:
               transform 0.2s ease,
-              background 0.2s ease,
+              box-shadow 0.2s ease,
               border-color 0.2s ease,
-              box-shadow 0.2s ease;
+              background 0.2s ease;
           }
 
-          .heroSignal:hover {
-            transform: translateY(-2px);
+          .heroDayCard:hover {
+            transform: translateY(-3px);
+            border-color: rgba(245, 210, 138, 0.58);
+            background:
+              linear-gradient(135deg, rgba(193, 148, 62, 0.34), rgba(95, 70, 26, 0.26));
+            box-shadow:
+              0 22px 44px rgba(15, 23, 42, 0.22),
+              inset 0 1px 0 rgba(255, 255, 255, 0.09);
           }
 
-          .heroSignalLabel {
-            font-size: 11px;
+          .heroDayCardInner {
+            min-width: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 14px 16px;
+          }
+
+          .heroDayText {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+          }
+
+          .heroDayTitle {
+            font-size: 17px;
+            line-height: 1.1;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            color: #fff7e5;
+          }
+
+          .heroDayMeta {
+            font-size: 12px;
+            line-height: 1.4;
             font-weight: 800;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            opacity: 0.82;
+            color: rgba(255, 243, 214, 0.88);
           }
 
-          .heroSignalTitle {
-            font-size: 14px;
-            font-weight: 800;
-            letter-spacing: -0.01em;
-          }
-
-          .heroSignalArrow {
-            font-size: 14px;
-            font-weight: 900;
-            line-height: 1;
-          }
-
-          .heroSignalGold {
+          .heroDayArrow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
             color: #fff7e5;
-            background: rgba(193, 148, 62, 0.18);
-            border: 1px solid rgba(233, 191, 102, 0.38);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
-          }
-
-          .heroSignalGold:hover {
-            background: rgba(193, 148, 62, 0.25);
-            border-color: rgba(233, 191, 102, 0.52);
-          }
-
-          .heroSignalGhost {
-            color: rgba(255, 255, 255, 0.94);
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-          }
-
-          .heroSignalGhost:hover {
-            background: rgba(255, 255, 255, 0.14);
-            border-color: rgba(255, 255, 255, 0.24);
+            font-size: 16px;
+            font-weight: 900;
+            flex: 0 0 auto;
           }
 
           .nextBroadcastCard {
@@ -974,6 +983,27 @@ export default function Home() {
 
           .heroMiniLink:hover {
             color: #ffffff;
+            transform: translateX(2px);
+          }
+
+          .heroGuestWrap {
+            margin-top: 18px;
+          }
+
+          .heroGuestLink {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.72);
+            text-decoration: none;
+            font-size: 14px;
+            line-height: 1.4;
+            font-weight: 700;
+            transition: color 0.18s ease, transform 0.18s ease;
+          }
+
+          .heroGuestLink:hover {
+            color: rgba(255, 255, 255, 0.96);
             transform: translateX(2px);
           }
 
@@ -1510,15 +1540,14 @@ export default function Home() {
               padding: 0 0 44px;
             }
 
-            .heroTopLinks {
-              flex-direction: column;
-              align-items: flex-start;
+            .heroDayCard {
+              display: block;
+              width: 100%;
             }
 
-            .heroSignal {
+            .heroDayCardInner {
               width: 100%;
-              min-height: 48px;
-              justify-content: space-between;
+              min-width: 0;
             }
 
             .nextBroadcastCard {
