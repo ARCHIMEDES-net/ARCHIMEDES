@@ -44,11 +44,11 @@ const CONTENT = {
     factsKicker: "Archimedes",
     factsTitle: "Proč se celý den jmenuje právě po Archimédovi",
     factsLead:
-      "Archimedes ze Syrakus patří k nejvýznamnějším osobnostem starověké vědy. Je symbolem zvídavosti, přesného myšlení, technické představivosti a schopnosti převádět myšlenky do praktických řešení.",
+      "Archimedes patří k nejvýznamnějším osobnostem starověké vědy. Je symbolem zvídavosti, přesného myšlení, technické představivosti a schopnosti převádět myšlenky do praktických řešení.",
     facts: [
       {
         title: "Osobnost starověké vědy",
-        text: "Archimedes žil ve 3. století př. n. l. a je spojován především se Syrakusami na Sicílii.",
+        text: "Archimedes žil ve 3. století př. n. l. a jeho jméno je dodnes spojeno s rozvojem matematiky, fyziky a technického myšlení.",
       },
       {
         title: "Matematik i vynálezce",
@@ -98,8 +98,8 @@ const CONTENT = {
       },
       {
         time: "10:00",
-        title: "Propojení se Syrakusami",
-        text: "Speciální blok věnovaný odkazu Archimeda a mezinárodnímu propojení se Syrakusami.",
+        title: "Propojení do muzea",
+        text: "Speciální blok věnovaný odkazu Archimeda a mezinárodnímu propojení s muzeem.",
       },
       {
         time: "11:00",
@@ -112,17 +112,6 @@ const CONTENT = {
         text: "Galerie zdravic a zapojených institucí z různých zemí.",
       },
     ],
-
-    syracuseKicker: "Speciální moment",
-    syracuseTitle: "Propojení se Syrakusami",
-    syracuseText1:
-      "Součástí prvního ročníku ARCHIMEDES DAY má být symbolické i obsahové propojení se Syrakusami – místem, které je s Archimedem neodmyslitelně spojeno.",
-    syracuseText2:
-      "Tento blok má dodat celému dni mezinárodní rozměr, autenticitu a silný příběh pro školy, partnery i veřejnost.",
-    syracuseBadge: "Syracuse connection",
-    syracuseBoxTitle: "Syrakusy • Sicílie • Itálie",
-    syracuseBoxText:
-      "Město spojené s osobností Archimeda se stává přirozeným symbolem mezinárodního rozměru celého dne.",
 
     classroomKicker: "Síť učeben",
     classroomTitle: "ARCHIMEDES DAY je propojen i s reálnými učebnami",
@@ -143,9 +132,9 @@ const CONTENT = {
         text: "Postupně budeme zveřejňovat zdravice institucí, škol, měst a partnerů, kteří se k ARCHIMEDES DAY připojí.",
       },
       {
-        country: "Itálie",
-        title: "Syrakusy",
-        text: "Připravujeme symbolické propojení s místem, které je neodmyslitelně spojeno s osobností Archimeda.",
+        country: "Mezinárodní propojení",
+        title: "Muzeum a zahraniční instituce",
+        text: "Připravujeme mezinárodní propojení s muzeem a dalšími institucemi, které mohou podpořit vzdělávací a kulturní rozměr celého dne.",
       },
       {
         country: "Mezinárodní zapojení",
@@ -207,11 +196,11 @@ const CONTENT = {
     factsKicker: "Archimedes",
     factsTitle: "Why this day is named after Archimedes",
     factsLead:
-      "Archimedes of Syracuse is one of the most important figures of ancient science. He represents curiosity, precise thinking, technical imagination and the ability to turn ideas into practical solutions.",
+      "Archimedes is one of the most important figures of ancient science. He represents curiosity, precise thinking, technical imagination and the ability to turn ideas into practical solutions.",
     facts: [
       {
         title: "Figure of ancient science",
-        text: "Archimedes lived in the 3rd century BC and is closely associated with Syracuse in Sicily.",
+        text: "Archimedes lived in the 3rd century BC and his name remains strongly connected with the development of mathematics, physics and technical thought.",
       },
       {
         title: "Mathematician and inventor",
@@ -261,8 +250,8 @@ const CONTENT = {
       },
       {
         time: "10:00",
-        title: "Connection with Syracuse",
-        text: "A special segment dedicated to the legacy of Archimedes and the international connection with Syracuse.",
+        title: "Connection with a museum",
+        text: "A special segment dedicated to the legacy of Archimedes and an international connection with a museum.",
       },
       {
         time: "11:00",
@@ -275,17 +264,6 @@ const CONTENT = {
         text: "A gallery of greetings and participating institutions from different countries.",
       },
     ],
-
-    syracuseKicker: "Special moment",
-    syracuseTitle: "Connection with Syracuse",
-    syracuseText1:
-      "Part of the first ARCHIMEDES DAY will be a symbolic and content-based connection with Syracuse – a place inseparably linked with Archimedes.",
-    syracuseText2:
-      "This segment is meant to give the whole day an international dimension, authenticity and a strong story for schools, partners and the public.",
-    syracuseBadge: "Syracuse connection",
-    syracuseBoxTitle: "Syracuse • Sicily • Italy",
-    syracuseBoxText:
-      "The city associated with Archimedes naturally becomes a symbol of the international dimension of the whole day.",
 
     classroomKicker: "Network of classrooms",
     classroomTitle: "ARCHIMEDES DAY is also linked to real learning spaces",
@@ -306,9 +284,9 @@ const CONTENT = {
         text: "We will gradually publish greetings from institutions, schools, cities and partners joining ARCHIMEDES DAY.",
       },
       {
-        country: "Italy",
-        title: "Syracuse",
-        text: "We are preparing a symbolic connection with the place inseparably linked with the figure of Archimedes.",
+        country: "International connection",
+        title: "Museum and international institutions",
+        text: "We are preparing an international connection with a museum and other institutions that can support the educational and cultural dimension of the whole day.",
       },
       {
         country: "International participation",
@@ -345,7 +323,7 @@ export default function ArchimedesDayPage() {
         <meta name="description" content={t.metaDescription} />
         <meta
           name="keywords"
-          content="Archimedes Day, ARCHIMEDES Live, outdoor classroom, venkovní učebna, education, science, community, schools, municipalities, Syracuse, Archimedes"
+          content="Archimedes Day, ARCHIMEDES Live, outdoor classroom, venkovní učebna, education, science, community, schools, municipalities, museum, Archimedes"
         />
         <meta property="og:title" content={t.metaTitle} />
         <meta property="og:description" content={t.metaDescription} />
@@ -477,7 +455,10 @@ export default function ArchimedesDayPage() {
           </div>
         </section>
 
-        <section id="program" className="ad-section ad-section-light ad-program-section">
+        <section
+          id="program"
+          className="ad-section ad-section-light ad-program-section"
+        >
           <div className="ad-shell">
             <div className="ad-heading ad-heading-dark">
               <p className="ad-kicker">{t.programKicker}</p>
@@ -498,23 +479,6 @@ export default function ArchimedesDayPage() {
                   </div>
                 </article>
               ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="ad-section ad-syracuse">
-          <div className="ad-shell ad-syracuse-grid">
-            <div className="ad-syracuse-text">
-              <p className="ad-kicker">{t.syracuseKicker}</p>
-              <h2>{t.syracuseTitle}</h2>
-              <p>{t.syracuseText1}</p>
-              <p>{t.syracuseText2}</p>
-            </div>
-
-            <div className="ad-syracuse-box">
-              <div className="ad-syracuse-badge">{t.syracuseBadge}</div>
-              <h3>{t.syracuseBoxTitle}</h3>
-              <p>{t.syracuseBoxText}</p>
             </div>
           </div>
         </section>
@@ -844,7 +808,6 @@ export default function ArchimedesDayPage() {
         .ad-intro-text h2,
         .ad-link-block h2,
         .ad-final-inner h2,
-        .ad-syracuse-text h2,
         .ad-classroom-text h2 {
           margin: 0 0 16px;
           font-size: clamp(30px, 4vw, 52px);
@@ -856,7 +819,6 @@ export default function ArchimedesDayPage() {
         .ad-intro-text p,
         .ad-link-block p,
         .ad-final-inner p,
-        .ad-syracuse-text p,
         .ad-classroom-text p {
           font-size: 18px;
           line-height: 1.75;
@@ -868,8 +830,6 @@ export default function ArchimedesDayPage() {
         .ad-intro-text p,
         .ad-link-block h2,
         .ad-link-block p,
-        .ad-syracuse-text h2,
-        .ad-syracuse-text p,
         .ad-classroom-text h2,
         .ad-classroom-text p {
           color: #13233b;
@@ -907,7 +867,6 @@ export default function ArchimedesDayPage() {
 
         .ad-card,
         .ad-program-item,
-        .ad-syracuse-box,
         .ad-link-block,
         .ad-classroom-media {
           background: #ffffff;
@@ -938,8 +897,7 @@ export default function ArchimedesDayPage() {
 
         .ad-card h3,
         .ad-value h3,
-        .ad-greeting-card h3,
-        .ad-syracuse-box h3 {
+        .ad-greeting-card h3 {
           margin: 0 0 12px;
           font-size: 24px;
           line-height: 1.2;
@@ -947,8 +905,7 @@ export default function ArchimedesDayPage() {
 
         .ad-card p,
         .ad-value p,
-        .ad-greeting-card p,
-        .ad-syracuse-box p {
+        .ad-greeting-card p {
           margin: 0;
           font-size: 16px;
           line-height: 1.7;
@@ -992,11 +949,6 @@ export default function ArchimedesDayPage() {
           color: #31435f;
         }
 
-        .ad-syracuse {
-          background: linear-gradient(180deg, #eef2f8 0%, #f6f7fb 100%);
-        }
-
-        .ad-syracuse-grid,
         .ad-link-block,
         .ad-classroom-grid {
           display: grid;
@@ -1005,18 +957,6 @@ export default function ArchimedesDayPage() {
           align-items: center;
         }
 
-        .ad-syracuse-box {
-          min-height: 260px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          background:
-            radial-gradient(circle at 20% 20%, rgba(185, 137, 55, 0.16), transparent 24%),
-            linear-gradient(135deg, #ffffff 0%, #f7f2e6 100%);
-          border: 1px solid rgba(185, 137, 55, 0.15);
-        }
-
-        .ad-syracuse-badge,
         .ad-country,
         .ad-classroom-caption {
           display: inline-flex;
@@ -1096,7 +1036,6 @@ export default function ArchimedesDayPage() {
         @media (max-width: 1120px) {
           .ad-hero-grid,
           .ad-intro,
-          .ad-syracuse-grid,
           .ad-link-block,
           .ad-classroom-grid {
             grid-template-columns: 1fr;
@@ -1143,7 +1082,6 @@ export default function ArchimedesDayPage() {
           .ad-value,
           .ad-greeting-card,
           .ad-program-item,
-          .ad-syracuse-box,
           .ad-link-block,
           .ad-classroom-media,
           .ad-hero-logo-card {
