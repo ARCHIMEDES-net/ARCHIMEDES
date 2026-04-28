@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 const FALLBACK_POSTER = "/ucebna-exterier.webp";
+const MAY_PROGRAM_IMAGE = "/program.jpg";
 
 const schoolItems = [
   {
@@ -271,14 +272,7 @@ function PriceProgramCard({
         {badge}
       </div>
 
-      <h3
-        style={{
-          margin: 0,
-          fontSize: 21,
-          lineHeight: 1.25,
-          color: "#0f172a",
-        }}
-      >
+      <h3 style={{ margin: 0, fontSize: 21, lineHeight: 1.25, color: "#0f172a" }}>
         {title}
       </h3>
 
@@ -314,14 +308,7 @@ function PriceProgramCard({
         </div>
       </div>
 
-      <p
-        style={{
-          margin: "16px 0 0",
-          color: "#475569",
-          fontSize: 16,
-          lineHeight: 1.65,
-        }}
-      >
+      <p style={{ margin: "16px 0 0", color: "#475569", fontSize: 16, lineHeight: 1.65 }}>
         {description}
       </p>
 
@@ -366,14 +353,7 @@ function PriceProgramCard({
               >
                 {item.title}
               </div>
-              <div
-                style={{
-                  marginTop: 2,
-                  color: "#475569",
-                  fontSize: 15,
-                  lineHeight: 1.65,
-                }}
-              >
+              <div style={{ marginTop: 2, color: "#475569", fontSize: 15, lineHeight: 1.65 }}>
                 {item.text}
               </div>
             </div>
@@ -381,14 +361,7 @@ function PriceProgramCard({
         ))}
       </div>
 
-      <div
-        style={{
-          marginTop: 22,
-          display: "flex",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
+      <div style={{ marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap" }}>
         <Link
           href={href}
           style={{
@@ -437,7 +410,6 @@ function PriceProgramCard({
 
 function formatEventDate(value) {
   if (!value) return "";
-
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
 
@@ -576,19 +548,9 @@ function UpcomingEventItem({ event }) {
         ) : null}
 
         {badges.length ? (
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 8,
-              marginTop: 10,
-            }}
-          >
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
             {badges.slice(0, 4).map((badge, i) => (
-              <EventBadge
-                key={`${badge}-${i}`}
-                variant={badge === "Komunita" ? "accent" : "default"}
-              >
+              <EventBadge key={`${badge}-${i}`} variant={badge === "Komunita" ? "accent" : "default"}>
                 {badge}
               </EventBadge>
             ))}
@@ -621,9 +583,215 @@ function UpcomingEventItem({ event }) {
   );
 }
 
+function CurrentProgramCard({ onOpen }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      style={{
+        width: "100%",
+        textAlign: "left",
+        border: "1px solid #dbeafe",
+        borderRadius: 24,
+        padding: 16,
+        background:
+          "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(239,246,255,0.96) 100%)",
+        boxShadow: "0 18px 40px rgba(37,99,235,0.12)",
+        cursor: "pointer",
+        display: "grid",
+        gridTemplateColumns: "118px 1fr",
+        gap: 16,
+        alignItems: "center",
+      }}
+      className="current-program-card"
+    >
+      <div
+        style={{
+          position: "relative",
+          borderRadius: 18,
+          overflow: "hidden",
+          background: "#fff",
+          boxShadow: "0 12px 28px rgba(15,23,42,0.12)",
+        }}
+      >
+        <img
+          src={MAY_PROGRAM_IMAGE}
+          alt="Aktuální program květen 2026"
+          style={{
+            width: "100%",
+            height: 150,
+            objectFit: "cover",
+            objectPosition: "top center",
+            display: "block",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(180deg, rgba(15,23,42,0) 40%, rgba(15,23,42,0.58) 100%)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: 10,
+            bottom: 10,
+            background: "#ef4444",
+            color: "#fff",
+            borderRadius: 999,
+            padding: "5px 9px",
+            fontSize: 12,
+            fontWeight: 900,
+          }}
+        >
+          live
+        </div>
+      </div>
+
+      <div>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "7px 11px",
+            borderRadius: 999,
+            background: "#dbeafe",
+            color: "#1d4ed8",
+            fontSize: 13,
+            fontWeight: 900,
+            marginBottom: 10,
+          }}
+        >
+          Aktuálně
+        </div>
+
+        <h2
+          style={{
+            margin: 0,
+            color: "#0f172a",
+            fontSize: "clamp(24px, 3vw, 34px)",
+            lineHeight: 1.08,
+            letterSpacing: "-0.03em",
+          }}
+        >
+          Aktuální program
+          <br />
+          KVĚTEN 2026
+        </h2>
+
+        <p
+          style={{
+            margin: "10px 0 0",
+            color: "#475569",
+            fontSize: 16,
+            lineHeight: 1.55,
+          }}
+        >
+          Kliknutím zobrazíte celý měsíční přehled akcí ve větším náhledu.
+        </p>
+
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            marginTop: 14,
+            minHeight: 42,
+            padding: "0 15px",
+            borderRadius: 12,
+            background: "#0f172a",
+            color: "#fff",
+            fontSize: 14,
+            fontWeight: 900,
+            boxShadow: "0 10px 22px rgba(15,23,42,0.16)",
+          }}
+        >
+          Zvětšit program →
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function ProgramModal({ open, onClose }) {
+  if (!open) return null;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        background: "rgba(15,23,42,0.78)",
+        padding: "28px 18px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "relative",
+          width: "min(980px, 96vw)",
+          maxHeight: "92vh",
+          background: "#fff",
+          borderRadius: 24,
+          padding: 14,
+          boxShadow: "0 30px 90px rgba(0,0,0,0.35)",
+          overflow: "auto",
+        }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Zavřít náhled programu"
+          style={{
+            position: "sticky",
+            top: 8,
+            marginLeft: "auto",
+            zIndex: 2,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 42,
+            height: 42,
+            borderRadius: 999,
+            border: "1px solid #e2e8f0",
+            background: "#0f172a",
+            color: "#fff",
+            fontSize: 22,
+            fontWeight: 900,
+            cursor: "pointer",
+            float: "right",
+          }}
+        >
+          ×
+        </button>
+
+        <img
+          src={MAY_PROGRAM_IMAGE}
+          alt="Aktuální program květen 2026"
+          style={{
+            width: "100%",
+            height: "auto",
+            display: "block",
+            borderRadius: 18,
+            clear: "both",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function ProgramPage() {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
+  const [programModalOpen, setProgramModalOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -635,9 +803,7 @@ export default function ProgramPage() {
 
       const { data, error } = await supabase
         .from("events")
-        .select(
-          "id, title, starts_at, poster_url, poster_path, audience_groups, category, is_published"
-        )
+        .select("id, title, starts_at, poster_url, poster_path, audience_groups, category, is_published")
         .eq("is_published", true)
         .gte("starts_at", now)
         .order("starts_at", { ascending: true })
@@ -752,6 +918,10 @@ export default function ProgramPage() {
                     Pro školy – financování z OP JAK
                   </SecondaryButton>
                 </div>
+
+                <div style={{ marginTop: 28 }}>
+                  <CurrentProgramCard onOpen={() => setProgramModalOpen(true)} />
+                </div>
               </div>
 
               <div
@@ -783,7 +953,7 @@ export default function ProgramPage() {
                   style={{
                     display: "grid",
                     gap: 14,
-                    maxHeight: 640,
+                    maxHeight: 760,
                     overflow: "auto",
                     paddingRight: 4,
                   }}
@@ -887,13 +1057,7 @@ export default function ProgramPage() {
                 </p>
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: 12,
-                  flexWrap: "wrap",
-                }}
-              >
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <PrimaryButton href="/demo">Chci vidět demo</PrimaryButton>
                 <SecondaryButton href="/poptavka">
                   Chci doporučit vhodnou variantu
@@ -946,6 +1110,8 @@ export default function ProgramPage() {
         </div>
       </main>
 
+      <ProgramModal open={programModalOpen} onClose={() => setProgramModalOpen(false)} />
+
       <style jsx>{`
         .hero-cta-grid :global(a) {
           width: 100%;
@@ -953,6 +1119,11 @@ export default function ProgramPage() {
 
         .hero-cta-grid :global(a:hover) {
           transform: translateY(-1px);
+        }
+
+        .current-program-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 22px 48px rgba(37, 99, 235, 0.16) !important;
         }
 
         .upcoming-events-list::-webkit-scrollbar {
@@ -992,6 +1163,10 @@ export default function ProgramPage() {
           }
 
           .hero-cta-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .current-program-card {
             grid-template-columns: 1fr !important;
           }
         }
