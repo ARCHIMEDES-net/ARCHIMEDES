@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 const FALLBACK_POSTER = "/ucebna-exterier.webp";
-const MAY_PROGRAM_IMAGE = "/program.jpg";
+const MAY_PROGRAM_IMAGE = "/Program.jpg";
 
 const schoolItems = [
   {
