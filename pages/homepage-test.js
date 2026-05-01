@@ -1,13 +1,10 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 import { track } from "@vercel/analytics";
 import Footer from "../components/Footer";
-import { supabase } from "../lib/supabaseClient";
 
 const classroomLiveImg = "/jak-funguje-trida.jpg";
 const classroomImg = "/ucebna-exterier.webp";
-const POSTERS_BUCKET = "posters";
 
 function ButtonLink({ href, children, variant = "primary", eventName, onClick }) {
   const handleClick = () => {
@@ -22,84 +19,7 @@ function ButtonLink({ href, children, variant = "primary", eventName, onClick })
   );
 }
 
-function formatEventDate(dateString) {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const datePart = date.toLocaleDateString("cs-CZ", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-
-  const timePart = date.toLocaleTimeString("cs-CZ", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  return `${datePart} • ${timePart}`;
-}
-
 export default function HomeTest() {
-  const [nextEvent, setNextEvent] = useState(null);
-  const [nextEventLoading, setNextEventLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadNextEvent() {
-      try {
-        const nowIso = new Date().toISOString();
-
-        const { data, error } = await supabase
-          .from("events")
-          .select("id, title, starts_at, poster_path, poster_url, category")
-          .eq("is_published", true)
-          .gte("starts_at", nowIso)
-          .order("starts_at", { ascending: true })
-          .limit(1);
-
-        if (error) throw error;
-
-        const event = data?.[0] || null;
-        if (!active) return;
-
-        if (!event) {
-          setNextEvent(null);
-          return;
-        }
-
-        let posterUrl = event.poster_url || "";
-
-        if (!posterUrl && event.poster_path) {
-          const { data: publicUrlData } = supabase.storage
-            .from(POSTERS_BUCKET)
-            .getPublicUrl(event.poster_path);
-          posterUrl = publicUrlData?.publicUrl || "";
-        }
-
-        setNextEvent({ ...event, posterUrl });
-      } catch (_err) {
-        if (!active) return;
-        setNextEvent(null);
-      } finally {
-        if (active) setNextEventLoading(false);
-      }
-    }
-
-    loadNextEvent();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const nextEventDate = useMemo(
-    () => formatEventDate(nextEvent?.starts_at),
-    [nextEvent]
-  );
-
   return (
     <>
       <Head>
@@ -155,14 +75,6 @@ export default function HomeTest() {
                     Zobrazit program
                   </ButtonLink>
                 </div>
-
-                <Link
-                  href="/kontakt"
-                  className="consultLink"
-                  onClick={() => track("test_klik_home_konzultace")}
-                >
-                  Chci se nejdřív poradit
-                </Link>
               </div>
 
               <div className="heroVisual">
@@ -286,11 +198,11 @@ export default function HomeTest() {
           <div className="container">
             <div className="programGrid">
               <div className="programText">
-                <div className="eyebrow blue">Program pro školy</div>
-                <h2>Konkrétní témata místo obecného slibu</h2>
+                <div className="eyebrow blue">Pravidelný program každý měsíc</div>
+                <h2>Každý měsíc zažijete</h2>
                 <p>
-                  Škola vidí dopředu, jaká vysílání se připravují. Program
-                  pravidelně doplňujeme o nové hosty, témata a pracovní listy.
+                  ARCHIMEDES Live přináší škole pravidelný živý program, který
+                  lze jednoduše zařadit do výuky na 1. i 2. stupni ZŠ.
                 </p>
 
                 <div className="programActions">
@@ -304,57 +216,17 @@ export default function HomeTest() {
                 </div>
               </div>
 
-              <Link
-                href="/program"
-                className="nextEventCard"
-                onClick={() => track("test_klik_home_nearest_event")}
-              >
-                <div className="nextEventHead">
-                  <strong>Nejbližší vysílání</strong>
-                  <span>Zobrazit celý program →</span>
-                </div>
-
-                {nextEventLoading ? (
-                  <div className="nextEventLoading">
-                    Načítáme nejbližší vysílání…
-                  </div>
-                ) : nextEvent ? (
-                  <div className="nextEventBody">
-                    <div className="eventDateBox">
-                      <strong>{nextEventDate || "Termín připravujeme"}</strong>
-                    </div>
-
-                    {nextEvent.posterUrl ? (
-                      <img
-                        src={nextEvent.posterUrl}
-                        alt={nextEvent.title || "Plakát vysílání"}
-                        className="eventPoster"
-                      />
-                    ) : (
-                      <div className="eventPosterPlaceholder">
-                        ARCHIMEDES Live
-                      </div>
-                    )}
-
-                    <div className="eventInfo">
-                      <h3>{nextEvent.title}</h3>
-                      <p>Detail vysílání najdete v aktuálním programu.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="nextEventEmpty">
-                    <h3>Program připravujeme průběžně</h3>
-                    <p>
-                      Otevřete si přehled programu a podívejte se na aktuální i
-                      připravovaná vysílání.
-                    </p>
-                  </div>
-                )}
-
-                <div className="programNotice">
-                  Program doplňujeme pravidelně o nová témata a hosty.
-                </div>
-              </Link>
+              <div className="monthlyProgramCard">
+                <ul>
+                  <li>živé online vysílání pro I. stupeň ZŠ</li>
+                  <li>živé online vysílání pro II. stupeň ZŠ</li>
+                  <li>program zaměřený na wellbeing žáků</li>
+                  <li>program zaměřený na kariérové poradenství</li>
+                  <li>Čtenářský klub Magnesia Litera</li>
+                  <li>živý rozhovor s hostem v angličtině</li>
+                  <li>možnost vysílání přímo z vaší školy</li>
+                </ul>
+              </div>
             </div>
           </div>
         </section>
@@ -461,13 +333,6 @@ export default function HomeTest() {
                   eventName="test_klik_home_final_start"
                 >
                   Začít s balíčkem START
-                </ButtonLink>
-                <ButtonLink
-                  href="/kontakt"
-                  variant="outlineLight"
-                  eventName="test_klik_home_final_contact"
-                >
-                  Chci se nejdřív poradit
                 </ButtonLink>
               </div>
             </div>
@@ -609,15 +474,6 @@ export default function HomeTest() {
             gap: 12px;
           }
 
-          .consultLink {
-            display: inline-flex;
-            margin-top: 16px;
-            color: #0b57d0;
-            text-decoration: none;
-            font-weight: 900;
-          }
-
-          .consultLink:hover,
           .textArrow:hover {
             text-decoration: underline;
           }
@@ -859,95 +715,47 @@ export default function HomeTest() {
             margin-top: 24px;
           }
 
-          .nextEventCard {
-            display: block;
-            padding: 26px;
+          .monthlyProgramCard {
+            padding: 30px;
             border-radius: 24px;
             background: #ffffff;
-            color: inherit;
-            text-decoration: none;
+            color: #0f172a;
             border: 1px solid rgba(15, 23, 42, 0.08);
             box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
           }
 
-          .nextEventHead {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 18px;
-          }
-
-          .nextEventHead strong {
-            font-size: 22px;
-            color: #07142d;
-          }
-
-          .nextEventHead span {
-            color: #0b57d0;
-            font-weight: 900;
-            font-size: 14px;
-          }
-
-          .nextEventBody {
-            display: grid;
-            grid-template-columns: 96px 120px minmax(0, 1fr);
-            gap: 16px;
-            align-items: center;
-          }
-
-          .eventDateBox {
-            min-height: 96px;
-            border-radius: 16px;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px;
-            text-align: center;
-            color: #07142d;
-            background: #f8fafc;
-          }
-
-          .eventPoster,
-          .eventPosterPlaceholder {
-            width: 120px;
-            height: 96px;
-            border-radius: 14px;
-            object-fit: cover;
-            background: #e2e8f0;
-          }
-
-          .eventPosterPlaceholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px;
-            text-align: center;
-            font-weight: 900;
-            color: #334155;
-          }
-
-          .eventInfo h3 {
-            margin-bottom: 6px;
-          }
-
-          .eventInfo p,
-          .nextEventEmpty p,
-          .nextEventLoading {
+          .monthlyProgramCard ul {
+            list-style: none;
             margin: 0;
-            color: #536179;
-            line-height: 1.55;
+            padding: 0;
+            display: grid;
+            gap: 14px;
           }
 
-          .programNotice {
-            margin-top: 20px;
-            padding: 14px 16px;
-            border-radius: 14px;
-            background: #eef5ff;
-            color: #0b57d0;
-            font-weight: 900;
+          .monthlyProgramCard li {
+            position: relative;
+            padding-left: 34px;
+            font-size: 18px;
+            line-height: 1.5;
+            color: #17223a;
+            font-weight: 850;
+          }
+
+          .monthlyProgramCard li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 2px;
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #eaf8ef;
+            color: #16a34a;
             font-size: 14px;
+            font-weight: 950;
           }
 
           .directorBox {
@@ -1136,16 +944,6 @@ export default function HomeTest() {
 
             .section {
               padding: 52px 0;
-            }
-
-            .nextEventBody {
-              grid-template-columns: 1fr;
-            }
-
-            .eventDateBox,
-            .eventPoster,
-            .eventPosterPlaceholder {
-              width: 100%;
             }
 
             .finalBox {
