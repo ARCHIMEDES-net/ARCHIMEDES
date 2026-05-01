@@ -32,6 +32,29 @@ const monthlyProgram = [
   },
 ];
 
+const benefits = [
+  {
+    icon: "⏱️",
+    title: "Šetří čas učitelům",
+    text: "Hotové hodiny připravené k okamžitému použití.",
+  },
+  {
+    icon: "👥",
+    title: "Motivuje žáky",
+    text: "Skutečné příběhy, profese a témata z praxe.",
+  },
+  {
+    icon: "📘",
+    title: "Navazuje na výuku",
+    text: "Pracovní listy a materiály pro snadné začlenění.",
+  },
+  {
+    icon: "✅",
+    title: "V souladu s RVP",
+    text: "Témata podporují cíle základního vzdělávání.",
+  },
+];
+
 const lessonSteps = [
   {
     title: "1. Učitel vybere téma",
@@ -58,110 +81,130 @@ export default function HomepageTest() {
         />
       </Head>
 
-      <main className="min-h-screen bg-[#f7f4ee] text-slate-900">
+      <main className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-[#f7f4ee] text-slate-900">
         {/* HERO */}
-        <section className="mx-auto max-w-7xl px-5 py-8 md:px-8 md:py-14">
-          <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
-            <div>
-              <div className="mb-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-emerald-700 shadow-sm">
-                ARCHIMEDES Live pro základní školy
-              </div>
-
-              <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight md:text-6xl">
-                Pusťte dětem výuku z reálného světa během jedné hodiny
+        <section className="mx-auto max-w-7xl px-5 pt-8 pb-10 md:px-8 md:pt-10 md:pb-14">
+          <div className="grid items-start gap-8 lg:grid-cols-[1.25fr_0.82fr_1.05fr]">
+            {/* LEFT TEXT */}
+            <div className="pt-2 lg:pt-3">
+              <h1 className="max-w-3xl text-[3.1rem] font-black leading-[0.92] tracking-tight text-[#061433] sm:text-6xl md:text-7xl lg:text-[5.3rem]">
+                hodiny pro základní školy
               </h1>
 
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-700">
-                Žáci často nevidí, k čemu jim škola bude v životě dobrá.
-                ARCHIMEDES Live jim ukazuje reálný svět, inspirativní hosty,
-                profese, přírodu, vědu i témata z praxe.
+              <p className="mt-7 max-w-xl text-xl leading-9 text-slate-600 md:text-2xl md:leading-10">
+                Učitel pustí vysílání, žáci pracují s reálným tématem a škola
+                získá moderní výuku bez složité přípravy.
               </p>
 
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-7 flex max-w-xl items-start gap-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-emerald-500 text-xl font-black text-emerald-600">
+                  ✓
+                </div>
+                <div>
+                  <p className="text-lg font-extrabold leading-7 text-slate-900">
+                    Balíček START dá celé škole přístup do 31. 12. 2026
+                  </p>
+                  <p className="mt-1 text-lg text-slate-700">
+                    za 4 990 Kč bez DPH.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/start"
-                  className="rounded-2xl bg-emerald-600 px-6 py-4 text-center text-base font-bold text-white shadow-md transition hover:bg-emerald-700"
+                  className="rounded-2xl bg-emerald-600 px-7 py-4 text-center text-base font-extrabold text-white shadow-md transition hover:bg-emerald-700"
                 >
                   Začít s balíčkem START
                 </Link>
 
                 <Link
                   href="/program"
-                  className="rounded-2xl border border-slate-300 bg-white px-6 py-4 text-center text-base font-bold text-slate-900 shadow-sm transition hover:bg-slate-50"
+                  className="rounded-2xl border border-blue-100 bg-white px-7 py-4 text-center text-base font-extrabold text-blue-700 shadow-sm transition hover:bg-blue-50"
                 >
                   Zobrazit program
                 </Link>
               </div>
-
-              <p className="mt-5 text-sm text-slate-600">
-                Bez složité přípravy. Bez instalace. Funguje na každé
-                interaktivní tabuli.
-              </p>
             </div>
 
-            <div className="relative">
-              <div className="overflow-hidden rounded-[2rem] bg-white shadow-xl">
-                <img
-                  src="/ucebna-exterier.webp"
-                  alt="ARCHIMEDES Live ve škole"
-                  className="h-[300px] w-full object-cover sm:h-[420px] lg:h-[520px]"
-                />
+            {/* PRICE CARD */}
+            <div className="rounded-b-[2rem] rounded-t-none bg-white shadow-xl ring-1 ring-slate-100 lg:-mt-10">
+              <div className="p-6 md:p-7">
+                <p className="text-base text-slate-500">Přístup pro celou školu</p>
+                <p className="mt-1 text-lg font-extrabold text-slate-900">
+                  do 31. 12. 2026
+                </p>
+
+                <div className="mt-6 space-y-4 text-base text-slate-700">
+                  {[
+                    "Živá vysílání s odborníky",
+                    "Záznamy k opakování",
+                    "Pracovní listy pro žáky",
+                    "Pro všechny třídy",
+                    "Na každé interaktivní tabuli",
+                    "Funguje na běžné technice",
+                  ].map((item) => (
+                    <div key={item} className="flex gap-3">
+                      <span className="font-black text-emerald-600">✓</span>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-7 border-t border-slate-200 pt-6 text-center">
+                  <p className="text-4xl font-black text-emerald-600">
+                    4 990 Kč
+                  </p>
+                  <p className="mt-1 font-bold text-slate-500">bez DPH</p>
+                </div>
               </div>
 
-              <div className="mt-5 rounded-3xl bg-white p-5 shadow-lg lg:absolute lg:bottom-6 lg:left-6 lg:right-6 lg:mt-0">
-                <p className="text-sm font-semibold text-emerald-700">
-                  Akční nabídka START
-                </p>
-                <p className="mt-1 text-3xl font-bold">4 990 Kč bez DPH</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Přístup pro celou školu do 31. 12. 2026. Na každou
-                  interaktivní tabuli, bez omezení počtu tříd.
-                </p>
+              <div className="rounded-b-[2rem] bg-emerald-50 px-6 py-5 text-sm font-extrabold leading-6 text-emerald-950">
+                Bez instalace. Bez školení. Funguje na běžné technice školy.
               </div>
+            </div>
+
+            {/* IMAGE */}
+            <div className="overflow-hidden rounded-[1.7rem] bg-white shadow-xl lg:mt-0">
+              <img
+                src="/ucebna-exterier.webp"
+                alt="ARCHIMEDES Live ve škole"
+                className="h-[300px] w-full object-cover sm:h-[400px] lg:h-[520px]"
+              />
             </div>
           </div>
-        </section>
 
-        {/* BENEFITS */}
-        <section className="bg-white py-12 md:py-16">
-          <div className="mx-auto max-w-7xl px-5 md:px-8">
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="rounded-3xl bg-[#f7f4ee] p-6">
-                <h3 className="text-lg font-bold">Stačí pustit</h3>
-                <p className="mt-3 leading-7 text-slate-700">
-                  Učitel nemusí nic složitě připravovat. Vybere vysílání,
-                  pustí ho ve třídě a pracuje s připraveným tématem.
-                </p>
-              </div>
-
-              <div className="rounded-3xl bg-[#f7f4ee] p-6">
-                <h3 className="text-lg font-bold">Reálný svět ve výuce</h3>
-                <p className="mt-3 leading-7 text-slate-700">
-                  Zoo Praha, věda, příroda, profese, podnikání, angličtina,
-                  wellbeing i rozhovory s odborníky.
-                </p>
-              </div>
-
-              <div className="rounded-3xl bg-[#f7f4ee] p-6">
-                <h3 className="text-lg font-bold">Pro celou školu</h3>
-                <p className="mt-3 leading-7 text-slate-700">
-                  Jedna licence platí pro celou školu. Program může využívat
-                  více tříd, učitelů i interaktivních tabulí.
-                </p>
-              </div>
+          {/* BENEFIT STRIP */}
+          <div className="mt-12 overflow-hidden rounded-[1.7rem] bg-white shadow-lg ring-1 ring-slate-100">
+            <div className="grid divide-y divide-slate-100 md:grid-cols-2 md:divide-x md:divide-y-0 lg:grid-cols-4">
+              {benefits.map((item) => (
+                <div key={item.title} className="flex gap-4 p-6">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xl">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-slate-900">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {item.text}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
         {/* MONTHLY PROGRAM */}
-        <section className="py-12 md:py-16">
+        <section className="bg-white py-12 md:py-16">
           <div className="mx-auto max-w-7xl px-5 md:px-8">
-            <div className="grid items-start gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+            <div className="grid items-start gap-10 lg:grid-cols-[0.82fr_1.18fr]">
               <div>
-                <p className="text-sm font-bold uppercase tracking-wider text-emerald-700">
+                <p className="text-sm font-black uppercase tracking-wider text-emerald-700">
                   Měsíční program
                 </p>
-                <h2 className="mt-3 text-3xl font-bold md:text-4xl">
+                <h2 className="mt-3 text-3xl font-black tracking-tight text-[#061433] md:text-5xl">
                   Co získá vaše škola každý měsíc
                 </h2>
                 <p className="mt-5 text-lg leading-8 text-slate-700">
@@ -170,14 +213,14 @@ export default function HomepageTest() {
                 </p>
               </div>
 
-              <div className="rounded-[2rem] bg-white p-5 shadow-lg md:p-8">
+              <div className="rounded-[2rem] bg-slate-50 p-5 shadow-sm ring-1 ring-slate-100 md:p-8">
                 <div className="grid gap-4 sm:grid-cols-2">
                   {monthlyProgram.map((item) => (
                     <div
                       key={item.title}
-                      className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
+                      className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100"
                     >
-                      <h3 className="text-base font-bold text-slate-900">
+                      <h3 className="text-base font-extrabold text-slate-900">
                         {item.title}
                       </h3>
                       <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -187,7 +230,7 @@ export default function HomepageTest() {
                   ))}
                 </div>
 
-                <p className="mt-6 rounded-2xl bg-emerald-50 p-4 text-sm font-bold leading-6 text-emerald-800">
+                <p className="mt-6 rounded-2xl bg-emerald-50 p-4 text-sm font-extrabold leading-6 text-emerald-900">
                   Stačí pustit. Jedna licence pro celou školu, bez omezení
                   počtu tříd.
                 </p>
@@ -197,13 +240,13 @@ export default function HomepageTest() {
         </section>
 
         {/* ONE LESSON */}
-        <section className="bg-white py-12 md:py-16">
+        <section className="py-12 md:py-16">
           <div className="mx-auto max-w-7xl px-5 md:px-8">
             <div className="mx-auto max-w-3xl text-center">
-              <p className="text-sm font-bold uppercase tracking-wider text-emerald-700">
+              <p className="text-sm font-black uppercase tracking-wider text-emerald-700">
                 Jak to funguje ve škole
               </p>
-              <h2 className="mt-3 text-3xl font-bold md:text-4xl">
+              <h2 className="mt-3 text-3xl font-black tracking-tight text-[#061433] md:text-5xl">
                 Jak vypadá jedna hodina s ARCHIMEDES Live
               </h2>
               <p className="mt-5 text-lg leading-8 text-slate-700">
@@ -216,9 +259,9 @@ export default function HomepageTest() {
               {lessonSteps.map((step) => (
                 <div
                   key={step.title}
-                  className="rounded-3xl bg-[#f7f4ee] p-6 shadow-sm"
+                  className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100"
                 >
-                  <h3 className="text-lg font-bold">{step.title}</h3>
+                  <h3 className="text-lg font-extrabold">{step.title}</h3>
                   <p className="mt-3 leading-7 text-slate-700">{step.text}</p>
                 </div>
               ))}
@@ -227,10 +270,10 @@ export default function HomepageTest() {
         </section>
 
         {/* PROGRAM IMAGE */}
-        <section className="py-12 md:py-16">
+        <section className="bg-white py-12 md:py-16">
           <div className="mx-auto max-w-7xl px-5 md:px-8">
             <div className="grid items-center gap-10 lg:grid-cols-2">
-              <div className="overflow-hidden rounded-[2rem] bg-white shadow-lg">
+              <div className="overflow-hidden rounded-[2rem] bg-white shadow-lg ring-1 ring-slate-100">
                 <img
                   src="/program.jpg"
                   alt="Aktuální program ARCHIMEDES Live"
@@ -239,10 +282,10 @@ export default function HomepageTest() {
               </div>
 
               <div>
-                <p className="text-sm font-bold uppercase tracking-wider text-emerald-700">
+                <p className="text-sm font-black uppercase tracking-wider text-emerald-700">
                   Konkrétní témata
                 </p>
-                <h2 className="mt-3 text-3xl font-bold md:text-4xl">
+                <h2 className="mt-3 text-3xl font-black tracking-tight text-[#061433] md:text-5xl">
                   Co děti skutečně uvidí ve výuce
                 </h2>
                 <p className="mt-5 text-lg leading-8 text-slate-700">
@@ -254,14 +297,14 @@ export default function HomepageTest() {
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                   <Link
                     href="/program"
-                    className="rounded-2xl bg-slate-900 px-6 py-4 text-center font-bold text-white transition hover:bg-slate-800"
+                    className="rounded-2xl bg-[#061433] px-6 py-4 text-center font-extrabold text-white transition hover:bg-slate-800"
                   >
                     Zobrazit program
                   </Link>
 
                   <Link
                     href="/start"
-                    className="rounded-2xl border border-slate-300 bg-white px-6 py-4 text-center font-bold text-slate-900 transition hover:bg-slate-50"
+                    className="rounded-2xl border border-slate-300 bg-white px-6 py-4 text-center font-extrabold text-slate-900 transition hover:bg-slate-50"
                   >
                     Začít s balíčkem START
                   </Link>
@@ -272,9 +315,9 @@ export default function HomepageTest() {
         </section>
 
         {/* FINAL CTA */}
-        <section className="bg-white py-12 md:py-16">
+        <section className="py-12 md:py-16">
           <div className="mx-auto max-w-5xl px-5 text-center md:px-8">
-            <h2 className="text-3xl font-bold md:text-4xl">
+            <h2 className="text-3xl font-black tracking-tight text-[#061433] md:text-5xl">
               Připojte školu do programu ARCHIMEDES Live
             </h2>
             <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-slate-700">
@@ -285,14 +328,14 @@ export default function HomepageTest() {
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
                 href="/start"
-                className="rounded-2xl bg-emerald-600 px-8 py-4 text-center text-base font-bold text-white shadow-md transition hover:bg-emerald-700"
+                className="rounded-2xl bg-emerald-600 px-8 py-4 text-center text-base font-extrabold text-white shadow-md transition hover:bg-emerald-700"
               >
                 Začít s balíčkem START
               </Link>
 
               <Link
                 href="/program"
-                className="rounded-2xl border border-slate-300 bg-white px-8 py-4 text-center text-base font-bold text-slate-900 shadow-sm transition hover:bg-slate-50"
+                className="rounded-2xl border border-slate-300 bg-white px-8 py-4 text-center text-base font-extrabold text-slate-900 shadow-sm transition hover:bg-slate-50"
               >
                 Zobrazit program
               </Link>
