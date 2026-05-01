@@ -1,3 +1,4 @@
+
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -9,24 +10,14 @@ const classroomLiveImg = "/jak-funguje-trida.jpg";
 const classroomImg = "/ucebna-exterier.webp";
 const POSTERS_BUCKET = "posters";
 
-function ButtonLink({
-  href,
-  children,
-  variant = "primary",
-  eventName,
-  onClick,
-}) {
+function ButtonLink({ href, children, variant = "primary", eventName, onClick }) {
   const handleClick = () => {
     if (eventName) track(eventName);
     if (onClick) onClick();
   };
 
   return (
-    <Link
-      href={href}
-      className={`al-btn al-btn-${variant}`}
-      onClick={handleClick}
-    >
+    <Link href={href} className={`al-btn al-btn-${variant}`} onClick={handleClick}>
       <span>{children}</span>
     </Link>
   );
@@ -73,7 +64,6 @@ export default function HomeTest() {
         if (error) throw error;
 
         const event = data?.[0] || null;
-
         if (!active) return;
 
         if (!event) {
@@ -90,17 +80,12 @@ export default function HomeTest() {
           posterUrl = publicUrlData?.publicUrl || "";
         }
 
-        setNextEvent({
-          ...event,
-          posterUrl,
-        });
+        setNextEvent({ ...event, posterUrl });
       } catch (_err) {
         if (!active) return;
         setNextEvent(null);
       } finally {
-        if (active) {
-          setNextEventLoading(false);
-        }
+        if (active) setNextEventLoading(false);
       }
     }
 
@@ -182,13 +167,6 @@ export default function HomeTest() {
               </div>
 
               <div className="heroVisual">
-                <div className="heroPhoto">
-                  <img
-                    src={classroomLiveImg}
-                    alt="Živé vysílání ARCHIMEDES Live ve třídě"
-                  />
-                </div>
-
                 <div className="startCard">
                   <div className="startCardLabel">Balíček START</div>
 
@@ -202,6 +180,7 @@ export default function HomeTest() {
                     <li>Záznamy k opakování</li>
                     <li>Pracovní listy pro žáky</li>
                     <li>Pro všechny třídy</li>
+                    <li>Na každé interaktivní tabuli</li>
                     <li>Funguje na běžné technice</li>
                   </ul>
 
@@ -213,6 +192,13 @@ export default function HomeTest() {
                   <div className="startMiniNote">
                     Bez instalace. Bez školení. Funguje na běžné technice školy.
                   </div>
+                </div>
+
+                <div className="heroPhoto">
+                  <img
+                    src={classroomLiveImg}
+                    alt="Živé vysílání ARCHIMEDES Live ve třídě"
+                  />
                 </div>
               </div>
             </div>
@@ -513,7 +499,7 @@ export default function HomeTest() {
 
           .heroLightGrid {
             display: grid;
-            grid-template-columns: minmax(0, 0.95fr) minmax(420px, 1.05fr);
+            grid-template-columns: minmax(0, 0.88fr) minmax(520px, 1.12fr);
             gap: 44px;
             align-items: center;
           }
@@ -556,8 +542,8 @@ export default function HomeTest() {
           h1 {
             max-width: 650px;
             margin-bottom: 20px;
-            font-size: clamp(42px, 5vw, 68px);
-            line-height: 0.98;
+            font-size: clamp(40px, 4.7vw, 64px);
+            line-height: 0.99;
             letter-spacing: -0.06em;
             font-weight: 950;
             color: #07142d;
@@ -638,13 +624,14 @@ export default function HomeTest() {
           }
 
           .heroVisual {
-            position: relative;
-            min-height: 410px;
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+            gap: 18px;
+            align-items: center;
           }
 
           .heroPhoto {
             height: 410px;
-            margin-left: 130px;
             border-radius: 26px;
             overflow: hidden;
             background: #e2e8f0;
@@ -661,16 +648,12 @@ export default function HomeTest() {
           }
 
           .startCard {
-            position: absolute;
-            left: 0;
-            top: 26px;
-            width: 290px;
+            width: 100%;
             padding: 24px;
             border-radius: 22px;
-            background: rgba(255, 255, 255, 0.94);
+            background: rgba(255, 255, 255, 0.98);
             border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
-            backdrop-filter: blur(14px);
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.11);
           }
 
           .startCardLabel {
@@ -1065,7 +1048,7 @@ export default function HomeTest() {
             opacity: 0.88;
           }
 
-          @media (max-width: 1050px) {
+          @media (max-width: 1120px) {
             .heroLightGrid,
             .programGrid,
             .directorBox,
@@ -1076,23 +1059,11 @@ export default function HomeTest() {
             }
 
             .heroVisual {
-              min-height: auto;
-              display: grid;
-              grid-template-columns: 1fr;
-              gap: 16px;
+              grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
             }
 
             .heroPhoto {
               height: 360px;
-              margin-left: 0;
-            }
-
-            .startCard {
-              position: relative;
-              left: auto;
-              top: auto;
-              width: auto;
-              max-width: 520px;
             }
 
             .proofBar {
@@ -1113,13 +1084,26 @@ export default function HomeTest() {
             }
           }
 
-          @media (max-width: 720px) {
+          @media (max-width: 760px) {
             .container {
               width: min(100% - 32px, 1180px);
             }
 
             .heroLight {
               padding: 38px 0 28px;
+            }
+
+            .heroVisual {
+              grid-template-columns: 1fr;
+            }
+
+            .startCard {
+              order: 1;
+            }
+
+            .heroPhoto {
+              order: 2;
+              height: 260px;
             }
 
             .heroLead {
