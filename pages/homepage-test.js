@@ -1,19 +1,34 @@
 import Head from "next/head";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { track } from "@vercel/analytics";
 import Footer from "../components/Footer";
+import { supabase } from "../lib/supabaseClient";
 
-const classroomLiveImg = "/jak-funguje-trida.jpg";
-const classroomImg = "/ucebna-exterier.webp";
+const heroImg = "/jak-funguje-trida.jpg";
+const stepOnlineImg = "/jak-funguje-online.jpg";
+const stepClassImg = "/ella.jpg";
+const stepBoardImg = "/jak-funguje-tabule.jpg";
+const POSTERS_BUCKET = "posters";
 
-function ButtonLink({ href, children, variant = "primary", eventName, onClick }) {
+function ButtonLink({
+  href,
+  children,
+  variant = "primary",
+  eventName,
+  onClick,
+}) {
   const handleClick = () => {
     if (eventName) track(eventName);
     if (onClick) onClick();
   };
 
   return (
-    <Link href={href} className={`al-btn al-btn-${variant}`} onClick={handleClick}>
+    <Link
+      href={href}
+      className={`al-btn al-btn-${variant}`}
+      onClick={handleClick}
+    >
       <span>{children}</span>
     </Link>
   );
@@ -34,7 +49,6 @@ function VideoCard({ title, subtitle, src, featured = false }) {
           className="videoFrame"
         />
       </div>
-
       <div className="videoBody">
         <div className="videoTitle">{title}</div>
         <div className="videoSubtitle">{subtitle}</div>
@@ -43,169 +57,313 @@ function VideoCard({ title, subtitle, src, featured = false }) {
   );
 }
 
-export default function HomeTest() {
+function formatEventDate(dateString) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const datePart = date.toLocaleDateString("cs-CZ", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+  const timePart = date.toLocaleTimeString("cs-CZ", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return `${datePart} • ${timePart}`;
+}
+
+export default function Home() {
+  const [nextEvent, setNextEvent] = useState(null);
+  const [nextEventLoading, setNextEventLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadNextEvent() {
+      try {
+        const nowIso = new Date().toISOString();
+
+        const { data, error } = await supabase
+          .from("events")
+          .select("id, title, starts_at, poster_path, poster_url, category")
+          .eq("is_published", true)
+          .gte("starts_at", nowIso)
+          .order("starts_at", { ascending: true })
+          .limit(1);
+
+        if (error) throw error;
+
+        const event = data?.[0] || null;
+
+        if (!active) return;
+
+        if (!event) {
+          setNextEvent(null);
+          return;
+        }
+
+        let posterUrl = event.poster_url || "";
+
+        if (!posterUrl && event.poster_path) {
+          const { data: publicUrlData } = supabase.storage
+            .from(POSTERS_BUCKET)
+            .getPublicUrl(event.poster_path);
+          posterUrl = publicUrlData?.publicUrl || "";
+        }
+
+        setNextEvent({
+          ...event,
+          posterUrl,
+        });
+      } catch (_err) {
+        if (!active) return;
+        setNextEvent(null);
+      } finally {
+        if (active) {
+          setNextEventLoading(false);
+        }
+      }
+    }
+
+    loadNextEvent();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const nextEventDate = useMemo(
+    () => formatEventDate(nextEvent?.starts_at),
+    [nextEvent]
+  );
+
   return (
     <>
       <Head>
-        <title>TEST | ARCHIMEDES Live homepage</title>
+        <title>ARCHIMEDES Live | Živý program pro školy a obce</title>
         <meta
           name="description"
-          content="Testovací verze homepage ARCHIMEDES Live pro odladění nové komunikace programu pro základní školy."
+          content="ARCHIMEDES Live přináší školám a obcím živé vstupy s odborníky, reálná témata, pracovní listy a program, který propojuje výuku s praxí i komunitním životem."
         />
-        <meta name="robots" content="noindex,nofollow" />
       </Head>
 
       <main className="page">
-        <section className="heroLight">
+        <section className="hero">
           <div className="container">
-            <div className="heroLightGrid">
-              <div className="heroCopy">
-                <div className="eyebrow blue">
-                  Živé vysílání pro základní školy
-                </div>
+            <div className="heroGrid">
+              <div className="heroContent">
+                <div className="eyebrow">ARCHIMEDES Live pro školy a obce</div>
 
-                <h1>Hotové živé hodiny pro základní školy</h1>
+                <h1>
+                  Hodina, na kterou
+                  <br />
+                  se nezapomíná.
+                </h1>
 
-                <p className="heroLead">
-                  Učitel pustí vysílání, žáci pracují s reálným tématem a škola získá moderní výuku bez složité přípravy.
+                <p className="heroIntro">
+                  Živý program, který propojuje školy, obce a komunitní život.
+                  Přináší dětem i dospělým setkání s inspirativními hosty,
+                  témata z reálného světa a formát, který lze snadno zařadit do
+                  běžného dne školy i obce.
                 </p>
 
-                <div className="heroStartProof">
-                  <span className="checkCircle">✓</span>
-                  <span>
-                    <strong>
-                      Balíček START dá celé škole přístup do 31. 12. 2026
-                    </strong>
-                    <br />
-                    za 4 990 Kč bez DPH.
-                  </span>
+                <p className="heroLead">
+                  Živé vysílání, tematické kluby, pracovní listy, archiv a
+                  program pro různé generace na jednom místě.
+                </p>
+
+                <div className="startHighlight">
+                  <div>
+                    <strong>Akční nabídka START</strong>
+                    <span>Nejrychlejší cesta, jak zapojit celou školu do programu.</span>
+                  </div>
+                  <ButtonLink
+                    href="/start"
+                    variant="start"
+                    eventName="klik_home_start"
+                  >
+                    Balíček START
+                  </ButtonLink>
                 </div>
 
                 <div className="heroActions">
                   <ButtonLink
-                    href="/start"
-                    variant="green"
-                    eventName="test_klik_home_start_primary"
+                    href="/aktualni-pozvanky"
+                    variant="primary"
+                    eventName="klik_home_co_se_chysta"
                   >
-                    Začít s balíčkem START
+                    Co se chystá
                   </ButtonLink>
 
                   <ButtonLink
                     href="/program"
-                    variant="white"
-                    eventName="test_klik_home_program"
+                    variant="secondary"
+                    eventName="klik_home_program"
                   >
                     Zobrazit program
                   </ButtonLink>
+
+                  <ButtonLink
+                    href="/#ukazky-vysilani"
+                    variant="secondary"
+                    eventName="klik_home_ukazkova_hodina"
+                  >
+                    Ukázková hodina
+                  </ButtonLink>
+
+                  <ButtonLink
+                    href="/demo"
+                    variant="secondary"
+                    eventName="klik_home_demo"
+                  >
+                    Ukázka platformy
+                  </ButtonLink>
+
+                  <ButtonLink
+                    href="/archimedes-day"
+                    variant="secondary"
+                    eventName="klik_home_archimedes_day"
+                  >
+                    ARCHIMEDES DAY
+                  </ButtonLink>
+                </div>
+
+                <div className="heroGuestWrap">
+                  <Link
+                    href="/guest"
+                    className="heroGuestLink"
+                    onClick={() => track("klik_home_guest")}
+                  >
+                    <span>Welcome guests</span>
+                    <span aria-hidden="true">→</span>
+                  </Link>
                 </div>
               </div>
 
-              <div className="heroVisual">
-                <div className="startCard">
-                  <div className="startCardLabel">Balíček START</div>
-
-                  <div className="startCardMeta">
-                    <span>Přístup pro celou školu</span>
-                    <strong>do 31. 12. 2026</strong>
+              <div className="heroAside">
+                <Link
+                  href="/program"
+                  className="nextBroadcastCard"
+                  onClick={() => track("klik_home_program_karta")}
+                >
+                  <div className="nextBroadcastHead">
+                    <div className="nextBroadcastLabel">Nejbližší vysílání</div>
+                    <div className="nextBroadcastBadge">Program</div>
                   </div>
 
-                  <ul>
-                    <li>Živá vysílání s odborníky</li>
-                    <li>Záznamy k opakování</li>
-                    <li>Pracovní listy pro žáky</li>
-                    <li>Pro všechny třídy</li>
-                    <li>Na každé interaktivní tabuli</li>
-                    <li>Funguje na běžné technice</li>
-                  </ul>
+                  {nextEventLoading ? (
+                    <div className="nextBroadcastLoading">
+                      Načítáme nejbližší vysílání…
+                    </div>
+                  ) : nextEvent ? (
+                    <>
+                      <div className="nextBroadcastPosterWrap">
+                        {nextEvent.posterUrl ? (
+                          <img
+                            src={nextEvent.posterUrl}
+                            alt={nextEvent.title || "Plakát vysílání"}
+                            className="nextBroadcastPoster"
+                          />
+                        ) : (
+                          <div className="nextBroadcastPosterPlaceholder">
+                            ARCHIMEDES Live
+                          </div>
+                        )}
+                      </div>
 
-                  <div className="startCardPrice">
-                    <strong>4 990 Kč</strong>
-                    <span>bez DPH</span>
-                  </div>
+                      <div className="nextBroadcastBody">
+                        <div className="nextBroadcastDate">{nextEventDate}</div>
 
-                  <div className="startMiniNote">
-                    Bez instalace. Bez školení. Funguje na běžné technice školy.
-                  </div>
-                </div>
+                        <div className="nextBroadcastTitle">
+                          {nextEvent.title}
+                        </div>
 
-                <div className="heroPhoto">
-                  <img
-                    src={classroomLiveImg}
-                    alt="Živé vysílání ARCHIMEDES Live ve třídě"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="proofBar">
-              <div className="proofItem">
-                <span className="proofIcon">⏱</span>
-                <div>
-                  <strong>Šetří čas učitelům</strong>
-                  <p>Hotové hodiny připravené k okamžitému použití.</p>
-                </div>
-              </div>
-
-              <div className="proofItem">
-                <span className="proofIcon">👥</span>
-                <div>
-                  <strong>Motivuje žáky</strong>
-                  <p>Skutečné příběhy, profese a témata z praxe.</p>
-                </div>
-              </div>
-
-              <div className="proofItem">
-                <span className="proofIcon">📘</span>
-                <div>
-                  <strong>Navazuje na výuku</strong>
-                  <p>Pracovní listy a materiály pro snadné začlenění.</p>
-                </div>
-              </div>
-
-              <div className="proofItem">
-                <span className="proofIcon">✅</span>
-                <div>
-                  <strong>V souladu s RVP</strong>
-                  <p>Témata podporují cíle základního vzdělávání.</p>
-                </div>
+                        <div className="nextBroadcastAction">
+                          <span>Zobrazit detail programu</span>
+                          <span aria-hidden="true">→</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="nextBroadcastEmpty">
+                      <div className="nextBroadcastEmptyTitle">
+                        Program připravujeme průběžně
+                      </div>
+                      <div className="nextBroadcastEmptyText">
+                        Otevřete si přehled programu a podívejte se na aktuální
+                        i připravovaná vysílání.
+                      </div>
+                      <div className="nextBroadcastAction">
+                        <span>Zobrazit program</span>
+                        <span aria-hidden="true">→</span>
+                      </div>
+                    </div>
+                  )}
+                </Link>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="section sectionProgram">
+        <section className="section sectionHow">
           <div className="container">
-            <div className="programGrid">
-              <div className="programText">
-                <div className="eyebrow blue">Pravidelný program každý měsíc</div>
-                <h2>Každý měsíc zažijete</h2>
+            <div className="sectionIntro center">
+              <div className="eyebrow dark">Jak to funguje</div>
+              <h2>Jednoduché zapojení do běžné výuky</h2>
+              <p>
+                Připravené online vstupy s hosty z praxe, které učitel snadno
+                zařadí do hodiny. Žáci sledují živé vysílání, zapojují se do
+                diskuze a pracují s tématy, která souvisí s výukou i životem
+                kolem nich.
+              </p>
+            </div>
 
-                <p>
-                  ARCHIMEDES Live přináší škole pravidelný živý program, který lze jednoduše zařadit do výuky na 1. i 2. stupni ZŠ.
-                </p>
-
-                <div className="programActions">
-                  <ButtonLink
-                    href="/program"
-                    variant="green"
-                    eventName="test_klik_home_program_section"
-                  >
-                    Zobrazit celý program
-                  </ButtonLink>
+            <div className="stepsGrid">
+              <article className="stepCard">
+                <div className="stepImage">
+                  <img src={stepOnlineImg} alt="Živý odborník na obrazovce" />
                 </div>
-              </div>
+                <div className="stepBody">
+                  <div className="stepNumber">1</div>
+                  <h3>Živý host přímo ve třídě</h3>
+                  <p>
+                    Škola se připojí k živému vstupu a děti se setkají s
+                    odborníkem, autorem nebo člověkem z reálné praxe.
+                  </p>
+                </div>
+              </article>
 
-              <div className="monthlyProgramCard">
-                <ul>
-                  <li>živé online vysílání pro I. stupeň ZŠ</li>
-                  <li>živé online vysílání pro II. stupeň ZŠ</li>
-                  <li>program zaměřený na wellbeing žáků</li>
-                  <li>program zaměřený na kariérové poradenství</li>
-                  <li>Čtenářský klub Magnesia Litera</li>
-                  <li>živý rozhovor s hostem v angličtině</li>
-                  <li>možnost vysílání přímo z vaší školy</li>
-                </ul>
-              </div>
+              <article className="stepCard">
+                <div className="stepImage">
+                  <img src={stepClassImg} alt="Žáci sledují a reagují" />
+                </div>
+                <div className="stepBody">
+                  <div className="stepNumber">2</div>
+                  <h3>Žáci sledují, reagují a vnímají</h3>
+                  <p>
+                    Výuka je aktivní. Děti se zapojují, sledují, přemýšlejí a
+                    pracují s tématem přímo ve třídě.
+                  </p>
+                </div>
+              </article>
+
+              <article className="stepCard">
+                <div className="stepImage">
+                  <img src={stepBoardImg} alt="Interaktivní práce ve škole" />
+                </div>
+                <div className="stepBody">
+                  <div className="stepNumber">3</div>
+                  <h3>Interaktivní práce a návaznost</h3>
+                  <p>
+                    Škola má k dispozici pracovní listy, které přímo navazují na
+                    výuku, a také přístup do archivu pro opakování témat.
+                  </p>
+                </div>
+              </article>
             </div>
           </div>
         </section>
@@ -214,10 +372,11 @@ export default function HomeTest() {
           <div className="container">
             <div className="showcaseShell">
               <div className="sectionIntro sectionIntroShowcase">
-                <div className="eyebrow blue">Ukázky vysílání</div>
+                <div className="eyebrow dark">Ukázky vysílání</div>
                 <h2>Jak vypadá jedna hodina s ARCHIMEDES Live</h2>
                 <p>
-                  Krátké ukázky z reálných vysílání pomáhají rychle pochopit atmosféru, formát i možnosti programu.
+                  Krátké ukázky z reálných vysílání pomáhají rychle pochopit
+                  atmosféru, formát i možnosti programu.
                 </p>
               </div>
 
@@ -228,13 +387,11 @@ export default function HomeTest() {
                   subtitle="ZOO Praha – výukový vstup pro školní program"
                   src="https://www.youtube.com/embed/yvelfGeL6Jg"
                 />
-
                 <VideoCard
                   title="Angličtina s rodilým mluvčím"
                   subtitle="Paul Wade – ukázka živého vstupu"
                   src="https://www.youtube.com/embed/bX2y0Uxw-Dg"
                 />
-
                 <VideoCard
                   title="Senior klub"
                   subtitle="Prof. Jan Pirk a spisovatel Viktor Špaček"
@@ -245,145 +402,133 @@ export default function HomeTest() {
           </div>
         </section>
 
-        <section className="section sectionHow">
+        <section className="section sectionBenefits">
           <div className="container">
-            <div className="splitHeader">
-              <div>
-                <div className="eyebrow blue">Jak to funguje</div>
-                <h2>Tři kroky, které zvládne každý učitel</h2>
-              </div>
-
-              <p>
-                ARCHIMEDES Live není složitý software. Je to připravený program, který škola jednoduše pustí ve třídě.
-              </p>
+            <div className="sectionIntro sectionIntroWide">
+              <div className="eyebrow dark">Co to přináší</div>
+              <h2>Program, který dává přidanou hodnotu škole i obci</h2>
             </div>
 
-            <div className="steps">
-              <article className="step">
-                <span className="stepNumber">1</span>
-                <h3>Vyberete téma</h3>
+            <div className="benefitsGrid">
+              <div className="benefitCard benefitCardPrimary">
+                <div className="benefitTag">Pro školu</div>
+                <h3>Hotový formát, který lze využít bez složité přípravy</h3>
                 <p>
-                  Z programu si vyberete živé vysílání nebo záznam, který se hodí do vaší výuky.
-                </p>
-              </article>
-
-              <article className="step">
-                <span className="stepNumber">2</span>
-                <h3>Pustíte vysílání</h3>
-                <p>
-                  Připojíte se ve třídě a žáci sledují živý vstup s odborníkem nebo inspirativním hostem.
-                </p>
-              </article>
-
-              <article className="step">
-                <span className="stepNumber">3</span>
-                <h3>Pracujete s tématem</h3>
-                <p>
-                  Využijete pracovní listy, otázky a materiály, které na vysílání navazují.
-                </p>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section className="section sectionDirector">
-          <div className="container">
-            <div className="directorBox">
-              <div className="directorIntro">
-                <div className="eyebrow blue">Pro ředitele a učitele</div>
-                <h2>Jasné využití ve škole bez další zátěže</h2>
-
-                <p>
-                  Školy i učitelé dnes dělají maximum. Mnoho žáků ale nevidí, k čemu je jim škola v reálném životě. ARCHIMEDES Live pomáhá výuku propojit s praxí, lidmi a tématy mimo běžnou učebnici.
+                  Moderní výuka, inspirativní hosté a obsah, který učitelé mohou
+                  snadno zařadit do běžného školního dne.
                 </p>
               </div>
 
-              <div className="directorCards">
-                <div className="directorCard">
-                  <strong>Pro ředitele</strong>
-                  <span>
-                    moderní výuka, přehledná cena, jednoduchá fakturace a jasně obhajitelný přínos pro školu
-                  </span>
-                </div>
+              <div className="benefitCard">
+                <div className="benefitTag">Pro žáky</div>
+                <h3>Setkání s reálným světem a větší motivace</h3>
+                <p>
+                  Děti vidí, že to, co se učí, souvisí s opravdovým životem,
+                  praxí, profesemi i místy mimo školní lavici.
+                </p>
+              </div>
 
-                <div className="directorCard">
-                  <strong>Pro učitele</strong>
-                  <span>
-                    připravené vysílání, záznam a pracovní list bez složité přípravy
-                  </span>
-                </div>
-
-                <div className="directorCard">
-                  <strong>Pro žáky</strong>
-                  <span>
-                    reálný svět, profese, věda, kultura, příroda a živá setkání s lidmi z praxe
-                  </span>
-                </div>
+              <div className="benefitCard">
+                <div className="benefitTag">Pro obec</div>
+                <h3>Obsah, který může sloužit celé komunitě</h3>
+                <p>
+                  Program může využívat nejen škola, ale i obec, senioři,
+                  dobrovolní hasiči a další komunitní skupiny.
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="section sectionClassroom">
+        <section className="section sectionTrust">
           <div className="container">
-            <div className="classroomBox">
-              <div className="classroomImage">
-                <img
-                  src={classroomImg}
-                  alt="Venkovní učebna ARCHIMEDES pro celoroční použití"
-                />
+            <div className="trustPanel">
+              <div className="trustMain">
+                <div className="eyebrow dark">Ověřeno v praxi</div>
+                <h2>ARCHIMEDES® už funguje v desítkách škol a obcí</h2>
+                <p>
+                  Ve spolupráci s pedagogy a místními komunitami připravujeme
+                  interaktivní programy, které srozumitelně představují
+                  komplexní témata z celého světa.
+                </p>
+
+                <div className="trustInlineLinks">
+                  <Link
+                    href="/ucebna"
+                    className="trustInlineLink"
+                    onClick={() => track("klik_home_trust_ucebna")}
+                  >
+                    <span>Venkovní učebna ARCHIMEDES®</span>
+                    <span aria-hidden="true">→</span>
+                  </Link>
+
+                  <Link
+                    href="/archimedes-day"
+                    className="trustInlineLink"
+                    onClick={() => track("klik_home_trust_archimedes_day")}
+                  >
+                    <span>ARCHIMEDES DAY 2026</span>
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
               </div>
 
-              <div className="classroomText">
-                <div className="eyebrow blue">Venkovní učebna ARCHIMEDES®</div>
+              <div className="trustStats">
+                <div className="trustStat">
+                  <strong>25+</strong>
+                  <span>venkovních učeben ARCHIMEDES®</span>
+                </div>
+                <div className="trustStat">
+                  <strong>200+</strong>
+                  <span>partnerů a hostů programu</span>
+                </div>
+                <div className="trustStat">
+                  <strong>1000+</strong>
+                  <span>žáků a účastníků programu</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
+        <section className="ctaSection">
+          <div className="container">
+            <div className="ctaBox">
+              <div className="ctaMain">
+                <div className="eyebrow light">
+                  Chcete živý program ve vlastní škole?
+                </div>
                 <h2>
-                  Nejprodávanější venkovní učebna v Evropě pro celoroční použití
+                  Začněte ukázkou, DEMO přístupem nebo balíčkem START a
+                  vyzkoušejte ARCHIMEDES Live přímo u vás
                 </h2>
-
                 <p>
-                  ARCHIMEDES® je moderní venkovní učebna pro školy, která propojuje přírodu, technologie a vzdělávání. V kombinaci s živým vysíláním ARCHIMEDES Live vzniká prostředí, kde se žáci učí v souvislostech a v kontaktu s reálným světem.
+                  Jednoduchý první krok pro školu i obec. Vyberte si variantu,
+                  která vám nejlépe sedí, a poznejte, jak může živý program
+                  obohatit výuku i komunitní život.
                 </p>
+              </div>
 
-                <div className="classroomTags">
-                  <span>venkovní učebna</span>
-                  <span>celoroční výuka</span>
-                  <span>škola a obec</span>
-                  <span>živé vzdělávání</span>
+              <div className="ctaSide">
+                <div className="ctaActions">
+                  <ButtonLink
+                    href="/start"
+                    variant="light"
+                    eventName="klik_home_cta_start"
+                  >
+                    Balíček START
+                  </ButtonLink>
+                  <ButtonLink
+                    href="/demo"
+                    variant="light"
+                    eventName="klik_home_cta_demo"
+                  >
+                    Chci DEMO
+                  </ButtonLink>
                 </div>
-
-                <Link
-                  href="/ucebna"
-                  className="textArrow"
-                  onClick={() => track("test_klik_home_ucebna")}
-                >
-                  Zjistit více o venkovní učebně ARCHIMEDES® →
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="section sectionFinal">
-          <div className="container">
-            <div className="finalBox">
-              <div>
-                <div className="eyebrow white">Doporučený první krok</div>
-                <h2>Začněte s balíčkem START</h2>
-
-                <p>
-                  Přístup pro celou školu do 31. 12. 2026. Živá vysílání, záznamy a pracovní listy na jednom místě.
-                </p>
-              </div>
-
-              <div className="finalActions">
-                <ButtonLink
-                  href="/start"
-                  variant="light"
-                  eventName="test_klik_home_final_start"
-                >
-                  Začít s balíčkem START
-                </ButtonLink>
+                <div className="ctaNote">
+                  objednávka online • potvrzení e-mailem
+                </div>
               </div>
             </div>
           </div>
@@ -393,437 +538,499 @@ export default function HomeTest() {
 
         <style jsx>{`
           .page {
-            min-height: 100vh;
-            background: #f7f9fc;
+            background:
+              radial-gradient(circle at top left, rgba(214, 226, 245, 0.8), transparent 32%),
+              linear-gradient(180deg, #f8fbff 0%, #f3f7fc 48%, #f7f9fc 100%);
             color: #0f172a;
           }
 
           .container {
-            width: min(1180px, calc(100% - 40px));
+            max-width: 1180px;
             margin: 0 auto;
+            padding: 0 20px;
           }
 
-          .heroLight {
-            padding: 56px 0 34px;
+          .hero {
+            position: relative;
+            padding: 48px 0 46px;
+            overflow: hidden;
+          }
+
+          .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
             background:
-              radial-gradient(circle at 16% 14%, rgba(37, 99, 235, 0.08), transparent 26%),
-              linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
-            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+              linear-gradient(90deg, rgba(248, 251, 255, 0.98) 0%, rgba(248, 251, 255, 0.92) 48%, rgba(248, 251, 255, 0.68) 100%),
+              url(${heroImg});
+            background-size: cover;
+            background-position: center;
+            opacity: 1;
+            z-index: 0;
           }
 
-          .heroLightGrid {
+          .hero::after {
+            content: "";
+            position: absolute;
+            width: 520px;
+            height: 520px;
+            right: -190px;
+            top: -180px;
+            background: rgba(59, 130, 246, 0.13);
+            filter: blur(20px);
+            border-radius: 999px;
+            z-index: 0;
+          }
+
+          .heroGrid {
+            position: relative;
+            z-index: 2;
             display: grid;
-            grid-template-columns: minmax(0, 0.88fr) minmax(520px, 1.12fr);
-            gap: 44px;
+            grid-template-columns: minmax(0, 1fr) minmax(300px, 350px);
+            gap: 28px;
             align-items: center;
           }
 
-          .heroCopy {
+          .heroContent {
+            max-width: 780px;
             padding: 24px 0;
+          }
+
+          .heroAside {
+            display: flex;
+            justify-content: flex-end;
           }
 
           .eyebrow {
             display: inline-flex;
             align-items: center;
-            width: fit-content;
             min-height: 32px;
-            padding: 0 12px;
+            padding: 0 13px;
             border-radius: 999px;
             font-size: 12px;
             font-weight: 900;
             letter-spacing: 0.06em;
             text-transform: uppercase;
-            margin-bottom: 18px;
+            margin-bottom: 14px;
           }
 
-          .eyebrow.blue {
-            background: #eaf2ff;
-            color: #0b57d0;
+          .heroContent .eyebrow,
+          .eyebrow.dark {
+            background: #e7eef9;
+            color: #1e3a5f;
+            border: 1px solid rgba(30, 58, 95, 0.08);
           }
 
-          .eyebrow.white {
-            background: rgba(255, 255, 255, 0.14);
-            color: #ffffff;
-          }
-
-          h1,
-          h2,
-          h3,
-          p {
-            margin-top: 0;
+          .eyebrow.light {
+            background: rgba(255, 255, 255, 0.16);
+            color: rgba(255, 255, 255, 0.96);
           }
 
           h1 {
-            max-width: 650px;
-            margin-bottom: 20px;
-            font-size: clamp(40px, 4.7vw, 64px);
-            line-height: 0.99;
-            letter-spacing: -0.06em;
-            font-weight: 950;
-            color: #07142d;
-            text-wrap: balance;
-          }
-
-          h2 {
-            margin-bottom: 14px;
-            font-size: clamp(32px, 4vw, 48px);
-            line-height: 1.04;
+            margin: 0;
+            font-size: 64px;
+            line-height: 0.98;
             letter-spacing: -0.055em;
             font-weight: 950;
-            color: #07142d;
+            max-width: 720px;
+            color: #0f172a;
             text-wrap: balance;
           }
 
-          h3 {
-            margin-bottom: 8px;
+          .heroIntro {
+            margin: 18px 0 0;
             font-size: 22px;
-            line-height: 1.15;
-            letter-spacing: -0.035em;
-            font-weight: 900;
-            color: #07142d;
+            line-height: 1.42;
+            color: #172033;
+            font-weight: 800;
+            max-width: 760px;
+            letter-spacing: -0.02em;
+            text-wrap: balance;
           }
 
           .heroLead {
-            max-width: 620px;
-            margin-bottom: 22px;
-            font-size: 22px;
-            line-height: 1.55;
-            color: #435068;
+            margin: 14px 0 0;
+            font-size: 18px;
+            line-height: 1.58;
+            color: #4d5a6d;
+            max-width: 680px;
           }
 
-          .heroStartProof {
+          .startHighlight {
+            margin-top: 24px;
+            max-width: 760px;
             display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            max-width: 560px;
-            margin: 0 0 26px;
-            font-size: 17px;
-            line-height: 1.55;
-            color: #17223a;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 16px;
+            border-radius: 24px;
+            background:
+              linear-gradient(135deg, #ffffff 0%, #f3f8ff 100%);
+            border: 1px solid rgba(37, 99, 235, 0.16);
+            box-shadow:
+              0 16px 42px rgba(37, 99, 235, 0.09),
+              0 2px 8px rgba(15, 23, 42, 0.035);
           }
 
-          .checkCircle {
-            flex: 0 0 auto;
-            width: 28px;
-            height: 28px;
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 2px;
-            border: 2px solid #16a34a;
-            color: #16a34a;
-            font-weight: 900;
+          .startHighlight strong {
+            display: block;
+            font-size: 18px;
+            line-height: 1.25;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+          }
+
+          .startHighlight span {
+            display: block;
+            margin-top: 4px;
+            font-size: 14px;
+            line-height: 1.45;
+            color: #536174;
+            font-weight: 700;
           }
 
           .heroActions,
-          .programActions,
-          .finalActions {
+          .ctaActions {
             display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-          }
-
-          .textArrow:hover {
-            text-decoration: underline;
-          }
-
-          .heroVisual {
-            display: grid;
-            grid-template-columns: 300px minmax(0, 1fr);
-            gap: 18px;
-            align-items: center;
-          }
-
-          .heroPhoto {
-            height: 410px;
-            border-radius: 26px;
-            overflow: hidden;
-            background: #e2e8f0;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow: 0 22px 56px rgba(15, 23, 42, 0.12);
-          }
-
-          .heroPhoto img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            display: block;
-          }
-
-          .startCard {
-            width: 100%;
-            padding: 24px;
-            border-radius: 22px;
-            background: rgba(255, 255, 255, 0.98);
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.11);
-          }
-
-          .startCardLabel {
-            margin-bottom: 18px;
-            font-size: 28px;
-            line-height: 1;
-            font-weight: 950;
-            letter-spacing: -0.045em;
-            color: #16a34a;
-          }
-
-          .startCardMeta {
-            display: grid;
-            gap: 4px;
-            margin-bottom: 18px;
-            font-size: 14px;
-            line-height: 1.45;
-            color: #4b5563;
-          }
-
-          .startCardMeta strong {
-            color: #07142d;
-          }
-
-          .startCard ul {
-            list-style: none;
-            margin: 0;
-            padding: 0 0 18px;
-            display: grid;
             gap: 10px;
-            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+            flex-wrap: wrap;
           }
 
-          .startCard li {
-            position: relative;
-            padding-left: 26px;
-            font-size: 15px;
-            line-height: 1.35;
-            color: #1f2937;
+          .heroActions {
+            margin-top: 18px;
+            max-width: 920px;
           }
 
-          .startCard li::before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            top: 0;
-            color: #16a34a;
-            font-weight: 950;
+          .heroGuestWrap {
+            margin-top: 14px;
           }
 
-          .startCardPrice {
-            padding: 18px 0;
-            text-align: center;
-          }
-
-          .startCardPrice strong {
-            display: block;
-            font-size: 34px;
-            line-height: 1;
-            letter-spacing: -0.055em;
-            color: #16a34a;
-          }
-
-          .startCardPrice span {
-            display: block;
-            margin-top: 6px;
-            font-size: 14px;
-            color: #64748b;
-            font-weight: 800;
-          }
-
-          .startMiniNote {
-            margin: 0 -24px -24px;
-            padding: 18px 24px;
-            background: #eaf8ef;
-            border-radius: 0 0 22px 22px;
-            color: #0f3d24;
-            font-size: 13px;
-            line-height: 1.45;
-            font-weight: 800;
-          }
-
-          .proofBar {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 0;
-            margin-top: 30px;
-            background: white;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 22px;
-            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.05);
-            overflow: hidden;
-          }
-
-          .proofItem {
-            display: flex;
-            gap: 12px;
-            padding: 22px;
-            border-right: 1px solid rgba(15, 23, 42, 0.08);
-          }
-
-          .proofItem:last-child {
-            border-right: 0;
-          }
-
-          .proofIcon {
-            flex: 0 0 auto;
-            width: 40px;
-            height: 40px;
-            border-radius: 999px;
+          .heroGuestLink {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            background: #edf4ff;
-            color: #0b57d0;
-          }
-
-          .proofItem strong {
-            display: block;
-            margin-bottom: 4px;
-            font-size: 15px;
-            color: #07142d;
-          }
-
-          .proofItem p {
-            margin: 0;
+            gap: 8px;
+            color: #40516a;
+            text-decoration: none;
             font-size: 14px;
-            line-height: 1.45;
-            color: #536179;
+            line-height: 1.4;
+            font-weight: 800;
+            transition: color 0.18s ease, transform 0.18s ease;
           }
 
-          .section {
-            padding: 48px 0;
-          }
-
-          .splitHeader {
-            display: grid;
-            grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.7fr);
-            gap: 36px;
-            align-items: end;
-            margin-bottom: 28px;
-          }
-
-          .splitHeader p,
-          .programText p,
-          .directorIntro p,
-          .classroomText p,
-          .finalBox p,
-          .sectionIntro p {
-            font-size: 18px;
-            line-height: 1.7;
-            color: #536179;
-          }
-
-          .sectionProgram {
-            padding-top: 44px;
-            padding-bottom: 40px;
-            background: #ffffff;
-            border-top: 1px solid rgba(15, 23, 42, 0.06);
-            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-          }
-
-          .programGrid {
-            display: grid;
-            grid-template-columns: minmax(0, 0.85fr) minmax(360px, 1.15fr);
-            gap: 36px;
-            align-items: center;
-          }
-
-          .programActions {
-            margin-top: 24px;
-          }
-
-          .monthlyProgramCard {
-            padding: 30px;
-            border-radius: 24px;
-            background: #ffffff;
+          .heroGuestLink:hover {
             color: #0f172a;
+            transform: translateX(2px);
+          }
+
+          .nextBroadcastCard {
+            display: block;
+            width: 100%;
+            max-width: 340px;
+            color: #0f172a;
+            text-decoration: none;
+            border-radius: 26px;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.92);
             border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
-          }
-
-          .monthlyProgramCard ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: grid;
-            gap: 14px;
-          }
-
-          .monthlyProgramCard li {
-            position: relative;
-            padding-left: 34px;
-            font-size: 18px;
-            line-height: 1.5;
-            color: #17223a;
-            font-weight: 850;
-          }
-
-          .monthlyProgramCard li::before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            top: 2px;
-            width: 22px;
-            height: 22px;
-            border-radius: 999px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #eaf8ef;
-            color: #16a34a;
-            font-size: 14px;
-            font-weight: 950;
-          }
-
-          .sectionShowcase {
-            padding-top: 40px;
-            padding-bottom: 44px;
-            background:
-              radial-gradient(circle at 10% 0%, rgba(37, 99, 235, 0.07), transparent 28%),
-              linear-gradient(180deg, #f7f9fc 0%, #ffffff 100%);
-            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-          }
-
-          .showcaseShell {
-            position: relative;
-          }
-
-          .sectionIntroShowcase {
-            max-width: 760px;
-            margin-bottom: 24px;
-          }
-
-          .sectionIntroShowcase p {
-            margin-bottom: 0;
-          }
-
-          .videosGrid {
-            display: grid;
-            grid-template-columns: repeat(12, minmax(0, 1fr));
-            gap: 22px;
-            align-items: stretch;
-          }
-
-          .videoCard {
-            background: rgba(255, 255, 255, 0.97);
-            border: 1px solid rgba(15, 23, 42, 0.07);
-            border-radius: 28px;
-            overflow: hidden;
             box-shadow:
-              0 14px 36px rgba(15, 23, 42, 0.045),
-              0 2px 8px rgba(15, 23, 42, 0.028);
+              0 18px 45px rgba(15, 23, 42, 0.08),
+              0 2px 8px rgba(15, 23, 42, 0.03);
             transition:
               transform 0.22s ease,
               box-shadow 0.22s ease,
               border-color 0.22s ease;
           }
 
-          .videoCard:hover {
-            transform: translateY(-5px);
+          .nextBroadcastCard:hover {
+            transform: translateY(-4px);
+            border-color: rgba(37, 99, 235, 0.22);
             box-shadow:
-              0 24px 54px rgba(15, 23, 42, 0.1),
-              0 6px 16px rgba(15, 23, 42, 0.045);
-            border-color: rgba(37, 68, 121, 0.14);
+              0 24px 56px rgba(15, 23, 42, 0.12),
+              0 4px 14px rgba(15, 23, 42, 0.05);
+          }
+
+          .nextBroadcastHead {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+          }
+
+          .nextBroadcastLabel {
+            font-size: 12px;
+            line-height: 1.4;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #23324a;
+          }
+
+          .nextBroadcastBadge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            padding: 0 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #1d4ed8;
+            background: #eaf1ff;
+            border: 1px solid rgba(37, 99, 235, 0.12);
+          }
+
+          .nextBroadcastLoading,
+          .nextBroadcastEmpty {
+            padding: 6px 2px 2px;
+          }
+
+          .nextBroadcastLoading {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #566274;
+          }
+
+          .nextBroadcastPosterWrap {
+            border-radius: 20px;
+            overflow: hidden;
+            background: #edf2f8;
+            border: 1px solid rgba(15, 23, 42, 0.06);
+          }
+
+          .nextBroadcastPoster {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16 / 11;
+            object-fit: cover;
+            object-position: center;
+          }
+
+          .nextBroadcastPosterPlaceholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            aspect-ratio: 16 / 11;
+            padding: 16px;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.3;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: #1f3153;
+            background:
+              radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 42%),
+              linear-gradient(135deg, #eef4ff, #f8fbff);
+          }
+
+          .nextBroadcastBody {
+            padding: 12px 2px 2px;
+          }
+
+          .nextBroadcastDate {
+            font-size: 14px;
+            line-height: 1.5;
+            font-weight: 900;
+            color: #526074;
+          }
+
+          .nextBroadcastTitle {
+            margin-top: 6px;
+            font-size: 18px;
+            line-height: 1.16;
+            letter-spacing: -0.03em;
+            font-weight: 950;
+            color: #0f172a;
+            text-wrap: balance;
+          }
+
+          .nextBroadcastEmptyTitle {
+            font-size: 21px;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            font-weight: 950;
+            color: #0f172a;
+            text-wrap: balance;
+          }
+
+          .nextBroadcastEmptyText {
+            margin-top: 10px;
+            font-size: 13px;
+            line-height: 1.55;
+            color: #5d6878;
+          }
+
+          .nextBroadcastAction {
+            margin-top: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            line-height: 1.4;
+            font-weight: 900;
+            color: #1d4ed8;
+          }
+
+          .section {
+            padding: 50px 0;
+          }
+
+          .sectionHow {
+            padding-top: 44px;
+            padding-bottom: 40px;
+          }
+
+          .sectionShowcase {
+            padding-top: 18px;
+            padding-bottom: 42px;
+          }
+
+          .sectionBenefits {
+            position: relative;
+            padding-top: 46px;
+            padding-bottom: 52px;
+            background:
+              linear-gradient(180deg, rgba(237, 243, 251, 0.88) 0%, rgba(246, 249, 253, 0.98) 100%);
+            border-top: 1px solid rgba(15, 23, 42, 0.04);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+          }
+
+          .sectionTrust {
+            padding-top: 42px;
+            padding-bottom: 52px;
+          }
+
+          .sectionIntro {
+            margin-bottom: 24px;
+          }
+
+          .sectionIntroWide {
+            max-width: 760px;
+          }
+
+          .sectionIntro.center {
+            text-align: center;
+            max-width: 860px;
+            margin: 0 auto 28px;
+          }
+
+          .sectionIntroShowcase {
+            max-width: 720px;
+            margin-bottom: 18px;
+          }
+
+          h2 {
+            margin: 0;
+            font-size: 44px;
+            line-height: 1.03;
+            letter-spacing: -0.055em;
+            font-weight: 950;
+            color: #0f172a;
+            text-wrap: balance;
+          }
+
+          .sectionIntro p,
+          .trustPanel p,
+          .ctaBox p {
+            margin: 12px 0 0;
+            font-size: 17px;
+            line-height: 1.68;
+            color: #5a6474;
+            max-width: 780px;
+          }
+
+          .stepsGrid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+          }
+
+          .stepCard,
+          .benefitCard,
+          .videoCard {
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid rgba(15, 23, 42, 0.07);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow:
+              0 12px 30px rgba(15, 23, 42, 0.045),
+              0 2px 8px rgba(15, 23, 42, 0.025);
+          }
+
+          .stepCard,
+          .benefitCard,
+          .videoCard {
+            transition:
+              transform 0.22s ease,
+              box-shadow 0.22s ease,
+              border-color 0.22s ease;
+          }
+
+          .stepCard:hover,
+          .benefitCard:hover,
+          .videoCard:hover {
+            transform: translateY(-4px);
+            box-shadow:
+              0 20px 42px rgba(15, 23, 42, 0.075),
+              0 4px 14px rgba(15, 23, 42, 0.045);
+            border-color: rgba(37, 99, 235, 0.14);
+          }
+
+          .stepImage img {
+            width: 100%;
+            height: 205px;
+            object-fit: cover;
+            display: block;
+          }
+
+          .stepBody {
+            padding: 20px 20px 22px;
+          }
+
+          .stepNumber {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: #1d4ed8;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 950;
+            margin-bottom: 12px;
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
+          }
+
+          .stepBody h3,
+          .benefitCard h3 {
+            margin: 0;
+            font-size: 23px;
+            line-height: 1.12;
+            letter-spacing: -0.03em;
+            font-weight: 950;
+            color: #0f172a;
+            text-wrap: balance;
+          }
+
+          .stepBody p,
+          .benefitCard p {
+            margin: 10px 0 0;
+            font-size: 15.5px;
+            line-height: 1.62;
+            color: #5b6676;
+          }
+
+          .videosGrid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 18px;
+            align-items: stretch;
           }
 
           .videoCardFeatured {
@@ -835,7 +1042,7 @@ export default function HomeTest() {
             position: absolute;
             inset: 0;
             pointer-events: none;
-            border-radius: 28px;
+            border-radius: 24px;
             box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.08);
           }
 
@@ -863,7 +1070,7 @@ export default function HomeTest() {
           }
 
           .videoBody {
-            padding: 14px 16px 12px;
+            padding: 14px 16px 13px;
           }
 
           .videoTitle {
@@ -886,183 +1093,177 @@ export default function HomeTest() {
             color: #667387;
           }
 
-          .sectionHow {
-            padding-top: 40px;
-            padding-bottom: 44px;
-          }
-
-          .steps {
+          .benefitsGrid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: 1.14fr 1fr 1fr;
             gap: 18px;
           }
 
-          .step,
-          .directorCard {
-            padding: 26px;
-            border-radius: 24px;
-            background: #ffffff;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.045);
+          .benefitCard {
+            padding: 26px 24px;
           }
 
-          .stepNumber {
-            width: 34px;
-            height: 34px;
-            margin-bottom: 18px;
-            border-radius: 999px;
+          .benefitCardPrimary {
+            background:
+              linear-gradient(180deg, #ffffff 0%, #f3f8ff 100%);
+            border-color: rgba(37, 99, 235, 0.18);
+            box-shadow:
+              0 18px 44px rgba(37, 99, 235, 0.08),
+              0 2px 8px rgba(15, 23, 42, 0.03);
+          }
+
+          .benefitTag {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            background: #0b57d0;
-            color: #ffffff;
-            font-weight: 950;
-          }
-
-          .step p,
-          .directorCard span {
-            margin: 0;
-            font-size: 15px;
-            line-height: 1.6;
-            color: #536179;
-          }
-
-          .sectionDirector {
-            padding-top: 44px;
-          }
-
-          .directorBox {
-            display: grid;
-            grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
-            gap: 34px;
-            align-items: center;
-          }
-
-          .directorCards {
-            display: grid;
-            gap: 14px;
-          }
-
-          .directorCard strong {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 18px;
-            color: #07142d;
-          }
-
-          .sectionClassroom {
-            padding-top: 44px;
-            background: #ffffff;
-            border-top: 1px solid rgba(15, 23, 42, 0.06);
-            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-          }
-
-          .classroomBox {
-            display: grid;
-            grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
-            gap: 34px;
-            align-items: center;
-          }
-
-          .classroomImage {
-            border-radius: 24px;
-            overflow: hidden;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow: 0 16px 42px rgba(15, 23, 42, 0.08);
-          }
-
-          .classroomImage img {
-            width: 100%;
-            aspect-ratio: 4 / 3;
-            object-fit: cover;
-            display: block;
-          }
-
-          .classroomTags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px 0 22px;
-          }
-
-          .classroomTags span {
-            display: inline-flex;
-            min-height: 32px;
-            align-items: center;
+            min-height: 31px;
             padding: 0 12px;
             border-radius: 999px;
-            background: #eef5ff;
-            color: #0b57d0;
+            background: #eaf1ff;
+            color: #1d4ed8;
             font-size: 13px;
             font-weight: 900;
+            margin-bottom: 15px;
           }
 
-          .textArrow {
-            color: #0b57d0;
-            font-weight: 950;
+          .trustPanel {
+            display: grid;
+            grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+            gap: 26px;
+            align-items: stretch;
+            background:
+              linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            border-radius: 30px;
+            padding: 32px;
+            box-shadow:
+              0 16px 40px rgba(15, 23, 42, 0.05),
+              0 2px 8px rgba(15, 23, 42, 0.025);
+          }
+
+          .trustMain {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+          }
+
+          .trustInlineLinks {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 18px;
+          }
+
+          .trustInlineLink {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #1d4ed8;
             text-decoration: none;
+            font-size: 15px;
+            font-weight: 900;
+            line-height: 1.4;
+            transition: color 0.18s ease, transform 0.18s ease;
           }
 
-          .sectionFinal {
-            padding-top: 44px;
-            padding-bottom: 70px;
+          .trustInlineLink:hover {
+            color: #0f172a;
+            transform: translateX(2px);
           }
 
-          .finalBox {
+          .trustStats {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+
+          .trustStat {
+            border-radius: 20px;
+            background:
+              linear-gradient(180deg, #f7faff 0%, #eef4fb 100%);
+            padding: 18px 20px;
+            border: 1px solid rgba(15, 23, 42, 0.05);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+          }
+
+          .trustStat strong {
+            display: block;
+            font-size: 31px;
+            line-height: 1;
+            letter-spacing: -0.04em;
+            font-weight: 950;
+            color: #0f172a;
+          }
+
+          .trustStat span {
+            display: block;
+            margin-top: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #5b6472;
+            font-weight: 800;
+          }
+
+          .ctaSection {
+            padding: 0 0 64px;
+          }
+
+          .ctaBox {
+            background:
+              radial-gradient(circle at top right, rgba(96, 165, 250, 0.18), transparent 30%),
+              linear-gradient(135deg, #0f2344 0%, #0b1832 100%);
+            color: white;
+            border-radius: 32px;
+            padding: 34px 32px;
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
-            gap: 28px;
+            gap: 24px;
             align-items: center;
-            padding: 34px;
-            border-radius: 28px;
-            background: linear-gradient(135deg, #0b57d0 0%, #123b7a 100%);
-            color: #ffffff;
-            box-shadow: 0 22px 54px rgba(37, 99, 235, 0.18);
+            box-shadow:
+              0 24px 58px rgba(15, 23, 42, 0.16),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05);
           }
 
-          .finalBox h2,
-          .finalBox p {
-            color: #ffffff;
+          .ctaMain {
+            max-width: 780px;
           }
 
-          .finalBox p {
-            margin-bottom: 0;
-            opacity: 0.88;
+          .ctaBox h2 {
+            color: white;
           }
 
-          @media (max-width: 1120px) {
-            .heroLightGrid,
-            .programGrid,
-            .directorBox,
-            .classroomBox,
-            .splitHeader,
-            .finalBox {
+          .ctaBox p {
+            color: rgba(255, 255, 255, 0.84);
+          }
+
+          .ctaSide {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+          }
+
+          .ctaNote {
+            font-size: 14px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.72);
+            font-weight: 800;
+          }
+
+          @media (max-width: 1100px) {
+            .heroGrid,
+            .stepsGrid,
+            .benefitsGrid,
+            .trustPanel,
+            .ctaBox {
               grid-template-columns: 1fr;
             }
 
-            .heroVisual {
-              grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+            .heroAside {
+              justify-content: flex-start;
             }
 
-            .heroPhoto {
-              height: 360px;
-            }
-
-            .proofBar {
-              grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .proofItem:nth-child(2) {
-              border-right: 0;
-            }
-
-            .proofItem:nth-child(1),
-            .proofItem:nth-child(2) {
-              border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-            }
-
-            .steps {
-              grid-template-columns: 1fr;
+            .nextBroadcastCard {
+              max-width: 380px;
             }
 
             .videosGrid {
@@ -1074,72 +1275,182 @@ export default function HomeTest() {
             .videosGrid :global(.videoCard:nth-child(3)) {
               grid-column: auto;
             }
+
+            .ctaSide {
+              align-items: flex-start;
+            }
           }
 
-          @media (max-width: 760px) {
-            .container {
-              width: min(100% - 32px, 1180px);
+          @media (max-width: 900px) {
+            .hero {
+              padding: 36px 0 34px;
             }
 
-            .heroLight {
-              padding: 38px 0 28px;
+            .heroContent {
+              padding: 16px 0 0;
             }
 
-            .heroVisual {
-              grid-template-columns: 1fr;
+            h1 {
+              font-size: 52px;
+              line-height: 1;
             }
 
-            .startCard {
-              order: 1;
+            h2 {
+              font-size: 37px;
             }
 
-            .heroPhoto {
-              order: 2;
-              height: 260px;
+            .heroIntro {
+              font-size: 20px;
             }
 
             .heroLead {
+              font-size: 17px;
+            }
+
+            .section {
+              padding: 42px 0;
+            }
+
+            .sectionHow {
+              padding-top: 36px;
+              padding-bottom: 34px;
+            }
+
+            .sectionShowcase {
+              padding-top: 8px;
+              padding-bottom: 34px;
+            }
+
+            .sectionBenefits {
+              padding-top: 40px;
+              padding-bottom: 44px;
+            }
+
+            .sectionTrust {
+              padding-top: 34px;
+              padding-bottom: 44px;
+            }
+
+            .stepImage img {
+              height: 198px;
+            }
+
+            .trustPanel,
+            .ctaBox {
+              padding: 26px;
+            }
+          }
+
+          @media (max-width: 640px) {
+            .container {
+              padding: 0 16px;
+            }
+
+            .hero {
+              padding: 28px 0 30px;
+            }
+
+            .hero::before {
+              background:
+                linear-gradient(180deg, rgba(248, 251, 255, 0.98) 0%, rgba(248, 251, 255, 0.94) 58%, rgba(248, 251, 255, 0.88) 100%),
+                url(${heroImg});
+              background-size: cover;
+              background-position: center;
+            }
+
+            h1 {
+              font-size: 40px;
+              letter-spacing: -0.045em;
+            }
+
+            h2 {
+              font-size: 32px;
+              letter-spacing: -0.05em;
+            }
+
+            .heroIntro {
               font-size: 18px;
+              line-height: 1.44;
+            }
+
+            .heroLead,
+            .sectionIntro p,
+            .trustPanel p,
+            .ctaBox p {
+              font-size: 16px;
+            }
+
+            .startHighlight {
+              flex-direction: column;
+              align-items: stretch;
+              padding: 15px;
+              border-radius: 22px;
+            }
+
+            .section {
+              padding: 36px 0;
+            }
+
+            .sectionHow {
+              padding-top: 32px;
+              padding-bottom: 30px;
+            }
+
+            .sectionShowcase {
+              padding-top: 4px;
+              padding-bottom: 28px;
+            }
+
+            .sectionBenefits {
+              padding-top: 34px;
+              padding-bottom: 38px;
+            }
+
+            .sectionTrust {
+              padding-top: 26px;
+              padding-bottom: 36px;
+            }
+
+            .sectionIntro {
+              margin-bottom: 18px;
+            }
+
+            .sectionIntro.center {
+              margin: 0 auto 20px;
+            }
+
+            .stepBody,
+            .benefitCard,
+            .videoBody {
+              padding-left: 18px;
+              padding-right: 18px;
+            }
+
+            .benefitCard {
+              padding-top: 22px;
+              padding-bottom: 22px;
+            }
+
+            .trustPanel,
+            .ctaBox {
+              padding: 22px;
+              border-radius: 26px;
             }
 
             .heroActions,
-            .programActions,
-            .finalActions {
+            .ctaActions {
               flex-direction: column;
             }
 
             .heroActions :global(.al-btn),
-            .programActions :global(.al-btn),
-            .finalActions :global(.al-btn) {
+            .ctaActions :global(.al-btn),
+            .startHighlight :global(.al-btn) {
               width: 100%;
             }
 
-            .proofBar {
-              grid-template-columns: 1fr;
-            }
-
-            .proofItem {
-              border-right: 0;
-              border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-            }
-
-            .proofItem:last-child {
-              border-bottom: 0;
-            }
-
-            .section {
-              padding: 40px 0;
-            }
-
-            .sectionProgram,
-            .sectionShowcase,
-            .sectionHow {
-              padding-top: 34px;
-              padding-bottom: 34px;
-            }
-
-            .finalBox {
-              padding: 26px;
+            .nextBroadcastCard {
+              max-width: 100%;
+              border-radius: 22px;
             }
           }
         `}</style>
@@ -1149,12 +1460,12 @@ export default function HomeTest() {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 54px;
-            padding: 0 24px;
-            border-radius: 14px;
+            min-height: 48px;
+            padding: 0 19px;
+            border-radius: 999px;
             text-decoration: none;
-            font-weight: 950;
-            font-size: 16px;
+            font-weight: 900;
+            font-size: 15px;
             line-height: 1.2;
             white-space: nowrap;
             transition:
@@ -1165,57 +1476,71 @@ export default function HomeTest() {
               color 0.18s ease;
           }
 
-          .al-btn:hover {
+          .al-btn span {
+            display: inline-block;
+          }
+
+          .al-btn-primary {
+            background: #0f172a;
+            color: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.92);
+            box-shadow:
+              0 12px 28px rgba(15, 23, 42, 0.14),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+          }
+
+          .al-btn-primary:hover {
             transform: translateY(-2px);
-          }
-
-          .al-btn-green {
-            background: #16a34a;
+            background: #111c33;
             color: #ffffff;
-            border: 1px solid #16a34a;
-            box-shadow: 0 12px 26px rgba(22, 163, 74, 0.22);
+            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
           }
 
-          .al-btn-green:hover {
-            background: #12813c;
-            border-color: #12813c;
-            color: #ffffff;
-          }
-
-          .al-btn-white {
+          .al-btn-secondary {
             background: #ffffff;
-            color: #0b57d0;
-            border: 1px solid rgba(11, 87, 208, 0.18);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+            color: #172033;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.045);
           }
 
-          .al-btn-white:hover {
+          .al-btn-secondary:hover {
+            transform: translateY(-2px);
             background: #f8fbff;
-            color: #0b57d0;
-            border-color: rgba(11, 87, 208, 0.28);
+            color: #0f172a;
+            border-color: rgba(37, 99, 235, 0.2);
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+          }
+
+          .al-btn-start {
+            background: #f59e0b;
+            color: #111827;
+            border: 1px solid rgba(245, 158, 11, 0.7);
+            box-shadow:
+              0 12px 28px rgba(245, 158, 11, 0.22),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          }
+
+          .al-btn-start:hover {
+            transform: translateY(-2px);
+            background: #fbbf24;
+            color: #111827;
+            box-shadow: 0 18px 38px rgba(245, 158, 11, 0.28);
           }
 
           .al-btn-light {
             background: #ffffff;
-            color: #0b57d0;
-            border: 1px solid rgba(255, 255, 255, 0.95);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+            color: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.92);
+            box-shadow:
+              0 10px 24px rgba(15, 23, 42, 0.14),
+              inset 0 1px 0 rgba(255, 255, 255, 0.56);
           }
 
           .al-btn-light:hover {
+            transform: translateY(-2px);
             background: #ffffff;
-            color: #0b57d0;
-          }
-
-          .al-btn-outlineLight {
-            background: rgba(255, 255, 255, 0.08);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.28);
-          }
-
-          .al-btn-outlineLight:hover {
-            background: rgba(255, 255, 255, 0.14);
-            color: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.18);
           }
         `}</style>
       </main>
