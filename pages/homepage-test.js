@@ -19,6 +19,30 @@ function ButtonLink({ href, children, variant = "primary", eventName, onClick })
   );
 }
 
+function VideoCard({ title, subtitle, src, featured = false }) {
+  return (
+    <div className={`videoCard${featured ? " videoCardFeatured" : ""}`}>
+      <div className="videoFrameWrap">
+        <iframe
+          width="100%"
+          height="100%"
+          src={src}
+          title={title}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          className="videoFrame"
+        />
+      </div>
+
+      <div className="videoBody">
+        <div className="videoTitle">{title}</div>
+        <div className="videoSubtitle">{subtitle}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function HomeTest() {
   return (
     <>
@@ -181,6 +205,41 @@ export default function HomeTest() {
                   <li>živý rozhovor s hostem v angličtině</li>
                   <li>možnost vysílání přímo z vaší školy</li>
                 </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="ukazky-vysilani" className="section sectionShowcase">
+          <div className="container">
+            <div className="showcaseShell">
+              <div className="sectionIntro sectionIntroShowcase">
+                <div className="eyebrow blue">Ukázky vysílání</div>
+                <h2>Jak vypadá jedna hodina s ARCHIMEDES Live</h2>
+                <p>
+                  Krátké ukázky z reálných vysílání pomáhají rychle pochopit atmosféru, formát i možnosti programu.
+                </p>
+              </div>
+
+              <div className="videosGrid">
+                <VideoCard
+                  featured
+                  title="Ukázka vysílání pro školy"
+                  subtitle="ZOO Praha – výukový vstup pro školní program"
+                  src="https://www.youtube.com/embed/yvelfGeL6Jg"
+                />
+
+                <VideoCard
+                  title="Angličtina s rodilým mluvčím"
+                  subtitle="Paul Wade – ukázka živého vstupu"
+                  src="https://www.youtube.com/embed/bX2y0Uxw-Dg"
+                />
+
+                <VideoCard
+                  title="Senior klub"
+                  subtitle="Prof. Jan Pirk a spisovatel Viktor Špaček"
+                  src="https://www.youtube.com/embed/-VV3PYdWPUo"
+                />
               </div>
             </div>
           </div>
@@ -647,45 +706,10 @@ export default function HomeTest() {
           .programText p,
           .directorIntro p,
           .classroomText p,
-          .finalBox p {
+          .finalBox p,
+          .sectionIntro p {
             font-size: 18px;
             line-height: 1.7;
-            color: #536179;
-          }
-
-          .steps {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 18px;
-          }
-
-          .step,
-          .directorCard {
-            padding: 26px;
-            border-radius: 24px;
-            background: #ffffff;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.045);
-          }
-
-          .stepNumber {
-            width: 34px;
-            height: 34px;
-            margin-bottom: 18px;
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: #0b57d0;
-            color: #ffffff;
-            font-weight: 950;
-          }
-
-          .step p,
-          .directorCard span {
-            margin: 0;
-            font-size: 15px;
-            line-height: 1.6;
             color: #536179;
           }
 
@@ -747,6 +771,151 @@ export default function HomeTest() {
             color: #16a34a;
             font-size: 14px;
             font-weight: 950;
+          }
+
+          .sectionShowcase {
+            background:
+              radial-gradient(circle at 10% 0%, rgba(37, 99, 235, 0.07), transparent 28%),
+              linear-gradient(180deg, #f7f9fc 0%, #ffffff 100%);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+          }
+
+          .showcaseShell {
+            position: relative;
+          }
+
+          .sectionIntroShowcase {
+            max-width: 760px;
+            margin-bottom: 24px;
+          }
+
+          .sectionIntroShowcase p {
+            margin-bottom: 0;
+          }
+
+          .videosGrid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 22px;
+            align-items: stretch;
+          }
+
+          .videoCard {
+            background: rgba(255, 255, 255, 0.97);
+            border: 1px solid rgba(15, 23, 42, 0.07);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow:
+              0 14px 36px rgba(15, 23, 42, 0.045),
+              0 2px 8px rgba(15, 23, 42, 0.028);
+            transition:
+              transform 0.22s ease,
+              box-shadow 0.22s ease,
+              border-color 0.22s ease;
+          }
+
+          .videoCard:hover {
+            transform: translateY(-5px);
+            box-shadow:
+              0 24px 54px rgba(15, 23, 42, 0.1),
+              0 6px 16px rgba(15, 23, 42, 0.045);
+            border-color: rgba(37, 68, 121, 0.14);
+          }
+
+          .videoCardFeatured {
+            position: relative;
+          }
+
+          .videoCardFeatured::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            border-radius: 28px;
+            box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.08);
+          }
+
+          .videosGrid :global(.videoCard:nth-child(1)) {
+            grid-column: span 6;
+          }
+
+          .videosGrid :global(.videoCard:nth-child(2)) {
+            grid-column: span 3;
+          }
+
+          .videosGrid :global(.videoCard:nth-child(3)) {
+            grid-column: span 3;
+          }
+
+          .videoFrameWrap {
+            aspect-ratio: 16 / 9;
+            background: #e5e7eb;
+          }
+
+          .videoFrame {
+            display: block;
+            width: 100%;
+            height: 100%;
+          }
+
+          .videoBody {
+            padding: 14px 16px 12px;
+          }
+
+          .videoTitle {
+            font-size: 17px;
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.3;
+            letter-spacing: -0.02em;
+            text-wrap: balance;
+          }
+
+          .videosGrid :global(.videoCard:nth-child(1) .videoTitle) {
+            font-size: 19px;
+          }
+
+          .videoSubtitle {
+            margin-top: 4px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #667387;
+          }
+
+          .steps {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+          }
+
+          .step,
+          .directorCard {
+            padding: 26px;
+            border-radius: 24px;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.045);
+          }
+
+          .stepNumber {
+            width: 34px;
+            height: 34px;
+            margin-bottom: 18px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #0b57d0;
+            color: #ffffff;
+            font-weight: 950;
+          }
+
+          .step p,
+          .directorCard span {
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #536179;
           }
 
           .directorBox {
@@ -880,6 +1049,16 @@ export default function HomeTest() {
             .steps {
               grid-template-columns: 1fr;
             }
+
+            .videosGrid {
+              grid-template-columns: 1fr;
+            }
+
+            .videosGrid :global(.videoCard:nth-child(1)),
+            .videosGrid :global(.videoCard:nth-child(2)),
+            .videosGrid :global(.videoCard:nth-child(3)) {
+              grid-column: auto;
+            }
           }
 
           @media (max-width: 760px) {
@@ -935,6 +1114,10 @@ export default function HomeTest() {
 
             .section {
               padding: 52px 0;
+            }
+
+            .sectionShowcase {
+              padding-top: 54px;
             }
 
             .finalBox {
