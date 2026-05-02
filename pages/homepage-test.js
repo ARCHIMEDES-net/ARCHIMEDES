@@ -691,7 +691,7 @@ export default function HomeTest() {
           }
 
           .section {
-            padding: 70px 0;
+            padding: 48px 0;
           }
 
           .splitHeader {
@@ -714,6 +714,8 @@ export default function HomeTest() {
           }
 
           .sectionProgram {
+            padding-top: 44px;
+            padding-bottom: 40px;
             background: #ffffff;
             border-top: 1px solid rgba(15, 23, 42, 0.06);
             border-bottom: 1px solid rgba(15, 23, 42, 0.06);
@@ -774,6 +776,8 @@ export default function HomeTest() {
           }
 
           .sectionShowcase {
+            padding-top: 40px;
+            padding-bottom: 44px;
             background:
               radial-gradient(circle at 10% 0%, rgba(37, 99, 235, 0.07), transparent 28%),
               linear-gradient(180deg, #f7f9fc 0%, #ffffff 100%);
@@ -882,6 +886,11 @@ export default function HomeTest() {
             color: #667387;
           }
 
+          .sectionHow {
+            padding-top: 40px;
+            padding-bottom: 44px;
+          }
+
           .steps {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -918,6 +927,10 @@ export default function HomeTest() {
             color: #536179;
           }
 
+          .sectionDirector {
+            padding-top: 44px;
+          }
+
           .directorBox {
             display: grid;
             grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
@@ -938,6 +951,7 @@ export default function HomeTest() {
           }
 
           .sectionClassroom {
+            padding-top: 44px;
             background: #ffffff;
             border-top: 1px solid rgba(15, 23, 42, 0.06);
             border-bottom: 1px solid rgba(15, 23, 42, 0.06);
@@ -990,7 +1004,8 @@ export default function HomeTest() {
           }
 
           .sectionFinal {
-            padding-bottom: 84px;
+            padding-top: 44px;
+            padding-bottom: 70px;
           }
 
           .finalBox {
@@ -1113,11 +1128,14 @@ export default function HomeTest() {
             }
 
             .section {
-              padding: 52px 0;
+              padding: 40px 0;
             }
 
-            .sectionShowcase {
-              padding-top: 54px;
+            .sectionProgram,
+            .sectionShowcase,
+            .sectionHow {
+              padding-top: 34px;
+              padding-bottom: 34px;
             }
 
             .finalBox {
