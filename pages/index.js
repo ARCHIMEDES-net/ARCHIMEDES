@@ -153,160 +153,157 @@ export default function Home() {
 
       <main className="page">
         <section className="hero">
-          <div className="heroMedia">
-            <img src={heroImg} alt="ARCHIMEDES Live ve škole" />
-            <div className="heroOverlay" />
-            <div className="heroGlow heroGlowOne" />
-            <div className="heroGlow heroGlowTwo" />
-          </div>
+          <div className="container">
+            <div className="heroGrid">
+              <div className="heroContent">
+                <div className="eyebrow">ARCHIMEDES Live pro školy a obce</div>
 
-          <div className="heroContentWrap">
-            <div className="container">
-              <div className="heroGrid">
-                <div className="heroContent">
-                  <div className="eyebrow">ARCHIMEDES Live pro školy a obce</div>
+                <h1>
+                  Hodina, na kterou
+                  <br />
+                  se nezapomíná.
+                </h1>
 
-                  <h1>
-                    Hodina, na kterou
-                    <br />
-                    se nezapomíná.
-                  </h1>
+                <p className="heroIntro">
+                  Živý program, který propojuje školy, obce a komunitní život.
+                  Přináší dětem i dospělým setkání s inspirativními hosty,
+                  témata z reálného světa a formát, který lze snadno zařadit do
+                  běžného dne školy i obce.
+                </p>
 
-                  <p className="heroIntro">
-                    Živý program, který propojuje školy, obce a komunitní život.
-                    Přináší dětem i dospělým setkání s inspirativními hosty,
-                    témata z reálného světa a formát, který lze snadno zařadit do
-                    běžného dne školy i obce.
-                  </p>
+                <p className="heroLead">
+                  Živé vysílání, tematické kluby, pracovní listy, archiv a
+                  program pro různé generace na jednom místě.
+                </p>
 
-                  <p className="heroLead">
-                    Živé vysílání, tematické kluby, pracovní listy, archiv a
-                    program pro různé generace na jednom místě.
-                  </p>
-
-                  <div className="heroActions">
-                    <ButtonLink
-                      href="/aktualni-pozvanky"
-                      variant="primary"
-                      eventName="klik_home_co_se_chysta"
-                    >
-                      Co se chystá
-                    </ButtonLink>
-
-                    <ButtonLink
-                      href="/program"
-                      variant="secondary"
-                      eventName="klik_home_program"
-                    >
-                      Zobrazit program
-                    </ButtonLink>
-
-                    <ButtonLink
-                      href="/start"
-                      variant="secondary"
-                      eventName="klik_home_start"
-                    >
-                      Balíček START
-                    </ButtonLink>
-
-                    <ButtonLink
-                      href="/#ukazky-vysilani"
-                      variant="secondary"
-                      eventName="klik_home_ukazkova_hodina"
-                    >
-                      Ukázková hodina
-                    </ButtonLink>
-
-                    <ButtonLink
-                      href="/demo"
-                      variant="secondary"
-                      eventName="klik_home_demo"
-                    >
-                      Ukázka platformy
-                    </ButtonLink>
-
-                    <ButtonLink
-                      href="/archimedes-day"
-                      variant="secondary"
-                      eventName="klik_home_archimedes_day"
-                    >
-                      ARCHIMEDES DAY
-                    </ButtonLink>
+                <div className="startHighlight">
+                  <div>
+                    <strong>Akční nabídka START</strong>
+                    <span>Nejrychlejší cesta, jak zapojit celou školu do programu.</span>
                   </div>
-
-                  <div className="heroGuestWrap">
-                    <Link
-                      href="/guest"
-                      className="heroGuestLink"
-                      onClick={() => track("klik_home_guest")}
-                    >
-                      <span>Welcome guests</span>
-                      <span aria-hidden="true">→</span>
-                    </Link>
-                  </div>
+                  <ButtonLink
+                    href="/start"
+                    variant="start"
+                    eventName="klik_home_start"
+                  >
+                    Balíček START
+                  </ButtonLink>
                 </div>
 
-                <div className="heroAside">
-                  <Link
-                    href="/program"
-                    className="nextBroadcastCard"
-                    onClick={() => track("klik_home_program_karta")}
+                <div className="heroActions">
+                  <ButtonLink
+                    href="/aktualni-pozvanky"
+                    variant="primary"
+                    eventName="klik_home_co_se_chysta"
                   >
-                    <div className="nextBroadcastHead">
-                      <div className="nextBroadcastLabel">Nejbližší vysílání</div>
-                      <div className="nextBroadcastBadge">Program</div>
+                    Co se chystá
+                  </ButtonLink>
+
+                  <ButtonLink
+                    href="/program"
+                    variant="secondary"
+                    eventName="klik_home_program"
+                  >
+                    Zobrazit program
+                  </ButtonLink>
+
+                  <ButtonLink
+                    href="/#ukazky-vysilani"
+                    variant="secondary"
+                    eventName="klik_home_ukazkova_hodina"
+                  >
+                    Ukázková hodina
+                  </ButtonLink>
+
+                  <ButtonLink
+                    href="/demo"
+                    variant="secondary"
+                    eventName="klik_home_demo"
+                  >
+                    Ukázka platformy
+                  </ButtonLink>
+
+                  <ButtonLink
+                    href="/archimedes-day"
+                    variant="secondary"
+                    eventName="klik_home_archimedes_day"
+                  >
+                    ARCHIMEDES DAY
+                  </ButtonLink>
+                </div>
+
+                <div className="heroGuestWrap">
+                  <Link
+                    href="/guest"
+                    className="heroGuestLink"
+                    onClick={() => track("klik_home_guest")}
+                  >
+                    <span>Welcome guests</span>
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="heroAside">
+                <Link
+                  href="/program"
+                  className="nextBroadcastCard"
+                  onClick={() => track("klik_home_program_karta")}
+                >
+                  <div className="nextBroadcastHead">
+                    <div className="nextBroadcastLabel">Nejbližší vysílání</div>
+                    <div className="nextBroadcastBadge">Program</div>
+                  </div>
+
+                  {nextEventLoading ? (
+                    <div className="nextBroadcastLoading">
+                      Načítáme nejbližší vysílání…
                     </div>
-
-                    {nextEventLoading ? (
-                      <div className="nextBroadcastLoading">
-                        Načítáme nejbližší vysílání…
+                  ) : nextEvent ? (
+                    <>
+                      <div className="nextBroadcastPosterWrap">
+                        {nextEvent.posterUrl ? (
+                          <img
+                            src={nextEvent.posterUrl}
+                            alt={nextEvent.title || "Plakát vysílání"}
+                            className="nextBroadcastPoster"
+                          />
+                        ) : (
+                          <div className="nextBroadcastPosterPlaceholder">
+                            ARCHIMEDES Live
+                          </div>
+                        )}
                       </div>
-                    ) : nextEvent ? (
-                      <>
-                        <div className="nextBroadcastPosterWrap">
-                          {nextEvent.posterUrl ? (
-                            <img
-                              src={nextEvent.posterUrl}
-                              alt={nextEvent.title || "Plakát vysílání"}
-                              className="nextBroadcastPoster"
-                            />
-                          ) : (
-                            <div className="nextBroadcastPosterPlaceholder">
-                              ARCHIMEDES Live
-                            </div>
-                          )}
+
+                      <div className="nextBroadcastBody">
+                        <div className="nextBroadcastDate">{nextEventDate}</div>
+
+                        <div className="nextBroadcastTitle">
+                          {nextEvent.title}
                         </div>
 
-                        <div className="nextBroadcastBody">
-                          <div className="nextBroadcastDate">{nextEventDate}</div>
-
-                          <div className="nextBroadcastTitle">
-                            {nextEvent.title}
-                          </div>
-
-                          <div className="nextBroadcastAction">
-                            <span>Zobrazit detail programu</span>
-                            <span aria-hidden="true">→</span>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="nextBroadcastEmpty">
-                        <div className="nextBroadcastEmptyTitle">
-                          Program připravujeme průběžně
-                        </div>
-                        <div className="nextBroadcastEmptyText">
-                          Otevřete si přehled programu a podívejte se na aktuální
-                          i připravovaná vysílání.
-                        </div>
                         <div className="nextBroadcastAction">
-                          <span>Zobrazit program</span>
+                          <span>Zobrazit detail programu</span>
                           <span aria-hidden="true">→</span>
                         </div>
                       </div>
-                    )}
-                  </Link>
-                </div>
+                    </>
+                  ) : (
+                    <div className="nextBroadcastEmpty">
+                      <div className="nextBroadcastEmptyTitle">
+                        Program připravujeme průběžně
+                      </div>
+                      <div className="nextBroadcastEmptyText">
+                        Otevřete si přehled programu a podívejte se na aktuální
+                        i připravovaná vysílání.
+                      </div>
+                      <div className="nextBroadcastAction">
+                        <span>Zobrazit program</span>
+                        <span aria-hidden="true">→</span>
+                      </div>
+                    </div>
+                  )}
+                </Link>
               </div>
             </div>
           </div>
@@ -542,139 +539,215 @@ export default function Home() {
         <style jsx>{`
           .page {
             background:
-              radial-gradient(circle at top left, rgba(221, 231, 247, 0.55), transparent 30%),
-              linear-gradient(180deg, #f8fafd 0%, #f4f7fb 100%);
+              radial-gradient(circle at top left, rgba(214, 226, 245, 0.8), transparent 32%),
+              linear-gradient(180deg, #f8fbff 0%, #f3f7fc 48%, #f7f9fc 100%);
             color: #0f172a;
           }
 
           .container {
-            max-width: 1240px;
+            max-width: 1180px;
             margin: 0 auto;
             padding: 0 20px;
           }
 
           .hero {
             position: relative;
-            min-height: 720px;
-            display: flex;
-            align-items: stretch;
+            padding: 48px 0 46px;
             overflow: hidden;
           }
 
-          .heroMedia {
-            position: absolute;
-            inset: 0;
-          }
-
-          .heroMedia img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center center;
-            display: block;
-            transform: scale(1.015);
-          }
-
-          .heroOverlay {
+          .hero::before {
+            content: "";
             position: absolute;
             inset: 0;
             background:
-              linear-gradient(
-                92deg,
-                rgba(7, 14, 31, 0.84) 0%,
-                rgba(7, 14, 31, 0.68) 25%,
-                rgba(7, 14, 31, 0.3) 56%,
-                rgba(7, 14, 31, 0.08) 100%
-              ),
-              linear-gradient(
-                180deg,
-                rgba(8, 15, 34, 0.18) 0%,
-                rgba(8, 15, 34, 0.02) 48%,
-                rgba(8, 15, 34, 0.18) 100%
-              );
+              linear-gradient(90deg, rgba(248, 251, 255, 0.98) 0%, rgba(248, 251, 255, 0.92) 48%, rgba(248, 251, 255, 0.68) 100%),
+              url(${heroImg});
+            background-size: cover;
+            background-position: center;
+            opacity: 1;
+            z-index: 0;
           }
 
-          .heroGlow {
+          .hero::after {
+            content: "";
             position: absolute;
+            width: 520px;
+            height: 520px;
+            right: -190px;
+            top: -180px;
+            background: rgba(59, 130, 246, 0.13);
+            filter: blur(20px);
             border-radius: 999px;
-            filter: blur(70px);
-            pointer-events: none;
-            opacity: 0.34;
-          }
-
-          .heroGlowOne {
-            width: 280px;
-            height: 280px;
-            right: 8%;
-            top: 12%;
-            background: rgba(78, 132, 223, 0.28);
-          }
-
-          .heroGlowTwo {
-            width: 220px;
-            height: 220px;
-            left: 2%;
-            bottom: 8%;
-            background: rgba(255, 255, 255, 0.12);
-          }
-
-          .heroContentWrap {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            display: flex;
-            align-items: center;
+            z-index: 0;
           }
 
           .heroGrid {
+            position: relative;
+            z-index: 2;
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(290px, 340px);
+            grid-template-columns: minmax(0, 1fr) minmax(300px, 350px);
             gap: 28px;
-            align-items: end;
+            align-items: center;
           }
 
           .heroContent {
             max-width: 780px;
-            padding: 116px 0 82px;
-            color: white;
+            padding: 24px 0;
           }
 
           .heroAside {
-            padding: 116px 0 82px;
+            display: flex;
+            justify-content: flex-end;
+          }
+
+          .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            min-height: 32px;
+            padding: 0 13px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+          }
+
+          .heroContent .eyebrow,
+          .eyebrow.dark {
+            background: #e7eef9;
+            color: #1e3a5f;
+            border: 1px solid rgba(30, 58, 95, 0.08);
+          }
+
+          .eyebrow.light {
+            background: rgba(255, 255, 255, 0.16);
+            color: rgba(255, 255, 255, 0.96);
+          }
+
+          h1 {
+            margin: 0;
+            font-size: 64px;
+            line-height: 0.98;
+            letter-spacing: -0.055em;
+            font-weight: 950;
+            max-width: 720px;
+            color: #0f172a;
+            text-wrap: balance;
+          }
+
+          .heroIntro {
+            margin: 18px 0 0;
+            font-size: 22px;
+            line-height: 1.42;
+            color: #172033;
+            font-weight: 800;
+            max-width: 760px;
+            letter-spacing: -0.02em;
+            text-wrap: balance;
+          }
+
+          .heroLead {
+            margin: 14px 0 0;
+            font-size: 18px;
+            line-height: 1.58;
+            color: #4d5a6d;
+            max-width: 680px;
+          }
+
+          .startHighlight {
+            margin-top: 24px;
+            max-width: 760px;
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 16px;
+            border-radius: 24px;
+            background:
+              linear-gradient(135deg, #ffffff 0%, #f3f8ff 100%);
+            border: 1px solid rgba(37, 99, 235, 0.16);
+            box-shadow:
+              0 16px 42px rgba(37, 99, 235, 0.09),
+              0 2px 8px rgba(15, 23, 42, 0.035);
+          }
+
+          .startHighlight strong {
+            display: block;
+            font-size: 18px;
+            line-height: 1.25;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+          }
+
+          .startHighlight span {
+            display: block;
+            margin-top: 4px;
+            font-size: 14px;
+            line-height: 1.45;
+            color: #536174;
+            font-weight: 700;
+          }
+
+          .heroActions,
+          .ctaActions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+          }
+
+          .heroActions {
+            margin-top: 18px;
+            max-width: 920px;
+          }
+
+          .heroGuestWrap {
+            margin-top: 14px;
+          }
+
+          .heroGuestLink {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #40516a;
+            text-decoration: none;
+            font-size: 14px;
+            line-height: 1.4;
+            font-weight: 800;
+            transition: color 0.18s ease, transform 0.18s ease;
+          }
+
+          .heroGuestLink:hover {
+            color: #0f172a;
+            transform: translateX(2px);
           }
 
           .nextBroadcastCard {
             display: block;
             width: 100%;
-            max-width: 328px;
-            color: #ffffff;
+            max-width: 340px;
+            color: #0f172a;
             text-decoration: none;
-            border-radius: 24px;
+            border-radius: 26px;
             padding: 14px;
-            background: rgba(9, 17, 34, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(15, 23, 42, 0.08);
             box-shadow:
-              0 18px 40px rgba(15, 23, 42, 0.16),
-              inset 0 1px 0 rgba(255, 255, 255, 0.08);
+              0 18px 45px rgba(15, 23, 42, 0.08),
+              0 2px 8px rgba(15, 23, 42, 0.03);
             transition:
               transform 0.22s ease,
               box-shadow 0.22s ease,
-              border-color 0.22s ease,
-              background 0.22s ease;
+              border-color 0.22s ease;
           }
 
           .nextBroadcastCard:hover {
             transform: translateY(-4px);
-            background: rgba(9, 17, 34, 0.58);
-            border-color: rgba(255, 255, 255, 0.22);
+            border-color: rgba(37, 99, 235, 0.22);
             box-shadow:
-              0 24px 52px rgba(15, 23, 42, 0.22),
-              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+              0 24px 56px rgba(15, 23, 42, 0.12),
+              0 4px 14px rgba(15, 23, 42, 0.05);
           }
 
           .nextBroadcastHead {
@@ -688,10 +761,10 @@ export default function Home() {
           .nextBroadcastLabel {
             font-size: 12px;
             line-height: 1.4;
-            font-weight: 800;
+            font-weight: 900;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.82);
+            color: #23324a;
           }
 
           .nextBroadcastBadge {
@@ -702,12 +775,12 @@ export default function Home() {
             border-radius: 999px;
             font-size: 11px;
             line-height: 1;
-            font-weight: 800;
+            font-weight: 900;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.92);
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #1d4ed8;
+            background: #eaf1ff;
+            border: 1px solid rgba(37, 99, 235, 0.12);
           }
 
           .nextBroadcastLoading,
@@ -718,14 +791,14 @@ export default function Home() {
           .nextBroadcastLoading {
             font-size: 15px;
             line-height: 1.6;
-            color: rgba(255, 255, 255, 0.88);
+            color: #566274;
           }
 
           .nextBroadcastPosterWrap {
             border-radius: 20px;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: #edf2f8;
+            border: 1px solid rgba(15, 23, 42, 0.06);
           }
 
           .nextBroadcastPoster {
@@ -748,10 +821,10 @@ export default function Home() {
             line-height: 1.3;
             font-weight: 900;
             letter-spacing: -0.03em;
-            color: rgba(255, 255, 255, 0.92);
+            color: #1f3153;
             background:
-              radial-gradient(circle at top right, rgba(255, 255, 255, 0.12), transparent 40%),
-              linear-gradient(135deg, rgba(31, 54, 99, 0.9), rgba(10, 20, 38, 0.92));
+              radial-gradient(circle at top right, rgba(37, 99, 235, 0.16), transparent 42%),
+              linear-gradient(135deg, #eef4ff, #f8fbff);
           }
 
           .nextBroadcastBody {
@@ -761,26 +834,26 @@ export default function Home() {
           .nextBroadcastDate {
             font-size: 14px;
             line-height: 1.5;
-            font-weight: 800;
-            color: rgba(255, 255, 255, 0.76);
+            font-weight: 900;
+            color: #526074;
           }
 
           .nextBroadcastTitle {
             margin-top: 6px;
             font-size: 18px;
-            line-height: 1.15;
+            line-height: 1.16;
             letter-spacing: -0.03em;
-            font-weight: 900;
-            color: #ffffff;
+            font-weight: 950;
+            color: #0f172a;
             text-wrap: balance;
           }
 
           .nextBroadcastEmptyTitle {
-            font-size: 22px;
-            line-height: 1.08;
+            font-size: 21px;
+            line-height: 1.1;
             letter-spacing: -0.03em;
-            font-weight: 900;
-            color: #ffffff;
+            font-weight: 950;
+            color: #0f172a;
             text-wrap: balance;
           }
 
@@ -788,7 +861,7 @@ export default function Home() {
             margin-top: 10px;
             font-size: 13px;
             line-height: 1.55;
-            color: rgba(255, 255, 255, 0.8);
+            color: #5d6878;
           }
 
           .nextBroadcastAction {
@@ -798,134 +871,41 @@ export default function Home() {
             gap: 8px;
             font-size: 14px;
             line-height: 1.4;
-            font-weight: 800;
-            color: #ffffff;
-          }
-
-          .eyebrow {
-            display: inline-flex;
-            align-items: center;
-            min-height: 34px;
-            padding: 0 14px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            margin-bottom: 16px;
-          }
-
-          .eyebrow.dark {
-            background: #e9eef8;
-            color: #223252;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-          }
-
-          .eyebrow.light {
-            background: rgba(255, 255, 255, 0.12);
-            color: rgba(255, 255, 255, 0.95);
-          }
-
-          .heroContent .eyebrow {
-            background: rgba(255, 255, 255, 0.12);
-            color: rgba(255, 255, 255, 0.94);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            margin-bottom: 14px;
-          }
-
-          h1 {
-            margin: 0;
-            font-size: 68px;
-            line-height: 0.97;
-            letter-spacing: -0.05em;
             font-weight: 900;
-            max-width: 720px;
-            text-wrap: balance;
-          }
-
-          .heroIntro {
-            margin: 22px 0 0;
-            font-size: 24px;
-            line-height: 1.4;
-            color: #ffffff;
-            font-weight: 800;
-            max-width: 760px;
-            letter-spacing: -0.02em;
-            text-wrap: balance;
-          }
-
-          .heroLead {
-            margin: 18px 0 0;
-            font-size: 20px;
-            line-height: 1.55;
-            color: rgba(255, 255, 255, 0.9);
-            max-width: 680px;
-          }
-
-          .heroActions,
-          .ctaActions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-          }
-
-          .heroActions {
-            margin-top: 30px;
-            max-width: 920px;
-          }
-
-          .heroGuestWrap {
-            margin-top: 18px;
-          }
-
-          .heroGuestLink {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: rgba(255, 255, 255, 0.72);
-            text-decoration: none;
-            font-size: 14px;
-            line-height: 1.4;
-            font-weight: 700;
-            transition: color 0.18s ease, transform 0.18s ease;
-          }
-
-          .heroGuestLink:hover {
-            color: rgba(255, 255, 255, 0.96);
-            transform: translateX(2px);
+            color: #1d4ed8;
           }
 
           .section {
-            padding: 76px 0;
+            padding: 50px 0;
           }
 
           .sectionHow {
-            padding-top: 58px;
-            padding-bottom: 54px;
+            padding-top: 44px;
+            padding-bottom: 40px;
           }
 
           .sectionShowcase {
-            padding-top: 6px;
-            padding-bottom: 36px;
+            padding-top: 18px;
+            padding-bottom: 42px;
           }
 
           .sectionBenefits {
             position: relative;
-            padding-top: 54px;
-            padding-bottom: 72px;
+            padding-top: 46px;
+            padding-bottom: 52px;
             background:
-              linear-gradient(180deg, rgba(234, 239, 247, 0.86) 0%, rgba(240, 244, 250, 0.98) 100%);
+              linear-gradient(180deg, rgba(237, 243, 251, 0.88) 0%, rgba(246, 249, 253, 0.98) 100%);
             border-top: 1px solid rgba(15, 23, 42, 0.04);
             border-bottom: 1px solid rgba(15, 23, 42, 0.04);
           }
 
           .sectionTrust {
             padding-top: 42px;
-            padding-bottom: 70px;
+            padding-bottom: 52px;
           }
 
           .sectionIntro {
-            margin-bottom: 28px;
+            margin-bottom: 24px;
           }
 
           .sectionIntroWide {
@@ -935,7 +915,7 @@ export default function Home() {
           .sectionIntro.center {
             text-align: center;
             max-width: 860px;
-            margin: 0 auto 32px;
+            margin: 0 auto 28px;
           }
 
           .sectionIntroShowcase {
@@ -945,10 +925,10 @@ export default function Home() {
 
           h2 {
             margin: 0;
-            font-size: 48px;
-            line-height: 1.01;
+            font-size: 44px;
+            line-height: 1.03;
             letter-spacing: -0.055em;
-            font-weight: 900;
+            font-weight: 950;
             color: #0f172a;
             text-wrap: balance;
           }
@@ -956,9 +936,9 @@ export default function Home() {
           .sectionIntro p,
           .trustPanel p,
           .ctaBox p {
-            margin: 14px 0 0;
-            font-size: 18px;
-            line-height: 1.72;
+            margin: 12px 0 0;
+            font-size: 17px;
+            line-height: 1.68;
             color: #5a6474;
             max-width: 780px;
           }
@@ -966,106 +946,91 @@ export default function Home() {
           .stepsGrid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 22px;
+            gap: 18px;
           }
 
           .stepCard,
           .benefitCard,
           .videoCard {
-            background: rgba(255, 255, 255, 0.97);
+            background: rgba(255, 255, 255, 0.98);
             border: 1px solid rgba(15, 23, 42, 0.07);
-            border-radius: 28px;
+            border-radius: 24px;
             overflow: hidden;
             box-shadow:
-              0 14px 36px rgba(15, 23, 42, 0.045),
-              0 2px 8px rgba(15, 23, 42, 0.028);
+              0 12px 30px rgba(15, 23, 42, 0.045),
+              0 2px 8px rgba(15, 23, 42, 0.025);
           }
 
-          .stepCard {
+          .stepCard,
+          .benefitCard,
+          .videoCard {
             transition:
               transform 0.22s ease,
               box-shadow 0.22s ease,
               border-color 0.22s ease;
           }
 
-          .stepCard:hover {
+          .stepCard:hover,
+          .benefitCard:hover,
+          .videoCard:hover {
             transform: translateY(-4px);
             box-shadow:
-              0 22px 48px rgba(15, 23, 42, 0.08),
-              0 4px 14px rgba(15, 23, 42, 0.05);
-            border-color: rgba(37, 68, 121, 0.14);
+              0 20px 42px rgba(15, 23, 42, 0.075),
+              0 4px 14px rgba(15, 23, 42, 0.045);
+            border-color: rgba(37, 99, 235, 0.14);
           }
 
           .stepImage img {
             width: 100%;
-            height: 228px;
+            height: 205px;
             object-fit: cover;
             display: block;
           }
 
           .stepBody {
-            padding: 22px 22px 24px;
+            padding: 20px 20px 22px;
           }
 
           .stepNumber {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 999px;
-            background: #0f172a;
+            background: #1d4ed8;
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 14px;
-            font-weight: 900;
-            margin-bottom: 14px;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+            font-weight: 950;
+            margin-bottom: 12px;
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
           }
 
           .stepBody h3,
           .benefitCard h3 {
             margin: 0;
-            font-size: 24px;
-            line-height: 1.1;
+            font-size: 23px;
+            line-height: 1.12;
             letter-spacing: -0.03em;
-            font-weight: 900;
+            font-weight: 950;
             color: #0f172a;
             text-wrap: balance;
           }
 
           .stepBody p,
           .benefitCard p {
-            margin: 11px 0 0;
-            font-size: 16px;
-            line-height: 1.66;
+            margin: 10px 0 0;
+            font-size: 15.5px;
+            line-height: 1.62;
             color: #5b6676;
-          }
-
-          .showcaseShell {
-            position: relative;
           }
 
           .videosGrid {
             display: grid;
             grid-template-columns: repeat(12, minmax(0, 1fr));
-            gap: 22px;
-            margin-top: 20px;
+            gap: 18px;
+            margin-top: 18px;
             align-items: stretch;
-          }
-
-          .videoCard {
-            transition:
-              transform 0.22s ease,
-              box-shadow 0.22s ease,
-              border-color 0.22s ease;
-          }
-
-          .videoCard:hover {
-            transform: translateY(-5px);
-            box-shadow:
-              0 24px 54px rgba(15, 23, 42, 0.1),
-              0 6px 16px rgba(15, 23, 42, 0.045);
-            border-color: rgba(37, 68, 121, 0.14);
           }
 
           .videoCardFeatured {
@@ -1077,7 +1042,7 @@ export default function Home() {
             position: absolute;
             inset: 0;
             pointer-events: none;
-            border-radius: 28px;
+            border-radius: 24px;
             box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.08);
           }
 
@@ -1105,12 +1070,12 @@ export default function Home() {
           }
 
           .videoBody {
-            padding: 14px 16px 12px;
+            padding: 14px 16px 13px;
           }
 
           .videoTitle {
             font-size: 17px;
-            font-weight: 800;
+            font-weight: 900;
             color: #0f172a;
             line-height: 1.3;
             letter-spacing: -0.02em;
@@ -1131,60 +1096,48 @@ export default function Home() {
           .benefitsGrid {
             display: grid;
             grid-template-columns: 1.14fr 1fr 1fr;
-            gap: 22px;
+            gap: 18px;
           }
 
           .benefitCard {
-            padding: 28px 26px;
-            transition:
-              transform 0.22s ease,
-              box-shadow 0.22s ease,
-              border-color 0.22s ease;
-          }
-
-          .benefitCard:hover {
-            transform: translateY(-4px);
-            box-shadow:
-              0 22px 48px rgba(15, 23, 42, 0.08),
-              0 4px 14px rgba(15, 23, 42, 0.05);
-            border-color: rgba(37, 68, 121, 0.14);
+            padding: 26px 24px;
           }
 
           .benefitCardPrimary {
             background:
-              linear-gradient(180deg, rgba(255, 255, 255, 0.99) 0%, rgba(246, 250, 255, 0.99) 100%);
-            border-color: rgba(37, 68, 121, 0.11);
+              linear-gradient(180deg, #ffffff 0%, #f3f8ff 100%);
+            border-color: rgba(37, 99, 235, 0.18);
             box-shadow:
-              0 18px 46px rgba(24, 48, 88, 0.07),
+              0 18px 44px rgba(37, 99, 235, 0.08),
               0 2px 8px rgba(15, 23, 42, 0.03);
           }
 
           .benefitTag {
             display: inline-flex;
             align-items: center;
-            min-height: 32px;
+            min-height: 31px;
             padding: 0 12px;
             border-radius: 999px;
-            background: #eef3fb;
-            color: #223252;
+            background: #eaf1ff;
+            color: #1d4ed8;
             font-size: 13px;
-            font-weight: 800;
-            margin-bottom: 16px;
+            font-weight: 900;
+            margin-bottom: 15px;
           }
 
           .trustPanel {
             display: grid;
             grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
-            gap: 30px;
+            gap: 26px;
             align-items: stretch;
             background:
-              linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 253, 255, 0.98) 100%);
+              linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
             border: 1px solid rgba(15, 23, 42, 0.06);
-            border-radius: 32px;
-            padding: 34px;
+            border-radius: 30px;
+            padding: 32px;
             box-shadow:
-              0 18px 44px rgba(15, 23, 42, 0.05),
-              0 2px 8px rgba(15, 23, 42, 0.03);
+              0 16px 40px rgba(15, 23, 42, 0.05),
+              0 2px 8px rgba(15, 23, 42, 0.025);
           }
 
           .trustMain {
@@ -1194,7 +1147,7 @@ export default function Home() {
           }
 
           .trustInlineLinks {
-            margin-top: 22px;
+            margin-top: 20px;
             display: flex;
             flex-wrap: wrap;
             gap: 10px 18px;
@@ -1204,10 +1157,10 @@ export default function Home() {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            color: #18315e;
+            color: #1d4ed8;
             text-decoration: none;
             font-size: 15px;
-            font-weight: 800;
+            font-weight: 900;
             line-height: 1.4;
             transition: color 0.18s ease, transform 0.18s ease;
           }
@@ -1220,14 +1173,14 @@ export default function Home() {
           .trustStats {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 14px;
+            gap: 12px;
           }
 
           .trustStat {
-            border-radius: 22px;
+            border-radius: 20px;
             background:
-              linear-gradient(180deg, #f7f9fc 0%, #f2f6fb 100%);
-            padding: 20px 20px 18px;
+              linear-gradient(180deg, #f7faff 0%, #eef4fb 100%);
+            padding: 18px 20px;
             border: 1px solid rgba(15, 23, 42, 0.05);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
           }
@@ -1237,37 +1190,37 @@ export default function Home() {
             font-size: 31px;
             line-height: 1;
             letter-spacing: -0.04em;
-            font-weight: 900;
+            font-weight: 950;
             color: #0f172a;
           }
 
           .trustStat span {
             display: block;
-            margin-top: 9px;
+            margin-top: 8px;
             font-size: 14px;
-            line-height: 1.55;
+            line-height: 1.5;
             color: #5b6472;
-            font-weight: 700;
+            font-weight: 800;
           }
 
           .ctaSection {
-            padding: 0 0 84px;
+            padding: 0 0 64px;
           }
 
           .ctaBox {
             background:
-              radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 28%),
-              linear-gradient(135deg, #071225 0%, #0b1832 100%);
+              radial-gradient(circle at top right, rgba(96, 165, 250, 0.18), transparent 30%),
+              linear-gradient(135deg, #0f2344 0%, #0b1832 100%);
             color: white;
-            border-radius: 34px;
-            padding: 38px 34px;
+            border-radius: 32px;
+            padding: 34px 32px;
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
-            gap: 26px;
+            gap: 24px;
             align-items: center;
             box-shadow:
-              0 28px 62px rgba(15, 23, 42, 0.16),
-              inset 0 1px 0 rgba(255, 255, 255, 0.04);
+              0 24px 58px rgba(15, 23, 42, 0.16),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05);
           }
 
           .ctaMain {
@@ -1293,32 +1246,24 @@ export default function Home() {
             font-size: 14px;
             line-height: 1.5;
             color: rgba(255, 255, 255, 0.72);
-            font-weight: 700;
-          }
-
-          @media (max-width: 1180px) {
-            .heroGrid {
-              grid-template-columns: 1fr;
-              gap: 12px;
-            }
-
-            .heroAside {
-              padding-top: 0;
-              padding-bottom: 68px;
-              justify-content: flex-start;
-            }
-
-            .nextBroadcastCard {
-              max-width: 340px;
-            }
+            font-weight: 800;
           }
 
           @media (max-width: 1100px) {
+            .heroGrid,
             .stepsGrid,
             .benefitsGrid,
             .trustPanel,
             .ctaBox {
               grid-template-columns: 1fr;
+            }
+
+            .heroAside {
+              justify-content: flex-start;
+            }
+
+            .nextBroadcastCard {
+              max-width: 380px;
             }
 
             .videosGrid {
@@ -1338,60 +1283,61 @@ export default function Home() {
 
           @media (max-width: 900px) {
             .hero {
-              min-height: 640px;
+              padding: 36px 0 34px;
             }
 
             .heroContent {
-              padding: 98px 0 24px;
-            }
-
-            .heroAside {
-              padding: 0 0 56px;
+              padding: 16px 0 0;
             }
 
             h1 {
-              font-size: 54px;
+              font-size: 52px;
               line-height: 1;
             }
 
             h2 {
-              font-size: 38px;
+              font-size: 37px;
             }
 
             .heroIntro {
-              font-size: 21px;
+              font-size: 20px;
             }
 
             .heroLead {
-              font-size: 18px;
+              font-size: 17px;
             }
 
             .section {
-              padding: 62px 0;
+              padding: 42px 0;
             }
 
             .sectionHow {
-              padding-top: 48px;
-              padding-bottom: 44px;
+              padding-top: 36px;
+              padding-bottom: 34px;
             }
 
             .sectionShowcase {
-              padding-top: 0;
-              padding-bottom: 28px;
+              padding-top: 8px;
+              padding-bottom: 34px;
+            }
+
+            .sectionBenefits {
+              padding-top: 40px;
+              padding-bottom: 44px;
             }
 
             .sectionTrust {
-              padding-top: 30px;
-              padding-bottom: 56px;
+              padding-top: 34px;
+              padding-bottom: 44px;
             }
 
             .stepImage img {
-              height: 208px;
+              height: 198px;
             }
 
             .trustPanel,
             .ctaBox {
-              padding: 28px;
+              padding: 26px;
             }
           }
 
@@ -1401,56 +1347,30 @@ export default function Home() {
             }
 
             .hero {
-              min-height: 560px;
+              padding: 28px 0 30px;
             }
 
-            .heroOverlay {
+            .hero::before {
               background:
-                linear-gradient(
-                  180deg,
-                  rgba(8, 15, 34, 0.82) 0%,
-                  rgba(8, 15, 34, 0.56) 48%,
-                  rgba(8, 15, 34, 0.3) 100%
-                );
-            }
-
-            .heroGlowOne,
-            .heroGlowTwo {
-              display: none;
-            }
-
-            .heroContent {
-              max-width: none;
-              padding: 82px 0 18px;
-            }
-
-            .heroAside {
-              padding: 0 0 44px;
-            }
-
-            .nextBroadcastCard {
-              max-width: 100%;
-              padding: 14px;
-              border-radius: 22px;
-            }
-
-            .nextBroadcastTitle {
-              font-size: 18px;
+                linear-gradient(180deg, rgba(248, 251, 255, 0.98) 0%, rgba(248, 251, 255, 0.94) 58%, rgba(248, 251, 255, 0.88) 100%),
+                url(${heroImg});
+              background-size: cover;
+              background-position: center;
             }
 
             h1 {
               font-size: 40px;
-              letter-spacing: -0.04em;
+              letter-spacing: -0.045em;
             }
 
             h2 {
-              font-size: 34px;
+              font-size: 32px;
               letter-spacing: -0.05em;
             }
 
             .heroIntro {
               font-size: 18px;
-              line-height: 1.45;
+              line-height: 1.44;
             }
 
             .heroLead,
@@ -1460,36 +1380,43 @@ export default function Home() {
               font-size: 16px;
             }
 
+            .startHighlight {
+              flex-direction: column;
+              align-items: stretch;
+              padding: 15px;
+              border-radius: 22px;
+            }
+
             .section {
-              padding: 48px 0;
+              padding: 36px 0;
             }
 
             .sectionHow {
-              padding-top: 38px;
-              padding-bottom: 34px;
+              padding-top: 32px;
+              padding-bottom: 30px;
             }
 
             .sectionShowcase {
-              padding-top: 0;
-              padding-bottom: 24px;
+              padding-top: 4px;
+              padding-bottom: 28px;
             }
 
             .sectionBenefits {
-              padding-top: 42px;
-              padding-bottom: 54px;
+              padding-top: 34px;
+              padding-bottom: 38px;
             }
 
             .sectionTrust {
-              padding-top: 18px;
-              padding-bottom: 42px;
+              padding-top: 26px;
+              padding-bottom: 36px;
             }
 
             .sectionIntro {
-              margin-bottom: 20px;
+              margin-bottom: 18px;
             }
 
             .sectionIntro.center {
-              margin: 0 auto 22px;
+              margin: 0 auto 20px;
             }
 
             .stepBody,
@@ -1516,8 +1443,14 @@ export default function Home() {
             }
 
             .heroActions :global(.al-btn),
-            .ctaActions :global(.al-btn) {
+            .ctaActions :global(.al-btn),
+            .startHighlight :global(.al-btn) {
               width: 100%;
+            }
+
+            .nextBroadcastCard {
+              max-width: 100%;
+              border-radius: 22px;
             }
           }
         `}</style>
@@ -1527,11 +1460,11 @@ export default function Home() {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 50px;
-            padding: 0 20px;
+            min-height: 48px;
+            padding: 0 19px;
             border-radius: 999px;
             text-decoration: none;
-            font-weight: 800;
+            font-weight: 900;
             font-size: 15px;
             line-height: 1.2;
             white-space: nowrap;
@@ -1548,36 +1481,50 @@ export default function Home() {
           }
 
           .al-btn-primary {
-            background: #ffffff;
-            color: #0f172a;
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            background: #0f172a;
+            color: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.92);
             box-shadow:
-              0 12px 28px rgba(15, 23, 42, 0.16),
-              inset 0 1px 0 rgba(255, 255, 255, 0.55);
+              0 12px 28px rgba(15, 23, 42, 0.14),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08);
           }
 
           .al-btn-primary:hover {
             transform: translateY(-2px);
+            background: #111c33;
+            color: #ffffff;
             box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
-            background: #ffffff;
-            color: #0f172a;
           }
 
           .al-btn-secondary {
-            background: rgba(255, 255, 255, 0.12);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+            background: #ffffff;
+            color: #172033;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.045);
           }
 
           .al-btn-secondary:hover {
             transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+            background: #f8fbff;
+            color: #0f172a;
+            border-color: rgba(37, 99, 235, 0.2);
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+          }
+
+          .al-btn-start {
+            background: #f59e0b;
+            color: #111827;
+            border: 1px solid rgba(245, 158, 11, 0.7);
+            box-shadow:
+              0 12px 28px rgba(245, 158, 11, 0.22),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          }
+
+          .al-btn-start:hover {
+            transform: translateY(-2px);
+            background: #fbbf24;
+            color: #111827;
+            box-shadow: 0 18px 38px rgba(245, 158, 11, 0.28);
           }
 
           .al-btn-light {
