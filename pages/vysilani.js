@@ -8,6 +8,13 @@ const posters = Array.from({ length: 30 }, (_, i) => ({
   label: `Plakát ${i + 1}`,
 }));
 
+const heroPosters = [
+  "/pl50.jpeg",
+  "/pl51.jpeg",
+  "/pl52.jpg",
+  "/pl53.jpg",
+];
+
 export default function ProbehlaVysilaniPage() {
   const [activePoster, setActivePoster] = useState(null);
   const totalCount = useMemo(() => posters.length, []);
@@ -78,7 +85,7 @@ export default function ProbehlaVysilaniPage() {
                   }}
                 >
                   Podívejte se na výběr z vysílání, která už v programu
-                  ARCHIMEDES Live proběhla.    
+                  ARCHIMEDES Live proběhla.
                 </p>
 
                 <div
@@ -187,9 +194,9 @@ export default function ProbehlaVysilaniPage() {
                       height: "100%",
                     }}
                   >
-                    {[1, 2, 3, 4].map((n) => (
+                    {heroPosters.map((src, index) => (
                       <div
-                        key={n}
+                        key={src}
                         style={{
                           borderRadius: "18px",
                           overflow: "hidden",
@@ -198,8 +205,8 @@ export default function ProbehlaVysilaniPage() {
                         }}
                       >
                         <img
-                          src={`/pl${n}.webp`}
-                          alt={`Ukázkový plakát ${n}`}
+                          src={src}
+                          alt={`Ukázkový plakát ${index + 1}`}
                           style={{
                             width: "100%",
                             height: "100%",
@@ -263,7 +270,7 @@ export default function ProbehlaVysilaniPage() {
                   color: "#475569",
                 }}
               >
-                Kliknutím na libovolný plakát otevřete větší náhled. 
+                Kliknutím na libovolný plakát otevřete větší náhled.
               </p>
             </div>
 
