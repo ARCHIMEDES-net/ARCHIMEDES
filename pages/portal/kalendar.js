@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
+import JoinBroadcastButton from "../../components/JoinBroadcastButton";
 import { supabase } from "../../lib/supabaseClient";
 
 const BUCKET = "posters";
@@ -178,31 +179,13 @@ function BroadcastBadge({ row }) {
   );
 }
 
-function JoinButton({ row }) {
-  if (!shouldShowJoinButton(row)) return null;
-
-  const href = getStreamUrl(row);
-  if (!href) return null;
-
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-medium"
-    >
-      ▶ Vstoupit do vysílání
-    </a>
-  );
-}
-
 function EventCard({ row, compact = false }) {
   const posterUrl = resolvePosterUrl(row);
   const start = getEffectiveStart(row);
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
-      <div className="flex gap-4 items-start">
+      <div className="flex flex-col sm:flex-row gap-4 items-start">
         {posterUrl ? (
           <div
             className={`${
@@ -218,7 +201,7 @@ function EventCard({ row, compact = false }) {
           </div>
         ) : null}
 
-        <div className="flex-1 min-w-[260px]">
+        <div className="flex-1 min-w-0 w-full">
           <div className="text-sm text-slate-500">
             {start ? formatDateTimeCS(start) : "Bez data"}
           </div>
@@ -245,14 +228,18 @@ function EventCard({ row, compact = false }) {
           </div>
 
           <div className="mt-4 flex gap-2 flex-wrap">
+            <JoinBroadcastButton
+              event={row}
+              compact={compact}
+              detailHref={`/portal/udalost/${row.id}`}
+            />
+
             <Link
               href={`/portal/udalost/${row.id}`}
-              className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
+              className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300 font-semibold"
             >
               Detail
             </Link>
-
-            <JoinButton row={row} />
           </div>
         </div>
       </div>
