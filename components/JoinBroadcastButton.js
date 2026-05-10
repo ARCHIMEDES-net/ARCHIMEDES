@@ -82,7 +82,8 @@ export default function JoinBroadcastButton({
         }}
         title="Tlačítko pro vstup se aktivuje 15 minut před začátkem vysílání."
       >
-        ⏱ {state.label}
+        ⏱ Vstoupit do vysílání od{" "}
+        {state.label?.replace("Připojení od ", "")}
       </span>
     );
   }
@@ -104,7 +105,11 @@ export default function JoinBroadcastButton({
     );
   }
 
-  if ((state.state === "detail" || state.state === "disabled") && showDetailFallback && detailHref) {
+  if (
+    (state.state === "detail" || state.state === "disabled") &&
+    showDetailFallback &&
+    detailHref
+  ) {
     return (
       <Link
         href={detailHref}
