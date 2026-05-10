@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
+import JoinBroadcastButton from "../../../components/JoinBroadcastButton";
+import { getStreamUrl } from "../../../lib/broadcastState";
 import { supabase } from "../../../lib/supabaseClient";
 
 const BUCKET = "posters";
@@ -180,7 +182,18 @@ export default function UdalostDetail() {
 
       const { data, error } = await supabase
         .from("events")
-        .select("*")
+        .select(`
+          *,
+          broadcast_sessions (
+            id,
+            event_id,
+            status,
+            viewer_url,
+            recording_url,
+            recording_status,
+            starts_at
+          )
+        `)
         .eq("id", id)
         .single();
 
@@ -300,7 +313,7 @@ export default function UdalostDetail() {
     [row]
   );
 
-  const streamUrl = row?.stream_url || row?.streamUrl || "";
+  const streamUrl = getStreamUrl(row);
   const worksheetUrl = row?.worksheet_url || "";
   const posterUrl = useMemo(() => resolvePosterUrl(row), [row]);
 
@@ -471,22 +484,19 @@ export default function UdalostDetail() {
 
           <div className="mt-6 flex flex-wrap gap-2">
             {canAccessStream ? (
-              <a
-                href={streamUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
-              >
-                ▶ Odkaz na vysílání
-              </a>
+              <JoinBroadcastButton
+                event={row}
+                detailHref={`/portal/udalost/${row?.id}`}
+                showWaiting
+              />
             ) : streamUrl ? (
               <button
                 type="button"
                 disabled
-                className="px-4 py-2 rounded-xl bg-slate-200 text-slate-600 cursor-not-allowed"
+                className="px-4 py-2 rounded-xl bg-slate-200 text-slate-600 cursor-not-allowed font-semibold"
                 title="Dostupné pouze pro aktivní organizace"
               >
-                🔒 Odkaz na vysílání
+                🔒 Vstup do vysílání
               </button>
             ) : null}
 
