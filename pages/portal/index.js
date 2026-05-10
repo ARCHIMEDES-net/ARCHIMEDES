@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
+import JoinBroadcastButton from "../../components/JoinBroadcastButton";
+import { getEventStart, getJoinButtonState } from "../../lib/broadcastState";
 import { supabase } from "../../lib/supabaseClient";
 
 const DEMO_FEATURED_VIDEO = {
@@ -101,7 +103,22 @@ export default function PortalIndex() {
 
         const { data, error } = await supabase
           .from("events")
-          .select("id,title,starts_at,category,full_description")
+          .select(`
+            id,
+            title,
+            starts_at,
+            category,
+            full_description,
+            stream_url,
+            is_published,
+            broadcast_sessions (
+              id,
+              event_id,
+              status,
+              viewer_url,
+              starts_at
+            )
+          `)
           .eq("is_published", true)
           .gt("starts_at", nowIso)
           .order("starts_at", { ascending: true })
@@ -250,6 +267,7 @@ export default function PortalIndex() {
   }, []);
 
   const hasEvents = nextEvents && nextEvents.length > 0;
+  const featuredEvent = hasEvents ? nextEvents[0] : null;
   const isDemoViewer =
     dashboardType === "demo_viewer" && membershipRole === "demo_viewer";
 
@@ -356,6 +374,10 @@ export default function PortalIndex() {
               secondaryHref="/portal/skoly"
               secondaryLabel="Zobrazit síť učeben"
             />
+          ) : null}
+
+          {!loadingProfileType && featuredEvent ? (
+            <TeacherJoinHero event={featuredEvent} />
           ) : null}
 
           {showGettingStarted ? (
@@ -1358,6 +1380,176 @@ function getDashboardConfig(
   };
 }
 
+
+function TeacherJoinHero({ event }) {
+  const start = getEventStart(event);
+  const joinState = getJoinButtonState(event);
+  const title = event?.title || "Nejbližší vysílání";
+  const dt = start ? formatDateTimeCS(start) : "Termín připravujeme";
+  const desc = stripHtml(event?.full_description || "");
+  const short = desc ? (desc.length > 170 ? desc.slice(0, 170) + "…" : desc) : "Přehled nejbližšího vysílání. Tady má učitel nejrychlejší cestu k připojení.";
+
+  return (
+    <section
+      style={{
+        background: "linear-gradient(135deg, #0f172a 0%, #1e293b 56%, #0f766e 100%)",
+        borderRadius: 28,
+        padding: 22,
+        marginBottom: 18,
+        color: "white",
+        boxShadow: "0 18px 46px rgba(15,23,42,0.18)",
+        overflow: "hidden",
+        position: "relative",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: "auto -80px -120px auto",
+          width: 260,
+          height: 260,
+          borderRadius: 999,
+          background: "rgba(255,255,255,0.10)",
+        }}
+      />
+
+      <div className="teacher-join-hero">
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "7px 11px",
+              borderRadius: 999,
+              background: "rgba(255,255,255,0.14)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              fontSize: 12,
+              fontWeight: 900,
+              marginBottom: 12,
+            }}
+          >
+            Nejrychlejší cesta pro učitele
+          </div>
+
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 34,
+              lineHeight: 1.05,
+              letterSpacing: "-0.03em",
+              fontWeight: 950,
+            }}
+          >
+            Vstup do nejbližšího vysílání
+          </h1>
+
+          <div
+            style={{
+              marginTop: 14,
+              fontSize: 18,
+              lineHeight: 1.35,
+              fontWeight: 900,
+            }}
+          >
+            {title}
+          </div>
+
+          <div style={{ marginTop: 6, fontSize: 15, opacity: 0.86 }}>
+            {dt}
+          </div>
+
+          <div
+            style={{
+              marginTop: 12,
+              fontSize: 15,
+              lineHeight: 1.6,
+              opacity: 0.86,
+              maxWidth: 720,
+            }}
+          >
+            {short}
+          </div>
+        </div>
+
+        <div className="teacher-join-panel">
+          <div style={{ fontSize: 13, fontWeight: 900, color: "rgba(255,255,255,0.76)", marginBottom: 10 }}>
+            Co má učitel udělat?
+          </div>
+
+          <JoinBroadcastButton
+            event={event}
+            fullWidth
+            detailHref={`/portal/udalost/${event?.id}`}
+          />
+
+          <div
+            style={{
+              marginTop: 12,
+              fontSize: 13,
+              lineHeight: 1.5,
+              color: "rgba(255,255,255,0.78)",
+            }}
+          >
+            {joinState.state === "join"
+              ? "Tlačítko otevře Google Meet v novém okně."
+              : joinState.state === "waiting"
+              ? "Připojení se automaticky zpřístupní 15 minut před začátkem."
+              : "Otevřete detail vysílání, kde najdete program a další materiály."}
+          </div>
+
+          <Link
+            href={`/portal/udalost/${event?.id}`}
+            style={{
+              marginTop: 12,
+              display: "inline-flex",
+              width: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 46,
+              padding: "0 16px",
+              borderRadius: 15,
+              background: "rgba(255,255,255,0.10)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              color: "white",
+              textDecoration: "none",
+              fontWeight: 900,
+            }}
+          >
+            Detail vysílání
+          </Link>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .teacher-join-hero {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+          gap: 20px;
+          align-items: center;
+        }
+
+        .teacher-join-panel {
+          background: rgba(255,255,255,0.12);
+          border: 1px solid rgba(255,255,255,0.18);
+          border-radius: 24px;
+          padding: 16px;
+          box-shadow: 0 16px 38px rgba(0,0,0,0.12);
+          backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 780px) {
+          .teacher-join-hero {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+    </section>
+  );
+}
+
 function LicenseBanner({
   mode,
   title,
@@ -1665,6 +1857,7 @@ function EventRow({ e }) {
         display: "flex",
         alignItems: "flex-start",
         gap: 14,
+        flexWrap: "wrap",
         background: "linear-gradient(180deg, #ffffff 0%, #fbfcff 100%)",
       }}
     >
@@ -1706,22 +1899,31 @@ function EventRow({ e }) {
         ) : null}
       </div>
 
-      <Link
-        href="/portal/kalendar"
-        style={{
-          textDecoration: "none",
-          padding: "11px 14px",
-          borderRadius: 14,
-          border: "1px solid rgba(15,23,42,0.18)",
-          background: "#0f172a",
-          color: "white",
-          fontWeight: 900,
-          whiteSpace: "nowrap",
-          flex: "0 0 auto",
-        }}
-      >
-        Otevřít
-      </Link>
+      <div style={{ flex: "1 0 150px", display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+        <JoinBroadcastButton
+          event={e}
+          compact
+          detailHref={`/portal/udalost/${e?.id}`}
+          showWaiting={false}
+          showDetailFallback={false}
+        />
+
+        <Link
+          href={`/portal/udalost/${e?.id}`}
+          style={{
+            textDecoration: "none",
+            padding: "11px 14px",
+            borderRadius: 14,
+            border: "1px solid rgba(15,23,42,0.18)",
+            background: "#0f172a",
+            color: "white",
+            fontWeight: 900,
+            whiteSpace: "nowrap",
+          }}
+        >
+          Detail
+        </Link>
+      </div>
     </div>
   );
 }
