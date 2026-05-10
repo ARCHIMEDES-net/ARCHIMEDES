@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getJoinButtonState } from "../lib/broadcastState";
 
@@ -32,11 +33,21 @@ export default function JoinBroadcastButton({
   showWaiting = true,
   showDetailFallback = true,
 }) {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick((v) => v + 1);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const state = getJoinButtonState(event);
 
   if (state.state === "hidden") return null;
 
-  if (state.state === "join") {
+  if (state.state === "join" && state.href) {
     return (
       <a
         href={state.href}
@@ -53,7 +64,7 @@ export default function JoinBroadcastButton({
             : "0 16px 34px rgba(5,150,105,0.24)",
         }}
       >
-        {state.label}
+        ▶ {state.label || "Vstoupit do vysílání"}
       </a>
     );
   }
