@@ -1,3 +1,4 @@
+
 // pages/portal/index.js
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -494,8 +495,8 @@ export default function PortalIndex() {
                   <p>{dashboard.quickSubtitle}</p>
                 </div>
 
-                <Link href={dashboard.primaryCtaHref} className="dark-btn">
-                  {dashboard.primaryCtaLabel}
+                <Link href={dashboard.primaryCtaHref} className="plain-link">
+                  {dashboard.primaryCtaLabel} <span>→</span>
                 </Link>
               </div>
 
@@ -513,6 +514,13 @@ export default function PortalIndex() {
                     large={idx === 0}
                   />
                 ))}
+              </div>
+
+              <div className="quick-note">
+                <span>✓</span>
+                <p>
+                  Nejčastěji používané: <b>{dashboard.tipBold}</b>
+                </p>
               </div>
             </section>
 
@@ -587,9 +595,9 @@ export default function PortalIndex() {
 
         .portal-grid {
           display: grid;
-          grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.78fr);
+          grid-template-columns: minmax(0, 1.08fr) minmax(390px, 0.92fr);
           gap: 18px;
-          align-items: start;
+          align-items: stretch;
           margin-top: 18px;
         }
 
@@ -627,19 +635,20 @@ export default function PortalIndex() {
           line-height: 1.55;
         }
 
-        .dark-btn {
+        .plain-link {
+          color: #0f172a;
           text-decoration: none;
+          font-size: 14px;
+          font-weight: 850;
           display: inline-flex;
           align-items: center;
-          justify-content: center;
-          min-height: 44px;
-          padding: 0 16px;
-          border-radius: 13px;
-          background: #0f172a;
-          color: white;
-          font-weight: 900;
-          white-space: nowrap;
-          box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+          gap: 10px;
+          padding-top: 2px;
+        }
+
+        .plain-link span {
+          font-size: 22px;
+          line-height: 1;
         }
 
         .tiles-grid {
@@ -669,7 +678,43 @@ export default function PortalIndex() {
 
         .events-list {
           display: grid;
+          gap: 0;
+        }
+
+        .quick-note {
+          margin-top: 16px;
+          min-height: 46px;
+          border-radius: 12px;
+          background: linear-gradient(180deg, #f1fbf6 0%, #f7fffb 100%);
+          border: 1px solid rgba(0, 132, 61, 0.12);
+          display: flex;
+          align-items: center;
           gap: 10px;
+          padding: 0 13px;
+        }
+
+        .quick-note span {
+          width: 24px;
+          height: 24px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: #00843d;
+          border: 1px solid rgba(0, 132, 61, 0.25);
+          font-size: 13px;
+          font-weight: 900;
+          flex: 0 0 auto;
+        }
+
+        .quick-note p {
+          margin: 0;
+          color: #334155;
+          font-size: 13px;
+        }
+
+        .quick-note b {
+          color: #00843d;
         }
 
         .empty-box {
@@ -818,10 +863,6 @@ export default function PortalIndex() {
             grid-template-columns: 1fr;
           }
 
-          .dark-btn {
-            width: 100%;
-          }
-
           h2 {
             font-size: 24px;
           }
@@ -896,12 +937,13 @@ function TeacherJoinHero({ event }) {
             <div><span>✓</span><p>Připojení je možné 15 minut před začátkem.</p></div>
             <div><span>✓</span><p>Klikněte na „Vstoupit do vysílání“.</p></div>
             <div><span>✓</span><p>Otevře se okno Google Meet.</p></div>
-            <div><span>✓</span><p>Připojte se se zapnutým mikrofonem a kamerou.</p></div>
+            <div><span>✓</span><p>Zkontrolujte, zda máte zapnutý/vypnutý mikrofon a kameru.</p></div>
           </div>
 
           <div className="help-footer">
             <b>Potřebujete pomoc?</b>
-            <Link href="/portal/napoveda">Nápověda ↗</Link>
+            <p>Volejte číslo podpory:</p>
+            <a href="tel:+420737333879">☎ 737 333 879</a>
           </div>
         </div>
       </div>
@@ -1020,14 +1062,15 @@ function TeacherJoinHero({ event }) {
           background: linear-gradient(180deg, #eefaf4 0%, #f8fffb 100%);
           border-radius: 10px;
           overflow: hidden;
-          border: 1px solid rgba(0, 132, 61, 0.08);
+          border: 1px solid rgba(0, 132, 61, 0.1);
+          box-shadow: 0 16px 32px rgba(0, 132, 61, 0.05);
         }
 
         .help-panel h3 {
           margin: 0;
           padding: 18px 18px 8px;
           color: #00843d;
-          font-size: 15px;
+          font-size: 16px;
           font-weight: 950;
         }
 
@@ -1062,27 +1105,42 @@ function TeacherJoinHero({ event }) {
           margin: 0;
           color: #334155;
           font-size: 13px;
-          line-height: 1.4;
+          line-height: 1.42;
           font-weight: 650;
         }
 
         .help-footer {
           border-top: 1px solid rgba(15, 23, 42, 0.08);
-          padding: 14px 18px;
+          padding: 16px 18px;
           color: #0f172a;
           font-size: 13px;
           line-height: 1.45;
+          background: rgba(255, 255, 255, 0.42);
         }
 
         .help-footer b {
           display: block;
-          margin-bottom: 3px;
+          margin-bottom: 6px;
+          font-size: 13px;
+          font-weight: 950;
+        }
+
+        .help-footer p {
+          margin: 0 0 8px;
+          color: #0f172a;
+          font-size: 13px;
+          font-weight: 750;
         }
 
         .help-footer a {
           color: #00843d;
           text-decoration: none;
-          font-weight: 900;
+          font-weight: 950;
+          font-size: 19px;
+          letter-spacing: -0.01em;
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
         }
 
         @media (max-width: 1100px) {
@@ -1143,22 +1201,27 @@ function EventRow({ e }) {
         </div>
       </div>
 
-      <div className="event-arrow">›</div>
+      <div className="event-arrow">→</div>
 
       <style jsx>{`
         .event-row {
           display: grid;
-          grid-template-columns: 66px minmax(0, 1fr) 18px;
-          gap: 12px;
+          grid-template-columns: 66px minmax(0, 1fr) 22px;
+          gap: 14px;
           align-items: center;
-          padding: 8px 0;
+          padding: 13px 0;
           color: #0f172a;
           text-decoration: none;
           border-bottom: 1px solid rgba(15, 23, 42, 0.08);
         }
 
+        .event-row:first-child {
+          padding-top: 4px;
+        }
+
         .event-row:last-child {
           border-bottom: none;
+          padding-bottom: 4px;
         }
 
         .event-thumb {
@@ -1168,6 +1231,7 @@ function EventRow({ e }) {
           overflow: hidden;
           background: #e2e8f0;
           border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
         }
 
         .event-thumb img {
@@ -1198,10 +1262,16 @@ function EventRow({ e }) {
 
         .event-arrow {
           color: #0f172a;
-          font-size: 34px;
+          font-size: 24px;
           line-height: 1;
-          font-weight: 400;
+          font-weight: 900;
           opacity: 0.9;
+          justify-self: end;
+        }
+
+        .event-row:hover .event-title,
+        .event-row:hover .event-arrow {
+          color: #00843d;
         }
       `}</style>
     </Link>
@@ -1225,7 +1295,7 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
 
       <style jsx>{`
         .tile {
-          min-height: 178px;
+          min-height: 176px;
           border: 1px solid rgba(15, 23, 42, 0.1);
           border-radius: 10px;
           background: white;
@@ -1235,16 +1305,17 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          transition: transform 0.16s ease, box-shadow 0.16s ease;
+          transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
         }
 
         .tile:hover {
           transform: translateY(-2px);
           box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+          border-color: rgba(0, 132, 61, 0.25);
         }
 
         .tile.highlight {
-          border: 2px solid rgba(15, 23, 42, 0.9);
+          border: 1px solid rgba(15, 23, 42, 0.1);
         }
 
         .tile-top {
@@ -1282,7 +1353,7 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
           margin-top: 4px;
           padding: 3px 8px;
           border-radius: 999px;
-          background: #0f172a;
+          background: #00843d;
           color: white;
           font-size: 10px;
           font-weight: 900;
@@ -1301,6 +1372,10 @@ function Tile({ href, icon, title, desc, cta = "Otevřít", highlight, note }) {
           font-weight: 900;
           line-height: 1;
           color: #0f172a;
+        }
+
+        .tile:hover .tile-arrow {
+          color: #00843d;
         }
       `}</style>
     </Link>
