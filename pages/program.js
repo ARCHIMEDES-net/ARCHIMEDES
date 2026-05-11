@@ -234,22 +234,6 @@ function PriceProgramCard({
         transition:
           "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-4px)";
-        e.currentTarget.style.boxShadow = featured
-          ? "0 24px 56px rgba(37,99,235,0.16)"
-          : isGreen
-          ? "0 18px 42px rgba(34,197,94,0.12)"
-          : "0 18px 40px rgba(15,23,42,0.10)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = featured
-          ? "0 18px 46px rgba(37,99,235,0.12)"
-          : isGreen
-          ? "0 14px 36px rgba(34,197,94,0.08)"
-          : "0 14px 36px rgba(15,23,42,0.06)";
-      }}
     >
       <div
         style={{
@@ -258,11 +242,7 @@ function PriceProgramCard({
           minHeight: 34,
           padding: "0 14px",
           borderRadius: 999,
-          background: featured
-            ? accentColor
-            : isGreen
-            ? "#ecfdf5"
-            : "#f1f5f9",
+          background: featured ? accentColor : isGreen ? "#ecfdf5" : "#f1f5f9",
           color: featured ? "#fff" : isGreen ? "#166534" : "#334155",
           fontSize: 14,
           fontWeight: 800,
@@ -276,34 +256,11 @@ function PriceProgramCard({
         {title}
       </h3>
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          gap: 8,
-          marginTop: 14,
-          flexWrap: "wrap",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 32,
-            lineHeight: 1,
-            fontWeight: 900,
-            color: "#0f172a",
-            letterSpacing: "-0.03em",
-          }}
-        >
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+        <div style={{ fontSize: 32, lineHeight: 1, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.03em" }}>
           {price}
         </div>
-        <div
-          style={{
-            fontSize: 16,
-            fontWeight: 700,
-            color: "#475569",
-            marginBottom: 3,
-          }}
-        >
+        <div style={{ fontSize: 16, fontWeight: 700, color: "#475569", marginBottom: 3 }}>
           {suffix}
         </div>
       </div>
@@ -343,14 +300,7 @@ function PriceProgramCard({
               }}
             />
             <div>
-              <div
-                style={{
-                  fontWeight: 800,
-                  color: "#0f172a",
-                  fontSize: 16,
-                  lineHeight: 1.45,
-                }}
-              >
+              <div style={{ fontWeight: 800, color: "#0f172a", fontSize: 16, lineHeight: 1.45 }}>
                 {item.title}
               </div>
               <div style={{ marginTop: 2, color: "#475569", fontSize: 15, lineHeight: 1.65 }}>
@@ -429,9 +379,7 @@ function isAbsoluteUrl(value) {
 function getPosterUrl(event) {
   if (!event) return FALLBACK_POSTER;
 
-  if (event.poster_url && isAbsoluteUrl(event.poster_url)) {
-    return event.poster_url;
-  }
+  if (event.poster_url && isAbsoluteUrl(event.poster_url)) return event.poster_url;
 
   if (event.poster_url && typeof event.poster_url === "string") {
     const normalizedPosterUrl = event.poster_url.replace(/^\/+/, "");
@@ -482,8 +430,9 @@ function EventBadge({ children, variant = "default" }) {
   );
 }
 
-function UpcomingEventItem({ event }) {
+function UpcomingEventItem({ event, onPosterClick }) {
   const badges = Array.isArray(event.audience_groups) ? event.audience_groups : [];
+  const posterUrl = getPosterUrl(event);
 
   return (
     <div
@@ -498,46 +447,54 @@ function UpcomingEventItem({ event }) {
         border: "1px solid #e2e8f0",
         boxShadow: "0 10px 26px rgba(15,23,42,0.05)",
       }}
+      className="upcoming-event-item"
     >
-      <img
-        src={getPosterUrl(event)}
-        alt={event.title || "Plakát vysílání"}
+      <button
+        type="button"
+        onClick={() =>
+          onPosterClick({
+            src: posterUrl,
+            alt: event.title || "Plakát vysílání",
+          })
+        }
+        title="Zvětšit plakát"
         style={{
+          padding: 0,
+          border: 0,
+          background: "transparent",
+          cursor: "zoom-in",
           width: 88,
           height: 118,
           borderRadius: 14,
-          objectFit: "cover",
+          overflow: "hidden",
           display: "block",
-          background: "#e2e8f0",
+          boxShadow: "0 8px 18px rgba(15,23,42,0.10)",
         }}
-        onError={(e) => {
-          e.currentTarget.onerror = null;
-          e.currentTarget.src = FALLBACK_POSTER;
-        }}
-      />
+      >
+        <img
+          src={posterUrl}
+          alt={event.title || "Plakát vysílání"}
+          style={{
+            width: "100%",
+            height: "100%",
+            borderRadius: 14,
+            objectFit: "cover",
+            display: "block",
+            background: "#e2e8f0",
+          }}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = FALLBACK_POSTER;
+          }}
+        />
+      </button>
 
       <div>
-        <div
-          style={{
-            fontSize: 13,
-            lineHeight: 1.5,
-            color: "#64748b",
-            fontWeight: 700,
-            marginBottom: 6,
-          }}
-        >
+        <div style={{ fontSize: 13, lineHeight: 1.5, color: "#64748b", fontWeight: 700, marginBottom: 6 }}>
           {formatEventDate(event.starts_at)}
         </div>
 
-        <div
-          style={{
-            fontSize: 19,
-            lineHeight: 1.32,
-            color: "#0f172a",
-            fontWeight: 800,
-            letterSpacing: "-0.02em",
-          }}
-        >
+        <div style={{ fontSize: 19, lineHeight: 1.32, color: "#0f172a", fontWeight: 800, letterSpacing: "-0.02em" }}>
           {event.title}
         </div>
 
@@ -680,14 +637,7 @@ function CurrentProgramCard({ onOpen }) {
           KVĚTEN 2026
         </h2>
 
-        <p
-          style={{
-            margin: "10px 0 0",
-            color: "#475569",
-            fontSize: 16,
-            lineHeight: 1.55,
-          }}
-        >
+        <p style={{ margin: "10px 0 0", color: "#475569", fontSize: 16, lineHeight: 1.55 }}>
           Kliknutím zobrazíte celý měsíční přehled akcí ve větším náhledu.
         </p>
 
@@ -713,8 +663,25 @@ function CurrentProgramCard({ onOpen }) {
   );
 }
 
-function ProgramModal({ open, onClose }) {
-  if (!open) return null;
+function ImageModal({ image, onClose }) {
+  useEffect(() => {
+    if (!image) return;
+
+    function handleKeyDown(e) {
+      if (e.key === "Escape") onClose();
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [image, onClose]);
+
+  if (!image) return null;
 
   return (
     <div
@@ -725,8 +692,8 @@ function ProgramModal({ open, onClose }) {
         position: "fixed",
         inset: 0,
         zIndex: 9999,
-        background: "rgba(15,23,42,0.78)",
-        padding: "28px 18px",
+        background: "rgba(15,23,42,0.84)",
+        padding: "22px 16px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -736,51 +703,50 @@ function ProgramModal({ open, onClose }) {
         onClick={(e) => e.stopPropagation()}
         style={{
           position: "relative",
-          width: "min(980px, 96vw)",
-          maxHeight: "92vh",
-          background: "#fff",
-          borderRadius: 24,
-          padding: 14,
-          boxShadow: "0 30px 90px rgba(0,0,0,0.35)",
-          overflow: "auto",
+          width: "min(920px, 96vw)",
+          maxHeight: "94vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         <button
           type="button"
           onClick={onClose}
-          aria-label="Zavřít náhled programu"
+          aria-label="Zavřít náhled"
           style={{
-            position: "sticky",
-            top: 8,
-            marginLeft: "auto",
+            position: "absolute",
+            top: -12,
+            right: -12,
             zIndex: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 42,
-            height: 42,
+            width: 44,
+            height: 44,
             borderRadius: 999,
-            border: "1px solid #e2e8f0",
+            border: "1px solid rgba(255,255,255,0.30)",
             background: "#0f172a",
             color: "#fff",
-            fontSize: 22,
+            fontSize: 24,
             fontWeight: 900,
             cursor: "pointer",
-            float: "right",
+            boxShadow: "0 14px 34px rgba(0,0,0,0.35)",
           }}
         >
           ×
         </button>
 
         <img
-          src={MAY_PROGRAM_IMAGE}
-          alt="Aktuální program květen 2026"
+          src={image.src}
+          alt={image.alt || "Zvětšený náhled"}
           style={{
-            width: "100%",
+            maxWidth: "100%",
+            maxHeight: "94vh",
+            width: "auto",
             height: "auto",
+            objectFit: "contain",
             display: "block",
             borderRadius: 18,
-            clear: "both",
+            background: "#fff",
+            boxShadow: "0 30px 90px rgba(0,0,0,0.42)",
           }}
         />
       </div>
@@ -791,7 +757,7 @@ function ProgramModal({ open, onClose }) {
 export default function ProgramPage() {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
-  const [programModalOpen, setProgramModalOpen] = useState(false);
+  const [modalImage, setModalImage] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -920,7 +886,14 @@ export default function ProgramPage() {
                 </div>
 
                 <div style={{ marginTop: 28 }}>
-                  <CurrentProgramCard onOpen={() => setProgramModalOpen(true)} />
+                  <CurrentProgramCard
+                    onOpen={() =>
+                      setModalImage({
+                        src: MAY_PROGRAM_IMAGE,
+                        alt: "Aktuální program květen 2026",
+                      })
+                    }
+                  />
                 </div>
               </div>
 
@@ -975,7 +948,11 @@ export default function ProgramPage() {
                     </div>
                   ) : upcomingEvents.length > 0 ? (
                     upcomingEvents.map((event) => (
-                      <UpcomingEventItem key={event.id} event={event} />
+                      <UpcomingEventItem
+                        key={event.id}
+                        event={event}
+                        onPosterClick={setModalImage}
+                      />
                     ))
                   ) : (
                     <div
@@ -1017,100 +994,11 @@ export default function ProgramPage() {
                 <PriceProgramCard key={card.title} {...card} />
               ))}
             </div>
-
-            <div
-              style={{
-                marginTop: 26,
-                background: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 22,
-                padding: "24px 22px",
-                boxShadow: "0 14px 36px rgba(15,23,42,0.05)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 18,
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ maxWidth: 720 }}>
-                <div
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 800,
-                    color: "#0f172a",
-                    lineHeight: 1.3,
-                  }}
-                >
-                  Nejste si jistí, která varianta je pro vás vhodná?
-                </div>
-                <p
-                  style={{
-                    margin: "10px 0 0",
-                    fontSize: 16,
-                    lineHeight: 1.7,
-                    color: "#475569",
-                  }}
-                >
-                  Nejrychlejší je vidět program naživo nebo se krátce poradit podle toho,
-                  zda řešíte školu, obec nebo komunitní program pro seniory a veřejnost.
-                </p>
-              </div>
-
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <PrimaryButton href="/demo">Chci vidět demo</PrimaryButton>
-                <SecondaryButton href="/poptavka">
-                  Chci doporučit vhodnou variantu
-                </SecondaryButton>
-              </div>
-            </div>
-          </section>
-
-          <section
-            style={{
-              marginTop: 86,
-              background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-              borderRadius: 28,
-              padding: "34px 30px",
-              color: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 24,
-              flexWrap: "wrap",
-              boxShadow: "0 24px 60px rgba(15,23,42,0.20)",
-            }}
-          >
-            <div style={{ maxWidth: 760 }}>
-              <h2
-                style={{
-                  margin: 0,
-                  fontSize: "clamp(28px, 3.4vw, 40px)",
-                  lineHeight: 1.12,
-                  letterSpacing: "-0.03em",
-                }}
-              >
-                Nejlepší způsob, jak program poznat, je vidět ho naživo
-              </h2>
-              <p
-                style={{
-                  margin: "14px 0 0",
-                  fontSize: 18,
-                  lineHeight: 1.72,
-                  color: "rgba(255,255,255,0.82)",
-                }}
-              >
-                Během pár minut se sami přesvědčíte, jak ARCHIMEDES Live dokáže oživit
-                výuku ve škole i společenské dění v obci.
-              </p>
-            </div>
-
-            <PrimaryButton href="/demo">Mám zájem o demo</PrimaryButton>
           </section>
         </div>
       </main>
 
-      <ProgramModal open={programModalOpen} onClose={() => setProgramModalOpen(false)} />
+      <ImageModal image={modalImage} onClose={() => setModalImage(null)} />
 
       <style jsx>{`
         .hero-cta-grid :global(a) {
@@ -1124,6 +1012,14 @@ export default function ProgramPage() {
         .current-program-card:hover {
           transform: translateY(-2px);
           box-shadow: 0 22px 48px rgba(37, 99, 235, 0.16) !important;
+        }
+
+        .upcoming-event-item button:hover img {
+          transform: scale(1.04);
+        }
+
+        .upcoming-event-item button img {
+          transition: transform 0.18s ease;
         }
 
         .upcoming-events-list::-webkit-scrollbar {
@@ -1169,12 +1065,14 @@ export default function ProgramPage() {
           .current-program-card {
             grid-template-columns: 1fr !important;
           }
-        }
 
-        @media (max-width: 560px) {
-          .upcoming-events-list :global(img) {
-            width: 76px !important;
-            height: 104px !important;
+          .upcoming-event-item {
+            grid-template-columns: 78px 1fr !important;
+          }
+
+          .upcoming-event-item button {
+            width: 78px !important;
+            height: 106px !important;
           }
         }
       `}</style>
