@@ -75,11 +75,9 @@ function normalizeSession(session) {
 
 function normalizeSessionStatus(value) {
   const s = String(value || "").trim().toLowerCase();
-
   if (s === "scheduled") return "scheduled";
   if (s === "finished") return "finished";
   if (s === "draft") return "draft";
-
   return "unset";
 }
 
@@ -94,30 +92,12 @@ function getStreamUrl(row) {
 
 function getSessionStatus(row) {
   const session = getSession(row);
-  return normalizeSessionStatus(
-    session?.status || session?.broadcast_status || ""
-  );
+  return normalizeSessionStatus(session?.status || session?.broadcast_status || "");
 }
 
 function getEffectiveStart(row) {
   const session = getSession(row);
   return safeDate(session?.starts_at || row?.starts_at);
-}
-
-function shouldShowJoinButton(row, now = new Date()) {
-  const streamUrl = getStreamUrl(row);
-  if (!streamUrl) return false;
-
-  const status = getSessionStatus(row);
-  if (status !== "scheduled") return false;
-
-  const start = getEffectiveStart(row);
-  if (!start) return false;
-
-  const openFrom = new Date(start.getTime() - 15 * 60 * 1000);
-  const openUntil = new Date(start.getTime() + 4 * 60 * 60 * 1000);
-
-  return now >= openFrom && now <= openUntil;
 }
 
 function getBroadcastBadge(row, now = new Date()) {
@@ -170,34 +150,72 @@ function BroadcastBadge({ row }) {
   if (!badge) return null;
 
   return (
-    <span
-      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${badge.className}`}
-    >
+    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${badge.className}`}>
       <span className={`w-2 h-2 rounded-full ${badge.dotClassName}`} />
       {badge.label}
     </span>
   );
 }
 
-function EventCard({ row, compact = false }) {
+function AttendButton({
+  eventId,
+  compact,
+  isAttending,
+  attendeeCount,
+  isProgramAdmin,
+  canAttend,
+  saving,
+  onAttend,
+}) {
+  if (!canAttend) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        onClick={() => onAttend(eventId)}
+        disabled={saving || isAttending}
+        className={
+          isAttending
+            ? "px-4 py-2 rounded-xl bg-emerald-700 text-white font-bold cursor-default"
+            : "px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed"
+        }
+        style={{
+          minHeight: compact ? 42 : 44,
+          fontSize: compact ? 14 : 15,
+        }}
+      >
+        {saving ? "Ukládám…" : isAttending ? "✓ Přihlášeno" : "✓ Zúčastníme se"}
+      </button>
+
+      {isProgramAdmin ? (
+        <span className="text-xs font-semibold text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+          Škol: {attendeeCount || 0}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function EventCard({
+  row,
+  compact = false,
+  attendeeInfo,
+  isProgramAdmin,
+  canAttend,
+  savingEventId,
+  onAttend,
+}) {
   const posterUrl = resolvePosterUrl(row);
   const start = getEffectiveStart(row);
+  const info = attendeeInfo?.[row.id] || { isAttending: false, count: 0 };
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
       <div className="flex flex-col sm:flex-row gap-4 items-start">
         {posterUrl ? (
-          <div
-            className={`${
-              compact ? "w-[120px]" : "w-[140px]"
-            } shrink-0 border border-slate-200 rounded-2xl overflow-hidden bg-slate-50`}
-          >
-            <img
-              src={posterUrl}
-              alt="Plakát"
-              className="w-full h-auto"
-              loading="lazy"
-            />
+          <div className={`${compact ? "w-[120px]" : "w-[140px]"} shrink-0 border border-slate-200 rounded-2xl overflow-hidden bg-slate-50`}>
+            <img src={posterUrl} alt="Plakát" className="w-full h-auto" loading="lazy" />
           </div>
         ) : null}
 
@@ -216,10 +234,7 @@ function EventCard({ row, compact = false }) {
             ) : null}
 
             {normalizeAudience(row.audience_groups).map((a, i) => (
-              <span
-                key={i}
-                className={`px-2 py-1 rounded-full ${badgeColor(a)}`}
-              >
+              <span key={i} className={`px-2 py-1 rounded-full ${badgeColor(a)}`}>
                 {a}
               </span>
             ))}
@@ -232,6 +247,17 @@ function EventCard({ row, compact = false }) {
               event={row}
               compact={compact}
               detailHref={`/portal/udalost/${row.id}`}
+            />
+
+            <AttendButton
+              eventId={row.id}
+              compact={compact}
+              isAttending={info.isAttending}
+              attendeeCount={info.count}
+              isProgramAdmin={isProgramAdmin}
+              canAttend={canAttend}
+              saving={savingEventId === row.id}
+              onAttend={onAttend}
             />
 
             <Link
@@ -252,6 +278,12 @@ export default function Kalendar() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [isProgramAdmin, setIsProgramAdmin] = useState(false);
+
+  const [currentUserId, setCurrentUserId] = useState("");
+  const [activeOrganizationId, setActiveOrganizationId] = useState("");
+  const [attendeeInfo, setAttendeeInfo] = useState({});
+  const [savingEventId, setSavingEventId] = useState("");
+  const [attendeeError, setAttendeeError] = useState("");
 
   async function load() {
     setLoading(true);
@@ -301,6 +333,57 @@ export default function Kalendar() {
     setLoading(false);
   }
 
+  async function loadAttendees(eventRows, orgId, adminMode) {
+    if (!Array.isArray(eventRows) || eventRows.length === 0) {
+      setAttendeeInfo({});
+      return;
+    }
+
+    const eventIds = eventRows.map((r) => r.id).filter(Boolean);
+    if (!eventIds.length) {
+      setAttendeeInfo({});
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("event_attendees")
+      .select("event_id, organization_id")
+      .in("event_id", eventIds);
+
+    if (error) {
+      setAttendeeError(error.message);
+      return;
+    }
+
+    const next = {};
+
+    eventIds.forEach((eventId) => {
+      next[eventId] = {
+        isAttending: false,
+        count: 0,
+      };
+    });
+
+    (data || []).forEach((item) => {
+      if (!next[item.event_id]) {
+        next[item.event_id] = {
+          isAttending: false,
+          count: 0,
+        };
+      }
+
+      if (adminMode) {
+        next[item.event_id].count += 1;
+      }
+
+      if (orgId && item.organization_id === orgId) {
+        next[item.event_id].isAttending = true;
+      }
+    });
+
+    setAttendeeInfo(next);
+  }
+
   useEffect(() => {
     load();
   }, []);
@@ -308,15 +391,31 @@ export default function Kalendar() {
   useEffect(() => {
     let cancelled = false;
 
-    async function loadRole() {
+    async function loadRoleAndProfile() {
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
         if (!user || cancelled) {
-          if (!cancelled) setIsProgramAdmin(false);
+          if (!cancelled) {
+            setIsProgramAdmin(false);
+            setCurrentUserId("");
+            setActiveOrganizationId("");
+          }
           return;
+        }
+
+        if (!cancelled) setCurrentUserId(user.id);
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("active_organization_id")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (!cancelled) {
+          setActiveOrganizationId(profile?.active_organization_id || "");
         }
 
         const { data: isAdminData, error: isAdminError } = await supabase.rpc("is_admin");
@@ -325,11 +424,16 @@ export default function Kalendar() {
 
         setIsProgramAdmin(!isAdminError && !!isAdminData);
       } catch (_e) {
-        if (!cancelled) setIsProgramAdmin(false);
+        if (!cancelled) {
+          setIsProgramAdmin(false);
+          setCurrentUserId("");
+          setActiveOrganizationId("");
+        }
       }
     }
 
-    loadRole();
+    loadRoleAndProfile();
+
     return () => {
       cancelled = true;
     };
@@ -355,8 +459,47 @@ export default function Kalendar() {
     });
   }, [visibleRows]);
 
+  useEffect(() => {
+    loadAttendees(sortedRows, activeOrganizationId, isProgramAdmin);
+  }, [sortedRows, activeOrganizationId, isProgramAdmin]);
+
+  async function handleAttend(eventId) {
+    if (!eventId || !currentUserId || !activeOrganizationId) return;
+
+    setSavingEventId(eventId);
+    setAttendeeError("");
+
+    try {
+      const { error } = await supabase.from("event_attendees").insert({
+        event_id: eventId,
+        organization_id: activeOrganizationId,
+        user_id: currentUserId,
+      });
+
+      if (error && error.code !== "23505") {
+        throw error;
+      }
+
+      setAttendeeInfo((prev) => {
+        const old = prev[eventId] || { isAttending: false, count: 0 };
+        return {
+          ...prev,
+          [eventId]: {
+            isAttending: true,
+            count: isProgramAdmin && !old.isAttending ? Number(old.count || 0) + 1 : old.count,
+          },
+        };
+      });
+    } catch (e) {
+      setAttendeeError(e?.message || "Přihlášení účasti se nepodařilo.");
+    } finally {
+      setSavingEventId("");
+    }
+  }
+
   const nextOne = sortedRows[0] || null;
   const later = sortedRows.slice(1);
+  const canAttend = !!currentUserId && !!activeOrganizationId;
 
   return (
     <RequireAuth>
@@ -414,6 +557,12 @@ export default function Kalendar() {
           </div>
         ) : null}
 
+        {attendeeError ? (
+          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {attendeeError}
+          </div>
+        ) : null}
+
         {loading && <div className="mt-6">Načítám…</div>}
         {err && <div className="mt-6 text-red-600">{err}</div>}
 
@@ -425,7 +574,14 @@ export default function Kalendar() {
               </div>
 
               {nextOne ? (
-                <EventCard row={nextOne} />
+                <EventCard
+                  row={nextOne}
+                  attendeeInfo={attendeeInfo}
+                  isProgramAdmin={isProgramAdmin}
+                  canAttend={canAttend}
+                  savingEventId={savingEventId}
+                  onAttend={handleAttend}
+                />
               ) : (
                 <div className="text-slate-600">Žádné nadcházející vysílání.</div>
               )}
@@ -439,7 +595,16 @@ export default function Kalendar() {
               {later.length ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {later.map((r) => (
-                    <EventCard key={r.id} row={r} compact />
+                    <EventCard
+                      key={r.id}
+                      row={r}
+                      compact
+                      attendeeInfo={attendeeInfo}
+                      isProgramAdmin={isProgramAdmin}
+                      canAttend={canAttend}
+                      savingEventId={savingEventId}
+                      onAttend={handleAttend}
+                    />
                   ))}
                 </div>
               ) : (
