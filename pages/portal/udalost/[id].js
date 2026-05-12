@@ -173,6 +173,14 @@ export default function UdalostDetail() {
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [isPosterOpen, setIsPosterOpen] = useState(false);
 
+  const [currentUserId, setCurrentUserId] = useState("");
+  const [activeOrganizationId, setActiveOrganizationId] = useState("");
+  const [attendeeLoading, setAttendeeLoading] = useState(false);
+  const [attendeeSaving, setAttendeeSaving] = useState(false);
+  const [isAttending, setIsAttending] = useState(false);
+  const [attendeeCount, setAttendeeCount] = useState(0);
+  const [attendeeError, setAttendeeError] = useState("");
+
   useEffect(() => {
     async function load() {
       if (!id) return;
@@ -232,6 +240,8 @@ export default function UdalostDetail() {
           return;
         }
 
+        if (mounted) setCurrentUserId(user.id);
+
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("id, active_organization_id")
@@ -242,7 +252,10 @@ export default function UdalostDetail() {
 
         if (!mounted) return;
 
-        if (!profile?.active_organization_id) {
+        const orgId = profile?.active_organization_id || "";
+        setActiveOrganizationId(orgId);
+
+        if (!orgId) {
           setLicenseMode("active");
           return;
         }
@@ -251,7 +264,7 @@ export default function UdalostDetail() {
           .from("organization_members")
           .select("organization_id")
           .eq("user_id", user.id)
-          .eq("organization_id", profile.active_organization_id)
+          .eq("organization_id", orgId)
           .eq("status", "active")
           .maybeSingle();
 
@@ -267,7 +280,7 @@ export default function UdalostDetail() {
         const { data: org, error: orgError } = await supabase
           .from("organizations")
           .select("license_status, license_valid_until")
-          .eq("id", profile.active_organization_id)
+          .eq("id", orgId)
           .maybeSingle();
 
         if (orgError) throw orgError;
@@ -288,6 +301,57 @@ export default function UdalostDetail() {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadAttendeeStatus() {
+      if (!id || !activeOrganizationId) return;
+
+      setAttendeeLoading(true);
+      setAttendeeError("");
+
+      try {
+        const { data: ownRows, error: ownError } = await supabase
+          .from("event_attendees")
+          .select("id")
+          .eq("event_id", id)
+          .eq("organization_id", activeOrganizationId)
+          .limit(1);
+
+        if (ownError) throw ownError;
+
+        if (mounted) {
+          setIsAttending(Array.isArray(ownRows) && ownRows.length > 0);
+        }
+
+        if (isPlatformAdmin) {
+          const { count, error: countError } = await supabase
+            .from("event_attendees")
+            .select("id", { count: "exact", head: true })
+            .eq("event_id", id);
+
+          if (countError) throw countError;
+
+          if (mounted) {
+            setAttendeeCount(count || 0);
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          setAttendeeError(e?.message || "Nepodařilo se načíst účast.");
+        }
+      } finally {
+        if (mounted) setAttendeeLoading(false);
+      }
+    }
+
+    loadAttendeeStatus();
+
+    return () => {
+      mounted = false;
+    };
+  }, [id, activeOrganizationId, isPlatformAdmin]);
 
   useEffect(() => {
     if (!isPosterOpen) return;
@@ -363,6 +427,37 @@ export default function UdalostDetail() {
       location: eventLocation,
     });
   }, [eventTitle, calendarStart, calendarEnd, calendarDetails, eventLocation]);
+
+  async function handleAttendEvent() {
+    if (!id || !currentUserId || !activeOrganizationId || isAttending) return;
+
+    setAttendeeSaving(true);
+    setAttendeeError("");
+
+    try {
+      const { error } = await supabase
+        .from("event_attendees")
+        .insert({
+          event_id: id,
+          organization_id: activeOrganizationId,
+          user_id: currentUserId,
+        });
+
+      if (error && error.code !== "23505") {
+        throw error;
+      }
+
+      setIsAttending(true);
+
+      if (isPlatformAdmin) {
+        setAttendeeCount((prev) => Math.max(1, Number(prev || 0) + 1));
+      }
+    } catch (e) {
+      setAttendeeError(e?.message || "Přihlášení účasti se nepodařilo.");
+    } finally {
+      setAttendeeSaving(false);
+    }
+  }
 
   function handleDownloadIcs() {
     if (!calendarStart || !calendarEnd) return;
@@ -452,6 +547,53 @@ export default function UdalostDetail() {
           ) : (
             <div className="mt-5 text-slate-500">Popis zatím není vyplněn.</div>
           )}
+
+          <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="text-sm font-extrabold uppercase tracking-wide text-emerald-800">
+              Účast školy
+            </div>
+
+            <div className="mt-2 text-slate-700 leading-7">
+              Potvrďte jedním kliknutím, že se vaše škola plánuje tohoto vysílání zúčastnit.
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {activeOrganizationId ? (
+                <button
+                  type="button"
+                  onClick={handleAttendEvent}
+                  disabled={attendeeLoading || attendeeSaving || isAttending}
+                  className={
+                    isAttending
+                      ? "px-4 py-2 rounded-xl bg-emerald-700 text-white font-bold cursor-default"
+                      : "px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  }
+                >
+                  {attendeeSaving
+                    ? "Ukládám…"
+                    : isAttending
+                    ? "✓ Vaše škola je přihlášena"
+                    : "✓ Zúčastníme se vysílání"}
+                </button>
+              ) : (
+                <div className="text-sm text-slate-600">
+                  Účast může potvrdit pouze uživatel přiřazený ke škole nebo organizaci.
+                </div>
+              )}
+
+              {isPlatformAdmin ? (
+                <div className="text-sm font-semibold text-emerald-900 bg-white/70 border border-emerald-200 rounded-xl px-3 py-2">
+                  Přihlášeno škol: {attendeeCount}
+                </div>
+              ) : null}
+            </div>
+
+            {attendeeError ? (
+              <div className="mt-3 text-sm text-red-700">
+                {attendeeError}
+              </div>
+            ) : null}
+          </div>
 
           {showLockedStreamNotice ? (
             <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
