@@ -163,7 +163,7 @@ export default function Home() {
 </h1>
 
 <p className="heroIntro">
-  Otázka, kterou dnešní učitelé slýchají čím dál častěji.
+  Dnešní děti chtějí chápat, jak škola souvisí s reálným životem.
 </p>
 
 <p className="heroLead">
