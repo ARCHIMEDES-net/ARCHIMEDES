@@ -507,11 +507,11 @@ export default function Home() {
                 <p>
                   Škola si objedná Balíček START nebo plný program ARCHIMEDES
                   Live. Následně obdrží e-mail s jednoduchými pokyny pro
-                  registraci a spuštění.
+                  registraci učitelů k jejich organizaci a spuštění.
                 </p>
                 <p>
-                  Po registraci si škola vyplní profil a vybere skupiny
-                  vysílání, které ji zajímají — například I. stupeň, II.
+                  Po registraci si učitelé vyplní profily a vyberou skupiny
+                  vysílání, které je zajímají — například I. stupeň, II.
                   stupeň, wellbeing, kariérní poradenství nebo komunitní
                   programy.
                 </p>
