@@ -490,6 +490,117 @@ export default function Home() {
           </div>
         </section>
 
+        <section id="faq" className="section sectionFaq">
+          <div className="container">
+            <div className="sectionIntro center">
+              <div className="eyebrow dark">FAQ</div>
+              <h2>Často kladené otázky</h2>
+              <p>
+                Nejčastější otázky ředitelů, učitelů a zřizovatelů k programu
+                ARCHIMEDES Live i k venkovní učebně ARCHIMEDES®.
+              </p>
+            </div>
+
+            <div className="faqGrid">
+              <article className="faqItem faqItemWide">
+                <h3>Jak funguje zapojení školy?</h3>
+                <p>
+                  Škola si objedná Balíček START nebo plný program ARCHIMEDES
+                  Live. Následně obdrží e-mail s jednoduchými pokyny pro
+                  registraci a spuštění.
+                </p>
+                <p>
+                  Po registraci si škola vyplní profil a vybere skupiny
+                  vysílání, které ji zajímají — například I. stupeň, II.
+                  stupeň, wellbeing, kariérní poradenství nebo komunitní
+                  programy.
+                </p>
+                <p>
+                  Po přihlášení najdou učitelé v portálu aktuální program
+                  vysílání, archiv záznamů, pracovní listy, komunitu, soutěže a
+                  další vzdělávací rubriky. Do vysílání se připojí jednoduše
+                  jedním kliknutím přímo z portálu.
+                </p>
+              </article>
+
+              <article className="faqItem">
+                <h3>Mohou program využívat všichni učitelé školy?</h3>
+                <p>
+                  Ano. ARCHIMEDES Live je určen pro celou školu. K programu se
+                  může připojit kterýkoliv učitel z organizace — na jakékoliv
+                  interaktivní tabuli, počítači nebo dalším zařízení ve škole.
+                </p>
+              </article>
+
+              <article className="faqItem">
+                <h3>Musí se učitel na vysílání připravovat?</h3>
+                <p>
+                  Ne. Program je připravený tak, aby jej bylo možné jednoduše
+                  pustit během běžné výuky. Součástí jsou i návazné pracovní
+                  listy a materiály.
+                </p>
+              </article>
+
+              <article className="faqItem">
+                <h3>Co když škola nestihne živé vysílání?</h3>
+                <p>
+                  Součástí programu je archiv záznamů, takže se škola může k
+                  tématům vrátit kdykoliv později.
+                </p>
+              </article>
+
+              <article className="faqItem">
+                <h3>Funguje ARCHIMEDES Live na běžné interaktivní tabuli?</h3>
+                <p>
+                  Ano. Program funguje na běžném školním vybavení bez složité
+                  instalace.
+                </p>
+              </article>
+
+              <article className="faqItem">
+                <h3>Jak rychle můžeme začít?</h3>
+                <p>
+                  Po aktivaci přístupu může škola program využívat prakticky
+                  ihned.
+                </p>
+              </article>
+
+              <article className="faqItem">
+                <h3>Je program vhodný i pro menší školy?</h3>
+                <p>
+                  Ano. ARCHIMEDES Live je navržený tak, aby byl jednoduše
+                  využitelný pro malé i větší školy.
+                </p>
+              </article>
+
+              <article className="faqItem faqItemWide">
+                <h3>Nabízíte také venkovní učebnu ARCHIMEDES®?</h3>
+                <p>
+                  Ano. Součástí projektu je také celoroční venkovní učebna
+                  ARCHIMEDES®, kterou dodáváme školám a obcím na klíč včetně
+                  návrhu, výroby a realizace.
+                </p>
+                <p>
+                  Celá realizace obvykle trvá přibližně 3–4 měsíce podle
+                  rozsahu projektu a připravenosti místa. Školy a obce často
+                  využívají dotační programy jako IROP, MAS, krajské dotační
+                  tituly nebo další regionální výzvy. Rádi doporučíme vhodný
+                  postup a pomůžeme s přípravou projektu.
+                </p>
+              </article>
+
+              <article className="faqItem">
+                <h3>Pro koho je venkovní učebna vhodná?</h3>
+                <p>
+                  ARCHIMEDES® využívají základní školy, obce, komunitní centra
+                  i organizace, které chtějí vytvořit moderní prostor pro výuku,
+                  komunitní aktivity a práci s dětmi i veřejností.
+                </p>
+              </article>
+            </div>
+          </div>
+        </section>
+
         <section className="ctaSection">
           <div className="container">
             <div className="ctaBox">
@@ -903,6 +1014,14 @@ export default function Home() {
             padding-bottom: 52px;
           }
 
+          .sectionFaq {
+            padding-top: 46px;
+            padding-bottom: 54px;
+            background:
+              linear-gradient(180deg, rgba(246, 249, 253, 0.96) 0%, rgba(255, 255, 255, 0.98) 100%);
+            border-top: 1px solid rgba(15, 23, 42, 0.04);
+          }
+
           .sectionIntro {
             margin-bottom: 24px;
           }
@@ -934,6 +1053,7 @@ export default function Home() {
 
           .sectionIntro p,
           .trustPanel p,
+          .faqItem p,
           .ctaBox p {
             margin: 12px 0 0;
             font-size: 17px;
@@ -1090,6 +1210,47 @@ export default function Home() {
             font-size: 13px;
             line-height: 1.5;
             color: #667387;
+          }
+
+          .faqGrid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            align-items: stretch;
+          }
+
+          .faqItem {
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid rgba(15, 23, 42, 0.07);
+            border-radius: 24px;
+            padding: 23px 24px;
+            box-shadow:
+              0 12px 30px rgba(15, 23, 42, 0.04),
+              0 2px 8px rgba(15, 23, 42, 0.02);
+          }
+
+          .faqItemWide {
+            grid-column: 1 / -1;
+            background:
+              linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border-color: rgba(37, 99, 235, 0.13);
+          }
+
+          .faqItem h3 {
+            margin: 0;
+            font-size: 21px;
+            line-height: 1.18;
+            letter-spacing: -0.03em;
+            font-weight: 950;
+            color: #0f172a;
+            text-wrap: balance;
+          }
+
+          .faqItem p {
+            margin-top: 10px;
+            font-size: 15.5px;
+            line-height: 1.62;
+            color: #5b6676;
           }
 
           .benefitsGrid {
@@ -1330,6 +1491,11 @@ export default function Home() {
               padding-bottom: 44px;
             }
 
+            .sectionFaq {
+              padding-top: 40px;
+              padding-bottom: 46px;
+            }
+
             .stepImage img {
               height: 198px;
             }
@@ -1408,6 +1574,27 @@ export default function Home() {
             .sectionTrust {
               padding-top: 26px;
               padding-bottom: 36px;
+            }
+
+            .sectionFaq {
+              padding-top: 32px;
+              padding-bottom: 38px;
+            }
+
+            .faqGrid {
+              grid-template-columns: 1fr;
+              gap: 12px;
+            }
+
+            .faqItem,
+            .faqItemWide {
+              grid-column: auto;
+              padding: 20px 18px;
+              border-radius: 22px;
+            }
+
+            .faqItem h3 {
+              font-size: 19px;
             }
 
             .sectionIntro {
