@@ -167,10 +167,10 @@ export default function Home() {
 </p>
 
 <p className="heroLead">
-  ARCHIMEDES Live pomáhá školám přinášet do výuky <strong>živě</strong> reálný svět,
+  ARCHIMEDES Live pomáhá školám přinášet do výuky <strong>reálný svět</strong>,
   inspirativní hosty a zkušenosti z praxe. Děti díky tomu lépe chápou
-  <strong> souvislosti</strong>, více rozumí tomu, proč se učí, a učitelům přinášíme nové
-  možnosti, jak dnešní generaci zaujmout a <strong>motivovat</strong>.
+  souvislosti, více rozumí tomu, <strong>proč se učí</strong>, a učitelé získávají
+  nový způsob, jak dnešní generaci zaujmout.
 </p>
 
               
