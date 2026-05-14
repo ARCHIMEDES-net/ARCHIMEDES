@@ -523,6 +523,22 @@ export default function Home() {
                 </p>
               </article>
 
+              <article className="faqItem faqItemWide faqItemFinance">
+                <h3>Lze ARCHIMEDES Live financovat ze šablon OP JAK?</h3>
+                <p>
+                  Ano. Školy mohou ARCHIMEDES Live využít v rámci šablon OP JAK,
+                  zejména u aktivit zaměřených na inovativní vzdělávání, moderní
+                  formy výuky, wellbeing, podporu motivace žáků a propojení
+                  výuky s praxí.
+                </p>
+                <p>
+                  Program je připravený tak, aby jej učitelé mohli jednoduše
+                  zařadit do výuky jako smysluplnou rozvojovou aktivitu pro žáky.
+                  Rádi škole pomůžeme s orientací, jak ARCHIMEDES Live vhodně
+                  zařadit do jejího konkrétního plánu čerpání.
+                </p>
+              </article>
+
               <article className="faqItem">
                 <h3>Mohou program využívat všichni učitelé školy?</h3>
                 <p>
@@ -1015,9 +1031,11 @@ export default function Home() {
           }
 
           .sectionFaq {
-            padding-top: 46px;
-            padding-bottom: 54px;
+            scroll-margin-top: 96px;
+            padding-top: 50px;
+            padding-bottom: 58px;
             background:
+              radial-gradient(circle at top left, rgba(37, 99, 235, 0.06), transparent 34%),
               linear-gradient(180deg, rgba(246, 249, 253, 0.96) 0%, rgba(255, 255, 255, 0.98) 100%);
             border-top: 1px solid rgba(15, 23, 42, 0.04);
           }
@@ -1215,29 +1233,43 @@ export default function Home() {
           .faqGrid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px;
+            gap: 18px;
             align-items: stretch;
           }
 
           .faqItem {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            min-height: 166px;
             background: rgba(255, 255, 255, 0.98);
             border: 1px solid rgba(15, 23, 42, 0.07);
-            border-radius: 24px;
-            padding: 23px 24px;
+            border-radius: 26px;
+            padding: 24px 26px;
             box-shadow:
-              0 12px 30px rgba(15, 23, 42, 0.04),
+              0 14px 34px rgba(15, 23, 42, 0.045),
               0 2px 8px rgba(15, 23, 42, 0.02);
           }
 
           .faqItemWide {
             grid-column: 1 / -1;
+            min-height: auto;
+            padding: 28px 30px;
             background:
               linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
             border-color: rgba(37, 99, 235, 0.13);
           }
 
+          .faqItemFinance {
+            background:
+              radial-gradient(circle at top right, rgba(245, 158, 11, 0.08), transparent 34%),
+              linear-gradient(180deg, #ffffff 0%, #fffaf0 100%);
+            border-color: rgba(245, 158, 11, 0.18);
+          }
+
           .faqItem h3 {
             margin: 0;
+            max-width: 760px;
             font-size: 21px;
             line-height: 1.18;
             letter-spacing: -0.03em;
@@ -1248,6 +1280,7 @@ export default function Home() {
 
           .faqItem p {
             margin-top: 10px;
+            max-width: 980px;
             font-size: 15.5px;
             line-height: 1.62;
             color: #5b6676;
@@ -1577,6 +1610,7 @@ export default function Home() {
             }
 
             .sectionFaq {
+              scroll-margin-top: 88px;
               padding-top: 32px;
               padding-bottom: 38px;
             }
@@ -1589,12 +1623,18 @@ export default function Home() {
             .faqItem,
             .faqItemWide {
               grid-column: auto;
+              min-height: auto;
               padding: 20px 18px;
               border-radius: 22px;
             }
 
             .faqItem h3 {
               font-size: 19px;
+            }
+
+            .faqItem p {
+              font-size: 15px;
+              line-height: 1.58;
             }
 
             .sectionIntro {
