@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/program", label: "Program" },
   { href: "/vysilani", label: "Hosté a témata" },
   { href: "/ucebna", label: "Učebna" },
+  { href: "/#faq", label: "FAQ" },
   { href: "/poptavka", label: "Poptávka" },
   { href: "/media", label: "Reference/Média" },
   { href: "/kontakt", label: "Kontakt" },
