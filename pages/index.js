@@ -159,9 +159,7 @@ export default function Home() {
                 <div className="eyebrow">ARCHIMEDES Live pro školy a obce</div>
 
               <h1>
-  „Proč se to
-  <br />
-  učíme?“
+  „Proč se to učíme?“
 </h1>
 
 <p className="heroIntro">
@@ -172,14 +170,10 @@ export default function Home() {
   ARCHIMEDES Live pomáhá školám přinášet do výuky živě reálný svět,
   inspirativní hosty a zkušenosti z praxe. Děti díky tomu lépe chápou
   souvislosti, více rozumí tomu, proč se učí, a učitelům přinášíme nové
-  možnosti, jak dnešní generaci zaujmout a motivovat — bez složitých
-  příprav navíc.
+  možnosti, jak dnešní generaci zaujmout a motivovat.
 </p>
 
-                <p className="heroLead">
-                  Živé vysílání, tematické kluby, pracovní listy, archiv a
-                  program pro různé generace na jednom místě.
-                </p>
+              
 
                 <div className="startHighlight">
                   <div>
