@@ -175,17 +175,17 @@ export default function Home() {
 
               
 
-                <div className="startHighlight">
+                              <div className="startHighlight">
                   <div>
-                    <strong>Akční nabídka START</strong>
-                    <span>Nejrychlejší cesta, jak zapojit celou školu do programu.</span>
+                    <strong>Začněte s ARCHIMEDES Live ve vaší škole</strong>
+                    <span>Nejjednodušší cesta, jak zapojit učitele i žáky do programu.</span>
                   </div>
                   <ButtonLink
                     href="/start"
                     variant="start"
                     eventName="klik_home_start"
                   >
-                    Balíček START
+                    Chci vyzkoušet
                   </ButtonLink>
                 </div>
 
