@@ -3,9 +3,9 @@ import Head from "next/head";
 import Footer from "../components/Footer";
 
 const FALLBACK_POSTS = [
-  "https://www.instagram.com/p/DXorN8sCCeT/",
-  "https://www.instagram.com/p/DXPhqZ9iGHU/",
-  "https://www.instagram.com/p/DW0nmkFCHvB/",
+  "https://www.instagram.com/p/DYXe4YaxhVA/",
+  "https://www.instagram.com/p/DYUSiaYFrjQ/",
+  "https://www.instagram.com/p/DYMDklBjR23/?img_index=1",
 ];
 
 function getEmbedUrl(url) {
