@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 const FALLBACK_POSTS = [
   "https://www.instagram.com/p/DYXe4YaxhVA/",
   "https://www.instagram.com/p/DYUSiaYFrjQ/",
-  "https://www.instagram.com/p/DYMDklBjR23/?img_index=1",
+  "https://www.instagram.com/p/DXuOQIJCDlG/",
 ];
 
 function getEmbedUrl(url) {
