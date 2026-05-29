@@ -6,6 +6,9 @@ import Footer from "../components/Footer";
 const LOGO_SRC = "/archimedes-day-logo.png";
 const CLASSROOM_SRC = "/archimedes-classroom.jpeg";
 
+const POSTER_CZ = "/19.6.2026_strana_1.jpeg";
+const POSTER_EN = "/Kopie%20na%CC%81vrhu%2019.6.2026_strana_1.jpeg";
+
 const CONTENT = {
   cz: {
     metaTitle: "ARCHIMEDES DAY | 19. června 2026",
@@ -18,6 +21,11 @@ const CONTENT = {
       "Mezinárodní den, který propojí školy, obce, instituce a inspirativní osobnosti kolem vzdělávání, vědy, objevování a komunity.",
     ctaProgram: "Program dne",
     ctaGreetings: "Zdravice ze světa",
+
+    posterKicker: "ARCHIMEDES DAY 2026",
+    posterTitle: "Oficiální plakát akce",
+    posterIntro:
+      "První ročník ARCHIMEDES DAY proběhne 19. června 2026 živě z BVV Brno a online na ARCHIMEDES Live.",
 
     aboutKicker: "O projektu",
     aboutTitle: "Co je ARCHIMEDES DAY",
@@ -87,29 +95,39 @@ const CONTENT = {
     ],
 
     programKicker: "Program 2026",
-    programTitle: "První rámec dne",
+    programTitle: "Oficiální program ARCHIMEDES DAY 2026",
     programIntro:
-      "Program budeme průběžně doplňovat. Už nyní ale víme, že den bude věnován osobnosti Archimeda, mezinárodnímu propojení a praktickým ukázkám pro školy i veřejnost.",
+      "Program prvního ročníku propojí živé vysílání z BVV Brno, wellbeing pro mladou generaci, mezinárodní vstup z Řecka, popularizaci vědy a živé experimenty pro školy.",
     programItems: [
       {
         time: "09:00",
-        title: "Zahájení ARCHIMEDES DAY",
-        text: "Slavnostní zahájení prvního mezinárodního dne věnovaného vzdělávání, vědě, objevování a komunitě.",
+        title: "Zahájení",
+        text: "Oficiální zahájení mezinárodního ARCHIMEDES DAY.",
+      },
+      {
+        time: "09:15",
+        title: "Pevný bod – Wellbeing Gen Z",
+        text: "Moderuje Kristýna Sekaninová.",
       },
       {
         time: "10:00",
-        title: "Propojení do muzea",
-        text: "Speciální blok věnovaný odkazu Archimeda a mezinárodnímu propojení s muzeem.",
+        title: "ARCHIMEDES Museum Kotsanas Řecko",
+        text: "Živý vstup z Řecka. Moderuje Karolína Surý.",
+      },
+      {
+        time: "10:30",
+        title: "ARCHIMEDES – největší vědec starověku",
+        text: "doc. RNDr. Jindřich Bečvář, CSc., moderuje Taťána Kuchařová.",
       },
       {
         time: "11:00",
-        title: "Pokusy inspirované Archimedem",
-        text: "Praktické ukázky a experimenty, které přiblíží Archimedovy myšlenky dětem, školám i veřejnosti.",
+        title: "Vynálezce ARCHIMEDES – pokusy živě",
+        text: "Tým Science ON.",
       },
       {
-        time: "13:00",
-        title: "Pozdravy institucí a partnerů",
-        text: "Galerie zdravic a zapojených institucí z různých zemí.",
+        time: "12:00",
+        title: "Mezinárodní zdravice, závěr",
+        text: "Pozdravy partnerů a zakončení programu.",
       },
     ],
 
@@ -170,6 +188,11 @@ const CONTENT = {
       "An international day connecting schools, municipalities, institutions and inspiring personalities through education, science, discovery and community.",
     ctaProgram: "See the program",
     ctaGreetings: "Greetings from the world",
+
+    posterKicker: "ARCHIMEDES DAY 2026",
+    posterTitle: "Official event posters",
+    posterIntro:
+      "The first edition of ARCHIMEDES DAY will take place on June 19, 2026 live from BVV Brno and online on ARCHIMEDES Live.",
 
     aboutKicker: "About",
     aboutTitle: "What is ARCHIMEDES DAY",
@@ -239,29 +262,39 @@ const CONTENT = {
     ],
 
     programKicker: "Program 2026",
-    programTitle: "First outline of the day",
+    programTitle: "Official ARCHIMEDES DAY 2026 Program",
     programIntro:
-      "The program will be updated gradually. We already know the day will focus on Archimedes, international connection and practical activities for schools and the public.",
+      "The first edition will connect a live broadcast from BVV Brno, wellbeing for the young generation, an international segment from Greece, science outreach and live experiments for schools.",
     programItems: [
       {
         time: "09:00",
-        title: "Opening of ARCHIMEDES DAY",
-        text: "Official opening of the first international day dedicated to education, science, discovery and community.",
+        title: "Start of the program",
+        text: "Official opening of ARCHIMEDES DAY.",
+      },
+      {
+        time: "09:15",
+        title: "Fixed Point – Wellbeing Gen Z",
+        text: "Hosted by Kristýna Sekaninová.",
       },
       {
         time: "10:00",
-        title: "Connection with a museum",
-        text: "A special segment dedicated to the legacy of Archimedes and an international connection with a museum.",
+        title: "ARCHIMEDES Museum Kotsanas Greece",
+        text: "Hosted by Karolína Surý.",
+      },
+      {
+        time: "10:30",
+        title: "ARCHIMEDES – the greatest scientist of antiquity",
+        text: "doc. RNDr. Jindřich Bečvář, CSc., hosted by Taťána Kuchařová.",
       },
       {
         time: "11:00",
-        title: "Experiments inspired by Archimedes",
-        text: "Practical demonstrations and experiments bringing Archimedes’ ideas closer to children, schools and the public.",
+        title: "ARCHIMEDES the Inventor – Live Experiments",
+        text: "Science ON team.",
       },
       {
-        time: "13:00",
-        title: "Greetings from institutions and partners",
-        text: "A gallery of greetings and participating institutions from different countries.",
+        time: "12:00",
+        title: "International Greetings, Conclusion",
+        text: "Greetings from partners and closing remarks.",
       },
     ],
 
@@ -312,6 +345,23 @@ const CONTENT = {
   },
 };
 
+function PosterImage({ src, fallbackSrc, alt }) {
+  const [currentSrc, setCurrentSrc] = useState(src);
+
+  return (
+    <img
+      src={currentSrc}
+      alt={alt}
+      className="ad-poster-image"
+      onError={() => {
+        if (fallbackSrc && currentSrc !== fallbackSrc) {
+          setCurrentSrc(fallbackSrc);
+        }
+      }}
+    />
+  );
+}
+
 export default function ArchimedesDayPage() {
   const [lang, setLang] = useState("en");
   const t = useMemo(() => CONTENT[lang], [lang]);
@@ -334,7 +384,7 @@ export default function ArchimedesDayPage() {
         />
         <meta
           property="og:image"
-          content="https://archimedeslive.com/og-archimedes-day.jpg"
+          content="https://archimedeslive.com/19.6.2026_strana_1.jpeg"
         />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="robots" content="index, follow" />
@@ -394,6 +444,33 @@ export default function ArchimedesDayPage() {
                   />
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="ad-section ad-section-light ad-posters-section">
+          <div className="ad-shell">
+            <div className="ad-heading ad-heading-dark">
+              <p className="ad-kicker">{t.posterKicker}</p>
+              <h2>{t.posterTitle}</h2>
+              <p>{t.posterIntro}</p>
+            </div>
+
+            <div className="ad-posters">
+              <article className="ad-poster-card">
+                <PosterImage
+                  src={POSTER_EN}
+                  fallbackSrc="/Kopie návrhu 19.6.2026_strana_1.jpeg"
+                  alt="ARCHIMEDES DAY official poster in English"
+                />
+              </article>
+
+              <article className="ad-poster-card">
+                <PosterImage
+                  src={POSTER_CZ}
+                  alt="ARCHIMEDES DAY oficiální plakát v češtině"
+                />
+              </article>
             </div>
           </div>
         </section>
@@ -786,6 +863,10 @@ export default function ArchimedesDayPage() {
           color: #ffffff;
         }
 
+        .ad-posters-section {
+          padding-top: 74px;
+        }
+
         .ad-program-section {
           padding-top: 40px;
         }
@@ -833,6 +914,28 @@ export default function ArchimedesDayPage() {
         .ad-classroom-text h2,
         .ad-classroom-text p {
           color: #13233b;
+        }
+
+        .ad-posters {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 28px;
+          align-items: start;
+        }
+
+        .ad-poster-card {
+          background: #ffffff;
+          border-radius: 30px;
+          padding: 14px;
+          box-shadow: 0 28px 70px rgba(15, 23, 42, 0.12);
+          border: 1px solid rgba(19, 35, 59, 0.08);
+        }
+
+        .ad-poster-image {
+          display: block;
+          width: 100%;
+          height: auto;
+          border-radius: 22px;
         }
 
         .ad-intro {
@@ -1046,7 +1149,8 @@ export default function ArchimedesDayPage() {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
 
-          .ad-greetings {
+          .ad-greetings,
+          .ad-posters {
             grid-template-columns: 1fr;
           }
 
@@ -1084,9 +1188,18 @@ export default function ArchimedesDayPage() {
           .ad-program-item,
           .ad-link-block,
           .ad-classroom-media,
-          .ad-hero-logo-card {
+          .ad-hero-logo-card,
+          .ad-poster-card {
             border-radius: 24px;
             padding: 22px;
+          }
+
+          .ad-poster-card {
+            padding: 10px;
+          }
+
+          .ad-poster-image {
+            border-radius: 18px;
           }
 
           .ad-classroom-image {
