@@ -6,8 +6,8 @@ import Footer from "../components/Footer";
 const LOGO_SRC = "/archimedes-day-logo.png";
 const CLASSROOM_SRC = "/archimedes-classroom.jpeg";
 
-const POSTER_CZ = "/19.6.2026_strana_1.jpeg";
-const POSTER_EN = "/Kopie%20na%CC%81vrhu%2019.6.2026_strana_1.jpeg";
+const POSTER_CZ = "/AD CJ.jpg";
+const POSTER_EN = "/AD AJ.jpg";
 
 const CONTENT = {
   cz: {
