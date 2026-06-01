@@ -1,3 +1,4 @@
+
 import Head from "next/head";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -20,6 +21,7 @@ const CONTENT = {
     heroText:
       "Mezinárodní den, který propojí školy, obce, instituce a inspirativní osobnosti kolem vzdělávání, vědy, objevování a komunity.",
     ctaProgram: "Program dne",
+    ctaLive: "Připojit se k vysílání",
     ctaGreetings: "Zdravice ze světa",
 
     posterKicker: "ARCHIMEDES DAY 2026",
@@ -187,6 +189,7 @@ const CONTENT = {
     heroText:
       "An international day connecting schools, municipalities, institutions and inspiring personalities through education, science, discovery and community.",
     ctaProgram: "See the program",
+    ctaLive: "Join the live broadcast",
     ctaGreetings: "Greetings from the world",
 
     posterKicker: "ARCHIMEDES DAY 2026",
@@ -429,6 +432,16 @@ export default function ArchimedesDayPage() {
                   <a href="#program" className="ad-btn ad-btn-primary">
                     {t.ctaProgram}
                   </a>
+
+                  <a
+                    href="https://meet.google.com/uvp-zqde-xhs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ad-btn ad-btn-live"
+                  >
+                    {t.ctaLive}
+                  </a>
+
                   <a href="#greetings" className="ad-btn ad-btn-secondary">
                     {t.ctaGreetings}
                   </a>
@@ -842,6 +855,20 @@ export default function ArchimedesDayPage() {
 
         .ad-btn-secondary:hover {
           background: rgba(255, 255, 255, 0.12);
+        }
+
+        .ad-btn-live {
+          background: #16a34a;
+          color: #ffffff;
+          border: 1px solid #16a34a;
+          box-shadow: 0 18px 36px rgba(22, 163, 74, 0.28);
+        }
+
+        .ad-btn-live:hover {
+          background: #15803d;
+          color: #ffffff;
+          border-color: #15803d;
+          transform: translateY(-1px);
         }
 
         .ad-btn-light {
