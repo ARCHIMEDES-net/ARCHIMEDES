@@ -245,13 +245,15 @@ export default function Home() {
 
               <div className="heroAside">
                 <Link
-                  href="/program"
+                  href="/archimedes-day"
                   className="nextBroadcastCard"
-                  onClick={() => track("klik_home_program_karta")}
+                  onClick={() => track("klik_home_archimedes_day_karta")}
                 >
                   <div className="nextBroadcastHead">
                     <div className="nextBroadcastLabel">Nejbližší vysílání</div>
-                    <div className="nextBroadcastBadge">Program</div>
+                    <div className="nextBroadcastBadge">
+                      LIVE • 19. 6. 2026
+                    </div>
                   </div>
 
                   {nextEventLoading ? (
@@ -282,7 +284,7 @@ export default function Home() {
                         </div>
 
                         <div className="nextBroadcastAction">
-                          <span>Zobrazit detail programu</span>
+                          <span>Připojit se k ARCHIMEDES DAY</span>
                           <span aria-hidden="true">→</span>
                         </div>
                       </div>
@@ -297,7 +299,7 @@ export default function Home() {
                         i připravovaná vysílání.
                       </div>
                       <div className="nextBroadcastAction">
-                        <span>Zobrazit program</span>
+                        <span>ARCHIMEDES DAY 2026</span>
                         <span aria-hidden="true">→</span>
                       </div>
                     </div>
@@ -904,9 +906,9 @@ export default function Home() {
             font-weight: 900;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: #1d4ed8;
-            background: #eaf1ff;
-            border: 1px solid rgba(37, 99, 235, 0.12);
+            color: #ffffff;
+            background: #dc2626;
+            border: 1px solid #dc2626;
           }
 
           .nextBroadcastLoading,
