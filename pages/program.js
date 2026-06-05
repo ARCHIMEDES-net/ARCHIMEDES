@@ -65,15 +65,15 @@ const communityItems = [
 
 const priceCards = [
   {
-    title: "Škola",
+    title: "Škola + obec",
     price: "1 990 Kč",
     suffix: "/ měsíc",
-    badge: "pro školy",
+    badge: "akční nabídka",
     description:
-      "Pravidelný živý vzdělávací program pro školy, které chtějí během školního roku využívat inspirativní hosty, pracovní listy, archiv a témata využitelná přímo ve výuce.",
+      "Kompletní program ARCHIMEDES Live pro školu i obec. V rámci akční nabídky získáváte komunitní program zdarma jako součást školní licence.",
     intro:
-      "Školní varianta je určena pro školy, které chtějí mít pravidelný obsah pro třídu, pedagogy i širší rozvoj školy. Součástí jsou i témata, která navazují na nabídku START.",
-    items: schoolItems,
+      "Škola získává pravidelná živá vysílání, pracovní listy, archiv a další obsah pro výuku. Současně obec získává přístup ke komunitnímu programu pro seniory, spolky a veřejnost bez navýšení ceny.",
+    items: [...schoolItems, ...communityItems],
     href: "/poptavka?interest=skola",
     featured: true,
     accentColor: "#2563eb",
@@ -81,20 +81,6 @@ const priceCards = [
       href: "/start",
       label: "Akční nabídka START",
     },
-  },
-  {
-    title: "Komunitní program",
-    price: "490 Kč",
-    suffix: "/ měsíc",
-    badge: "pro obec a komunitu",
-    description:
-      "Program pro obec, seniory, spolky a veřejnost, který přináší pravidelný obsah pro komunitní život během roku včetně kulturních a letních formátů.",
-    intro:
-      "Komunitní varianta rozšiřuje přínos ARCHIMEDES Live i mimo školu. Je vhodná pro obce, které chtějí pravidelný program pro seniory, veřejnost, spolky a místní komunitní život.",
-    items: communityItems,
-    href: "/poptavka?interest=komunita",
-    featured: false,
-    accentColor: "#22c55e",
   },
 ];
 
@@ -216,7 +202,6 @@ function PriceProgramCard({
   accentColor = "#2563eb",
 }) {
   const isBlue = accentColor === "#2563eb";
-  const isGreen = accentColor === "#22c55e";
 
   return (
     <div
@@ -227,8 +212,6 @@ function PriceProgramCard({
         border: `2px solid ${accentColor}`,
         boxShadow: featured
           ? "0 18px 46px rgba(37,99,235,0.12)"
-          : isGreen
-          ? "0 14px 36px rgba(34,197,94,0.08)"
           : "0 14px 36px rgba(15,23,42,0.06)",
         minHeight: "100%",
         transition:
@@ -242,8 +225,8 @@ function PriceProgramCard({
           minHeight: 34,
           padding: "0 14px",
           borderRadius: 999,
-          background: featured ? accentColor : isGreen ? "#ecfdf5" : "#f1f5f9",
-          color: featured ? "#fff" : isGreen ? "#166534" : "#334155",
+          background: featured ? accentColor : "#f1f5f9",
+          color: featured ? "#fff" : "#334155",
           fontSize: 14,
           fontWeight: 800,
           marginBottom: 18,
@@ -322,14 +305,14 @@ function PriceProgramCard({
             padding: "0 16px",
             borderRadius: 12,
             background: featured ? accentColor : "#ffffff",
-            color: featured ? "#ffffff" : isGreen ? "#166534" : "#0f172a",
+            color: featured ? "#ffffff" : "#0f172a",
             border: `1px solid ${accentColor}`,
             fontSize: 15,
             fontWeight: 800,
             textDecoration: "none",
           }}
         >
-          Mám zájem o tuto variantu →
+          Mám zájem o program →
         </Link>
 
         {extraButton ? (
@@ -848,9 +831,9 @@ export default function ProgramPage() {
                     letterSpacing: "-0.04em",
                   }}
                 >
-                  Vyberte si program
+                  Jeden program
                   <br />
-                  pro školu nebo obec
+                  pro školu i obec
                 </h1>
 
                 <p
@@ -862,9 +845,9 @@ export default function ProgramPage() {
                     maxWidth: 620,
                   }}
                 >
-                  ARCHIMEDES Live přináší živý obsah pro výuku i komunitní život obce.
-                  Škola může využívat vlastní vzdělávací program a obec k němu může přidat
-                  komunitní část pro seniory, spolky i veřejnost.
+                  ARCHIMEDES Live přináší živý obsah pro školu i komunitní život obce.
+                  V rámci akční nabídky získáváte školní program i komunitní část pro seniory,
+                  spolky a veřejnost v jedné licenci za 1 990 Kč měsíčně.
                 </p>
 
                 <div
@@ -977,16 +960,50 @@ export default function ProgramPage() {
           <section id="varianty" style={{ marginTop: 84 }}>
             <SectionTitle
               eyebrow="Program a ceník"
-              title="Vyberte si variantu programu"
-              text="Každá varianta má svůj vlastní obsah i zaměření. Školní část je určena pro výuku a práci s třídou, komunitní část pro seniory, spolky, veřejnost a život v obci. Níže vidíte, co jednotlivé varianty obsahují i kolik stojí."
+              title="Jedna licence pro školu i obec"
+              text="ARCHIMEDES Live propojuje školu a obec v jedné licenci. V rámci akční nabídky získává obec komunitní program zdarma jako součást školní licence za 1 990 Kč měsíčně."
             />
 
             <div
               style={{
+                marginBottom: 24,
+                padding: 24,
+                borderRadius: 20,
+                background: "#ecfdf5",
+                border: "2px solid #22c55e",
+                textAlign: "center",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 28,
+                  fontWeight: 900,
+                  color: "#166534",
+                  marginBottom: 8,
+                }}
+              >
+                🎉 Akční nabídka 2026
+              </div>
+
+              <div
+                style={{
+                  fontSize: 18,
+                  color: "#14532d",
+                  lineHeight: 1.7,
+                }}
+              >
+                Ke školní licenci ARCHIMEDES Live získáváte nyní komunitní program pro
+                obec, seniory, spolky a veřejnost zdarma.
+              </div>
+            </div>
+
+            <div
+              style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                gridTemplateColumns: "1fr",
                 gap: 22,
                 marginTop: 24,
+                maxWidth: 760,
               }}
               className="price-grid"
             >
@@ -1034,6 +1051,7 @@ export default function ProgramPage() {
         @media (max-width: 1100px) {
           .price-grid {
             grid-template-columns: 1fr !important;
+            max-width: none !important;
           }
 
           .hero-grid {
