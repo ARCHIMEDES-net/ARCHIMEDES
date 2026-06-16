@@ -212,7 +212,7 @@ export default function Home() {
                   <div className="countdownTitle">
                     <span className="countdownIcon">📅</span>
                     <strong>
-                      Historicky první mezinárodní ročník oslavy Archimeda a objevů se blíží!
+                      První mezinárodní ročník oslavy Archimeda se blíží!
                     </strong>
                   </div>
 
