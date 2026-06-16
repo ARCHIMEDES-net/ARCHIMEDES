@@ -284,7 +284,7 @@ export default function Home() {
 
                 <div className="municipalityProof">
                   <div className="municipalityIntro">
-                    Důvěřují nám starostové. Společně budujeme aktivní obec, nejen školu.
+                    Důvěřují nám starostové. Společně budujeme aktivní obec, nejen školu. Přidejte svou obec!
                   </div>
 
                   <div className="municipalityGrid">
