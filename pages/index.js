@@ -175,17 +175,37 @@ export default function Home() {
 
               
 
-                              <div className="startHighlight">
-                  <div>
-                    <strong>Začněte s ARCHIMEDES Live ve vaší škole</strong>
-                    <span>Nejjednodušší cesta, jak zapojit učitele i žáky do programu.</span>
+                <div className="archimedesCountdown">
+                  <div className="countdownTitle">
+                    <span className="countdownIcon">📅</span>
+                    <strong>
+                      Historicky první mezinárodní ročník oslavy Archimeda a objevů se blíží!
+                    </strong>
                   </div>
+
+                  <div className="countdownNumbers">
+                    <div className="countItem">
+                      <strong>19. 6.</strong>
+                      <span>2026</span>
+                    </div>
+
+                    <div className="countItem">
+                      <strong>LIVE</strong>
+                      <span>ONLINE</span>
+                    </div>
+
+                    <div className="countItem">
+                      <strong>ČR • SR • HR</strong>
+                      <span>+ ZAHRANIČÍ</span>
+                    </div>
+                  </div>
+
                   <ButtonLink
-                    href="/start"
+                    href="/archimedes-day"
                     variant="start"
-                    eventName="klik_home_start"
+                    eventName="klik_home_archimedes_day"
                   >
-                    Chci vyzkoušet
+                    Připojit se k ARCHIMEDES DAY
                   </ButtonLink>
                 </div>
 
@@ -229,6 +249,38 @@ export default function Home() {
                   >
                     ARCHIMEDES DAY
                   </ButtonLink>
+                </div>
+
+                <div className="municipalityProof">
+                  <div className="municipalityIntro">
+                    Důvěřují nám starostové. Společně budujeme aktivní obec, nejen školu.
+                  </div>
+
+                  <div className="municipalityGrid">
+                    <div className="municipalityCard">
+                      <img src="/krenov.jpg" alt="Křenov" />
+                      <div>
+                        <strong>Křenov</strong>
+                        <span>Obec 2030 ČR</span>
+                      </div>
+                    </div>
+
+                    <div className="municipalityCard">
+                      <img src="/cejc.jpg" alt="Čejč" />
+                      <div>
+                        <strong>Čejč</strong>
+                        <span>Vesnice roku JMK 2026</span>
+                      </div>
+                    </div>
+
+                    <div className="municipalityCard">
+                      <img src="/hodonin erb.jpg" alt="Hodonín" />
+                      <div>
+                        <strong>Hodonín</strong>
+                        <span>Zdravé město ČR</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="heroGuestWrap">
@@ -782,6 +834,142 @@ export default function Home() {
             line-height: 1.58;
             color: #4d5a6d;
             max-width: 680px;
+          }
+
+          .archimedesCountdown {
+            margin-top: 24px;
+            max-width: 760px;
+            padding: 18px 20px;
+            border-radius: 24px;
+            background:
+              linear-gradient(135deg, #ffffff 0%, #f3f8ff 100%);
+            border: 1px solid rgba(37, 99, 235, 0.16);
+            box-shadow:
+              0 16px 42px rgba(37, 99, 235, 0.09),
+              0 2px 8px rgba(15, 23, 42, 0.035);
+          }
+
+          .countdownTitle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            line-height: 1.28;
+            font-weight: 950;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            text-wrap: balance;
+          }
+
+          .countdownIcon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            flex: 0 0 42px;
+            border-radius: 14px;
+            background: #eaf1ff;
+            font-size: 22px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+          }
+
+          .countdownNumbers {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin: 16px 0;
+          }
+
+          .countItem {
+            min-height: 72px;
+            border-radius: 18px;
+            padding: 12px 10px;
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.07);
+            text-align: center;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.035);
+          }
+
+          .countItem strong {
+            display: block;
+            font-size: 22px;
+            line-height: 1.05;
+            font-weight: 950;
+            color: #0f172a;
+            letter-spacing: -0.03em;
+          }
+
+          .countItem span {
+            display: block;
+            margin-top: 7px;
+            font-size: 11px;
+            line-height: 1.2;
+            font-weight: 900;
+            color: #64748b;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+          }
+
+          .municipalityProof {
+            margin-top: 20px;
+            max-width: 920px;
+          }
+
+          .municipalityIntro {
+            margin-bottom: 12px;
+            font-size: 16px;
+            line-height: 1.35;
+            font-weight: 950;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            text-wrap: balance;
+          }
+
+          .municipalityGrid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+          }
+
+          .municipalityCard {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 82px;
+            padding: 12px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow:
+              0 10px 24px rgba(15, 23, 42, 0.045),
+              0 2px 8px rgba(15, 23, 42, 0.02);
+          }
+
+          .municipalityCard img {
+            width: 54px;
+            height: 54px;
+            flex: 0 0 54px;
+            object-fit: contain;
+            display: block;
+          }
+
+          .municipalityCard strong {
+            display: block;
+            font-size: 17px;
+            line-height: 1.2;
+            font-weight: 950;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+          }
+
+          .municipalityCard span {
+            display: block;
+            margin-top: 4px;
+            font-size: 13px;
+            line-height: 1.35;
+            font-weight: 850;
+            color: #16a34a;
           }
 
           .startHighlight {
@@ -1580,6 +1768,28 @@ export default function Home() {
               font-size: 16px;
             }
 
+            .archimedesCountdown {
+              padding: 15px;
+              border-radius: 22px;
+            }
+
+            .countdownTitle {
+              align-items: flex-start;
+              font-size: 16px;
+            }
+
+            .countdownNumbers {
+              grid-template-columns: 1fr;
+            }
+
+            .municipalityGrid {
+              grid-template-columns: 1fr;
+            }
+
+            .municipalityCard {
+              min-height: 74px;
+            }
+
             .startHighlight {
               flex-direction: column;
               align-items: stretch;
@@ -1672,7 +1882,8 @@ export default function Home() {
 
             .heroActions :global(.al-btn),
             .ctaActions :global(.al-btn),
-            .startHighlight :global(.al-btn) {
+            .startHighlight :global(.al-btn),
+            .archimedesCountdown :global(.al-btn) {
               width: 100%;
             }
 
