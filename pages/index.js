@@ -239,11 +239,11 @@ export default function Home() {
                   </div>
 
                   <ButtonLink
-                    href="/start"
+                    href="https://meet.google.com/uvp-zqde-xhs"
                     variant="start"
-                    eventName="klik_home_start"
+                    eventName="klik_home_archimedesday_meet"
                   >
-                    Chci vyzkoušet
+                    Připojit se k vysílání
                   </ButtonLink>
                 </div>
 
