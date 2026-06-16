@@ -79,6 +79,39 @@ function formatEventDate(dateString) {
 export default function Home() {
   const [nextEvent, setNextEvent] = useState(null);
   const [nextEventLoading, setNextEventLoading] = useState(true);
+  const [timeLeft, setTimeLeft] = useState({
+    days: "00",
+    hours: "00",
+    minutes: "00",
+    seconds: "00",
+  });
+
+
+  useEffect(() => {
+    const target = new Date("2026-06-19T09:00:00+02:00").getTime();
+
+    function updateCountdown() {
+      const now = Date.now();
+      const distance = Math.max(0, target - now);
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((distance / (1000 * 60)) % 60);
+      const seconds = Math.floor((distance / 1000) % 60);
+
+      setTimeLeft({
+        days: String(days).padStart(2, "0"),
+        hours: String(hours).padStart(2, "0"),
+        minutes: String(minutes).padStart(2, "0"),
+        seconds: String(seconds).padStart(2, "0"),
+      });
+    }
+
+    updateCountdown();
+    const interval = window.setInterval(updateCountdown, 1000);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -185,37 +218,42 @@ export default function Home() {
 
                   <div className="countdownNumbers">
                     <div className="countItem">
-                      <strong>19. 6.</strong>
-                      <span>2026</span>
+                      <strong>{timeLeft.days}</strong>
+                      <span>DNY</span>
                     </div>
 
                     <div className="countItem">
-                      <strong>LIVE</strong>
-                      <span>ONLINE</span>
+                      <strong>{timeLeft.hours}</strong>
+                      <span>HODIN</span>
                     </div>
 
                     <div className="countItem">
-                      <strong>ČR • SR • HR</strong>
-                      <span>+ ZAHRANIČÍ</span>
+                      <strong>{timeLeft.minutes}</strong>
+                      <span>MINUT</span>
+                    </div>
+
+                    <div className="countItem">
+                      <strong>{timeLeft.seconds}</strong>
+                      <span>SEKUND</span>
                     </div>
                   </div>
 
                   <ButtonLink
-                    href="/archimedes-day"
+                    href="/start"
                     variant="start"
-                    eventName="klik_home_archimedes_day"
+                    eventName="klik_home_start"
                   >
-                    Připojit se k ARCHIMEDES DAY
+                    Chci vyzkoušet
                   </ButtonLink>
                 </div>
 
                 <div className="heroActions">
                   <ButtonLink
-                    href="/aktualni-pozvanky"
-                    variant="primary"
-                    eventName="klik_home_co_se_chysta"
+                    href="/start"
+                    variant="start"
+                    eventName="klik_home_start_hero"
                   >
-                    Co se chystá
+                    Chci vyzkoušet
                   </ButtonLink>
 
                   <ButtonLink
@@ -242,13 +280,6 @@ export default function Home() {
                     Ukázka platformy
                   </ButtonLink>
 
-                  <ButtonLink
-                    href="/archimedes-day"
-                    variant="secondary"
-                    eventName="klik_home_archimedes_day"
-                  >
-                    ARCHIMEDES DAY
-                  </ButtonLink>
                 </div>
 
                 <div className="municipalityProof">
@@ -839,6 +870,10 @@ export default function Home() {
           .archimedesCountdown {
             margin-top: 24px;
             max-width: 760px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.25fr) minmax(320px, 1fr) auto;
+            align-items: center;
+            gap: 18px;
             padding: 18px 20px;
             border-radius: 24px;
             background:
@@ -876,15 +911,14 @@ export default function Home() {
 
           .countdownNumbers {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
-            margin: 16px 0;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
           }
 
           .countItem {
-            min-height: 72px;
-            border-radius: 18px;
-            padding: 12px 10px;
+            min-height: 66px;
+            border-radius: 16px;
+            padding: 10px 8px;
             background: #ffffff;
             border: 1px solid rgba(15, 23, 42, 0.07);
             text-align: center;
@@ -893,7 +927,7 @@ export default function Home() {
 
           .countItem strong {
             display: block;
-            font-size: 22px;
+            font-size: 24px;
             line-height: 1.05;
             font-weight: 950;
             color: #0f172a;
@@ -903,7 +937,7 @@ export default function Home() {
           .countItem span {
             display: block;
             margin-top: 7px;
-            font-size: 11px;
+            font-size: 10px;
             line-height: 1.2;
             font-weight: 900;
             color: #64748b;
@@ -1769,6 +1803,7 @@ export default function Home() {
             }
 
             .archimedesCountdown {
+              grid-template-columns: 1fr;
               padding: 15px;
               border-radius: 22px;
             }
@@ -1779,7 +1814,7 @@ export default function Home() {
             }
 
             .countdownNumbers {
-              grid-template-columns: 1fr;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .municipalityGrid {
