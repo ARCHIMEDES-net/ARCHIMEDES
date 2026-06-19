@@ -1,15 +1,30 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { track } from "@vercel/analytics";
 import Footer from "../components/Footer";
-import { supabase } from "../lib/supabaseClient";
 
 const heroImg = "/jak-funguje-trida.jpg";
 const stepOnlineImg = "/jak-funguje-online.jpg";
 const stepClassImg = "/ella.jpg";
 const stepBoardImg = "/jak-funguje-tabule.jpg";
-const POSTERS_BUCKET = "posters";
+
+const archimedesDayGallery = [
+  { src: "/spolecna.jpg", alt: "Společná fotografie účastníků ARCHIMEDES DAY 2026" },
+  { src: "/spol2.jpg", alt: "Tým a hosté před učebnou ARCHIMEDES" },
+  { src: "/kaja1.jpg", alt: "Moderátorka ARCHIMEDES DAY v učebně" },
+  { src: "/kaja2.jpg", alt: "Prezentace během ARCHIMEDES DAY" },
+  { src: "/muz1.jpg", alt: "Žáci při práci během programu" },
+  { src: "/ales1.jpg", alt: "Ukázka pokusu s vodou" },
+  { src: "/ales2.jpg", alt: "Interaktivní ukázka pro žáky" },
+  { src: "/doc2.jpg", alt: "Přednáška o Archimedovi" },
+  { src: "/doc1.jpg", alt: "Host programu v učebně ARCHIMEDES" },
+  { src: "/tana1.jpg", alt: "Moderace a odborný vstup" },
+  { src: "/tana2.jpg", alt: "Vystoupení během ARCHIMEDES DAY" },
+  { src: "/kristy1.jpg", alt: "Prezentace pro žáky" },
+  { src: "/kristy2.jpg", alt: "Hosté připojení online" },
+  { src: "/zaci1.jpg", alt: "Žáci v učebně ARCHIMEDES" },
+];
 
 function ButtonLink({
   href,
@@ -57,88 +72,8 @@ function VideoCard({ title, subtitle, src, featured = false }) {
   );
 }
 
-function formatEventDate(dateString) {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const datePart = date.toLocaleDateString("cs-CZ", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-
-  const timePart = date.toLocaleTimeString("cs-CZ", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  return `${datePart} • ${timePart}`;
-}
-
 export default function Home() {
-  const [nextEvent, setNextEvent] = useState(null);
-  const [nextEventLoading, setNextEventLoading] = useState(true);
-  useEffect(() => {
-    let active = true;
-
-    async function loadNextEvent() {
-      try {
-        const nowIso = new Date().toISOString();
-
-        const { data, error } = await supabase
-          .from("events")
-          .select("id, title, starts_at, poster_path, poster_url, category")
-          .eq("is_published", true)
-          .gte("starts_at", nowIso)
-          .order("starts_at", { ascending: true })
-          .limit(1);
-
-        if (error) throw error;
-
-        const event = data?.[0] || null;
-
-        if (!active) return;
-
-        if (!event) {
-          setNextEvent(null);
-          return;
-        }
-
-        let posterUrl = event.poster_url || "";
-
-        if (!posterUrl && event.poster_path) {
-          const { data: publicUrlData } = supabase.storage
-            .from(POSTERS_BUCKET)
-            .getPublicUrl(event.poster_path);
-          posterUrl = publicUrlData?.publicUrl || "";
-        }
-
-        setNextEvent({
-          ...event,
-          posterUrl,
-        });
-      } catch (_err) {
-        if (!active) return;
-        setNextEvent(null);
-      } finally {
-        if (active) {
-          setNextEventLoading(false);
-        }
-      }
-    }
-
-    loadNextEvent();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const nextEventDate = useMemo(
-    () => formatEventDate(nextEvent?.starts_at),
-    [nextEvent]
-  );
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
 
   return (
     <>
@@ -173,19 +108,6 @@ export default function Home() {
 </p>
 
               
-
-                <div className="archimedesCountdown">
-                  <div className="countdownTitle">
-                    <img
-                      src="/archimedes-day-logo.png"
-                      alt="ARCHIMEDES DAY"
-                      className="archimedesDayLogo"
-                    />
-                    <strong>
-                      Děkujeme všem za skvělý první ročník ARCHIMEDES DAY!
-                    </strong>
-                  </div>
-                </div>
 
                 <div className="heroActions">
                   <ButtonLink
@@ -254,35 +176,6 @@ export default function Home() {
                   </div>
                 </div>
 
-
-                <section className="archimedesGallery">
-                  <div className="archimedesGalleryHead">
-                    <div className="eyebrow dark">ARCHIMEDES DAY 2026</div>
-                    <h2>Fotogalerie z prvního ročníku</h2>
-                    <p>
-                      Děkujeme všem hostům, školám, žákům a partnerům za skvělou atmosféru
-                      historicky prvního mezinárodního ročníku ARCHIMEDES DAY.
-                    </p>
-                  </div>
-
-                  <div className="galleryGrid">
-                    <img src="/ales1.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/ales2.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/doc1.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/doc2.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/kaja1.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/kaja2.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/kristy1.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/kristy2.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/muz1.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/spol2.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/spolecna.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/tana1.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/tana2.jpg" alt="ARCHIMEDES DAY 2026" />
-                    <img src="/zaci1.jpg" alt="ARCHIMEDES DAY 2026" />
-                  </div>
-                </section>
-
                 <div className="heroGuestWrap">
                   <Link
                     href="/guest"
@@ -296,67 +189,56 @@ export default function Home() {
               </div>
 
               <div className="heroAside">
-                <Link
-                  href="/archimedes-day"
-                  className="nextBroadcastCard"
-                  onClick={() => track("klik_home_archimedes_day_karta")}
-                >
-                  <div className="nextBroadcastHead">
-                    <div className="nextBroadcastLabel">ARCHIMEDES DAY</div>
-                    <div className="nextBroadcastBadge">
-                      2026
-                    </div>
+                <div className="thankYouCard">
+                  <img
+                    src="/archimedes-day-logo.png"
+                    alt="ARCHIMEDES DAY"
+                    className="thankYouLogo"
+                  />
+                  <div className="thankYouBody">
+                    <div className="thankYouLabel">ARCHIMEDES DAY 2026</div>
+                    <h2>Děkujeme všem za skvělý první ročník ARCHIMEDES DAY!</h2>
+                    <p>
+                      Děkujeme hostům, školám, žákům a partnerům za skvělou atmosféru
+                      historicky prvního mezinárodního ročníku.
+                    </p>
+                    <a
+                      href="#archimedes-day-fotogalerie"
+                      className="thankYouLink"
+                      onClick={() => track("klik_home_archimedesday_fotogalerie")}
+                    >
+                      Zobrazit fotogalerii <span aria-hidden="true">→</span>
+                    </a>
                   </div>
-
-                  {nextEventLoading ? (
-                    <div className="nextBroadcastLoading">
-                      Načítáme nejbližší vysílání…
-                    </div>
-                  ) : nextEvent ? (
-                    <>
-                      <div className="nextBroadcastPosterWrap">
-                        {nextEvent.posterUrl ? (
-                          <img
-                            src={nextEvent.posterUrl}
-                            alt={nextEvent.title || "Plakát vysílání"}
-                            className="nextBroadcastPoster"
-                          />
-                        ) : (
-                          <div className="nextBroadcastPosterPlaceholder">
-                            ARCHIMEDES Live
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="nextBroadcastBody">
-                        <div className="nextBroadcastDate">{nextEventDate}</div>
-
-                        <div className="nextBroadcastTitle">
-                          {nextEvent.title}
-                        </div>
-
-                        <div className="nextBroadcastAction">
-                          <span>Připojit se k ARCHIMEDES DAY</span>
-                          <span aria-hidden="true">→</span>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="nextBroadcastEmpty">
-                      <div className="nextBroadcastEmptyTitle">
-                        Fotogalerie ARCHIMEDES DAY 2026
-                      </div>
-                      <div className="nextBroadcastEmptyText">
-                        Děkujeme všem partnerům, hostům, školám a žákům za účast na historicky prvním mezinárodním ročníku.
-                      </div>
-                      <div className="nextBroadcastAction">
-                        <span>Zobrazit fotografie</span>
-                        <span aria-hidden="true">→</span>
-                      </div>
-                    </div>
-                  )}
-                </Link>
+                </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="archimedes-day-fotogalerie" className="section sectionArchimedesGallery">
+          <div className="container">
+            <div className="sectionIntro sectionIntroWide">
+              <div className="eyebrow dark">ARCHIMEDES DAY 2026</div>
+              <h2>Fotogalerie z prvního ročníku</h2>
+              <p>
+                Ohlédnutí za prvním mezinárodním ročníkem oslavy Archimeda,
+                objevů, pokusů a živého propojení škol.
+              </p>
+            </div>
+
+            <div className="galleryGrid">
+              {archimedesDayGallery.map((photo, index) => (
+                <button
+                  key={photo.src}
+                  type="button"
+                  className={`galleryItem galleryItem${index}`}
+                  onClick={() => setSelectedPhoto(photo)}
+                  aria-label={`Zobrazit fotografii: ${photo.alt}`}
+                >
+                  <img src={photo.src} alt={photo.alt} />
+                </button>
+              ))}
             </div>
           </div>
         </section>
@@ -519,7 +401,7 @@ export default function Home() {
                     className="trustInlineLink"
                     onClick={() => track("klik_home_trust_archimedes_day")}
                   >
-                    <span>Zobrazit fotografie</span>
+                    <span>ARCHIMEDES DAY 2026</span>
                     <span aria-hidden="true">→</span>
                   </Link>
                 </div>
@@ -713,6 +595,31 @@ export default function Home() {
           </div>
         </section>
 
+
+        {selectedPhoto ? (
+          <div
+            className="photoLightbox"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Zvětšená fotografie"
+            onClick={() => setSelectedPhoto(null)}
+          >
+            <button
+              type="button"
+              className="photoLightboxClose"
+              onClick={() => setSelectedPhoto(null)}
+              aria-label="Zavřít fotografii"
+            >
+              ×
+            </button>
+            <img
+              src={selectedPhoto.src}
+              alt={selectedPhoto.alt}
+              onClick={(event) => event.stopPropagation()}
+            />
+          </div>
+        ) : null}
+
         <Footer />
 
         <style jsx>{`
@@ -835,137 +742,164 @@ export default function Home() {
             max-width: 680px;
           }
 
-          .archimedesCountdown {
-            margin-top: 24px;
-            max-width: 760px;
-            display: grid;
-            grid-template-columns: minmax(0, 1.25fr) minmax(320px, 1fr) auto;
-            align-items: center;
-            gap: 18px;
-            padding: 18px 20px;
-            border-radius: 24px;
+          .thankYouCard {
+            width: 100%;
+            max-width: 360px;
+            border-radius: 30px;
+            padding: 20px;
             background:
-              linear-gradient(135deg, #ffffff 0%, #f3f8ff 100%);
-            border: 1px solid rgba(37, 99, 235, 0.16);
+              radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 34%),
+              linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 251, 255, 0.96) 100%);
+            border: 1px solid rgba(15, 23, 42, 0.08);
             box-shadow:
-              0 16px 42px rgba(37, 99, 235, 0.09),
-              0 2px 8px rgba(15, 23, 42, 0.035);
+              0 18px 45px rgba(15, 23, 42, 0.08),
+              0 2px 8px rgba(15, 23, 42, 0.03);
           }
 
-          .countdownTitle {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 18px;
-            line-height: 1.28;
+          .thankYouLogo {
+            display: block;
+            width: 118px;
+            height: auto;
+            margin-bottom: 16px;
+            border-radius: 16px;
+            background: #ffffff;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+          }
+
+          .thankYouLabel {
+            font-size: 12px;
+            line-height: 1.4;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #1e3a5f;
+          }
+
+          .thankYouBody h2 {
+            margin: 8px 0 0;
+            font-size: 28px;
+            line-height: 1.04;
+            letter-spacing: -0.05em;
             font-weight: 950;
             color: #0f172a;
-            letter-spacing: -0.02em;
             text-wrap: balance;
           }
 
-
-          .archimedesDayLogo {
-            width: 72px;
-            height: 72px;
-            object-fit: contain;
-            flex: 0 0 72px;
-            border-radius: 14px;
-            background: #ffffff;
-            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+          .thankYouBody p {
+            margin: 12px 0 0;
+            font-size: 15px;
+            line-height: 1.55;
+            color: #5b6676;
           }
 
-          .archimedesGallery {
-            margin-top: 28px;
-            max-width: 920px;
+          .thankYouLink {
+            margin-top: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #1d4ed8;
+            text-decoration: none;
+            font-size: 15px;
+            line-height: 1.4;
+            font-weight: 900;
           }
 
-          .archimedesGalleryHead {
-            margin-bottom: 16px;
-          }
-
-          .archimedesGalleryHead h2 {
-            font-size: 34px;
-            line-height: 1.06;
-          }
-
-          .archimedesGalleryHead p {
-            margin: 10px 0 0;
-            max-width: 760px;
-            font-size: 16px;
-            line-height: 1.6;
-            color: #5a6474;
+          .sectionArchimedesGallery {
+            padding-top: 48px;
+            padding-bottom: 54px;
+            background:
+              radial-gradient(circle at top left, rgba(245, 158, 11, 0.06), transparent 28%),
+              linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+            border-top: 1px solid rgba(15, 23, 42, 0.04);
           }
 
           .galleryGrid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 14px;
           }
 
-          .galleryGrid img {
-            width: 100%;
-            aspect-ratio: 4 / 3;
-            object-fit: cover;
-            display: block;
-            border-radius: 18px;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.055);
+          .galleryItem {
+            grid-column: span 3;
+            padding: 0;
+            border: 0;
+            border-radius: 22px;
+            overflow: hidden;
+            background: #e5e7eb;
+            cursor: pointer;
+            box-shadow:
+              0 14px 32px rgba(15, 23, 42, 0.06),
+              0 2px 8px rgba(15, 23, 42, 0.025);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
           }
 
-          .galleryGrid img:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
+          .galleryItem0,
+          .galleryItem8 {
+            grid-column: span 6;
           }
 
-          .countdownIcon {
-            display: inline-flex;
+          .galleryItem4,
+          .galleryItem10 {
+            grid-column: span 4;
+          }
+
+          .galleryItem:hover {
+            transform: translateY(-4px);
+            box-shadow:
+              0 22px 46px rgba(15, 23, 42, 0.11),
+              0 4px 14px rgba(15, 23, 42, 0.045);
+          }
+
+          .galleryItem img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: 220px;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+          }
+
+          .galleryItem0 img,
+          .galleryItem8 img {
+            aspect-ratio: 16 / 9;
+          }
+
+          .photoLightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
             align-items: center;
             justify-content: center;
-            width: 42px;
-            height: 42px;
-            flex: 0 0 42px;
-            border-radius: 14px;
-            background: #eaf1ff;
-            font-size: 22px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+            padding: 28px;
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(8px);
           }
 
-          .countdownNumbers {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 8px;
+          .photoLightbox img {
+            max-width: min(1120px, 94vw);
+            max-height: 88vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 20px;
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
           }
 
-          .countItem {
-            min-height: 66px;
-            border-radius: 16px;
-            padding: 10px 8px;
+          .photoLightboxClose {
+            position: fixed;
+            top: 20px;
+            right: 22px;
+            width: 46px;
+            height: 46px;
+            border: 0;
+            border-radius: 999px;
             background: #ffffff;
-            border: 1px solid rgba(15, 23, 42, 0.07);
-            text-align: center;
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.035);
-          }
-
-          .countItem strong {
-            display: block;
-            font-size: 24px;
-            line-height: 1.05;
-            font-weight: 950;
             color: #0f172a;
-            letter-spacing: -0.03em;
-          }
-
-          .countItem span {
-            display: block;
-            margin-top: 7px;
-            font-size: 10px;
-            line-height: 1.2;
-            font-weight: 900;
-            color: #64748b;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
+            font-size: 32px;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
           }
 
           .municipalityProof {
@@ -1702,8 +1636,16 @@ export default function Home() {
               justify-content: flex-start;
             }
 
-            .nextBroadcastCard {
-              max-width: 380px;
+            .thankYouCard {
+              max-width: 520px;
+            }
+
+            .galleryItem,
+            .galleryItem0,
+            .galleryItem4,
+            .galleryItem8,
+            .galleryItem10 {
+              grid-column: span 6;
             }
 
             .videosGrid {
@@ -1759,6 +1701,11 @@ export default function Home() {
             .sectionShowcase {
               padding-top: 8px;
               padding-bottom: 34px;
+            }
+
+            .sectionArchimedesGallery {
+              padding-top: 40px;
+              padding-bottom: 46px;
             }
 
             .sectionBenefits {
@@ -1845,11 +1792,35 @@ export default function Home() {
             }
 
             .galleryGrid {
-              grid-template-columns: repeat(2, minmax(0, 1fr));
+              grid-template-columns: 1fr;
             }
 
-            .archimedesGalleryHead h2 {
-              font-size: 28px;
+            .galleryItem,
+            .galleryItem0,
+            .galleryItem4,
+            .galleryItem8,
+            .galleryItem10 {
+              grid-column: auto;
+            }
+
+            .galleryItem img,
+            .galleryItem0 img,
+            .galleryItem8 img {
+              min-height: 210px;
+              aspect-ratio: 4 / 3;
+            }
+
+            .thankYouCard {
+              max-width: 100%;
+              padding: 18px;
+            }
+
+            .thankYouLogo {
+              width: 92px;
+            }
+
+            .thankYouBody h2 {
+              font-size: 24px;
             }
 
             .municipalityCard {
