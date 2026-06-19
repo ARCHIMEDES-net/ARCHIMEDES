@@ -434,7 +434,7 @@ export default function ArchimedesDayPage() {
                   </a>
 
                   <a
-                    href="https://meet.google.com/uvp-zqde-xhs"
+                    href="https://meet.google.com/unb-vixu-vap"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ad-btn ad-btn-live"
