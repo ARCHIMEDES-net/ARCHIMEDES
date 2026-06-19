@@ -239,7 +239,7 @@ export default function Home() {
                   </div>
 
                   <ButtonLink
-                    href="https://meet.google.com/uvp-zqde-xhs"
+                    href="https://meet.google.com/unb-vixu-vap"
                     variant="start"
                     eventName="klik_home_archimedesday_meet"
                   >
