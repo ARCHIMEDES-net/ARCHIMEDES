@@ -79,40 +79,6 @@ function formatEventDate(dateString) {
 export default function Home() {
   const [nextEvent, setNextEvent] = useState(null);
   const [nextEventLoading, setNextEventLoading] = useState(true);
-  const [timeLeft, setTimeLeft] = useState({
-    days: "00",
-    hours: "00",
-    minutes: "00",
-    seconds: "00",
-  });
-
-
-  useEffect(() => {
-    const target = new Date("2026-06-19T09:00:00+02:00").getTime();
-
-    function updateCountdown() {
-      const now = Date.now();
-      const distance = Math.max(0, target - now);
-
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((distance / (1000 * 60)) % 60);
-      const seconds = Math.floor((distance / 1000) % 60);
-
-      setTimeLeft({
-        days: String(days).padStart(2, "0"),
-        hours: String(hours).padStart(2, "0"),
-        minutes: String(minutes).padStart(2, "0"),
-        seconds: String(seconds).padStart(2, "0"),
-      });
-    }
-
-    updateCountdown();
-    const interval = window.setInterval(updateCountdown, 1000);
-
-    return () => window.clearInterval(interval);
-  }, []);
-
   useEffect(() => {
     let active = true;
 
@@ -210,41 +176,15 @@ export default function Home() {
 
                 <div className="archimedesCountdown">
                   <div className="countdownTitle">
-                    <span className="countdownIcon">🚀</span>
+                    <img
+                      src="/archimedes-day-logo.png"
+                      alt="ARCHIMEDES DAY"
+                      className="archimedesDayLogo"
+                    />
                     <strong>
-                      První mezinárodní ročník oslavy Archimeda se blíží!
+                      Děkujeme všem za skvělý první ročník ARCHIMEDES DAY!
                     </strong>
                   </div>
-
-                  <div className="countdownNumbers">
-                    <div className="countItem">
-                      <strong>{timeLeft.days}</strong>
-                      <span>DNY</span>
-                    </div>
-
-                    <div className="countItem">
-                      <strong>{timeLeft.hours}</strong>
-                      <span>HODIN</span>
-                    </div>
-
-                    <div className="countItem">
-                      <strong>{timeLeft.minutes}</strong>
-                      <span>MINUT</span>
-                    </div>
-
-                    <div className="countItem">
-                      <strong>{timeLeft.seconds}</strong>
-                      <span>SEKUND</span>
-                    </div>
-                  </div>
-
-                  <ButtonLink
-                    href="https://meet.google.com/unb-vixu-vap"
-                    variant="start"
-                    eventName="klik_home_archimedesday_meet"
-                  >
-                    Připojit se k vysílání
-                  </ButtonLink>
                 </div>
 
                 <div className="heroActions">
@@ -314,6 +254,35 @@ export default function Home() {
                   </div>
                 </div>
 
+
+                <section className="archimedesGallery">
+                  <div className="archimedesGalleryHead">
+                    <div className="eyebrow dark">ARCHIMEDES DAY 2026</div>
+                    <h2>Fotogalerie z prvního ročníku</h2>
+                    <p>
+                      Děkujeme všem hostům, školám, žákům a partnerům za skvělou atmosféru
+                      historicky prvního mezinárodního ročníku ARCHIMEDES DAY.
+                    </p>
+                  </div>
+
+                  <div className="galleryGrid">
+                    <img src="/ales1.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/ales2.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/doc1.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/doc2.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/kaja1.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/kaja2.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/kristy1.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/kristy2.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/muz1.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/spol2.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/spolecna.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/tana1.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/tana2.jpg" alt="ARCHIMEDES DAY 2026" />
+                    <img src="/zaci1.jpg" alt="ARCHIMEDES DAY 2026" />
+                  </div>
+                </section>
+
                 <div className="heroGuestWrap">
                   <Link
                     href="/guest"
@@ -333,9 +302,9 @@ export default function Home() {
                   onClick={() => track("klik_home_archimedes_day_karta")}
                 >
                   <div className="nextBroadcastHead">
-                    <div className="nextBroadcastLabel">Nejbližší vysílání</div>
+                    <div className="nextBroadcastLabel">ARCHIMEDES DAY</div>
                     <div className="nextBroadcastBadge">
-                      LIVE • 19. 6. 2026
+                      2026
                     </div>
                   </div>
 
@@ -375,14 +344,13 @@ export default function Home() {
                   ) : (
                     <div className="nextBroadcastEmpty">
                       <div className="nextBroadcastEmptyTitle">
-                        Program připravujeme průběžně
+                        Fotogalerie ARCHIMEDES DAY 2026
                       </div>
                       <div className="nextBroadcastEmptyText">
-                        Otevřete si přehled programu a podívejte se na aktuální
-                        i připravovaná vysílání.
+                        Děkujeme všem partnerům, hostům, školám a žákům za účast na historicky prvním mezinárodním ročníku.
                       </div>
                       <div className="nextBroadcastAction">
-                        <span>ARCHIMEDES DAY 2026</span>
+                        <span>Zobrazit fotografie</span>
                         <span aria-hidden="true">→</span>
                       </div>
                     </div>
@@ -551,7 +519,7 @@ export default function Home() {
                     className="trustInlineLink"
                     onClick={() => track("klik_home_trust_archimedes_day")}
                   >
-                    <span>ARCHIMEDES DAY 2026</span>
+                    <span>Zobrazit fotografie</span>
                     <span aria-hidden="true">→</span>
                   </Link>
                 </div>
@@ -894,6 +862,61 @@ export default function Home() {
             color: #0f172a;
             letter-spacing: -0.02em;
             text-wrap: balance;
+          }
+
+
+          .archimedesDayLogo {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            flex: 0 0 72px;
+            border-radius: 14px;
+            background: #ffffff;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+          }
+
+          .archimedesGallery {
+            margin-top: 28px;
+            max-width: 920px;
+          }
+
+          .archimedesGalleryHead {
+            margin-bottom: 16px;
+          }
+
+          .archimedesGalleryHead h2 {
+            font-size: 34px;
+            line-height: 1.06;
+          }
+
+          .archimedesGalleryHead p {
+            margin: 10px 0 0;
+            max-width: 760px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #5a6474;
+          }
+
+          .galleryGrid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+          }
+
+          .galleryGrid img {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            display: block;
+            border-radius: 18px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.055);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+          }
+
+          .galleryGrid img:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
           }
 
           .countdownIcon {
@@ -1819,6 +1842,14 @@ export default function Home() {
 
             .municipalityGrid {
               grid-template-columns: 1fr;
+            }
+
+            .galleryGrid {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .archimedesGalleryHead h2 {
+              font-size: 28px;
             }
 
             .municipalityCard {
