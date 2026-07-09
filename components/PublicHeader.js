@@ -19,58 +19,23 @@ const NAV_ITEMS = [
 function LogoMark() {
   return (
     <span className="logoMark">
-      <span className="logoBadge">A</span>
-      <span className="logoWordmark">
-        ARCHIMEDES <span className="logoLive">LIVE</span>
-      </span>
+      <img src="/logo-archimedes-live.png" alt="" className="logoImg" />
 
       <style jsx>{`
         .logoMark {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
         }
 
-        .logoBadge {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 38px;
-          height: 38px;
-          border-radius: 999px;
-          background: #1d4ed8;
-          color: #ffffff;
-          font-weight: 950;
-          font-size: 19px;
-          letter-spacing: -0.02em;
-          box-shadow: 0 8px 18px rgba(29, 78, 216, 0.28);
+        .logoImg {
+          height: 36px;
+          width: auto;
+          display: block;
         }
 
-        .logoWordmark {
-          font-size: 17px;
-          font-weight: 900;
-          letter-spacing: -0.01em;
-          color: #0f172a;
-          white-space: nowrap;
-        }
-
-        .logoLive {
-          display: inline-flex;
-          align-items: center;
-          padding: 2px 8px;
-          margin-left: 2px;
-          border-radius: 6px;
-          background: #1d4ed8;
-          color: #ffffff;
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 0.04em;
-          vertical-align: 2px;
-        }
-
-        @media (max-width: 640px) {
-          .logoWordmark {
-            display: none;
+        @media (max-width: 480px) {
+          .logoImg {
+            height: 30px;
           }
         }
       `}</style>

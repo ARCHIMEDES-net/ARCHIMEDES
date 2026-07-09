@@ -16,10 +16,11 @@ export default function Footer() {
       <div className="footer-main">
         <div className="footer-brand">
           <div className="footer-logo">
-            <span className="footer-badge">A</span>
-            <span>
-              ARCHIMEDES <strong>LIVE</strong>
-            </span>
+            <img
+              src="/logo-archimedes-live.png"
+              alt="ARCHIMEDES Live"
+              className="footer-logo-img"
+            />
           </div>
           <p className="footer-tagline">{tagline}</p>
         </div>
@@ -93,23 +94,13 @@ export default function Footer() {
         .footer-logo {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
-          font-size: 16px;
-          font-weight: 900;
-          color: #ffffff;
-          letter-spacing: -0.01em;
         }
 
-        .footer-badge {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 32px;
-          height: 32px;
-          border-radius: 999px;
-          background: #2563eb;
-          font-size: 15px;
-          font-weight: 950;
+        .footer-logo-img {
+          height: 28px;
+          width: auto;
+          display: block;
+          filter: grayscale(1) invert(1);
         }
 
         .footer-tagline {
