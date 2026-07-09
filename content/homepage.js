@@ -146,6 +146,7 @@ export const atmospherePhotos = [
     id: "atmos-lektorka",
     src: "/kaja1.jpg",
     alt: "Lektorka představuje program účastníkům",
+    objectPosition: "center top",
     visible: true,
   },
 ];

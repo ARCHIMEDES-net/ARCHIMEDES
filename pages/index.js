@@ -299,7 +299,7 @@ export default function Home() {
                       alt={p.alt}
                       fallbackLabel="ARCHIMEDES Live"
                       style={{ width: "100%", height: "100%" }}
-                      imgStyle={{ objectFit: "cover" }}
+                      imgStyle={{ objectFit: "cover", objectPosition: p.objectPosition || "center" }}
                     />
                   </div>
                 ))}
