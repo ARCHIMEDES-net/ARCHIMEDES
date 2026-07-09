@@ -17,7 +17,7 @@ export default function Footer() {
         <div className="footer-brand">
           <div className="footer-logo">
             <img
-              src="/logo-archimedes-live.png"
+              src="/logo-archimedes-live-negative.png"
               alt="ARCHIMEDES Live"
               className="footer-logo-img"
             />
@@ -100,7 +100,6 @@ export default function Footer() {
           height: 28px;
           width: auto;
           display: block;
-          filter: grayscale(1) invert(1);
         }
 
         .footer-tagline {

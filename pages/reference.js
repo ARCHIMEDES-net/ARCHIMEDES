@@ -13,7 +13,7 @@ export default function ReferencePage() {
         <title>Reference | ARCHIMEDES Live</title>
         <meta
           name="description"
-          content="Obce, které už s ARCHIMEDES Live budují aktivní komunitní život — Čejč, Křenov, Hodonín a Provodov-Šonov."
+          content="Obce, kterým pomáháme posilovat komunitní život — Čejč, Křenov, Hodonín a Provodov-Šonov."
         />
       </Head>
 
