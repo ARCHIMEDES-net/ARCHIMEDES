@@ -36,7 +36,11 @@ export default function ReferencePage() {
                       alt={r.photoAlt || `Obec ${r.name}`}
                       fallbackLabel={r.name}
                       style={{ width: "100%", height: "100%" }}
-                      imgStyle={{ objectFit: "cover" }}
+                      imgStyle={
+                        r.photoFit === "contain"
+                          ? { objectFit: "contain", padding: 24 }
+                          : { objectFit: "cover" }
+                      }
                     />
                     {r.crest ? (
                       <div className="refCrest">
