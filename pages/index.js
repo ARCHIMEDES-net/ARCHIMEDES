@@ -333,15 +333,17 @@ export default function Home() {
                         style={{ width: "100%", height: "100%" }}
                         imgStyle={{ objectFit: "cover" }}
                       />
-                      <div className="refCrest">
-                        <PhotoWithFallback
-                          src={r.crest}
-                          alt={r.crestAlt || `Znak obce ${r.name}`}
-                          fallbackLabel={r.name}
-                          style={{ width: 40, height: 40 }}
-                          rounded
-                        />
-                      </div>
+                      {r.crest ? (
+                        <div className="refCrest">
+                          <PhotoWithFallback
+                            src={r.crest}
+                            alt={r.crestAlt || `Znak obce ${r.name}`}
+                            fallbackLabel={r.name}
+                            style={{ width: 40, height: 40 }}
+                            rounded
+                          />
+                        </div>
+                      ) : null}
                       <div className="refBadge">{r.badge}</div>
                     </div>
 
