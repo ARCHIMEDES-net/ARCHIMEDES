@@ -25,9 +25,45 @@ export default function ONasPage() {
             spolky i veřejná správa.
           </p>
 
-          <Link href="/kontakt" className="ctaBtn">
-            Kontaktovat nás
-          </Link>
+          <section className="block">
+            <h2>Kdo jsme</h2>
+            <p>
+              ARCHIMEDES Live provozuje EduVision s.r.o. se sídlem v Brně.
+              Program vznikl na základě zkušenosti s venkovními a živými
+              výukovými programy pro školy — postupně se rozšířil o komunitní
+              část pro obce, seniory a spolky.
+            </p>
+          </section>
+
+          <section className="block">
+            <h2>Proč to děláme</h2>
+            <p>
+              Živé setkávání funguje líp než další kanál navíc — proto stavíme
+              na fyzických setkáních přímo v obci, doplněných živým vysíláním
+              a hotovým obsahem. Cílem je usnadnit spolkům, školám a obecním
+              úřadům komunikaci a dát dohromady lidi, kteří by se jinak
+              nepotkali.
+            </p>
+          </section>
+
+          <section className="block">
+            <h2>Co už program obcím přinesl</h2>
+            <p>
+              V obcích, kde máme učebnu, jsme pomohli k ocenění v soutěžích
+              jako Vesnice roku nebo Obec 2030 — víc o konkrétních obcích
+              najdete na stránce Reference.
+            </p>
+            <Link href="/reference" className="inlineLink">
+              Zobrazit reference obcí →
+            </Link>
+          </section>
+
+          <section className="block">
+            <h2>Kontakt</h2>
+            <Link href="/kontakt" className="ctaBtn">
+              Kontaktovat nás
+            </Link>
+          </section>
         </div>
       </main>
 
@@ -71,6 +107,38 @@ export default function ONasPage() {
           font-size: 17px;
           line-height: 1.68;
           color: #475569;
+        }
+
+        .block {
+          margin-top: 40px;
+        }
+
+        .block h2 {
+          margin: 0;
+          font-size: 24px;
+          letter-spacing: -0.03em;
+          font-weight: 900;
+          color: #0f172a;
+        }
+
+        .block p {
+          margin: 14px 0 0;
+          font-size: 16px;
+          line-height: 1.68;
+          color: #475569;
+        }
+
+        .inlineLink {
+          display: inline-flex;
+          margin-top: 12px;
+          color: #1d4ed8;
+          font-weight: 900;
+          font-size: 15px;
+          text-decoration: none;
+        }
+
+        .inlineLink:hover {
+          color: #0f172a;
         }
       `}</style>
 

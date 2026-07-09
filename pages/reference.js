@@ -22,8 +22,10 @@ export default function ReferencePage() {
           <div className="eyebrow">{referencesSection.eyebrow}</div>
           <h1>{referencesSection.title}</h1>
           <p className="lead">
-            Vybrané obce, kde ARCHIMEDES Live pomáhá propojit školy, spolky,
-            seniory i veřejnou správu do jednoho aktivního komunitního života.
+            Za dobu vysílání se do programu ARCHIMEDES Live zapojily přes 2
+            stovky obcí. Vybrané obce, kde ARCHIMEDES Live pomáhá propojit
+            školy, spolky, seniory i veřejnou správu do jednoho aktivního
+            komunitního života.
           </p>
 
           {visibleReferences.length ? (

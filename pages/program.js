@@ -63,26 +63,7 @@ const communityItems = [
   },
 ];
 
-const priceCards = [
-  {
-    title: "Škola + obec",
-    price: "1 990 Kč",
-    suffix: "/ měsíc",
-    badge: "akční nabídka",
-    description:
-      "Kompletní program ARCHIMEDES Live pro školu i obec. V rámci akční nabídky získáváte komunitní program zdarma jako součást školní licence.",
-    intro:
-      "Škola získává pravidelná živá vysílání, pracovní listy, archiv a další obsah pro výuku. Současně obec získává přístup ke komunitnímu programu pro seniory, spolky a veřejnost bez navýšení ceny.",
-    items: [...schoolItems, ...communityItems],
-    href: "/poptavka?interest=skola",
-    featured: true,
-    accentColor: "#2563eb",
-    extraButton: {
-      href: "/start",
-      label: "Akční nabídka START",
-    },
-  },
-];
+const programBlocks = [...schoolItems, ...communityItems];
 
 function SectionTitle({ eyebrow, title, text, center = false }) {
   return (
@@ -163,179 +144,21 @@ function PrimaryButton({ href, children }) {
   );
 }
 
-function SecondaryButton({ href, children }) {
-  return (
-    <Link
-      href={href}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 22px",
-        borderRadius: 14,
-        background: "#fff",
-        color: "#0f172a",
-        textDecoration: "none",
-        fontWeight: 700,
-        fontSize: 16,
-        border: "1px solid #cbd5e1",
-        transition: "transform 0.18s ease, box-shadow 0.18s ease",
-      }}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function PriceProgramCard({
-  title,
-  price,
-  suffix,
-  badge,
-  description,
-  intro,
-  items,
-  featured,
-  href = "/poptavka",
-  extraButton,
-  accentColor = "#2563eb",
-}) {
-  const isBlue = accentColor === "#2563eb";
-
+function ProgramBlockCard({ title, text }) {
   return (
     <div
       style={{
         background: "#fff",
-        borderRadius: 24,
-        padding: 28,
-        border: `2px solid ${accentColor}`,
-        boxShadow: featured
-          ? "0 18px 46px rgba(37,99,235,0.12)"
-          : "0 14px 36px rgba(15,23,42,0.06)",
-        minHeight: "100%",
-        transition:
-          "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
+        borderRadius: 20,
+        padding: 22,
+        border: "1px solid #e2e8f0",
       }}
     >
-      <div
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          minHeight: 34,
-          padding: "0 14px",
-          borderRadius: 999,
-          background: featured ? accentColor : "#f1f5f9",
-          color: featured ? "#fff" : "#334155",
-          fontSize: 14,
-          fontWeight: 800,
-          marginBottom: 18,
-        }}
-      >
-        {badge}
-      </div>
-
-      <h3 style={{ margin: 0, fontSize: 21, lineHeight: 1.25, color: "#0f172a" }}>
+      <div style={{ fontWeight: 800, color: "#0f172a", fontSize: 16.5, lineHeight: 1.4 }}>
         {title}
-      </h3>
-
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-        <div style={{ fontSize: 32, lineHeight: 1, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.03em" }}>
-          {price}
-        </div>
-        <div style={{ fontSize: 16, fontWeight: 700, color: "#475569", marginBottom: 3 }}>
-          {suffix}
-        </div>
       </div>
-
-      <p style={{ margin: "16px 0 0", color: "#475569", fontSize: 16, lineHeight: 1.65 }}>
-        {description}
-      </p>
-
-      {intro ? (
-        <div
-          style={{
-            marginTop: 18,
-            padding: "16px 16px",
-            borderRadius: 16,
-            background: isBlue ? "#f8fbff" : "#f0fdf4",
-            border: isBlue ? "1px solid #dbeafe" : "1px solid #bbf7d0",
-            color: "#334155",
-            fontSize: 15,
-            lineHeight: 1.7,
-          }}
-        >
-          {intro}
-        </div>
-      ) : null}
-
-      <div style={{ display: "grid", gap: 14, marginTop: 18 }}>
-        {items.map((item) => (
-          <div key={item.title} style={{ display: "flex", gap: 12 }}>
-            <div
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 999,
-                background: accentColor,
-                marginTop: 9,
-                flex: "0 0 auto",
-              }}
-            />
-            <div>
-              <div style={{ fontWeight: 800, color: "#0f172a", fontSize: 16, lineHeight: 1.45 }}>
-                {item.title}
-              </div>
-              <div style={{ marginTop: 2, color: "#475569", fontSize: 15, lineHeight: 1.65 }}>
-                {item.text}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <Link
-          href={href}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: 46,
-            padding: "0 16px",
-            borderRadius: 12,
-            background: featured ? accentColor : "#ffffff",
-            color: featured ? "#ffffff" : "#0f172a",
-            border: `1px solid ${accentColor}`,
-            fontSize: 15,
-            fontWeight: 800,
-            textDecoration: "none",
-          }}
-        >
-          Mám zájem o program →
-        </Link>
-
-        {extraButton ? (
-          <Link
-            href={extraButton.href}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: 46,
-              padding: "0 16px",
-              borderRadius: 12,
-              background: "#ffffff",
-              color: "#0f172a",
-              border: "1px solid #cbd5e1",
-              fontSize: 15,
-              fontWeight: 800,
-              textDecoration: "none",
-            }}
-          >
-            {extraButton.label}
-          </Link>
-        ) : null}
+      <div style={{ marginTop: 8, color: "#475569", fontSize: 15, lineHeight: 1.65 }}>
+        {text}
       </div>
     </div>
   );
@@ -831,9 +654,7 @@ export default function ProgramPage() {
                     letterSpacing: "-0.04em",
                   }}
                 >
-                  Jeden program
-                  <br />
-                  pro školu i obec
+                  Co je v programu ARCHIMEDES Live
                 </h1>
 
                 <p
@@ -845,27 +666,20 @@ export default function ProgramPage() {
                     maxWidth: 620,
                   }}
                 >
-                  ARCHIMEDES Live přináší živý obsah pro školu i komunitní život obce.
-                  V rámci akční nabídky získáváte školní program i komunitní část pro seniory,
-                  spolky a veřejnost v jedné licenci za 1 990 Kč měsíčně.
+                  Pravidelná živá vysílání a hotový obsah pro školu, seniory,
+                  spolky i celou obec — v jedné licenci, po celý rok.
                 </p>
 
                 <div
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, minmax(220px, max-content))",
-                    gap: 14,
+                    display: "flex",
                     marginTop: 30,
-                    alignItems: "stretch",
                   }}
                   className="hero-cta-grid"
                 >
-                  <PrimaryButton href="#varianty">Program a ceník</PrimaryButton>
-                  <SecondaryButton href="/start">Akční nabídka START</SecondaryButton>
-                  <SecondaryButton href="/demo">Mám zájem o demo</SecondaryButton>
-                  <SecondaryButton href="/financovani-skoly">
-                    Pro školy – financování z OP JAK
-                  </SecondaryButton>
+                  <PrimaryButton href="/zadost">
+                    Chci program pro naši obec
+                  </PrimaryButton>
                 </div>
 
                 <div style={{ marginTop: 28 }}>
@@ -959,57 +773,105 @@ export default function ProgramPage() {
 
           <section id="varianty" style={{ marginTop: 84 }}>
             <SectionTitle
-              eyebrow="Program a ceník"
-              title="Jedna licence pro školu i obec"
-              text="ARCHIMEDES Live propojuje školu a obec v jedné licenci. V rámci akční nabídky získává obec komunitní program zdarma jako součást školní licence za 1 990 Kč měsíčně."
+              title="Dvanáct programových bloků pod jednou licencí obce"
+              text="Každý blok připravuje ARCHIMEDES Live ve spolupráci s odborníky a partnery — obec jen zapojí zájemce."
             />
 
             <div
               style={{
-                marginBottom: 24,
-                padding: 24,
-                borderRadius: 20,
-                background: "#ecfdf5",
-                border: "2px solid #22c55e",
-                textAlign: "center",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 28,
-                  fontWeight: 900,
-                  color: "#166534",
-                  marginBottom: 8,
-                }}
-              >
-                🎉 Akční nabídka 2026
-              </div>
-
-              <div
-                style={{
-                  fontSize: 18,
-                  color: "#14532d",
-                  lineHeight: 1.7,
-                }}
-              >
-                Ke školní licenci ARCHIMEDES Live získáváte nyní komunitní program pro
-                obec, seniory, spolky a veřejnost zdarma.
-              </div>
-            </div>
-
-            <div
-              style={{
                 display: "grid",
-                gridTemplateColumns: "1fr",
-                gap: 22,
-                marginTop: 24,
-                maxWidth: 760,
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: 16,
               }}
               className="price-grid"
             >
-              {priceCards.map((card) => (
-                <PriceProgramCard key={card.title} {...card} />
+              {programBlocks.map((block) => (
+                <ProgramBlockCard key={block.title} {...block} />
               ))}
+            </div>
+          </section>
+
+          <section id="cena" style={{ marginTop: 64 }}>
+            <div
+              style={{
+                background: "#0f2344",
+                borderRadius: 28,
+                padding: "40px 36px",
+                color: "#ffffff",
+              }}
+            >
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: "clamp(26px, 3.4vw, 36px)",
+                  lineHeight: 1.15,
+                  letterSpacing: "-0.03em",
+                }}
+              >
+                Jedna licence, jedna cena pro celou obec
+              </h2>
+
+              <p
+                style={{
+                  margin: "18px 0 0",
+                  fontSize: 17,
+                  lineHeight: 1.7,
+                  color: "rgba(255,255,255,0.82)",
+                  maxWidth: 680,
+                }}
+              >
+                Všech dvanáct bloků je součástí jedné obecní licence za 1 990
+                Kč/měsíc — bez příplatků za jednotlivé spolky nebo organizace.
+                Podrobnosti a přihlášku najdete na stránce Pro obce.
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 14,
+                  flexWrap: "wrap",
+                  marginTop: 26,
+                }}
+              >
+                <Link
+                  href="/obec"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: 50,
+                    padding: "0 22px",
+                    borderRadius: 14,
+                    background: "#ffffff",
+                    color: "#0f172a",
+                    textDecoration: "none",
+                    fontWeight: 800,
+                    fontSize: 15.5,
+                  }}
+                >
+                  Podrobnosti a ceník
+                </Link>
+
+                <Link
+                  href="/zadost"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: 50,
+                    padding: "0 22px",
+                    borderRadius: 14,
+                    background: "transparent",
+                    color: "#ffffff",
+                    border: "1px solid rgba(255,255,255,0.4)",
+                    textDecoration: "none",
+                    fontWeight: 800,
+                    fontSize: 15.5,
+                  }}
+                >
+                  Chci program pro naši obec
+                </Link>
+              </div>
             </div>
           </section>
         </div>
@@ -1018,10 +880,6 @@ export default function ProgramPage() {
       <ImageModal image={modalImage} onClose={() => setModalImage(null)} />
 
       <style jsx>{`
-        .hero-cta-grid :global(a) {
-          width: 100%;
-        }
-
         .hero-cta-grid :global(a:hover) {
           transform: translateY(-1px);
         }
@@ -1050,16 +908,12 @@ export default function ProgramPage() {
 
         @media (max-width: 1100px) {
           .price-grid {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             max-width: none !important;
           }
 
           .hero-grid {
             grid-template-columns: 1fr !important;
-          }
-
-          .hero-cta-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
           }
 
           .upcoming-events-list {
@@ -1074,10 +928,6 @@ export default function ProgramPage() {
 
           .hero-grid > div:first-child {
             padding: 30px 22px 26px !important;
-          }
-
-          .hero-cta-grid {
-            grid-template-columns: 1fr !important;
           }
 
           .current-program-card {

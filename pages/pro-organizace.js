@@ -24,9 +24,35 @@ export default function ProOrganizacePage() {
             tématu a formě zapojení se domluvíme individuálně podle vašich možností.
           </p>
 
-          <Link href="/zadost" className="ctaBtn">
-            Chci program pro naši obec
-          </Link>
+          <section className="block">
+            <h2>Pro národní svazy a organizace</h2>
+            <p>
+              Pokud vedete celostátní svaz nebo organizaci, ARCHIMEDES Live vám
+              otevírá cestu k lokálním pobočkám a řadovým členům v obcích,
+              které vlastními kanály často nedosáhnete. Připravíme společně
+              obsahový blok (živé vysílání, workshop, sérii setkání) a
+              nabídneme ho obcím zapojeným do programu — setkání probíhají
+              fyzicky přímo v obci, individuální připojení z domova je
+              výjimka.
+            </p>
+            <Link href="/kontakt" className="ctaBtn">
+              Chci probrat spolupráci
+            </Link>
+          </section>
+
+          <section className="block">
+            <h2>Pro místní spolky a organizace v obci</h2>
+            <p>
+              Hasiči, senioři, čtenářský klub, sportovní oddíl nebo jiný
+              spolek ve vaší obci se do programu zapojí zdarma v rámci obecní
+              licence. Stačí registrační číslo, které vaší obci přidělíme po
+              zahájení programu — spolek se pak zaregistruje sám a získává
+              pozvánky a obsah podle svého zaměření.
+            </p>
+            <Link href="/obec" className="ctaBtn">
+              Zjistit, jestli má naše obec program
+            </Link>
+          </section>
         </div>
       </main>
 
@@ -68,6 +94,25 @@ export default function ProOrganizacePage() {
         .lead {
           margin: 16px 0 0;
           font-size: 17px;
+          line-height: 1.68;
+          color: #475569;
+        }
+
+        .block {
+          margin-top: 40px;
+        }
+
+        .block h2 {
+          margin: 0;
+          font-size: 24px;
+          letter-spacing: -0.03em;
+          font-weight: 900;
+          color: #0f172a;
+        }
+
+        .block p {
+          margin: 14px 0 0;
+          font-size: 16px;
           line-height: 1.68;
           color: #475569;
         }
