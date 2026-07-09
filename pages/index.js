@@ -16,6 +16,9 @@ import {
   partners,
   featuresSection,
   featureCards,
+  communitySection,
+  atmosphereSection,
+  atmospherePhotos,
   referencesSection,
   references,
   ctaBand,
@@ -64,6 +67,7 @@ export default function Home() {
   const visibleStats = heroStats.filter((s) => s.visible);
   const visiblePartners = partners.filter((p) => p.visible);
   const visibleFeatures = featureCards.filter((f) => f.visible);
+  const visibleAtmospherePhotos = atmospherePhotos.filter((p) => p.visible);
   const visibleReferences = references.filter((r) => r.visible);
   const upcomingCards = events.slice(0, 3);
 
@@ -113,7 +117,7 @@ export default function Home() {
                 alt={hero.photoAlt}
                 fallbackLabel="ARCHIMEDES Live"
                 style={{ width: "100%", height: "100%", minHeight: 360 }}
-                imgStyle={{ objectFit: "cover" }}
+                imgStyle={{ objectFit: "cover", objectPosition: "25% center" }}
                 className="heroPhoto"
               />
 
@@ -217,8 +221,24 @@ export default function Home() {
         {/* FEATURES */}
         <section id="jak-to-funguje" className="section sectionFeatures">
           <div className="container">
-            <div className="eyebrow dark">{featuresSection.eyebrow}</div>
-            <h2>{featuresSection.title}</h2>
+            <div className="featuresHead">
+              <div className="featuresIntro">
+                <div className="eyebrow dark">{featuresSection.eyebrow}</div>
+                <h2>{featuresSection.title}</h2>
+              </div>
+
+              {featuresSection.photo ? (
+                <div className="featuresPhotoWrap">
+                  <PhotoWithFallback
+                    src={featuresSection.photo}
+                    alt={featuresSection.photoAlt}
+                    fallbackLabel="ARCHIMEDES Live"
+                    style={{ width: "100%", height: "100%" }}
+                    imgStyle={{ objectFit: "cover" }}
+                  />
+                </div>
+              ) : null}
+            </div>
 
             <div className="featuresGrid">
               {visibleFeatures.map((f) => (
@@ -233,6 +253,60 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* COMMUNITY & SENIORS */}
+        {communitySection.visible ? (
+          <section className="section sectionCommunity">
+            <div className="container communityGrid">
+              <div className="communityPhotoWrap">
+                <PhotoWithFallback
+                  src={communitySection.photo}
+                  alt={communitySection.photoAlt}
+                  fallbackLabel="ARCHIMEDES Live"
+                  style={{ width: "100%", height: "100%" }}
+                  imgStyle={{ objectFit: "cover" }}
+                />
+              </div>
+
+              <div className="communityContent">
+                <div className="eyebrow dark">{communitySection.eyebrow}</div>
+                <h2>{communitySection.title}</h2>
+                <p className="sectionLead">{communitySection.text}</p>
+                <Link href={communitySection.cta.href} className="liveLink">
+                  {communitySection.cta.label} <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {/* ATMOSPHERE / EVENTS */}
+        {atmosphereSection.visible && visibleAtmospherePhotos.length ? (
+          <section className="section sectionAtmosphere">
+            <div className="container">
+              <div className="eyebrow dark">{atmosphereSection.eyebrow}</div>
+              <h2>{atmosphereSection.title}</h2>
+              <p className="sectionLead">{atmosphereSection.subtitle}</p>
+
+              <div className="atmosphereGrid">
+                {visibleAtmospherePhotos.map((p, i) => (
+                  <div
+                    key={p.id}
+                    className={`atmospherePhotoWrap${i === 0 ? " atmosphereMain" : ""}`}
+                  >
+                    <PhotoWithFallback
+                      src={p.src}
+                      alt={p.alt}
+                      fallbackLabel="ARCHIMEDES Live"
+                      style={{ width: "100%", height: "100%" }}
+                      imgStyle={{ objectFit: "cover" }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         {/* REFERENCES */}
         {visibleReferences.length ? (
@@ -254,7 +328,7 @@ export default function Home() {
                     <div className="refPhotoWrap">
                       <PhotoWithFallback
                         src={r.photo}
-                        alt={`Obec ${r.name}`}
+                        alt={r.photoAlt || `Obec ${r.name}`}
                         fallbackLabel={r.name}
                         style={{ width: "100%", height: "100%" }}
                         imgStyle={{ objectFit: "cover" }}
@@ -262,7 +336,7 @@ export default function Home() {
                       <div className="refCrest">
                         <PhotoWithFallback
                           src={r.crest}
-                          alt={`Znak obce ${r.name}`}
+                          alt={r.crestAlt || `Znak obce ${r.name}`}
                           fallbackLabel={r.name}
                           style={{ width: 40, height: 40 }}
                           rounded
@@ -561,6 +635,28 @@ export default function Home() {
             color: #334155;
           }
 
+          .featuresHead {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 28px;
+            flex-wrap: wrap;
+          }
+
+          .featuresIntro {
+            flex: 1 1 360px;
+            max-width: 620px;
+          }
+
+          .featuresPhotoWrap {
+            flex: 0 0 auto;
+            width: 300px;
+            aspect-ratio: 16 / 10;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+          }
+
           .featuresGrid {
             margin-top: 26px;
             display: grid;
@@ -599,6 +695,54 @@ export default function Home() {
             font-size: 14.5px;
             line-height: 1.6;
             color: #5b6676;
+          }
+
+          .sectionCommunity {
+            background: #f8fafc;
+            border-top: 1px solid rgba(15, 23, 42, 0.06);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+          }
+
+          .communityGrid {
+            display: grid;
+            grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+            gap: 36px;
+            align-items: center;
+          }
+
+          .communityPhotoWrap {
+            border-radius: 28px;
+            overflow: hidden;
+            aspect-ratio: 4 / 3.1;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+          }
+
+          .communityContent .sectionLead {
+            max-width: 480px;
+          }
+
+          .sectionAtmosphere .sectionLead {
+            max-width: 560px;
+          }
+
+          .atmosphereGrid {
+            margin-top: 26px;
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            grid-template-rows: repeat(2, minmax(160px, 1fr));
+            gap: 16px;
+            height: 420px;
+          }
+
+          .atmospherePhotoWrap {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.1);
+          }
+
+          .atmosphereMain {
+            grid-row: span 2;
           }
 
           .referencesGrid {
@@ -734,6 +878,14 @@ export default function Home() {
             .featuresGrid {
               grid-template-columns: repeat(2, minmax(0, 1fr));
             }
+
+            .featuresPhotoWrap {
+              width: 240px;
+            }
+
+            .communityGrid {
+              grid-template-columns: 1fr;
+            }
           }
 
           @media (max-width: 720px) {
@@ -755,6 +907,25 @@ export default function Home() {
 
             .featuresGrid {
               grid-template-columns: 1fr;
+            }
+
+            .featuresPhotoWrap {
+              width: 100%;
+            }
+
+            .atmosphereGrid {
+              grid-template-columns: 1fr;
+              grid-template-rows: none;
+              height: auto;
+            }
+
+            .atmospherePhotoWrap {
+              aspect-ratio: 4 / 3;
+            }
+
+            .atmosphereMain {
+              grid-row: auto;
+              aspect-ratio: 4 / 3;
             }
 
             .ctaBandBox {

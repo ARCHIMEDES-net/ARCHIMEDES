@@ -16,8 +16,8 @@ export const hero = {
     "Propojujeme školy, spolky, seniory, rodiče i národní organizace do jednoho celoročního programu. ARCHIMEDES Live vytváří páteř komunitního života obce, která usnadňuje komunikaci, podporuje spolupráci a pomáhá budovat aktivní obec, ve které se dobře žije dnes i budoucím generacím.",
   primaryCta: { label: "Chci program pro naši obec", href: "/zadost" },
   secondaryCta: { label: "Jak to funguje", href: "#jak-to-funguje" },
-  photo: "/obec-hero.jpg",
-  photoAlt: "Setkání komunity v obci s hasiči, rodinami a sousedy",
+  photo: "/IMG_0228_hero.webp",
+  photoAlt: "Děti ve venkovní učebně nadšeně ukazují své vyrobené valentýnky",
   floatingCard: {
     title: "Staňte se partnerskou obcí",
     text: "Připojte se k obcím, které budují aktivní komunitu.",
@@ -62,6 +62,8 @@ export const partners = [
 export const featuresSection = {
   eyebrow: "Proč ARCHIMEDES Live",
   title: "Podporujeme komunitní život ve vaší obci",
+  photo: "/jak-funguje-online.jpg",
+  photoAlt: "Živé online vysílání promítané v učebně ARCHIMEDES Live",
 };
 
 export const featureCards = [
@@ -109,9 +111,48 @@ export const featureCards = [
   },
 ];
 
+export const communitySection = {
+  eyebrow: "Komunita a senioři",
+  title: "Prostor pro setkávání generací",
+  text: "Senioři, rodiny i spolky se u nás pravidelně potkávají na společných programech. Pomáháme posilovat sousedské vztahy a mezigenerační sdílení zkušeností v obci.",
+  cta: { label: "Program pro seniory", href: "/program" },
+  photo: "/seni.webp",
+  photoAlt: "Senioři na společném programu v učebně ARCHIMEDES Live",
+  visible: true,
+};
+
+export const atmosphereSection = {
+  eyebrow: "Atmosféra a akce",
+  title: "Živá atmosféra společných akcí",
+  subtitle:
+    "Setkání, workshopy a živá vysílání, díky kterým pomáháme posilovat komunitní život v partnerských obcích.",
+  visible: true,
+};
+
+export const atmospherePhotos = [
+  {
+    id: "atmos-spolecna",
+    src: "/spolecna.jpg",
+    alt: "Společná fotografie účastníků programu před učebnou ARCHIMEDES Live",
+    visible: true,
+  },
+  {
+    id: "atmos-tabule",
+    src: "/atmos.webp",
+    alt: "Žák pracuje s interaktivní tabulí během programu",
+    visible: true,
+  },
+  {
+    id: "atmos-lektorka",
+    src: "/kaja1.jpg",
+    alt: "Lektorka představuje program účastníkům",
+    visible: true,
+  },
+];
+
 export const referencesSection = {
   eyebrow: "Reference",
-  title: "Obce, které už s námi mění svou komunitu",
+  title: "Obce, kterým pomáháme posilovat komunitu",
   showAllLabel: "Zobrazit všechny reference",
   showAllHref: "/reference",
   readStoryLabel: "Přečíst příběh",
@@ -125,7 +166,9 @@ export const references = [
     badge: "1. místo Vesnice roku 2026 JMK",
     quote: "ARCHIMEDES Live nám pomohl propojit generace a oživit spolkový život v obci.",
     crest: "/cejc.jpg",
-    photo: "/reference/cejc.jpg",
+    crestAlt: "Obec Čejč, oceněná 1. místem v soutěži Vesnice roku 2026 JMK",
+    photo: "/cejc.jpg",
+    photoAlt: "Obec Čejč, oceněná 1. místem v soutěži Vesnice roku 2026 JMK",
     storyHref: "/zadost",
     visible: true,
   },
@@ -135,8 +178,10 @@ export const references = [
     region: "Jihomoravský kraj",
     badge: "1. místo Obec 2030 ČR",
     quote: "Díky programu se naše obec stala centrem komunitního dění.",
-    crest: "/krenov.jpg",
-    photo: "/reference/krenov.jpg",
+    crest: "/obec2030.jpeg",
+    crestAlt: "Ocenění Obec 2030 ČR pro obec Křenov",
+    photo: "/krenov.jpg",
+    photoAlt: "Obec Křenov, vítěz ocenění Obec 2030 ČR",
     storyHref: "/zadost",
     visible: true,
   },
@@ -147,7 +192,9 @@ export const references = [
     badge: "3. místo Zdravá města ČR",
     quote: "Moderní komunikace se spolky a občany na jednom místě.",
     crest: "/hodonin-erb.jpg",
-    photo: "/reference/hodonin.jpg",
+    crestAlt: "Znak města Hodonín",
+    photo: "/zdravamesta.jpg",
+    photoAlt: "Ocenění Zdravá města ČR pro Hodonín",
     storyHref: "/zadost",
     visible: true,
   },
@@ -158,7 +205,9 @@ export const references = [
     badge: "Bílá stuha Vesnice roku 2026",
     quote: "Skvělá podpora našich hasičů, seniorů i dětí.",
     crest: "/reference/provodov-sonov-erb.png",
+    crestAlt: "Znak obce Provodov-Šonov",
     photo: "/reference/provodov-sonov.jpg",
+    photoAlt: "Obec Provodov-Šonov, oceněná Bílou stuhou v soutěži Vesnice roku 2026",
     storyHref: "/zadost",
     visible: true,
   },

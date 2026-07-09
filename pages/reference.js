@@ -33,7 +33,7 @@ export default function ReferencePage() {
                   <div className="refPhotoWrap">
                     <PhotoWithFallback
                       src={r.photo}
-                      alt={`Obec ${r.name}`}
+                      alt={r.photoAlt || `Obec ${r.name}`}
                       fallbackLabel={r.name}
                       style={{ width: "100%", height: "100%" }}
                       imgStyle={{ objectFit: "cover" }}
@@ -41,7 +41,7 @@ export default function ReferencePage() {
                     <div className="refCrest">
                       <PhotoWithFallback
                         src={r.crest}
-                        alt={`Znak obce ${r.name}`}
+                        alt={r.crestAlt || `Znak obce ${r.name}`}
                         fallbackLabel={r.name}
                         style={{ width: 40, height: 40 }}
                         rounded
