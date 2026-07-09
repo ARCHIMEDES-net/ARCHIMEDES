@@ -17,6 +17,25 @@ const points = [
   },
 ];
 
+const cenikItems = [
+  {
+    label: "Škola",
+    text: "živé vzdělávací programy a hotové podklady k hodinám",
+  },
+  {
+    label: "Senioři",
+    text: "pravidelná setkávání se společným programem",
+  },
+  {
+    label: "Hasiči, spolky a kluby",
+    text: "obsah od odborníků z celé ČR",
+  },
+  {
+    label: "Společné akce obce",
+    text: "vysílání i archiv záznamů pro všechny",
+  },
+];
+
 export default function ObecPage() {
   return (
     <>
@@ -47,6 +66,40 @@ export default function ObecPage() {
               </div>
             ))}
           </div>
+
+          <section id="cenik" className="pricingSection">
+            <div className="eyebrow">Ceník</div>
+            <h2>Jedna licence pro všechny spolky a organizace ve vaší obci</h2>
+
+            <div className="priceCard">
+              <div className="priceRow">
+                <div className="priceValue">
+                  1 990 Kč <span className="pricePeriod">/ měsíc</span>
+                </div>
+                <p className="priceDesc">
+                  Jedna licence pro celou obec. V ceně je vše: škola, senioři i
+                  všechny obecní spolky a organizace, bez příplatků.
+                </p>
+              </div>
+
+              <ul className="priceList">
+                {cenikItems.map((item) => (
+                  <li key={item.label}>
+                    <strong>{item.label}</strong> — {item.text}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="priceHighlight">
+                Kolik spolků se zapojí, je jen na vás — všechny fungují pod
+                jednou licencí obce, bez dalších plateb.
+              </div>
+
+              <Link href="/zadost" className="ctaBtnPrimary">
+                Chci program pro naši obec
+              </Link>
+            </div>
+          </section>
 
           <div className="cta">
             <div>
@@ -132,6 +185,87 @@ export default function ObecPage() {
           color: #5b6676;
         }
 
+        .pricingSection {
+          margin-top: 56px;
+          scroll-margin-top: 90px;
+        }
+
+        .pricingSection h2 {
+          margin: 0;
+          font-size: 30px;
+          letter-spacing: -0.03em;
+          font-weight: 950;
+          color: #0f172a;
+          max-width: 640px;
+        }
+
+        .priceCard {
+          margin-top: 22px;
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 26px;
+          padding: 30px;
+        }
+
+        .priceRow {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: baseline;
+          gap: 10px 20px;
+        }
+
+        .priceValue {
+          font-size: 34px;
+          font-weight: 950;
+          letter-spacing: -0.02em;
+          color: #0f172a;
+          white-space: nowrap;
+        }
+
+        .pricePeriod {
+          font-size: 16px;
+          font-weight: 700;
+          color: #64748b;
+        }
+
+        .priceDesc {
+          margin: 0;
+          font-size: 15px;
+          line-height: 1.6;
+          color: #475569;
+          max-width: 520px;
+        }
+
+        .priceList {
+          margin: 26px 0 0;
+          padding: 0;
+          list-style: none;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px 24px;
+        }
+
+        .priceList li {
+          font-size: 15px;
+          line-height: 1.6;
+          color: #334155;
+        }
+
+        .priceList li strong {
+          color: #0f172a;
+        }
+
+        .priceHighlight {
+          margin-top: 24px;
+          padding: 18px 20px;
+          border-radius: 18px;
+          background: #eef4ff;
+          color: #1e3a5f;
+          font-size: 15px;
+          font-weight: 800;
+          line-height: 1.6;
+        }
+
         .cta {
           margin-top: 40px;
           padding: 24px 26px;
@@ -161,6 +295,10 @@ export default function ObecPage() {
           .grid {
             grid-template-columns: 1fr;
           }
+
+          .priceList {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
 
@@ -175,6 +313,27 @@ export default function ObecPage() {
           text-decoration: none;
           font-weight: 900;
           white-space: nowrap;
+        }
+
+        .ctaBtnPrimary {
+          display: inline-flex;
+          align-items: center;
+          margin-top: 26px;
+          padding: 13px 22px;
+          border-radius: 999px;
+          background: #1d4ed8;
+          color: #ffffff;
+          text-decoration: none;
+          font-weight: 900;
+          font-size: 14.5px;
+          white-space: nowrap;
+          box-shadow: 0 10px 22px rgba(29, 78, 216, 0.24);
+          transition: transform 0.16s ease, box-shadow 0.16s ease;
+        }
+
+        .ctaBtnPrimary:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 14px 28px rgba(29, 78, 216, 0.3);
         }
       `}</style>
     </>

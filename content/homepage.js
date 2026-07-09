@@ -239,7 +239,7 @@ export const footerContent = {
       title: "Pro obec",
       links: [
         { label: "Jak to funguje", href: "/obec" },
-        { label: "Ceník", href: "/zadost" },
+        { label: "Ceník", href: "/obec#cenik" },
       ],
     },
     {
