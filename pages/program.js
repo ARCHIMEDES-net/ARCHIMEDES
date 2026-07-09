@@ -63,7 +63,30 @@ const communityItems = [
   },
 ];
 
-const programBlocks = [...schoolItems, ...communityItems];
+const svazyItems = [
+  {
+    title: "Svaz včelařů ČR",
+    text: "poznávání včelařství a ochrany přírody, workshopy a besedy pro školy i veřejnost",
+  },
+  {
+    title: "Českomoravská myslivecká jednota",
+    text: "myslivost, péče o krajinu a vztah k přírodě pro děti i dospělé",
+  },
+  {
+    title: "Český rybářský svaz",
+    text: "rybářství, vodní ekosystémy a ochrana přírody u vody",
+  },
+  {
+    title: "Svaz zahrádkářů",
+    text: "zahrádkaření, pěstitelství a sdílení zkušeností mezi generacemi",
+  },
+  {
+    title: "Junák – český skaut",
+    text: "oddílová činnost, dobrodružství a výchova k samostatnosti",
+  },
+];
+
+const programBlocks = [...schoolItems, ...communityItems, ...svazyItems];
 
 function SectionTitle({ eyebrow, title, text, center = false }) {
   return (
@@ -773,7 +796,7 @@ export default function ProgramPage() {
 
           <section id="varianty" style={{ marginTop: 84 }}>
             <SectionTitle
-              title="Dvanáct programových bloků pod jednou licencí obce"
+              title="Osmnáct programových bloků pod jednou licencí obce"
               text="Každý blok připravuje ARCHIMEDES Live ve spolupráci s odborníky a partnery — obec jen zapojí zájemce."
             />
 
@@ -820,7 +843,7 @@ export default function ProgramPage() {
                   maxWidth: 680,
                 }}
               >
-                Všech dvanáct bloků je součástí jedné obecní licence za 1 990
+                Všech osmnáct bloků je součástí jedné obecní licence za 1 990
                 Kč/měsíc — bez příplatků za jednotlivé spolky nebo organizace.
                 Podrobnosti a přihlášku najdete na stránce Pro obce.
               </p>
