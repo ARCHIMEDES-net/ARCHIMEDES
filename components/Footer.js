@@ -70,7 +70,7 @@ export default function Footer() {
             </Link>
           ))}
           <span className="footer-copyright">
-            © {new Date().getFullYear()} ARCHIMEDES Live · {legalName}. Všechna práva vyhrazena.
+            © {new Date().getFullYear()} ARCHIMEDES Live · {legalName} Všechna práva vyhrazena.
           </span>
         </div>
       </div>

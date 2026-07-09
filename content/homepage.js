@@ -170,7 +170,7 @@ export const references = [
     crestAlt: null,
     photo: "/cejc.jpg",
     photoAlt: "Obec Čejč, oceněná 1. místem v soutěži Vesnice roku 2026 JMK",
-    storyHref: "/zadost",
+    storyHref: "/reference",
     visible: true,
   },
   {
@@ -183,7 +183,7 @@ export const references = [
     crestAlt: "Ocenění Obec 2030 ČR pro obec Křenov",
     photo: "/krenov.jpg",
     photoAlt: "Obec Křenov, vítěz ocenění Obec 2030 ČR",
-    storyHref: "/zadost",
+    storyHref: "/reference",
     visible: true,
   },
   {
@@ -196,7 +196,7 @@ export const references = [
     crestAlt: "Znak města Hodonín",
     photo: "/zdravamesta.jpg",
     photoAlt: "Ocenění Zdravá města ČR pro Hodonín",
-    storyHref: "/zadost",
+    storyHref: "/reference",
     visible: true,
   },
   {
@@ -206,12 +206,12 @@ export const references = [
     badge: "Bílá stuha, Vesnice roku 2026",
     quote:
       "Máme tu učebnu ARCHIMEDES Live, která pomohla k ocenění za naši práci s mládeží a rodinami.",
-    crest: "/provodov-sonov.png",
-    crestAlt: "Znak obce Provodov-Šonov",
+    crest: null,
+    crestAlt: null,
     photo: "/provodov-sonov.png",
     photoAlt: "Znak obce Provodov-Šonov, oceněné Bílou stuhou v soutěži Vesnice roku 2026",
     photoFit: "contain",
-    storyHref: "/zadost",
+    storyHref: "/reference",
     visible: true,
   },
 ];

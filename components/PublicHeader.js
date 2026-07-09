@@ -87,7 +87,8 @@ export default function PublicHeader({ active = "" }) {
             Chci program pro naši obec
           </Link>
           <Link href="/login" className="ph-login">
-            <span aria-hidden="true">👤</span> Přihlášení
+            <span aria-hidden="true">👤</span>
+            <span className="ph-loginLabel">Přihlášení</span>
           </Link>
         </div>
 
@@ -134,12 +135,14 @@ export default function PublicHeader({ active = "" }) {
         }
 
         .ph-bar {
-          max-width: 1280px;
+          max-width: 1440px;
           margin: 0 auto;
           padding: 12px 20px;
           display: flex;
+          flex-wrap: wrap;
           align-items: center;
           gap: 18px;
+          row-gap: 10px;
         }
 
         .ph-logoLink {
@@ -212,10 +215,18 @@ export default function PublicHeader({ active = "" }) {
           font-weight: 800;
           color: #334155;
           white-space: nowrap;
+          min-width: 0;
         }
 
         .ph-login:hover {
           color: #0f172a;
+        }
+
+        .ph-loginLabel {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          max-width: 120px;
         }
 
         .ph-toggle {
@@ -271,12 +282,12 @@ export default function PublicHeader({ active = "" }) {
           text-align: center;
         }
 
-        @media (max-width: 1180px) {
+        @media (max-width: 1439px) {
           .ph-nav {
             display: none;
           }
 
-          .ph-actions .ph-cta {
+          .ph-actions .ph-login {
             display: none;
           }
 
@@ -284,13 +295,14 @@ export default function PublicHeader({ active = "" }) {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            order: 1;
             margin-left: auto;
           }
-        }
 
-        @media (max-width: 480px) {
-          .ph-login span {
-            display: none;
+          .ph-actions {
+            order: 2;
+            flex-basis: 100%;
+            justify-content: center;
           }
         }
       `}</style>
