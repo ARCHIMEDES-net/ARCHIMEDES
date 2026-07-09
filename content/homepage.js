@@ -202,9 +202,10 @@ export const references = [
     id: "provodov-sonov",
     name: "Provodov-Šonov",
     region: "Královéhradecký kraj",
-    badge: "Bílá stuha Vesnice roku 2026",
-    quote: "Skvělá podpora našich hasičů, seniorů i dětí.",
-    crest: "/reference/provodov-sonov-erb.png",
+    badge: "Bílá stuha, Vesnice roku 2026",
+    quote:
+      "Máme tu učebnu ARCHIMEDES Live, která pomohla k ocenění za naši práci s mládeží a rodinami.",
+    crest: "/provodov-sonov.png",
     crestAlt: "Znak obce Provodov-Šonov",
     photo: "/reference/provodov-sonov.jpg",
     photoAlt: "Obec Provodov-Šonov, oceněná Bílou stuhou v soutěži Vesnice roku 2026",
