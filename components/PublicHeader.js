@@ -2,22 +2,81 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-const LOGO_SRC = "/logo.jpg";
-
 function stripQuery(asPath) {
   return (asPath || "").split("?")[0];
 }
 
 const NAV_ITEMS = [
-  { href: "/", label: "Domů" },
-  { href: "/program", label: "Program" },
-  { href: "/vysilani", label: "Hosté a témata" },
-  { href: "/ucebna", label: "Učebna" },
-  { href: "/#faq", label: "FAQ" },
-  { href: "/poptavka", label: "Poptávka" },
-  { href: "/media", label: "Reference/Média" },
-  { href: "/kontakt", label: "Kontakt" },
+  { key: "program", href: "/program", label: "O programu" },
+  { key: "obec", href: "/obec", label: "Pro obce" },
+  { key: "pro-organizace", href: "/pro-organizace", label: "Pro organizace" },
+  { key: "kalendar", href: "/#kalendar", label: "Kalendář" },
+  { key: "reference", href: "/#reference", label: "Reference" },
+  { key: "o-nas", href: "/o-nas", label: "O nás" },
+  { key: "kontakt", href: "/kontakt", label: "Kontakt" },
 ];
+
+function LogoMark() {
+  return (
+    <span className="logoMark">
+      <span className="logoBadge">A</span>
+      <span className="logoWordmark">
+        ARCHIMEDES <span className="logoLive">LIVE</span>
+      </span>
+
+      <style jsx>{`
+        .logoMark {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .logoBadge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 38px;
+          height: 38px;
+          border-radius: 999px;
+          background: #1d4ed8;
+          color: #ffffff;
+          font-weight: 950;
+          font-size: 19px;
+          letter-spacing: -0.02em;
+          box-shadow: 0 8px 18px rgba(29, 78, 216, 0.28);
+        }
+
+        .logoWordmark {
+          font-size: 17px;
+          font-weight: 900;
+          letter-spacing: -0.01em;
+          color: #0f172a;
+          white-space: nowrap;
+        }
+
+        .logoLive {
+          display: inline-flex;
+          align-items: center;
+          padding: 2px 8px;
+          margin-left: 2px;
+          border-radius: 6px;
+          background: #1d4ed8;
+          color: #ffffff;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0.04em;
+          vertical-align: 2px;
+        }
+
+        @media (max-width: 640px) {
+          .logoWordmark {
+            display: none;
+          }
+        }
+      `}</style>
+    </span>
+  );
+}
 
 export default function PublicHeader({ active = "" }) {
   const router = useRouter();
@@ -25,200 +84,248 @@ export default function PublicHeader({ active = "" }) {
   const asPath = stripQuery(router?.asPath || "");
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  if (pathname.startsWith("/portal")) {
-    return null;
-  }
-
   useEffect(() => {
     setMobileOpen(false);
   }, [asPath]);
 
-  const isActive = (href) => {
-    if (active) {
-      if (href === "/") return active === "home";
-      if (href === "/program") return active === "program";
-      if (href === "/cenik") return active === "cenik";
-      if (href === "/poptavka") return active === "poptavka";
-      if (href === "/media") return active === "media";
-      if (href === "/kontakt") return active === "kontakt";
-    }
+  if (pathname.startsWith("/portal")) {
+    return null;
+  }
 
-    if (href === "/") return asPath === "/";
-    return asPath === href || pathname === href;
+  const isActive = (item) => {
+    if (active) return active === item.key;
+    if (item.href.startsWith("/#")) return false;
+    return asPath === item.href || pathname === item.href;
   };
 
   return (
-    <header
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
-        background: "rgba(255,255,255,0.92)",
-        backdropFilter: "blur(10px)",
-        borderBottom: "1px solid rgba(15, 23, 42, 0.08)",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "14px 20px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "16px",
-        }}
-      >
-        <Link
-          href="/"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "14px",
-            textDecoration: "none",
-            color: "#0f172a",
-            minWidth: 0,
-          }}
-        >
-          <img
-            src={LOGO_SRC}
-            alt="ARCHIMEDES Live"
-            style={{
-              height: "48px",
-              width: "auto",
-              display: "block",
-              objectFit: "contain",
-            }}
-          />
+    <header className="ph-header">
+      <div className="ph-bar">
+        <Link href="/" className="ph-logoLink" aria-label="ARCHIMEDES Live — domů">
+          <LogoMark />
         </Link>
 
-        <nav
-          className="desktop-nav"
-          style={{ alignItems: "center", gap: "10px" }}
-        >
+        <nav className="ph-nav" aria-label="Hlavní navigace">
           {NAV_ITEMS.map((item) => (
             <Link
-              key={item.href}
+              key={item.key}
               href={item.href}
-              style={{
-                textDecoration: "none",
-                padding: "10px 14px",
-                borderRadius: "999px",
-                fontWeight: isActive(item.href) ? 800 : 700,
-                color: isActive(item.href) ? "#173b77" : "#334155",
-                background: isActive(item.href) ? "#eff6ff" : "transparent",
-                transition: "all 0.18s ease",
-                whiteSpace: "nowrap",
-              }}
+              className={`ph-navLink${isActive(item) ? " ph-navLinkActive" : ""}`}
             >
               {item.label}
             </Link>
           ))}
-
-          <Link
-            href="/portal"
-            style={{
-              textDecoration: "none",
-              padding: "11px 18px",
-              borderRadius: "999px",
-              fontWeight: 800,
-              color: "#fff",
-              background: "#173b77",
-              boxShadow: "0 12px 22px rgba(23, 59, 119, 0.20)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Portál
-          </Link>
         </nav>
+
+        <div className="ph-actions">
+          <Link href="/zadost" className="ph-cta">
+            Chci program pro naši obec
+          </Link>
+          <Link href="/login" className="ph-login">
+            <span aria-hidden="true">👤</span> Přihlášení
+          </Link>
+        </div>
 
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Otevřít menu"
-          className="mobile-toggle"
-          style={{
-            display: "none",
-            border: "1px solid rgba(15, 23, 42, 0.12)",
-            background: "#fff",
-            color: "#0f172a",
-            borderRadius: "14px",
-            width: "44px",
-            height: "44px",
-            fontSize: "22px",
-            cursor: "pointer",
-          }}
+          aria-expanded={mobileOpen}
+          className="ph-toggle"
         >
           ☰
         </button>
       </div>
 
-      {mobileOpen && (
-        <div
-          style={{
-            borderTop: "1px solid rgba(15, 23, 42, 0.08)",
-            background: "#fff",
-          }}
-        >
-          <div
-            style={{
-              maxWidth: "1200px",
-              margin: "0 auto",
-              padding: "14px 20px 18px",
-              display: "grid",
-              gap: "10px",
-            }}
-          >
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                style={{
-                  textDecoration: "none",
-                  padding: "12px 14px",
-                  borderRadius: "16px",
-                  fontWeight: isActive(item.href) ? 800 : 700,
-                  color: isActive(item.href) ? "#173b77" : "#334155",
-                  background: isActive(item.href) ? "#eff6ff" : "#f8fafc",
-                }}
-              >
-                {item.label}
-              </Link>
-            ))}
-
+      {mobileOpen ? (
+        <div className="ph-mobile">
+          {NAV_ITEMS.map((item) => (
             <Link
-              href="/portal"
-              style={{
-                textDecoration: "none",
-                padding: "13px 16px",
-                borderRadius: "16px",
-                fontWeight: 800,
-                color: "#fff",
-                background: "#173b77",
-                textAlign: "center",
-                boxShadow: "0 10px 20px rgba(23, 59, 119, 0.18)",
-              }}
+              key={item.key}
+              href={item.href}
+              className={`ph-mobileLink${isActive(item) ? " ph-mobileLinkActive" : ""}`}
             >
-              Portál
+              {item.label}
             </Link>
-          </div>
-        </div>
-      )}
+          ))}
 
-      <style jsx>{`
-        .desktop-nav {
-          display: flex;
+          <Link href="/zadost" className="ph-mobileCta">
+            Chci program pro naši obec
+          </Link>
+          <Link href="/login" className="ph-mobileLogin">
+            👤 Přihlášení
+          </Link>
+        </div>
+      ) : null}
+
+      <style jsx global>{`
+        .ph-header {
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          background: rgba(255, 255, 255, 0.94);
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid rgba(15, 23, 42, 0.08);
         }
 
-        @media (max-width: 1080px) {
-          .desktop-nav {
+        .ph-bar {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 12px 20px;
+          display: flex;
+          align-items: center;
+          gap: 18px;
+        }
+
+        .ph-logoLink {
+          display: inline-flex;
+          text-decoration: none;
+          flex: 0 0 auto;
+        }
+
+        .ph-nav {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          flex: 1 1 auto;
+          min-width: 0;
+        }
+
+        .ph-navLink {
+          text-decoration: none;
+          padding: 9px 12px;
+          border-radius: 999px;
+          font-size: 14.5px;
+          font-weight: 700;
+          color: #334155;
+          white-space: nowrap;
+          transition: all 0.16s ease;
+        }
+
+        .ph-navLink:hover {
+          background: #f1f5f9;
+          color: #0f172a;
+        }
+
+        .ph-navLinkActive {
+          background: #eff6ff;
+          color: #1d4ed8;
+          font-weight: 900;
+        }
+
+        .ph-actions {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          flex: 0 0 auto;
+        }
+
+        .ph-cta {
+          text-decoration: none;
+          padding: 11px 18px;
+          border-radius: 999px;
+          font-weight: 900;
+          font-size: 14px;
+          color: #ffffff;
+          background: #1d4ed8;
+          box-shadow: 0 10px 22px rgba(29, 78, 216, 0.24);
+          white-space: nowrap;
+          transition: transform 0.16s ease, box-shadow 0.16s ease;
+        }
+
+        .ph-cta:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 14px 28px rgba(29, 78, 216, 0.3);
+        }
+
+        .ph-login {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 800;
+          color: #334155;
+          white-space: nowrap;
+        }
+
+        .ph-login:hover {
+          color: #0f172a;
+        }
+
+        .ph-toggle {
+          display: none;
+          border: 1px solid rgba(15, 23, 42, 0.12);
+          background: #ffffff;
+          color: #0f172a;
+          border-radius: 12px;
+          width: 42px;
+          height: 42px;
+          font-size: 20px;
+          cursor: pointer;
+          flex: 0 0 auto;
+        }
+
+        .ph-mobile {
+          border-top: 1px solid rgba(15, 23, 42, 0.08);
+          background: #ffffff;
+          padding: 12px 20px 18px;
+          display: grid;
+          gap: 8px;
+        }
+
+        .ph-mobileLink,
+        .ph-mobileCta,
+        .ph-mobileLogin {
+          text-decoration: none;
+          padding: 12px 14px;
+          border-radius: 14px;
+          font-weight: 800;
+          font-size: 15px;
+        }
+
+        .ph-mobileLink {
+          color: #334155;
+          background: #f8fafc;
+        }
+
+        .ph-mobileLinkActive {
+          color: #1d4ed8;
+          background: #eff6ff;
+        }
+
+        .ph-mobileCta {
+          color: #ffffff;
+          background: #1d4ed8;
+          text-align: center;
+        }
+
+        .ph-mobileLogin {
+          color: #334155;
+          background: #f8fafc;
+          text-align: center;
+        }
+
+        @media (max-width: 1180px) {
+          .ph-nav {
             display: none;
           }
 
-          .mobile-toggle {
-            display: inline-flex !important;
+          .ph-actions .ph-cta {
+            display: none;
+          }
+
+          .ph-toggle {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+            margin-left: auto;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .ph-login span {
+            display: none;
           }
         }
       `}</style>

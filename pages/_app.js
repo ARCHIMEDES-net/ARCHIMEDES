@@ -8,11 +8,10 @@ import PublicHeader from "../components/PublicHeader";
 import { Analytics } from "@vercel/analytics/react";
 
 function activeKeyFromPath(pathname = "") {
-  if (pathname === "/") return "home";
   if (pathname === "/program") return "program";
-  if (pathname === "/cenik") return "cenik";
-  if (pathname === "/poptavka") return "poptavka";
-  if (pathname === "/media") return "media";
+  if (pathname === "/obec") return "obec";
+  if (pathname === "/pro-organizace") return "pro-organizace";
+  if (pathname === "/o-nas") return "o-nas";
   if (pathname === "/kontakt") return "kontakt";
   return "";
 }
