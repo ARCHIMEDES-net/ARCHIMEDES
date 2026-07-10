@@ -314,8 +314,8 @@ export default function Ucebna() {
                 <PrimaryButton href="/media">
                   Prohlédnout reference
                 </PrimaryButton>
-                <SecondaryButton href="/poptavka">
-                  Chci nezávaznou nabídku
+                <SecondaryButton href="/zadost">
+                  Chci program pro naši obec
                 </SecondaryButton>
               </div>
             </div>
@@ -884,8 +884,8 @@ export default function Ucebna() {
               </SectionTitle>
             </div>
 
-            <PrimaryButton href="/poptavka">
-              Chci nezávaznou nabídku
+            <PrimaryButton href="/zadost">
+              Chci program pro naši obec
             </PrimaryButton>
           </div>
 
@@ -918,8 +918,8 @@ export default function Ucebna() {
                 </div>
 
                 <div style={{ marginTop: 18 }}>
-                  <PrimaryButton href="/poptavka">
-                    Chci nezávaznou nabídku
+                  <PrimaryButton href="/zadost">
+                    Chci program pro naši obec
                   </PrimaryButton>
                 </div>
               </div>

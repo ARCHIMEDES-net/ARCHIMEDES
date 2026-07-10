@@ -420,8 +420,8 @@ export default function MediaPage() {
                 }}
               >
                 <PrimaryButton href="/ucebna">Zpět na stránku učebny</PrimaryButton>
-                <SecondaryButton href="/poptavka">
-                  Mám zájem o učebnu
+                <SecondaryButton href="/zadost">
+                  Chci program pro naši obec
                 </SecondaryButton>
               </div>
             </div>
@@ -515,8 +515,8 @@ export default function MediaPage() {
                 </p>
               </div>
 
-              <SecondaryButton href="/poptavka" tinted>
-                Chci podobné řešení
+              <SecondaryButton href="/zadost" tinted>
+                Chci program pro naši obec
               </SecondaryButton>
             </div>
 
@@ -645,8 +645,8 @@ export default function MediaPage() {
                     marginTop: 26,
                   }}
                 >
-                  <PrimaryButton href="/poptavka">
-                    Chci navrhnout řešení
+                  <PrimaryButton href="/zadost">
+                    Chci program pro naši obec
                   </PrimaryButton>
                   <SecondaryButton href="/ucebna" tinted>
                     Zobrazit technické varianty
@@ -766,7 +766,7 @@ export default function MediaPage() {
                 flexWrap: "wrap",
               }}
             >
-              <PrimaryButton href="/poptavka">Mám zájem o řešení</PrimaryButton>
+              <PrimaryButton href="/zadost">Chci program pro naši obec</PrimaryButton>
               <SecondaryButton href="/kontakt">
                 Domluvit osobní konzultaci
               </SecondaryButton>

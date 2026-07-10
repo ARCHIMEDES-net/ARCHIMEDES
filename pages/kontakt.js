@@ -638,7 +638,7 @@ export default function KontaktPage() {
                 }}
               >
                 <Link
-                  href="/poptavka"
+                  href="/zadost"
                   style={{
                     textDecoration: "none",
                     display: "inline-flex",
@@ -653,7 +653,7 @@ export default function KontaktPage() {
                     border: "1px solid rgba(255,255,255,0.18)",
                   }}
                 >
-                  Odeslat poptávku
+                  Chci program pro naši obec
                 </Link>
 
                 <Link
