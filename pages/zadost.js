@@ -14,10 +14,13 @@ export default function ZadostPage() {
 
   const [form, setForm] = useState({
     name: "",
+    role: "",
     email: "",
     phone: "",
     organization: "",
     address: "",
+    population: "",
+    preferredDate: "",
     type: initialType,
     message: "",
     company: "",
@@ -48,11 +51,14 @@ export default function ZadostPage() {
 
     try {
       const trimmedName = form.name.trim();
+      const trimmedRole = form.role.trim();
       const trimmedEmail = form.email.trim();
       const trimmedPhone = form.phone.trim();
       const trimmedOrganization = form.organization.trim();
       const trimmedAddress = form.address.trim();
-      const trimmedType = form.type.trim();
+      const trimmedPopulation = form.population.trim();
+      const trimmedPreferredDate = form.preferredDate.trim();
+      const trimmedType = isDemoRequest ? form.type.trim() : "obec";
       const trimmedMessage = form.message.trim();
 
       if (!trimmedName) {
@@ -72,16 +78,29 @@ export default function ZadostPage() {
         throw new Error(
           isDemoRequest
             ? "Vyplňte prosím školu nebo organizaci, pro kterou chcete ukázkový přístup."
-            : "Vyplňte prosím školu, obec, organizaci nebo místo, kde chcete ARCHIMEDES Live využít."
+            : "Vyplňte prosím název obce."
         );
       }
 
       if (!trimmedAddress) {
-        throw new Error("Vyplňte prosím adresu.");
+        throw new Error(
+          isDemoRequest
+            ? "Vyplňte prosím adresu."
+            : "Vyplňte prosím adresu obecního úřadu."
+        );
       }
 
-      if (trimmedPhone && trimmedPhone.length < 6) {
-        throw new Error("Telefon je příliš krátký.");
+      if (isDemoRequest) {
+        if (trimmedPhone && trimmedPhone.length < 6) {
+          throw new Error("Telefon je příliš krátký.");
+        }
+      } else {
+        if (!trimmedPhone) {
+          throw new Error("Vyplňte prosím telefon.");
+        }
+        if (trimmedPhone.length < 6) {
+          throw new Error("Telefon je příliš krátký.");
+        }
       }
 
       const res = await fetch("/api/zadost-o-pristup", {
@@ -91,10 +110,13 @@ export default function ZadostPage() {
         },
         body: JSON.stringify({
           name: trimmedName,
+          role: trimmedRole,
           email: trimmedEmail,
           phone: trimmedPhone,
           organization: trimmedOrganization,
           address: trimmedAddress,
+          population: trimmedPopulation,
+          preferredDate: trimmedPreferredDate,
           type: trimmedType,
           message: trimmedMessage,
           isDemoRequest,
@@ -123,10 +145,13 @@ export default function ZadostPage() {
 
       setForm({
         name: "",
+        role: "",
         email: "",
         phone: "",
         organization: "",
         address: "",
+        population: "",
+        preferredDate: "",
         type: isDemoRequest ? "škola" : "",
         message: "",
         company: "",
@@ -207,7 +232,7 @@ export default function ZadostPage() {
               >
                 {isDemoRequest
                   ? "Vyplňte krátký formulář a po schválení vám pošleme přístup do ukázkového prostředí. Uvidíte, jak vypadá program, archiv i celkové prostředí portálu z pohledu školy."
-                  : "Vyplňte krátký formulář a ozveme se vám s dalším postupem, vhodným typem přístupu a možnostmi zapojení do ARCHIMEDES Live."}
+                  : "Vyplňte krátký formulář — ozveme se vám a domluvíme termín prvního vysílání."}
               </p>
 
               {isDemoRequest ? (
@@ -283,6 +308,58 @@ export default function ZadostPage() {
                   />
                 </div>
 
+                {!isDemoRequest ? (
+                  <div>
+                    <label
+                      style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
+                    >
+                      Funkce (volitelně)
+                    </label>
+                    <select
+                      name="role"
+                      value={form.role}
+                      onChange={updateField}
+                      style={fieldStyle}
+                    >
+                      <option value="">Vyberte</option>
+                      <option value="starosta">Starosta/starostka</option>
+                      <option value="mistostarosta">Místostarosta/ka</option>
+                      <option value="zamestnanec-uradu">
+                        Zaměstnanec obecního úřadu
+                      </option>
+                      <option value="zastupce-spolku">
+                        Zástupce spolku v obci
+                      </option>
+                      <option value="jine">Jiné</option>
+                    </select>
+                  </div>
+                ) : null}
+
+                <div>
+                  <label
+                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
+                  >
+                    {isDemoRequest ? "Škola / organizace*" : "Název obce*"}
+                  </label>
+                  <input
+                    name="organization"
+                    required
+                    value={form.organization}
+                    onChange={updateField}
+                    placeholder={
+                      isDemoRequest
+                        ? "Např. ZŠ Hodonín, Gymnázium Vyškov..."
+                        : "Např. Obec Křenov"
+                    }
+                    style={fieldStyle}
+                  />
+                  <div style={helperStyle}>
+                    {isDemoRequest
+                      ? "Napište prosím školu nebo organizaci, pro kterou chcete ukázkové prostředí zobrazit."
+                      : "Napište prosím název obce, která má o program zájem."}
+                  </div>
+                </div>
+
                 <div>
                   <label
                     style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
@@ -303,10 +380,11 @@ export default function ZadostPage() {
                   <label
                     style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
                   >
-                    Telefon (volitelně)
+                    {isDemoRequest ? "Telefon (volitelně)" : "Telefon*"}
                   </label>
                   <input
                     name="phone"
+                    required={!isDemoRequest}
                     value={form.phone}
                     onChange={updateField}
                     style={fieldStyle}
@@ -317,34 +395,7 @@ export default function ZadostPage() {
                   <label
                     style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
                   >
-                    {isDemoRequest
-                      ? "Škola / organizace*"
-                      : "Škola / obec / organizace / místo zájmu*"}
-                  </label>
-                  <input
-                    name="organization"
-                    required
-                    value={form.organization}
-                    onChange={updateField}
-                    placeholder={
-                      isDemoRequest
-                        ? "Např. ZŠ Hodonín, Gymnázium Vyškov..."
-                        : "Např. ZŠ Hodonín, Obec Křenov, Hodonín..."
-                    }
-                    style={fieldStyle}
-                  />
-                  <div style={helperStyle}>
-                    {isDemoRequest
-                      ? "Napište prosím školu nebo organizaci, pro kterou chcete ukázkové prostředí zobrazit."
-                      : "Pokud zatím nežádáte za konkrétní organizaci, napište prosím obec, město nebo stručně popište, kde chcete ARCHIMEDES Live využít."}
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-                  >
-                    Adresa*
+                    {isDemoRequest ? "Adresa*" : "Adresa obecního úřadu*"}
                   </label>
                   <input
                     name="address"
@@ -355,41 +406,81 @@ export default function ZadostPage() {
                     style={fieldStyle}
                   />
                   <div style={helperStyle}>
-                    Uveďte prosím adresu školy nebo organizace.
+                    {isDemoRequest
+                      ? "Uveďte prosím adresu školy nebo organizace."
+                      : "Uveďte prosím adresu obecního úřadu."}
                   </div>
                 </div>
+
+                {isDemoRequest ? (
+                  <div>
+                    <label
+                      style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
+                    >
+                      Typ organizace
+                    </label>
+                    <select
+                      name="type"
+                      value={form.type}
+                      onChange={updateField}
+                      style={fieldStyle}
+                    >
+                      <option value="">Vyberte</option>
+                      <option value="škola">Škola</option>
+                      <option value="obec">Obec / město</option>
+                      <option value="spolek">Spolek</option>
+                      <option value="senior-klub">Senior klub</option>
+                      <option value="partner">Partner</option>
+                      <option value="jine">Jiné / zatím neurčeno</option>
+                    </select>
+                    <div style={helperStyle}>
+                      Pokud zatím nevystupujete za konkrétní organizaci, zvolte
+                      „Jiné / zatím neurčeno“.
+                    </div>
+                  </div>
+                ) : null}
+
+                {!isDemoRequest ? (
+                  <div>
+                    <label
+                      style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
+                    >
+                      Přibližný počet obyvatel (volitelně)
+                    </label>
+                    <input
+                      name="population"
+                      value={form.population}
+                      onChange={updateField}
+                      style={fieldStyle}
+                    />
+                  </div>
+                ) : null}
+
+                {!isDemoRequest ? (
+                  <div>
+                    <label
+                      style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
+                    >
+                      Preferovaný termín prvního vysílání (volitelně)
+                    </label>
+                    <input
+                      type="date"
+                      name="preferredDate"
+                      value={form.preferredDate}
+                      onChange={updateField}
+                      style={fieldStyle}
+                    />
+                    <div style={helperStyle}>
+                      Nezávazně, potvrdíme spolu na hovoru.
+                    </div>
+                  </div>
+                ) : null}
 
                 <div>
                   <label
                     style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
                   >
-                    Typ organizace
-                  </label>
-                  <select
-                    name="type"
-                    value={form.type}
-                    onChange={updateField}
-                    style={fieldStyle}
-                  >
-                    <option value="">Vyberte</option>
-                    <option value="škola">Škola</option>
-                    <option value="obec">Obec / město</option>
-                    <option value="spolek">Spolek</option>
-                    <option value="senior-klub">Senior klub</option>
-                    <option value="partner">Partner</option>
-                    <option value="jine">Jiné / zatím neurčeno</option>
-                  </select>
-                  <div style={helperStyle}>
-                    Pokud zatím nevystupujete za konkrétní organizaci, zvolte
-                    „Jiné / zatím neurčeno“.
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-                  >
-                    {isDemoRequest ? "Poznámka" : "Zpráva"}
+                    {isDemoRequest ? "Poznámka" : "Zpráva (volitelně)"}
                   </label>
                   <textarea
                     name="message"
@@ -400,7 +491,7 @@ export default function ZadostPage() {
                     placeholder={
                       isDemoRequest
                         ? "Můžete doplnit, jakou roli ve škole máte, co vás zajímá nejvíce nebo co byste si chtěli v ukázce ověřit."
-                        : "Můžete doplnit, pro koho o přístup usilujete, koho chcete zapojit nebo v jaké fázi zájmu jste."
+                        : "Můžete doplnit cokoli, co nám pomůže se na hovor lépe připravit."
                     }
                   />
                 </div>
@@ -451,6 +542,25 @@ export default function ZadostPage() {
                   </Link>
                 </div>
               </form>
+
+              {!isDemoRequest ? (
+                <p
+                  style={{
+                    marginTop: 20,
+                    marginBottom: 0,
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    color: "rgba(0,0,0,0.62)",
+                  }}
+                >
+                  Zastupujete spolek nebo organizaci, ne obecní úřad? Napište
+                  nám raději přímo →{" "}
+                  <Link href="/kontakt" style={{ color: "#111827", fontWeight: 700 }}>
+                    /kontakt
+                  </Link>
+                  .
+                </p>
+              ) : null}
             </>
           ) : (
             <>
@@ -502,11 +612,8 @@ export default function ZadostPage() {
                 ) : (
                   <>
                     <div>1. Vaši žádost zaevidujeme.</div>
-                    <div>2. Ozveme se vám s dalším postupem.</div>
-                    <div>
-                      3. Společně vybereme nejvhodnější formu zapojení do
-                      ARCHIMEDES Live.
-                    </div>
+                    <div>2. Zavoláme vám a domluvíme termín prvního vysílání.</div>
+                    <div>3. Obec získá přístup a program může začít.</div>
                   </>
                 )}
               </div>

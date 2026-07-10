@@ -155,7 +155,7 @@ function buildApplicantEmail({ name, isDemoRequest }) {
 
       <div style="margin-top:20px;">
         <p style="margin:0 0 12px;">
-          Ozveme se Vám s dalším postupem, vhodným typem přístupu a možnostmi zapojení do ARCHIMEDES Live.
+          Ozveme se Vám a domluvíme termín prvního vysílání.
         </p>
       </div>
     `;
@@ -199,7 +199,7 @@ děkujeme za Váš zájem o ARCHIMEDES Live.
 
 Vaši žádost o přístup jsme v pořádku přijali.
 
-Ozveme se Vám s dalším postupem, vhodným typem přístupu a možnostmi zapojení do ARCHIMEDES Live.
+Ozveme se Vám a domluvíme termín prvního vysílání.
 
 Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
 
@@ -231,10 +231,13 @@ export default async function handler(req, res) {
   try {
     const {
       name,
+      role,
       email,
       phone,
       organization,
       address,
+      population,
+      preferredDate,
       type,
       message,
       isDemoRequest,
@@ -249,10 +252,13 @@ export default async function handler(req, res) {
     }
 
     const cleanName = String(name || "").trim();
+    const cleanRole = String(role || "").trim();
     const cleanEmail = String(email || "").trim().toLowerCase();
     const cleanPhone = String(phone || "").trim();
     const cleanOrganization = String(organization || "").trim();
     const cleanAddress = String(address || "").trim();
+    const cleanPopulation = String(population || "").trim();
+    const cleanPreferredDate = String(preferredDate || "").trim();
     const cleanType = String(type || "").trim();
     const cleanMessage = String(message || "").trim();
     const demoMode = !!isDemoRequest;
@@ -269,16 +275,29 @@ export default async function handler(req, res) {
       return res.status(400).json({
         error: demoMode
           ? "Vyplňte prosím školu nebo organizaci."
-          : "Vyplňte prosím školu, obec nebo organizaci.",
+          : "Vyplňte prosím název obce.",
       });
     }
 
     if (!cleanAddress) {
-      return res.status(400).json({ error: "Vyplňte prosím adresu." });
+      return res.status(400).json({
+        error: demoMode
+          ? "Vyplňte prosím adresu."
+          : "Vyplňte prosím adresu obecního úřadu.",
+      });
     }
 
-    if (cleanPhone && cleanPhone.length < 6) {
-      return res.status(400).json({ error: "Telefon je příliš krátký." });
+    if (demoMode) {
+      if (cleanPhone && cleanPhone.length < 6) {
+        return res.status(400).json({ error: "Telefon je příliš krátký." });
+      }
+    } else {
+      if (!cleanPhone) {
+        return res.status(400).json({ error: "Vyplňte prosím telefon." });
+      }
+      if (cleanPhone.length < 6) {
+        return res.status(400).json({ error: "Telefon je příliš krátký." });
+      }
     }
 
     const createdAt = new Date().toISOString();
@@ -291,16 +310,28 @@ export default async function handler(req, res) {
       ? "Typ žádosti: demo přístup"
       : "Typ žádosti: standardní přístup";
 
-    const organizationTypeLine = `Typ organizace: ${cleanType || "neuvedeno"}`;
+    const organizationTypeLine = demoMode
+      ? `Typ organizace: ${cleanType || "neuvedeno"}`
+      : "";
+    const roleLine = cleanRole ? `Funkce: ${cleanRole}` : "";
     const sourceLine = demoMode
       ? "Zdroj: web archimedeslive.com/zadost-o-pristup?type=demo"
       : "Zdroj: web archimedeslive.com/zadost-o-pristup";
     const addressLine = `Adresa: ${cleanAddress}`;
+    const populationLine = cleanPopulation
+      ? `Přibližný počet obyvatel: ${cleanPopulation}`
+      : "";
+    const preferredDateLine = cleanPreferredDate
+      ? `Preferovaný termín prvního vysílání: ${cleanPreferredDate}`
+      : "";
 
     const composedMessage = [
       requestHeader,
+      roleLine,
       organizationTypeLine,
       addressLine,
+      populationLine,
+      preferredDateLine,
       sourceLine,
       cleanMessage || "",
     ]
@@ -383,19 +414,19 @@ ${cleanType || "-"}
 
 Jméno:
 ${cleanName}
-
+${!demoMode ? `\nFunkce:\n${cleanRole || "-"}\n` : ""}
 Organizace:
 ${cleanOrganization}
 
 Adresa:
 ${cleanAddress}
-
+${!demoMode ? `\nPřibližný počet obyvatel:\n${cleanPopulation || "-"}\n` : ""}
 Email:
 ${cleanEmail}
 
 Telefon:
 ${cleanPhone || "-"}
-
+${!demoMode ? `\nPreferovaný termín prvního vysílání:\n${cleanPreferredDate || "-"}\n` : ""}
 Zpráva:
 ${cleanMessage || "-"}
 
@@ -412,10 +443,13 @@ ${approveUrl ? `Schválit demo: ${approveUrl}` : ""}
           <p><strong>Typ žádosti:</strong> ${demoMode ? "Ukázkový přístup" : "Standardní přístup"}</p>
           <p><strong>Typ organizace:</strong> ${escapeHtml(cleanType || "-")}</p>
           <p><strong>Jméno:</strong> ${escapeHtml(cleanName)}</p>
+          ${!demoMode ? `<p><strong>Funkce:</strong> ${escapeHtml(cleanRole || "-")}</p>` : ""}
           <p><strong>Organizace:</strong> ${escapeHtml(cleanOrganization)}</p>
           <p><strong>Adresa:</strong> ${escapeHtml(cleanAddress)}</p>
+          ${!demoMode ? `<p><strong>Přibližný počet obyvatel:</strong> ${escapeHtml(cleanPopulation || "-")}</p>` : ""}
           <p><strong>Email:</strong> ${escapeHtml(cleanEmail)}</p>
           <p><strong>Telefon:</strong> ${escapeHtml(cleanPhone || "-")}</p>
+          ${!demoMode ? `<p><strong>Preferovaný termín prvního vysílání:</strong> ${escapeHtml(cleanPreferredDate || "-")}</p>` : ""}
           <p><strong>Zpráva:</strong><br />${escapeHtml(cleanMessage || "-").replace(/\n/g, "<br />")}</p>
           <p><strong>Datum:</strong> ${escapeHtml(createdAt)}</p>
 
