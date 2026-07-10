@@ -5,6 +5,7 @@ import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import JoinBroadcastButton from "../../../components/JoinBroadcastButton";
 import { getStreamUrl } from "../../../lib/broadcastState";
+import { resolveLicenseMode } from "../../../lib/licenseMode";
 import { supabase } from "../../../lib/supabaseClient";
 
 const BUCKET = "posters";
@@ -67,24 +68,6 @@ function resolvePosterUrl(row) {
   const directUrl = String(row?.poster_url || "").trim();
   if (directUrl) return directUrl;
   return publicUrlFromPath(row?.poster_path);
-}
-
-function resolveLicenseMode(org) {
-  if (!org) return "default";
-
-  const status = String(org.license_status || "trial").toLowerCase().trim();
-  const validUntil = safeDate(org.license_valid_until);
-
-  if (status === "suspended") return "suspended";
-  if (status === "active") return "active";
-  if (status === "expired") return "expired";
-
-  if (status === "trial") {
-    if (!validUntil) return "trial";
-    return validUntil.getTime() >= Date.now() ? "trial" : "expired";
-  }
-
-  return "expired";
 }
 
 function formatGoogleDate(date) {
@@ -285,11 +268,12 @@ export default function UdalostDetail() {
 
         if (orgError) throw orgError;
 
+        const mode = await resolveLicenseMode(supabase, orgId, org);
         if (mounted) {
-          setLicenseMode(resolveLicenseMode(org));
+          setLicenseMode(mode);
         }
       } catch (_e) {
-        if (mounted) setLicenseMode("expired");
+        if (mounted) setLicenseMode("inactive");
       } finally {
         if (mounted) setLicenseLoading(false);
       }

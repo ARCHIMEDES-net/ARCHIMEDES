@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
+import { resolveLicenseMode } from "../../lib/licenseMode";
 import { supabase } from "../../lib/supabaseClient";
 
 function safeDate(value) {
@@ -99,46 +100,28 @@ function getArchiveCoverUrl(row) {
   return "";
 }
 
-function resolveLicenseMode(org) {
-  if (!org) return "default";
-
-  const status = String(org.license_status || "trial").toLowerCase().trim();
-  const validUntil = safeDate(org.license_valid_until);
-
-  if (status === "suspended") return "suspended";
-  if (status === "active") return "active";
-  if (status === "expired") return "expired";
-
-  if (status === "trial") {
-    if (!validUntil) return "trial";
-    return validUntil.getTime() >= Date.now() ? "trial" : "expired";
-  }
-
-  return "expired";
-}
-
 function modeConfig(mode) {
-  if (mode === "trial") {
+  if (mode === "pending_approval") {
     return {
-      badge: "Organizace bez aktivní licence",
+      badge: "Registrace se zpracovává",
       badgeBg: "#fff4d6",
       badgeColor: "#8a5a00",
-      title: "Archiv je součástí aktivní licence ARCHIMEDES Live",
+      title: "Archiv bude dostupný po dokončení registrace",
       text:
-        "Vaše organizace zatím nemá aktivní licenci pro plný archiv. Můžete si projít strukturu archivu a vidět příklady záznamů, ale plný přístup k archivním videím a navazujícím materiálům je dostupný pro aktivní organizace.",
-      primaryLabel: "Aktivovat licenci",
+        "Program vaší obce se právě registruje. Strukturu archivu si můžete prohlédnout už teď, plný přístup k záznamům se otevře po dokončení registrace.",
+      primaryLabel: "Napsat nám",
     };
   }
 
-  if (mode === "expired") {
+  if (mode === "inactive") {
     return {
-      badge: "Licence vypršela",
+      badge: "Program není aktivní",
       badgeBg: "#ffe5e5",
       badgeColor: "#9f1d1d",
-      title: "Přístup do archivu vyžaduje aktivní licenci",
+      title: "Přístup do archivu vyžaduje aktivní program",
       text:
-        "Vaše organizace momentálně nemá aktivní licenci. Archiv záznamů je připravený, ale přístup k němu je nyní omezený. Pro pokračování v programu obnovte licenci organizace.",
-      primaryLabel: "Obnovit licenci",
+        "Vaše obec momentálně nemá aktivní program ARCHIMEDES Live. Archiv záznamů je připravený, ale přístup k němu je teď omezený.",
+      primaryLabel: "Napsat nám",
     };
   }
 
@@ -146,10 +129,10 @@ function modeConfig(mode) {
     badge: "Přístup pozastaven",
     badgeBg: "#e9edff",
     badgeColor: "#3646a3",
-    title: "Přístup organizace je pozastaven",
+    title: "Program obce je dočasně pozastaven",
     text:
-      "Archiv je dočasně nedostupný. Jakmile bude přístup organizace obnoven, vrátí se i plný přístup k archivům a dalším navazujícím materiálům.",
-    primaryLabel: "Kontaktovat EduVision",
+      "Archiv je dočasně nedostupný. Jakmile bude přístup obce obnoven, vrátí se i plný přístup k archivům a dalším navazujícím materiálům.",
+    primaryLabel: "Napsat nám",
   };
 }
 
@@ -403,10 +386,16 @@ export default function Archiv() {
         if (orgError) throw orgError;
 
         if (!isMounted) return;
-        setLicenseMode(resolveLicenseMode(org));
+        const mode = await resolveLicenseMode(
+          supabase,
+          profile.active_organization_id,
+          org
+        );
+        if (!isMounted) return;
+        setLicenseMode(mode);
       } catch (_e) {
         if (!isMounted) return;
-        setLicenseMode("expired");
+        setLicenseMode("inactive");
         setIsOrgAdmin(false);
         setIsDemoViewer(false);
       } finally {
@@ -517,8 +506,8 @@ export default function Archiv() {
   const effectiveMode = isPlatformAdmin ? "active" : licenseMode;
   const isLocked =
     !isDemoViewer &&
-    (effectiveMode === "trial" ||
-      effectiveMode === "expired" ||
+    (effectiveMode === "pending_approval" ||
+      effectiveMode === "inactive" ||
       effectiveMode === "suspended");
 
   if (licenseLoading) {
@@ -626,7 +615,7 @@ export default function Archiv() {
                 }}
               >
                 <Link
-                  href="/poptavka"
+                  href="/kontakt"
                   style={{
                     textDecoration: "none",
                     display: "inline-flex",

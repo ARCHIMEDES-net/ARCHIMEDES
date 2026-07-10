@@ -6,6 +6,7 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import JoinBroadcastButton from "../../components/JoinBroadcastButton";
 import { getEventStart, getJoinButtonState } from "../../lib/broadcastState";
+import { resolveLicenseMode } from "../../lib/licenseMode";
 import { supabase } from "../../lib/supabaseClient";
 
 const POSTERS_BUCKET = "posters";
@@ -85,24 +86,6 @@ function createCalendarHref(event) {
   const dates = `${fmt(start)}/${fmt(end)}`;
 
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}`;
-}
-
-function resolveLicenseMode(org) {
-  if (!org) return "default";
-
-  const status = String(org.license_status || "trial").toLowerCase().trim();
-  const validUntil = safeDate(org.license_valid_until);
-
-  if (status === "suspended") return "suspended";
-  if (status === "active") return "active";
-  if (status === "expired") return "expired";
-
-  if (status === "trial") {
-    if (!validUntil) return "trial";
-    return validUntil.getTime() >= Date.now() ? "trial" : "expired";
-  }
-
-  return "expired";
 }
 
 export default function PortalIndex() {
@@ -260,7 +243,10 @@ export default function PortalIndex() {
           setOrganizationName(org?.name || "");
           setOrganizationCode(org?.join_code || "");
           setLicenseValidUntil(org?.license_valid_until || null);
-          setLicenseMode(resolveLicenseMode(org));
+
+          const mode = await resolveLicenseMode(supabase, resolvedOrganizationId, org);
+          if (!alive) return;
+          setLicenseMode(mode);
 
           if (roleInOrg === "demo_viewer") setDashboardType("demo_viewer");
           else setDashboardType("organization");
@@ -331,11 +317,12 @@ export default function PortalIndex() {
 
   const showAdminSection = !isDemoViewer && isAdmin;
 
-  const showTrialBanner =
-    dashboardType === "organization" && licenseMode === "trial";
-  const showExpiredBanner =
+  const showPendingApprovalBanner =
     (dashboardType === "organization" || dashboardType === "demo_viewer") &&
-    licenseMode === "expired";
+    licenseMode === "pending_approval";
+  const showInactiveBanner =
+    (dashboardType === "organization" || dashboardType === "demo_viewer") &&
+    licenseMode === "inactive";
   const showSuspendedBanner =
     (dashboardType === "organization" || dashboardType === "demo_viewer") &&
     licenseMode === "suspended";
@@ -364,37 +351,33 @@ export default function PortalIndex() {
             />
           ) : null}
 
-          {showTrialBanner ? (
+          {showPendingApprovalBanner ? (
             <LicenseBanner
-              mode="trial"
-              title="ARCHIMEDES Live – ukázkový přístup"
+              mode="pending_approval"
+              title="Program vaší obce se připravuje"
               text={
                 <>
-                  Vaše organizace{organizationName ? ` ${organizationName}` : ""} má aktivní
-                  ukázkový přístup. Můžete si projít portál, podívat se na program a připravit si další krok
-                  pro zapojení školy.
+                  Žádost o program byla přijata a zpracováváme registraci.
+                  Ozveme se, jakmile bude vše hotové.
                 </>
               }
-              primaryHref="/start"
-              primaryLabel="Chci balíček START"
               secondaryHref="/portal/kalendar"
               secondaryLabel="Otevřít program"
             />
           ) : null}
 
-          {showExpiredBanner ? (
+          {showInactiveBanner ? (
             <LicenseBanner
-              mode="expired"
-              title="Ukázkový přístup skončil"
+              mode="inactive"
+              title="Program zde není aktivní"
               text={
                 <>
-                  Přístup organizace{organizationName ? ` ${organizationName}` : ""} je nyní v
-                  omezeném režimu. Pro pokračování v programu kontaktujte EduVision a vyberte
-                  vhodnou variantu zapojení školy.
+                  Vaše obec zatím nemá aktivní program ARCHIMEDES Live.
+                  Pokud si myslíte, že jde o chybu, kontaktujte nás.
                 </>
               }
-              primaryHref="/start"
-              primaryLabel="Chci balíček START"
+              primaryHref="/kontakt"
+              primaryLabel="Napsat nám"
               secondaryHref="/portal/skoly"
               secondaryLabel="Zobrazit síť učeben"
             />
@@ -403,15 +386,15 @@ export default function PortalIndex() {
           {showSuspendedBanner ? (
             <LicenseBanner
               mode="suspended"
-              title="Přístup organizace je pozastaven"
+              title="Program obce je dočasně pozastaven"
               text={
                 <>
-                  Přístup organizace{organizationName ? ` ${organizationName}` : ""} je dočasně
-                  pozastaven. Pro obnovení kontaktujte EduVision.
+                  Přístup obce k programu je momentálně pozastaven. Pro víc
+                  informací kontaktujte obecní úřad nebo nás.
                 </>
               }
-              primaryHref="/poptavka"
-              primaryLabel="Kontaktovat EduVision"
+              primaryHref="/kontakt"
+              primaryLabel="Napsat nám"
               secondaryHref="/portal/skoly"
               secondaryLabel="Zobrazit síť učeben"
             />
@@ -1459,14 +1442,14 @@ function LicenseBanner({
   secondaryLabel,
 }) {
   const config =
-    mode === "trial"
+    mode === "pending_approval"
       ? {
           bg: "linear-gradient(180deg, #fffdf6 0%, #fffaf0 100%)",
           border: "1px solid #f5d9a8",
           badgeBg: "#fff2cc",
           badgeColor: "#8a5a00",
         }
-      : mode === "expired"
+      : mode === "inactive"
       ? {
           bg: "linear-gradient(180deg, #fff8f8 0%, #fff3f3 100%)",
           border: "1px solid #f2c9c9",
@@ -1514,10 +1497,10 @@ function LicenseBanner({
               marginBottom: 10,
             }}
           >
-            {mode === "trial"
-              ? "Ukázkový režim"
-              : mode === "expired"
-              ? "Přístup skončil"
+            {mode === "pending_approval"
+              ? "Čeká na zpracování"
+              : mode === "inactive"
+              ? "Program není aktivní"
               : "Přístup pozastaven"}
           </div>
 
@@ -1817,11 +1800,11 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
   }
 
   if (type === "organization") {
-    if (licenseMode === "trial") {
+    if (licenseMode === "pending_approval") {
       return {
-        tipBold: "Program",
-        quickTitle: "Doporučené první kroky",
-        quickSubtitle: `Začněte tím, co vám nejrychleji ukáže hodnotu programu pro školu${orgLabel}.`,
+        tipBold: "Registrace",
+        quickTitle: "Než bude program aktivní",
+        quickSubtitle: `Zpracováváme registraci programu${orgLabel}. Mezitím si můžete prohlédnout, jak vypadá.`,
         primaryCtaLabel: "Otevřít program",
         primaryCtaHref: "/portal/kalendar",
         tiles: [
@@ -1829,7 +1812,7 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
             href: "/portal/kalendar",
             icon: "🗓️",
             title: "Program",
-            desc: "Podívejte se, jak vypadá program a jak se škola dostane k jednotlivým vstupům.",
+            desc: "Podívejte se, jak vypadá program a jak se obec dostane k jednotlivým vstupům.",
             cta: "Otevřít",
             highlight: true,
             note: "Začněte zde",
@@ -1845,50 +1828,42 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
             href: "/portal/skoly",
             icon: "🏫",
             title: "Síť učeben",
-            desc: "Prohlédněte si školy a obce, které už v síti ARCHIMEDES fungují.",
+            desc: "Prohlédněte si obce, které už v síti ARCHIMEDES fungují.",
             cta: "Otevřít",
           },
           {
-            href: "/start",
-            icon: "🚀",
-            title: "Balíček START",
-            desc: "Nejrychlejší způsob, jak se školou začít bez zbytečného odkladu.",
-            cta: "Chci START",
-            note: "Doporučeno",
+            href: "/kontakt",
+            icon: "✉️",
+            title: "Napsat nám",
+            desc: "Máte dotaz k registraci? Ozvěte se nám.",
+            cta: "Napsat",
           },
         ],
       };
     }
 
-    if (licenseMode === "expired") {
+    if (licenseMode === "inactive") {
       return {
-        tipBold: "Balíček START",
-        quickTitle: "Další doporučený krok",
-        quickSubtitle: "Obnovte plný přístup pro školu nebo obec.",
-        primaryCtaLabel: "Chci balíček START",
-        primaryCtaHref: "/start",
+        tipBold: "Kontakt",
+        quickTitle: "Program zatím není aktivní",
+        quickSubtitle: "Pokud si myslíte, že jde o chybu, napište nám.",
+        primaryCtaLabel: "Napsat nám",
+        primaryCtaHref: "/kontakt",
         tiles: [
           {
-            href: "/start",
-            icon: "🚀",
-            title: "Balíček START",
-            desc: "Nejrychlejší cesta k obnovení programu pro vaši školu.",
-            cta: "Chci START",
+            href: "/kontakt",
+            icon: "✉️",
+            title: "Napsat nám",
+            desc: "Ozvěte se nám a společně to vyřešíme.",
+            cta: "Napsat",
             highlight: true,
             note: "Doporučeno",
-          },
-          {
-            href: "/poptavka",
-            icon: "⭐",
-            title: "Celý program",
-            desc: "Pokud chcete pokračovat naplno, dejte nám vědět.",
-            cta: "Mám zájem",
           },
           {
             href: "/portal/skoly",
             icon: "🏫",
             title: "Síť učeben",
-            desc: "Inspirace z praxe a přehled zapojených škol.",
+            desc: "Inspirace z praxe a přehled zapojených obcí.",
             cta: "Otevřít",
           },
           {
@@ -1904,18 +1879,18 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
 
     if (licenseMode === "suspended") {
       return {
-        tipBold: "Kontakt s EduVision",
+        tipBold: "Kontakt",
         quickTitle: "Co můžete udělat teď",
-        quickSubtitle: "Nejrychlejší cesta k obnovení přístupu.",
-        primaryCtaLabel: "Kontaktovat EduVision",
-        primaryCtaHref: "/poptavka",
+        quickSubtitle: "Nejrychlejší cesta k obnovení přístupu je napsat nám.",
+        primaryCtaLabel: "Napsat nám",
+        primaryCtaHref: "/kontakt",
         tiles: [
           {
-            href: "/poptavka",
+            href: "/kontakt",
             icon: "📞",
-            title: "Kontaktovat EduVision",
+            title: "Napsat nám",
             desc: "Ozvěte se nám a společně nastavíme další postup.",
-            cta: "Kontaktovat",
+            cta: "Napsat",
             highlight: true,
             note: "Doporučeno",
           },
@@ -1923,7 +1898,7 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
             href: "/portal/skoly",
             icon: "🏫",
             title: "Síť učeben",
-            desc: "Přehled škol a obcí zapojených do sítě ARCHIMEDES.",
+            desc: "Přehled obcí zapojených do sítě ARCHIMEDES.",
             cta: "Otevřít",
           },
           {
@@ -1932,13 +1907,6 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
             title: "Program",
             desc: "Základní orientace v programu.",
             cta: "Otevřít",
-          },
-          {
-            href: "/poptavka",
-            icon: "✉️",
-            title: "Napsat zprávu",
-            desc: "Pošlete nám informaci a navážeme na další krok.",
-            cta: "Odeslat",
           },
         ],
       };
