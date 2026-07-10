@@ -176,7 +176,7 @@ const CONTENT = {
     finalText:
       "Připravujeme mezinárodní síť škol, institucí, partnerů a podporovatelů. Pokud chcete poslat zdravici, zapojit se do programu nebo navázat partnerství, ozvěte se nám.",
     finalBtn1: "Kontaktujte nás",
-    finalBtn2: "Mám zájem o spolupráci",
+    finalBtn2: "Napsat nám",
   },
 
   en: {
@@ -344,7 +344,7 @@ const CONTENT = {
     finalText:
       "We are preparing an international network of schools, institutions, partners and supporters. If you would like to send a greeting, join the program or discuss partnership, get in touch with us.",
     finalBtn1: "Contact us",
-    finalBtn2: "I am interested in cooperation",
+    finalBtn2: "Get in touch",
   },
 };
 
@@ -646,7 +646,7 @@ export default function ArchimedesDayPage() {
                 {t.finalBtn1}
               </Link>
               <Link
-                href="/poptavka"
+                href="/kontakt"
                 className="ad-btn ad-btn-secondary ad-btn-light"
               >
                 {t.finalBtn2}

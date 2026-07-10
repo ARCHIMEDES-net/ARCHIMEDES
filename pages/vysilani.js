@@ -168,8 +168,8 @@ export default function ProbehlaVysilaniPage() {
                   <Link href="/program" style={primaryButtonStyle}>
                     Zobrazit program
                   </Link>
-                  <Link href="/demo" style={secondaryButtonStyle}>
-                    Získat přístup
+                  <Link href="/zadost" style={secondaryButtonStyle}>
+                    Chci program pro naši obec
                   </Link>
                 </div>
               </div>
@@ -424,8 +424,8 @@ export default function ProbehlaVysilaniPage() {
                   flexWrap: "wrap",
                 }}
               >
-                <Link href="/demo" style={primaryButtonStyle}>
-                  Mám zájem o přístup
+                <Link href="/zadost" style={primaryButtonStyle}>
+                  Chci program pro naši obec
                 </Link>
                 <Link href="/ucebna" style={secondaryButtonStyle}>
                   Více o učebně

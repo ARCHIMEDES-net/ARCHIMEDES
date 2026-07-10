@@ -367,7 +367,7 @@ export default function KontaktPage() {
                   marginBottom: 26,
                 }}
               >
-                <PrimaryButton href="/poptavka">Poslat poptávku</PrimaryButton>
+                <PrimaryButton href="/zadost">Chci program pro naši obec</PrimaryButton>
                 <SecondaryButton href="/program">Zobrazit program</SecondaryButton>
               </div>
 

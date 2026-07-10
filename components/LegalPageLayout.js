@@ -26,7 +26,7 @@ export default function LegalPageLayout({
 
               <div className="metaRow">
                 <span>{updatedAt}</span>
-                <Link href="/start">Zpět na objednávku START</Link>
+                <Link href="/">Zpět na hlavní stránku</Link>
               </div>
             </div>
           </div>

@@ -608,17 +608,17 @@ export default function UdalostDetail() {
 
               <div className="mt-4 flex flex-wrap gap-2">
                 <Link
-                  href="/poptavka"
+                  href="/zadost"
                   className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
                 >
-                  Požádat o plnou licenci
+                  Chci program pro naši obec
                 </Link>
 
                 <Link
-                  href="/poptavka"
+                  href="/kontakt"
                   className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
                 >
-                  Domluvit další postup
+                  Napsat nám
                 </Link>
               </div>
             </div>

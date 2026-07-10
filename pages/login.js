@@ -537,8 +537,8 @@ export default function LoginPage() {
               {loading ? "Přihlašuji..." : "Přihlásit se"}
             </button>
 
-            <Link href="/poptavka" style={secondaryBtn}>
-              Nemám registraci
+            <Link href="/zadost" style={secondaryBtn}>
+              Chci program pro naši obec
             </Link>
           </div>
         </form>
