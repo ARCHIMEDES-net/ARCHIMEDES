@@ -358,6 +358,54 @@ export default async function handler(req, res) {
 
     const leadId = data?.id || "-";
 
+    // Krok 1 (obec): odeslání žádosti rovnou zakládá organizaci se stavem
+    // pending_approval — žádná fronta, obec vzniká okamžitě, jen neaktivní.
+    // registration_number se dopočítá triggerem (viz migrace 0003).
+    // status: "inactive" navíc (nad rámec license_status) brání tomu, aby
+    // šlo neschválenou obec obejít přes auto-generovaný join_code v
+    // pages/api/join-organization.js, který kontroluje jen status
+    // active/trial.
+    if (!demoMode) {
+      const { data: orgData, error: orgError } = await supabase
+        .from("organizations")
+        .insert([
+          {
+            name: cleanOrganization,
+            org_type: "obec",
+            status: "inactive",
+            contact_name: cleanName,
+            contact_email: cleanEmail,
+            contact_phone: cleanPhone || null,
+          },
+        ])
+        .select("id, registration_number")
+        .single();
+
+      if (orgError) {
+        console.error("Organization creation error:", orgError);
+        return res.status(500).json({ error: "Nepodařilo se založit obec." });
+      }
+
+      // Archiv/log žádosti — schválně nesmí být blokující krok (§5.1).
+      try {
+        await supabase.from("access_requests").insert([
+          {
+            license_type: "obec",
+            contact_name: cleanName,
+            organization: cleanOrganization,
+            address: cleanAddress,
+            email: cleanEmail,
+            phone: cleanPhone || null,
+            message: composedMessage,
+            status: "new",
+            organization_id: orgData.id,
+          },
+        ]);
+      } catch (archiveError) {
+        console.error("access_requests archive error:", archiveError);
+      }
+    }
+
     const approveUrl =
       demoMode && approveToken
         ? `${SITE_URL}/api/demo-approve-from-email?token=${approveToken}`

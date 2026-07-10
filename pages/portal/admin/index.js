@@ -62,6 +62,13 @@ export default function AdminHome() {
           >
             <Link href="/portal/admin/zadosti">Otevřít žádosti</Link>
           </Card>
+
+          <Card
+            title="Obce"
+            desc="Aktivace obcí založených přes /zadost."
+          >
+            <Link href="/portal/admin/obce">Otevřít obce</Link>
+          </Card>
         </section>
       </main>
     </RequirePlatformAdmin>

@@ -529,10 +529,13 @@ export default function ZadostPage() {
                     color: "rgba(0,0,0,0.62)",
                   }}
                 >
-                  Zastupujete spolek nebo organizaci, ne obecní úřad? Napište
-                  nám raději přímo →{" "}
-                  <Link href="/kontakt" style={{ color: "#111827", fontWeight: 700 }}>
-                    /kontakt
+                  Zastupujete spolek, ne obecní úřad? Pokud vaše obec už má
+                  ARCHIMEDES Live aktivovaný, zaregistrujte se rovnou{" "}
+                  <Link
+                    href="/registrace-spolku"
+                    style={{ color: "#111827", fontWeight: 700 }}
+                  >
+                    zde
                   </Link>
                   .
                 </p>
