@@ -20,7 +20,6 @@ export default function ZadostPage() {
     organization: "",
     address: "",
     population: "",
-    preferredDate: "",
     type: initialType,
     message: "",
     company: "",
@@ -57,7 +56,6 @@ export default function ZadostPage() {
       const trimmedOrganization = form.organization.trim();
       const trimmedAddress = form.address.trim();
       const trimmedPopulation = form.population.trim();
-      const trimmedPreferredDate = form.preferredDate.trim();
       const trimmedType = isDemoRequest ? form.type.trim() : "obec";
       const trimmedMessage = form.message.trim();
 
@@ -116,7 +114,6 @@ export default function ZadostPage() {
           organization: trimmedOrganization,
           address: trimmedAddress,
           population: trimmedPopulation,
-          preferredDate: trimmedPreferredDate,
           type: trimmedType,
           message: trimmedMessage,
           isDemoRequest,
@@ -138,7 +135,7 @@ export default function ZadostPage() {
       setMessage(
         isDemoRequest
           ? "Děkujeme. Žádost o ukázkový přístup byla úspěšně odeslána.\n\nJakmile bude přístup schválen, na zadaný e-mail obdržíte zprávu s přístupem, který vás jedním kliknutím zavede přímo do ukázkového prostředí.n\nPokud zprávu během několika minut nenajdete, zkontrolujte prosím i složku Spam nebo Hromadné."
-          : "Děkujeme. Žádost o přístup byla úspěšně odeslána.\n\nOzveme se vám s dalším postupem."
+          : "Děkujeme. Žádost o přístup byla úspěšně odeslána.\n\nZpracujeme žádost a obec zaregistrujeme."
       );
 
       setSubmitted(true);
@@ -151,7 +148,6 @@ export default function ZadostPage() {
         organization: "",
         address: "",
         population: "",
-        preferredDate: "",
         type: isDemoRequest ? "škola" : "",
         message: "",
         company: "",
@@ -232,7 +228,7 @@ export default function ZadostPage() {
               >
                 {isDemoRequest
                   ? "Vyplňte krátký formulář a po schválení vám pošleme přístup do ukázkového prostředí. Uvidíte, jak vypadá program, archiv i celkové prostředí portálu z pohledu školy."
-                  : "Vyplňte krátký formulář — ozveme se vám a domluvíme termín prvního vysílání."}
+                  : "Vyplňte krátký formulář — zpracujeme žádost a obec zaregistrujeme."}
               </p>
 
               {isDemoRequest ? (
@@ -456,26 +452,6 @@ export default function ZadostPage() {
                   </div>
                 ) : null}
 
-                {!isDemoRequest ? (
-                  <div>
-                    <label
-                      style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-                    >
-                      Preferovaný termín prvního vysílání (volitelně)
-                    </label>
-                    <input
-                      type="date"
-                      name="preferredDate"
-                      value={form.preferredDate}
-                      onChange={updateField}
-                      style={fieldStyle}
-                    />
-                    <div style={helperStyle}>
-                      Nezávazně, potvrdíme spolu na hovoru.
-                    </div>
-                  </div>
-                ) : null}
-
                 <div>
                   <label
                     style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
@@ -612,8 +588,8 @@ export default function ZadostPage() {
                 ) : (
                   <>
                     <div>1. Vaši žádost zaevidujeme.</div>
-                    <div>2. Zavoláme vám a domluvíme termín prvního vysílání.</div>
-                    <div>3. Obec získá přístup a program může začít.</div>
+                    <div>2. Žádost zpracujeme.</div>
+                    <div>3. Obec zaregistrujeme a program může začít.</div>
                   </>
                 )}
               </div>

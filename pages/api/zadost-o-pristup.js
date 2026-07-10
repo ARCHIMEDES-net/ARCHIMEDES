@@ -155,7 +155,7 @@ function buildApplicantEmail({ name, isDemoRequest }) {
 
       <div style="margin-top:20px;">
         <p style="margin:0 0 12px;">
-          Ozveme se Vám a domluvíme termín prvního vysílání.
+          Zpracujeme Vaši žádost a obec zaregistrujeme.
         </p>
       </div>
     `;
@@ -199,7 +199,7 @@ děkujeme za Váš zájem o ARCHIMEDES Live.
 
 Vaši žádost o přístup jsme v pořádku přijali.
 
-Ozveme se Vám a domluvíme termín prvního vysílání.
+Zpracujeme Vaši žádost a obec zaregistrujeme.
 
 Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
 
@@ -237,7 +237,6 @@ export default async function handler(req, res) {
       organization,
       address,
       population,
-      preferredDate,
       type,
       message,
       isDemoRequest,
@@ -258,7 +257,6 @@ export default async function handler(req, res) {
     const cleanOrganization = String(organization || "").trim();
     const cleanAddress = String(address || "").trim();
     const cleanPopulation = String(population || "").trim();
-    const cleanPreferredDate = String(preferredDate || "").trim();
     const cleanType = String(type || "").trim();
     const cleanMessage = String(message || "").trim();
     const demoMode = !!isDemoRequest;
@@ -321,9 +319,6 @@ export default async function handler(req, res) {
     const populationLine = cleanPopulation
       ? `Přibližný počet obyvatel: ${cleanPopulation}`
       : "";
-    const preferredDateLine = cleanPreferredDate
-      ? `Preferovaný termín prvního vysílání: ${cleanPreferredDate}`
-      : "";
 
     const composedMessage = [
       requestHeader,
@@ -331,7 +326,6 @@ export default async function handler(req, res) {
       organizationTypeLine,
       addressLine,
       populationLine,
-      preferredDateLine,
       sourceLine,
       cleanMessage || "",
     ]
@@ -426,7 +420,7 @@ ${cleanEmail}
 
 Telefon:
 ${cleanPhone || "-"}
-${!demoMode ? `\nPreferovaný termín prvního vysílání:\n${cleanPreferredDate || "-"}\n` : ""}
+
 Zpráva:
 ${cleanMessage || "-"}
 
@@ -449,7 +443,6 @@ ${approveUrl ? `Schválit demo: ${approveUrl}` : ""}
           ${!demoMode ? `<p><strong>Přibližný počet obyvatel:</strong> ${escapeHtml(cleanPopulation || "-")}</p>` : ""}
           <p><strong>Email:</strong> ${escapeHtml(cleanEmail)}</p>
           <p><strong>Telefon:</strong> ${escapeHtml(cleanPhone || "-")}</p>
-          ${!demoMode ? `<p><strong>Preferovaný termín prvního vysílání:</strong> ${escapeHtml(cleanPreferredDate || "-")}</p>` : ""}
           <p><strong>Zpráva:</strong><br />${escapeHtml(cleanMessage || "-").replace(/\n/g, "<br />")}</p>
           <p><strong>Datum:</strong> ${escapeHtml(createdAt)}</p>
 
