@@ -6,6 +6,9 @@ const nextConfig = {
       { source: "/start2", destination: "/zadost", permanent: true },
       { source: "/poptavka", destination: "/zadost", permanent: true },
       { source: "/zadost-o-pristup", destination: "/zadost", permanent: true },
+      { source: "/demo", destination: "/zadost", permanent: true },
+      { source: "/ukazka", destination: "/zadost", permanent: true },
+      { source: "/financovani-skoly", destination: "/zadost", permanent: true },
     ];
   },
 };
