@@ -29,7 +29,7 @@ export const heroStats = [
   { id: "partnerske-obce", value: "2 000+", label: "partnerských obcí", visible: true },
   { id: "aktivni-organizace", value: "250+", label: "aktivních organizací", visible: true },
   { id: "zive-prenosy", value: "1 200+", label: "živých přenosů ročně", visible: true },
-  { id: "zapojeni-obcane", value: "1 000 000+", label: "zapojených občanů", visible: true },
+  { id: "zapojeni-obcane", value: "100 000+", label: "zapojených občanů", visible: true },
 ];
 
 export const liveSection = {
