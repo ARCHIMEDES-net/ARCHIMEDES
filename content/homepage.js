@@ -71,6 +71,8 @@ export const featureCards = [
     icon: "graduation",
     title: "Vzdělávání pro všechny",
     description: "Programy pro školy, seniory i spolky na jednom místě.",
+    photo: "/atmos.webp",
+    photoAlt: "Žák pracuje s interaktivní tabulí během programu",
     visible: true,
   },
   {
@@ -78,6 +80,8 @@ export const featureCards = [
     icon: "link",
     title: "Propojení komunity",
     description: "Spojujeme organizace, občany a národní svazy.",
+    photo: "/spolecna.jpg",
+    photoAlt: "Společná fotografie účastníků programu před učebnou ARCHIMEDES Live",
     visible: true,
   },
   {
@@ -85,6 +89,8 @@ export const featureCards = [
     icon: "chat",
     title: "Snadná komunikace",
     description: "Živé přenosy, pozvánky a sdílení informací.",
+    photo: "/doc2.jpg",
+    photoAlt: "Lektor představuje živé vysílání účastníkům",
     visible: true,
   },
   {
@@ -92,6 +98,8 @@ export const featureCards = [
     icon: "growth",
     title: "Růst a rozvoj",
     description: "Inspirace, nové dovednosti a společné zážitky.",
+    photo: "/seni.webp",
+    photoAlt: "Senioři na společném programu v učebně ARCHIMEDES Live",
     visible: true,
   },
   {
