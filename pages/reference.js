@@ -1,4 +1,4 @@
-import Head from "next/head";
+íáíimport Head from "next/head";
 import Link from "next/link";
 import Footer from "../components/Footer";
 import PhotoWithFallback from "../components/PhotoWithFallback";
@@ -22,8 +22,7 @@ export default function ReferencePage() {
           <div className="eyebrow">{referencesSection.eyebrow}</div>
           <h1>{referencesSection.title}</h1>
           <p className="lead">
-            Za dobu vysílání se do programu ARCHIMEDES Live zapojily přes 2
-            stovky obcí. Vybrané obce, kde ARCHIMEDES Live pomáhá propojit
+            Vybrané obce, kde ARCHIMEDES Live pomáhá propojit
             školy, spolky, seniory i veřejnou správu do jednoho aktivního
             komunitního života.
           </p>
