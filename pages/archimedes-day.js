@@ -14,7 +14,7 @@ const CONTENT = {
   cz: {
     metaTitle: "ARCHIMEDES DAY | 19. června 2026",
     metaDescription:
-      "ARCHIMEDES DAY je mezinárodní den vzdělávání, vědy a komunity. Dne 19. června 2026 propojí školy, obce, instituce a partnery přes platformu ARCHIMEDES Live.",
+      "ARCHIMEDES DAY je mezinárodní den vzdělávání, vědy a komunity. Dne 19. června 2026 propojí školy, obce, instituce a partnery přes program ARCHIMEDES Live.",
     badge: "Mezinárodní iniciativa • ARCHIMEDES Live",
     heroTitle: "ARCHIMEDES DAY",
     heroDate: "19. června 2026",
@@ -34,7 +34,7 @@ const CONTENT = {
     aboutText1:
       "ARCHIMEDES DAY vzniká jako nový mezinárodní formát, který připomíná odkaz Archimeda moderním způsobem – skrze vzdělávání, živé vysílání, popularizaci vědy a propojení komunity.",
     aboutText2:
-      "První ročník proběhne 19. června 2026 a bude spojen s platformou ARCHIMEDES Live, se sítí venkovních učeben ARCHIMEDES a s mezinárodními partnery.",
+      "První ročník proběhne 19. června 2026 a bude spojen s programem ARCHIMEDES Live, se sítí venkovních učeben ARCHIMEDES a s mezinárodními partnery.",
 
     cards: [
       {
@@ -167,7 +167,7 @@ const CONTENT = {
     liveTitle:
       "ARCHIMEDES DAY je součástí širšího živého vzdělávacího ekosystému",
     liveText:
-      "ARCHIMEDES DAY je přirozeně propojen s platformou ARCHIMEDES Live, která přináší živý program pro školy, obce a komunitu, a také se sítí venkovních učeben ARCHIMEDES.",
+      "ARCHIMEDES DAY je přirozeně propojen s programem ARCHIMEDES Live, který přináší živý program pro školy, obce a komunitu, a také se sítí venkovních učeben ARCHIMEDES.",
     liveBtn1: "ARCHIMEDES Live",
     liveBtn2: "Venkovní učebny",
 
@@ -182,7 +182,7 @@ const CONTENT = {
   en: {
     metaTitle: "ARCHIMEDES DAY | June 19, 2026",
     metaDescription:
-      "ARCHIMEDES DAY is an international day of education, science and community. On June 19, 2026 it will connect schools, municipalities, institutions and partners through the ARCHIMEDES Live platform.",
+      "ARCHIMEDES DAY is an international day of education, science and community. On June 19, 2026 it will connect schools, municipalities, institutions and partners through the ARCHIMEDES Live program.",
     badge: "International initiative • ARCHIMEDES Live",
     heroTitle: "ARCHIMEDES DAY",
     heroDate: "June 19, 2026",
@@ -202,7 +202,7 @@ const CONTENT = {
     aboutText1:
       "ARCHIMEDES DAY is a new international format that brings the legacy of Archimedes into the present through education, live broadcasting, science outreach and community connection.",
     aboutText2:
-      "The first edition will take place on June 19, 2026 and will be connected with the ARCHIMEDES Live platform, the ARCHIMEDES outdoor classrooms network and international partners.",
+      "The first edition will take place on June 19, 2026 and will be connected with the ARCHIMEDES Live program, the ARCHIMEDES outdoor classrooms network and international partners.",
 
     cards: [
       {
@@ -335,7 +335,7 @@ const CONTENT = {
     liveTitle:
       "ARCHIMEDES DAY is part of a broader live educational ecosystem",
     liveText:
-      "ARCHIMEDES DAY is naturally connected with the ARCHIMEDES Live platform, which brings a live program for schools, municipalities and communities, as well as with the ARCHIMEDES outdoor classrooms network.",
+      "ARCHIMEDES DAY is naturally connected with the ARCHIMEDES Live program, which brings a live program for schools, municipalities and communities, as well as with the ARCHIMEDES outdoor classrooms network.",
     liveBtn1: "ARCHIMEDES Live",
     liveBtn2: "Outdoor classrooms",
 
