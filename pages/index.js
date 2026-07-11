@@ -243,12 +243,27 @@ export default function Home() {
             <div className="featuresGrid">
               {visibleFeatures.map((f) => (
                 <div key={f.id} className="featureCard">
-                  <div className="featureIcon" aria-hidden="true">
-                    {FEATURE_ICONS[f.icon] || "✅"}
-                  </div>
+                {f.photo ? (
+                                      <div className="featureCardPhoto">
+                                      <PhotoWithFallback
+                                        src={f.photo}
+                                        alt={f.photoAlt || f.title}
+                                        fallbackLabel={f.title}
+                        style={{ width: "100%", height: "100%" }}
+                        imgStyle={{ objectFit: "cover" }}
+                      />
+                      <div className="featureIconBadge" aria-hidden="true">
+                      {FEATURE_ICONS[f.icon] || "✅"}
+</div>
+  </div>
+                  ) : (
+                                        <div className="featureIcon" aria-hidden="true">
+                  {FEATURE_ICONS[f.icon] || "✅"}
+</div>
+                  )}
                   <h3>{f.title}</h3>
                   <p>{f.description}</p>
-                </div>
+                    </div>
               ))}
             </div>
           </div>
@@ -675,6 +690,7 @@ export default function Home() {
             border: 1px solid rgba(15, 23, 42, 0.07);
             border-radius: 22px;
             padding: 22px;
+            overflow: hidden;
           }
 
           .featureIcon {
@@ -687,6 +703,28 @@ export default function Home() {
             background: #e8f8ee;
             font-size: 22px;
             margin-bottom: 14px;
+          }
+
+          .featureCardPhoto {
+            position: relative;
+            aspect-ratio: 16 / 10;
+            margin: -22px -22px 16px;
+            border-radius: 16px;
+            overflow: hidden;
+          }
+
+          .featureIconBadge {
+            position: absolute;
+            left: 14px;
+            bottom: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            background: #ffffff;
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
+            font-size: 17px;
           }
 
           .featureCard h3 {
