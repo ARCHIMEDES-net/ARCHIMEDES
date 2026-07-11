@@ -50,12 +50,16 @@ export const partnersSection = {
 };
 
 export const partners = [
-  { id: "svaz-vcelaru", name: "Svaz včelařů ČR", logo: "/partners/svaz-vcelaru.png", visible: true },
-  { id: "myslivecka-jednota", name: "Českomoravská myslivecká jednota", logo: "/partners/myslivecka-jednota.png", visible: true },
-  { id: "sh-cms", name: "SH ČMS (Sdružení hasičů)", logo: "/partners/sh-cms.png", visible: true },
-  { id: "rybarsky-svaz", name: "Český rybářský svaz", logo: "/partners/rybarsky-svaz.png", visible: true },
-  { id: "svaz-zahradkaru", name: "Svaz zahrádkářů", logo: "/partners/svaz-zahradkaru.png", visible: true },
-  { id: "junak", name: "Junák", logo: "/partners/junak.png", visible: true },
+  { id: "svaz-vcelaru", name: "Svaz včelařů ČR", logo: "https://www.vcelarstvi.cz/img/content/logo-new.png", visible: true },
+  { id: "myslivecka-jednota", name: "Českomoravská myslivecká jednota", logo: "https://www.cmmj.cz/wp-content/uploads/2023/12/CMMJ_Logo_2024.svg", visible: true },
+  { id: "sh-cms", name: "SH ČMS (Sdružení hasičů)", logo: null, visible: true },
+  { id: "rybarsky-svaz", name: "Český rybářský svaz", logo: "https://www.rybsvaz.cz/g/cms/api/rest/documents/by-uuid/b01c4638-0bcb-f7ab-b6d8-de1234fa39ab/content/logoCRSLight.svg", visible: true },
+  { id: "svaz-zahradkaru", name: "Svaz zahrádkářů", logo: "https://www.zahradkari.cz/loga/barevne/logo_czs_180.gif", visible: true },
+  { id: "junak", name: "Junák", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1e/Junak-cesky-skaut-logo-2017.jpg", visible: true },
+  { id: "cesky-svaz-chovatelu", name: "Český svaz chovatelů", logo: null, visible: true },
+  { id: "folklorni-sdruzeni", name: "Folklorní sdružení ČR", logo: null, visible: true },
+  { id: "rada-senioru", name: "Rada seniorů ČR", logo: null, visible: true },
+  { id: "ceska-unie-sportu", name: "Česká unie sportu", logo: null, visible: true },
 ];
 
 export const featuresSection = {
