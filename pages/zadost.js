@@ -135,7 +135,9 @@ export default function ZadostPage() {
       setMessage(
         isDemoRequest
           ? "Děkujeme. Žádost o ukázkový přístup byla úspěšně odeslána.\n\nJakmile bude přístup schválen, na zadaný e-mail obdržíte zprávu s přístupem, který vás jedním kliknutím zavede přímo do ukázkového prostředí.n\nPokud zprávu během několika minut nenajdete, zkontrolujte prosím i složku Spam nebo Hromadné."
-          : "Děkujeme. Žádost o přístup byla úspěšně odeslána.\n\nZpracujeme žádost a obec zaregistrujeme."
+          : data.emailSent === false
+            ? "Děkujeme. Žádost o přístup byla úspěšně odeslána.\n\nZpracujeme žádost a obec zaregistrujeme.\n\nPotvrzovací e-mail se teď nepodařilo odeslat, ale vaše žádost je v pořádku zaznamenaná — ozveme se vám i tak."
+            : "Děkujeme. Žádost o přístup byla úspěšně odeslána.\n\nZpracujeme žádost a obec zaregistrujeme."
       );
 
       setSubmitted(true);
@@ -529,10 +531,13 @@ export default function ZadostPage() {
                     color: "rgba(0,0,0,0.62)",
                   }}
                 >
-                  Zastupujete spolek nebo organizaci, ne obecní úřad? Napište
-                  nám raději přímo →{" "}
-                  <Link href="/kontakt" style={{ color: "#111827", fontWeight: 700 }}>
-                    /kontakt
+                  Zastupujete spolek, ne obecní úřad? Pokud vaše obec už má
+                  ARCHIMEDES Live aktivovaný, zaregistrujte se rovnou{" "}
+                  <Link
+                    href="/registrace-spolku"
+                    style={{ color: "#111827", fontWeight: 700 }}
+                  >
+                    zde
                   </Link>
                   .
                 </p>
