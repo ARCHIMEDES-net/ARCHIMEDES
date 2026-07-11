@@ -122,9 +122,18 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Nepodařilo se ověřit kód organizace." });
     }
 
-    if (!organization || !ELIGIBLE_ORG_TYPES.includes(organization.org_type)) {
+    if (!organization) {
       return res.status(404).json({
         error: "Organizace s tímto kódem neexistuje. Zkontrolujte prosím kód se svým spolkem nebo školou.",
+      });
+    }
+
+    // Kód platí, ale patří organizaci, která tuhle funkci nemá (např. obec)
+    // — samostatná chyba od "kód neexistuje", ať to jde snadno odlišit.
+    if (!ELIGIBLE_ORG_TYPES.includes(organization.org_type)) {
+      return res.status(400).json({
+        error:
+          "Osobní upozornění si teď mohou nastavit jen lidé navázaní na spolek nebo školu. Tenhle kód patří jinému typu organizace.",
       });
     }
 
