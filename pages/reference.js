@@ -1,4 +1,4 @@
-íáíimport Head from "next/head";
+import Head from "next/head";
 import Link from "next/link";
 import Footer from "../components/Footer";
 import PhotoWithFallback from "../components/PhotoWithFallback";
