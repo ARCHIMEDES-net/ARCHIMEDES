@@ -407,7 +407,7 @@ export default function WelcomePage() {
                   </p>
 
                   <div style={{ marginTop: "auto" }}>
-                    <Link href="/zadost-o-pristup" style={primaryLinkStyle}>
+                    <Link href="/zadost" style={primaryLinkStyle}>
                       Odeslat žádost
                     </Link>
 
