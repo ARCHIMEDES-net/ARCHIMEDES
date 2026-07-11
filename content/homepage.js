@@ -252,9 +252,10 @@ export const footerContent = {
     },
   ],
   social: [
-    { label: "Facebook", href: "https://www.facebook.com", icon: "facebook", visible: true },
+    { label: "Facebook", href: "https://www.facebook.com/profile.php?id=61566688307686", icon: "facebook", visible: true },
+    { label: "Instagram", href: "https://www.instagram.com/archimedes_live/", icon: "instagram", visible: true },
     { label: "YouTube", href: "https://www.youtube.com", icon: "youtube", visible: true },
-    { label: "LinkedIn", href: "https://www.linkedin.com", icon: "linkedin", visible: true },
+    { label: "LinkedIn", href: "https://www.linkedin.com/company/108554477", icon: "linkedin", visible: true },
   ],
   legalLinks: [
     { label: "Ochrana osobních údajů", href: "/ochrana-osobnich-udaju" },
