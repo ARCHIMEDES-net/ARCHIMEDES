@@ -7,7 +7,7 @@ const heroImg = "/ceny.webp";
 const team = [
   {
     name: "Zuzana Novotná",
-    role: "Manažerka platformy",
+    role: "Manažerka programu",
     email: "zuzana.novotna@archimedeslive.com",
     phone: "+420 737 333 879",
     note: "Strategie, partnerství, rozvoj",
@@ -38,7 +38,7 @@ const team = [
     role: "Manažerka programu a obsahu",
     email: "natalie.lipova@archimedeslive.com",
     phone: "+420 737 628 944",
-    note: "Program, vysílání, obsah platformy",
+    note: "Program, vysílání, obsah programu",
   },
   {
     name: "Simona Gavlíková",
