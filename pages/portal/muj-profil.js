@@ -4,48 +4,65 @@ import PortalHeader from "../../components/PortalHeader";
 import RequireAuth from "../../components/RequireAuth";
 import { supabase } from "../../lib/supabaseClient";
 
-const DEFAULT_INTERESTS = ["prvni-stupen", "druhy-stupen"];
+const DEFAULT_INTERESTS = ["skola_1_stupen", "skola_2_stupen"];
 
+// Krok 3 (11.7.2026): sekce/položky odpovídají 1:1 activity_categories
+// (migrace 0006) — code tady musí sedět s DB, protože se ukládá do
+// notification_preferences.activity_code (FK na activity_categories.code).
 const INTEREST_SECTIONS = [
   {
     title: "🎓 Pro školu",
     items: [
-      { slug: "prvni-stupen", label: "1. stupeň" },
-      { slug: "druhy-stupen", label: "2. stupeň" },
-      { slug: "ucitele", label: "Učitelé" },
-      { slug: "karierni-poradenstvi", label: "Kariérní poradenství" },
+      { code: "skola_1_stupen", label: "1. stupeň ZŠ" },
+      { code: "skola_2_stupen", label: "2. stupeň ZŠ" },
+      { code: "ucitele", label: "Učitelé" },
+      { code: "karierni_poradenstvi", label: "Kariérní poradenství" },
     ],
   },
   {
     title: "🌍 Témata",
     items: [
-      { slug: "wellbeing", label: "Wellbeing" },
-      { slug: "veda-a-objevy", label: "Věda a objevy" },
-      { slug: "svet-v-souvislostech", label: "Svět v souvislostech" },
-      { slug: "english-live", label: "Vysílání v angličtině" },
+      { code: "veda_a_objevy", label: "Věda a objevy" },
+      { code: "priroda_a_ekologie", label: "Příroda a ekologie" },
+      { code: "historie_a_archeologie", label: "Historie a archeologie" },
+      { code: "wellbeing", label: "Wellbeing" },
+      { code: "svet_v_souvislostech", label: "Svět v souvislostech" },
+      { code: "anglictina", label: "Vysílání v angličtině" },
     ],
   },
   {
-    title: "🏙️ Kluby a programy",
+    title: "🏛️ Kluby a programy",
     items: [
-      { slug: "smart-city", label: "Smart City klub" },
-      { slug: "ctenarsky-klub", label: "Čtenářský klub" },
-      { slug: "filmovy-klub", label: "Filmový klub" },
+      { code: "ctenarsky_klub", label: "Čtenářský klub" },
+      { code: "filmovy_klub", label: "Filmový klub" },
     ],
   },
   {
-    title: "👥 Pro komunitu",
+    title: "👥 Pro komunitu a spolky",
     items: [
-      { slug: "rodice", label: "Rodiče" },
-      { slug: "seniori", label: "Senioři" },
-      { slug: "komunita", label: "Komunita" },
-      { slug: "zajmove-skupiny", label: "Zájmové skupiny (hasiči, spolky, kluby)" },
+      { code: "hasici", label: "Požární ochrana" },
+      { code: "sport", label: "Sport a tělovýchova" },
+      { code: "myslivost", label: "Myslivost" },
+      { code: "vcelarstvi", label: "Včelařství" },
+      { code: "zahradkari", label: "Zahrádkáři a pěstitelé" },
+      { code: "rybarstvi", label: "Rybářství" },
+      { code: "chovatelstvi", label: "Chovatelství" },
+      { code: "folklor", label: "Folklor a tradice" },
+      { code: "kultura", label: "Kultura a umění" },
+      { code: "seniori", label: "Senioři" },
+      { code: "rodice_deti", label: "Rodiče a děti" },
+      { code: "mladez", label: "Děti a mládež" },
+      { code: "socialni", label: "Sociální a zdravotní" },
+      { code: "duchovni", label: "Duchovní společenství" },
+      { code: "komunita", label: "Okrašlovací a komunitní" },
+      { code: "smart_city", label: "Chytrá obec" },
+      { code: "jine", label: "Jiné" },
     ],
   },
 ];
 
-const VISIBLE_INTEREST_SLUGS = new Set(
-  INTEREST_SECTIONS.flatMap((section) => section.items.map((item) => item.slug))
+const ALL_INTEREST_CODES = INTEREST_SECTIONS.flatMap((section) =>
+  section.items.map((item) => item.code)
 );
 
 function roleLabel(roleInOrg) {
@@ -76,14 +93,13 @@ export default function MujProfilPage() {
   const [email, setEmail] = useState("");
 
   const [selectedInterests, setSelectedInterests] = useState([]);
-  const [hiddenLegacyInterests, setHiddenLegacyInterests] = useState([]);
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
 
   const selectedCount = useMemo(() => selectedInterests.length, [selectedInterests]);
 
-  function toggleInterest(slug) {
+  function toggleInterest(code) {
     setSelectedInterests((prev) =>
-      prev.includes(slug) ? prev.filter((item) => item !== slug) : [...prev, slug]
+      prev.includes(code) ? prev.filter((item) => item !== code) : [...prev, code]
     );
   }
 
@@ -148,29 +164,19 @@ export default function MujProfilPage() {
         setOrganizationCode("");
       }
 
-      const { data: interests, error: interestsError } = await supabase
-        .from("user_interests")
-        .select("interest_slug")
-        .eq("user_id", user.id);
+      const { data: preferences, error: preferencesError } = await supabase
+        .from("notification_preferences")
+        .select("activity_code, enabled")
+        .eq("profile_id", user.id);
 
-      if (interestsError) throw interestsError;
+      if (preferencesError) throw preferencesError;
 
-      const loadedInterests = (interests || [])
-        .map((item) => item.interest_slug)
-        .filter(Boolean);
+      const enabledCodes = (preferences || [])
+        .filter((row) => row.enabled)
+        .map((row) => row.activity_code)
+        .filter((code) => ALL_INTEREST_CODES.includes(code));
 
-      const visibleInterests = loadedInterests.filter((slug) => VISIBLE_INTEREST_SLUGS.has(slug));
-      const hiddenInterests = loadedInterests.filter((slug) => !VISIBLE_INTEREST_SLUGS.has(slug));
-
-      setHiddenLegacyInterests(hiddenInterests);
-
-      if (visibleInterests.length > 0) {
-        setSelectedInterests(visibleInterests);
-      } else if (loadedInterests.length > 0) {
-        setSelectedInterests(DEFAULT_INTERESTS);
-      } else {
-        setSelectedInterests(DEFAULT_INTERESTS);
-      }
+      setSelectedInterests(enabledCodes.length > 0 ? enabledCodes : DEFAULT_INTERESTS);
     } catch (err) {
       console.error("muj-profil loadProfile error:", err);
       setError(err.message || "Nepodařilo se načíst profil.");
@@ -190,14 +196,12 @@ export default function MujProfilPage() {
         throw new Error("Chybí identita uživatele.");
       }
 
-      let visibleToSave = [...selectedInterests];
+      let toSave = [...selectedInterests];
 
-      if (visibleToSave.length === 0) {
-        visibleToSave = [...DEFAULT_INTERESTS];
-        setSelectedInterests(visibleToSave);
+      if (toSave.length === 0) {
+        toSave = [...DEFAULT_INTERESTS];
+        setSelectedInterests(toSave);
       }
-
-      const finalInterestSlugs = [...new Set([...visibleToSave, ...hiddenLegacyInterests])];
 
       const trimmedName = fullName.trim();
 
@@ -219,21 +223,21 @@ export default function MujProfilPage() {
 
       if (profileUpdateError) throw profileUpdateError;
 
-      const { error: deleteError } = await supabase
-        .from("user_interests")
-        .delete()
-        .eq("user_id", userId);
-
-      if (deleteError) throw deleteError;
-
-      const rows = finalInterestSlugs.map((slug) => ({
-        user_id: userId,
-        interest_slug: slug,
+      // notification_preferences nemá DELETE policy (vědomé rozhodnutí z
+      // migrace 0002 — soft-only) — místo mazání řádků upsertujeme VŠECHNY
+      // katalogové kódy s enabled podle aktuálního výběru, takže odebraný
+      // zájem zůstane v DB jako enabled:false, ne smazaný.
+      const rows = ALL_INTEREST_CODES.map((code) => ({
+        profile_id: userId,
+        activity_code: code,
+        enabled: toSave.includes(code),
       }));
 
-      const { error: insertError } = await supabase.from("user_interests").insert(rows);
+      const { error: preferencesSaveError } = await supabase
+        .from("notification_preferences")
+        .upsert(rows, { onConflict: "profile_id,activity_code" });
 
-      if (insertError) throw insertError;
+      if (preferencesSaveError) throw preferencesSaveError;
 
       setSuccess("Profil byl uložen.");
     } catch (err) {
@@ -329,7 +333,8 @@ export default function MujProfilPage() {
                 <div className="field">
                   <label className="label">Zajímá mě</label>
                   <p className="helper">
-                    Vyberte oblasti, o kterých chcete dostávat informace e-mailem.
+                    Vyberte okruhy, o jaké vysílání a program ARCHIMEDES chcete
+                    dostávat upozornění e-mailem.
                   </p>
 
                   {selectedCount === 0 ? (
@@ -339,25 +344,19 @@ export default function MujProfilPage() {
                     </div>
                   ) : null}
 
-                  {hiddenLegacyInterests.length > 0 ? (
-                    <div className="infoBox">
-                      V profilu máte i dříve uložené starší zájmy, které zůstávají zachované.
-                    </div>
-                  ) : null}
-
                   <div className="interestSections">
                     {INTEREST_SECTIONS.map((section) => (
                       <div key={section.title} className="interestGroup">
                         <h3>{section.title}</h3>
                         <div className="chips">
                           {section.items.map((item) => {
-                            const active = selectedInterests.includes(item.slug);
+                            const active = selectedInterests.includes(item.code);
                             return (
                               <button
-                                key={item.slug}
+                                key={item.code}
                                 type="button"
                                 className={`chip ${active ? "active" : ""}`}
-                                onClick={() => toggleInterest(item.slug)}
+                                onClick={() => toggleInterest(item.code)}
                               >
                                 {item.label}
                               </button>

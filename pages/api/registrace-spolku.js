@@ -67,7 +67,7 @@ export default async function handler(req, res) {
 
     const { data: activity, error: activityError } = await supabaseAdmin
       .from("activity_categories")
-      .select("code, is_active")
+      .select("code, is_active, section")
       .eq("code", cleanActivityCode)
       .maybeSingle();
 
@@ -76,7 +76,11 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Nepodařilo se ověřit činnost." });
     }
 
-    if (!activity || !activity.is_active) {
+    // section='spolky' omezuje výběr na původní číselník (17 položek) —
+    // od Kroku 3 activity_categories obsahuje i školní/tematické/klubové
+    // položky určené pro osobní odběr upozornění (/pridat-se-k-organizaci),
+    // ne pro vlastní činnost spolku.
+    if (!activity || !activity.is_active || activity.section !== "spolky") {
       return res.status(400).json({ error: "Neplatná činnost spolku." });
     }
 
