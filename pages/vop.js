@@ -15,7 +15,7 @@ export default function VopPage() {
       </p>
       <p>
         ARCHIMEDES Live je poskytován jako online služba a program dostupný
-        prostřednictvím internetu, bez instalace softwaru na zařízení zákazníka.
+        prostřednictvím internetu, bez nutnosti cokoliv instalovat na zařízení zákazníka.
       </p>
 
       <div className="noteBox">
@@ -72,7 +72,7 @@ export default function VopPage() {
       <h2>6. Technické zajištění a třetí strany</h2>
       <p>
         Služba může být poskytována s využitím nástrojů třetích stran, zejména
-        videokonferenčních nebo komunikačních platforem.
+        videokonferenčních nebo komunikačních nástrojů.
       </p>
       <p>
         Poskytovatel neodpovídá za výpadky internetu na straně zákazníka, vady
