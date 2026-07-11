@@ -202,16 +202,18 @@ export default function Home() {
 
               <div className="partnersRow">
                 {visiblePartners.map((p) => (
-                  <div key={p.id} className="partnerItem">
-                    <PhotoWithFallback
-                      src={p.logo}
-                      alt={p.name}
-                      fallbackLabel={p.name}
-                      style={{ width: 40, height: 40 }}
-                      rounded
-                    />
-                    <span>{p.name}</span>
-                  </div>
+          <div key={p.id} className="partnerItem">
+                      <div className="partnerLogo">
+                        <PhotoWithFallback
+                src={p.logo}
+                alt={p.name}
+                fallbackLabel={p.name}
+                style={{ width: "100%", height: "100%" }}
+                imgStyle={{ objectFit: "contain" }}
+              />
+                </div>
+            <span>{p.name}</span>
+                </div>
                 ))}
               </div>
             </div>
@@ -640,21 +642,36 @@ export default function Home() {
             max-width: 620px;
           }
 
-          .partnersRow {
-            margin-top: 26px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 28px 34px;
-          }
+.partnersRow {
+          margin-top: 26px;
+                    display: grid;
+                              grid-template-columns: repeat(5, minmax(0, 1fr));
+                                        gap: 22px 20px;
+                                                }
 
-          .partnerItem {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            font-weight: 800;
-            color: #334155;
-          }
+                                                        .partnerItem {
+                                                                  display: flex;
+                                                                            flex-direction: column;
+                                                                                      align-items: center;
+                                                                                                text-align: center;
+                                                                                                          gap: 10px;
+                                                                                                                    font-size: 13.5px;
+                                                                                                                              font-weight: 800;
+                                                                                                                                        color: #334155;
+                                                                                                                                                }
+                                                                                                                                                
+                                                                                                                                                        .partnerLogo {
+                                                                                                                                                                  width: 100%;
+                                                                                                                                                                            max-width: 96px;
+                                                                                                                                                                                      height: 56px;
+                                                                                                                                                                                                display: flex;
+                                                                                                                                                                                                          align-items: center;
+                                                                                                                                                                                                                    justify-content: center;
+                                                                                                                                                                                                                              background: #ffffff;
+                                                                                                                                                                                                                                        border: 1px solid rgba(15, 23, 42, 0.1);
+                                                                                                                                                                                                                                                  border-radius: 14px;
+                                                                                                                                                                                                                                                            padding: 8px;
+                                                                                                                                                                                                                                                                    }
 
           .featuresHead {
             display: flex;
