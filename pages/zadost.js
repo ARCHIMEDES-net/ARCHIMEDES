@@ -135,7 +135,9 @@ export default function ZadostPage() {
       setMessage(
         isDemoRequest
           ? "Děkujeme. Žádost o ukázkový přístup byla úspěšně odeslána.\n\nJakmile bude přístup schválen, na zadaný e-mail obdržíte zprávu s přístupem, který vás jedním kliknutím zavede přímo do ukázkového prostředí.n\nPokud zprávu během několika minut nenajdete, zkontrolujte prosím i složku Spam nebo Hromadné."
-          : "Děkujeme. Žádost o přístup byla úspěšně odeslána.\n\nZpracujeme žádost a obec zaregistrujeme."
+          : data.emailSent === false
+            ? "Děkujeme. Žádost o přístup byla úspěšně odeslána.\n\nZpracujeme žádost a obec zaregistrujeme.\n\nPotvrzovací e-mail se teď nepodařilo odeslat, ale vaše žádost je v pořádku zaznamenaná — ozveme se vám i tak."
+            : "Děkujeme. Žádost o přístup byla úspěšně odeslána.\n\nZpracujeme žádost a obec zaregistrujeme."
       );
 
       setSubmitted(true);
