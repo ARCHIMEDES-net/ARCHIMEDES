@@ -75,7 +75,7 @@ const variants = [
     benefit:
       "Maximální energetická efektivita, odolnost a stabilní vnitřní prostředí v jakémkoli počasí.",
     suitable:
-      "Pro zřizovatele, kteří chtějí 100% bezpečný a celoročně izolovaný prostor s maximální tepelnou stabilitou i v těch největších mrazech.",
+      "Pro zřizovatele, kteří chtějí vysoce bezpečný a celoročně izolovaný prostor s maximální tepelnou stabilitou i v těch největších mrazech.",
     design:
       "Exteriér tvoří moderní fasáda v barvě dle vzorníku RAL, interiér hřeje příjemným dřevem. Podlaha je z vysoce odolného PVC. Konstrukce neumožňuje plné otevření stěn.",
   },
@@ -300,7 +300,7 @@ export default function Ucebna() {
               >
                 Prosvětlený, reprezentativní a promyšlený prostor pro školy,
                 obce i komunity. Místo, které propojuje kvalitní architekturu,
-                přírodní materiály a digitální technologie nové generace.
+                přírodní materiály a moderní technologie nové generace.
               </p>
 
               <div
@@ -538,8 +538,8 @@ export default function Ucebna() {
                       (co-teaching) se školami na druhém konci světa.
                     </div>
                     <div>
-                      • <strong>Moderní nástroje:</strong> Využití edukačního 3D
-                      softwaru, vizualizérů a interaktivních panelů.
+                      • <strong>Moderní nástroje:</strong> Využití 3D
+                      nástrojů, vizualizérů a interaktivních panelů.
                     </div>
                     <div>
                       • <strong>Zdravé prostředí:</strong> Speciální
@@ -712,7 +712,7 @@ export default function Ucebna() {
                   >
                     Naprostou revolucí pro zdraví je pak systém
                     plnospektrálního osvětlení. Tato chytrá svítidla do detailu
-                    simulují přirozené sluneční záření, čímž prokazatelně
+                    simulují přirozené sluneční záření, čímž 
                     snižují únavu očí, brání útlumu a přirozeně stimulují
                     soustředění a vitalitu během celého dne.
                   </p>
