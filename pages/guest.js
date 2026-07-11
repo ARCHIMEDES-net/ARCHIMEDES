@@ -302,7 +302,7 @@ export default function GuestPage() {
                 <div className="contactName">Natálie Lípová</div>
                 <div className="contactRole">Program & Content Manager</div>
                 <div className="contactSubrole">
-                  Program, broadcasting, platform content
+                  Program, broadcasting, program content
                 </div>
               </div>
 
