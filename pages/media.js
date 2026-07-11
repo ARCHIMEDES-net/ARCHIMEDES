@@ -46,7 +46,7 @@ const storyGallery = [
   {
     src: galleryTechImg,
     title: "Moderní technologie",
-    text: "Interaktivní výuka, digitální vybavení a kvalitní zázemí.",
+    text: "Interaktivní výuka, moderní vybavení a kvalitní zázemí.",
     ratio: "standard",
   },
   {
