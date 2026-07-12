@@ -1,6 +1,21 @@
 import Head from "next/head";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import Footer from "../components/Footer";
+import { supabase } from "../lib/supabaseClient";
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import SectionEyebrow from "../components/home/SectionEyebrow";
+
+const DOBRA_PRAXE_BUCKET = "dobra-praxe";
+
+const CATEGORY_LABELS = {
+  obec: "Obec",
+  spolek: "Spolek",
+  skola: "Škola",
+  seniori: "Senioři",
+};
 
 const points = [
   {
@@ -37,6 +52,33 @@ const cenikItems = [
 ];
 
 export default function ObecPage() {
+  const [featured, setFeatured] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadFeatured() {
+      const { data } = await supabase
+        .from("best_practice_posts")
+        .select("title, body, photo_paths, category, organizations(name)")
+        .eq("status", "approved")
+        .eq("is_featured", true)
+        .maybeSingle();
+
+      if (!alive) return;
+      setFeatured(data || null);
+    }
+
+    loadFeatured();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const featuredPhoto = featured?.photo_paths?.[0]
+    ? supabase.storage.from(DOBRA_PRAXE_BUCKET).getPublicUrl(featured.photo_paths[0]).data?.publicUrl
+    : "";
+
   return (
     <>
       <Head>
@@ -47,66 +89,107 @@ export default function ObecPage() {
         />
       </Head>
 
-      <main className="page">
-        <div className="container">
-          <div className="eyebrow">Pro obce</div>
-          <h1>Program, který posiluje komunitní život vaší obce</h1>
-          <p className="lead">
+      <main className="min-h-screen bg-slate-50 pb-16 pt-10">
+        <div className="mx-auto max-w-[980px] px-5">
+          <SectionEyebrow>Pro obce</SectionEyebrow>
+          <h1 className="max-w-[760px] text-[40px] font-[950] leading-[1.05] tracking-[-0.04em] text-navy-900">
+            Program, který posiluje komunitní život vaší obce
+          </h1>
+          <p className="mt-4 max-w-[680px] text-[17px] leading-relaxed text-muted">
             Pro starosty a zastupitelstva, kteří chtějí propojit školy, spolky,
             seniory a národní organizace do jednoho celoročního programu — obec
             získává páteř komunitního života, která usnadňuje komunikaci a
             pomáhá budovat aktivní obec.
           </p>
 
-          <div className="grid">
+          <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {points.map((p) => (
-              <div key={p.title} className="card">
-                <h3>{p.title}</h3>
-                <p>{p.text}</p>
-              </div>
+              <Card key={p.title}>
+                <CardContent>
+                  <h3 className="text-[18px] font-bold tracking-tight text-navy-900">{p.title}</h3>
+                  <p className="mt-2.5 text-[15px] leading-relaxed text-muted">{p.text}</p>
+                </CardContent>
+              </Card>
             ))}
           </div>
 
-          <section id="cenik" className="pricingSection">
-            <div className="eyebrow">Ceník</div>
-            <h2>Jedna licence pro všechny spolky a organizace ve vaší obci</h2>
+          {featured ? (
+            <section className="mt-12">
+              <SectionEyebrow>Dobrá praxe</SectionEyebrow>
+              <h2 className="text-[28px] font-[950] tracking-[-0.03em] text-navy-900">
+                Jak to dělají jinde
+              </h2>
 
-            <div className="priceCard">
-              <div className="priceRow">
-                <div className="priceValue">
-                  1 990 Kč <span className="pricePeriod">/ měsíc</span>
+              <Card className="mt-5 overflow-hidden p-0 sm:flex">
+                {featuredPhoto ? (
+                  <div className="min-h-[220px] flex-1 basis-[280px] bg-eyebrow">
+                    <img src={featuredPhoto} alt={featured.title} className="h-full w-full object-cover" />
+                  </div>
+                ) : null}
+                <div className="flex-1 basis-[320px] p-7">
+                  <span className="inline-flex rounded-full bg-eyebrow px-3 py-1 text-xs font-bold text-navy-600">
+                    {CATEGORY_LABELS[featured.category] || featured.category} ·{" "}
+                    {featured.organizations?.name}
+                  </span>
+                  <h3 className="mt-3.5 text-xl font-bold tracking-tight text-navy-900">
+                    {featured.title}
+                  </h3>
+                  <p className="mt-2.5 whitespace-pre-wrap text-[15px] leading-relaxed text-muted">
+                    {featured.body}
+                  </p>
                 </div>
-                <p className="priceDesc">
+              </Card>
+            </section>
+          ) : null}
+
+          <section id="cenik" className="mt-12 scroll-mt-24">
+            <SectionEyebrow>Ceník</SectionEyebrow>
+            <h2 className="max-w-[640px] text-[30px] font-[950] tracking-[-0.03em] text-navy-900">
+              Jedna licence pro všechny spolky a organizace ve vaší obci
+            </h2>
+
+            <Card className="mt-5 rounded-card-lg p-8">
+              <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
+                <div className="whitespace-nowrap text-[34px] font-[950] tracking-[-0.02em] text-navy-900">
+                  1 990 Kč <span className="text-base font-bold text-slate-500">/ měsíc</span>
+                </div>
+                <p className="max-w-[520px] text-[15px] leading-relaxed text-muted">
                   Jedna licence pro celou obec. V ceně je vše: škola, senioři i
                   všechny obecní spolky a organizace, bez příplatků.
                 </p>
               </div>
 
-              <ul className="priceList">
+              <ul className="mt-6 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
                 {cenikItems.map((item) => (
-                  <li key={item.label}>
-                    <strong>{item.label}</strong> — {item.text}
+                  <li key={item.label} className="text-[15px] leading-relaxed text-slate-700">
+                    <strong className="text-navy-900">{item.label}</strong> — {item.text}
                   </li>
                 ))}
               </ul>
 
-              <div className="priceHighlight">
+              <div className="mt-6 rounded-[18px] bg-eyebrow p-5 text-[15px] font-bold leading-relaxed text-navy-600">
                 Kolik spolků se zapojí, je jen na vás — všechny fungují pod
                 jednou licencí obce, bez dalších plateb.
               </div>
 
-              <Link href="/zadost" className="ctaBtnPrimary">
+              <Button href="/zadost" className="mt-6">
                 Chci program pro naši obec
-              </Link>
-            </div>
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </Card>
           </section>
 
-          <div className="cta">
+          <div className="mt-10 flex flex-col items-start gap-5 rounded-card-lg bg-navy-900 p-7 text-white sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <strong>Chcete program i ve vaší obci?</strong>
-              <span>Vyplňte krátkou žádost a ozveme se vám s dalším postupem.</span>
+              <strong className="block text-lg font-bold">Chcete program i ve vaší obci?</strong>
+              <span className="mt-1.5 block text-sm text-white/75">
+                Vyplňte krátkou žádost a ozveme se vám s dalším postupem.
+              </span>
             </div>
-            <Link href="/zadost" className="ctaBtn">
+            <Link
+              href="/zadost"
+              className="inline-flex h-12 flex-none items-center justify-center whitespace-nowrap rounded-full bg-white px-5 text-[15px] font-black text-navy-900"
+            >
               Chci program pro naši obec
             </Link>
           </div>
@@ -114,228 +197,6 @@ export default function ObecPage() {
       </main>
 
       <Footer />
-
-      <style jsx>{`
-        .page {
-          background: #f8fafc;
-          min-height: 100vh;
-          padding: 40px 20px 80px;
-        }
-
-        .container {
-          max-width: 980px;
-          margin: 0 auto;
-        }
-
-        .eyebrow {
-          display: inline-flex;
-          padding: 6px 12px;
-          border-radius: 999px;
-          background: #e7eef9;
-          color: #1e3a5f;
-          font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          margin-bottom: 14px;
-        }
-
-        h1 {
-          margin: 0;
-          font-size: 40px;
-          letter-spacing: -0.04em;
-          font-weight: 950;
-          color: #0f172a;
-          max-width: 760px;
-        }
-
-        .lead {
-          margin: 16px 0 0;
-          font-size: 17px;
-          line-height: 1.65;
-          color: #475569;
-          max-width: 680px;
-        }
-
-        .grid {
-          margin-top: 36px;
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 18px;
-        }
-
-        .card {
-          background: #ffffff;
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          border-radius: 22px;
-          padding: 22px;
-        }
-
-        .card h3 {
-          margin: 0;
-          font-size: 18px;
-          color: #0f172a;
-          letter-spacing: -0.02em;
-        }
-
-        .card p {
-          margin: 10px 0 0;
-          font-size: 15px;
-          line-height: 1.6;
-          color: #5b6676;
-        }
-
-        .pricingSection {
-          margin-top: 56px;
-          scroll-margin-top: 90px;
-        }
-
-        .pricingSection h2 {
-          margin: 0;
-          font-size: 30px;
-          letter-spacing: -0.03em;
-          font-weight: 950;
-          color: #0f172a;
-          max-width: 640px;
-        }
-
-        .priceCard {
-          margin-top: 22px;
-          background: #ffffff;
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          border-radius: 26px;
-          padding: 30px;
-        }
-
-        .priceRow {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: baseline;
-          gap: 10px 20px;
-        }
-
-        .priceValue {
-          font-size: 34px;
-          font-weight: 950;
-          letter-spacing: -0.02em;
-          color: #0f172a;
-          white-space: nowrap;
-        }
-
-        .pricePeriod {
-          font-size: 16px;
-          font-weight: 700;
-          color: #64748b;
-        }
-
-        .priceDesc {
-          margin: 0;
-          font-size: 15px;
-          line-height: 1.6;
-          color: #475569;
-          max-width: 520px;
-        }
-
-        .priceList {
-          margin: 26px 0 0;
-          padding: 0;
-          list-style: none;
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 12px 24px;
-        }
-
-        .priceList li {
-          font-size: 15px;
-          line-height: 1.6;
-          color: #334155;
-        }
-
-        .priceList li strong {
-          color: #0f172a;
-        }
-
-        .priceHighlight {
-          margin-top: 24px;
-          padding: 18px 20px;
-          border-radius: 18px;
-          background: #eef4ff;
-          color: #1e3a5f;
-          font-size: 15px;
-          font-weight: 800;
-          line-height: 1.6;
-        }
-
-        .cta {
-          margin-top: 40px;
-          padding: 24px 26px;
-          border-radius: 24px;
-          background: #0f2344;
-          color: #ffffff;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 18px;
-          flex-wrap: wrap;
-        }
-
-        .cta strong {
-          display: block;
-          font-size: 18px;
-        }
-
-        .cta span {
-          display: block;
-          margin-top: 6px;
-          font-size: 14px;
-          color: rgba(255, 255, 255, 0.78);
-        }
-
-        @media (max-width: 760px) {
-          .grid {
-            grid-template-columns: 1fr;
-          }
-
-          .priceList {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
-
-      <style jsx global>{`
-        .ctaBtn {
-          display: inline-flex;
-          align-items: center;
-          padding: 12px 20px;
-          border-radius: 999px;
-          background: #ffffff;
-          color: #0f172a;
-          text-decoration: none;
-          font-weight: 900;
-          white-space: nowrap;
-        }
-
-        .ctaBtnPrimary {
-          display: inline-flex;
-          align-items: center;
-          margin-top: 26px;
-          padding: 13px 22px;
-          border-radius: 999px;
-          background: #1d4ed8;
-          color: #ffffff;
-          text-decoration: none;
-          font-weight: 900;
-          font-size: 14.5px;
-          white-space: nowrap;
-          box-shadow: 0 10px 22px rgba(29, 78, 216, 0.24);
-          transition: transform 0.16s ease, box-shadow 0.16s ease;
-        }
-
-        .ctaBtnPrimary:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 14px 28px rgba(29, 78, 216, 0.3);
-        }
-      `}</style>
     </>
   );
 }
