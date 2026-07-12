@@ -1,8 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { FileText, ArrowRight } from "lucide-react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
+import { Card } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Select } from "../../components/ui/select";
+import { Label } from "../../components/ui/label";
+import { Alert } from "../../components/ui/alert";
 
 function safeDate(value) {
   if (!value) return null;
@@ -105,138 +111,96 @@ export default function PracovniListy() {
     <RequireAuth>
       <PortalHeader />
 
-      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
-        <h1 style={{ margin: "10px 0 6px" }}>Pracovní listy</h1>
-        <p style={{ margin: 0, color: "#374151" }}>
-          Přehled událostí, které mají vložený pracovní list.
-        </p>
+      <main className="mx-auto max-w-[1100px] px-4 py-5">
+        <h1 className="text-2xl font-black text-navy-900">Pracovní listy</h1>
+        <p className="mt-1.5 text-muted">Přehled událostí, které mají vložený pracovní list.</p>
 
-        <div
-          style={{
-            marginTop: 12,
-            border: "1px solid #e5e7eb",
-            borderRadius: 14,
-            padding: 12,
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: 10,
-          }}
-        >
+        <Card className="mt-3.5 grid grid-cols-1 gap-2.5 p-3 sm:grid-cols-3">
           <div>
-            <div style={{ fontWeight: 900, marginBottom: 6 }}>Hledat</div>
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Název události…"
-              style={{ width: "100%", padding: "10px 12px", borderRadius: 12, border: "1px solid #e5e7eb" }}
-            />
+            <Label>Hledat</Label>
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Název události…" />
           </div>
 
           <div>
-            <div style={{ fontWeight: 900, marginBottom: 6 }}>Rubrika</div>
-            <select
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              style={{ width: "100%", padding: "10px 12px", borderRadius: 12, border: "1px solid #e5e7eb" }}
-            >
+            <Label>Rubrika</Label>
+            <Select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
               {categories.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div>
-            <div style={{ fontWeight: 900, marginBottom: 6 }}>Cílovka</div>
-            <select
-              value={filterAudience}
-              onChange={(e) => setFilterAudience(e.target.value)}
-              style={{ width: "100%", padding: "10px 12px", borderRadius: 12, border: "1px solid #e5e7eb" }}
-            >
+            <Label>Cílovka</Label>
+            <Select value={filterAudience} onChange={(e) => setFilterAudience(e.target.value)}>
               {audiences.map((a) => (
                 <option key={a} value={a}>
                   {a}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
-        </div>
+        </Card>
 
         {err ? (
-          <div style={{ marginTop: 12, padding: 12, border: "1px solid #fecaca", background: "#fef2f2", borderRadius: 12 }}>
+          <Alert variant="error" className="mt-3.5">
             <b>Chyba:</b> {err}
-          </div>
+          </Alert>
         ) : null}
 
-        {loading ? <p style={{ marginTop: 14 }}>Načítám…</p> : null}
+        {loading ? <p className="mt-4 text-muted">Načítám…</p> : null}
 
         {!loading && !err ? (
-          <section style={{ marginTop: 14 }}>
+          <section className="mt-4">
             {visible.length === 0 ? (
-              <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 14, color: "#6b7280" }}>
-                Žádné pracovní listy podle zvolených filtrů.
-              </div>
+              <Alert variant="neutral">Žádné pracovní listy podle zvolených filtrů.</Alert>
             ) : (
-              <div style={{ display: "grid", gap: 12 }}>
+              <div className="grid gap-3">
                 {visible.map((r) => (
-                  <div
-                    key={r.id}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "120px 1fr",
-                      gap: 12,
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 14,
-                      padding: 12,
-                      alignItems: "start",
-                      background: "#fff",
-                    }}
-                  >
+                  <Card key={r.id} className="grid grid-cols-[120px_1fr] items-start gap-3 p-3">
                     {r.poster_url ? (
                       <img
                         src={r.poster_url}
                         alt=""
-                        style={{ width: 120, height: 90, objectFit: "cover", borderRadius: 12, border: "1px solid #e5e7eb", background: "#f9fafb" }}
+                        className="h-[90px] w-[120px] rounded-xl border border-slate-200 bg-slate-50 object-cover"
                       />
                     ) : (
-                      <div
-                        style={{
-                          width: 120,
-                          height: 90,
-                          borderRadius: 12,
-                          border: "1px dashed #d1d5db",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "#6b7280",
-                          fontSize: 12,
-                          fontWeight: 800,
-                        }}
-                      >
+                      <div className="flex h-[90px] w-[120px] items-center justify-center rounded-xl border border-dashed border-slate-300 text-xs font-bold text-slate-500">
                         Bez plakátu
                       </div>
                     )}
 
                     <div>
-                      <Link href={`/portal/udalost/${r.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                        <div style={{ fontWeight: 900, fontSize: 16, cursor: "pointer" }}>{r.title}</div>
+                      <Link href={`/portal/udalost/${r.id}`} className="text-navy-900 no-underline">
+                        <div className="cursor-pointer text-base font-black">{r.title}</div>
                       </Link>
 
-                      <div style={{ marginTop: 6, color: "#374151" }}>
+                      <div className="mt-1.5 text-sm text-slate-700">
                         {r._d ? formatDateTimeCS(r._d) : "—"}
-                        {r.category ? <span> &nbsp; • &nbsp; {r.category}</span> : null}
-                        {(r._groups || []).length ? <span> &nbsp; • &nbsp; {r._groups.join(", ")}</span> : null}
+                        {r.category ? <span> &nbsp;•&nbsp; {r.category}</span> : null}
+                        {(r._groups || []).length ? <span> &nbsp;•&nbsp; {r._groups.join(", ")}</span> : null}
                       </div>
 
-                      <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                        <a href={r.worksheet_url} target="_blank" rel="noreferrer">
-                          📄 Otevřít pracovní list
+                      <div className="mt-2.5 flex flex-wrap gap-4">
+                        <a
+                          href={r.worksheet_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 text-sm font-bold text-brand hover:underline"
+                        >
+                          <FileText className="h-4 w-4" aria-hidden="true" /> Otevřít pracovní list
                         </a>
-                        <Link href="/portal/kalendar">→ Program</Link>
+                        <Link
+                          href="/portal/kalendar"
+                          className="inline-flex items-center gap-1 text-sm font-bold text-navy-900 hover:underline"
+                        >
+                          Program <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        </Link>
                       </div>
                     </div>
-                  </div>
+                  </Card>
                 ))}
               </div>
             )}
