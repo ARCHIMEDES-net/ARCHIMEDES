@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Star, Pencil } from "lucide-react";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
@@ -134,8 +135,8 @@ export default function DetailInzeratu() {
               </span>
 
               {row.is_pinned && (
-                <span className="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-                  ★ Doporučeno
+                <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1 text-xs text-yellow-800">
+                  <Star className="h-3 w-3 fill-current" aria-hidden="true" /> Doporučeno
                 </span>
               )}
 
@@ -154,7 +155,13 @@ export default function DetailInzeratu() {
                   }`}
                   title="Připnutí ovládá pouze admin"
                 >
-                  {row.is_pinned ? "Odepnout" : "⭐ Připnout"}
+                  {row.is_pinned ? (
+                    "Odepnout"
+                  ) : (
+                    <span className="inline-flex items-center gap-1">
+                      <Star className="h-3.5 w-3.5" aria-hidden="true" /> Připnout
+                    </span>
+                  )}
                 </button>
               )}
 
@@ -164,7 +171,9 @@ export default function DetailInzeratu() {
                     href={`/portal/inzerce/edit/${row.id}`}
                     className="text-sm px-3 py-1 border rounded-lg hover:bg-slate-100"
                   >
-                    ✏ Upravit
+                    <span className="inline-flex items-center gap-1">
+                      <Pencil className="h-3.5 w-3.5" aria-hidden="true" /> Upravit
+                    </span>
                   </Link>
 
                   <button

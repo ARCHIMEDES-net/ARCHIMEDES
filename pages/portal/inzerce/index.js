@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Star } from "lucide-react";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
@@ -229,7 +230,9 @@ export default function Inzerce() {
                       </span>
 
                       {row.is_pinned && (
-                        <span className="text-xs text-yellow-600 font-medium">★ Doporučeno</span>
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-yellow-600">
+                          <Star className="h-3 w-3 fill-current" aria-hidden="true" /> Doporučeno
+                        </span>
                       )}
 
                       {row.category && <span className="text-xs text-slate-500">{row.category}</span>}
@@ -255,7 +258,7 @@ export default function Inzerce() {
                           className={pinBusyId === row.id ? "opacity-50" : "text-yellow-600 hover:text-yellow-800"}
                           title="Připnout / Odepnout"
                         >
-                          {row.is_pinned ? "★" : "☆"}
+                          <Star className={row.is_pinned ? "h-4 w-4 fill-current" : "h-4 w-4"} aria-hidden="true" />
                         </button>
                       )}
 
