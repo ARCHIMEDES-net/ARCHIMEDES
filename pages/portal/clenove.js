@@ -7,12 +7,14 @@ export default function Clenove() {
     <RequireAuth>
       <PortalHeader />
 
-      <div style={{ maxWidth: 900, margin: "40px auto", fontFamily: "system-ui", padding: 16 }}>
-        <h1>Databáze členů</h1>
-        <p>Zde bude seznam obcí/škol a správa účtů.</p>
+      <div className="mx-auto max-w-[900px] p-4 py-10">
+        <h1 className="text-2xl font-black text-navy-900">Databáze členů</h1>
+        <p className="mt-2 text-muted">Zde bude seznam obcí/škol a správa účtů.</p>
 
-        <p>
-          <Link href="/portal">← Zpět do portálu</Link>
+        <p className="mt-4">
+          <Link href="/portal" className="font-bold text-brand hover:underline">
+            ← Zpět do portálu
+          </Link>
         </p>
       </div>
     </RequireAuth>
