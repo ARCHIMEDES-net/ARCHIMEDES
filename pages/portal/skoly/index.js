@@ -2,25 +2,27 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { ArrowRight } from "lucide-react";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
+import { cn } from "../../../lib/utils";
+import { Card } from "../../../components/ui/card";
+import { Alert } from "../../../components/ui/alert";
 
 const BUCKET = "schools";
 
 // DŮLEŽITÉ: mapy jen na klientovi (jinak Next SSR spadne)
 const SchoolsMap = dynamic(() => import("../../../components/SchoolsMap"), {
   ssr: false,
-  loading: () => <div style={{ color: "rgba(0,0,0,0.65)" }}>Načítám mapu…</div>,
+  loading: () => <div className="text-muted">Načítám mapu…</div>,
 });
 
 const SchoolsGrowthMap = dynamic(
   () => import("../../../components/SchoolsGrowthMap"),
   {
     ssr: false,
-    loading: () => (
-      <div style={{ color: "rgba(0,0,0,0.65)" }}>Načítám mapu růstu…</div>
-    ),
+    loading: () => <div className="text-muted">Načítám mapu růstu…</div>,
   }
 );
 
@@ -63,57 +65,34 @@ function SegButton({ id, label, current, onClick }) {
     <button
       type="button"
       onClick={() => onClick(id)}
-      style={{
-        border: "1px solid rgba(0,0,0,0.12)",
-        background: active ? "#111827" : "white",
-        color: active ? "white" : "#111827",
-        fontWeight: 900,
-        padding: "8px 12px",
-        borderRadius: 999,
-        cursor: "pointer",
-        boxShadow: active ? "0 10px 22px rgba(0,0,0,0.10)" : "none",
-      }}
+      className={cn(
+        "rounded-full border px-3 py-2 font-black",
+        active
+          ? "border-navy-900 bg-navy-900 text-white shadow-[0_10px_22px_rgba(0,0,0,0.1)]"
+          : "border-slate-900/[0.12] bg-white text-navy-900"
+      )}
     >
       {label}
     </button>
   );
 }
 
-function StatPill({ label, value, tint = "neutral" }) {
-  const bg =
-    tint === "blue"
-      ? "rgba(37,99,235,0.10)"
-      : tint === "green"
-      ? "rgba(16,185,129,0.10)"
-      : tint === "orange"
-      ? "rgba(245,158,11,0.10)"
-      : "rgba(0,0,0,0.04)";
-  const br =
-    tint === "blue"
-      ? "rgba(37,99,235,0.18)"
-      : tint === "green"
-      ? "rgba(16,185,129,0.18)"
-      : tint === "orange"
-      ? "rgba(245,158,11,0.22)"
-      : "rgba(0,0,0,0.08)";
+const PILL_TINTS = {
+  blue: "bg-blue-600/10 border-blue-600/[0.18]",
+  green: "bg-emerald-500/10 border-emerald-500/[0.18]",
+  orange: "bg-amber-500/10 border-amber-500/[0.22]",
+  neutral: "bg-slate-900/[0.04] border-slate-900/[0.08]",
+};
 
+function StatPill({ label, value, tint = "neutral" }) {
   return (
     <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "7px 10px",
-        borderRadius: 999,
-        background: bg,
-        border: `1px solid ${br}`,
-        fontSize: 12,
-        fontWeight: 900,
-        color: "#111827",
-        whiteSpace: "nowrap",
-      }}
+      className={cn(
+        "inline-flex items-center gap-2 whitespace-nowrap rounded-full border px-2.5 py-1.5 text-xs font-black text-navy-900",
+        PILL_TINTS[tint]
+      )}
     >
-      {label}: <span style={{ fontSize: 13 }}>{value}</span>
+      {label}: <span className="text-[13px]">{value}</span>
     </span>
   );
 }
@@ -196,73 +175,23 @@ export default function SkolyIndex() {
     <RequireAuth>
       <PortalHeader title="Síť učeben" />
 
-      <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
-        <div
-          style={{
-            maxWidth: 1100,
-            margin: "0 auto",
-            padding: "20px 16px 60px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              alignItems: "center",
-              marginBottom: 10,
-            }}
-          >
-            <Link
-              href="/portal"
-              style={{
-                textDecoration: "none",
-                fontWeight: 900,
-                color: "#111827",
-              }}
-            >
-              ← Zpět do portálu
-            </Link>
-          </div>
+      <div className="min-h-screen bg-slate-50">
+        <div className="mx-auto max-w-[1100px] px-4 py-5 pb-16">
+          <Link href="/portal" className="mb-2.5 inline-block font-black text-navy-900">
+            ← Zpět do portálu
+          </Link>
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 14,
-              alignItems: "flex-start",
-              flexWrap: "wrap",
-            }}
-          >
+          <div className="flex flex-wrap items-start justify-between gap-3.5">
             <div>
-              <div
-                style={{
-                  fontSize: 28,
-                  fontWeight: 1000,
-                  letterSpacing: "-0.02em",
-                  color: "#0f172a",
-                }}
-              >
+              <div className="text-[28px] font-black tracking-[-0.02em] text-navy-900">
                 Síť učeben ARCHIMEDES
               </div>
-              <div
-                style={{
-                  marginTop: 6,
-                  color: "rgba(0,0,0,0.60)",
-                  maxWidth: 720,
-                }}
-              >
+              <div className="mt-1.5 max-w-[720px] text-muted">
                 Přehled škol s učebnou ARCHIMEDES. Slouží jako reference,
                 inspirace a možnost kontaktu.
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  flexWrap: "wrap",
-                  marginTop: 12,
-                }}
-              >
+              <div className="mt-3 flex flex-wrap gap-2">
                 <StatPill label="Učeben" value={stats.total} />
                 <StatPill label="S GPS" value={stats.withGps} tint="blue" />
                 <StatPill label="Země" value={stats.countries} tint="green" />
@@ -270,252 +199,94 @@ export default function SkolyIndex() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <SegButton
-                id="cards"
-                label="Karty"
-                current={view}
-                onClick={setView}
-              />
-              <SegButton
-                id="map"
-                label="Mapa"
-                current={view}
-                onClick={setView}
-              />
-              <SegButton
-                id="growth"
-                label="Růst"
-                current={view}
-                onClick={setView}
-              />
+            <div className="flex items-center gap-2">
+              <SegButton id="cards" label="Karty" current={view} onClick={setView} />
+              <SegButton id="map" label="Mapa" current={view} onClick={setView} />
+              <SegButton id="growth" label="Růst" current={view} onClick={setView} />
             </div>
           </div>
 
-          <div style={{ marginTop: 16 }}>
+          <div className="mt-4">
             {loading ? (
-              <div
-                style={{
-                  background: "white",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  borderRadius: 18,
-                  padding: 14,
-                }}
-              >
-                Načítám…
-              </div>
+              <Card className="p-3.5">Načítám…</Card>
             ) : err ? (
-              <div
-                style={{
-                  background: "#fff3f3",
-                  border: "1px solid #ffd0d0",
-                  padding: 12,
-                  borderRadius: 12,
-                  color: "#8a1f1f",
-                  whiteSpace: "pre-wrap",
-                }}
-              >
-                Chyba: {err}
-              </div>
+              <Alert variant="error">Chyba: {err}</Alert>
             ) : view === "map" ? (
-              <div
-                style={{
-                  background: "white",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  borderRadius: 18,
-                  padding: 14,
-                  boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
-                }}
-              >
-                <div
-                  style={{ fontSize: 16, fontWeight: 1000, marginBottom: 6 }}
-                >
-                  Mapa učeben
-                </div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: "rgba(0,0,0,0.60)",
-                    marginBottom: 12,
-                  }}
-                >
+              <Card className="p-3.5">
+                <div className="mb-1.5 text-base font-black text-navy-900">Mapa učeben</div>
+                <div className="mb-3 text-[13px] text-muted">
                   Zobrazuji se jen školy, které mají vyplněné souřadnice (GPS).
                   Aktuálně: <b>{withCoords.length}</b> z <b>{rows.length}</b>.
                 </div>
 
                 <SchoolsMap items={withCoords} />
-              </div>
+              </Card>
             ) : view === "growth" ? (
-              <div
-                style={{
-                  background: "white",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  borderRadius: 18,
-                  padding: 14,
-                  boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
-                }}
-              >
-                <div
-                  style={{ fontSize: 16, fontWeight: 1000, marginBottom: 6 }}
-                >
-                  Růst sítě
-                </div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: "rgba(0,0,0,0.60)",
-                    marginBottom: 12,
-                  }}
-                >
+              <Card className="p-3.5">
+                <div className="mb-1.5 text-base font-black text-navy-900">Růst sítě</div>
+                <div className="mb-3 text-[13px] text-muted">
                   Posuň rok a sleduj expanzi sítě. Body v aktuálním roce pulzují.
                 </div>
 
                 <SchoolsGrowthMap items={withCoords} />
-              </div>
+              </Card>
             ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: 14,
-                }}
-              >
+              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
                 {rows.map((r) => {
                   const photoUrl = r?.photo_path
                     ? photoUrlByPath.get(r.photo_path) || null
                     : null;
 
                   return (
-                    <Link
-                      key={r.id}
-                      href={`/portal/skoly/${r.id}`}
-                      style={{ textDecoration: "none", color: "inherit" }}
-                    >
-                      <div
-                        style={{
-                          background: "white",
-                          border: "1px solid rgba(0,0,0,0.08)",
-                          borderRadius: 18,
-                          overflow: "hidden",
-                          boxShadow: "0 14px 34px rgba(0,0,0,0.06)",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <div
-                          style={{
-                            height: 150,
-                            background: "rgba(0,0,0,0.03)",
-                            position: "relative",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "rgba(0,0,0,0.45)",
-                            fontWeight: 900,
-                          }}
-                        >
+                    <Link key={r.id} href={`/portal/skoly/${r.id}`}>
+                      <Card className="cursor-pointer overflow-hidden p-0">
+                        <div className="flex h-[150px] items-center justify-center bg-slate-900/[0.03] font-black text-slate-400">
                           {photoUrl ? (
                             <img
                               src={photoUrl}
                               alt={r?.name || "Fotka učebny"}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                                display: "block",
-                              }}
+                              className="h-full w-full object-cover"
                             />
                           ) : (
                             "Bez fotky"
                           )}
                         </div>
 
-                        <div style={{ padding: 14 }}>
-                          <div
-                            style={{
-                              fontWeight: 1000,
-                              fontSize: 18,
-                              lineHeight: 1.15,
-                            }}
-                          >
+                        <div className="p-3.5">
+                          <div className="text-lg font-black leading-[1.15] text-navy-900">
                             {r.name || "Škola"}
                           </div>
 
-                          <div
-                            style={{
-                              marginTop: 6,
-                              fontSize: 13,
-                              color: "rgba(0,0,0,0.60)",
-                            }}
-                          >
+                          <div className="mt-1.5 text-[13px] text-muted">
                             {r.city ? r.city : "—"}
                             {r.country ? ` • ${r.country}` : ""}
                           </div>
 
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: 8,
-                              flexWrap: "wrap",
-                              marginTop: 10,
-                            }}
-                          >
+                          <div className="mt-2.5 flex flex-wrap gap-2">
                             {r.type ? (
-                              <span
-                                style={{
-                                  fontSize: 12,
-                                  padding: "6px 10px",
-                                  borderRadius: 999,
-                                  background: "rgba(0,0,0,0.04)",
-                                  border: "1px solid rgba(0,0,0,0.08)",
-                                  fontWeight: 900,
-                                }}
-                              >
+                              <span className="rounded-full border border-slate-900/[0.08] bg-slate-900/[0.04] px-2.5 py-1.5 text-xs font-black">
                                 {String(r.type).toLowerCase()}
                               </span>
                             ) : null}
 
-                            {typeof r.lat === "number" &&
-                            typeof r.lng === "number" ? (
-                              <span
-                                style={{
-                                  fontSize: 12,
-                                  padding: "6px 10px",
-                                  borderRadius: 999,
-                                  background: "rgba(37,99,235,0.10)",
-                                  border: "1px solid rgba(37,99,235,0.18)",
-                                  fontWeight: 900,
-                                }}
-                              >
+                            {typeof r.lat === "number" && typeof r.lng === "number" ? (
+                              <span className="rounded-full border border-blue-600/[0.18] bg-blue-600/10 px-2.5 py-1.5 text-xs font-black">
                                 Má souřadnice
                               </span>
                             ) : null}
                           </div>
 
-                          <div
-                            style={{
-                              marginTop: 12,
-                              fontWeight: 900,
-                              color: "#111827",
-                            }}
-                          >
-                            Zobrazit detail →
+                          <div className="mt-3 inline-flex items-center gap-1 font-black text-navy-900">
+                            Zobrazit detail <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                           </div>
                         </div>
-                      </div>
+                      </Card>
                     </Link>
                   );
                 })}
               </div>
             )}
           </div>
-
-          <style jsx>{`
-            @media (max-width: 980px) {
-              div[style*="grid-template-columns: repeat(3"] {
-                grid-template-columns: 1fr !important;
-              }
-            }
-          `}</style>
         </div>
       </div>
     </RequireAuth>

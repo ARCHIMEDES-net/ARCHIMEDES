@@ -2,9 +2,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { ArrowRight } from "lucide-react";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
+import { Card } from "../../../components/ui/card";
+import { Alert } from "../../../components/ui/alert";
 
 const BUCKET = "schools";
 
@@ -88,94 +91,71 @@ export default function SchoolDetail() {
     <RequireAuth>
       <PortalHeader title="Síť učeben" />
 
-      <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", padding: "18px 16px 40px" }}>
-          <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12 }}>
-            <Link
-              href="/portal/skoly"
-              style={{ textDecoration: "none", fontWeight: 800, color: "#111827" }}
-            >
-              ← Zpět na seznam
-            </Link>
-          </div>
+      <div className="min-h-screen bg-slate-50">
+        <div className="mx-auto max-w-[1000px] px-4 py-5 pb-10">
+          <Link href="/portal/skoly" className="mb-3 inline-block font-black text-navy-900">
+            ← Zpět na seznam
+          </Link>
 
           {loading ? (
-            <div style={{ opacity: 0.7, padding: 12 }}>Načítám…</div>
+            <div className="p-3 text-muted">Načítám…</div>
           ) : err ? (
-            <div
-              style={{
-                background: "#fff3f3",
-                border: "1px solid #ffd0d0",
-                padding: 12,
-                borderRadius: 12,
-                color: "#8a1f1f",
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              Chyba: {err}
-            </div>
+            <Alert variant="error">Chyba: {err}</Alert>
           ) : (
-            <div
-              style={{
-                background: "white",
-                border: "1px solid rgba(0,0,0,0.08)",
-                borderRadius: 18,
-                overflow: "hidden",
-              }}
-            >
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr" }}>
-                <div style={{ padding: 14 }}>
-                  <div style={{ fontWeight: 900, fontSize: 22, lineHeight: 1.15 }}>
+            <Card className="overflow-hidden p-0">
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr]">
+                <div className="p-3.5">
+                  <div className="text-[22px] font-black leading-[1.15] text-navy-900">
                     {row?.name || "—"}
                   </div>
 
-                  <div style={{ marginTop: 6, fontSize: 13, opacity: 0.75 }}>
+                  <div className="mt-1.5 text-[13px] text-muted">
                     {(row?.address ? row.address + ", " : "")}
                     {row?.city || ""}
                     {row?.region ? ` • ${row.region}` : ""}
                     {row?.country ? ` • ${row.country}` : ""}
                   </div>
 
-                  <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+                  <div className="mt-3 grid gap-2">
                     {/* web školy */}
                     {websiteHref ? (
                       <a
                         href={websiteHref}
                         target="_blank"
                         rel="noreferrer"
-                        style={{ fontWeight: 800 }}
+                        className="inline-flex w-fit items-center gap-1 font-black text-brand hover:underline"
                       >
-                        Web školy →
+                        Web školy <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                       </a>
                     ) : null}
 
                     {/* mapy */}
                     {hasCoords ? (
-                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <div className="flex flex-wrap gap-3.5">
                         <a
                           href={`https://mapy.cz/zakladni?x=${lng}&y=${lat}&z=16&source=coor&id=${lat}%2C${lng}`}
                           target="_blank"
                           rel="noreferrer"
-                          style={{ fontWeight: 800 }}
+                          className="inline-flex items-center gap-1 font-black text-brand hover:underline"
                         >
-                          Otevřít v Mapy.cz →
+                          Otevřít v Mapy.cz <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                         </a>
 
                         <a
                           href={`https://www.google.com/maps?q=${lat},${lng}`}
                           target="_blank"
                           rel="noreferrer"
-                          style={{ fontWeight: 800 }}
+                          className="inline-flex items-center gap-1 font-black text-brand hover:underline"
                         >
-                          Otevřít v Google Maps →
+                          Otevřít v Google Maps <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                         </a>
                       </div>
                     ) : null}
 
                     {/* kontakt */}
                     {row?.contact_name || row?.contact_email || row?.contact_phone ? (
-                      <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)", paddingTop: 10 }}>
-                        <div style={{ fontWeight: 900, marginBottom: 6 }}>Kontakt</div>
+                      <div className="border-t border-slate-900/[0.08] pt-2.5">
+                        <div className="mb-1.5 font-black text-navy-900">Kontakt</div>
                         {row?.contact_name ? <div>{row.contact_name}</div> : null}
                         {row?.contact_email ? <div>{row.contact_email}</div> : null}
                         {row?.contact_phone ? <div>{row.contact_phone}</div> : null}
@@ -184,17 +164,17 @@ export default function SchoolDetail() {
 
                     {/* o škole */}
                     {row?.short_description ? (
-                      <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)", paddingTop: 10 }}>
-                        <div style={{ fontWeight: 900, marginBottom: 6 }}>O škole</div>
-                        <div style={{ opacity: 0.85, lineHeight: 1.5 }}>{row.short_description}</div>
+                      <div className="border-t border-slate-900/[0.08] pt-2.5">
+                        <div className="mb-1.5 font-black text-navy-900">O škole</div>
+                        <div className="leading-relaxed text-slate-700">{row.short_description}</div>
                       </div>
                     ) : null}
 
                     {/* popis učebny */}
                     {row?.classroom_description ? (
-                      <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)", paddingTop: 10 }}>
-                        <div style={{ fontWeight: 900, marginBottom: 6 }}>Popis učebny</div>
-                        <div style={{ opacity: 0.85, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+                      <div className="border-t border-slate-900/[0.08] pt-2.5">
+                        <div className="mb-1.5 font-black text-navy-900">Popis učebny</div>
+                        <div className="whitespace-pre-wrap leading-relaxed text-slate-700">
                           {row.classroom_description}
                         </div>
                       </div>
@@ -202,39 +182,25 @@ export default function SchoolDetail() {
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    background: "rgba(0,0,0,0.03)",
-                    minHeight: 320,
-                    position: "relative",
-                  }}
-                >
+                <div className="relative min-h-[320px] bg-slate-900/[0.03]">
                   {photoUrl ? (
                     <img
                       src={photoUrl}
                       alt={row?.name || "Fotka učebny"}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div style={{ padding: 14, opacity: 0.7 }}>
+                    <div className="p-3.5 text-slate-600">
                       Zatím bez fotky.
-                      <div style={{ marginTop: 8, fontSize: 12 }}>
+                      <div className="mt-2 text-xs">
                         Tip: fotku doplníš v <b>Admin – Školy</b>.
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-            </div>
+            </Card>
           )}
-
-          <style jsx>{`
-            @media (max-width: 900px) {
-              div[style*="grid-template-columns: 1fr 1.2fr"] {
-                grid-template-columns: 1fr !important;
-              }
-            }
-          `}</style>
         </div>
       </div>
     </RequireAuth>
