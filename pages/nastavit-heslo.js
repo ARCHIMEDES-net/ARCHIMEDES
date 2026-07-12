@@ -2,6 +2,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useRouter } from "next/router";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Alert } from "../components/ui/alert";
 
 function parseAuthStateFromUrl() {
   if (typeof window === "undefined") {
@@ -208,151 +212,60 @@ export default function NastavitHeslo() {
   }
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Nastavení hesla</h1>
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
+      <Card className="w-full max-w-[440px] p-8">
+        <h1 className="mb-5 text-[32px] font-[950] leading-[1.1] tracking-[-0.03em] text-navy-900">
+          Nastavení hesla
+        </h1>
 
-        {status === "loading" && <p style={styles.text}>{message}</p>}
+        {status === "loading" && <p className="text-muted">{message}</p>}
 
         {status === "error" && (
-          <div style={styles.errorBox}>
-            <p style={styles.errorText}>{message}</p>
-            <div style={styles.actions}>
-              <button
-                type="button"
-                onClick={() => router.push("/reset-hesla")}
-                style={styles.button}
-              >
+          <div className="grid gap-3.5">
+            <Alert variant="error">{message}</Alert>
+            <div className="grid gap-2.5">
+              <Button type="button" onClick={() => router.push("/reset-hesla")}>
                 Požádat o nový odkaz
-              </button>
-
-              <button
-                type="button"
-                onClick={() => router.push("/login")}
-                style={styles.secondaryButton}
-              >
+              </Button>
+              <Button type="button" variant="secondary" onClick={() => router.push("/login")}>
                 Zpět na přihlášení
-              </button>
+              </Button>
             </div>
           </div>
         )}
 
         {status === "ready" && (
           <>
-            <p style={styles.text}>
+            <p className="mb-4.5 mb-4 text-muted">
               Zadejte nové heslo pro dokončení přístupu do ARCHIMEDES Live.
             </p>
 
-            <form onSubmit={handleSetPassword} style={styles.form}>
-              <input
+            <form onSubmit={handleSetPassword} className="grid gap-3">
+              <Input
                 type="password"
                 placeholder="Nové heslo"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={styles.input}
                 autoComplete="new-password"
               />
 
-              <input
+              <Input
                 type="password"
                 placeholder="Potvrzení nového hesla"
                 value={password2}
                 onChange={(e) => setPassword2(e.target.value)}
-                style={styles.input}
                 autoComplete="new-password"
               />
 
-              <button type="submit" disabled={loading} style={styles.button}>
+              <Button type="submit" disabled={loading}>
                 {loading ? "Ukládám..." : "Nastavit heslo"}
-              </button>
+              </Button>
             </form>
           </>
         )}
 
-        {status === "success" && <p style={styles.successText}>{message}</p>}
-      </div>
+        {status === "success" && <p className="font-bold text-emerald-700">{message}</p>}
+      </Card>
     </div>
   );
 }
-
-const styles = {
-  wrapper: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "#f5f7fa",
-    padding: "24px",
-  },
-  card: {
-    background: "#ffffff",
-    padding: "40px",
-    borderRadius: "16px",
-    width: "100%",
-    maxWidth: "440px",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-  },
-  title: {
-    margin: "0 0 20px 0",
-    fontSize: "32px",
-    lineHeight: "1.1",
-    color: "#0f172a",
-  },
-  text: {
-    margin: "0 0 18px 0",
-    color: "#475467",
-    lineHeight: "1.6",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
-  input: {
-    padding: "12px",
-    borderRadius: "8px",
-    border: "1px solid #d0d5dd",
-    fontSize: "16px",
-  },
-  button: {
-    padding: "12px",
-    borderRadius: "8px",
-    border: "none",
-    background: "#0f172a",
-    color: "#fff",
-    cursor: "pointer",
-    fontSize: "16px",
-    fontWeight: 700,
-  },
-  secondaryButton: {
-    padding: "12px",
-    borderRadius: "8px",
-    border: "1px solid #d0d5dd",
-    background: "#ffffff",
-    color: "#0f172a",
-    cursor: "pointer",
-    fontSize: "15px",
-    fontWeight: 700,
-  },
-  errorBox: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "14px",
-  },
-  actions: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  errorText: {
-    margin: 0,
-    color: "#b42318",
-    lineHeight: "1.6",
-  },
-  successText: {
-    margin: 0,
-    color: "#166534",
-    lineHeight: "1.6",
-    fontWeight: 700,
-  },
-};
