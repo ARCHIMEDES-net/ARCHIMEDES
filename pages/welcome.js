@@ -4,6 +4,9 @@ import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import RequireAuth from "../components/RequireAuth";
 import PortalHeader from "../components/PortalHeader";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Alert } from "../components/ui/alert";
 
 async function resolveWelcomeState() {
   const {
@@ -147,276 +150,126 @@ export default function WelcomePage() {
     }
   }
 
-  const cardStyle = {
-    background: "#fff",
-    borderRadius: 20,
-    padding: 22,
-    border: "1px solid rgba(0,0,0,0.08)",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-    display: "flex",
-    flexDirection: "column",
-    minHeight: 220,
-  };
-
-  const primaryLinkStyle = {
-    display: "inline-block",
-    marginTop: 14,
-    padding: "11px 15px",
-    borderRadius: 12,
-    background: "#111827",
-    color: "#fff",
-    textDecoration: "none",
-    fontWeight: 700,
-  };
-
-  const secondaryTextStyle = {
-    marginTop: 10,
-    fontSize: 14,
-    lineHeight: 1.5,
-    color: "rgba(0,0,0,0.58)",
-  };
-
   return (
     <RequireAuth>
-      <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
+      <div className="min-h-screen bg-slate-50">
         <PortalHeader />
 
-        <main
-          style={{ maxWidth: 1040, margin: "0 auto", padding: "40px 16px 56px" }}
-        >
+        <main className="mx-auto max-w-[1040px] px-4 pb-14 pt-10">
           {checkingAccess ? (
-            <div
-              style={{
-                background: "#fff",
-                borderRadius: 24,
-                padding: 28,
-                boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-                border: "1px solid rgba(0,0,0,0.08)",
-              }}
-            >
-              <h1
-                style={{
-                  marginTop: 0,
-                  marginBottom: 10,
-                  fontSize: 30,
-                  lineHeight: 1.15,
-                }}
-              >
+            <Card className="p-7">
+              <h1 className="mb-2.5 text-[30px] font-[950] leading-[1.15] text-navy-900">
                 Ověřujeme váš přístup
               </h1>
-              <p
-                style={{
-                  marginTop: 0,
-                  marginBottom: 0,
-                  color: "rgba(0,0,0,0.68)",
-                  fontSize: 16,
-                  lineHeight: 1.6,
-                }}
-              >
+              <p className="text-base leading-relaxed text-muted">
                 Načítáme váš účet a přiřazení k organizaci…
               </p>
-            </div>
+            </Card>
           ) : (
             <>
-              <div
-                style={{
-                  background: "#fff",
-                  borderRadius: 24,
-                  padding: 28,
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  marginBottom: 22,
-                }}
-              >
-                <h1
-                  style={{
-                    marginTop: 0,
-                    marginBottom: 10,
-                    fontSize: 34,
-                    lineHeight: 1.15,
-                  }}
-                >
+              <Card className="mb-5 p-7">
+                <h1 className="mb-2.5 text-[34px] font-[950] leading-[1.15] text-navy-900">
                   Vítejte v ARCHIMEDES Live
                 </h1>
 
-                <p
-                  style={{
-                    marginTop: 0,
-                    marginBottom: 10,
-                    color: "rgba(0,0,0,0.72)",
-                    fontSize: 17,
-                    lineHeight: 1.6,
-                    maxWidth: 820,
-                  }}
-                >
+                <p className="mb-2.5 max-w-[820px] text-[17px] leading-relaxed text-slate-700">
                   Ještě nejste přiřazeni ke škole, obci ani jiné organizaci.
                   Vyberte, jak chcete v ARCHIMEDES Live pokračovat.
                 </p>
 
-                <p
-                  style={{
-                    marginTop: 0,
-                    marginBottom: 0,
-                    color: "rgba(0,0,0,0.58)",
-                    fontSize: 15,
-                    lineHeight: 1.6,
-                    maxWidth: 860,
-                  }}
-                >
+                <p className="max-w-[860px] text-[15px] leading-relaxed text-slate-500">
                   Přístup do portálu je určen pro registrované organizace, jejich
                   členy a vybrané jednotlivce. Pokud si nejste jistí správnou
                   volbou, můžete jednoduše odeslat žádost o přístup.
                 </p>
 
                 {error ? (
-                  <div
-                    style={{
-                      marginTop: 18,
-                      padding: 12,
-                      borderRadius: 12,
-                      background: "#fff1f1",
-                      color: "#a40000",
-                      border: "1px solid #f2c9c9",
-                    }}
-                  >
+                  <Alert variant="error" className="mt-4">
                     {error}
-                  </div>
+                  </Alert>
                 ) : null}
-              </div>
+              </Card>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-                  gap: 18,
-                }}
-              >
-                <div style={cardStyle}>
-                  <h2 style={{ marginTop: 0, marginBottom: 10, fontSize: 24 }}>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
+                <Card className="flex min-h-[220px] flex-col p-5">
+                  <h2 className="mb-2.5 text-2xl font-black text-navy-900">
                     Připojit se k organizaci
                   </h2>
-
-                  <p
-                    style={{
-                      color: "rgba(0,0,0,0.68)",
-                      lineHeight: 1.6,
-                      margin: 0,
-                    }}
-                  >
+                  <p className="text-slate-600">
                     Máte kód školy, obce, spolku nebo jiné organizace? Připojte se
                     k již existujícímu účtu.
                   </p>
-
-                  <div style={{ marginTop: "auto" }}>
-                    <Link href="/join" style={primaryLinkStyle}>
+                  <div className="mt-auto">
+                    <Button href="/join" className="mt-3.5">
                       Připojit se
-                    </Link>
-
-                    <div style={secondaryTextStyle}>
+                    </Button>
+                    <div className="mt-2.5 text-sm leading-relaxed text-slate-500">
                       Vhodné pro členy školy, obce, senior klubu nebo partnerské
                       organizace.
                     </div>
                   </div>
-                </div>
+                </Card>
 
-                <div style={cardStyle}>
-                  <h2 style={{ marginTop: 0, marginBottom: 10, fontSize: 24 }}>
+                <Card className="flex min-h-[220px] flex-col p-5">
+                  <h2 className="mb-2.5 text-2xl font-black text-navy-900">
                     Vytvořit organizaci
                   </h2>
-
-                  <p
-                    style={{
-                      color: "rgba(0,0,0,0.68)",
-                      lineHeight: 1.6,
-                      margin: 0,
-                    }}
-                  >
+                  <p className="text-slate-600">
                     Jste oprávněný zástupce školy, obce nebo jiné organizace a
                     chcete založit vlastní přístup?
                   </p>
-
-                  <div style={{ marginTop: "auto" }}>
-                    <Link href="/create-organization" style={primaryLinkStyle}>
+                  <div className="mt-auto">
+                    <Button href="/create-organization" className="mt-3.5">
                       Vytvořit organizaci
-                    </Link>
-
-                    <div style={secondaryTextStyle}>
+                    </Button>
+                    <div className="mt-2.5 text-sm leading-relaxed text-slate-500">
                       Tato volba je určena zejména pro školy, obce, spolky a
                       partnery.
                     </div>
                   </div>
-                </div>
+                </Card>
 
-                <div style={cardStyle}>
-                  <h2 style={{ marginTop: 0, marginBottom: 10, fontSize: 24 }}>
+                <Card className="flex min-h-[220px] flex-col p-5">
+                  <h2 className="mb-2.5 text-2xl font-black text-navy-900">
                     Pokračovat jako jednotlivec
                   </h2>
-
-                  <p
-                    style={{
-                      color: "rgba(0,0,0,0.68)",
-                      lineHeight: 1.6,
-                      margin: 0,
-                    }}
-                  >
+                  <p className="text-slate-600">
                     Individuální přístup je určen pro vybrané uživatele, hosty,
                     moderátory, odborníky nebo partnery bez organizačního účtu.
                   </p>
-
-                  <div style={{ marginTop: "auto" }}>
-                    <button
+                  <div className="mt-auto">
+                    <Button
                       type="button"
                       onClick={continueAsIndividual}
                       disabled={savingIndividual}
-                      style={{
-                        display: "inline-block",
-                        marginTop: 14,
-                        padding: "11px 15px",
-                        borderRadius: 12,
-                        background: "#111827",
-                        color: "#fff",
-                        fontWeight: 700,
-                        border: "none",
-                        cursor: savingIndividual ? "default" : "pointer",
-                        opacity: savingIndividual ? 0.7 : 1,
-                      }}
+                      className="mt-3.5"
                     >
                       {savingIndividual ? "Pokračuji..." : "Pokračovat"}
-                    </button>
-
-                    <div style={secondaryTextStyle}>
+                    </Button>
+                    <div className="mt-2.5 text-sm leading-relaxed text-slate-500">
                       Rozsah obsahu se může lišit od přístupu školy nebo obce.
                     </div>
                   </div>
-                </div>
+                </Card>
 
-                <div style={cardStyle}>
-                  <h2 style={{ marginTop: 0, marginBottom: 10, fontSize: 24 }}>
+                <Card className="flex min-h-[220px] flex-col p-5">
+                  <h2 className="mb-2.5 text-2xl font-black text-navy-900">
                     Požádat o přístup
                   </h2>
-
-                  <p
-                    style={{
-                      color: "rgba(0,0,0,0.68)",
-                      lineHeight: 1.6,
-                      margin: 0,
-                    }}
-                  >
+                  <p className="text-slate-600">
                     Nejste si jistí, jaký typ přístupu je pro vás správný? Pošlete
                     nám krátkou žádost a ozveme se vám s dalším postupem.
                   </p>
-
-                  <div style={{ marginTop: "auto" }}>
-                    <Link href="/zadost-o-pristup" style={primaryLinkStyle}>
+                  <div className="mt-auto">
+                    <Button href="/zadost-o-pristup" className="mt-3.5">
                       Odeslat žádost
-                    </Link>
-
-                    <div style={secondaryTextStyle}>
+                    </Button>
+                    <div className="mt-2.5 text-sm leading-relaxed text-slate-500">
                       Vhodné pro nové školy, obce, zájemce o licenci i
                       individuální dotazy.
                     </div>
                   </div>
-                </div>
+                </Card>
               </div>
             </>
           )}
