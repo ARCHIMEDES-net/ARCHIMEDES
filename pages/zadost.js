@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { Badge } from "../components/ui/badge";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Textarea } from "../components/ui/textarea";
+import { Select } from "../components/ui/select";
+import { Label } from "../components/ui/label";
+import { Alert } from "../components/ui/alert";
 
 export default function ZadostPage() {
   const router = useRouter();
@@ -161,48 +169,11 @@ export default function ZadostPage() {
     }
   }
 
-  const fieldStyle = {
-    width: "100%",
-    padding: "12px 14px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.15)",
-    fontSize: 15,
-    boxSizing: "border-box",
-    background: "#fff",
-  };
-
-  const helperStyle = {
-    marginTop: 6,
-    fontSize: 13,
-    color: "rgba(0,0,0,0.62)",
-    lineHeight: 1.5,
-  };
-
-  const cardStyle = {
-    background: "#fff",
-    borderRadius: 24,
-    padding: 28,
-    boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-    border: "1px solid rgba(0,0,0,0.08)",
-  };
-
   return (
-    <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: "40px 16px" }}>
-        <div style={cardStyle}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "8px 12px",
-              borderRadius: 999,
-              background: isDemoRequest ? "#eef2ff" : "#f3f4f6",
-              color: isDemoRequest ? "#1e3a8a" : "#374151",
-              fontSize: 13,
-              fontWeight: 800,
-              marginBottom: 16,
-            }}
-          >
+    <div className="min-h-screen bg-slate-50">
+      <main className="mx-auto max-w-[760px] px-4 py-10">
+        <Card className="p-7">
+          <Badge variant={isDemoRequest ? "default" : "outline"}>
             {submitted
               ? isDemoRequest
                 ? "Žádost přijata"
@@ -210,69 +181,37 @@ export default function ZadostPage() {
               : isDemoRequest
                 ? "Ukázkový přístup pro školy"
                 : "Žádost o program pro obec"}
-          </div>
+          </Badge>
 
           {!submitted ? (
             <>
-              <h1 style={{ marginTop: 0, fontSize: 34, lineHeight: 1.12 }}>
+              <h1 className="mt-4 text-[34px] font-[950] leading-[1.12] tracking-[-0.03em] text-navy-900">
                 {isDemoRequest
                   ? "Požádejte o ukázkový přístup do ARCHIMEDES Live"
                   : "Chci program pro naši obec"}
               </h1>
 
-              <p
-                style={{
-                  color: "rgba(0,0,0,0.72)",
-                  lineHeight: 1.7,
-                  marginBottom: 20,
-                  fontSize: 17,
-                }}
-              >
+              <p className="mb-5 mt-3 text-[17px] leading-relaxed text-muted">
                 {isDemoRequest
                   ? "Vyplňte krátký formulář a po schválení vám pošleme přístup do ukázkového prostředí. Uvidíte, jak vypadá program, archiv i celkové prostředí portálu z pohledu školy."
                   : "Vyplňte krátký formulář — zpracujeme žádost a obec zaregistrujeme."}
               </p>
 
               {isDemoRequest ? (
-                <div
-                  style={{
-                    marginBottom: 18,
-                    padding: 16,
-                    borderRadius: 16,
-                    background: "#eefaf0",
-                    color: "#166534",
-                    border: "1px solid #cfe8d3",
-                    lineHeight: 1.7,
-                  }}
-                >
+                <Alert variant="success" className="mb-5">
                   Ukázkový přístup slouží pouze k prohlížení prostředí
                   ARCHIMEDES Live. Neumožňuje správu školy, vytváření událostí
                   ani spuštění vysílání.
-                </div>
+                </Alert>
               ) : null}
 
               {error ? (
-                <div
-                  style={{
-                    marginBottom: 16,
-                    padding: 12,
-                    borderRadius: 12,
-                    background: "#fff1f1",
-                    color: "#a40000",
-                    border: "1px solid #f2c9c9",
-                  }}
-                >
+                <Alert variant="error" className="mb-4">
                   Chyba: {error}
-                </div>
+                </Alert>
               ) : null}
 
-              <form
-                onSubmit={submitForm}
-                style={{
-                  display: "grid",
-                  gap: 16,
-                }}
-              >
+              <form onSubmit={submitForm} className="grid gap-4">
                 <input
                   type="text"
                   name="company"
@@ -281,44 +220,18 @@ export default function ZadostPage() {
                   autoComplete="off"
                   tabIndex={-1}
                   aria-hidden="true"
-                  style={{
-                    position: "absolute",
-                    left: "-9999px",
-                    opacity: 0,
-                    pointerEvents: "none",
-                    height: 0,
-                    width: 0,
-                  }}
+                  className="pointer-events-none absolute left-[-9999px] h-0 w-0 opacity-0"
                 />
 
                 <div>
-                  <label
-                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-                  >
-                    Jméno a příjmení*
-                  </label>
-                  <input
-                    name="name"
-                    required
-                    value={form.name}
-                    onChange={updateField}
-                    style={fieldStyle}
-                  />
+                  <Label htmlFor="name">Jméno a příjmení*</Label>
+                  <Input id="name" name="name" required value={form.name} onChange={updateField} />
                 </div>
 
                 {!isDemoRequest ? (
                   <div>
-                    <label
-                      style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-                    >
-                      Funkce (volitelně)
-                    </label>
-                    <select
-                      name="role"
-                      value={form.role}
-                      onChange={updateField}
-                      style={fieldStyle}
-                    >
+                    <Label htmlFor="role">Funkce (volitelně)</Label>
+                    <Select id="role" name="role" value={form.role} onChange={updateField}>
                       <option value="">Vyberte</option>
                       <option value="starosta">Starosta/starostka</option>
                       <option value="mistostarosta">Místostarosta/ka</option>
@@ -329,17 +242,16 @@ export default function ZadostPage() {
                         Zástupce spolku v obci
                       </option>
                       <option value="jine">Jiné</option>
-                    </select>
+                    </Select>
                   </div>
                 ) : null}
 
                 <div>
-                  <label
-                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-                  >
+                  <Label htmlFor="organization">
                     {isDemoRequest ? "Škola / organizace*" : "Název obce*"}
-                  </label>
-                  <input
+                  </Label>
+                  <Input
+                    id="organization"
                     name="organization"
                     required
                     value={form.organization}
@@ -349,80 +261,60 @@ export default function ZadostPage() {
                         ? "Např. ZŠ Hodonín, Gymnázium Vyškov..."
                         : "Např. Obec Křenov"
                     }
-                    style={fieldStyle}
                   />
-                  <div style={helperStyle}>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-slate-500">
                     {isDemoRequest
                       ? "Napište prosím školu nebo organizaci, pro kterou chcete ukázkové prostředí zobrazit."
                       : "Napište prosím název obce, která má o program zájem."}
-                  </div>
+                  </p>
                 </div>
 
                 <div>
-                  <label
-                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-                  >
-                    E-mail*
-                  </label>
-                  <input
+                  <Label htmlFor="email">E-mail*</Label>
+                  <Input
                     type="email"
+                    id="email"
                     name="email"
                     required
                     value={form.email}
                     onChange={updateField}
-                    style={fieldStyle}
                   />
                 </div>
 
                 <div>
-                  <label
-                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-                  >
-                    {isDemoRequest ? "Telefon (volitelně)" : "Telefon*"}
-                  </label>
-                  <input
+                  <Label htmlFor="phone">{isDemoRequest ? "Telefon (volitelně)" : "Telefon*"}</Label>
+                  <Input
+                    id="phone"
                     name="phone"
                     required={!isDemoRequest}
                     value={form.phone}
                     onChange={updateField}
-                    style={fieldStyle}
                   />
                 </div>
 
                 <div>
-                  <label
-                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-                  >
+                  <Label htmlFor="address">
                     {isDemoRequest ? "Adresa*" : "Adresa obecního úřadu*"}
-                  </label>
-                  <input
+                  </Label>
+                  <Input
+                    id="address"
                     name="address"
                     required
                     value={form.address}
                     onChange={updateField}
                     placeholder="Ulice, číslo popisné, město, PSČ"
-                    style={fieldStyle}
                   />
-                  <div style={helperStyle}>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-slate-500">
                     {isDemoRequest
                       ? "Uveďte prosím adresu školy nebo organizace."
                       : "Uveďte prosím adresu obecního úřadu."}
-                  </div>
+                  </p>
                 </div>
 
                 {isDemoRequest ? (
                   <div>
-                    <label
-                      style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-                    >
-                      Typ organizace
-                    </label>
-                    <select
-                      name="type"
-                      value={form.type}
-                      onChange={updateField}
-                      style={fieldStyle}
-                    >
+                    <Label htmlFor="type">Typ organizace</Label>
+                    <Select id="type" name="type" value={form.type} onChange={updateField}>
                       <option value="">Vyberte</option>
                       <option value="škola">Škola</option>
                       <option value="obec">Obec / město</option>
@@ -430,42 +322,34 @@ export default function ZadostPage() {
                       <option value="senior-klub">Senior klub</option>
                       <option value="partner">Partner</option>
                       <option value="jine">Jiné / zatím neurčeno</option>
-                    </select>
-                    <div style={helperStyle}>
+                    </Select>
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-slate-500">
                       Pokud zatím nevystupujete za konkrétní organizaci, zvolte
                       „Jiné / zatím neurčeno“.
-                    </div>
+                    </p>
                   </div>
                 ) : null}
 
                 {!isDemoRequest ? (
                   <div>
-                    <label
-                      style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-                    >
-                      Přibližný počet obyvatel (volitelně)
-                    </label>
-                    <input
+                    <Label htmlFor="population">Přibližný počet obyvatel (volitelně)</Label>
+                    <Input
+                      id="population"
                       name="population"
                       value={form.population}
                       onChange={updateField}
-                      style={fieldStyle}
                     />
                   </div>
                 ) : null}
 
                 <div>
-                  <label
-                    style={{ display: "block", marginBottom: 8, fontWeight: 600 }}
-                  >
-                    {isDemoRequest ? "Poznámka" : "Zpráva (volitelně)"}
-                  </label>
-                  <textarea
+                  <Label htmlFor="message">{isDemoRequest ? "Poznámka" : "Zpráva (volitelně)"}</Label>
+                  <Textarea
+                    id="message"
                     name="message"
                     rows={5}
                     value={form.message}
                     onChange={updateField}
-                    style={{ ...fieldStyle, resize: "vertical" }}
                     placeholder={
                       isDemoRequest
                         ? "Můžete doplnit, jakou roli ve škole máte, co vás zajímá nejvíce nebo co byste si chtěli v ukázce ověřit."
@@ -474,69 +358,26 @@ export default function ZadostPage() {
                   />
                 </div>
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 10,
-                    flexWrap: "wrap",
-                    marginTop: 4,
-                  }}
-                >
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    style={{
-                      padding: "12px 16px",
-                      borderRadius: 12,
-                      background: "#111827",
-                      color: "#fff",
-                      fontWeight: 700,
-                      border: "none",
-                      cursor: saving ? "default" : "pointer",
-                      opacity: saving ? 0.7 : 1,
-                    }}
-                  >
+                <div className="mt-1 flex flex-wrap gap-2.5">
+                  <Button type="submit" disabled={saving}>
                     {saving
                       ? "Odesílám..."
                       : isDemoRequest
                         ? "Požádat o ukázkový přístup"
                         : "Odeslat žádost"}
-                  </button>
+                  </Button>
 
-                  <Link
-                    href={isDemoRequest ? "/demo" : "/"}
-                    style={{
-                      display: "inline-block",
-                      padding: "12px 16px",
-                      borderRadius: 12,
-                      background: "#fff",
-                      color: "#111827",
-                      textDecoration: "none",
-                      fontWeight: 700,
-                      border: "1px solid rgba(0,0,0,0.12)",
-                    }}
-                  >
+                  <Button href={isDemoRequest ? "/demo" : "/"} variant="secondary">
                     {isDemoRequest ? "Zpět na ukázku" : "Zpět na hlavní stránku"}
-                  </Link>
+                  </Button>
                 </div>
               </form>
 
               {!isDemoRequest ? (
-                <p
-                  style={{
-                    marginTop: 20,
-                    marginBottom: 0,
-                    fontSize: 14,
-                    lineHeight: 1.6,
-                    color: "rgba(0,0,0,0.62)",
-                  }}
-                >
+                <p className="mt-5 text-sm leading-relaxed text-slate-500">
                   Zastupujete spolek, ne obecní úřad? Pokud vaše obec už má
                   ARCHIMEDES Live aktivovaný, zaregistrujte se rovnou{" "}
-                  <Link
-                    href="/registrace-spolku"
-                    style={{ color: "#111827", fontWeight: 700 }}
-                  >
+                  <Link href="/registrace-spolku" className="font-bold text-navy-900">
                     zde
                   </Link>
                   .
@@ -545,40 +386,19 @@ export default function ZadostPage() {
             </>
           ) : (
             <>
-              <h1 style={{ marginTop: 0, fontSize: 34, lineHeight: 1.12 }}>
+              <h1 className="mt-4 text-[34px] font-[950] leading-[1.12] tracking-[-0.03em] text-navy-900">
                 {isDemoRequest
                   ? "Žádost o ukázkový přístup jsme přijali"
                   : "Žádost jsme přijali"}
               </h1>
 
-              <div
-                style={{
-                  marginTop: 20,
-                  marginBottom: 24,
-                  padding: 18,
-                  borderRadius: 18,
-                  background: "#eefaf0",
-                  color: "#166534",
-                  border: "1px solid #cfe8d3",
-                  lineHeight: 1.8,
-                  whiteSpace: "pre-line",
-                  fontSize: 16,
-                }}
-              >
+              <Alert variant="success" className="mb-6 mt-5 whitespace-pre-line text-base">
                 {message}
-              </div>
+              </Alert>
 
-              <div
-                style={{
-                  display: "grid",
-                  gap: 12,
-                  marginBottom: 26,
-                  color: "rgba(0,0,0,0.72)",
-                  lineHeight: 1.7,
-                }}
-              >
+              <div className="mb-7 grid gap-3 text-base leading-relaxed text-muted">
                 <div>
-                  <strong>Co bude následovat:</strong>
+                  <strong className="text-navy-900">Co bude následovat:</strong>
                 </div>
                 {isDemoRequest ? (
                   <>
@@ -599,48 +419,15 @@ export default function ZadostPage() {
                 )}
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: 10,
-                  flexWrap: "wrap",
-                }}
-              >
-                <Link
-                  href="/"
-                  style={{
-                    display: "inline-block",
-                    padding: "12px 16px",
-                    borderRadius: 12,
-                    background: "#111827",
-                    color: "#fff",
-                    textDecoration: "none",
-                    fontWeight: 700,
-                    border: "none",
-                  }}
-                >
-                  Zpět na hlavní stránku
-                </Link>
-
-                <Link
-                  href={isDemoRequest ? "/demo" : "/login"}
-                  style={{
-                    display: "inline-block",
-                    padding: "12px 16px",
-                    borderRadius: 12,
-                    background: "#fff",
-                    color: "#111827",
-                    textDecoration: "none",
-                    fontWeight: 700,
-                    border: "1px solid rgba(0,0,0,0.12)",
-                  }}
-                >
+              <div className="flex flex-wrap gap-2.5">
+                <Button href="/">Zpět na hlavní stránku</Button>
+                <Button href={isDemoRequest ? "/demo" : "/login"} variant="secondary">
                   {isDemoRequest ? "Zpět na ukázku" : "Přejít na přihlášení"}
-                </Link>
+                </Button>
               </div>
             </>
           )}
-        </div>
+        </Card>
       </main>
     </div>
   );
