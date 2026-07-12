@@ -1,6 +1,17 @@
 import Head from "next/head";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
+import { supabase } from "../lib/supabaseClient";
+
+const DOBRA_PRAXE_BUCKET = "dobra-praxe";
+
+const CATEGORY_LABELS = {
+  obec: "Obec",
+  spolek: "Spolek",
+  skola: "Škola",
+  seniori: "Senioři",
+};
 
 const points = [
   {
@@ -37,6 +48,33 @@ const cenikItems = [
 ];
 
 export default function ObecPage() {
+  const [featured, setFeatured] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadFeatured() {
+      const { data } = await supabase
+        .from("best_practice_posts")
+        .select("title, body, photo_paths, category, organizations(name)")
+        .eq("status", "approved")
+        .eq("is_featured", true)
+        .maybeSingle();
+
+      if (!alive) return;
+      setFeatured(data || null);
+    }
+
+    loadFeatured();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const featuredPhoto = featured?.photo_paths?.[0]
+    ? supabase.storage.from(DOBRA_PRAXE_BUCKET).getPublicUrl(featured.photo_paths[0]).data?.publicUrl
+    : "";
+
   return (
     <>
       <Head>
@@ -66,6 +104,29 @@ export default function ObecPage() {
               </div>
             ))}
           </div>
+
+          {featured ? (
+            <section className="praxeSection">
+              <div className="eyebrow">Dobrá praxe</div>
+              <h2>Jak to dělají jinde</h2>
+
+              <article className="praxeCard">
+                {featuredPhoto ? (
+                  <div className="praxePhotoWrap">
+                    <img src={featuredPhoto} alt={featured.title} />
+                  </div>
+                ) : null}
+                <div className="praxeBody">
+                  <span className="praxeBadge">
+                    {CATEGORY_LABELS[featured.category] || featured.category} ·{" "}
+                    {featured.organizations?.name}
+                  </span>
+                  <h3>{featured.title}</h3>
+                  <p>{featured.body}</p>
+                </div>
+              </article>
+            </section>
+          ) : null}
 
           <section id="cenik" className="pricingSection">
             <div className="eyebrow">Ceník</div>
@@ -183,6 +244,70 @@ export default function ObecPage() {
           font-size: 15px;
           line-height: 1.6;
           color: #5b6676;
+        }
+
+        .praxeSection {
+          margin-top: 56px;
+        }
+
+        .praxeSection h2 {
+          margin: 0;
+          font-size: 28px;
+          letter-spacing: -0.03em;
+          font-weight: 950;
+          color: #0f172a;
+        }
+
+        .praxeCard {
+          margin-top: 22px;
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 26px;
+          overflow: hidden;
+          display: flex;
+          flex-wrap: wrap;
+        }
+
+        .praxePhotoWrap {
+          flex: 1 1 280px;
+          min-height: 220px;
+        }
+
+        .praxePhotoWrap img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .praxeBody {
+          flex: 1 1 320px;
+          padding: 26px 28px;
+        }
+
+        .praxeBadge {
+          display: inline-flex;
+          padding: 5px 12px;
+          border-radius: 999px;
+          background: #eef4ff;
+          color: #1e3a5f;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .praxeBody h3 {
+          margin: 14px 0 0;
+          font-size: 21px;
+          letter-spacing: -0.02em;
+          color: #0f172a;
+        }
+
+        .praxeBody p {
+          margin: 10px 0 0;
+          font-size: 15px;
+          line-height: 1.65;
+          color: #475569;
+          white-space: pre-wrap;
         }
 
         .pricingSection {

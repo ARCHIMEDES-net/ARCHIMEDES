@@ -270,10 +270,12 @@ export default function PortalHeader({ title = "" }) {
     if (key === "archiv") return path.startsWith("/portal/archiv");
     if (key === "komunita") return path.startsWith("/portal/komunita");
     if (key === "souteze") return path.startsWith("/portal/souteze");
+    if (key === "dobra-praxe") return path.startsWith("/portal/dobra-praxe");
     if (key === "profil") return path.startsWith("/portal/muj-profil");
     if (key === "uzivatele") return path.startsWith("/portal/uzivatele");
     if (key === "sprava-vysilani") return path.startsWith("/portal/admin-udalosti");
     if (key === "email-skupiny") return path.startsWith("/portal/email-skupiny");
+    if (key === "admin-dobra-praxe") return path.startsWith("/portal/admin-dobra-praxe");
     if (key === "admin") return path.startsWith("/portal/admin");
     return false;
   };
@@ -295,6 +297,7 @@ export default function PortalHeader({ title = "" }) {
     { key: "archiv", href: "/portal/archiv", label: "Archiv" },
     { key: "komunita", href: "/portal/komunita", label: "Komunita" },
     { key: "souteze", href: "/portal/souteze", label: "Soutěže a projekty" },
+    { key: "dobra-praxe", href: "/portal/dobra-praxe", label: "Dobrá praxe" },
     { key: "profil", href: "/portal/muj-profil", label: "Můj profil" },
   ];
 
@@ -318,6 +321,13 @@ export default function PortalHeader({ title = "" }) {
           key: "uzivatele",
           href: "/portal/uzivatele",
           label: "Uživatelé",
+        }
+      : null,
+    !loadingRole && !isDemoViewer && isPlatformAdmin
+      ? {
+          key: "admin-dobra-praxe",
+          href: "/portal/admin-dobra-praxe",
+          label: "Dobrá praxe – schvalování",
         }
       : null,
     !loadingRole && !isDemoViewer && isPlatformAdmin
