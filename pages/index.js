@@ -87,9 +87,9 @@ export default function Home() {
 
       <main className="bg-white text-slate-900">
         {/* HERO */}
-        <section className="pt-12 md:pt-16">
+        <section className="pt-10 md:pt-12">
           <div className="mx-auto max-w-[1180px] px-5">
-            <div className="grid gap-12 pb-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
+            <div className="grid gap-10 pb-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-14">
               <div>
                 <SectionEyebrow>{hero.eyebrow}</SectionEyebrow>
 
@@ -135,7 +135,11 @@ export default function Home() {
                 />
 
                 {hero.floatingCard.visible ? (
-                  <div className="absolute inset-x-4 bottom-4 ml-auto flex max-w-[300px] items-center gap-3 rounded-[18px] bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.18)]">
+                  <Link
+                    href={hero.primaryCta.href}
+                    onClick={() => track("klik_home_floating_card")}
+                    className="absolute inset-x-4 bottom-4 ml-auto flex max-w-[300px] items-center gap-3 rounded-[18px] bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.18)] transition-transform hover:-translate-y-0.5"
+                  >
                     <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-navy-900 text-white">
                       <Users className="h-5 w-5" aria-hidden="true" />
                     </span>
@@ -147,7 +151,7 @@ export default function Home() {
                         {hero.floatingCard.text}
                       </span>
                     </div>
-                  </div>
+                  </Link>
                 ) : null}
               </div>
             </div>
@@ -163,7 +167,7 @@ export default function Home() {
         </section>
 
         {/* LIVE + CALENDAR */}
-        <section id="kalendar" className="py-20">
+        <section id="kalendar" className="py-12">
           <div className="mx-auto max-w-[1180px] px-5 grid gap-10 lg:grid-cols-[1.5fr_1fr] lg:items-start">
             <div>
               <SectionEyebrow>{liveSection.eyebrow}</SectionEyebrow>
@@ -210,7 +214,7 @@ export default function Home() {
 
         {/* PARTNERS */}
         {visiblePartners.length ? (
-          <section className="border-y border-slate-100 bg-slate-50 py-16">
+          <section className="border-y border-slate-100 bg-slate-50 py-12">
             <div className="mx-auto max-w-[1180px] px-5">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
@@ -246,7 +250,7 @@ export default function Home() {
         ) : null}
 
         {/* FEATURES */}
-        <section id="jak-to-funguje" className="py-20">
+        <section id="jak-to-funguje" className="py-12">
           <div className="mx-auto max-w-[1180px] px-5">
             <div className="flex flex-wrap items-center justify-between gap-8">
               <div className="max-w-2xl flex-1">
@@ -284,7 +288,7 @@ export default function Home() {
 
         {/* COMMUNITY & SENIORS */}
         {communitySection.visible ? (
-          <section className="border-y border-slate-100 bg-slate-50 py-20">
+          <section className="border-y border-slate-100 bg-slate-50 py-12">
             <div className="mx-auto max-w-[1180px] px-5 grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
               <div className="aspect-[4/3.1] overflow-hidden rounded-card-lg shadow-[0_24px_60px_rgba(15,23,42,0.14)]">
                 <PhotoWithFallback
@@ -317,7 +321,7 @@ export default function Home() {
 
         {/* ATMOSPHERE / EVENTS */}
         {atmosphereSection.visible && visibleAtmospherePhotos.length ? (
-          <section className="py-20">
+          <section className="py-12">
             <div className="mx-auto max-w-[1180px] px-5">
               <SectionEyebrow>{atmosphereSection.eyebrow}</SectionEyebrow>
               <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
@@ -352,7 +356,7 @@ export default function Home() {
 
         {/* REFERENCES */}
         {visibleReferences.length ? (
-          <section id="reference" className="py-20">
+          <section id="reference" className="py-12">
             <div className="mx-auto max-w-[1180px] px-5">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
@@ -384,7 +388,7 @@ export default function Home() {
 
         {/* CTA BAND */}
         {ctaBand.visible ? (
-          <section className="pb-20">
+          <section className="pb-16">
             <div className="mx-auto max-w-[1180px] px-5">
               <div className="flex flex-col items-start gap-6 rounded-card-lg bg-eyebrow p-8 sm:flex-row sm:items-center sm:justify-between sm:p-10">
                 <div className="flex items-center gap-4">
