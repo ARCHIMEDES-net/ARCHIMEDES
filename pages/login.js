@@ -2,7 +2,13 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Alert } from "../components/ui/alert";
 
 function readAuthParams() {
   if (typeof window === "undefined") {
@@ -328,303 +334,104 @@ export default function LoginPage() {
   }
 
   return (
-    <main
-      style={{
-        minHeight: "calc(100vh - 90px)",
-        background: "#f5f7fb",
-        padding: "48px 16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily:
-          'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 560,
-          background: "#fff",
-          borderRadius: 28,
-          border: "1px solid rgba(15,23,42,0.08)",
-          boxShadow: "0 20px 60px rgba(15,23,42,0.08)",
-          padding: "26px 26px 24px",
-        }}
-      >
-        <div style={{ marginBottom: 18 }}>
-          <h1
-            style={{
-              margin: 0,
-              fontSize: 32,
-              lineHeight: 1.08,
-              letterSpacing: "-0.03em",
-              color: "#0f172a",
-            }}
-          >
+    <main className="flex min-h-[calc(100vh-90px)] items-center justify-center bg-slate-50 px-4 py-12">
+      <Card className="w-full max-w-[560px] p-6 sm:p-7">
+        <div className="mb-4">
+          <h1 className="text-[32px] font-[950] leading-[1.08] tracking-[-0.03em] text-navy-900">
             Přihlášení
           </h1>
-
-          <p
-            style={{
-              margin: "10px 0 0",
-              fontSize: 16,
-              lineHeight: 1.65,
-              color: "rgba(15,23,42,0.68)",
-            }}
-          >
+          <p className="mt-2.5 text-base leading-relaxed text-muted">
             Přihlaste se do svého účtu ARCHIMEDES Live.
           </p>
         </div>
 
         {checkingLink ? (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "12px 14px",
-              borderRadius: 14,
-              background: "#f8fafc",
-              border: "1px solid rgba(15,23,42,0.08)",
-              color: "#334155",
-              fontSize: 14,
-            }}
-          >
+          <Alert variant="neutral" className="mb-4">
             Ověřujeme přihlašovací odkaz…
-          </div>
+          </Alert>
         ) : null}
 
         {error ? (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "12px 14px",
-              borderRadius: 14,
-              background: "#fff1f2",
-              border: "1px solid #fecdd3",
-              color: "#be123c",
-              fontSize: 14,
-              lineHeight: 1.5,
-            }}
-          >
+          <Alert variant="error" className="mb-4">
             {error}
-          </div>
+          </Alert>
         ) : null}
 
         {message ? (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "12px 14px",
-              borderRadius: 14,
-              background: "#ecfdf5",
-              border: "1px solid #bbf7d0",
-              color: "#166534",
-              fontSize: 14,
-              lineHeight: 1.5,
-            }}
-          >
+          <Alert variant="success" className="mb-4">
             {message}
-          </div>
+          </Alert>
         ) : null}
 
         <form onSubmit={handleLogin}>
-          <div style={{ marginBottom: 16 }}>
-            <label
-              htmlFor="email"
-              style={{
-                display: "block",
-                marginBottom: 8,
-                fontSize: 15,
-                fontWeight: 800,
-                color: "#0f172a",
-              }}
-            >
-              E-mail
-            </label>
-            <input
+          <div className="mb-4">
+            <Label htmlFor="email">E-mail</Label>
+            <Input
               id="email"
               type="email"
               autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={inputStyle}
             />
           </div>
 
-          <div style={{ marginBottom: 10 }}>
-            <label
-              htmlFor="password"
-              style={{
-                display: "block",
-                marginBottom: 8,
-                fontSize: 15,
-                fontWeight: 800,
-                color: "#0f172a",
-              }}
-            >
-              Heslo
-            </label>
+          <div className="mb-2.5">
+            <Label htmlFor="password">Heslo</Label>
 
-            <div style={{ position: "relative" }}>
-              <input
+            <div className="relative">
+              <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ ...inputStyle, paddingRight: 54 }}
+                className="pr-12"
               />
 
               <button
                 type="button"
                 aria-label={showPassword ? "Skrýt heslo" : "Zobrazit heslo"}
                 onClick={() => setShowPassword((v) => !v)}
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  right: 12,
-                  transform: "translateY(-50%)",
-                  width: 32,
-                  height: 32,
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  fontSize: 18,
-                  lineHeight: 1,
-                  color: "#475569",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-slate-600"
               >
-                {showPassword ? "🙈" : "👁"}
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <Eye className="h-5 w-5" aria-hidden="true" />
+                )}
               </button>
             </div>
           </div>
 
-          <div style={{ marginBottom: 18 }}>
-            <Link
-              href="/reset-hesla"
-              style={{
-                fontSize: 14,
-                color: "#334155",
-                textDecoration: "underline",
-                textUnderlineOffset: 2,
-              }}
-            >
+          <div className="mb-4">
+            <Link href="/reset-hesla" className="text-sm text-slate-700 underline underline-offset-2">
               Zapomenuté heslo
             </Link>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              flexWrap: "wrap",
-              marginBottom: 22,
-            }}
-          >
-            <button
-              type="submit"
-              disabled={loading || checkingLink}
-              style={{
-                ...primaryBtn,
-                opacity: loading || checkingLink ? 0.8 : 1,
-                cursor: loading || checkingLink ? "default" : "pointer",
-              }}
-            >
+          <div className="mb-5 flex flex-wrap gap-2.5">
+            <Button type="submit" disabled={loading || checkingLink}>
               {loading ? "Přihlašuji..." : "Přihlásit se"}
-            </button>
+            </Button>
 
-            <Link href="/zadost" style={secondaryBtn}>
+            <Button href="/zadost" variant="secondary">
               Chci program pro naši obec
-            </Link>
+            </Button>
           </div>
         </form>
 
-        <div
-          style={{
-            borderTop: "1px solid rgba(15,23,42,0.08)",
-            paddingTop: 20,
-            marginTop: 6,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 15,
-              fontWeight: 800,
-              color: "#0f172a",
-              marginBottom: 12,
-            }}
-          >
+        <div className="mt-1.5 border-t border-slate-900/[0.08] pt-5">
+          <div className="mb-3 text-[15px] font-black text-navy-900">
             Dostali jste pozvánku od administrátora?
           </div>
 
-          <Link href="/join" style={fullPrimaryBtn}>
+          <Button href="/join" className="w-full">
             Připojit k organizaci
-          </Link>
+          </Button>
         </div>
-      </div>
+      </Card>
     </main>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  minHeight: 54,
-  padding: "0 16px",
-  borderRadius: 16,
-  border: "1px solid rgba(15,23,42,0.14)",
-  fontSize: 16,
-  color: "#0f172a",
-  background: "#fff",
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-const primaryBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minHeight: 48,
-  padding: "0 18px",
-  borderRadius: 14,
-  border: "1px solid #0f172a",
-  background: "#0f172a",
-  color: "#fff",
-  fontWeight: 800,
-  fontSize: 15,
-  textDecoration: "none",
-};
-
-const secondaryBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minHeight: 48,
-  padding: "0 18px",
-  borderRadius: 14,
-  border: "1px solid rgba(15,23,42,0.14)",
-  background: "#fff",
-  color: "#0f172a",
-  fontWeight: 800,
-  fontSize: 15,
-  textDecoration: "none",
-};
-
-const fullPrimaryBtn = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  minHeight: 52,
-  padding: "0 18px",
-  borderRadius: 16,
-  border: "1px solid #0f172a",
-  background: "#0f172a",
-  color: "#fff",
-  fontWeight: 800,
-  fontSize: 16,
-  textDecoration: "none",
-};
