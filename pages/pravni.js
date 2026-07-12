@@ -1,89 +1,99 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import Footer from "../components/Footer";
+import { Card } from "../components/ui/card";
+import SectionEyebrow from "../components/home/SectionEyebrow";
 
 const documents = [
   {
     href: "/vop",
     title: "Všeobecné obchodní podmínky",
-    text:
-      "Podmínky poskytování služby ARCHIMEDES Live, objednávky, rozsah služby, odpovědnost a pravidla užívání.",
+    text: "Podmínky poskytování služby ARCHIMEDES Live, objednávky, rozsah služby, odpovědnost a pravidla užívání.",
   },
   {
     href: "/dpa",
     title: "Smlouva o zpracování osobních údajů (DPA)",
-    text:
-      "Základní rámec zpracování osobních údajů mezi školou nebo organizací a společností EduVision s.r.o.",
+    text: "Základní rámec zpracování osobních údajů mezi školou nebo organizací a společností EduVision s.r.o.",
   },
   {
     href: "/pravidla-zaznamu",
     title: "Pravidla pořizování a zpřístupnění záznamů",
-    text:
-      "Informace o tom, jak ARCHIMEDES Live pracuje se záznamy vysílání a archivem pro registrované uživatele.",
+    text: "Informace o tom, jak ARCHIMEDES Live pracuje se záznamy vysílání a archivem pro registrované uživatele.",
   },
   {
     href: "/ochrana-osobnich-udaju",
     title: "Informace o zpracování osobních údajů",
-    text:
-      "Základní informace o tom, jak EduVision s.r.o. zpracovává osobní údaje v souvislosti s webem a službou ARCHIMEDES Live.",
+    text: "Základní informace o tom, jak EduVision s.r.o. zpracovává osobní údaje v souvislosti s webem a službou ARCHIMEDES Live.",
   },
 ];
 
 export default function PravniPage() {
   return (
     <>
-      <main style={styles.page}>
-        <div style={styles.wrap}>
-          <div style={styles.topNav}>
-            <Link href="/" style={styles.backLink}>
+      <main className="min-h-screen bg-gradient-to-b from-slate-50 via-slate-100/60 to-white px-5 pb-10 pt-8">
+        <div className="mx-auto max-w-[1120px]">
+          <div className="mb-4">
+            <Link href="/" className="text-sm font-bold text-brand hover:underline">
               ← Zpět na web
             </Link>
           </div>
 
-          <header style={styles.hero}>
-            <span style={styles.badge}>ARCHIMEDES Live</span>
-            <h1 style={styles.h1}>Právní informace</h1>
-            <p style={styles.lead}>
+          <Card className="mb-5 p-7 sm:p-8">
+            <SectionEyebrow>ARCHIMEDES Live</SectionEyebrow>
+            <h1 className="text-[34px] font-[950] leading-[1.05] tracking-[-0.04em] text-navy-900 sm:text-[44px]">
+              Právní informace
+            </h1>
+            <p className="mt-3 max-w-[860px] text-lg leading-relaxed text-muted">
               Na této stránce najdete přehled základních právních dokumentů
               souvisejících se službou ARCHIMEDES Live, objednávkovým procesem,
               ochranou osobních údajů a prací se záznamy.
             </p>
-          </header>
+          </Card>
 
-          <section style={styles.grid}>
+          <section className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {documents.map((doc) => (
-              <article key={doc.href} style={styles.docCard}>
-                <h2 style={styles.docTitle}>{doc.title}</h2>
-                <p style={styles.docText}>{doc.text}</p>
-                <Link href={doc.href} style={styles.docLink}>
-                  Otevřít dokument →
+              <Card key={doc.href} className="p-6">
+                <h2 className="text-2xl font-black leading-[1.18] text-navy-900">{doc.title}</h2>
+                <p className="mb-3.5 mt-2.5 text-base leading-relaxed text-muted">{doc.text}</p>
+                <Link
+                  href={doc.href}
+                  className="inline-flex items-center gap-1.5 text-[15px] font-black text-brand hover:text-navy-900"
+                >
+                  Otevřít dokument <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
-              </article>
+              </Card>
             ))}
           </section>
 
-          <section style={styles.infoRow}>
-            <div style={styles.cardLarge}>
-              <h2 style={styles.h2}>Používání portálu ARCHIMEDES Live</h2>
-              <p style={styles.p}>
+          <section className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+            <Card className="p-7">
+              <h2 className="text-[28px] font-black leading-[1.15] text-navy-900">
+                Používání portálu ARCHIMEDES Live
+              </h2>
+              <p className="mb-3.5 mt-3.5 text-[17px] leading-relaxed text-slate-700">
                 Portál ARCHIMEDES Live je online vzdělávací a komunitní prostředí
                 určené pro školy, obce, organizace a další zapojené subjekty.
               </p>
-              <p style={styles.p}>
+              <p className="mb-3.5 text-[17px] leading-relaxed text-slate-700">
                 Uživatelé jsou povinni využívat portál v souladu s jeho účelem,
                 nenarušovat jeho technické fungování a nešířit obsah, který je v
                 rozporu s právními předpisy, dobrými mravy nebo pravidly slušné
                 komunikace.
               </p>
-              <p style={styles.p}>
+              <p className="text-[17px] leading-relaxed text-slate-700">
                 Provozovatel si vyhrazuje právo omezit nebo zrušit přístup
                 uživateli, který tato pravidla porušuje.
               </p>
-            </div>
+            </Card>
 
-            <div style={styles.cardSide}>
-              <div style={styles.sideLabel}>Dodavatel služby</div>
-              <div style={styles.sideCompany}>EduVision s.r.o.</div>
-              <p style={styles.sideText}>
+            <Card className="border-blue-900/[0.08] bg-eyebrow p-6">
+              <div className="mb-2.5 text-xs font-black uppercase tracking-[0.04em] text-navy-600">
+                Dodavatel služby
+              </div>
+              <div className="mb-2.5 text-2xl font-black leading-[1.1] text-navy-900">
+                EduVision s.r.o.
+              </div>
+              <p className="mb-2.5 text-[15px] leading-relaxed text-navy-600">
                 Purkyňova 649/127, Medlánky
                 <br />
                 612 00 Brno
@@ -92,36 +102,37 @@ export default function PravniPage() {
                 <br />
                 DIČ: CZ17803039
               </p>
-              <p style={styles.sideMeta}>
+              <p className="text-[13px] leading-relaxed text-slate-500">
                 zapsána pod značkou C 131579/KSBR
                 <br />
                 Krajským soudem v Brně
               </p>
-            </div>
+            </Card>
           </section>
 
-          <section style={styles.card}>
-            <h2 style={styles.h2}>Cookies</h2>
-            <p style={styles.p}>
+          <Card className="mb-4 p-7">
+            <h2 className="text-[28px] font-black leading-[1.15] text-navy-900">Cookies</h2>
+            <p className="mb-3.5 mt-3.5 text-[17px] leading-relaxed text-slate-700">
               Portál ARCHIMEDES Live používá nezbytné technické cookies, které
               slouží zejména k zajištění přihlášení uživatele, správnému fungování
               relace a zabezpečení přístupu k jednotlivým částem systému.
             </p>
-            <p style={styles.p}>
+            <p className="mb-3.5 text-[17px] leading-relaxed text-slate-700">
               Bez těchto cookies by nebylo možné portál řádně používat. Pokud budou
               do budoucna na web doplněny analytické nebo marketingové nástroje,
               bude tato část rozšířena o odpovídající správu souhlasů.
             </p>
-            <div style={styles.notice}>
+            <div className="mb-3.5 mt-2 rounded-2xl border border-slate-900/[0.08] bg-slate-50 p-4 text-[15px] leading-relaxed text-slate-700">
               V případě dotazů k provozu portálu, ochraně osobních údajů nebo práci
               se záznamy můžete využít kontaktní stránku na hlavním webu.
             </div>
-            <p style={styles.p}>
-              <Link href="/kontakt" style={styles.inlineLink}>
-                Přejít na kontaktní stránku →
-              </Link>
-            </p>
-          </section>
+            <Link
+              href="/kontakt"
+              className="inline-flex items-center gap-1.5 text-[15px] font-black text-brand hover:text-navy-900"
+            >
+              Přejít na kontaktní stránku <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </Card>
         </div>
       </main>
 
@@ -129,177 +140,3 @@ export default function PravniPage() {
     </>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background:
-      "linear-gradient(180deg, #f7f8fb 0%, #eef2f7 45%, #ffffff 100%)",
-    padding: "32px 20px 40px",
-    color: "#0f172a",
-    fontFamily:
-      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-  },
-  wrap: {
-    maxWidth: "1120px",
-    margin: "0 auto",
-  },
-  topNav: {
-    marginBottom: "18px",
-  },
-  backLink: {
-    color: "#1d4ed8",
-    textDecoration: "none",
-    fontWeight: 700,
-  },
-  inlineLink: {
-    color: "#1d4ed8",
-    textDecoration: "none",
-    fontWeight: 800,
-  },
-  hero: {
-    background: "#ffffff",
-    border: "1px solid rgba(15,23,42,0.08)",
-    borderRadius: "28px",
-    padding: "34px 30px",
-    boxShadow: "0 20px 50px rgba(15,23,42,0.05)",
-    marginBottom: "22px",
-  },
-  badge: {
-    display: "inline-block",
-    background: "#e9eef8",
-    color: "#223252",
-    fontWeight: 800,
-    fontSize: "13px",
-    padding: "8px 12px",
-    borderRadius: "999px",
-    marginBottom: "14px",
-    letterSpacing: "0.02em",
-  },
-  h1: {
-    margin: "0 0 12px",
-    fontSize: "44px",
-    lineHeight: 1.05,
-    letterSpacing: "-0.04em",
-    fontWeight: 900,
-    color: "#0f172a",
-  },
-  lead: {
-    margin: 0,
-    fontSize: "18px",
-    lineHeight: 1.75,
-    color: "#475569",
-    maxWidth: "860px",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: "18px",
-    marginBottom: "22px",
-  },
-  docCard: {
-    background: "#ffffff",
-    border: "1px solid rgba(15,23,42,0.08)",
-    borderRadius: "24px",
-    padding: "26px 24px",
-    boxShadow: "0 14px 40px rgba(15,23,42,0.05)",
-  },
-  docTitle: {
-    margin: "0 0 10px",
-    fontSize: "24px",
-    lineHeight: 1.18,
-    fontWeight: 900,
-    color: "#0f172a",
-  },
-  docText: {
-    margin: "0 0 14px",
-    fontSize: "16px",
-    lineHeight: 1.7,
-    color: "#475569",
-  },
-  docLink: {
-    color: "#1d4ed8",
-    textDecoration: "none",
-    fontWeight: 800,
-    fontSize: "15px",
-  },
-  infoRow: {
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 1.2fr) minmax(280px, 0.8fr)",
-    gap: "18px",
-    marginBottom: "18px",
-  },
-  cardLarge: {
-    background: "#ffffff",
-    border: "1px solid rgba(15,23,42,0.08)",
-    borderRadius: "24px",
-    padding: "28px",
-    boxShadow: "0 14px 40px rgba(15,23,42,0.05)",
-  },
-  cardSide: {
-    background: "#eef3fb",
-    border: "1px solid rgba(30,64,175,0.08)",
-    borderRadius: "24px",
-    padding: "24px",
-    boxShadow: "0 14px 40px rgba(15,23,42,0.05)",
-  },
-  sideLabel: {
-    fontSize: "12px",
-    lineHeight: 1.4,
-    fontWeight: 800,
-    letterSpacing: "0.04em",
-    textTransform: "uppercase",
-    color: "#1e3a8a",
-    marginBottom: "10px",
-  },
-  sideCompany: {
-    fontSize: "24px",
-    lineHeight: 1.1,
-    fontWeight: 900,
-    color: "#0f172a",
-    marginBottom: "10px",
-  },
-  sideText: {
-    margin: "0 0 10px",
-    fontSize: "15px",
-    lineHeight: 1.7,
-    color: "#223252",
-  },
-  sideMeta: {
-    margin: 0,
-    fontSize: "13px",
-    lineHeight: 1.6,
-    color: "#64748b",
-  },
-  card: {
-    background: "#ffffff",
-    border: "1px solid rgba(15,23,42,0.08)",
-    borderRadius: "24px",
-    padding: "28px",
-    marginBottom: "18px",
-    boxShadow: "0 14px 40px rgba(15,23,42,0.05)",
-  },
-  h2: {
-    margin: "0 0 14px",
-    fontSize: "28px",
-    lineHeight: 1.15,
-    fontWeight: 900,
-    color: "#0f172a",
-  },
-  p: {
-    margin: "0 0 14px",
-    fontSize: "17px",
-    lineHeight: 1.75,
-    color: "#334155",
-  },
-  notice: {
-    marginTop: "8px",
-    background: "#f8fafc",
-    border: "1px solid rgba(15,23,42,0.08)",
-    color: "#334155",
-    borderRadius: "16px",
-    padding: "14px 16px",
-    fontSize: "15px",
-    lineHeight: 1.65,
-  },
-};
