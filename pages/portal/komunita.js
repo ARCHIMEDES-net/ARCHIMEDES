@@ -2,9 +2,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { X } from "lucide-react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Alert } from "../../components/ui/alert";
+import SectionEyebrow from "../../components/home/SectionEyebrow";
 
 const BUCKET = "portal-posts";
 const TEXT_PREVIEW_LENGTH = 260;
@@ -158,96 +163,50 @@ export default function KomunitaPage() {
     <RequireAuth>
       <PortalHeader title="Komunita" />
 
-      <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
-        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "24px 16px 48px" }}>
-          <section
-            style={{
-              background: "linear-gradient(180deg, #ffffff 0%, #f9fbff 100%)",
-              border: "1px solid rgba(15,23,42,0.08)",
-              borderRadius: 24,
-              padding: "22px 22px 20px",
-              boxShadow: "0 16px 40px rgba(15,23,42,0.05)",
-              marginBottom: 18,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                gap: 16,
-                alignItems: "flex-start",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ minWidth: 0, flex: "1 1 620px" }}>
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "6px 10px",
-                    borderRadius: 999,
-                    background: "rgba(15,23,42,0.06)",
-                    color: "#0f172a",
-                    fontSize: 12,
-                    fontWeight: 800,
-                    marginBottom: 12,
-                  }}
-                >
-                  ARCHIMEDES Live • komunita
-                </div>
+      <div className="min-h-screen bg-slate-50">
+        <div className="mx-auto max-w-[1180px] px-4 py-6">
+          <Card className="mb-4 bg-gradient-to-b from-white to-blue-50/40 p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-0 flex-[1_1_620px]">
+                <SectionEyebrow>ARCHIMEDES Live • komunita</SectionEyebrow>
 
-                <h1
-                  style={{
-                    margin: 0,
-                    fontSize: 34,
-                    lineHeight: 1.08,
-                    color: "#0f172a",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
+                <h1 className="text-[34px] font-[950] leading-[1.08] tracking-[-0.02em] text-navy-900">
                   Co se děje v komunitě
                   <br />
                   ARCHIMEDES Live
                 </h1>
 
-                <p
-                  style={{
-                    margin: "14px 0 0",
-                    fontSize: 16,
-                    lineHeight: 1.6,
-                    color: "rgba(15,23,42,0.72)",
-                    maxWidth: 760,
-                  }}
-                >
+                <p className="mt-3.5 max-w-[760px] text-base leading-relaxed text-muted">
                   Novinky, fotografie, krátké zprávy a inspirace od členů,
                   škol, obcí a partnerů.
                 </p>
               </div>
 
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <Link href="/portal/kalendar" style={secondaryBtnStyle}>
+              <div className="flex flex-wrap gap-2.5">
+                <Button href="/portal/kalendar" variant="secondary">
                   Program
-                </Link>
+                </Button>
 
                 {isAdmin ? (
-                  <Link href="/portal/admin-prispevky?section=community" style={primaryBtnStyle}>
-                    Přidat příspěvek
-                  </Link>
+                  <Button href="/portal/admin-prispevky?section=community">Přidat příspěvek</Button>
                 ) : null}
               </div>
             </div>
-          </section>
+          </Card>
 
-          {error ? <div style={errorBoxStyle}>Chyba: {error}</div> : null}
+          {error ? (
+            <Alert variant="error" className="mb-4">
+              Chyba: {error}
+            </Alert>
+          ) : null}
 
-          {loading ? <div style={emptyBoxStyle}>Načítám příspěvky…</div> : null}
+          {loading ? <Alert variant="neutral">Načítám příspěvky…</Alert> : null}
 
           {!loading && !error && posts.length === 0 ? (
-            <div style={emptyBoxStyle}>
+            <Alert variant="neutral">
               Zatím tu nejsou žádné příspěvky. Jakmile správce přidá první novinku,
               objeví se tady jako nástěnka komunity.
-            </div>
+            </Alert>
           ) : null}
 
           {posts.map((post) => {
@@ -259,51 +218,39 @@ export default function KomunitaPage() {
             const isLongText = fullText.length > TEXT_PREVIEW_LENGTH;
 
             return (
-              <article key={post.id} style={postRowStyle}>
-                <div style={postInnerStyle}>
-                  <div style={mediaColStyle}>
+              <Card key={post.id} className="mb-4 overflow-hidden">
+                <div className="flex flex-wrap items-start gap-6 p-5">
+                  <div className="w-full flex-[0_0_320px] max-w-[320px]">
                     {post.image_path ? (
                       <button
                         type="button"
                         onClick={() => setLightboxImage(imageUrl)}
-                        style={imageButtonStyle}
                         aria-label={`Zvětšit obrázek: ${post.title}`}
+                        className="block w-full cursor-zoom-in border-0 bg-transparent p-0"
                       >
-                        <div style={imageFrameStyle}>
+                        <div className="flex h-[260px] w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-900/[0.08] bg-white">
                           <img
                             src={imageUrl}
                             alt={post.title}
-                            style={imageStyle}
+                            className="box-border h-full w-full object-contain p-4"
                           />
                         </div>
                       </button>
                     ) : (
-                      <div style={imagePlaceholderStyle}>Bez obrázku</div>
+                      <div className="flex h-[260px] w-full items-center justify-center rounded-2xl border border-dashed border-slate-900/[0.14] bg-slate-50 font-bold text-slate-400">
+                        Bez obrázku
+                      </div>
                     )}
                   </div>
 
-                  <div style={contentColStyle}>
-                    <div style={dateBadgeStyle}>{formatDateCS(post.created_at)}</div>
+                  <div className="min-w-0 flex-[1_1_420px]">
+                    <span className="inline-flex rounded-full bg-slate-900/[0.06] px-2.5 py-1.5 text-xs font-bold text-slate-600">
+                      {formatDateCS(post.created_at)}
+                    </span>
 
-                    <h2
-                      style={{
-                        margin: "12px 0 10px",
-                        fontSize: 32,
-                        lineHeight: 1.12,
-                        color: "#0f172a",
-                      }}
-                    >
-                      {post.title}
-                    </h2>
+                    <h2 className="mb-2.5 mt-3 text-[32px] leading-[1.12] text-navy-900">{post.title}</h2>
 
-                    <div
-                      style={{
-                        fontSize: 16,
-                        lineHeight: 1.72,
-                        color: "rgba(15,23,42,0.76)",
-                        whiteSpace: "pre-wrap",
-                      }}
-                    >
+                    <div className="whitespace-pre-wrap text-base leading-[1.72] text-slate-700">
                       {isExpanded ? fullText : previewText}
                     </div>
 
@@ -311,19 +258,19 @@ export default function KomunitaPage() {
                       <button
                         type="button"
                         onClick={() => toggleExpanded(post.id)}
-                        style={readMoreBtnStyle}
+                        className="mt-2.5 border-0 bg-transparent p-0 font-bold text-blue-600"
                       >
                         {isExpanded ? "Zobrazit méně" : "Číst více"}
                       </button>
                     ) : null}
 
-                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
+                    <div className="mt-4 flex flex-wrap gap-3">
                       {post.attachment_path ? (
                         <a
                           href={attachmentUrl}
                           target="_blank"
                           rel="noreferrer"
-                          style={{ ...secondaryBtnStyle, display: "inline-flex" }}
+                          className="inline-flex items-center justify-center rounded-2xl border border-slate-900/[0.12] bg-white px-4 py-3 font-black text-navy-900"
                         >
                           {post.attachment_name || "Otevřít přílohu"}
                         </a>
@@ -338,7 +285,7 @@ export default function KomunitaPage() {
                                 `/portal/admin-prispevky?id=${post.id}&section=community`
                               )
                             }
-                            style={secondaryButtonElementStyle}
+                            className="inline-flex items-center justify-center rounded-2xl border border-slate-900/[0.12] bg-white px-4 py-3 font-black text-navy-900"
                           >
                             Upravit
                           </button>
@@ -347,7 +294,7 @@ export default function KomunitaPage() {
                             type="button"
                             onClick={() => handleDelete(post.id)}
                             disabled={deletingId === post.id}
-                            style={dangerBtnStyle}
+                            className="inline-flex items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-black text-red-700"
                           >
                             {deletingId === post.id ? "Mažu…" : "Smazat"}
                           </button>
@@ -356,7 +303,7 @@ export default function KomunitaPage() {
                     </div>
                   </div>
                 </div>
-              </article>
+              </Card>
             );
           })}
         </div>
@@ -365,27 +312,24 @@ export default function KomunitaPage() {
       {lightboxImage ? (
         <div
           onClick={() => setLightboxImage("")}
-          style={lightboxOverlayStyle}
           role="dialog"
           aria-modal="true"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/82 p-6"
         >
           <button
             type="button"
             onClick={() => setLightboxImage("")}
-            style={lightboxCloseStyle}
             aria-label="Zavřít náhled"
+            className="fixed right-5 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/12 text-white"
           >
-            ×
+            <X className="h-6 w-6" aria-hidden="true" />
           </button>
 
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={lightboxContentStyle}
-          >
+          <div onClick={(e) => e.stopPropagation()} className="flex max-h-[88vh] max-w-[92vw] items-center justify-center">
             <img
               src={lightboxImage}
               alt="Zvětšený obrázek"
-              style={lightboxImageStyle}
+              className="max-h-[88vh] max-w-[92vw] rounded-2xl bg-white object-contain"
             />
           </div>
         </div>
@@ -393,209 +337,3 @@ export default function KomunitaPage() {
     </RequireAuth>
   );
 }
-
-const primaryBtnStyle = {
-  textDecoration: "none",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "12px 16px",
-  borderRadius: 14,
-  background: "#0f172a",
-  color: "white",
-  fontWeight: 900,
-  whiteSpace: "nowrap",
-};
-
-const secondaryBtnStyle = {
-  textDecoration: "none",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "12px 16px",
-  borderRadius: 14,
-  background: "white",
-  color: "#0f172a",
-  border: "1px solid rgba(15,23,42,0.12)",
-  fontWeight: 900,
-  whiteSpace: "nowrap",
-};
-
-const secondaryButtonElementStyle = {
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "white",
-  color: "#0f172a",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "12px 16px",
-  borderRadius: 14,
-  fontWeight: 900,
-  whiteSpace: "nowrap",
-  cursor: "pointer",
-};
-
-const dangerBtnStyle = {
-  border: "1px solid rgba(185,28,28,0.18)",
-  background: "#fff5f5",
-  color: "#b91c1c",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "12px 16px",
-  borderRadius: 14,
-  fontWeight: 900,
-  whiteSpace: "nowrap",
-  cursor: "pointer",
-};
-
-const readMoreBtnStyle = {
-  marginTop: 10,
-  padding: 0,
-  border: "none",
-  background: "transparent",
-  color: "#2563eb",
-  fontWeight: 800,
-  cursor: "pointer",
-};
-
-const emptyBoxStyle = {
-  background: "white",
-  border: "1px dashed rgba(15,23,42,0.16)",
-  borderRadius: 24,
-  padding: 24,
-  color: "rgba(15,23,42,0.68)",
-};
-
-const errorBoxStyle = {
-  background: "#fff3f3",
-  border: "1px solid #ffd0d0",
-  borderRadius: 18,
-  padding: 16,
-  color: "#8a1f1f",
-  marginBottom: 18,
-};
-
-const dateBadgeStyle = {
-  display: "inline-flex",
-  padding: "6px 10px",
-  borderRadius: 999,
-  background: "rgba(15,23,42,0.06)",
-  color: "rgba(15,23,42,0.72)",
-  fontSize: 12,
-  fontWeight: 800,
-};
-
-const postRowStyle = {
-  background: "white",
-  border: "1px solid rgba(15,23,42,0.08)",
-  borderRadius: 24,
-  boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
-  marginBottom: 18,
-  overflow: "hidden",
-};
-
-const postInnerStyle = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: 24,
-  padding: 22,
-  alignItems: "flex-start",
-};
-
-const mediaColStyle = {
-  flex: "0 0 320px",
-  maxWidth: 320,
-  width: "100%",
-};
-
-const contentColStyle = {
-  flex: "1 1 420px",
-  minWidth: 0,
-};
-
-const imageButtonStyle = {
-  display: "block",
-  width: "100%",
-  padding: 0,
-  border: "none",
-  background: "transparent",
-  cursor: "zoom-in",
-};
-
-const imageFrameStyle = {
-  width: "100%",
-  height: 260,
-  background: "#ffffff",
-  borderRadius: 18,
-  border: "1px solid rgba(15,23,42,0.08)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  overflow: "hidden",
-};
-
-const imagePlaceholderStyle = {
-  width: "100%",
-  height: 260,
-  background: "#f8fafc",
-  borderRadius: 18,
-  border: "1px dashed rgba(15,23,42,0.14)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: "rgba(15,23,42,0.45)",
-  fontWeight: 700,
-};
-
-const imageStyle = {
-  width: "100%",
-  height: "100%",
-  objectFit: "contain",
-  objectPosition: "center",
-  display: "block",
-  padding: 18,
-  boxSizing: "border-box",
-};
-
-const lightboxOverlayStyle = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(2,6,23,0.82)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: 24,
-  zIndex: 9999,
-};
-
-const lightboxContentStyle = {
-  maxWidth: "92vw",
-  maxHeight: "88vh",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-};
-
-const lightboxImageStyle = {
-  maxWidth: "92vw",
-  maxHeight: "88vh",
-  objectFit: "contain",
-  borderRadius: 16,
-  background: "white",
-};
-
-const lightboxCloseStyle = {
-  position: "fixed",
-  top: 18,
-  right: 22,
-  width: 44,
-  height: 44,
-  borderRadius: 999,
-  border: "none",
-  background: "rgba(255,255,255,0.12)",
-  color: "white",
-  fontSize: 30,
-  lineHeight: 1,
-  cursor: "pointer",
-};
