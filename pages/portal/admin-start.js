@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 import RequirePlatformAdmin from "../../components/RequirePlatformAdmin";
 import PortalHeader from "../../components/PortalHeader";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/ui/table";
 
 export default function AdminStartPage() {
   const [rows, setRows] = useState([]);
@@ -69,63 +71,80 @@ export default function AdminStartPage() {
     <RequirePlatformAdmin>
       <PortalHeader />
 
-      <div style={{ padding: 20 }}>
-        <h1>START objednávky & školy</h1>
+      <div className="mx-auto max-w-[1200px] px-5 py-6">
+        <h1 className="text-2xl font-black text-navy-900">START objednávky &amp; školy</h1>
 
-        {loading && <p>Načítám…</p>}
+        {loading ? <p className="mt-4 text-muted">Načítám…</p> : null}
 
         {!loading && (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <th>Datum</th>
-                <th>Škola</th>
-                <th>Město</th>
-                <th>Objednatel</th>
-                <th>Admin</th>
-                <th>Onboarding</th>
-                <th>Uživatelé</th>
-                <th>Organizace</th>
-              </tr>
-            </thead>
+          <div className="mt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Datum</TableHead>
+                  <TableHead>Škola</TableHead>
+                  <TableHead>Město</TableHead>
+                  <TableHead>Objednatel</TableHead>
+                  <TableHead>Admin</TableHead>
+                  <TableHead>Onboarding</TableHead>
+                  <TableHead>Uživatelé</TableHead>
+                  <TableHead>Organizace</TableHead>
+                </TableRow>
+              </TableHeader>
 
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.id} style={{ borderBottom: "1px solid #ddd" }}>
-                  <td>
-                    {new Date(r.submitted_at).toLocaleDateString()}
-                  </td>
-
-                  <td>{r.school_name}</td>
-
-                  <td>{r.city}</td>
-
-                  <td>
-                    {r.contact_name}
-                    <br />
-                    <small>{r.email}</small>
-                  </td>
-
-                  <td>
-                    {r.admin_email}
-                    {r.adminUserId ? " ✅" : " ❌"}
-                  </td>
-
-                  <td>
-                    {r.onboarding_status === "completed" && "✅ hotovo"}
-                    {r.onboarding_status === "pending" && "⏳ čeká"}
-                    {!r.onboarding_status && "❌ chyba"}
-                  </td>
-
-                  <td>{r.usersCount}</td>
-
-                  <td>
-                    {r.organization ? "✅ vytvořena" : "❌ nevznikla"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              <TableBody>
+                {rows.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell>{new Date(r.submitted_at).toLocaleDateString()}</TableCell>
+                    <TableCell>{r.school_name}</TableCell>
+                    <TableCell>{r.city}</TableCell>
+                    <TableCell>
+                      {r.contact_name}
+                      <br />
+                      <span className="text-xs text-slate-500">{r.email}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1.5">
+                        {r.admin_email}
+                        {r.adminUserId ? (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-label="admin účet existuje" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-500" aria-label="admin účet chybí" />
+                        )}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {r.onboarding_status === "completed" ? (
+                        <span className="inline-flex items-center gap-1.5 text-emerald-700">
+                          <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> hotovo
+                        </span>
+                      ) : r.onboarding_status === "pending" ? (
+                        <span className="inline-flex items-center gap-1.5 text-amber-600">
+                          <Clock className="h-4 w-4" aria-hidden="true" /> čeká
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-red-600">
+                          <XCircle className="h-4 w-4" aria-hidden="true" /> chyba
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>{r.usersCount}</TableCell>
+                    <TableCell>
+                      {r.organization ? (
+                        <span className="inline-flex items-center gap-1.5 text-emerald-700">
+                          <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> vytvořena
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-red-600">
+                          <XCircle className="h-4 w-4" aria-hidden="true" /> nevznikla
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
     </RequirePlatformAdmin>
