@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Check, Plus, Wrench, FolderOpen } from "lucide-react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import JoinBroadcastButton from "../../components/JoinBroadcastButton";
@@ -185,7 +186,14 @@ function AttendButton({
           fontSize: compact ? 14 : 15,
         }}
       >
-        {saving ? "Ukládám…" : isAttending ? "✓ Přihlášeno" : "✓ Zúčastníme se"}
+        {saving ? (
+          "Ukládám…"
+        ) : (
+          <span className="inline-flex items-center gap-1.5">
+            <Check className="h-4 w-4" aria-hidden="true" />
+            {isAttending ? "Přihlášeno" : "Zúčastníme se"}
+          </span>
+        )}
       </button>
 
       {isProgramAdmin ? (
@@ -519,21 +527,21 @@ export default function Kalendar() {
               <>
                 <Link
                   href="/portal/admin-udalosti/novy"
-                  className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-navy-900 px-4 py-2 text-white hover:bg-navy-800"
                 >
-                  ➕ Nová událost
+                  <Plus className="h-4 w-4" aria-hidden="true" /> Nová událost
                 </Link>
                 <Link
                   href="/portal/admin-udalosti"
-                  className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 hover:border-slate-300"
                 >
-                  🛠 Správa vysílání
+                  <Wrench className="h-4 w-4" aria-hidden="true" /> Správa vysílání
                 </Link>
                 <Link
                   href="/portal/archiv"
-                  className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 hover:border-slate-300"
                 >
-                  📁 Archiv
+                  <FolderOpen className="h-4 w-4" aria-hidden="true" /> Archiv
                 </Link>
               </>
             ) : null}
