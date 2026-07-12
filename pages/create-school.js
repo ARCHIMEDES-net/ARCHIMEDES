@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Alert } from "../components/ui/alert";
 
 export default function CreateSchoolPage() {
   const router = useRouter();
@@ -56,47 +61,37 @@ export default function CreateSchoolPage() {
   }
 
   return (
-    <main
-      style={{
-        maxWidth: 600,
-        margin: "80px auto",
-        padding: 20,
-        fontFamily: "system-ui",
-      }}
-    >
-      <h1>Založit školu</h1>
+    <div className="min-h-screen bg-slate-50">
+      <main className="mx-auto max-w-[600px] px-5 py-20">
+        <Card className="p-7">
+          <h1 className="text-[28px] font-[950] tracking-[-0.03em] text-navy-900">Založit školu</h1>
+          <p className="mb-5 mt-2.5 text-muted">
+            Vytvoříte organizaci školy a stanete se jejím administrátorem.
+          </p>
 
-      <p>Vytvoříte organizaci školy a stanete se jejím administrátorem.</p>
+          {error ? (
+            <Alert variant="error" className="mb-4">
+              {error}
+            </Alert>
+          ) : null}
 
-      {error && <div style={{ color: "red", marginBottom: 16 }}>{error}</div>}
+          <form onSubmit={handleCreate}>
+            <Label htmlFor="schoolName">Název školy</Label>
+            <Input
+              id="schoolName"
+              type="text"
+              value={schoolName}
+              onChange={(e) => setSchoolName(e.target.value)}
+              placeholder="Např. ZŠ Hodonín"
+              className="mb-4"
+            />
 
-      <form onSubmit={handleCreate}>
-        <label>Název školy</label>
-
-        <input
-          type="text"
-          value={schoolName}
-          onChange={(e) => setSchoolName(e.target.value)}
-          placeholder="Např. ZŠ Hodonín"
-          style={{
-            width: "100%",
-            padding: 12,
-            marginTop: 6,
-            marginBottom: 16,
-          }}
-        />
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: "12px 18px",
-            fontWeight: 700,
-          }}
-        >
-          {loading ? "Vytvářím..." : "Vytvořit školu"}
-        </button>
-      </form>
-    </main>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Vytvářím..." : "Vytvořit školu"}
+            </Button>
+          </form>
+        </Card>
+      </main>
+    </div>
   );
 }

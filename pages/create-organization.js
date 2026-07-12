@@ -2,6 +2,12 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { supabase } from "../lib/supabaseClient";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Select } from "../components/ui/select";
+import { Label } from "../components/ui/label";
+import { Alert } from "../components/ui/alert";
 
 const ORG_TYPES = [
   { value: "school", label: "Škola" },
@@ -89,214 +95,103 @@ export default function CreateOrganizationPage() {
   const createdSuccessfully = !!createdJoinCode;
 
   return (
-    <main
-      style={{
-        maxWidth: 760,
-        margin: "70px auto",
-        padding: 20,
-        fontFamily: "system-ui",
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 24,
-          padding: 28,
-          boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-          border: "1px solid rgba(0,0,0,0.08)",
-        }}
-      >
-        <h1 style={{ marginTop: 0, marginBottom: 8 }}>Vytvořit organizaci</h1>
+    <div className="min-h-screen bg-slate-50">
+      <main className="mx-auto max-w-[760px] px-5 py-16">
+        <Card className="p-7">
+          <h1 className="text-[28px] font-[950] tracking-[-0.03em] text-navy-900">
+            Vytvořit organizaci
+          </h1>
 
-        <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)" }}>
-          Založíte novou organizaci a automaticky se stanete jejím administrátorem.
-        </p>
+          <p className="mt-2 text-muted">
+            Založíte novou organizaci a automaticky se stanete jejím administrátorem.
+          </p>
 
-        {error ? (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: 12,
-              borderRadius: 12,
-              background: "#fff1f1",
-              color: "#a40000",
-              border: "1px solid #f2c9c9",
-            }}
-          >
-            {error}
+          {error ? (
+            <Alert variant="error" className="mb-4 mt-4">
+              {error}
+            </Alert>
+          ) : null}
+
+          {createdSuccessfully ? (
+            <Alert variant="success" className="mb-4 mt-4">
+              <div className="mb-1.5 font-black">Organizace byla úspěšně vytvořena.</div>
+
+              {createdOrganizationName ? (
+                <div className="mb-2.5">
+                  Organizace: <strong>{createdOrganizationName}</strong>
+                </div>
+              ) : null}
+
+              <div className="mb-1.5 text-sm text-slate-600">Kód organizace</div>
+
+              <div className="mb-3 font-mono text-2xl font-black tracking-[0.05em] text-navy-900">
+                {createdJoinCode}
+              </div>
+
+              <div className="mb-3.5 text-slate-600">
+                Tento kód můžete poslat kolegům. Připojí se přes stránku <strong>/join</strong>.
+              </div>
+
+              <div className="flex flex-wrap gap-2.5">
+                <Button type="button" variant="secondary" onClick={handleCopyCode}>
+                  Zkopírovat kód
+                </Button>
+                <Button type="button" onClick={() => router.push("/portal/uzivatele")}>
+                  Pokračovat do správy uživatelů
+                </Button>
+              </div>
+
+              {copyMessage ? <div className="mt-2.5 text-sm">{copyMessage}</div> : null}
+            </Alert>
+          ) : null}
+
+          {!createdSuccessfully ? (
+            <form onSubmit={handleCreate} className="mt-4">
+              <div className="grid gap-4">
+                <div>
+                  <Label htmlFor="organizationName">Název organizace</Label>
+                  <Input
+                    id="organizationName"
+                    type="text"
+                    value={organizationName}
+                    onChange={(e) => setOrganizationName(e.target.value)}
+                    placeholder="Např. ZŠ Hodonín nebo Senior klub Křenov"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="orgType">Typ organizace</Label>
+                  <Select id="orgType" value={orgType} onChange={(e) => setOrgType(e.target.value)}>
+                    {ORG_TYPES.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                <Alert variant="neutral">
+                  Po vytvoření získáte vlastní <strong>kód organizace</strong>, který můžete poslat
+                  kolegům. Vy se automaticky stanete <strong>administrátorem organizace</strong>.
+                </Alert>
+
+                <div className="pt-1.5">
+                  <Button type="submit" disabled={loading}>
+                    {loading ? "Vytvářím..." : "Vytvořit organizaci"}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          ) : null}
+
+          <div className="mt-4 text-muted">
+            Máte kód organizace?{" "}
+            <Link href="/join" className="font-bold text-brand hover:underline">
+              Připojte se ke stávající organizaci
+            </Link>
           </div>
-        ) : null}
-
-        {createdSuccessfully ? (
-          <div
-            style={{
-              marginBottom: 18,
-              padding: 18,
-              borderRadius: 16,
-              background: "#eefaf0",
-              color: "#166534",
-              border: "1px solid #cfe8d3",
-            }}
-          >
-            <div style={{ fontWeight: 800, marginBottom: 6 }}>
-              Organizace byla úspěšně vytvořena.
-            </div>
-
-            {createdOrganizationName ? (
-              <div style={{ marginBottom: 10 }}>
-                Organizace: <strong>{createdOrganizationName}</strong>
-              </div>
-            ) : null}
-
-            <div style={{ fontSize: 14, color: "rgba(0,0,0,0.65)", marginBottom: 6 }}>
-              Kód organizace
-            </div>
-
-            <div
-              style={{
-                fontSize: 24,
-                fontWeight: 800,
-                letterSpacing: "0.05em",
-                fontFamily:
-                  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                marginBottom: 12,
-                color: "#111827",
-              }}
-            >
-              {createdJoinCode}
-            </div>
-
-            <div style={{ color: "rgba(0,0,0,0.68)", marginBottom: 14 }}>
-              Tento kód můžete poslat kolegům. Připojí se přes stránku <strong>/join</strong>.
-            </div>
-
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={handleCopyCode}
-                style={{
-                  padding: "11px 14px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.12)",
-                  background: "#fff",
-                  color: "#111827",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Zkopírovat kód
-              </button>
-
-              <button
-                type="button"
-                onClick={() => router.push("/portal/uzivatele")}
-                style={{
-                  padding: "11px 14px",
-                  borderRadius: 12,
-                  border: "none",
-                  background: "#111827",
-                  color: "#fff",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Pokračovat do správy uživatelů
-              </button>
-            </div>
-
-            {copyMessage ? (
-              <div style={{ marginTop: 10, fontSize: 14, color: "#166534" }}>
-                {copyMessage}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-        {!createdSuccessfully ? (
-          <form onSubmit={handleCreate}>
-            <div style={{ display: "grid", gap: 16 }}>
-              <div>
-                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                  Název organizace
-                </label>
-                <input
-                  type="text"
-                  value={organizationName}
-                  onChange={(e) => setOrganizationName(e.target.value)}
-                  placeholder="Např. ZŠ Hodonín nebo Senior klub Křenov"
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(0,0,0,0.15)",
-                    background: "#fff",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                  Typ organizace
-                </label>
-                <select
-                  value={orgType}
-                  onChange={(e) => setOrgType(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(0,0,0,0.15)",
-                    background: "#fff",
-                  }}
-                >
-                  {ORG_TYPES.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div
-                style={{
-                  padding: 14,
-                  borderRadius: 14,
-                  background: "#f8fafc",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  color: "rgba(0,0,0,0.68)",
-                  fontSize: 14,
-                }}
-              >
-                Po vytvoření získáte vlastní <strong>kód organizace</strong>, který můžete poslat
-                kolegům. Vy se automaticky stanete <strong>administrátorem organizace</strong>.
-              </div>
-
-              <div style={{ paddingTop: 6 }}>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    padding: "12px 18px",
-                    borderRadius: 12,
-                    border: "none",
-                    background: "#111827",
-                    color: "#fff",
-                    fontWeight: 700,
-                    cursor: loading ? "default" : "pointer",
-                    opacity: loading ? 0.7 : 1,
-                  }}
-                >
-                  {loading ? "Vytvářím..." : "Vytvořit organizaci"}
-                </button>
-              </div>
-            </div>
-          </form>
-        ) : null}
-
-        <div style={{ marginTop: 18, color: "rgba(0,0,0,0.6)" }}>
-          Máte kód organizace? <Link href="/join">Připojte se ke stávající organizaci</Link>
-        </div>
-      </div>
-    </main>
+        </Card>
+      </main>
+    </div>
   );
 }
