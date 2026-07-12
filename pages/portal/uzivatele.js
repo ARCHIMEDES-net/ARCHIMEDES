@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
+import { Card, CardContent } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Select } from "../../components/ui/select";
+import { Label } from "../../components/ui/label";
+import { Alert } from "../../components/ui/alert";
+import { Badge } from "../../components/ui/badge";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/ui/table";
 
 export default function UzivateleSkolyPage() {
   const [loading, setLoading] = useState(true);
@@ -284,9 +292,9 @@ export default function UzivateleSkolyPage() {
   if (loading) {
     return (
       <RequireAuth>
-        <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
+        <div className="min-h-screen bg-slate-50">
           <PortalHeader />
-          <main style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 16px" }}>
+          <main className="mx-auto max-w-[1100px] px-4 py-8 text-muted">
             Načítám uživatele organizace…
           </main>
         </div>
@@ -297,28 +305,20 @@ export default function UzivateleSkolyPage() {
   if (!isOrgAdmin) {
     return (
       <RequireAuth>
-        <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
+        <div className="min-h-screen bg-slate-50">
           <PortalHeader />
-          <main style={{ maxWidth: 900, margin: "0 auto", padding: "32px 16px" }}>
-            <div
-              style={{
-                background: "#fff",
-                borderRadius: 20,
-                padding: 24,
-                boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-                border: "1px solid rgba(0,0,0,0.08)",
-              }}
-            >
-              <h1 style={{ marginTop: 0 }}>Uživatelé organizace</h1>
-              <p style={{ color: "rgba(0,0,0,0.7)", marginBottom: 8 }}>
+          <main className="mx-auto max-w-[900px] px-4 py-8">
+            <Card className="p-6">
+              <h1 className="text-2xl font-black text-navy-900">Uživatelé organizace</h1>
+              <p className="mt-2 text-muted">
                 Tato sekce je dostupná pouze administrátorovi organizace.
               </p>
               {organizationName ? (
-                <p style={{ color: "rgba(0,0,0,0.55)", marginBottom: 0 }}>
+                <p className="mt-2 text-sm text-slate-500">
                   Vaše organizace: <strong>{organizationName}</strong>
                 </p>
               ) : null}
-            </div>
+            </Card>
           </main>
         </div>
       </RequireAuth>
@@ -327,306 +327,150 @@ export default function UzivateleSkolyPage() {
 
   return (
     <RequireAuth>
-      <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
+      <div className="min-h-screen bg-slate-50">
         <PortalHeader />
 
-        <main style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 16px" }}>
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 20,
-              padding: 24,
-              boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-              border: "1px solid rgba(0,0,0,0.08)",
-              marginBottom: 20,
-            }}
-          >
-            <h1 style={{ marginTop: 0, marginBottom: 8, fontSize: 32 }}>
-              Uživatelé organizace
-            </h1>
+        <main className="mx-auto max-w-[1100px] px-4 py-8">
+          <Card className="mb-5 p-6">
+            <h1 className="text-[32px] font-black text-navy-900">Uživatelé organizace</h1>
 
-            <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)" }}>
+            <p className="mt-2 text-muted">
               Zde může administrátor organizace vytvářet a spravovat přístupy pro další uživatele.
             </p>
 
             {organizationName ? (
-              <p style={{ marginTop: 0, marginBottom: 8, color: "rgba(0,0,0,0.55)" }}>
+              <p className="mt-2 text-sm text-slate-500">
                 Organizace: <strong>{organizationName}</strong>
               </p>
             ) : null}
 
             {organizationJoinCode ? (
-              <div
-                style={{
-                  marginTop: 0,
-                  marginBottom: 16,
-                  padding: 14,
-                  borderRadius: 14,
-                  background: "#f8fafc",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                }}
-              >
-                <div style={{ fontSize: 14, color: "rgba(0,0,0,0.6)", marginBottom: 6 }}>
-                  Kód organizace
-                </div>
-                <div
-                  style={{
-                    fontSize: 22,
-                    fontWeight: 700,
-                    letterSpacing: "0.04em",
-                    fontFamily:
-                      "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                    marginBottom: 8,
-                  }}
-                >
+              <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3.5">
+                <div className="mb-1.5 text-sm text-slate-500">Kód organizace</div>
+                <div className="mb-2 font-mono text-xl font-bold tracking-[0.04em] text-navy-900">
                   {organizationJoinCode}
                 </div>
 
-                <div style={{ fontSize: 14, color: "rgba(0,0,0,0.62)", marginBottom: 12 }}>
+                <div className="mb-3 text-sm text-slate-600">
                   Kolegové se mohou připojit sami přes stránku <strong>/join</strong> pomocí tohoto
                   kódu, nebo jim můžete poslat pozvánku e-mailem níže.
                 </div>
 
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <button
-                    type="button"
-                    onClick={handleCopyCode}
-                    style={{
-                      padding: "10px 14px",
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.12)",
-                      background: "#fff",
-                      color: "#111827",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Zkopírovat kód
-                  </button>
-                </div>
+                <Button type="button" variant="secondary" size="sm" onClick={handleCopyCode}>
+                  Zkopírovat kód
+                </Button>
 
-                {copyMessage ? (
-                  <div style={{ marginTop: 10, fontSize: 14, color: "#166534" }}>
-                    {copyMessage}
-                  </div>
-                ) : null}
+                {copyMessage ? <div className="mt-2.5 text-sm text-emerald-700">{copyMessage}</div> : null}
               </div>
             ) : null}
 
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 14,
-                borderRadius: 14,
-                background: "#f8fafc",
-                border: "1px solid rgba(0,0,0,0.08)",
-                color: "rgba(0,0,0,0.68)",
-                fontSize: 14,
-              }}
-            >
+            <Alert variant="neutral" className="mt-4">
               Doporučený postup: nejprve pošlete kolegům <strong>kód organizace</strong> a až když
               budete potřebovat, využijte pozvánku e-mailem pro konkrétního uživatele.
-            </div>
+            </Alert>
 
             {error ? (
-              <div
-                style={{
-                  marginTop: 16,
-                  marginBottom: 16,
-                  padding: 12,
-                  borderRadius: 12,
-                  background: "#fff1f1",
-                  color: "#a40000",
-                  border: "1px solid #f2c9c9",
-                }}
-              >
+              <Alert variant="error" className="mt-4">
                 Chyba: {error}
-              </div>
+              </Alert>
             ) : null}
 
             {message ? (
-              <div
-                style={{
-                  marginTop: 16,
-                  marginBottom: 16,
-                  padding: 12,
-                  borderRadius: 12,
-                  background: "#eefaf0",
-                  color: "#166534",
-                  border: "1px solid #cfe8d3",
-                }}
-              >
+              <Alert variant="success" className="mt-4">
                 {message}
-              </div>
+              </Alert>
             ) : null}
 
-            <form onSubmit={handleCreateUser}>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1.2fr 1.2fr 1fr auto",
-                  gap: 12,
-                  alignItems: "end",
-                }}
-              >
+            <form onSubmit={handleCreateUser} className="mt-5">
+              <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[1.2fr_1.2fr_1fr_auto]">
                 <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    E-mail
-                  </label>
-                  <input
+                  <Label>E-mail</Label>
+                  <Input
                     type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="uzivatel@organizace.cz"
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.15)",
-                      background: "#fff",
-                    }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Jméno a příjmení
-                  </label>
-                  <input
+                  <Label>Jméno a příjmení</Label>
+                  <Input
                     type="text"
                     value={newFullName}
                     onChange={(e) => setNewFullName(e.target.value)}
                     placeholder="Např. Jana Nováková"
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.15)",
-                      background: "#fff",
-                    }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Role
-                  </label>
-                  <select
-                    value={newRole}
-                    onChange={(e) => setNewRole(e.target.value)}
-                    style={{
-                      width: "100%",
-                      padding: "12px 14px",
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.15)",
-                      background: "#fff",
-                    }}
-                  >
+                  <Label>Role</Label>
+                  <Select value={newRole} onChange={(e) => setNewRole(e.target.value)}>
                     <option value="member">Člen organizace</option>
                     <option value="organization_admin">Administrátor organizace</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div>
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    style={{
-                      padding: "12px 18px",
-                      borderRadius: 12,
-                      border: "none",
-                      background: "#111827",
-                      color: "#fff",
-                      fontWeight: 700,
-                      cursor: saving ? "default" : "pointer",
-                      opacity: saving ? 0.7 : 1,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
+                  <Button type="submit" disabled={saving} className="whitespace-nowrap">
                     {saving ? "Odesílám…" : "Přidat uživatele"}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </form>
-          </div>
+          </Card>
 
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 20,
-              padding: 24,
-              boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-              border: "1px solid rgba(0,0,0,0.08)",
-              overflowX: "auto",
-            }}
-          >
-            <h2 style={{ marginTop: 0, marginBottom: 16 }}>Seznam uživatelů</h2>
+          <Card>
+            <CardContent>
+              <h2 className="mb-4 text-xl font-black text-navy-900">Seznam uživatelů</h2>
 
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ textAlign: "left", borderBottom: "1px solid #e5e7eb" }}>
-                  <th style={{ padding: "12px 10px" }}>Jméno</th>
-                  <th style={{ padding: "12px 10px" }}>E-mail</th>
-                  <th style={{ padding: "12px 10px" }}>Role</th>
-                  <th style={{ padding: "12px 10px" }}>Stav</th>
-                  <th style={{ padding: "12px 10px" }}>Akce</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    <td style={{ padding: "12px 10px" }}>
-                      {row.full_name || "—"}
-                      {row.id === currentUserId ? (
-                        <span
-                          style={{
-                            marginLeft: 8,
-                            fontSize: 12,
-                            padding: "4px 8px",
-                            borderRadius: 999,
-                            background: "#eef2ff",
-                            color: "#3730a3",
-                          }}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Jméno</TableHead>
+                    <TableHead>E-mail</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Stav</TableHead>
+                    <TableHead>Akce</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell>
+                        {row.full_name || "—"}
+                        {row.id === currentUserId ? (
+                          <Badge className="ml-2 bg-indigo-100 text-indigo-800">vy</Badge>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>{row.email || "—"}</TableCell>
+                      <TableCell>{roleLabel(row.role_in_org)}</TableCell>
+                      <TableCell>{row.is_active ? "Aktivní" : "Neaktivní"}</TableCell>
+                      <TableCell>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => toggleActive(row)}
+                          disabled={row.id === currentUserId}
                         >
-                          vy
-                        </span>
-                      ) : null}
-                    </td>
-                    <td style={{ padding: "12px 10px" }}>{row.email || "—"}</td>
-                    <td style={{ padding: "12px 10px" }}>{roleLabel(row.role_in_org)}</td>
-                    <td style={{ padding: "12px 10px" }}>
-                      {row.is_active ? "Aktivní" : "Neaktivní"}
-                    </td>
-                    <td style={{ padding: "12px 10px" }}>
-                      <button
-                        type="button"
-                        onClick={() => toggleActive(row)}
-                        disabled={row.id === currentUserId}
-                        style={{
-                          padding: "8px 12px",
-                          borderRadius: 10,
-                          border: "1px solid #d1d5db",
-                          background: "#fff",
-                          cursor: row.id === currentUserId ? "not-allowed" : "pointer",
-                          opacity: row.id === currentUserId ? 0.5 : 1,
-                        }}
-                      >
-                        {row.is_active ? "Deaktivovat" : "Aktivovat"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                          {row.is_active ? "Deaktivovat" : "Aktivovat"}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
 
-                {rows.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} style={{ padding: "16px 10px", color: "rgba(0,0,0,0.6)" }}>
-                      Zatím zde nejsou žádní další uživatelé.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
+                  {rows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-slate-500">
+                        Zatím zde nejsou žádní další uživatelé.
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </main>
       </div>
     </RequireAuth>
