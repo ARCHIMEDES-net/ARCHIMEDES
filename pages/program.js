@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ArrowRight, X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
+import { cn } from "../lib/utils";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import SectionEyebrow from "../components/home/SectionEyebrow";
 
 const FALLBACK_POSTER = "/ucebna-exterier.webp";
 const MAY_PROGRAM_IMAGE = "/Program.jpg";
@@ -90,100 +96,22 @@ const programBlocks = [...schoolItems, ...communityItems, ...svazyItems];
 
 function SectionTitle({ eyebrow, title, text, center = false }) {
   return (
-    <div
-      style={{
-        maxWidth: 900,
-        margin: center ? "0 auto 28px" : "0 0 28px",
-        textAlign: center ? "center" : "left",
-      }}
-    >
-      {eyebrow ? (
-        <div
-          style={{
-            display: "inline-block",
-            padding: "8px 14px",
-            borderRadius: 999,
-            background: "#eef2ff",
-            color: "#1e3a8a",
-            fontSize: 14,
-            fontWeight: 700,
-            marginBottom: 14,
-          }}
-        >
-          {eyebrow}
-        </div>
-      ) : null}
-
-      <h2
-        style={{
-          margin: 0,
-          fontSize: "clamp(30px, 4vw, 48px)",
-          lineHeight: 1.08,
-          color: "#0f172a",
-          letterSpacing: "-0.02em",
-        }}
-      >
+    <div className={cn("max-w-[900px]", center ? "mx-auto mb-7 text-center" : "mb-7")}>
+      {eyebrow ? <SectionEyebrow>{eyebrow}</SectionEyebrow> : null}
+      <h2 className="text-[clamp(30px,4vw,48px)] font-[950] leading-[1.08] tracking-[-0.02em] text-navy-900">
         {title}
       </h2>
-
-      {text ? (
-        <p
-          style={{
-            margin: "16px 0 0",
-            fontSize: 18,
-            lineHeight: 1.7,
-            color: "#475569",
-          }}
-        >
-          {text}
-        </p>
-      ) : null}
+      {text ? <p className="mt-4 text-lg leading-relaxed text-muted">{text}</p> : null}
     </div>
-  );
-}
-
-function PrimaryButton({ href, children }) {
-  return (
-    <Link
-      href={href}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 22px",
-        borderRadius: 14,
-        background: "#0f172a",
-        color: "#fff",
-        textDecoration: "none",
-        fontWeight: 700,
-        fontSize: 16,
-        boxShadow: "0 14px 34px rgba(15,23,42,0.16)",
-        transition: "transform 0.18s ease, box-shadow 0.18s ease",
-      }}
-    >
-      {children}
-    </Link>
   );
 }
 
 function ProgramBlockCard({ title, text }) {
   return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: 20,
-        padding: 22,
-        border: "1px solid #e2e8f0",
-      }}
-    >
-      <div style={{ fontWeight: 800, color: "#0f172a", fontSize: 16.5, lineHeight: 1.4 }}>
-        {title}
-      </div>
-      <div style={{ marginTop: 8, color: "#475569", fontSize: 15, lineHeight: 1.65 }}>
-        {text}
-      </div>
-    </div>
+    <Card className="p-5">
+      <div className="text-[16.5px] font-bold leading-snug text-navy-900">{title}</div>
+      <div className="mt-2 text-[15px] leading-relaxed text-muted">{text}</div>
+    </Card>
   );
 }
 
@@ -226,37 +154,14 @@ function getPosterUrl(event) {
 }
 
 function EventBadge({ children, variant = "default" }) {
-  const styles = {
-    default: {
-      background: "#f1f5f9",
-      color: "#475569",
-      border: "1px solid #e2e8f0",
-    },
-    accent: {
-      background: "#f3e8ff",
-      color: "#7c3aed",
-      border: "1px solid #e9d5ff",
-    },
-  };
-
-  const style = styles[variant] || styles.default;
-
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        minHeight: 28,
-        padding: "0 10px",
-        borderRadius: 999,
-        fontSize: 13,
-        fontWeight: 700,
-        ...style,
-      }}
-    >
-      {children}
-    </span>
-  );
+  if (variant === "accent") {
+    return (
+      <span className="inline-flex min-h-[28px] items-center rounded-full border border-purple-200 bg-purple-100 px-2.5 text-[13px] font-bold text-purple-700">
+        {children}
+      </span>
+    );
+  }
+  return <Badge variant="outline">{children}</Badge>;
 }
 
 function UpcomingEventItem({ event, onPosterClick }) {
@@ -264,20 +169,7 @@ function UpcomingEventItem({ event, onPosterClick }) {
   const posterUrl = getPosterUrl(event);
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "88px 1fr",
-        gap: 14,
-        alignItems: "start",
-        padding: 14,
-        borderRadius: 20,
-        background: "#ffffff",
-        border: "1px solid #e2e8f0",
-        boxShadow: "0 10px 26px rgba(15,23,42,0.05)",
-      }}
-      className="upcoming-event-item"
-    >
+    <div className="grid grid-cols-[78px_1fr] items-start gap-3.5 rounded-card-md border border-slate-200 bg-white p-3.5 shadow-[0_10px_26px_rgba(15,23,42,0.05)] sm:grid-cols-[88px_1fr]">
       <button
         type="button"
         onClick={() =>
@@ -287,30 +179,12 @@ function UpcomingEventItem({ event, onPosterClick }) {
           })
         }
         title="Zvětšit plakát"
-        style={{
-          padding: 0,
-          border: 0,
-          background: "transparent",
-          cursor: "zoom-in",
-          width: 88,
-          height: 118,
-          borderRadius: 14,
-          overflow: "hidden",
-          display: "block",
-          boxShadow: "0 8px 18px rgba(15,23,42,0.10)",
-        }}
+        className="group block h-[106px] w-[78px] overflow-hidden rounded-2xl border-0 bg-transparent p-0 shadow-[0_8px_18px_rgba(15,23,42,0.1)] sm:h-[118px] sm:w-[88px]"
       >
         <img
           src={posterUrl}
           alt={event.title || "Plakát vysílání"}
-          style={{
-            width: "100%",
-            height: "100%",
-            borderRadius: 14,
-            objectFit: "cover",
-            display: "block",
-            background: "#e2e8f0",
-          }}
+          className="h-full w-full rounded-2xl bg-slate-200 object-cover transition-transform duration-200 group-hover:scale-105"
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = FALLBACK_POSTER;
@@ -319,22 +193,22 @@ function UpcomingEventItem({ event, onPosterClick }) {
       </button>
 
       <div>
-        <div style={{ fontSize: 13, lineHeight: 1.5, color: "#64748b", fontWeight: 700, marginBottom: 6 }}>
+        <div className="mb-1.5 text-[13px] font-bold leading-relaxed text-slate-500">
           {formatEventDate(event.starts_at)}
         </div>
 
-        <div style={{ fontSize: 19, lineHeight: 1.32, color: "#0f172a", fontWeight: 800, letterSpacing: "-0.02em" }}>
+        <div className="text-[19px] font-bold leading-[1.32] tracking-[-0.02em] text-navy-900">
           {event.title}
         </div>
 
         {event.category ? (
-          <div style={{ marginTop: 10 }}>
+          <div className="mt-2.5">
             <EventBadge>{event.category}</EventBadge>
           </div>
         ) : null}
 
         {badges.length ? (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
+          <div className="mt-2.5 flex flex-wrap gap-2">
             {badges.slice(0, 4).map((badge, i) => (
               <EventBadge key={`${badge}-${i}`} variant={badge === "Komunita" ? "accent" : "default"}>
                 {badge}
@@ -343,23 +217,10 @@ function UpcomingEventItem({ event, onPosterClick }) {
           </div>
         ) : null}
 
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3">
           <Link
             href="/start"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: 40,
-              padding: "0 14px",
-              borderRadius: 12,
-              background: "#0f172a",
-              color: "#fff",
-              textDecoration: "none",
-              fontSize: 14,
-              fontWeight: 800,
-              boxShadow: "0 10px 22px rgba(15,23,42,0.16)",
-            }}
+            className="inline-flex h-10 items-center justify-center rounded-xl bg-navy-900 px-3.5 text-sm font-black text-white shadow-[0_10px_22px_rgba(15,23,42,0.16)]"
           >
             Odkaz na vysílání
           </Link>
@@ -374,118 +235,37 @@ function CurrentProgramCard({ onOpen }) {
     <button
       type="button"
       onClick={onOpen}
-      style={{
-        width: "100%",
-        textAlign: "left",
-        border: "1px solid #dbeafe",
-        borderRadius: 24,
-        padding: 16,
-        background:
-          "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(239,246,255,0.96) 100%)",
-        boxShadow: "0 18px 40px rgba(37,99,235,0.12)",
-        cursor: "pointer",
-        display: "grid",
-        gridTemplateColumns: "118px 1fr",
-        gap: 16,
-        alignItems: "center",
-      }}
-      className="current-program-card"
+      className="grid w-full grid-cols-1 items-center gap-4 rounded-card-lg border border-blue-100 bg-gradient-to-br from-white/96 to-blue-50/96 p-4 text-left shadow-[0_18px_40px_rgba(37,99,235,0.12)] transition-transform hover:-translate-y-0.5 sm:grid-cols-[118px_1fr]"
     >
-      <div
-        style={{
-          position: "relative",
-          borderRadius: 18,
-          overflow: "hidden",
-          background: "#fff",
-          boxShadow: "0 12px 28px rgba(15,23,42,0.12)",
-        }}
-      >
+      <div className="relative overflow-hidden rounded-2xl bg-white shadow-[0_12px_28px_rgba(15,23,42,0.12)]">
         <img
           src={MAY_PROGRAM_IMAGE}
           alt="Aktuální program květen 2026"
-          style={{
-            width: "100%",
-            height: 150,
-            objectFit: "cover",
-            objectPosition: "top center",
-            display: "block",
-          }}
+          className="block h-[150px] w-full object-cover object-top"
         />
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(180deg, rgba(15,23,42,0) 40%, rgba(15,23,42,0.58) 100%)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            left: 10,
-            bottom: 10,
-            background: "#ef4444",
-            color: "#fff",
-            borderRadius: 999,
-            padding: "5px 9px",
-            fontSize: 12,
-            fontWeight: 900,
-          }}
-        >
+        <div className="absolute inset-0 bg-gradient-to-b from-navy-900/0 from-40% to-navy-900/58" />
+        <div className="absolute bottom-2.5 left-2.5 rounded-full bg-red-500 px-2.5 py-1 text-xs font-black text-white">
           live
         </div>
       </div>
 
       <div>
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            padding: "7px 11px",
-            borderRadius: 999,
-            background: "#dbeafe",
-            color: "#1d4ed8",
-            fontSize: 13,
-            fontWeight: 900,
-            marginBottom: 10,
-          }}
-        >
+        <span className="mb-2.5 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1.5 text-[13px] font-black text-brand">
           Aktuálně
-        </div>
+        </span>
 
-        <h2
-          style={{
-            margin: 0,
-            color: "#0f172a",
-            fontSize: "clamp(24px, 3vw, 34px)",
-            lineHeight: 1.08,
-            letterSpacing: "-0.03em",
-          }}
-        >
+        <h2 className="text-[clamp(24px,3vw,34px)] font-[950] leading-[1.08] tracking-[-0.03em] text-navy-900">
           Aktuální program
           <br />
           KVĚTEN 2026
         </h2>
 
-        <p style={{ margin: "10px 0 0", color: "#475569", fontSize: 16, lineHeight: 1.55 }}>
+        <p className="mt-2.5 text-base leading-snug text-muted">
           Kliknutím zobrazíte celý měsíční přehled akcí ve větším náhledu.
         </p>
 
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            marginTop: 14,
-            minHeight: 42,
-            padding: "0 15px",
-            borderRadius: 12,
-            background: "#0f172a",
-            color: "#fff",
-            fontSize: 14,
-            fontWeight: 900,
-            boxShadow: "0 10px 22px rgba(15,23,42,0.16)",
-          }}
-        >
-          Zvětšit program →
+        <div className="mt-3.5 inline-flex h-[42px] items-center gap-1.5 rounded-xl bg-navy-900 px-3.5 text-sm font-black text-white shadow-[0_10px_22px_rgba(15,23,42,0.16)]">
+          Zvětšit program <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
         </div>
       </div>
     </button>
@@ -517,66 +297,25 @@ function ImageModal({ image, onClose }) {
       role="dialog"
       aria-modal="true"
       onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 9999,
-        background: "rgba(15,23,42,0.84)",
-        padding: "22px 16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-navy-900/84 p-4 sm:p-5"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{
-          position: "relative",
-          width: "min(920px, 96vw)",
-          maxHeight: "94vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
+        className="relative flex max-h-[94vh] w-[min(920px,96vw)] items-center justify-center"
       >
         <button
           type="button"
           onClick={onClose}
           aria-label="Zavřít náhled"
-          style={{
-            position: "absolute",
-            top: -12,
-            right: -12,
-            zIndex: 2,
-            width: 44,
-            height: 44,
-            borderRadius: 999,
-            border: "1px solid rgba(255,255,255,0.30)",
-            background: "#0f172a",
-            color: "#fff",
-            fontSize: 24,
-            fontWeight: 900,
-            cursor: "pointer",
-            boxShadow: "0 14px 34px rgba(0,0,0,0.35)",
-          }}
+          className="absolute -right-3 -top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-navy-900 text-white shadow-[0_14px_34px_rgba(0,0,0,0.35)]"
         >
-          ×
+          <X className="h-5 w-5" aria-hidden="true" />
         </button>
 
         <img
           src={image.src}
           alt={image.alt || "Zvětšený náhled"}
-          style={{
-            maxWidth: "100%",
-            maxHeight: "94vh",
-            width: "auto",
-            height: "auto",
-            objectFit: "contain",
-            display: "block",
-            borderRadius: 18,
-            background: "#fff",
-            boxShadow: "0 30px 90px rgba(0,0,0,0.42)",
-          }}
+          className="block max-h-[94vh] max-w-full rounded-2xl bg-white object-contain shadow-[0_30px_90px_rgba(0,0,0,0.42)]"
         />
       </div>
     </div>
@@ -626,86 +365,30 @@ export default function ProgramPage() {
 
   return (
     <>
-      <main
-        style={{
-          background: "#f8fafc",
-          minHeight: "100vh",
-          padding: "42px 20px 90px",
-        }}
-      >
-        <div style={{ maxWidth: 1180, margin: "0 auto" }}>
-          <section
-            style={{
-              background: "#fff",
-              borderRadius: 30,
-              border: "1px solid #e2e8f0",
-              boxShadow: "0 20px 60px rgba(15,23,42,0.06)",
-              overflow: "hidden",
-              padding: 0,
-            }}
-          >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1.02fr 1fr",
-                alignItems: "stretch",
-              }}
-              className="hero-grid"
-            >
-              <div style={{ padding: "42px 42px 38px" }}>
-                <div
-                  style={{
-                    display: "inline-block",
-                    padding: "8px 14px",
-                    borderRadius: 999,
-                    background: "#eef2ff",
-                    color: "#1e3a8a",
-                    fontSize: 14,
-                    fontWeight: 800,
-                    marginBottom: 18,
-                  }}
-                >
-                  Živý program pro školu a komunitu
-                </div>
+      <main className="min-h-screen bg-slate-50 px-5 pb-16 pt-10">
+        <div className="mx-auto max-w-[1180px]">
+          <Card className="overflow-hidden p-0">
+            <div className="grid grid-cols-1 items-stretch lg:grid-cols-[1.02fr_1fr]">
+              <div className="p-6 sm:p-9">
+                <SectionEyebrow>Živý program pro školu a komunitu</SectionEyebrow>
 
-                <h1
-                  style={{
-                    margin: 0,
-                    fontSize: "clamp(36px, 5vw, 62px)",
-                    lineHeight: 1.02,
-                    color: "#0f172a",
-                    letterSpacing: "-0.04em",
-                  }}
-                >
+                <h1 className="text-[clamp(36px,5vw,58px)] font-[950] leading-[1.02] tracking-[-0.04em] text-navy-900">
                   Co je v programu ARCHIMEDES Live
                 </h1>
 
-                <p
-                  style={{
-                    margin: "22px 0 0",
-                    fontSize: 20,
-                    lineHeight: 1.75,
-                    color: "#334155",
-                    maxWidth: 620,
-                  }}
-                >
+                <p className="mt-5 max-w-[620px] text-xl leading-relaxed text-slate-700">
                   Pravidelná živá vysílání a hotový obsah pro školu, seniory,
                   spolky i celou obec — v jedné licenci, po celý rok.
                 </p>
 
-                <div
-                  style={{
-                    display: "flex",
-                    marginTop: 30,
-                  }}
-                  className="hero-cta-grid"
-                >
-                  <PrimaryButton href="/zadost">
+                <div className="mt-7">
+                  <Button href="/zadost">
                     Chci program pro naši obec
-                  </PrimaryButton>
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Button>
                 </div>
 
-                <div style={{ marginTop: 28 }}>
+                <div className="mt-7">
                   <CurrentProgramCard
                     onOpen={() =>
                       setModalImage({
@@ -717,180 +400,66 @@ export default function ProgramPage() {
                 </div>
               </div>
 
-              <div
-                style={{
-                  background: "linear-gradient(180deg, #eef4ff 0%, #f8fafc 100%)",
-                  borderLeft: "1px solid #e2e8f0",
-                  padding: "22px 20px 22px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "10px 14px",
-                    borderRadius: 999,
-                    background: "rgba(15, 23, 42, 0.82)",
-                    color: "#fff",
-                    fontSize: 14,
-                    fontWeight: 800,
-                    marginBottom: 16,
-                    boxShadow: "0 10px 24px rgba(15,23,42,0.14)",
-                  }}
-                >
+              <div className="border-t border-slate-200 bg-gradient-to-b from-blue-50 to-slate-50 p-5 lg:border-l lg:border-t-0">
+                <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-navy-900/[0.82] px-3.5 py-2.5 text-sm font-bold text-white shadow-[0_10px_24px_rgba(15,23,42,0.14)]">
                   Nadcházející vysílání
-                </div>
+                </span>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gap: 14,
-                    maxHeight: 760,
-                    overflow: "auto",
-                    paddingRight: 4,
-                  }}
-                  className="upcoming-events-list"
-                >
+                <div className="events-scroll grid gap-3.5 pr-1 lg:max-h-[760px] lg:overflow-auto">
                   {eventsLoading ? (
-                    <div
-                      style={{
-                        background: "#fff",
-                        border: "1px solid #e2e8f0",
-                        borderRadius: 20,
-                        padding: 18,
-                        color: "#64748b",
-                        fontSize: 15,
-                        lineHeight: 1.7,
-                      }}
-                    >
+                    <Card className="p-4 text-[15px] leading-relaxed text-slate-500">
                       Načítám nadcházející vysílání…
-                    </div>
+                    </Card>
                   ) : upcomingEvents.length > 0 ? (
                     upcomingEvents.map((event) => (
-                      <UpcomingEventItem
-                        key={event.id}
-                        event={event}
-                        onPosterClick={setModalImage}
-                      />
+                      <UpcomingEventItem key={event.id} event={event} onPosterClick={setModalImage} />
                     ))
                   ) : (
-                    <div
-                      style={{
-                        background: "#fff",
-                        border: "1px solid #e2e8f0",
-                        borderRadius: 20,
-                        padding: 18,
-                        color: "#64748b",
-                        fontSize: 15,
-                        lineHeight: 1.7,
-                      }}
-                    >
+                    <Card className="p-4 text-[15px] leading-relaxed text-slate-500">
                       Aktuálně zde nejsou zveřejněna žádná nadcházející vysílání.
-                    </div>
+                    </Card>
                   )}
                 </div>
               </div>
             </div>
-          </section>
+          </Card>
 
-          <section id="varianty" style={{ marginTop: 84 }}>
+          <section id="varianty" className="mt-16">
             <SectionTitle
               title="Osmnáct programových bloků pod jednou licencí obce"
               text="Každý blok připravuje ARCHIMEDES Live ve spolupráci s odborníky a partnery — obec jen zapojí zájemce."
             />
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: 16,
-              }}
-              className="price-grid"
-            >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {programBlocks.map((block) => (
                 <ProgramBlockCard key={block.title} {...block} />
               ))}
             </div>
           </section>
 
-          <section id="cena" style={{ marginTop: 64 }}>
-            <div
-              style={{
-                background: "#0f2344",
-                borderRadius: 28,
-                padding: "40px 36px",
-                color: "#ffffff",
-              }}
-            >
-              <h2
-                style={{
-                  margin: 0,
-                  fontSize: "clamp(26px, 3.4vw, 36px)",
-                  lineHeight: 1.15,
-                  letterSpacing: "-0.03em",
-                }}
-              >
+          <section id="cena" className="mt-12">
+            <div className="rounded-card-lg bg-navy-900 p-7 text-white sm:p-9">
+              <h2 className="text-[clamp(26px,3.4vw,36px)] font-[950] leading-[1.15] tracking-[-0.03em]">
                 Jedna licence, jedna cena pro celou obec
               </h2>
 
-              <p
-                style={{
-                  margin: "18px 0 0",
-                  fontSize: 17,
-                  lineHeight: 1.7,
-                  color: "rgba(255,255,255,0.82)",
-                  maxWidth: 680,
-                }}
-              >
+              <p className="mt-4 max-w-[680px] text-[17px] leading-relaxed text-white/82">
                 Všech osmnáct bloků je součástí jedné obecní licence za 1 990
                 Kč/měsíc — bez příplatků za jednotlivé spolky nebo organizace.
                 Podrobnosti a přihlášku najdete na stránce Pro obce.
               </p>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: 14,
-                  flexWrap: "wrap",
-                  marginTop: 26,
-                }}
-              >
+              <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   href="/obec"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: 50,
-                    padding: "0 22px",
-                    borderRadius: 14,
-                    background: "#ffffff",
-                    color: "#0f172a",
-                    textDecoration: "none",
-                    fontWeight: 800,
-                    fontSize: 15.5,
-                  }}
+                  className="inline-flex h-[50px] items-center justify-center rounded-2xl bg-white px-5 text-[15.5px] font-bold text-navy-900"
                 >
                   Podrobnosti a ceník
                 </Link>
 
                 <Link
                   href="/zadost"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: 50,
-                    padding: "0 22px",
-                    borderRadius: 14,
-                    background: "transparent",
-                    color: "#ffffff",
-                    border: "1px solid rgba(255,255,255,0.4)",
-                    textDecoration: "none",
-                    fontWeight: 800,
-                    fontSize: 15.5,
-                  }}
+                  className="inline-flex h-[50px] items-center justify-center rounded-2xl border border-white/40 px-5 text-[15.5px] font-bold text-white"
                 >
                   Chci program pro naši obec
                 </Link>
@@ -902,69 +471,13 @@ export default function ProgramPage() {
 
       <ImageModal image={modalImage} onClose={() => setModalImage(null)} />
 
-      <style jsx>{`
-        .hero-cta-grid :global(a:hover) {
-          transform: translateY(-1px);
-        }
-
-        .current-program-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 22px 48px rgba(37, 99, 235, 0.16) !important;
-        }
-
-        .upcoming-event-item button:hover img {
-          transform: scale(1.04);
-        }
-
-        .upcoming-event-item button img {
-          transition: transform 0.18s ease;
-        }
-
-        .upcoming-events-list::-webkit-scrollbar {
+      <style jsx global>{`
+        .events-scroll::-webkit-scrollbar {
           width: 8px;
         }
-
-        .upcoming-events-list::-webkit-scrollbar-thumb {
+        .events-scroll::-webkit-scrollbar-thumb {
           background: #cbd5e1;
           border-radius: 999px;
-        }
-
-        @media (max-width: 1100px) {
-          .price-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            max-width: none !important;
-          }
-
-          .hero-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          .upcoming-events-list {
-            max-height: none !important;
-          }
-        }
-
-        @media (max-width: 760px) {
-          .price-grid {
-            grid-template-columns: 1fr !important;
-          }
-
-          .hero-grid > div:first-child {
-            padding: 30px 22px 26px !important;
-          }
-
-          .current-program-card {
-            grid-template-columns: 1fr !important;
-          }
-
-          .upcoming-event-item {
-            grid-template-columns: 78px 1fr !important;
-          }
-
-          .upcoming-event-item button {
-            width: 78px !important;
-            height: 106px !important;
-          }
         }
       `}</style>
     </>
