@@ -1,9 +1,17 @@
 import { useState } from "react";
-import Link from "next/link";
+import { GraduationCap, Globe2, Landmark, Users } from "lucide-react";
+import { cn } from "../lib/utils";
+import { Badge } from "../components/ui/badge";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Alert } from "../components/ui/alert";
 
 const INTEREST_SECTIONS = [
   {
-    title: "🎓 Pro školu",
+    title: "Pro školu",
+    icon: GraduationCap,
     items: [
       { code: "skola_1_stupen", label: "1. stupeň ZŠ" },
       { code: "skola_2_stupen", label: "2. stupeň ZŠ" },
@@ -12,7 +20,8 @@ const INTEREST_SECTIONS = [
     ],
   },
   {
-    title: "🌍 Témata",
+    title: "Témata",
+    icon: Globe2,
     items: [
       { code: "veda_a_objevy", label: "Věda a objevy" },
       { code: "priroda_a_ekologie", label: "Příroda a ekologie" },
@@ -23,14 +32,16 @@ const INTEREST_SECTIONS = [
     ],
   },
   {
-    title: "🏛️ Kluby a programy",
+    title: "Kluby a programy",
+    icon: Landmark,
     items: [
       { code: "ctenarsky_klub", label: "Čtenářský klub" },
       { code: "filmovy_klub", label: "Filmový klub" },
     ],
   },
   {
-    title: "👥 Pro komunitu a spolky",
+    title: "Pro komunitu a spolky",
+    icon: Users,
     items: [
       { code: "hasici", label: "Požární ochrana" },
       { code: "sport", label: "Sport a tělovýchova" },
@@ -126,124 +137,69 @@ export default function PridatSeKOrganizaciPage() {
     }
   }
 
-  const fieldStyle = {
-    width: "100%",
-    padding: "12px 14px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.15)",
-    fontSize: 15,
-    boxSizing: "border-box",
-    background: "#fff",
-  };
-
-  const cardStyle = {
-    background: "#fff",
-    borderRadius: 24,
-    padding: 28,
-    boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-    border: "1px solid rgba(0,0,0,0.08)",
-  };
-
   return (
-    <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
-      <main style={{ maxWidth: 820, margin: "0 auto", padding: "40px 16px" }}>
-        <div style={cardStyle}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "8px 12px",
-              borderRadius: 999,
-              background: "#f3f4f6",
-              color: "#374151",
-              fontSize: 13,
-              fontWeight: 800,
-              marginBottom: 16,
-            }}
-          >
+    <div className="min-h-screen bg-slate-50">
+      <main className="mx-auto max-w-[820px] px-4 py-10">
+        <Card className="p-7">
+          <Badge variant="outline">
             {result ? "Zaregistrováno" : "Upozornění na vysílání a program"}
-          </div>
+          </Badge>
 
           {!result ? (
             <>
-              <h1 style={{ marginTop: 0, fontSize: 34, lineHeight: 1.12 }}>
+              <h1 className="mt-4 text-[34px] font-[950] leading-[1.12] tracking-[-0.03em] text-navy-900">
                 Chci dostávat upozornění na vysílání ARCHIMEDES Live
               </h1>
 
-              <p style={{ color: "rgba(0,0,0,0.72)", lineHeight: 1.7, marginBottom: 8, fontSize: 17 }}>
+              <p className="mb-2 mt-3 text-[17px] leading-relaxed text-muted">
                 Zadejte kód vaší organizace (spolku nebo školy) a vyberte, o
                 jaké vysílání a program máte zájem — budeme vám posílat jen
                 upozornění na to, co si zvolíte.
               </p>
 
-              <p style={{ color: "rgba(0,0,0,0.55)", lineHeight: 1.6, marginBottom: 20, fontSize: 14 }}>
+              <p className="mb-5 text-sm leading-relaxed text-slate-500">
                 Kód organizace vám sdělí kontaktní osoba vašeho spolku nebo
                 školy, která už má ARCHIMEDES Live aktivovaný.
               </p>
 
               {error ? (
-                <div
-                  style={{
-                    marginBottom: 16,
-                    padding: 12,
-                    borderRadius: 12,
-                    background: "#fff1f1",
-                    color: "#a40000",
-                    border: "1px solid #f2c9c9",
-                  }}
-                >
+                <Alert variant="error" className="mb-4">
                   Chyba: {error}
-                </div>
+                </Alert>
               ) : null}
 
-              <form onSubmit={submitForm} style={{ display: "grid", gap: 16 }}>
+              <form onSubmit={submitForm} className="grid gap-4">
                 <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Kód organizace*
-                  </label>
-                  <input
+                  <Label htmlFor="joinCode">Kód organizace*</Label>
+                  <Input
+                    id="joinCode"
                     value={joinCode}
                     onChange={(e) => setJoinCode(e.target.value)}
                     placeholder="Např. ORG-A1B2C3D4"
-                    style={fieldStyle}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Jméno a příjmení*
-                  </label>
-                  <input
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    style={fieldStyle}
-                  />
+                  <Label htmlFor="fullName">Jméno a příjmení*</Label>
+                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    E-mail*
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    style={fieldStyle}
-                  />
+                  <Label htmlFor="email">E-mail*</Label>
+                  <Input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", marginBottom: 12, fontWeight: 600 }}>
-                    O co máte zájem?*
-                  </label>
+                  <Label>O co máte zájem?*</Label>
 
-                  <div style={{ display: "grid", gap: 20 }}>
+                  <div className="grid gap-5">
                     {INTEREST_SECTIONS.map((section) => (
                       <div key={section.title}>
-                        <div style={{ fontWeight: 700, marginBottom: 10, fontSize: 15 }}>
+                        <div className="mb-2.5 flex items-center gap-1.5 text-[15px] font-bold text-navy-900">
+                          <section.icon className="h-4 w-4 text-brand" aria-hidden="true" />
                           {section.title}
                         </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                        <div className="flex flex-wrap gap-2.5">
                           {section.items.map((item) => {
                             const active = selected.includes(item.code);
                             return (
@@ -251,18 +207,12 @@ export default function PridatSeKOrganizaciPage() {
                                 key={item.code}
                                 type="button"
                                 onClick={() => toggle(item.code)}
-                                style={{
-                                  appearance: "none",
-                                  border: "1px solid rgba(0,0,0,0.15)",
-                                  background: active ? "#111827" : "#fff",
-                                  color: active ? "#fff" : "#111827",
-                                  borderColor: active ? "#111827" : "rgba(0,0,0,0.15)",
-                                  padding: "10px 14px",
-                                  borderRadius: 999,
-                                  fontSize: 14,
-                                  fontWeight: 700,
-                                  cursor: "pointer",
-                                }}
+                                className={cn(
+                                  "rounded-full border px-3.5 py-2 text-sm font-bold transition-colors",
+                                  active
+                                    ? "border-navy-900 bg-navy-900 text-white"
+                                    : "border-slate-900/15 bg-white text-navy-900 hover:border-slate-300"
+                                )}
                               >
                                 {item.label}
                               </button>
@@ -274,87 +224,35 @@ export default function PridatSeKOrganizaciPage() {
                   </div>
                 </div>
 
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    style={{
-                      padding: "12px 16px",
-                      borderRadius: 12,
-                      background: "#111827",
-                      color: "#fff",
-                      fontWeight: 700,
-                      border: "none",
-                      cursor: saving ? "default" : "pointer",
-                      opacity: saving ? 0.7 : 1,
-                    }}
-                  >
+                <div className="mt-1 flex flex-wrap gap-2.5">
+                  <Button type="submit" disabled={saving}>
                     {saving ? "Odesílám..." : "Zaregistrovat se k upozorněním"}
-                  </button>
-
-                  <Link
-                    href="/"
-                    style={{
-                      display: "inline-block",
-                      padding: "12px 16px",
-                      borderRadius: 12,
-                      background: "#fff",
-                      color: "#111827",
-                      textDecoration: "none",
-                      fontWeight: 700,
-                      border: "1px solid rgba(0,0,0,0.12)",
-                    }}
-                  >
+                  </Button>
+                  <Button href="/" variant="secondary">
                     Zpět na hlavní stránku
-                  </Link>
+                  </Button>
                 </div>
               </form>
             </>
           ) : (
             <>
-              <h1 style={{ marginTop: 0, fontSize: 34, lineHeight: 1.12 }}>
+              <h1 className="mt-4 text-[34px] font-[950] leading-[1.12] tracking-[-0.03em] text-navy-900">
                 Jste zaregistrováni
               </h1>
 
-              <div
-                style={{
-                  marginTop: 20,
-                  marginBottom: 24,
-                  padding: 18,
-                  borderRadius: 18,
-                  background: "#eefaf0",
-                  color: "#166534",
-                  border: "1px solid #cfe8d3",
-                  lineHeight: 1.8,
-                  fontSize: 16,
-                }}
-              >
+              <Alert variant="success" className="mb-6 mt-5 text-base">
                 Budeme vám posílat upozornění na vysílání a program
                 ARCHIMEDES Live pro organizaci „{result.organizationName}“
                 podle vybraných okruhů.
                 {result.emailSent === false
                   ? " Potvrzovací e-mail se teď nepodařilo odeslat, ale registrace proběhla v pořádku."
                   : ""}
-              </div>
+              </Alert>
 
-              <Link
-                href="/"
-                style={{
-                  display: "inline-block",
-                  padding: "12px 16px",
-                  borderRadius: 12,
-                  background: "#111827",
-                  color: "#fff",
-                  textDecoration: "none",
-                  fontWeight: 700,
-                  border: "none",
-                }}
-              >
-                Zpět na hlavní stránku
-              </Link>
+              <Button href="/">Zpět na hlavní stránku</Button>
             </>
           )}
-        </div>
+        </Card>
       </main>
     </div>
   );

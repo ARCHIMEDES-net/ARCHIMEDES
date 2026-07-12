@@ -1,5 +1,11 @@
 import { useState } from "react";
-import Link from "next/link";
+import { Badge } from "../components/ui/badge";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Select } from "../components/ui/select";
+import { Label } from "../components/ui/label";
+import { Alert } from "../components/ui/alert";
 
 const ACTIVITY_OPTIONS = [
   { code: "hasici", label: "Požární ochrana" },
@@ -118,280 +124,120 @@ export default function RegistraceSpolkuPage() {
     }
   }
 
-  const fieldStyle = {
-    width: "100%",
-    padding: "12px 14px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.15)",
-    fontSize: 15,
-    boxSizing: "border-box",
-    background: "#fff",
-  };
-
-  const helperStyle = {
-    marginTop: 6,
-    fontSize: 13,
-    color: "rgba(0,0,0,0.62)",
-    lineHeight: 1.5,
-  };
-
-  const cardStyle = {
-    background: "#fff",
-    borderRadius: 24,
-    padding: 28,
-    boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-    border: "1px solid rgba(0,0,0,0.08)",
-  };
-
   return (
-    <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: "40px 16px" }}>
-        <div style={cardStyle}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              padding: "8px 12px",
-              borderRadius: 999,
-              background: "#f3f4f6",
-              color: "#374151",
-              fontSize: 13,
-              fontWeight: 800,
-              marginBottom: 16,
-            }}
-          >
-            {submitted ? "Registrace přijata" : "Registrace spolku"}
-          </div>
+    <div className="min-h-screen bg-slate-50">
+      <main className="mx-auto max-w-[760px] px-4 py-10">
+        <Card className="p-7">
+          <Badge variant="outline">{submitted ? "Registrace přijata" : "Registrace spolku"}</Badge>
 
           {!submitted ? (
             <>
-              <h1 style={{ marginTop: 0, fontSize: 34, lineHeight: 1.12 }}>
+              <h1 className="mt-4 text-[34px] font-[950] leading-[1.12] tracking-[-0.03em] text-navy-900">
                 Registrace spolku do ARCHIMEDES Live
               </h1>
 
-              <p
-                style={{
-                  color: "rgba(0,0,0,0.72)",
-                  lineHeight: 1.7,
-                  marginBottom: 20,
-                  fontSize: 17,
-                }}
-              >
+              <p className="mb-5 mt-3 text-[17px] leading-relaxed text-muted">
                 Vyplňte registrační číslo vaší obce (obdržíte ho od obecního
                 úřadu) a údaje o spolku.
               </p>
 
               {error ? (
-                <div
-                  style={{
-                    marginBottom: 16,
-                    padding: 12,
-                    borderRadius: 12,
-                    background: "#fff1f1",
-                    color: "#a40000",
-                    border: "1px solid #f2c9c9",
-                  }}
-                >
+                <Alert variant="error" className="mb-4">
                   Chyba: {error}
-                </div>
+                </Alert>
               ) : null}
 
-              <form onSubmit={submitForm} style={{ display: "grid", gap: 16 }}>
+              <form onSubmit={submitForm} className="grid gap-4">
                 <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Registrační číslo obce*
-                  </label>
-                  <input
+                  <Label htmlFor="registrationNumber">Registrační číslo obce*</Label>
+                  <Input
+                    id="registrationNumber"
                     name="registrationNumber"
                     required
                     value={form.registrationNumber}
                     onChange={updateField}
                     placeholder="Např. 4823"
-                    style={fieldStyle}
                   />
-                  <div style={helperStyle}>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-slate-500">
                     Registrační číslo vám sdělí obecní úřad, který má
                     ARCHIMEDES Live aktivovaný.
-                  </div>
+                  </p>
                 </div>
 
                 <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Název spolku*
-                  </label>
-                  <input
+                  <Label htmlFor="name">Název spolku*</Label>
+                  <Input
+                    id="name"
                     name="name"
                     required
                     value={form.name}
                     onChange={updateField}
                     placeholder="Např. SDH Křenov"
-                    style={fieldStyle}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Kontaktní osoba*
-                  </label>
-                  <input
-                    name="contactName"
-                    required
-                    value={form.contactName}
-                    onChange={updateField}
-                    style={fieldStyle}
-                  />
+                  <Label htmlFor="contactName">Kontaktní osoba*</Label>
+                  <Input id="contactName" name="contactName" required value={form.contactName} onChange={updateField} />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    E-mail*
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    value={form.email}
-                    onChange={updateField}
-                    style={fieldStyle}
-                  />
+                  <Label htmlFor="email">E-mail*</Label>
+                  <Input type="email" id="email" name="email" required value={form.email} onChange={updateField} />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Telefon*
-                  </label>
-                  <input
-                    name="phone"
-                    required
-                    value={form.phone}
-                    onChange={updateField}
-                    style={fieldStyle}
-                  />
+                  <Label htmlFor="phone">Telefon*</Label>
+                  <Input id="phone" name="phone" required value={form.phone} onChange={updateField} />
                 </div>
 
                 <div>
-                  <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                    Činnost spolku*
-                  </label>
-                  <select
-                    name="activityCode"
-                    required
-                    value={form.activityCode}
-                    onChange={updateField}
-                    style={fieldStyle}
-                  >
+                  <Label htmlFor="activityCode">Činnost spolku*</Label>
+                  <Select id="activityCode" name="activityCode" required value={form.activityCode} onChange={updateField}>
                     <option value="">Vyberte</option>
                     {ACTIVITY_OPTIONS.map((o) => (
                       <option key={o.code} value={o.code}>
                         {o.label}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {form.activityCode === "jine" ? (
                   <div>
-                    <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                      Upřesněte činnost*
-                    </label>
-                    <input
-                      name="customText"
-                      required
-                      value={form.customText}
-                      onChange={updateField}
-                      style={fieldStyle}
-                    />
+                    <Label htmlFor="customText">Upřesněte činnost*</Label>
+                    <Input id="customText" name="customText" required value={form.customText} onChange={updateField} />
                   </div>
                 ) : null}
 
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    style={{
-                      padding: "12px 16px",
-                      borderRadius: 12,
-                      background: "#111827",
-                      color: "#fff",
-                      fontWeight: 700,
-                      border: "none",
-                      cursor: saving ? "default" : "pointer",
-                      opacity: saving ? 0.7 : 1,
-                    }}
-                  >
+                <div className="mt-1 flex flex-wrap gap-2.5">
+                  <Button type="submit" disabled={saving}>
                     {saving ? "Odesílám..." : "Registrovat spolek"}
-                  </button>
-
-                  <Link
-                    href="/"
-                    style={{
-                      display: "inline-block",
-                      padding: "12px 16px",
-                      borderRadius: 12,
-                      background: "#fff",
-                      color: "#111827",
-                      textDecoration: "none",
-                      fontWeight: 700,
-                      border: "1px solid rgba(0,0,0,0.12)",
-                    }}
-                  >
+                  </Button>
+                  <Button href="/" variant="secondary">
                     Zpět na hlavní stránku
-                  </Link>
+                  </Button>
                 </div>
               </form>
             </>
           ) : (
             <>
-              <h1 style={{ marginTop: 0, fontSize: 34, lineHeight: 1.12 }}>
+              <h1 className="mt-4 text-[34px] font-[950] leading-[1.12] tracking-[-0.03em] text-navy-900">
                 Spolek jsme zaregistrovali
               </h1>
 
-              <div
-                style={{
-                  marginTop: 20,
-                  marginBottom: 24,
-                  padding: 18,
-                  borderRadius: 18,
-                  background: "#eefaf0",
-                  color: "#166534",
-                  border: "1px solid #cfe8d3",
-                  lineHeight: 1.8,
-                  fontSize: 16,
-                }}
-              >
+              <Alert variant="success" className="mb-6 mt-5 text-base">
                 {resultOrg?.registrationNumber || resultOrg?.registration_number
                   ? `Registrační číslo spolku: ${
                       resultOrg.registration_number || resultOrg.registrationNumber
                     }`
                   : "Registraci jsme přijali."}
-              </div>
+              </Alert>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: 10,
-                  flexWrap: "wrap",
-                }}
-              >
-                <Link
-                  href="/"
-                  style={{
-                    display: "inline-block",
-                    padding: "12px 16px",
-                    borderRadius: 12,
-                    background: "#111827",
-                    color: "#fff",
-                    textDecoration: "none",
-                    fontWeight: 700,
-                    border: "none",
-                  }}
-                >
-                  Zpět na hlavní stránku
-                </Link>
-              </div>
+              <Button href="/">Zpět na hlavní stránku</Button>
             </>
           )}
-        </div>
+        </Card>
       </main>
     </div>
   );
