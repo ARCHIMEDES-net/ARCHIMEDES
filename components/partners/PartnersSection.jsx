@@ -5,15 +5,16 @@ import PartnerCard from "./PartnerCard";
 import { partnersSection, partnersCta, partners } from "../../content/partners";
 
 /**
- * Unified partner presentation — used identically on the homepage, /obec,
- * /reference and /pro-organizace so a visitor sees the same 6 confirmed
- * partners everywhere. `showAllLink` and `showCta` are the only knobs,
- * since some pages already end with their own CTA band.
+ * Compact, space-limited representative selection of partners — used on
+ * the homepage, /obec, /reference and /pro-organizace. `showOnHomepage`
+ * on each partner record is a placement flag only, not a ranking: this
+ * is never presented as the complete partner list (that lives at
+ * /pro-organizace#partnerske-organizace, linked via `showAllLink`).
  */
 export default function PartnersSection({ showAllLink = true, showCta = true }) {
-  const visiblePartners = partners.filter((p) => p.visible).sort((a, b) => a.order - b.order);
+  const selectedPartners = partners.filter((p) => p.showOnHomepage);
 
-  if (!visiblePartners.length) return null;
+  if (!selectedPartners.length) return null;
 
   return (
     <section className="border-y border-slate-100 bg-slate-50 py-14">
@@ -40,8 +41,8 @@ export default function PartnersSection({ showAllLink = true, showCta = true }) 
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visiblePartners.map((p) => (
-            <PartnerCard key={p.id} partner={p} />
+          {selectedPartners.map((p) => (
+            <PartnerCard key={p.slug} partner={p} />
           ))}
         </div>
 

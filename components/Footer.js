@@ -11,7 +11,10 @@ const SOCIAL_ICON = {
 export default function Footer() {
   const { legalName, tagline, columns, social, legalLinks } = footerContent;
   const visibleSocial = (social || []).filter((s) => s.visible !== false);
-  const visiblePartners = partners.filter((p) => p.visible).sort((a, b) => a.order - b.order);
+  // Footer shows a limited logo selection, not the full partner network —
+  // only entries with a real logo asset render here (see content/partners.js
+  // for organizations shown via icon instead of logo).
+  const footerPartners = partners.filter((p) => p.logo);
 
   return (
     <footer className="site-footer">
@@ -64,17 +67,17 @@ export default function Footer() {
         </div>
       </div>
 
-      {visiblePartners.length ? (
+      {footerPartners.length ? (
         <div className="footer-partners">
           <div className="footer-partners-inner">
-            <span className="footer-partners-label">Naši partneři</span>
+            <span className="footer-partners-label">Partnerské organizace</span>
             <div className="footer-partners-logos">
-              {visiblePartners.map((p) => (
+              {footerPartners.map((p) => (
                 <a
-                  key={p.id}
+                  key={p.slug}
                   href={p.website}
                   target="_blank"
-                  rel="noreferrer noopener"
+                  rel="noopener noreferrer"
                   className="footer-partner-logo"
                   title={p.name}
                 >

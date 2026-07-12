@@ -1,18 +1,30 @@
 /**
- * Data for the "16 komunitních oblastí" section on the homepage.
+ * Data for the full, unranked overview of every community area ARCHIMEDES
+ * Live supports — the "úplný přehled" linked from every "Zobrazit
+ * všechny partnerské organizace a oblasti" link, rendered on
+ * /pro-organizace.
  *
- * Codes and labels are kept identical to the `activity_categories` DB
+ * Codes and titles are kept identical to the `activity_categories` DB
  * catalog (supabase/migrations/0002_blok_a_activity_categories.sql,
  * section 'spolky') so the public marketing copy always matches what
- * organizations pick from in the portal — see icon keys mapped in
- * components/partners/CommunityCategoriesSection.jsx.
+ * organizations pick from in the portal. The catalog's 17th entry,
+ * "Jiné" (code 'jine'), is a registration-form catch-all only and is
+ * intentionally NOT included here — it never appears on the public
+ * marketing site.
+ *
+ * `partnerSlug` links an area to its confirmed contractual partner in
+ * content/partners.js (single source of truth for that org's name/
+ * logo/website — never duplicated here). Areas without a specific
+ * partner organization carry an `icon` key instead (see
+ * components/partners/icons.js) and are rendered with that icon, never
+ * a fake logo or placeholder.
  */
 
 export const communityCategoriesSection = {
-  eyebrow: "Komunita v obci",
-  title: "16 komunitních oblastí, na kterých obci pomáháme stavět",
+  eyebrow: "Partnerské organizace a oblasti",
+  title: "Celý přehled partnerských organizací a komunitních oblastí",
   subtitle:
-    "Od hasičů po Smart City — každá oblast má vlastní obsah a organizace v ní najdou program šitý na míru.",
+    "16 oblastí komunitního života, kterým ARCHIMEDES Live pomáhá — s konkrétní partnerskou organizací tam, kde existuje.",
 };
 
 export const communityCategoriesCta = {
@@ -24,20 +36,125 @@ export const communityCategoriesCta = {
 };
 
 export const communityCategories = [
-  { code: "hasici", label: "Požární ochrana", icon: "flame", order: 1, visible: true },
-  { code: "sport", label: "Sport a tělovýchova", icon: "dumbbell", order: 2, visible: true },
-  { code: "myslivost", label: "Myslivost", icon: "tree-pine", order: 3, visible: true },
-  { code: "vcelarstvi", label: "Včelařství", icon: "hexagon", order: 4, visible: true },
-  { code: "zahradkari", label: "Zahrádkáři a pěstitelé", icon: "sprout", order: 5, visible: true },
-  { code: "rybarstvi", label: "Rybářství", icon: "fish", order: 6, visible: true },
-  { code: "chovatelstvi", label: "Chovatelství", icon: "paw-print", order: 7, visible: true },
-  { code: "folklor", label: "Folklor a tradice", icon: "music", order: 8, visible: true },
-  { code: "kultura", label: "Kultura a umění", icon: "palette", order: 9, visible: true },
-  { code: "seniori", label: "Senioři", icon: "users", order: 10, visible: true },
-  { code: "rodice_deti", label: "Rodiče a děti", icon: "baby", order: 11, visible: true },
-  { code: "mladez", label: "Děti a mládež", icon: "graduation-cap", order: 12, visible: true },
-  { code: "socialni", label: "Sociální a zdravotní", icon: "heart-pulse", order: 13, visible: true },
-  { code: "duchovni", label: "Duchovní společenství", icon: "church", order: 14, visible: true },
-  { code: "komunita", label: "Okrašlovací a komunitní", icon: "tree-deciduous", order: 15, visible: true },
-  { code: "smart_city", label: "Chytrá obec", icon: "building", order: 16, visible: true },
+  {
+    code: "hasici",
+    title: "Požární ochrana",
+    description: "Sbory dobrovolných hasičů a záchranářský dorost",
+    partnerSlug: "sh-cms",
+    order: 1,
+  },
+  {
+    code: "sport",
+    title: "Sport a tělovýchova",
+    description: "Tělovýchovné jednoty, sportovní kluby, Sokol a místní oddíly",
+    partnerSlug: null,
+    icon: "Trophy",
+    order: 2,
+  },
+  {
+    code: "myslivost",
+    title: "Myslivost",
+    description: "Myslivecké spolky, péče o krajinu a zvěř",
+    partnerSlug: "myslivecka-jednota",
+    order: 3,
+  },
+  {
+    code: "vcelarstvi",
+    title: "Včelařství",
+    description: "Včelařské spolky a osvěta o ochraně opylovačů",
+    partnerSlug: "svaz-vcelaru",
+    order: 4,
+  },
+  {
+    code: "zahradkari",
+    title: "Zahrádkáři a pěstitelé",
+    description: "Zahrádkářské spolky a péče o obecní zeleň",
+    partnerSlug: "svaz-zahradkaru",
+    order: 5,
+  },
+  {
+    code: "rybarstvi",
+    title: "Rybářství",
+    description: "Rybářské spolky a péče o vodní toky a revíry",
+    partnerSlug: "rybarsky-svaz",
+    order: 6,
+  },
+  {
+    code: "chovatelstvi",
+    title: "Chovatelství",
+    description: "Místní organizace chovatelů a spolky drobného zvířectva",
+    partnerSlug: null,
+    icon: "PawPrint",
+    order: 7,
+  },
+  {
+    code: "folklor",
+    title: "Folklor a tradice",
+    description: "Chasy, národopisné soubory a nositelé místních tradic",
+    partnerSlug: null,
+    icon: "Music",
+    order: 8,
+  },
+  {
+    code: "kultura",
+    title: "Kultura a umění",
+    description: "Ochotníci, pěvecké sbory, kapely a muzejní spolky",
+    partnerSlug: null,
+    icon: "Palette",
+    order: 9,
+  },
+  {
+    code: "seniori",
+    title: "Senioři",
+    description: "Kluby seniorů a mezigenerační program",
+    partnerSlug: "rada-senioru",
+    order: 10,
+  },
+  {
+    code: "rodice_deti",
+    title: "Rodiče a děti",
+    description: "Spolky rodičů, SRPŠ, rodinná a mateřská centra",
+    partnerSlug: null,
+    icon: "Baby",
+    order: 11,
+  },
+  {
+    code: "mladez",
+    title: "Děti a mládež",
+    description: "Skautské oddíly a další organizace pro děti a mládež",
+    partnerSlug: "junak",
+    order: 12,
+  },
+  {
+    code: "socialni",
+    title: "Sociální a zdravotní oblast",
+    description: "Charity, Červený kříž, dobrovolníci a pečující organizace",
+    partnerSlug: null,
+    icon: "HeartPulse",
+    order: 13,
+  },
+  {
+    code: "duchovni",
+    title: "Duchovní společenství",
+    description: "Farnosti, farní charity a místní duchovní komunity",
+    partnerSlug: null,
+    icon: "Church",
+    order: 14,
+  },
+  {
+    code: "komunita",
+    title: "Okrašlovací a komunitní spolky",
+    description: "Spolky pečující o veřejný prostor, sousedské vztahy a rozvoj obce",
+    partnerSlug: null,
+    icon: "TreeDeciduous",
+    order: 15,
+  },
+  {
+    code: "smart_city",
+    title: "Chytrá obec",
+    description: "Smart City kluby, inovace a sdílení dobré praxe",
+    partnerSlug: null,
+    icon: "Building2",
+    order: 16,
+  },
 ];

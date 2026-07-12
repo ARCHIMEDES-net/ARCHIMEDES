@@ -1,114 +1,102 @@
 /**
  * Data-driven content for the partner presentation (homepage, /obec,
- * /reference, /pro-organizace, footer). Every partner is a confirmed
- * contractual partner of ARCHIMEDES Live — none of these are shown as
- * "candidate/pending" and all should render identically wherever the
- * partner section appears.
+ * /reference, /pro-organizace, footer).
  *
- * Logos live in /public/partners — see README note in that folder for
- * source/license per file.
+ * All partners are equal, confirmed contractual partners of ARCHIMEDES
+ * Live — there is no ranking or tier between them. `showOnHomepage` is
+ * a *placement* flag only (does this org appear in the homepage's
+ * space-limited representative selection), never a statement of
+ * importance. The full, unranked list of every partner always lives
+ * on /pro-organizace via content/communityCategories.js's `partnerSlug`
+ * lookup against this file.
+ *
+ * Logos live in /public/partners. A partner without a verified,
+ * license-clear official logo asset has no `logo` field and instead
+ * gets an `icon` fallback (see components/partners/icons.js) — never
+ * an invented placeholder, initials circle, or unofficial substitute.
  */
 
 export const partnersSection = {
-  eyebrow: "Silní partneři",
-  title: "Spolupracujeme s národními svazy, které znají život v obci nejlépe",
+  eyebrow: "Partnerské organizace",
+  title: "Společně propojujeme spolky a komunity napříč Českou republikou",
   subtitle:
-    "Šest celostátních organizací nám pomáhá připravovat obsah pro spolky, školy i veřejnost — od hasičů po skauty.",
-  showAllLabel: "Zobrazit všechny partnerské organizace",
-  showAllHref: "/pro-organizace",
+    "Do ARCHIMEDES Live jsou zapojeny celostátní organizace i místní spolky z různých oblastí komunitního života.",
+  showAllLabel: "Zobrazit všechny partnerské organizace a oblasti",
+  showAllHref: "/pro-organizace#partnerske-organizace",
 };
 
 export const partnersCta = {
-  title: "Chcete propojit svou organizaci s celou republikou?",
+  title: "Zastupujete organizaci nebo svaz?",
   subtitle:
-    "Pokud vedete celostátní svaz nebo organizaci, pomůžeme vám oslovit lokální pobočky a členy přímo v zapojených obcích.",
+    "Pokud vedete celostátní svaz, spolek nebo místní organizaci, pomůžeme vám oslovit lidi přímo v zapojených obcích.",
   cta: { label: "Zapojit naši organizaci", href: "/pro-organizace" },
   visible: true,
 };
 
 export const partners = [
   {
-    id: "svaz-vcelaru",
-    slug: "cesky-svaz-vcelaru",
+    slug: "svaz-vcelaru",
     name: "Český svaz včelařů",
-    shortName: "ČSV",
-    logo: "/partners/svaz-vcelaru.png",
     website: "https://www.vcelarstvi.cz",
-    category: "vcelarstvi",
+    logo: "/partners/svaz-vcelaru.png",
     description:
-      "Národní organizace sdružující včelaře z celé České republiky. Přináší obcím obsah o včelaření, ochraně opylovačů a vztahu ke krajině.",
-    featured: true,
-    order: 1,
-    visible: true,
+      "Národní organizace sdružující včelaře z celé České republiky. Obcím přináší osvětu o včelaření a ochraně opylovačů.",
+    showOnHomepage: true,
   },
   {
-    id: "myslivecka-jednota",
-    slug: "cmmj",
+    slug: "myslivecka-jednota",
     name: "Českomoravská myslivecká jednota",
-    shortName: "ČMMJ",
-    logo: "/partners/myslivecka-jednota.svg",
     website: "https://www.cmmj.cz",
-    category: "myslivost",
+    logo: "/partners/myslivecka-jednota.svg",
     description:
-      "Největší myslivecká organizace v zemi. Otevírá obcím vzdělávací obsah o myslivosti, ochraně přírody a vztahu člověka ke krajině.",
-    featured: true,
-    order: 2,
-    visible: true,
+      "Myslivecké spolky po celé republice, péče o krajinu, zvěř a vztah k přírodě.",
+    showOnHomepage: true,
   },
   {
-    id: "sh-cms",
     slug: "sh-cms",
     name: "SH ČMS",
-    shortName: "SH ČMS",
-    logo: "/partners/sh-cms.png",
+    fullName: "Sdružení hasičů Čech, Moravy a Slezska",
     website: "https://www.dh.cz",
-    category: "hasici",
-    description:
-      "Sdružení hasičů Čech, Moravy a Slezska zastřešuje sbory dobrovolných hasičů po celé republice a pomáhá jim oslovit novou generaci členů.",
-    featured: true,
-    order: 3,
-    visible: true,
+    logo: "/partners/sh-cms.png",
+    description: "Sbory dobrovolných hasičů a záchranářský dorost po celé republice.",
+    showOnHomepage: true,
   },
   {
-    id: "rybarsky-svaz",
-    slug: "crs",
+    slug: "rybarsky-svaz",
     name: "Český rybářský svaz",
-    shortName: "ČRS",
-    logo: "/partners/rybarsky-svaz.svg",
     website: "https://www.rybsvaz.cz",
-    category: "rybarstvi",
-    description:
-      "Největší rybářská organizace v ČR, pečující o rybí revíry a výchovu mladých rybářů. Přináší obcím obsah o rybářství a ochraně vodních toků.",
-    featured: true,
-    order: 4,
-    visible: true,
+    logo: "/partners/rybarsky-svaz.svg",
+    description: "Rybářské spolky a péče o revíry, vodní toky a mladé rybáře.",
+    showOnHomepage: true,
   },
   {
-    id: "svaz-zahradkaru",
-    slug: "czs",
+    slug: "svaz-zahradkaru",
     name: "Český zahrádkářský svaz",
-    shortName: "ČZS",
-    logo: "/partners/svaz-zahradkaru.png",
     website: "https://www.zahradkari.cz",
-    category: "zahradkari",
-    description:
-      "Celostátní organizace zahrádkářů a pěstitelů. Sdílí zkušenosti se zahradničením, sázením a péčí o veřejnou zeleň v obci.",
-    featured: true,
-    order: 5,
-    visible: true,
+    logo: "/partners/svaz-zahradkaru.png",
+    description: "Zahrádkářské spolky, pěstitelství a péče o veřejnou zeleň v obci.",
+    showOnHomepage: true,
   },
   {
-    id: "junak",
-    slug: "junak-cesky-skaut",
+    slug: "rada-senioru",
+    name: "Rada seniorů České republiky",
+    website: "https://www.rscr.cz",
+    // No verified official logo asset was found for this organization
+    // (its own site has no distinct header logo, and no license-clear
+    // copy exists on Wikimedia Commons) — shown with a neutral icon
+    // instead of a placeholder. Replace with a real logo if one is
+    // supplied.
+    icon: "Users",
+    description: "Kluby a spolky seniorů, mezigenerační program a osvěta pro aktivní stárnutí.",
+    showOnHomepage: true,
+  },
+  {
+    slug: "junak",
     name: "Junák – český skaut",
-    shortName: "Junák",
-    logo: "/partners/junak.png",
     website: "https://www.skaut.cz",
-    category: "mladez",
+    logo: "/partners/junak.png",
     description:
-      "Největší dětská a mládežnická organizace v ČR. Propojuje obce s aktivními oddíly a nabízí program pro výchovu dětí a mládeže.",
-    featured: true,
-    order: 6,
-    visible: true,
+      "Skautské oddíly a výchova dětí a mládeže k samostatnosti a odpovědnosti.",
+    showOnHomepage: false,
   },
 ];

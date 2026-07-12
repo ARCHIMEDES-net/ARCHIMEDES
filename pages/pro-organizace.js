@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import Footer from "../components/Footer";
 import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
-import PartnersSection from "../components/partners/PartnersSection";
+import CommunityCategoriesSection from "../components/partners/CommunityCategoriesSection";
 
 export default function ProOrganizacePage() {
   return (
@@ -67,7 +67,7 @@ export default function ProOrganizacePage() {
         </div>
       </main>
 
-      <PartnersSection showAllLink={false} showCta={false} />
+      <CommunityCategoriesSection />
 
       <Footer />
     </>

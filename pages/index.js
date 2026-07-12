@@ -25,7 +25,6 @@ import StatCard from "../components/home/StatCard";
 import FeatureCard from "../components/home/FeatureCard";
 import ReferenceCard from "../components/home/ReferenceCard";
 import PartnersSection from "../components/partners/PartnersSection";
-import CommunityCategoriesSection from "../components/partners/CommunityCategoriesSection";
 import {
   hero,
   heroStats,
@@ -213,9 +212,6 @@ export default function Home() {
 
         {/* PARTNERS */}
         <PartnersSection />
-
-        {/* KOMUNITNÍ OBLASTI */}
-        <CommunityCategoriesSection />
 
         {/* FEATURES */}
         <section id="jak-to-funguje" className="py-12">

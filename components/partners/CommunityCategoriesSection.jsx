@@ -1,56 +1,45 @@
 import Link from "next/link";
-import {
-  Flame,
-  Dumbbell,
-  TreePine,
-  Hexagon,
-  Sprout,
-  Fish,
-  PawPrint,
-  Music,
-  Palette,
-  Users,
-  Baby,
-  GraduationCap,
-  HeartPulse,
-  Church,
-  TreeDeciduous,
-  Building,
-} from "lucide-react";
+import Image from "next/image";
 import SectionEyebrow from "../home/SectionEyebrow";
 import { Card } from "../ui/card";
+import { AREA_ICONS } from "./icons";
 import {
   communityCategoriesSection,
   communityCategoriesCta,
   communityCategories,
 } from "../../content/communityCategories";
+import { partners } from "../../content/partners";
 
-const ICONS = {
-  flame: Flame,
-  dumbbell: Dumbbell,
-  "tree-pine": TreePine,
-  hexagon: Hexagon,
-  sprout: Sprout,
-  fish: Fish,
-  "paw-print": PawPrint,
-  music: Music,
-  palette: Palette,
-  users: Users,
-  baby: Baby,
-  "graduation-cap": GraduationCap,
-  "heart-pulse": HeartPulse,
-  church: Church,
-  "tree-deciduous": TreeDeciduous,
-  building: Building,
-};
+function isSvg(src) {
+  return typeof src === "string" && src.toLowerCase().endsWith(".svg");
+}
 
+function AreaGlyph({ partner, iconKey }) {
+  if (partner?.logo) {
+    return isSvg(partner.logo) ? (
+      <img src={partner.logo} alt="" className="h-7 w-7 object-contain" />
+    ) : (
+      <Image src={partner.logo} alt="" width={28} height={28} className="h-7 w-7 object-contain" />
+    );
+  }
+
+  const Icon = AREA_ICONS[partner?.icon || iconKey] || AREA_ICONS.Users;
+  return <Icon className="h-5 w-5" aria-hidden="true" />;
+}
+
+/**
+ * The full, unranked overview of all 16 community areas — the "úplný
+ * přehled" every "Zobrazit všechny partnerské organizace a oblasti"
+ * link points to. Deliberately denser than the homepage's PartnersSection:
+ * small glyph, one line of description max, no long copy, no carousel.
+ * Areas are ordered by their fixed catalog `order`, never by partner
+ * importance — most areas have no partner at all.
+ */
 export default function CommunityCategoriesSection() {
-  const visible = communityCategories.filter((c) => c.visible).sort((a, b) => a.order - b.order);
-
-  if (!visible.length) return null;
+  const sorted = [...communityCategories].sort((a, b) => a.order - b.order);
 
   return (
-    <section className="py-14">
+    <section id="partnerske-organizace" className="scroll-mt-24 py-14">
       <div className="mx-auto max-w-[1180px] px-5">
         <div className="max-w-2xl">
           <SectionEyebrow>{communityCategoriesSection.eyebrow}</SectionEyebrow>
@@ -62,15 +51,26 @@ export default function CommunityCategoriesSection() {
           </p>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
-          {visible.map((c) => {
-            const Icon = ICONS[c.icon] || Users;
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {sorted.map((c) => {
+            const partner = c.partnerSlug ? partners.find((p) => p.slug === c.partnerSlug) : null;
+
             return (
-              <Card key={c.code} className="flex items-center gap-3 p-4">
+              <Card key={c.code} className="flex min-h-[96px] items-start gap-3 p-4">
                 <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-eyebrow text-navy-600">
-                  <Icon className="h-5 w-5" aria-hidden="true" />
+                  <AreaGlyph partner={partner} iconKey={c.icon} />
                 </span>
-                <span className="text-sm font-bold leading-tight text-navy-900">{c.label}</span>
+                <div className="min-w-0">
+                  <div className="text-sm font-bold leading-tight text-navy-900">{c.title}</div>
+                  {partner ? (
+                    <div className="mt-0.5 truncate text-xs font-semibold text-slate-500">
+                      {partner.name}
+                    </div>
+                  ) : null}
+                  <p className="mt-1 line-clamp-1 text-xs leading-snug text-muted">
+                    {c.description}
+                  </p>
+                </div>
               </Card>
             );
           })}
