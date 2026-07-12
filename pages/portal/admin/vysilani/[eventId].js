@@ -1,9 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import RequirePlatformAdmin from "../../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../../components/PortalHeader";
 import { supabase } from "../../../../lib/supabaseClient";
+import { cn } from "../../../../lib/utils";
+import { Card } from "../../../../components/ui/card";
+import { Input } from "../../../../components/ui/input";
+import { Textarea } from "../../../../components/ui/textarea";
+import { Select } from "../../../../components/ui/select";
+import { Button } from "../../../../components/ui/button";
+import { Alert } from "../../../../components/ui/alert";
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Rozpracováno" },
@@ -48,6 +54,10 @@ function normalizeUrl(url) {
   if (!v) return "";
   if (v.startsWith("http://") || v.startsWith("https://")) return v;
   return `https://${v}`;
+}
+
+function FieldLabel({ children }) {
+  return <label className="mb-2 block font-bold text-navy-900">{children}</label>;
 }
 
 export default function AdminVysilaniDetailPage() {
@@ -271,208 +281,86 @@ export default function AdminVysilaniDetailPage() {
 
   const statusBadge = useMemo(() => {
     if (!normalizedViewerUrl) {
-      return {
-        label: "⚠ Vysílání nenastaveno",
-        color: "#92400e",
-        bg: "#fff7ed",
-        border: "#fed7aa",
-      };
+      return { label: "⚠ Vysílání nenastaveno", className: "border-amber-200 bg-amber-50 text-amber-800" };
     }
 
     if (status === "scheduled") {
-      return {
-        label: "🟢 Vysílání připraveno",
-        color: "#166534",
-        bg: "#eefaf0",
-        border: "#cfe8d3",
-      };
+      return { label: "🟢 Vysílání připraveno", className: "border-emerald-200 bg-emerald-50 text-emerald-800" };
     }
 
     if (status === "live") {
-      return {
-        label: "🔴 Právě vysíláme",
-        color: "#b91c1c",
-        bg: "#fef2f2",
-        border: "#fecaca",
-      };
+      return { label: "🔴 Právě vysíláme", className: "border-red-200 bg-red-50 text-red-700" };
     }
 
     if (status === "finished") {
-      return {
-        label: "✅ Dokončeno",
-        color: "#1d4ed8",
-        bg: "#eff6ff",
-        border: "#bfdbfe",
-      };
+      return { label: "✅ Dokončeno", className: "border-blue-200 bg-blue-50 text-blue-700" };
     }
 
-    return {
-      label: "🟡 Vysílání rozpracováno",
-      color: "#854d0e",
-      bg: "#fefce8",
-      border: "#fde68a",
-    };
+    return { label: "🟡 Vysílání rozpracováno", className: "border-yellow-200 bg-yellow-50 text-yellow-800" };
   }, [normalizedViewerUrl, status]);
-
-  const inputStyle = {
-    width: "100%",
-    minHeight: 46,
-    padding: "0 14px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.14)",
-    background: "#fff",
-    boxSizing: "border-box",
-    fontSize: 15,
-  };
-
-  const labelStyle = {
-    display: "block",
-    marginBottom: 8,
-    fontWeight: 700,
-    color: "#111827",
-  };
 
   return (
     <RequirePlatformAdmin>
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#f6f7fb",
-          fontFamily:
-            'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        }}
-      >
+      <div className="min-h-screen bg-slate-50">
         <PortalHeader title="Admin • vysílání" />
 
-        <main style={{ maxWidth: 980, margin: "0 auto", padding: "34px 16px 60px" }}>
-          <div style={{ marginBottom: 18 }}>
-            <Link
-              href="/portal/admin/udalosti"
-              style={{
-                display: "inline-flex",
-                textDecoration: "none",
-                color: "#111827",
-                fontWeight: 700,
-                marginBottom: 12,
-              }}
-            >
+        <main className="mx-auto max-w-[980px] px-4 pb-14 pt-8">
+          <div className="mb-4">
+            <Button href="/portal/admin/udalosti" variant="ghost" size="sm" className="mb-3">
               ← Zpět na admin událostí
-            </Link>
+            </Button>
 
-            <h1 style={{ margin: "0 0 8px 0", fontSize: 34 }}>Správa vysílání</h1>
+            <h1 className="text-[34px] font-black text-navy-900">Správa vysílání</h1>
 
-            <p style={{ margin: 0, color: "rgba(0,0,0,0.68)", lineHeight: 1.6 }}>
+            <p className="mt-1 leading-relaxed text-muted">
               Produkční karta vysílání pro Google Meet, moderátora a až 5 hostů.
             </p>
           </div>
 
           {eventRow ? (
-            <div
-              style={{
-                marginBottom: 18,
-                padding: 16,
-                borderRadius: 16,
-                background: "#fff",
-                border: "1px solid rgba(0,0,0,0.08)",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.04)",
-              }}
-            >
-              <div style={{ fontSize: 14, color: "rgba(0,0,0,0.56)", marginBottom: 6 }}>
-                Událost
-              </div>
-              <div style={{ fontWeight: 800, fontSize: 20, color: "#111827" }}>
-                {eventRow.title || "Bez názvu"}
-              </div>
-              <div style={{ marginTop: 6, color: "rgba(0,0,0,0.66)" }}>
+            <Card className="mb-4 p-4 shadow-card">
+              <div className="mb-1.5 text-sm text-slate-500">Událost</div>
+              <div className="text-xl font-black text-navy-900">{eventRow.title || "Bez názvu"}</div>
+              <div className="mt-1.5 text-slate-600">
                 Plánovaný čas: {eventRow.starts_at ? formatDateTimeCZ(eventRow.starts_at) : "—"}
               </div>
 
               <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  marginTop: 10,
-                  padding: "6px 10px",
-                  borderRadius: 999,
-                  background: statusBadge.bg,
-                  color: statusBadge.color,
-                  border: `1px solid ${statusBadge.border}`,
-                  fontSize: 13,
-                  fontWeight: 700,
-                }}
+                className={cn(
+                  "mt-2.5 inline-flex items-center rounded-full border px-2.5 py-1.5 text-[13px] font-bold",
+                  statusBadge.className
+                )}
               >
                 {statusBadge.label}
               </div>
-            </div>
+            </Card>
           ) : null}
 
           {error ? (
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 12,
-                borderRadius: 12,
-                background: "#fff1f1",
-                border: "1px solid #f2c9c9",
-                color: "#a40000",
-              }}
-            >
+            <Alert variant="error" className="mb-4">
               {error}
-            </div>
+            </Alert>
           ) : null}
 
           {message ? (
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 12,
-                borderRadius: 12,
-                background: "#eefaf0",
-                border: "1px solid #cfe8d3",
-                color: "#166534",
-              }}
-            >
+            <Alert variant="success" className="mb-4">
               {message}
-            </div>
+            </Alert>
           ) : null}
 
           {copyInfo ? (
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 12,
-                borderRadius: 12,
-                background: "#eff6ff",
-                border: "1px solid #bfdbfe",
-                color: "#1d4ed8",
-              }}
-            >
+            <Alert variant="info" className="mb-4">
               {copyInfo}
-            </div>
+            </Alert>
           ) : null}
 
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 20,
-              border: "1px solid rgba(0,0,0,0.08)",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
-              padding: 20,
-            }}
-          >
+          <Card className="p-5 shadow-card">
             {loading ? (
-              <div>Načítám…</div>
+              <div className="text-muted">Načítám…</div>
             ) : (
               <>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 10,
-                    flexWrap: "wrap",
-                    marginBottom: 18,
-                  }}
-                >
-                  <button
+                <div className="mb-4 flex flex-wrap gap-2.5">
+                  <Button
                     type="button"
                     onClick={() => {
                       if (!normalizedViewerUrl) {
@@ -481,217 +369,135 @@ export default function AdminVysilaniDetailPage() {
                       }
                       window.open(normalizedViewerUrl, "_blank", "noopener,noreferrer");
                     }}
-                    style={btnPrimary}
+                    variant="primary"
                   >
                     Otevřít Google Meet
-                  </button>
+                  </Button>
 
-                  <button type="button" onClick={handleCopyMeetLink} style={btnSecondary}>
+                  <Button type="button" onClick={handleCopyMeetLink} variant="secondary">
                     Zkopírovat Meet odkaz
-                  </button>
+                  </Button>
 
-                  <button type="button" onClick={handleCopyProductionSummary} style={btnSecondary}>
+                  <Button type="button" onClick={handleCopyProductionSummary} variant="secondary">
                     Zkopírovat produkční shrnutí
-                  </button>
+                  </Button>
                 </div>
 
                 <form onSubmit={handleSave}>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: 16,
-                    }}
-                  >
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <label style={labelStyle}>Stav vysílání</label>
-                      <select
-                        value={status}
-                        onChange={(e) => setStatus(e.target.value)}
-                        style={inputStyle}
-                      >
+                      <FieldLabel>Stav vysílání</FieldLabel>
+                      <Select value={status} onChange={(e) => setStatus(e.target.value)}>
                         {STATUS_OPTIONS.map((item) => (
                           <option key={item.value} value={item.value}>
                             {item.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Začátek vysílání</label>
-                      <input
+                      <FieldLabel>Začátek vysílání</FieldLabel>
+                      <Input
                         type="datetime-local"
                         value={startsAt}
                         onChange={(e) => setStartsAt(e.target.value)}
-                        style={inputStyle}
                       />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Moderátor</label>
-                      <input
+                      <FieldLabel>Moderátor</FieldLabel>
+                      <Input
                         type="text"
                         value={moderatorName}
                         onChange={(e) => setModeratorName(e.target.value)}
-                        style={inputStyle}
                         placeholder="Např. Simona Nováková"
                       />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Google Meet odkaz*</label>
-                      <input
+                      <FieldLabel>Google Meet odkaz*</FieldLabel>
+                      <Input
                         type="text"
                         value={viewerUrl}
                         onChange={(e) => setViewerUrl(e.target.value)}
                         placeholder="https://meet.google.com/..."
-                        style={inputStyle}
                       />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Host 1</label>
-                      <input
-                        type="text"
-                        value={guest1Name}
-                        onChange={(e) => setGuest1Name(e.target.value)}
-                        style={inputStyle}
-                      />
+                      <FieldLabel>Host 1</FieldLabel>
+                      <Input type="text" value={guest1Name} onChange={(e) => setGuest1Name(e.target.value)} />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Host 2</label>
-                      <input
-                        type="text"
-                        value={guest2Name}
-                        onChange={(e) => setGuest2Name(e.target.value)}
-                        style={inputStyle}
-                      />
+                      <FieldLabel>Host 2</FieldLabel>
+                      <Input type="text" value={guest2Name} onChange={(e) => setGuest2Name(e.target.value)} />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Host 3</label>
-                      <input
-                        type="text"
-                        value={guest3Name}
-                        onChange={(e) => setGuest3Name(e.target.value)}
-                        style={inputStyle}
-                      />
+                      <FieldLabel>Host 3</FieldLabel>
+                      <Input type="text" value={guest3Name} onChange={(e) => setGuest3Name(e.target.value)} />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Host 4</label>
-                      <input
-                        type="text"
-                        value={guest4Name}
-                        onChange={(e) => setGuest4Name(e.target.value)}
-                        style={inputStyle}
-                      />
+                      <FieldLabel>Host 4</FieldLabel>
+                      <Input type="text" value={guest4Name} onChange={(e) => setGuest4Name(e.target.value)} />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Host 5</label>
-                      <input
-                        type="text"
-                        value={guest5Name}
-                        onChange={(e) => setGuest5Name(e.target.value)}
-                        style={inputStyle}
-                      />
+                      <FieldLabel>Host 5</FieldLabel>
+                      <Input type="text" value={guest5Name} onChange={(e) => setGuest5Name(e.target.value)} />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Stav záznamu</label>
-                      <select
-                        value={recordingStatus}
-                        onChange={(e) => setRecordingStatus(e.target.value)}
-                        style={inputStyle}
-                      >
+                      <FieldLabel>Stav záznamu</FieldLabel>
+                      <Select value={recordingStatus} onChange={(e) => setRecordingStatus(e.target.value)}>
                         {RECORDING_STATUS_OPTIONS.map((item) => (
                           <option key={item.value} value={item.value}>
                             {item.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
 
-                    <div style={{ gridColumn: "1 / -1" }}>
-                      <label style={labelStyle}>Odkaz na záznam</label>
-                      <input
+                    <div className="sm:col-span-2">
+                      <FieldLabel>Odkaz na záznam</FieldLabel>
+                      <Input
                         type="text"
                         value={recordingUrl}
                         onChange={(e) => setRecordingUrl(e.target.value)}
                         placeholder="https://..."
-                        style={inputStyle}
                       />
                     </div>
 
-                    <div style={{ gridColumn: "1 / -1" }}>
-                      <label style={labelStyle}>Interní poznámka</label>
-                      <textarea
+                    <div className="sm:col-span-2">
+                      <FieldLabel>Interní poznámka</FieldLabel>
+                      <Textarea
                         value={notesInternal}
                         onChange={(e) => setNotesInternal(e.target.value)}
                         rows={5}
-                        style={{
-                          ...inputStyle,
-                          minHeight: 130,
-                          padding: 14,
-                          resize: "vertical",
-                        }}
+                        className="min-h-[130px]"
                         placeholder="Technické poznámky, instrukce pro moderátora, pořadí hostů apod."
                       />
                     </div>
                   </div>
 
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 12,
-                      flexWrap: "wrap",
-                      marginTop: 20,
-                    }}
-                  >
-                    <button type="submit" disabled={saving} style={btnPrimary}>
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <Button type="submit" disabled={saving} variant="primary">
                       {saving ? "Ukládám..." : "Uložit vysílání"}
-                    </button>
+                    </Button>
 
-                    <button
-                      type="button"
-                      onClick={loadData}
-                      disabled={loading}
-                      style={btnSecondary}
-                    >
+                    <Button type="button" onClick={loadData} disabled={loading} variant="secondary">
                       Obnovit
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </>
             )}
-          </div>
+          </Card>
         </main>
       </div>
     </RequirePlatformAdmin>
   );
 }
-
-const btnPrimary = {
-  minHeight: 48,
-  padding: "0 18px",
-  borderRadius: 12,
-  border: "none",
-  background: "#111827",
-  color: "#fff",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const btnSecondary = {
-  minHeight: 48,
-  padding: "0 18px",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.12)",
-  background: "#fff",
-  color: "#111827",
-  fontWeight: 700,
-  cursor: "pointer",
-};

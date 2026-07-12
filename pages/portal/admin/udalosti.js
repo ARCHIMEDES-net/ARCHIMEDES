@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
+import { cn } from "../../../lib/utils";
+import { Card } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/input";
+import { Textarea } from "../../../components/ui/textarea";
+import { Button } from "../../../components/ui/button";
+import { Alert } from "../../../components/ui/alert";
 
 /* =========================
    RUBRIKY
@@ -162,9 +167,7 @@ function detectBroadcastState(row) {
     return {
       key: "missing",
       label: "⚠ Vysílání nenastaveno",
-      color: "#92400e",
-      bg: "#fff7ed",
-      border: "#fed7aa",
+      className: "border-amber-200 bg-amber-50 text-amber-800",
     };
   }
 
@@ -172,9 +175,7 @@ function detectBroadcastState(row) {
     return {
       key: "ready",
       label: "🟢 Vysílání připraveno",
-      color: "#166534",
-      bg: "#eefaf0",
-      border: "#cfe8d3",
+      className: "border-emerald-200 bg-emerald-50 text-emerald-800",
     };
   }
 
@@ -182,19 +183,39 @@ function detectBroadcastState(row) {
     return {
       key: "finished",
       label: "✅ Proběhlo / má záznam",
-      color: "#1d4ed8",
-      bg: "#eff6ff",
-      border: "#bfdbfe",
+      className: "border-blue-200 bg-blue-50 text-blue-700",
     };
   }
 
   return {
     key: "draft",
     label: "🟡 Vysílání rozpracováno",
-    color: "#854d0e",
-    bg: "#fefce8",
-    border: "#fde68a",
+    className: "border-yellow-200 bg-yellow-50 text-yellow-800",
   };
+}
+
+function Field({ label, children }) {
+  return (
+    <div>
+      <div className="mb-1.5 font-bold text-navy-900">{label}</div>
+      {children}
+    </div>
+  );
+}
+
+function PillButton({ active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded-full border px-2.5 py-2 text-sm font-black",
+        active ? "border-navy-900 bg-navy-900 text-white" : "border-slate-200 bg-white text-navy-900"
+      )}
+    >
+      {children}
+    </button>
+  );
 }
 
 /* =========================
@@ -614,114 +635,101 @@ export default function AdminUdalosti() {
     <RequirePlatformAdmin>
       <PortalHeader />
 
-      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-          <Link href="/portal/admin">← Zpět do adminu</Link>
-          <span style={{ color: "#6b7280" }}>|</span>
-          <Link href="/portal/kalendar">Kalendář</Link>
+      <main className="mx-auto max-w-[1100px] px-4 py-4">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Button href="/portal/admin" variant="ghost" size="sm">
+            ← Zpět do adminu
+          </Button>
+          <span className="text-slate-400">|</span>
+          <Button href="/portal/kalendar" variant="ghost" size="sm">
+            Kalendář
+          </Button>
         </div>
 
-        <h1 style={{ margin: "10px 0 6px" }}>Admin – události</h1>
+        <h1 className="mt-2.5 text-2xl font-black text-navy-900">Admin – události</h1>
 
         {error ? (
-          <div style={errorBox}>
+          <Alert variant="error" className="mt-3 whitespace-pre-wrap">
             <b>Chyba:</b> {error}
-          </div>
+          </Alert>
         ) : null}
 
         {info ? (
-          <div style={infoBox}>
+          <Alert variant="success" className="mt-3 whitespace-pre-wrap">
             <div>{info}</div>
 
             {lastSavedEventId ? (
-              <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <Link
-                  href={`/portal/admin/vysilani/${lastSavedEventId}`}
-                  style={{
-                    ...btnPrimary,
-                    textDecoration: "none",
-                    display: "inline-flex",
-                    alignItems: "center",
-                  }}
-                >
+              <div className="mt-2.5 flex flex-wrap gap-2.5">
+                <Button href={`/portal/admin/vysilani/${lastSavedEventId}`} variant="primary" size="sm">
                   Nastavit vysílání
-                </Link>
+                </Button>
 
-                <button type="button" onClick={() => setLastSavedEventId("")} style={btnSecondary}>
+                <Button type="button" onClick={() => setLastSavedEventId("")} variant="secondary" size="sm">
                   Zavřít
-                </button>
+                </Button>
               </div>
             ) : null}
-          </div>
+          </Alert>
         ) : null}
 
-        <section style={{ marginTop: 16 }}>
-          <div style={card}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-              <h2 style={{ margin: 0 }}>{editingId ? "Upravit událost" : "Nová událost"}</h2>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <section className="mt-4">
+          <Card className="p-3.5">
+            <div className="flex flex-wrap justify-between gap-3">
+              <h2 className="text-lg font-bold text-navy-900">
+                {editingId ? "Upravit událost" : "Nová událost"}
+              </h2>
+              <div className="flex flex-wrap gap-2.5">
                 {editingId ? (
-                  <button type="button" onClick={resetForm} style={btnSecondary}>
+                  <Button type="button" onClick={resetForm} variant="secondary" size="sm">
                     Zrušit úpravy
-                  </button>
+                  </Button>
                 ) : null}
-                <button type="button" onClick={loadEvents} style={btnSecondary} disabled={loading}>
+                <Button type="button" onClick={loadEvents} disabled={loading} variant="secondary" size="sm">
                   Obnovit seznam
-                </button>
+                </Button>
               </div>
             </div>
 
-            <div style={{ marginTop: 12 }}>
-              <div style={{ fontWeight: 800, marginBottom: 8 }}>Rubriky</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <div className="mt-3">
+              <div className="mb-2 font-bold text-navy-900">Rubriky</div>
+              <div className="flex flex-wrap gap-2">
                 {RUBRICS.map((r) => (
-                  <button
-                    key={r.key}
-                    type="button"
-                    onClick={() => applyRubric(r)}
-                    style={{
-                      padding: "8px 10px",
-                      borderRadius: 999,
-                      border: rubricKey === r.key ? "1px solid #111827" : "1px solid #e5e7eb",
-                      background: rubricKey === r.key ? "#111827" : "white",
-                      color: rubricKey === r.key ? "white" : "#111827",
-                      cursor: "pointer",
-                      fontWeight: 800,
-                    }}
-                  >
+                  <PillButton key={r.key} active={rubricKey === r.key} onClick={() => applyRubric(r)}>
                     {r.label}
-                  </button>
+                  </PillButton>
                 ))}
               </div>
-              <div style={{ marginTop: 6, color: "#6b7280", fontSize: 13 }}>
+              <div className="mt-1.5 text-[13px] text-slate-500">
                 Kliknutím se předvyplní název a případně doporučená cílovka.
               </div>
             </div>
 
-            <form onSubmit={saveEvent} style={{ marginTop: 12, display: "grid", gap: 12 }}>
-              <div style={grid2}>
+            <form onSubmit={saveEvent} className="mt-3 grid gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field label="Název události *">
-                  <input value={title} onChange={(e) => setTitle(e.target.value)} style={input} />
+                  <Input value={title} onChange={(e) => setTitle(e.target.value)} />
                 </Field>
 
                 <Field label="Datum a čas (starts_at) *">
-                  <input
+                  <Input
                     type="datetime-local"
                     value={startsAtLocal}
                     onChange={(e) => setStartsAtLocal(e.target.value)}
-                    style={input}
                   />
                 </Field>
               </div>
 
-              <div style={grid2}>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field label="Cílovka (audience_groups) *">
-                  <div style={{ display: "grid", gap: 10 }}>
-                    <div style={audGrid}>
+                  <div className="grid gap-2.5">
+                    <div className="grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-white p-2.5">
                       {AUDIENCE_OPTIONS.map((opt) => {
                         const checked = audienceSelected.includes(opt);
                         return (
-                          <label key={opt} style={audCell}>
+                          <label
+                            key={opt}
+                            className="flex items-center gap-2.5 rounded-lg border border-slate-100 bg-slate-50 px-2.5 py-2"
+                          >
                             <input
                               type="checkbox"
                               checked={checked}
@@ -739,21 +747,16 @@ export default function AdminUdalosti() {
                       })}
                     </div>
 
-                    <input
-                      value={audienceText}
-                      readOnly
-                      style={{ ...input, background: "#f9fafb", color: "#374151" }}
-                      placeholder="Text pro zobrazení"
-                    />
+                    <Input value={audienceText} readOnly className="bg-slate-50 text-slate-600" placeholder="Text pro zobrazení" />
 
-                    <div style={{ color: "#6b7280", fontSize: 13 }}>
+                    <div className="text-[13px] text-slate-500">
                       Vyber aspoň jednu cílovku. Rubrika a cílovka jsou nyní oddělené.
                     </div>
                   </div>
                 </Field>
 
                 <Field label="Publikovat">
-                  <label style={{ display: "flex", gap: 10, alignItems: "center", padding: "10px 0" }}>
+                  <label className="flex items-center gap-2.5 py-2.5">
                     <input type="checkbox" checked={!!isPublished} onChange={(e) => setIsPublished(e.target.checked)} />
                     <span>{isPublished ? "Ano (viditelné v kalendáři)" : "Ne (skryté)"}</span>
                   </label>
@@ -761,32 +764,31 @@ export default function AdminUdalosti() {
               </div>
 
               <Field label="Popis (full_description)">
-                <textarea
+                <Textarea
                   value={fullDescription}
                   onChange={(e) => setFullDescription(e.target.value)}
-                  style={{ ...input, minHeight: 110, resize: "vertical" }}
+                  className="min-h-[110px]"
                 />
               </Field>
 
-              <div style={grid2}>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field label="Odkaz na vysílání (stream_url)">
-                  <input value={streamUrl} onChange={(e) => setStreamUrl(e.target.value)} style={input} />
+                  <Input value={streamUrl} onChange={(e) => setStreamUrl(e.target.value)} />
                 </Field>
 
                 <Field label="Pracovní list (worksheet_url)">
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10 }}>
-                    <input
+                  <div className="grid grid-cols-[1fr_auto] gap-2.5">
+                    <Input
                       value={worksheetUrl}
                       onChange={(e) => setWorksheetUrl(e.target.value)}
-                      style={input}
                       placeholder="URL pracovního listu nebo nahrajte soubor z PC"
                     />
-                    <label style={{ ...btnSecondary, display: "inline-flex", alignItems: "center" }}>
+                    <label className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 text-[15px] font-black text-navy-900">
                       {uploadingWorksheet ? "Nahrávám…" : "Nahrát z PC"}
                       <input
                         type="file"
                         accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                        style={{ display: "none" }}
+                        className="hidden"
                         onChange={(e) => handleWorksheetUpload(e.target.files?.[0])}
                         disabled={uploadingWorksheet}
                       />
@@ -794,12 +796,12 @@ export default function AdminUdalosti() {
                   </div>
 
                   {worksheetUrl ? (
-                    <div style={{ marginTop: 10 }}>
+                    <div className="mt-2.5">
                       <a
                         href={normalizeUrl(worksheetUrl)}
                         target="_blank"
                         rel="noreferrer"
-                        style={{ color: "#1d4ed8", fontWeight: 700, textDecoration: "none" }}
+                        className="font-bold text-brand"
                       >
                         Otevřít nahraný pracovní list
                       </a>
@@ -809,14 +811,14 @@ export default function AdminUdalosti() {
               </div>
 
               <Field label="Plakát / cover (poster_url)">
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10 }}>
-                  <input value={posterUrl} onChange={(e) => setPosterUrl(e.target.value)} style={input} />
-                  <label style={{ ...btnSecondary, display: "inline-flex", alignItems: "center" }}>
+                <div className="grid grid-cols-[1fr_auto] gap-2.5">
+                  <Input value={posterUrl} onChange={(e) => setPosterUrl(e.target.value)} />
+                  <label className="inline-flex items-center rounded-full border border-slate-200 bg-white px-4 text-[15px] font-black text-navy-900">
                     {uploadingPoster ? "Nahrávám…" : "Nahrát z PC"}
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
-                      style={{ display: "none" }}
+                      className="hidden"
                       onChange={(e) => handlePosterUpload(e.target.files?.[0])}
                       disabled={uploadingPoster}
                     />
@@ -824,80 +826,57 @@ export default function AdminUdalosti() {
                 </div>
 
                 {posterUrl ? (
-                  <div style={{ marginTop: 10 }}>
+                  <div className="mt-2.5">
                     <img
                       src={normalizeUrl(posterUrl)}
                       alt="Plakát"
-                      style={{
-                        width: 260,
-                        height: 140,
-                        objectFit: "cover",
-                        borderRadius: 12,
-                        border: "1px solid #e5e7eb",
-                        background: "#f9fafb",
-                      }}
+                      className="h-[140px] w-[260px] rounded-xl border border-slate-200 bg-slate-50 object-cover"
                       onError={(e) => (e.currentTarget.style.display = "none")}
                     />
                   </div>
                 ) : null}
               </Field>
 
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button type="submit" style={btnPrimary} disabled={saving}>
+              <div className="flex flex-wrap gap-2.5">
+                <Button type="submit" disabled={saving} variant="primary">
                   {saving ? "Ukládám…" : editingId ? "Uložit změny" : "Vytvořit událost"}
-                </button>
+                </Button>
                 {editingId ? (
-                  <button type="button" style={btnDanger} onClick={() => deleteEvent(editingId)}>
+                  <Button
+                    type="button"
+                    onClick={() => deleteEvent(editingId)}
+                    variant="secondary"
+                    className="border-red-200 text-red-700 hover:border-red-300"
+                  >
                     Smazat
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             </form>
-          </div>
+          </Card>
         </section>
 
-        <section style={{ marginTop: 16 }}>
-          <div style={card}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 12,
-                flexWrap: "wrap",
-                alignItems: "center",
-              }}
-            >
-              <h2 style={{ marginTop: 0, marginBottom: 0 }}>Seznam událostí</h2>
+        <section className="mt-4">
+          <Card className="p-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-lg font-bold text-navy-900">Seznam událostí</h2>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div className="flex flex-wrap gap-2">
                 {FILTER_OPTIONS.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => setFilterKey(item.key)}
-                    style={{
-                      padding: "8px 10px",
-                      borderRadius: 999,
-                      border: filterKey === item.key ? "1px solid #111827" : "1px solid #e5e7eb",
-                      background: filterKey === item.key ? "#111827" : "white",
-                      color: filterKey === item.key ? "white" : "#111827",
-                      cursor: "pointer",
-                      fontWeight: 700,
-                    }}
-                  >
+                  <PillButton key={item.key} active={filterKey === item.key} onClick={() => setFilterKey(item.key)}>
                     {item.label}
-                  </button>
+                  </PillButton>
                 ))}
               </div>
             </div>
 
-            {loading ? <p>Načítám…</p> : null}
+            {loading ? <p className="mt-3 text-muted">Načítám…</p> : null}
             {!loading && filteredRows.length === 0 ? (
-              <p style={{ margin: "12px 0 0", color: "#6b7280" }}>Pro tento filtr zatím žádné události.</p>
+              <p className="mt-3 text-slate-500">Pro tento filtr zatím žádné události.</p>
             ) : null}
 
             {!loading && filteredRows.length > 0 ? (
-              <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
+              <div className="mt-3 grid gap-3">
                 {filteredRows.map((r) => {
                   const published = r.is_published !== false;
                   const stream = normalizeText(r.stream_url);
@@ -906,222 +885,103 @@ export default function AdminUdalosti() {
                   const broadcastState = detectBroadcastState(r);
 
                   return (
-                    <div key={r.id} style={rowCard}>
-                      <div style={{ display: "grid", gridTemplateColumns: poster ? "140px 1fr" : "1fr", gap: 12 }}>
+                    <Card key={r.id} className="p-3">
+                      <div className={cn("grid gap-3", poster ? "grid-cols-[140px_1fr]" : "grid-cols-1")}>
                         {poster ? (
                           <img
                             src={normalizeUrl(poster)}
                             alt="Plakát"
-                            style={{
-                              width: 140,
-                              height: 90,
-                              objectFit: "cover",
-                              borderRadius: 10,
-                              border: "1px solid #e5e7eb",
-                              background: "#f9fafb",
-                            }}
+                            className="h-[90px] w-[140px] rounded-lg border border-slate-200 bg-slate-50 object-cover"
                             onError={(e) => (e.currentTarget.style.display = "none")}
                           />
                         ) : null}
 
                         <div>
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                          <div className="flex flex-wrap justify-between gap-3">
                             <div>
-                              <div style={{ fontWeight: 800, fontSize: 16 }}>{r.title}</div>
-                              <div style={{ marginTop: 6, color: "#374151" }}>
+                              <div className="text-base font-bold text-navy-900">{r.title}</div>
+                              <div className="mt-1.5 text-slate-600">
                                 <span>{formatDateTimeCZ(r.starts_at)}</span>
                                 {r.audience ? <span> &nbsp; • &nbsp; {String(r.audience)}</span> : null}
                                 <span>
                                   {" "}
                                   &nbsp; • &nbsp;{" "}
                                   {published ? (
-                                    <b style={{ color: "#166534" }}>publikováno</b>
+                                    <b className="text-emerald-700">publikováno</b>
                                   ) : (
-                                    <b style={{ color: "#991b1b" }}>skryto</b>
+                                    <b className="text-red-700">skryto</b>
                                   )}
                                 </span>
                               </div>
 
                               <div
-                                style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  marginTop: 8,
-                                  padding: "6px 10px",
-                                  borderRadius: 999,
-                                  background: broadcastState.bg,
-                                  color: broadcastState.color,
-                                  border: `1px solid ${broadcastState.border}`,
-                                  fontSize: 13,
-                                  fontWeight: 700,
-                                }}
+                                className={cn(
+                                  "mt-2 inline-flex items-center rounded-full border px-2.5 py-1.5 text-[13px] font-bold",
+                                  broadcastState.className
+                                )}
                               >
                                 {broadcastState.label}
                               </div>
                             </div>
 
-                            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                              <button type="button" style={btnSecondary} onClick={() => fillFormFromRow(r)}>
+                            <div className="flex flex-wrap gap-2.5">
+                              <Button type="button" onClick={() => fillFormFromRow(r)} variant="secondary" size="sm">
                                 Upravit
-                              </button>
+                              </Button>
 
-                              <Link
-                                href={`/portal/admin/vysilani/${r.id}`}
-                                style={{
-                                  ...btnSecondary,
-                                  textDecoration: "none",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                }}
-                              >
+                              <Button href={`/portal/admin/vysilani/${r.id}`} variant="secondary" size="sm">
                                 Vysílání
-                              </Link>
+                              </Button>
 
-                              <button type="button" style={btnSecondary} onClick={() => togglePublished(r.id, published)}>
+                              <Button
+                                type="button"
+                                onClick={() => togglePublished(r.id, published)}
+                                variant="secondary"
+                                size="sm"
+                              >
                                 {published ? "Skrýt" : "Publikovat"}
-                              </button>
+                              </Button>
 
-                              <button type="button" style={btnDanger} onClick={() => deleteEvent(r.id)}>
+                              <Button
+                                type="button"
+                                onClick={() => deleteEvent(r.id)}
+                                variant="secondary"
+                                size="sm"
+                                className="border-red-200 text-red-700 hover:border-red-300"
+                              >
                                 Smazat
-                              </button>
+                              </Button>
                             </div>
                           </div>
 
-                          <div style={{ marginTop: 10, display: "flex", gap: 12, flexWrap: "wrap" }}>
+                          <div className="mt-2.5 flex flex-wrap gap-3">
                             {stream ? (
-                              <a href={normalizeUrl(stream)} target="_blank" rel="noreferrer">
+                              <a href={normalizeUrl(stream)} target="_blank" rel="noreferrer" className="text-brand">
                                 ▶ Vysílání
                               </a>
                             ) : null}
                             {worksheet ? (
-                              <a href={normalizeUrl(worksheet)} target="_blank" rel="noreferrer">
+                              <a href={normalizeUrl(worksheet)} target="_blank" rel="noreferrer" className="text-brand">
                                 📄 Pracovní list
                               </a>
                             ) : null}
                           </div>
 
                           {r.full_description ? (
-                            <div style={{ marginTop: 10, color: "#374151", whiteSpace: "pre-wrap" }}>
+                            <div className="mt-2.5 whitespace-pre-wrap text-slate-600">
                               {String(r.full_description)}
                             </div>
                           ) : null}
                         </div>
                       </div>
-                    </div>
+                    </Card>
                   );
                 })}
               </div>
             ) : null}
-          </div>
+          </Card>
         </section>
       </main>
     </RequirePlatformAdmin>
   );
 }
-
-function Field({ label, children }) {
-  return (
-    <div>
-      <div style={{ fontWeight: 700, marginBottom: 6 }}>{label}</div>
-      {children}
-    </div>
-  );
-}
-
-const errorBox = {
-  marginTop: 12,
-  padding: 12,
-  border: "1px solid #fecaca",
-  background: "#fef2f2",
-  borderRadius: 12,
-  color: "#991b1b",
-  whiteSpace: "pre-wrap",
-};
-
-const infoBox = {
-  marginTop: 12,
-  padding: 12,
-  border: "1px solid #bbf7d0",
-  background: "#f0fdf4",
-  borderRadius: 12,
-  color: "#166534",
-  whiteSpace: "pre-wrap",
-};
-
-const card = {
-  border: "1px solid #e5e7eb",
-  borderRadius: 14,
-  padding: 14,
-  background: "white",
-};
-
-const rowCard = {
-  border: "1px solid #e5e7eb",
-  borderRadius: 12,
-  padding: 12,
-  background: "white",
-};
-
-const grid2 = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: 12,
-};
-
-const input = {
-  width: "100%",
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "1px solid #e5e7eb",
-  outline: "none",
-};
-
-const btnPrimary = {
-  padding: "10px 14px",
-  borderRadius: 12,
-  border: "1px solid #111827",
-  background: "#111827",
-  color: "white",
-  cursor: "pointer",
-  fontWeight: 800,
-};
-
-const btnSecondary = {
-  padding: "10px 14px",
-  borderRadius: 12,
-  border: "1px solid #e5e7eb",
-  background: "white",
-  color: "#111827",
-  cursor: "pointer",
-  fontWeight: 700,
-};
-
-const btnDanger = {
-  padding: "10px 14px",
-  borderRadius: 12,
-  border: "1px solid #fecaca",
-  background: "#fef2f2",
-  color: "#991b1b",
-  cursor: "pointer",
-  fontWeight: 800,
-};
-
-const audGrid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-  gap: 8,
-  padding: 10,
-  border: "1px solid #e5e7eb",
-  borderRadius: 12,
-  background: "#fff",
-};
-
-const audCell = {
-  display: "flex",
-  gap: 10,
-  alignItems: "center",
-  padding: "8px 10px",
-  border: "1px solid #f3f4f6",
-  borderRadius: 10,
-  background: "#fafafa",
-};

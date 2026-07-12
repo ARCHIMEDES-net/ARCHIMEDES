@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import PortalHeader from "../../components/PortalHeader";
 import RequirePlatformAdmin from "../../components/RequirePlatformAdmin";
+import { cn } from "../../lib/utils";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Alert } from "../../components/ui/alert";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/ui/table";
 
 const GROUP_LABELS = {
   ucitele: "Učitelé",
@@ -111,20 +116,17 @@ export default function EmailSkupinyPage() {
 
       <PortalHeader />
 
-      <main className="pageWrap">
-        <div className="pageInner">
-
-          <div className="hero">
-            <h1>E-mailové skupiny</h1>
-            <p>Vyber skupinu a pošli jí pozvánku na vysílání.</p>
+      <main className="min-h-screen bg-slate-50">
+        <div className="mx-auto max-w-[1200px] px-5 py-8">
+          <div>
+            <h1 className="text-2xl font-black text-navy-900">E-mailové skupiny</h1>
+            <p className="mt-1.5 text-muted">Vyber skupinu a pošli jí pozvánku na vysílání.</p>
           </div>
 
-          <section className="layout">
-
-            {/* LEFT */}
-            <aside className="sidebar">
+          <section className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[300px_1fr]">
+            <Card className="p-2.5">
               {countsLoading ? (
-                <div>Načítám…</div>
+                <div className="p-2 text-muted">Načítám…</div>
               ) : (
                 groups.map((group) => {
                   const active = group.slug === selectedGroup;
@@ -132,8 +134,11 @@ export default function EmailSkupinyPage() {
                   return (
                     <button
                       key={group.slug}
-                      className={`item ${active ? "active" : ""}`}
                       onClick={() => handleSelectGroup(group.slug)}
+                      className={cn(
+                        "mb-2 flex w-full items-center justify-between rounded-xl border border-slate-200 px-3 py-2.5",
+                        active ? "border-navy-900 bg-navy-900 text-white" : "bg-white text-navy-900"
+                      )}
                     >
                       <span>{GROUP_LABELS[group.slug] || group.slug}</span>
                       <b>{group.count}</b>
@@ -141,82 +146,54 @@ export default function EmailSkupinyPage() {
                   );
                 })
               )}
-            </aside>
+            </Card>
 
-            {/* RIGHT */}
-            <section className="content">
-
-              <div className="top">
-                <h2>{selectedLabel}</h2>
-                <button onClick={copyEmails} disabled={!users.length}>
+            <Card className="p-5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-navy-900">{selectedLabel}</h2>
+                <Button onClick={copyEmails} disabled={!users.length} variant="secondary" size="sm">
                   Kopírovat e-maily
-                </button>
+                </Button>
               </div>
 
-              {error && <div className="error">{error}</div>}
+              {error ? (
+                <Alert variant="error" className="mt-2.5">
+                  {error}
+                </Alert>
+              ) : null}
 
-              <table>
-                <thead>
-                  <tr>
-                    <th>Email</th>
-                    <th>Notifikace</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="mt-5">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Notifikace</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {usersLoading ? (
-                    <tr><td colSpan="2">Načítám…</td></tr>
+                    <TableRow>
+                      <TableCell colSpan={2}>Načítám…</TableCell>
+                    </TableRow>
                   ) : users.length === 0 ? (
-                    <tr><td colSpan="2">Žádní uživatelé</td></tr>
+                    <TableRow>
+                      <TableCell colSpan={2}>Žádní uživatelé</TableCell>
+                    </TableRow>
                   ) : (
                     users.map((u) => (
-                      <tr key={u.id}>
-                        <td>{u.email}</td>
-                        <td>
-                          {u.email_notifications_enabled === false
-                            ? "Vypnuto"
-                            : "Zapnuto"}
-                        </td>
-                      </tr>
+                      <TableRow key={u.id}>
+                        <TableCell>{u.email}</TableCell>
+                        <TableCell>
+                          {u.email_notifications_enabled === false ? "Vypnuto" : "Zapnuto"}
+                        </TableCell>
+                      </TableRow>
                     ))
                   )}
-                </tbody>
-              </table>
-
-            </section>
-
+                </TableBody>
+              </Table>
+            </Card>
           </section>
         </div>
       </main>
-
-      <style jsx>{`
-        .pageWrap { background:#f5f7fb; min-height:100vh; }
-        .pageInner { max-width:1200px; margin:auto; padding:30px; }
-        .hero h1 { margin:0; }
-        .layout { display:grid; grid-template-columns:300px 1fr; gap:20px; }
-
-        .sidebar { background:white; padding:10px; border-radius:12px; }
-        .item {
-          width:100%;
-          display:flex;
-          justify-content:space-between;
-          padding:10px;
-          margin-bottom:8px;
-          border-radius:10px;
-          border:1px solid #eee;
-          cursor:pointer;
-        }
-        .item.active { background:black; color:white; }
-
-        .content { background:white; padding:20px; border-radius:12px; }
-
-        .top { display:flex; justify-content:space-between; align-items:center; }
-
-        table { width:100%; margin-top:20px; border-collapse:collapse; }
-        td, th { padding:10px; border-bottom:1px solid #eee; }
-
-        .error { color:red; margin-top:10px; }
-      `}</style>
-
     </RequirePlatformAdmin>
   );
 }

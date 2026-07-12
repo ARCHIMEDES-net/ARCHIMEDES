@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
+import { cn } from "../../../lib/utils";
+import { Card } from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Alert } from "../../../components/ui/alert";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../../components/ui/table";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -69,38 +74,15 @@ export default function AdminObcePage() {
     setActivatingId("");
   }
 
-  const actionButtonStyle = {
-    padding: "8px 10px",
-    borderRadius: 10,
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "#fff",
-    fontWeight: 700,
-    cursor: "pointer",
-  };
-
-  const thStyle = {
-    textAlign: "left",
-    padding: "12px 10px",
-    borderBottom: "1px solid rgba(0,0,0,0.08)",
-    fontSize: 14,
-  };
-
-  const tdStyle = {
-    padding: "12px 10px",
-    borderBottom: "1px solid rgba(0,0,0,0.06)",
-    verticalAlign: "top",
-    fontSize: 14,
-  };
-
   return (
     <RequirePlatformAdmin>
-      <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
+      <div className="min-h-screen bg-slate-50">
         <PortalHeader title="Admin • obce" />
 
-        <main style={{ maxWidth: 1240, margin: "0 auto", padding: 40 }}>
-          <h1 style={{ marginTop: 0, marginBottom: 10 }}>Obce</h1>
+        <main className="mx-auto max-w-[1240px] px-10 py-10">
+          <h1 className="text-2xl font-black text-navy-900">Obce</h1>
 
-          <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)", maxWidth: 900 }}>
+          <p className="mt-2.5 max-w-[900px] text-muted">
             Přehled obcí založených přes /zadost. Nová obec vzniká rovnou se
             stavem „Čeká na schválení“ — tlačítkem níže ji aktivuješ, aby
             mohla program používat a pod jejím registračním číslem se mohly
@@ -108,190 +90,109 @@ export default function AdminObcePage() {
           </p>
 
           {error ? (
-            <div
-              style={{
-                color: "#a40000",
-                background: "#fff1f1",
-                border: "1px solid #f2c9c9",
-                borderRadius: 10,
-                padding: 12,
-                marginBottom: 16,
-              }}
-            >
+            <Alert variant="error" className="mt-4">
               {error}
-            </div>
+            </Alert>
           ) : null}
 
           {message ? (
-            <div
-              style={{
-                color: "#166534",
-                background: "#eefaf0",
-                border: "1px solid #cfe8d3",
-                borderRadius: 10,
-                padding: 12,
-                marginBottom: 16,
-              }}
-            >
+            <Alert variant="success" className="mt-4">
               {message}
-            </div>
+            </Alert>
           ) : null}
 
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 18,
-              border: "1px solid rgba(0,0,0,0.08)",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                padding: 14,
-                borderBottom: "1px solid rgba(0,0,0,0.08)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 12,
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ fontWeight: 700 }}>Celkem obcí: {rows.length}</div>
+          <Card className="mt-4 overflow-hidden p-0">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-900/[0.08] p-3.5">
+              <div className="font-bold text-navy-900">Celkem obcí: {rows.length}</div>
 
-              <button
-                type="button"
-                onClick={loadRows}
-                disabled={loading}
-                style={{
-                  ...actionButtonStyle,
-                  opacity: loading ? 0.7 : 1,
-                  cursor: loading ? "default" : "pointer",
-                }}
-              >
+              <Button type="button" onClick={loadRows} disabled={loading} variant="secondary" size="sm">
                 {loading ? "Načítám..." : "Obnovit"}
-              </button>
+              </Button>
             </div>
 
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    <th style={thStyle}>Datum</th>
-                    <th style={thStyle}>Obec</th>
-                    <th style={thStyle}>Reg. číslo</th>
-                    <th style={thStyle}>Kontakt</th>
-                    <th style={thStyle}>Stav</th>
-                    <th style={thStyle}>Akce</th>
-                  </tr>
-                </thead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Datum</TableHead>
+                  <TableHead>Obec</TableHead>
+                  <TableHead>Reg. číslo</TableHead>
+                  <TableHead>Kontakt</TableHead>
+                  <TableHead>Stav</TableHead>
+                  <TableHead>Akce</TableHead>
+                </TableRow>
+              </TableHeader>
 
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td style={tdStyle} colSpan={6}>
-                        Načítám…
-                      </td>
-                    </tr>
-                  ) : null}
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={6}>Načítám…</TableCell>
+                  </TableRow>
+                ) : null}
 
-                  {!loading && rows.length === 0 ? (
-                    <tr>
-                      <td style={tdStyle} colSpan={6}>
-                        Zatím žádné obce.
-                      </td>
-                    </tr>
-                  ) : null}
+                {!loading && rows.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6}>Zatím žádné obce.</TableCell>
+                  </TableRow>
+                ) : null}
 
-                  {rows.map((row) => (
-                    <tr key={row.id}>
-                      <td style={tdStyle}>{formatDate(row.created_at)}</td>
+                {rows.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{formatDate(row.created_at)}</TableCell>
 
-                      <td style={tdStyle}>
-                        <div style={{ fontWeight: 700 }}>{row.name}</div>
-                      </td>
+                    <TableCell>
+                      <div className="font-bold">{row.name}</div>
+                    </TableCell>
 
-                      <td style={tdStyle}>{row.registration_number || "—"}</td>
+                    <TableCell>{row.registration_number || "—"}</TableCell>
 
-                      <td style={tdStyle}>
-                        {row.contact_name ? (
-                          <div style={{ fontWeight: 600 }}>{row.contact_name}</div>
-                        ) : null}
-                        {row.contact_email ? (
-                          <a
-                            href={`mailto:${row.contact_email}`}
-                            style={{ color: "#111827", display: "block", marginTop: 4 }}
-                          >
-                            {row.contact_email}
-                          </a>
-                        ) : null}
-                        {row.contact_phone ? (
-                          <a
-                            href={`tel:${row.contact_phone}`}
-                            style={{ color: "#111827", display: "block", marginTop: 4 }}
-                          >
-                            {row.contact_phone}
-                          </a>
-                        ) : null}
-                        {!row.contact_name && !row.contact_email && !row.contact_phone
-                          ? "—"
-                          : null}
-                      </td>
+                    <TableCell>
+                      {row.contact_name ? <div className="font-semibold">{row.contact_name}</div> : null}
+                      {row.contact_email ? (
+                        <a href={`mailto:${row.contact_email}`} className="mt-1 block text-navy-900">
+                          {row.contact_email}
+                        </a>
+                      ) : null}
+                      {row.contact_phone ? (
+                        <a href={`tel:${row.contact_phone}`} className="mt-1 block text-navy-900">
+                          {row.contact_phone}
+                        </a>
+                      ) : null}
+                      {!row.contact_name && !row.contact_email && !row.contact_phone ? "—" : null}
+                    </TableCell>
 
-                      <td style={tdStyle}>
-                        <span
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            minHeight: 28,
-                            padding: "0 10px",
-                            borderRadius: 999,
-                            fontSize: 12,
-                            fontWeight: 700,
-                            background:
-                              row.license_status === "active" ? "#eefaf0" : "#f8fafc",
-                            color: row.license_status === "active" ? "#166534" : "#475569",
-                            border:
-                              row.license_status === "active"
-                                ? "1px solid #cfe8d3"
-                                : "1px solid #e2e8f0",
-                          }}
-                        >
-                          {row.license_status === "active"
+                    <TableCell>
+                      <span
+                        className={cn(
+                          "inline-flex min-h-[28px] items-center rounded-full border px-2.5 text-xs font-bold",
+                          row.license_status === "active"
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : "border-slate-200 bg-slate-50 text-slate-600"
+                        )}
+                      >
+                        {row.license_status === "active" ? "Aktivní" : "Čeká na schválení"}
+                      </span>
+                    </TableCell>
+
+                    <TableCell>
+                      <Button
+                        type="button"
+                        onClick={() => activateObec(row)}
+                        disabled={row.license_status === "active" || activatingId === row.id}
+                        variant="secondary"
+                        size="sm"
+                      >
+                        {activatingId === row.id
+                          ? "Aktivuji..."
+                          : row.license_status === "active"
                             ? "Aktivní"
-                            : "Čeká na schválení"}
-                        </span>
-                      </td>
-
-                      <td style={tdStyle}>
-                        <button
-                          type="button"
-                          style={{
-                            ...actionButtonStyle,
-                            opacity:
-                              row.license_status === "active" || activatingId === row.id
-                                ? 0.7
-                                : 1,
-                            cursor:
-                              row.license_status === "active" || activatingId === row.id
-                                ? "default"
-                                : "pointer",
-                          }}
-                          onClick={() => activateObec(row)}
-                          disabled={row.license_status === "active" || activatingId === row.id}
-                        >
-                          {activatingId === row.id
-                            ? "Aktivuji..."
-                            : row.license_status === "active"
-                              ? "Aktivní"
-                              : "Aktivovat"}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                            : "Aktivovat"}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
         </main>
       </div>
     </RequirePlatformAdmin>
