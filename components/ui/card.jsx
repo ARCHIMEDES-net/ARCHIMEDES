@@ -6,7 +6,10 @@ const Card = React.forwardRef(function Card({ className, ...props }, ref) {
     <div
       ref={ref}
       className={cn(
-        "rounded-xl border border-slate-200 bg-white shadow-sm",
+        // Karty na archimedeslive.com nesou hierarchii jen jemným
+        // borderem, ne dropshadowem — stín je vyhrazený pro foto/hero
+        // bloky (viz shadow-card token), ne pro běžné obsahové karty.
+        "rounded-card-md border border-slate-900/[0.07] bg-white",
         className
       )}
       {...props}
@@ -30,7 +33,7 @@ const CardTitle = React.forwardRef(function CardTitle({ className, ...props }, r
 
 const CardDescription = React.forwardRef(function CardDescription({ className, ...props }, ref) {
   return (
-    <p ref={ref} className={cn("mt-2 text-sm leading-relaxed text-slate-600", className)} {...props} />
+    <p ref={ref} className={cn("mt-2 text-sm leading-relaxed text-muted", className)} {...props} />
   );
 });
 

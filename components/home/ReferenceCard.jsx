@@ -8,7 +8,7 @@ export default function ReferenceCard({ reference, readStoryLabel }) {
 
   return (
     <Card className="overflow-hidden p-0">
-      <div className="relative aspect-[4/3] bg-navy-50">
+      <div className="relative aspect-[4/3] bg-eyebrow">
         <PhotoWithFallback
           src={r.photo}
           alt={r.photoAlt || `Obec ${r.name}`}
@@ -41,10 +41,10 @@ export default function ReferenceCard({ reference, readStoryLabel }) {
       <div className="p-4 pt-7">
         <strong className="block text-base font-bold text-navy-900">{r.name}</strong>
         <span className="mt-0.5 block text-xs font-semibold text-slate-400">{r.region}</span>
-        <p className="mt-2.5 text-[13.5px] leading-relaxed text-slate-600">&bdquo;{r.quote}&ldquo;</p>
+        <p className="mt-2.5 text-[13.5px] leading-relaxed text-muted">&bdquo;{r.quote}&ldquo;</p>
         <Link
           href={r.storyHref}
-          className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-bold text-navy-700 hover:text-navy-900"
+          className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-bold text-brand hover:text-navy-900"
         >
           {readStoryLabel} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
         </Link>

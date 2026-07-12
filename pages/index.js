@@ -93,16 +93,16 @@ export default function Home() {
               <div>
                 <SectionEyebrow>{hero.eyebrow}</SectionEyebrow>
 
-                <h1 className="text-5xl font-extrabold leading-[1.05] tracking-tight text-navy-900 sm:text-6xl">
+                <h1 className="text-5xl font-[950] leading-[0.98] tracking-[-0.05em] text-navy-900 sm:text-6xl">
                   {hero.titleLine1}
                   <br />
                   <span className="text-blue-700">{hero.titleLine2}</span>
                 </h1>
 
-                <p className="mt-5 text-xl font-bold tracking-tight text-slate-800">
+                <p className="mt-5 text-xl font-bold tracking-tight text-navy-900">
                   {hero.subtitle}
                 </p>
-                <p className="mt-3 max-w-xl text-base leading-relaxed text-slate-600">
+                <p className="mt-3 max-w-xl text-base leading-relaxed text-muted">
                   {hero.lead}
                 </p>
 
@@ -125,7 +125,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="relative aspect-[4/3.1] overflow-hidden rounded-2xl shadow-lg">
+              <div className="relative aspect-[4/3.1] overflow-hidden rounded-card-lg shadow-[0_24px_60px_rgba(15,23,42,0.14)]">
                 <PhotoWithFallback
                   src={hero.photo}
                   alt={hero.photoAlt}
@@ -135,7 +135,7 @@ export default function Home() {
                 />
 
                 {hero.floatingCard.visible ? (
-                  <div className="absolute inset-x-4 bottom-4 ml-auto flex max-w-[300px] items-center gap-3 rounded-xl bg-white p-4 shadow-md">
+                  <div className="absolute inset-x-4 bottom-4 ml-auto flex max-w-[300px] items-center gap-3 rounded-[18px] bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.18)]">
                     <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-navy-900 text-white">
                       <Users className="h-5 w-5" aria-hidden="true" />
                     </span>
@@ -167,14 +167,14 @@ export default function Home() {
           <div className="mx-auto max-w-[1180px] px-5 grid gap-10 lg:grid-cols-[1.5fr_1fr] lg:items-start">
             <div>
               <SectionEyebrow>{liveSection.eyebrow}</SectionEyebrow>
-              <h2 className="flex items-center gap-2.5 text-3xl font-extrabold tracking-tight text-navy-900">
+              <h2 className="flex items-center gap-2.5 text-3xl font-[950] tracking-[-0.045em] text-navy-900">
                 {liveSection.title}
                 <span
                   className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500"
                   aria-hidden="true"
                 />
               </h2>
-              <p className="mt-3 max-w-md text-[15.5px] leading-relaxed text-slate-600">
+              <p className="mt-3 max-w-md text-[15.5px] leading-relaxed text-muted">
                 {liveSection.subtitle}
               </p>
 
@@ -192,7 +192,7 @@ export default function Home() {
 
               <Link
                 href="/kalendar"
-                className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-navy-700 hover:text-navy-900"
+                className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-brand hover:text-navy-900"
               >
                 {liveSection.showAllLabel} <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
@@ -215,13 +215,13 @@ export default function Home() {
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                   <SectionEyebrow>{partnersSection.eyebrow}</SectionEyebrow>
-                  <h2 className="max-w-2xl text-3xl font-extrabold tracking-tight text-navy-900">
+                  <h2 className="max-w-2xl text-3xl font-[950] tracking-[-0.045em] text-navy-900">
                     {partnersSection.title}
                   </h2>
                 </div>
                 <Link
                   href={partnersSection.showAllHref}
-                  className="inline-flex items-center gap-1.5 text-sm font-bold text-navy-700 hover:text-navy-900"
+                  className="inline-flex items-center gap-1.5 text-sm font-bold text-brand hover:text-navy-900"
                 >
                   {partnersSection.showAllLabel} <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
@@ -251,13 +251,13 @@ export default function Home() {
             <div className="flex flex-wrap items-center justify-between gap-8">
               <div className="max-w-2xl flex-1">
                 <SectionEyebrow>{featuresSection.eyebrow}</SectionEyebrow>
-                <h2 className="text-3xl font-extrabold tracking-tight text-navy-900">
+                <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
                   {featuresSection.title}
                 </h2>
               </div>
 
               {featuresSection.photo ? (
-                <div className="aspect-video w-full max-w-[300px] flex-none overflow-hidden rounded-2xl shadow-md">
+                <div className="aspect-video w-full max-w-[300px] flex-none overflow-hidden rounded-card-md shadow-[0_14px_34px_rgba(15,23,42,0.12)]">
                   <PhotoWithFallback
                     src={featuresSection.photo}
                     alt={featuresSection.photoAlt}
@@ -286,7 +286,7 @@ export default function Home() {
         {communitySection.visible ? (
           <section className="border-y border-slate-100 bg-slate-50 py-20">
             <div className="mx-auto max-w-[1180px] px-5 grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-              <div className="aspect-[4/3.1] overflow-hidden rounded-2xl shadow-lg">
+              <div className="aspect-[4/3.1] overflow-hidden rounded-card-lg shadow-[0_24px_60px_rgba(15,23,42,0.14)]">
                 <PhotoWithFallback
                   src={communitySection.photo}
                   alt={communitySection.photoAlt}
@@ -298,15 +298,15 @@ export default function Home() {
 
               <div>
                 <SectionEyebrow>{communitySection.eyebrow}</SectionEyebrow>
-                <h2 className="text-3xl font-extrabold tracking-tight text-navy-900">
+                <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
                   {communitySection.title}
                 </h2>
-                <p className="mt-3 max-w-md text-[15.5px] leading-relaxed text-slate-600">
+                <p className="mt-3 max-w-md text-[15.5px] leading-relaxed text-muted">
                   {communitySection.text}
                 </p>
                 <Link
                   href={communitySection.cta.href}
-                  className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-navy-700 hover:text-navy-900"
+                  className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-brand hover:text-navy-900"
                 >
                   {communitySection.cta.label} <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
@@ -320,10 +320,10 @@ export default function Home() {
           <section className="py-20">
             <div className="mx-auto max-w-[1180px] px-5">
               <SectionEyebrow>{atmosphereSection.eyebrow}</SectionEyebrow>
-              <h2 className="text-3xl font-extrabold tracking-tight text-navy-900">
+              <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
                 {atmosphereSection.title}
               </h2>
-              <p className="mt-3 max-w-lg text-[15.5px] leading-relaxed text-slate-600">
+              <p className="mt-3 max-w-lg text-[15.5px] leading-relaxed text-muted">
                 {atmosphereSection.subtitle}
               </p>
 
@@ -332,7 +332,7 @@ export default function Home() {
                   <div
                     key={p.id}
                     className={cn(
-                      "relative aspect-[4/3] overflow-hidden rounded-2xl shadow-sm md:aspect-auto",
+                      "relative aspect-[4/3] overflow-hidden rounded-card-md shadow-[0_14px_34px_rgba(15,23,42,0.1)] md:aspect-auto",
                       i === 0 && "md:row-span-2"
                     )}
                   >
@@ -357,13 +357,13 @@ export default function Home() {
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                   <SectionEyebrow>{referencesSection.eyebrow}</SectionEyebrow>
-                  <h2 className="max-w-2xl text-3xl font-extrabold tracking-tight text-navy-900">
+                  <h2 className="max-w-2xl text-3xl font-[950] tracking-[-0.045em] text-navy-900">
                     {referencesSection.title}
                   </h2>
                 </div>
                 <Link
                   href={referencesSection.showAllHref}
-                  className="inline-flex items-center gap-1.5 text-sm font-bold text-navy-700 hover:text-navy-900"
+                  className="inline-flex items-center gap-1.5 text-sm font-bold text-brand hover:text-navy-900"
                 >
                   {referencesSection.showAllLabel} <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
@@ -386,16 +386,16 @@ export default function Home() {
         {ctaBand.visible ? (
           <section className="pb-20">
             <div className="mx-auto max-w-[1180px] px-5">
-              <div className="flex flex-col items-start gap-6 rounded-2xl bg-navy-50 p-8 sm:flex-row sm:items-center sm:justify-between sm:p-10">
+              <div className="flex flex-col items-start gap-6 rounded-card-lg bg-eyebrow p-8 sm:flex-row sm:items-center sm:justify-between sm:p-10">
                 <div className="flex items-center gap-4">
                   <span className="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-navy-900 text-white">
                     <Users className="h-6 w-6" aria-hidden="true" />
                   </span>
                   <div>
-                    <h2 className="text-xl font-extrabold tracking-tight text-navy-900">
+                    <h2 className="text-xl font-[950] tracking-[-0.045em] text-navy-900">
                       {ctaBand.title}
                     </h2>
-                    <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted">
                       {ctaBand.subtitle}
                     </p>
                   </div>
