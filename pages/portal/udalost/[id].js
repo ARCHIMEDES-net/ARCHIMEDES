@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Check, Lock, CalendarPlus, CalendarDays, FileText, X } from "lucide-react";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import JoinBroadcastButton from "../../../components/JoinBroadcastButton";
@@ -553,11 +554,14 @@ export default function UdalostDetail() {
                       : "px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed"
                   }
                 >
-                  {attendeeSaving
-                    ? "Ukládám…"
-                    : isAttending
-                    ? "✓ Vaše škola je přihlášena"
-                    : "✓ Zúčastníme se vysílání"}
+                  {attendeeSaving ? (
+                    "Ukládám…"
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Check className="h-4 w-4" aria-hidden="true" />
+                      {isAttending ? "Vaše škola je přihlášena" : "Zúčastníme se vysílání"}
+                    </span>
+                  )}
                 </button>
               ) : (
                 <div className="text-sm text-slate-600">
@@ -622,7 +626,9 @@ export default function UdalostDetail() {
                 className="px-4 py-2 rounded-xl bg-slate-200 text-slate-600 cursor-not-allowed font-semibold"
                 title="Dostupné pouze pro aktivní organizace"
               >
-                🔒 Vstup do vysílání
+                <span className="inline-flex items-center gap-1.5">
+                  <Lock className="h-4 w-4" aria-hidden="true" /> Vstup do vysílání
+                </span>
               </button>
             ) : null}
 
@@ -634,7 +640,9 @@ export default function UdalostDetail() {
                 className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
                 title="Přidat událost do Google kalendáře"
               >
-                📅 Přidat do Google kalendáře
+                <span className="inline-flex items-center gap-1.5">
+                  <CalendarPlus className="h-4 w-4" aria-hidden="true" /> Přidat do Google kalendáře
+                </span>
               </a>
             ) : null}
 
@@ -645,7 +653,9 @@ export default function UdalostDetail() {
                 className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
                 title="Stáhnout událost do kalendáře"
               >
-                📆 Stáhnout do kalendáře
+                <span className="inline-flex items-center gap-1.5">
+                  <CalendarDays className="h-4 w-4" aria-hidden="true" /> Stáhnout do kalendáře
+                </span>
               </button>
             ) : null}
 
@@ -656,7 +666,9 @@ export default function UdalostDetail() {
                 rel="noreferrer"
                 className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
               >
-                📄 Pracovní list
+                <span className="inline-flex items-center gap-1.5">
+                  <FileText className="h-4 w-4" aria-hidden="true" /> Pracovní list
+                </span>
               </a>
             ) : null}
 
@@ -687,7 +699,7 @@ export default function UdalostDetail() {
               className="absolute top-2 right-2 z-10 rounded-full bg-white/95 px-3 py-2 text-sm font-medium text-slate-900 shadow hover:bg-white"
               title="Zavřít"
             >
-              ✕
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
 
             <img
