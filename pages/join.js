@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { supabase } from "../lib/supabaseClient";
+import { cn } from "../lib/utils";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Alert } from "../components/ui/alert";
 
 export default function JoinPage() {
   const router = useRouter();
@@ -109,211 +115,116 @@ export default function JoinPage() {
     }
   }
 
-  const inputStyle = {
-    width: "100%",
-    padding: "13px 14px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.15)",
-    background: "#fff",
-    boxSizing: "border-box",
-    fontSize: 16,
-    outline: "none",
-  };
-
   return (
-    <div style={{ minHeight: "100vh", background: "#f6f7fb", fontFamily: "system-ui" }}>
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: "48px 16px" }}>
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 24,
-            padding: 28,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
-            border: "1px solid rgba(0,0,0,0.08)",
-          }}
-        >
-          <div style={{ marginBottom: 18 }}>
-            <img
-              src="/logo-archimedes-live.png"
-              alt="ARCHIMEDES Live"
-              style={{ height: 42, width: "auto", display: "block" }}
-            />
-          </div>
+    <div className="min-h-screen bg-slate-50">
+      <main className="mx-auto max-w-[760px] px-4 py-12">
+        <Card className="p-7">
+          <img src="/logo-archimedes-live.png" alt="ARCHIMEDES Live" className="mb-4 block h-[42px] w-auto" />
 
-          <h1 style={{ marginTop: 0, marginBottom: 10, fontSize: 34 }}>
+          <h1 className="mb-2.5 text-[34px] font-[950] tracking-[-0.03em] text-navy-900">
             Připojit se do organizace
           </h1>
 
-          <p style={{ color: "rgba(0,0,0,0.65)", marginTop: 0, marginBottom: 24 }}>
+          <p className="mb-6 text-muted">
             Pokud jste dostali kód školy nebo organizace, vyplňte formulář a účet se
             automaticky připojí ke správné organizaci.
           </p>
 
           {error ? (
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 12,
-                borderRadius: 12,
-                background: "#fff1f1",
-                color: "#a40000",
-                border: "1px solid #f2c9c9",
-              }}
-            >
+            <Alert variant="error" className="mb-4">
               Chyba: {error}
-            </div>
+            </Alert>
           ) : null}
 
           {message ? (
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 12,
-                borderRadius: 12,
-                background: "#eefaf0",
-                color: "#166534",
-                border: "1px solid #cfe8d3",
-              }}
-            >
+            <Alert variant="success" className="mb-4">
               {message}
-            </div>
+            </Alert>
           ) : null}
 
           <form onSubmit={handleSubmit}>
-            <div style={{ display: "grid", gap: 14 }}>
+            <div className="grid gap-3.5">
               <div>
-                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                  Jméno a příjmení
-                </label>
-                <input
+                <Label>Jméno a příjmení</Label>
+                <Input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Např. Jana Nováková"
-                  style={inputStyle}
                   autoComplete="name"
                 />
               </div>
 
               <div>
-                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                  E-mail
-                </label>
-                <input
+                <Label>E-mail</Label>
+                <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="jmeno@skola.cz"
-                  style={inputStyle}
                   autoComplete="email"
                 />
               </div>
 
               <div>
-                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                  Heslo
-                </label>
-                <input
+                <Label>Heslo</Label>
+                <Input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Alespoň 8 znaků"
-                  style={{
-                    ...inputStyle,
-                    border:
-                      passwordTooShort || passwordMismatch
-                        ? "1px solid #ef4444"
-                        : inputStyle.border,
-                  }}
+                  className={cn(passwordTooShort && "border-red-400 focus:ring-red-400")}
                   autoComplete="new-password"
                 />
                 {passwordTooShort ? (
-                  <div
-                    style={{
-                      marginTop: 6,
-                      fontSize: 14,
-                      color: "#dc2626",
-                      fontWeight: 600,
-                    }}
-                  >
+                  <p className="mt-1.5 text-sm font-semibold text-red-600">
                     Heslo musí mít alespoň 8 znaků.
-                  </div>
+                  </p>
                 ) : null}
               </div>
 
               <div>
-                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                  Potvrzení hesla
-                </label>
-                <input
+                <Label>Potvrzení hesla</Label>
+                <Input
                   type="password"
                   value={passwordConfirm}
                   onChange={(e) => setPasswordConfirm(e.target.value)}
                   placeholder="Zadejte heslo znovu"
-                  style={{
-                    ...inputStyle,
-                    border: passwordMismatch
-                      ? "1px solid #ef4444"
-                      : inputStyle.border,
-                  }}
+                  className={cn(passwordMismatch && "border-red-400 focus:ring-red-400")}
                   autoComplete="new-password"
                 />
                 {passwordMismatch ? (
-                  <div
-                    style={{
-                      marginTop: 6,
-                      fontSize: 14,
-                      color: "#dc2626",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Hesla se neshodují.
-                  </div>
+                  <p className="mt-1.5 text-sm font-semibold text-red-600">Hesla se neshodují.</p>
                 ) : null}
               </div>
 
               <div>
-                <label style={{ display: "block", marginBottom: 8, fontWeight: 600 }}>
-                  Kód organizace
-                </label>
-                <input
+                <Label>Kód organizace</Label>
+                <Input
                   type="text"
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                   placeholder="NAPŘ. ORG-A1B2C3D4"
-                  style={{
-                    ...inputStyle,
-                    textTransform: "uppercase",
-                  }}
+                  className="uppercase"
                   autoComplete="off"
                 />
               </div>
 
-              <div style={{ paddingTop: 6 }}>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  style={{
-                    padding: "13px 18px",
-                    borderRadius: 12,
-                    border: "none",
-                    background: "#111827",
-                    color: "#fff",
-                    fontWeight: 700,
-                    cursor: saving ? "default" : "pointer",
-                    opacity: saving ? 0.7 : 1,
-                  }}
-                >
+              <div className="pt-1.5">
+                <Button type="submit" disabled={saving}>
                   {saving ? "Vytvářím účet…" : "Vytvořit účet a připojit se"}
-                </button>
+                </Button>
               </div>
             </div>
           </form>
 
-          <div style={{ marginTop: 18, color: "rgba(0,0,0,0.6)" }}>
-            Už účet máte? <Link href="/login">Přihlaste se</Link>
+          <div className="mt-4 text-muted">
+            Už účet máte?{" "}
+            <Link href="/login" className="font-bold text-brand hover:underline">
+              Přihlaste se
+            </Link>
           </div>
-        </div>
+        </Card>
       </main>
     </div>
   );
