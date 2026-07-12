@@ -24,12 +24,12 @@ import SectionEyebrow from "../components/home/SectionEyebrow";
 import StatCard from "../components/home/StatCard";
 import FeatureCard from "../components/home/FeatureCard";
 import ReferenceCard from "../components/home/ReferenceCard";
+import PartnersSection from "../components/partners/PartnersSection";
+import CommunityCategoriesSection from "../components/partners/CommunityCategoriesSection";
 import {
   hero,
   heroStats,
   liveSection,
-  partnersSection,
-  partners,
   featuresSection,
   featureCards,
   communitySection,
@@ -69,7 +69,6 @@ export default function Home() {
   }, []);
 
   const visibleStats = heroStats.filter((s) => s.visible);
-  const visiblePartners = partners.filter((p) => p.visible);
   const visibleFeatures = featureCards.filter((f) => f.visible);
   const visibleAtmospherePhotos = atmospherePhotos.filter((p) => p.visible);
   const visibleReferences = references.filter((r) => r.visible);
@@ -213,41 +212,10 @@ export default function Home() {
         </section>
 
         {/* PARTNERS */}
-        {visiblePartners.length ? (
-          <section className="border-y border-slate-100 bg-slate-50 py-12">
-            <div className="mx-auto max-w-[1180px] px-5">
-              <div className="flex flex-wrap items-end justify-between gap-4">
-                <div>
-                  <SectionEyebrow>{partnersSection.eyebrow}</SectionEyebrow>
-                  <h2 className="max-w-2xl text-3xl font-[950] tracking-[-0.045em] text-navy-900">
-                    {partnersSection.title}
-                  </h2>
-                </div>
-                <Link
-                  href={partnersSection.showAllHref}
-                  className="inline-flex items-center gap-1.5 text-sm font-bold text-brand hover:text-navy-900"
-                >
-                  {partnersSection.showAllLabel} <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </div>
+        <PartnersSection />
 
-              <div className="mt-8 flex flex-wrap gap-x-9 gap-y-7">
-                {visiblePartners.map((p) => (
-                  <div key={p.id} className="flex items-center gap-2.5 text-sm font-bold text-slate-700">
-                    <PhotoWithFallback
-                      src={p.logo}
-                      alt={p.name}
-                      fallbackLabel={p.name}
-                      style={{ width: 40, height: 40 }}
-                      rounded
-                    />
-                    <span>{p.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        ) : null}
+        {/* KOMUNITNÍ OBLASTI */}
+        <CommunityCategoriesSection />
 
         {/* FEATURES */}
         <section id="jak-to-funguje" className="py-12">

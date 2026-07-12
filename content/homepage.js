@@ -43,22 +43,6 @@ export const liveSection = {
   goToCalendarLabel: "Přejít do kalendáře",
 };
 
-export const partnersSection = {
-  eyebrow: "Silní partneři",
-  title: "Spolupracujeme s odborníky, aby měl každý spolek nejlepší obsah",
-  showAllLabel: "Zobrazit všechny partnerské organizace",
-  showAllHref: "/pro-organizace",
-};
-
-export const partners = [
-  { id: "svaz-vcelaru", name: "Svaz včelařů ČR", logo: "/partners/svaz-vcelaru.png", visible: true },
-  { id: "myslivecka-jednota", name: "Českomoravská myslivecká jednota", logo: "/partners/myslivecka-jednota.png", visible: true },
-  { id: "sh-cms", name: "SH ČMS (Sdružení hasičů)", logo: "/partners/sh-cms.png", visible: true },
-  { id: "rybarsky-svaz", name: "Český rybářský svaz", logo: "/partners/rybarsky-svaz.png", visible: true },
-  { id: "svaz-zahradkaru", name: "Svaz zahrádkářů", logo: "/partners/svaz-zahradkaru.png", visible: true },
-  { id: "junak", name: "Junák", logo: "/partners/junak.png", visible: true },
-];
-
 export const featuresSection = {
   eyebrow: "Proč ARCHIMEDES Live",
   title: "Podporujeme komunitní život ve vaší obci",

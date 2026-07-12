@@ -7,6 +7,7 @@ import { supabase } from "../lib/supabaseClient";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import SectionEyebrow from "../components/home/SectionEyebrow";
+import PartnersSection from "../components/partners/PartnersSection";
 
 const DOBRA_PRAXE_BUCKET = "dobra-praxe";
 
@@ -195,6 +196,8 @@ export default function ObecPage() {
           </div>
         </div>
       </main>
+
+      <PartnersSection showCta={false} />
 
       <Footer />
     </>

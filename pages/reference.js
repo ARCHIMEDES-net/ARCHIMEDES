@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import PhotoWithFallback from "../components/PhotoWithFallback";
 import { Card } from "../components/ui/card";
 import SectionEyebrow from "../components/home/SectionEyebrow";
+import PartnersSection from "../components/partners/PartnersSection";
 import { referencesSection, references } from "../content/homepage";
 
 export default function ReferencePage() {
@@ -92,6 +93,8 @@ export default function ReferencePage() {
           </div>
         </div>
       </main>
+
+      <PartnersSection showCta={false} />
 
       <Footer />
     </>

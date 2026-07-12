@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { footerContent } from "../content/homepage";
+import { partners } from "../content/partners";
 
 const SOCIAL_ICON = {
   facebook: "f",
@@ -10,6 +11,7 @@ const SOCIAL_ICON = {
 export default function Footer() {
   const { legalName, tagline, columns, social, legalLinks } = footerContent;
   const visibleSocial = (social || []).filter((s) => s.visible !== false);
+  const visiblePartners = partners.filter((p) => p.visible).sort((a, b) => a.order - b.order);
 
   return (
     <footer className="site-footer">
@@ -61,6 +63,28 @@ export default function Footer() {
           ) : null}
         </div>
       </div>
+
+      {visiblePartners.length ? (
+        <div className="footer-partners">
+          <div className="footer-partners-inner">
+            <span className="footer-partners-label">Naši partneři</span>
+            <div className="footer-partners-logos">
+              {visiblePartners.map((p) => (
+                <a
+                  key={p.id}
+                  href={p.website}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="footer-partner-logo"
+                  title={p.name}
+                >
+                  <img src={p.logo} alt={p.name} />
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="footer-bottom">
         <div className="footer-bottom-inner">
@@ -160,6 +184,54 @@ export default function Footer() {
 
         .footer-social-icon:hover {
           background: rgba(255, 255, 255, 0.16);
+        }
+
+        .footer-partners {
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .footer-partners-inner {
+          max-width: 1180px;
+          margin: 0 auto;
+          padding: 24px 20px;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 14px 20px;
+        }
+
+        .footer-partners-label {
+          font-size: 13px;
+          font-weight: 900;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.45);
+          flex: none;
+        }
+
+        .footer-partners-logos {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .footer-partner-logo {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          height: 36px;
+          padding: 6px 10px;
+          border-radius: 10px;
+          background: #ffffff;
+        }
+
+        .footer-partner-logo img {
+          height: 100%;
+          width: auto;
+          max-width: 90px;
+          object-fit: contain;
+          display: block;
         }
 
         .footer-bottom {
