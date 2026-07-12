@@ -4,8 +4,15 @@ import "../styles/globals.css";
 
 import { useRouter } from "next/router";
 import Head from "next/head";
+import { Inter } from "next/font/google";
 import PublicHeader from "../components/PublicHeader";
 import { Analytics } from "@vercel/analytics/react";
+import { cn } from "../lib/utils";
+
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-inter",
+});
 
 function activeKeyFromPath(pathname = "") {
   if (pathname === "/program") return "program";
@@ -65,9 +72,11 @@ export default function App({ Component, pageProps }) {
         <meta name="twitter:image" content={imageUrl} />
       </Head>
 
-      {showPublicHeader && <PublicHeader active={active} />}
+      <div className={cn(inter.variable, "font-sans")}>
+        {showPublicHeader && <PublicHeader active={active} />}
 
-      <Component {...pageProps} />
+        <Component {...pageProps} />
+      </div>
 
       {/* Vercel Analytics */}
       <Analytics />

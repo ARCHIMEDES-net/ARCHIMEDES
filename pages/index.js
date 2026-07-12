@@ -3,11 +3,27 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { track } from "@vercel/analytics";
+import {
+  ArrowRight,
+  Users,
+  GraduationCap,
+  Link2,
+  MessageCircle,
+  TrendingUp,
+  Megaphone,
+  Archive,
+} from "lucide-react";
 import Footer from "../components/Footer";
 import PhotoWithFallback from "../components/PhotoWithFallback";
 import PublicMonthCalendar from "../components/PublicMonthCalendar";
 import PublicEventCard from "../components/PublicEventCard";
 import { fetchPublicUpcomingEvents } from "../lib/publicEvents";
+import { cn } from "../lib/utils";
+import { Button } from "../components/ui/button";
+import SectionEyebrow from "../components/home/SectionEyebrow";
+import StatCard from "../components/home/StatCard";
+import FeatureCard from "../components/home/FeatureCard";
+import ReferenceCard from "../components/home/ReferenceCard";
 import {
   hero,
   heroStats,
@@ -25,25 +41,13 @@ import {
 } from "../content/homepage";
 
 const FEATURE_ICONS = {
-  graduation: "🎓",
-  link: "🔗",
-  chat: "💬",
-  growth: "📈",
-  megaphone: "📣",
-  archive: "🗂️",
+  graduation: GraduationCap,
+  link: Link2,
+  chat: MessageCircle,
+  growth: TrendingUp,
+  megaphone: Megaphone,
+  archive: Archive,
 };
-
-function CtaButton({ href, children, variant = "primary", eventName }) {
-  return (
-    <Link
-      href={href}
-      className={`cta cta-${variant}`}
-      onClick={() => eventName && track(eventName)}
-    >
-      {children}
-    </Link>
-  );
-}
 
 export default function Home() {
   const router = useRouter();
@@ -81,102 +85,120 @@ export default function Home() {
         />
       </Head>
 
-      <main className="page">
+      <main className="bg-white text-slate-900">
         {/* HERO */}
-        <section className="hero">
-          <div className="container heroGrid">
-            <div className="heroContent">
-              <div className="eyebrow">{hero.eyebrow}</div>
+        <section className="pt-12 md:pt-16">
+          <div className="mx-auto max-w-[1180px] px-5">
+            <div className="grid gap-12 pb-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
+              <div>
+                <SectionEyebrow>{hero.eyebrow}</SectionEyebrow>
 
-              <h1>
-                {hero.titleLine1}
-                <br />
-                <span className="heroAccent">{hero.titleLine2}</span>
-              </h1>
+                <h1 className="text-5xl font-extrabold leading-[1.05] tracking-tight text-navy-900 sm:text-6xl">
+                  {hero.titleLine1}
+                  <br />
+                  <span className="text-blue-700">{hero.titleLine2}</span>
+                </h1>
 
-              <p className="heroSubtitle">{hero.subtitle}</p>
-              <p className="heroLead">{hero.lead}</p>
+                <p className="mt-5 text-xl font-bold tracking-tight text-slate-800">
+                  {hero.subtitle}
+                </p>
+                <p className="mt-3 max-w-xl text-base leading-relaxed text-slate-600">
+                  {hero.lead}
+                </p>
 
-              <div className="heroActions">
-                <CtaButton href={hero.primaryCta.href} eventName="klik_home_cta_primary">
-                  {hero.primaryCta.label}
-                </CtaButton>
-                <CtaButton
-                  href={hero.secondaryCta.href}
-                  variant="secondary"
-                  eventName="klik_home_jak_to_funguje"
-                >
-                  {hero.secondaryCta.label} <span aria-hidden="true">▶</span>
-                </CtaButton>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Button
+                    href={hero.primaryCta.href}
+                    onClick={() => track("klik_home_cta_primary")}
+                  >
+                    {hero.primaryCta.label}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                  <Button
+                    href={hero.secondaryCta.href}
+                    variant="secondary"
+                    onClick={() => track("klik_home_jak_to_funguje")}
+                  >
+                    {hero.secondaryCta.label}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="relative aspect-[4/3.1] overflow-hidden rounded-2xl shadow-lg">
+                <PhotoWithFallback
+                  src={hero.photo}
+                  alt={hero.photoAlt}
+                  fallbackLabel="ARCHIMEDES Live"
+                  style={{ width: "100%", height: "100%" }}
+                  imgStyle={{ objectFit: "cover", objectPosition: "25% center" }}
+                />
+
+                {hero.floatingCard.visible ? (
+                  <div className="absolute inset-x-4 bottom-4 ml-auto flex max-w-[300px] items-center gap-3 rounded-xl bg-white p-4 shadow-md">
+                    <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-navy-900 text-white">
+                      <Users className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                    <div>
+                      <strong className="block text-sm font-bold text-navy-900">
+                        {hero.floatingCard.title}
+                      </strong>
+                      <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">
+                        {hero.floatingCard.text}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
 
-            <div className="heroPhotoWrap">
-              <PhotoWithFallback
-                src={hero.photo}
-                alt={hero.photoAlt}
-                fallbackLabel="ARCHIMEDES Live"
-                style={{ width: "100%", height: "100%", minHeight: 360 }}
-                imgStyle={{ objectFit: "cover", objectPosition: "25% center" }}
-                className="heroPhoto"
-              />
-
-              {hero.floatingCard.visible ? (
-                <div className="floatingCard">
-                  <span className="floatingIcon" aria-hidden="true">
-                    👥
-                  </span>
-                  <div>
-                    <strong>{hero.floatingCard.title}</strong>
-                    <span>{hero.floatingCard.text}</span>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          {visibleStats.length ? (
-            <div className="statsBar">
-              <div className="container statsGrid">
+            {visibleStats.length ? (
+              <div className="grid grid-cols-2 gap-y-6 border-y border-slate-100 bg-slate-50 py-8 md:grid-cols-4">
                 {visibleStats.map((s) => (
-                  <div key={s.id} className="statItem">
-                    <span className="statValue">{s.value}</span>
-                    <span className="statLabel">{s.label}</span>
-                  </div>
+                  <StatCard key={s.id} value={s.value} label={s.label} />
                 ))}
               </div>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </section>
 
         {/* LIVE + CALENDAR */}
-        <section id="kalendar" className="section sectionLive">
-          <div className="container liveGrid">
-            <div className="liveMain">
-              <div className="eyebrow dark">{liveSection.eyebrow}</div>
-              <h2>
-                {liveSection.title} <span className="liveDot" aria-hidden="true" />
+        <section id="kalendar" className="py-20">
+          <div className="mx-auto max-w-[1180px] px-5 grid gap-10 lg:grid-cols-[1.5fr_1fr] lg:items-start">
+            <div>
+              <SectionEyebrow>{liveSection.eyebrow}</SectionEyebrow>
+              <h2 className="flex items-center gap-2.5 text-3xl font-extrabold tracking-tight text-navy-900">
+                {liveSection.title}
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500"
+                  aria-hidden="true"
+                />
               </h2>
-              <p className="sectionLead">{liveSection.subtitle}</p>
+              <p className="mt-3 max-w-md text-[15.5px] leading-relaxed text-slate-600">
+                {liveSection.subtitle}
+              </p>
 
               {eventsLoading ? (
-                <div className="liveLoading">Načítám nadcházející vysílání…</div>
+                <p className="mt-6 text-[15px] text-slate-500">Načítám nadcházející vysílání…</p>
               ) : upcomingCards.length ? (
-                <div className="liveCards">
+                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                   {upcomingCards.map((event) => (
                     <PublicEventCard key={event.id} event={event} compact />
                   ))}
                 </div>
               ) : (
-                <div className="liveLoading">Zatím žádné naplánované vysílání.</div>
+                <p className="mt-6 text-[15px] text-slate-500">Zatím žádné naplánované vysílání.</p>
               )}
 
-              <Link href="/kalendar" className="liveLink">
-                {liveSection.showAllLabel} <span aria-hidden="true">→</span>
+              <Link
+                href="/kalendar"
+                className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-navy-700 hover:text-navy-900"
+              >
+                {liveSection.showAllLabel} <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
 
-            <div className="liveAside">
+            <div>
               <PublicMonthCalendar
                 events={events}
                 lockedNote={liveSection.calendarLockedNote}
@@ -188,21 +210,26 @@ export default function Home() {
 
         {/* PARTNERS */}
         {visiblePartners.length ? (
-          <section className="section sectionPartners">
-            <div className="container">
-              <div className="partnersHead">
+          <section className="border-y border-slate-100 bg-slate-50 py-16">
+            <div className="mx-auto max-w-[1180px] px-5">
+              <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                  <div className="eyebrow dark">{partnersSection.eyebrow}</div>
-                  <h2 className="partnersTitle">{partnersSection.title}</h2>
+                  <SectionEyebrow>{partnersSection.eyebrow}</SectionEyebrow>
+                  <h2 className="max-w-2xl text-3xl font-extrabold tracking-tight text-navy-900">
+                    {partnersSection.title}
+                  </h2>
                 </div>
-                <Link href={partnersSection.showAllHref} className="liveLink">
-                  {partnersSection.showAllLabel} <span aria-hidden="true">→</span>
+                <Link
+                  href={partnersSection.showAllHref}
+                  className="inline-flex items-center gap-1.5 text-sm font-bold text-navy-700 hover:text-navy-900"
+                >
+                  {partnersSection.showAllLabel} <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
 
-              <div className="partnersRow">
+              <div className="mt-8 flex flex-wrap gap-x-9 gap-y-7">
                 {visiblePartners.map((p) => (
-                  <div key={p.id} className="partnerItem">
+                  <div key={p.id} className="flex items-center gap-2.5 text-sm font-bold text-slate-700">
                     <PhotoWithFallback
                       src={p.logo}
                       alt={p.name}
@@ -219,16 +246,18 @@ export default function Home() {
         ) : null}
 
         {/* FEATURES */}
-        <section id="jak-to-funguje" className="section sectionFeatures">
-          <div className="container">
-            <div className="featuresHead">
-              <div className="featuresIntro">
-                <div className="eyebrow dark">{featuresSection.eyebrow}</div>
-                <h2>{featuresSection.title}</h2>
+        <section id="jak-to-funguje" className="py-20">
+          <div className="mx-auto max-w-[1180px] px-5">
+            <div className="flex flex-wrap items-center justify-between gap-8">
+              <div className="max-w-2xl flex-1">
+                <SectionEyebrow>{featuresSection.eyebrow}</SectionEyebrow>
+                <h2 className="text-3xl font-extrabold tracking-tight text-navy-900">
+                  {featuresSection.title}
+                </h2>
               </div>
 
               {featuresSection.photo ? (
-                <div className="featuresPhotoWrap">
+                <div className="aspect-video w-full max-w-[300px] flex-none overflow-hidden rounded-2xl shadow-md">
                   <PhotoWithFallback
                     src={featuresSection.photo}
                     alt={featuresSection.photoAlt}
@@ -240,15 +269,14 @@ export default function Home() {
               ) : null}
             </div>
 
-            <div className="featuresGrid">
+            <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {visibleFeatures.map((f) => (
-                <div key={f.id} className="featureCard">
-                  <div className="featureIcon" aria-hidden="true">
-                    {FEATURE_ICONS[f.icon] || "✅"}
-                  </div>
-                  <h3>{f.title}</h3>
-                  <p>{f.description}</p>
-                </div>
+                <FeatureCard
+                  key={f.id}
+                  icon={FEATURE_ICONS[f.icon]}
+                  title={f.title}
+                  description={f.description}
+                />
               ))}
             </div>
           </div>
@@ -256,9 +284,9 @@ export default function Home() {
 
         {/* COMMUNITY & SENIORS */}
         {communitySection.visible ? (
-          <section className="section sectionCommunity">
-            <div className="container communityGrid">
-              <div className="communityPhotoWrap">
+          <section className="border-y border-slate-100 bg-slate-50 py-20">
+            <div className="mx-auto max-w-[1180px] px-5 grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+              <div className="aspect-[4/3.1] overflow-hidden rounded-2xl shadow-lg">
                 <PhotoWithFallback
                   src={communitySection.photo}
                   alt={communitySection.photoAlt}
@@ -268,12 +296,19 @@ export default function Home() {
                 />
               </div>
 
-              <div className="communityContent">
-                <div className="eyebrow dark">{communitySection.eyebrow}</div>
-                <h2>{communitySection.title}</h2>
-                <p className="sectionLead">{communitySection.text}</p>
-                <Link href={communitySection.cta.href} className="liveLink">
-                  {communitySection.cta.label} <span aria-hidden="true">→</span>
+              <div>
+                <SectionEyebrow>{communitySection.eyebrow}</SectionEyebrow>
+                <h2 className="text-3xl font-extrabold tracking-tight text-navy-900">
+                  {communitySection.title}
+                </h2>
+                <p className="mt-3 max-w-md text-[15.5px] leading-relaxed text-slate-600">
+                  {communitySection.text}
+                </p>
+                <Link
+                  href={communitySection.cta.href}
+                  className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-navy-700 hover:text-navy-900"
+                >
+                  {communitySection.cta.label} <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
             </div>
@@ -282,17 +317,24 @@ export default function Home() {
 
         {/* ATMOSPHERE / EVENTS */}
         {atmosphereSection.visible && visibleAtmospherePhotos.length ? (
-          <section className="section sectionAtmosphere">
-            <div className="container">
-              <div className="eyebrow dark">{atmosphereSection.eyebrow}</div>
-              <h2>{atmosphereSection.title}</h2>
-              <p className="sectionLead">{atmosphereSection.subtitle}</p>
+          <section className="py-20">
+            <div className="mx-auto max-w-[1180px] px-5">
+              <SectionEyebrow>{atmosphereSection.eyebrow}</SectionEyebrow>
+              <h2 className="text-3xl font-extrabold tracking-tight text-navy-900">
+                {atmosphereSection.title}
+              </h2>
+              <p className="mt-3 max-w-lg text-[15.5px] leading-relaxed text-slate-600">
+                {atmosphereSection.subtitle}
+              </p>
 
-              <div className="atmosphereGrid">
+              <div className="mt-10 grid gap-4 md:h-[420px] md:grid-cols-[1.4fr_1fr] md:grid-rows-2">
                 {visibleAtmospherePhotos.map((p, i) => (
                   <div
                     key={p.id}
-                    className={`atmospherePhotoWrap${i === 0 ? " atmosphereMain" : ""}`}
+                    className={cn(
+                      "relative aspect-[4/3] overflow-hidden rounded-2xl shadow-sm md:aspect-auto",
+                      i === 0 && "md:row-span-2"
+                    )}
                   >
                     <PhotoWithFallback
                       src={p.src}
@@ -310,56 +352,30 @@ export default function Home() {
 
         {/* REFERENCES */}
         {visibleReferences.length ? (
-          <section id="reference" className="section sectionReferences">
-            <div className="container">
-              <div className="partnersHead">
+          <section id="reference" className="py-20">
+            <div className="mx-auto max-w-[1180px] px-5">
+              <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                  <div className="eyebrow dark">{referencesSection.eyebrow}</div>
-                  <h2 className="partnersTitle">{referencesSection.title}</h2>
+                  <SectionEyebrow>{referencesSection.eyebrow}</SectionEyebrow>
+                  <h2 className="max-w-2xl text-3xl font-extrabold tracking-tight text-navy-900">
+                    {referencesSection.title}
+                  </h2>
                 </div>
-                <Link href={referencesSection.showAllHref} className="liveLink">
-                  {referencesSection.showAllLabel} <span aria-hidden="true">→</span>
+                <Link
+                  href={referencesSection.showAllHref}
+                  className="inline-flex items-center gap-1.5 text-sm font-bold text-navy-700 hover:text-navy-900"
+                >
+                  {referencesSection.showAllLabel} <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
 
-              <div className="referencesGrid">
+              <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {visibleReferences.map((r) => (
-                  <article key={r.id} className="refCard">
-                    <div className="refPhotoWrap">
-                      <PhotoWithFallback
-                        src={r.photo}
-                        alt={r.photoAlt || `Obec ${r.name}`}
-                        fallbackLabel={r.name}
-                        style={{ width: "100%", height: "100%" }}
-                        imgStyle={
-                          r.photoFit === "contain"
-                            ? { objectFit: "contain", padding: 24 }
-                            : { objectFit: "cover" }
-                        }
-                      />
-                      {r.crest ? (
-                        <div className="refCrest">
-                          <PhotoWithFallback
-                            src={r.crest}
-                            alt={r.crestAlt || `Znak obce ${r.name}`}
-                            fallbackLabel={r.name}
-                            style={{ width: 40, height: 40 }}
-                            rounded
-                          />
-                        </div>
-                      ) : null}
-                      <div className="refBadge">{r.badge}</div>
-                    </div>
-
-                    <div className="refBody">
-                      <strong>{r.name}</strong>
-                      <span className="refRegion">{r.region}</span>
-                      <p>&bdquo;{r.quote}&ldquo;</p>
-                      <Link href={r.storyHref} className="liveLink">
-                        {referencesSection.readStoryLabel} <span aria-hidden="true">→</span>
-                      </Link>
-                    </div>
-                  </article>
+                  <ReferenceCard
+                    key={r.id}
+                    reference={r}
+                    readStoryLabel={referencesSection.readStoryLabel}
+                  />
                 ))}
               </div>
             </div>
@@ -368,645 +384,36 @@ export default function Home() {
 
         {/* CTA BAND */}
         {ctaBand.visible ? (
-          <section className="ctaSection">
-            <div className="container ctaBandBox">
-              <div className="ctaBandMain">
-                <span className="ctaBandIcon" aria-hidden="true">
-                  👥
-                </span>
-                <div>
-                  <h2>{ctaBand.title}</h2>
-                  <p>{ctaBand.subtitle}</p>
+          <section className="pb-20">
+            <div className="mx-auto max-w-[1180px] px-5">
+              <div className="flex flex-col items-start gap-6 rounded-2xl bg-navy-50 p-8 sm:flex-row sm:items-center sm:justify-between sm:p-10">
+                <div className="flex items-center gap-4">
+                  <span className="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-navy-900 text-white">
+                    <Users className="h-6 w-6" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <h2 className="text-xl font-extrabold tracking-tight text-navy-900">
+                      {ctaBand.title}
+                    </h2>
+                    <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+                      {ctaBand.subtitle}
+                    </p>
+                  </div>
                 </div>
+                <Button
+                  href={ctaBand.cta.href}
+                  variant="light"
+                  className="border border-slate-200"
+                  onClick={() => track("klik_home_cta_band")}
+                >
+                  {ctaBand.cta.label} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Button>
               </div>
-              <CtaButton href={ctaBand.cta.href} variant="light" eventName="klik_home_cta_band">
-                {ctaBand.cta.label} <span aria-hidden="true">→</span>
-              </CtaButton>
             </div>
           </section>
         ) : null}
 
         <Footer />
-
-        <style jsx>{`
-          .page {
-            background: #ffffff;
-            color: #0f172a;
-          }
-
-          .container {
-            max-width: 1180px;
-            margin: 0 auto;
-            padding: 0 20px;
-          }
-
-          .eyebrow {
-            display: inline-flex;
-            align-items: center;
-            min-height: 30px;
-            padding: 0 12px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 900;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-            background: #e7eef9;
-            color: #1e3a5f;
-          }
-
-          .eyebrow.dark {
-            background: #eef2f8;
-            color: #1e3a5f;
-          }
-
-          /* HERO */
-          .hero {
-            padding: 40px 0 0;
-          }
-
-          .heroGrid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
-            gap: 36px;
-            align-items: center;
-            padding-bottom: 40px;
-          }
-
-          h1 {
-            margin: 0;
-            font-size: 58px;
-            line-height: 1;
-            letter-spacing: -0.045em;
-            font-weight: 950;
-            color: #0f172a;
-          }
-
-          .heroAccent {
-            color: #1d4ed8;
-          }
-
-          .heroSubtitle {
-            margin: 18px 0 0;
-            font-size: 20px;
-            font-weight: 800;
-            color: #172033;
-            letter-spacing: -0.01em;
-          }
-
-          .heroLead {
-            margin: 12px 0 0;
-            font-size: 16.5px;
-            line-height: 1.7;
-            color: #5a6474;
-            max-width: 560px;
-          }
-
-          .heroActions {
-            margin-top: 26px;
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-          }
-
-          .heroPhotoWrap {
-            position: relative;
-            border-radius: 28px;
-            overflow: hidden;
-            aspect-ratio: 4 / 3.1;
-            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
-          }
-
-          .heroPhotoWrap :global(.heroPhoto) {
-            border-radius: 0 !important;
-          }
-
-          .floatingCard {
-            position: absolute;
-            right: 16px;
-            bottom: 16px;
-            left: 16px;
-            max-width: 300px;
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #ffffff;
-            border-radius: 18px;
-            padding: 14px 16px;
-            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
-          }
-
-          .floatingIcon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 999px;
-            background: #1d4ed8;
-            color: #ffffff;
-            font-size: 18px;
-            flex: 0 0 auto;
-          }
-
-          .floatingCard strong {
-            display: block;
-            font-size: 14px;
-            color: #0f172a;
-          }
-
-          .floatingCard span {
-            display: block;
-            margin-top: 3px;
-            font-size: 12.5px;
-            color: #64748b;
-            line-height: 1.4;
-          }
-
-          .statsBar {
-            border-top: 1px solid rgba(15, 23, 42, 0.06);
-            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-            background: #f8fafc;
-          }
-
-          .statsGrid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 16px;
-            padding: 22px 20px;
-          }
-
-          .statItem {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-          }
-
-          .statValue {
-            font-size: 24px;
-            font-weight: 950;
-            color: #0f172a;
-            letter-spacing: -0.02em;
-          }
-
-          .statLabel {
-            font-size: 13.5px;
-            font-weight: 700;
-            color: #64748b;
-          }
-
-          /* SECTIONS */
-          .section {
-            padding: 56px 0;
-          }
-
-          h2 {
-            margin: 0;
-            font-size: 32px;
-            line-height: 1.12;
-            letter-spacing: -0.03em;
-            font-weight: 950;
-            color: #0f172a;
-          }
-
-          .sectionLead {
-            margin: 10px 0 0;
-            font-size: 15.5px;
-            line-height: 1.6;
-            color: #5a6474;
-            max-width: 480px;
-          }
-
-          .liveDot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 999px;
-            background: #22c55e;
-            margin-left: 6px;
-          }
-
-          .liveGrid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr);
-            gap: 28px;
-            align-items: start;
-          }
-
-          .liveCards {
-            margin-top: 22px;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
-          }
-
-          .liveLoading {
-            margin-top: 22px;
-            color: #64748b;
-            font-size: 15px;
-          }
-
-          .sectionPartners {
-            background: #f8fafc;
-            border-top: 1px solid rgba(15, 23, 42, 0.06);
-            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-          }
-
-          .partnersHead {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-          }
-
-          .partnersTitle {
-            max-width: 620px;
-          }
-
-          .partnersRow {
-            margin-top: 26px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 28px 34px;
-          }
-
-          .partnerItem {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            font-weight: 800;
-            color: #334155;
-          }
-
-          .featuresHead {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 28px;
-            flex-wrap: wrap;
-          }
-
-          .featuresIntro {
-            flex: 1 1 360px;
-            max-width: 620px;
-          }
-
-          .featuresPhotoWrap {
-            flex: 0 0 auto;
-            width: 300px;
-            aspect-ratio: 16 / 10;
-            border-radius: 22px;
-            overflow: hidden;
-            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
-          }
-
-          .featuresGrid {
-            margin-top: 26px;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 18px;
-          }
-
-          .featureCard {
-            background: #ffffff;
-            border: 1px solid rgba(15, 23, 42, 0.07);
-            border-radius: 22px;
-            padding: 22px;
-          }
-
-          .featureIcon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 46px;
-            height: 46px;
-            border-radius: 14px;
-            background: #e8f8ee;
-            font-size: 22px;
-            margin-bottom: 14px;
-          }
-
-          .featureCard h3 {
-            margin: 0;
-            font-size: 17px;
-            letter-spacing: -0.02em;
-            color: #0f172a;
-          }
-
-          .featureCard p {
-            margin: 8px 0 0;
-            font-size: 14.5px;
-            line-height: 1.6;
-            color: #5b6676;
-          }
-
-          .sectionCommunity {
-            background: #f8fafc;
-            border-top: 1px solid rgba(15, 23, 42, 0.06);
-            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-          }
-
-          .communityGrid {
-            display: grid;
-            grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
-            gap: 36px;
-            align-items: center;
-          }
-
-          .communityPhotoWrap {
-            border-radius: 28px;
-            overflow: hidden;
-            aspect-ratio: 4 / 3.1;
-            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
-          }
-
-          .communityContent .sectionLead {
-            max-width: 480px;
-          }
-
-          .sectionAtmosphere .sectionLead {
-            max-width: 560px;
-          }
-
-          .atmosphereGrid {
-            margin-top: 26px;
-            display: grid;
-            grid-template-columns: 1.4fr 1fr;
-            grid-template-rows: repeat(2, minmax(160px, 1fr));
-            gap: 16px;
-            height: 420px;
-          }
-
-          .atmospherePhotoWrap {
-            position: relative;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.1);
-          }
-
-          .atmosphereMain {
-            grid-row: span 2;
-          }
-
-          .referencesGrid {
-            margin-top: 26px;
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 18px;
-          }
-
-          .refCard {
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 22px;
-            overflow: hidden;
-            background: #ffffff;
-          }
-
-          .refPhotoWrap {
-            position: relative;
-            aspect-ratio: 4 / 3;
-            background: #eef2f8;
-          }
-
-          .refCrest {
-            position: absolute;
-            left: 12px;
-            bottom: -20px;
-            border-radius: 999px;
-            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
-            border: 3px solid #ffffff;
-          }
-
-          .refBadge {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-            max-width: 120px;
-            padding: 6px 10px;
-            border-radius: 12px;
-            background: rgba(15, 23, 42, 0.82);
-            color: #ffffff;
-            font-size: 10.5px;
-            font-weight: 900;
-            line-height: 1.3;
-            text-align: center;
-          }
-
-          .refBody {
-            padding: 28px 16px 18px;
-          }
-
-          .refBody strong {
-            display: block;
-            font-size: 16px;
-            color: #0f172a;
-          }
-
-          .refRegion {
-            display: block;
-            margin-top: 2px;
-            font-size: 12.5px;
-            color: #94a3b8;
-            font-weight: 700;
-          }
-
-          .refBody p {
-            margin: 10px 0 0;
-            font-size: 13.5px;
-            line-height: 1.55;
-            color: #475569;
-          }
-
-          .ctaSection {
-            padding: 0 0 64px;
-          }
-
-          .ctaBandBox {
-            background: #eef4ff;
-            border-radius: 26px;
-            padding: 30px 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            flex-wrap: wrap;
-          }
-
-          .ctaBandMain {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-          }
-
-          .ctaBandIcon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 52px;
-            height: 52px;
-            border-radius: 999px;
-            background: #1d4ed8;
-            color: #ffffff;
-            font-size: 22px;
-            flex: 0 0 auto;
-          }
-
-          .ctaBandBox h2 {
-            font-size: 22px;
-          }
-
-          .ctaBandBox p {
-            margin: 6px 0 0;
-            font-size: 14.5px;
-            color: #45536b;
-          }
-
-          @media (max-width: 1080px) {
-            .heroGrid {
-              grid-template-columns: 1fr;
-            }
-
-            .liveGrid {
-              grid-template-columns: 1fr;
-            }
-
-            .liveCards {
-              grid-template-columns: repeat(3, minmax(0, 1fr));
-            }
-
-            .referencesGrid {
-              grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .featuresGrid {
-              grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .featuresPhotoWrap {
-              width: 240px;
-            }
-
-            .communityGrid {
-              grid-template-columns: 1fr;
-            }
-          }
-
-          @media (max-width: 720px) {
-            h1 {
-              font-size: 42px;
-            }
-
-            .statsGrid {
-              grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .liveCards {
-              grid-template-columns: 1fr;
-            }
-
-            .referencesGrid {
-              grid-template-columns: 1fr;
-            }
-
-            .featuresGrid {
-              grid-template-columns: 1fr;
-            }
-
-            .featuresPhotoWrap {
-              width: 100%;
-            }
-
-            .atmosphereGrid {
-              grid-template-columns: 1fr;
-              grid-template-rows: none;
-              height: auto;
-            }
-
-            .atmospherePhotoWrap {
-              aspect-ratio: 4 / 3;
-            }
-
-            .atmosphereMain {
-              grid-row: auto;
-              aspect-ratio: 4 / 3;
-            }
-
-            .ctaBandBox {
-              flex-direction: column;
-              align-items: flex-start;
-            }
-          }
-        `}</style>
-
-        <style jsx global>{`
-          .liveLink {
-            margin-top: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-            font-size: 14.5px;
-            font-weight: 900;
-            color: #1d4ed8;
-          }
-
-          .liveLink:hover {
-            color: #0f172a;
-          }
-
-          .refBody .liveLink {
-            margin-top: 10px;
-            font-size: 13px;
-          }
-
-          .cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            justify-content: center;
-            min-height: 48px;
-            padding: 0 20px;
-            border-radius: 999px;
-            text-decoration: none;
-            font-weight: 900;
-            font-size: 15px;
-            transition: transform 0.16s ease, box-shadow 0.16s ease;
-          }
-
-          .cta-primary {
-            background: #1d4ed8;
-            color: #ffffff;
-            box-shadow: 0 14px 30px rgba(29, 78, 216, 0.24);
-          }
-
-          .cta-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 18px 36px rgba(29, 78, 216, 0.3);
-          }
-
-          .cta-secondary {
-            background: #ffffff;
-            color: #0f172a;
-            border: 1px solid rgba(15, 23, 42, 0.12);
-          }
-
-          .cta-secondary:hover {
-            transform: translateY(-2px);
-            border-color: rgba(29, 78, 216, 0.28);
-          }
-
-          .cta-light {
-            background: #ffffff;
-            color: #0f172a;
-          }
-
-          .cta-light:hover {
-            transform: translateY(-2px);
-          }
-        `}</style>
       </main>
     </>
   );
