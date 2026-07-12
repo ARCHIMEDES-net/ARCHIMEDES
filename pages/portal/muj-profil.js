@@ -1,8 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
+import { GraduationCap, Globe2, Landmark, Users } from "lucide-react";
 import PortalHeader from "../../components/PortalHeader";
 import RequireAuth from "../../components/RequireAuth";
 import { supabase } from "../../lib/supabaseClient";
+import { cn } from "../../lib/utils";
+import { Card } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Alert } from "../../components/ui/alert";
+import { Switch } from "../../components/ui/switch";
 
 const DEFAULT_INTERESTS = ["skola_1_stupen", "skola_2_stupen"];
 
@@ -11,7 +19,8 @@ const DEFAULT_INTERESTS = ["skola_1_stupen", "skola_2_stupen"];
 // notification_preferences.activity_code (FK na activity_categories.code).
 const INTEREST_SECTIONS = [
   {
-    title: "🎓 Pro školu",
+    title: "Pro školu",
+    icon: GraduationCap,
     items: [
       { code: "skola_1_stupen", label: "1. stupeň ZŠ" },
       { code: "skola_2_stupen", label: "2. stupeň ZŠ" },
@@ -20,7 +29,8 @@ const INTEREST_SECTIONS = [
     ],
   },
   {
-    title: "🌍 Témata",
+    title: "Témata",
+    icon: Globe2,
     items: [
       { code: "veda_a_objevy", label: "Věda a objevy" },
       { code: "priroda_a_ekologie", label: "Příroda a ekologie" },
@@ -31,14 +41,16 @@ const INTEREST_SECTIONS = [
     ],
   },
   {
-    title: "🏛️ Kluby a programy",
+    title: "Kluby a programy",
+    icon: Landmark,
     items: [
       { code: "ctenarsky_klub", label: "Čtenářský klub" },
       { code: "filmovy_klub", label: "Filmový klub" },
     ],
   },
   {
-    title: "👥 Pro komunitu a spolky",
+    title: "Pro komunitu a spolky",
+    icon: Users,
     items: [
       { code: "hasici", label: "Požární ochrana" },
       { code: "sport", label: "Sport a tělovýchova" },
@@ -260,103 +272,115 @@ export default function MujProfilPage() {
 
       <PortalHeader />
 
-      <main className="pageWrap">
-        <div className="pageInner">
-          <section className="card">
-            <div className="header">
-              <div>
-                <p className="eyebrow">Můj profil</p>
-                <h1>Zajímá mě</h1>
-                <p className="lead">
-                  Vyberte, o jaká vysílání máte zájem. Budeme vám posílat jen to,
-                  co si zvolíte. Pokud nic nevyberete, nastaví se základní program
-                  pro 1. a 2. stupeň.
-                </p>
-              </div>
+      <main className="min-h-screen bg-slate-50">
+        <div className="mx-auto max-w-[980px] px-5 py-8">
+          <Card className="p-7">
+            <div className="mb-5">
+              <p className="mb-2 text-xs font-black uppercase tracking-[0.08em] text-slate-500">
+                Můj profil
+              </p>
+              <h1 className="text-[34px] font-[950] leading-[1.1] text-navy-900">Zajímá mě</h1>
+              <p className="mt-2.5 max-w-[760px] text-base leading-relaxed text-muted">
+                Vyberte, o jaká vysílání máte zájem. Budeme vám posílat jen to,
+                co si zvolíte. Pokud nic nevyberete, nastaví se základní program
+                pro 1. a 2. stupeň.
+              </p>
             </div>
 
             {loading ? (
-              <div className="infoBox">Načítám profil…</div>
+              <Alert variant="info">Načítám profil…</Alert>
             ) : (
               <form onSubmit={handleSave}>
-                <div className="field">
-                  <label className="label">Jméno</label>
-                  <input
+                <div className="mt-6">
+                  <Label htmlFor="fullName">Jméno</Label>
+                  <Input
+                    id="fullName"
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="input"
                     placeholder="Vaše jméno"
                   />
                 </div>
 
-                <div className="field">
-                  <label className="label">E-mail</label>
-                  <div className="readonlyBox">{email || "—"}</div>
+                <div className="mt-6">
+                  <Label>E-mail</Label>
+                  <div className="flex min-h-[52px] items-center rounded-2xl border border-slate-300 bg-slate-50 px-4 text-base text-slate-700">
+                    {email || "—"}
+                  </div>
                 </div>
 
-                <div className="field">
-                  <label className="label">Role</label>
-                  <div className="readonlyBox">{roleText}</div>
+                <div className="mt-6">
+                  <Label>Role</Label>
+                  <div className="flex min-h-[52px] items-center rounded-2xl border border-slate-300 bg-slate-50 px-4 text-base text-slate-700">
+                    {roleText}
+                  </div>
                 </div>
 
-                <div className="field">
-                  <label className="label">Organizace</label>
-                  <div className="readonlyBox">{organizationName || "—"}</div>
+                <div className="mt-6">
+                  <Label>Organizace</Label>
+                  <div className="flex min-h-[52px] items-center rounded-2xl border border-slate-300 bg-slate-50 px-4 text-base text-slate-700">
+                    {organizationName || "—"}
+                  </div>
                 </div>
 
-                <div className="field">
-                  <label className="label">Kód organizace</label>
-                  <div className="readonlyBox">{organizationCode || "—"}</div>
+                <div className="mt-6">
+                  <Label>Kód organizace</Label>
+                  <div className="flex min-h-[52px] items-center rounded-2xl border border-slate-300 bg-slate-50 px-4 text-base text-slate-700">
+                    {organizationCode || "—"}
+                  </div>
                 </div>
 
-                <div className="field">
-                  <div className="toggleRow">
+                <div className="mt-6">
+                  <div className="flex items-center justify-between gap-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <div>
-                      <label className="label">E-mailové pozvánky</label>
-                      <p className="helper">
+                      <Label className="mb-0">E-mailové pozvánky</Label>
+                      <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
                         Zapněte si pozvánky na vysílání podle vybraných zájmů.
                       </p>
                     </div>
 
-                    <label className="switch">
-                      <input
-                        type="checkbox"
-                        checked={emailNotificationsEnabled}
-                        onChange={(e) => setEmailNotificationsEnabled(e.target.checked)}
-                      />
-                      <span className="slider" />
-                    </label>
+                    <Switch
+                      checked={emailNotificationsEnabled}
+                      onChange={(e) => setEmailNotificationsEnabled(e.target.checked)}
+                    />
                   </div>
                 </div>
 
-                <div className="field">
-                  <label className="label">Zajímá mě</label>
-                  <p className="helper">
+                <div className="mt-6">
+                  <Label>Zajímá mě</Label>
+                  <p className="mb-3 text-sm leading-relaxed text-slate-500">
                     Vyberte okruhy, o jaké vysílání a program ARCHIMEDES chcete
                     dostávat upozornění e-mailem.
                   </p>
 
                   {selectedCount === 0 ? (
-                    <div className="warningBox">
+                    <Alert variant="neutral" className="mb-3.5 border-orange-200 bg-orange-50 text-orange-800">
                       Nevybrali jste žádné zájmy. Po uložení nastavíme automaticky
                       1. stupeň a 2. stupeň.
-                    </div>
+                    </Alert>
                   ) : null}
 
-                  <div className="interestSections">
+                  <div className="grid gap-5">
                     {INTEREST_SECTIONS.map((section) => (
-                      <div key={section.title} className="interestGroup">
-                        <h3>{section.title}</h3>
-                        <div className="chips">
+                      <div key={section.title}>
+                        <h3 className="mb-3 flex items-center gap-1.5 text-lg font-bold text-navy-900">
+                          <section.icon className="h-4 w-4 text-brand" aria-hidden="true" />
+                          {section.title}
+                        </h3>
+                        <div className="flex flex-wrap gap-2.5">
                           {section.items.map((item) => {
                             const active = selectedInterests.includes(item.code);
                             return (
                               <button
                                 key={item.code}
                                 type="button"
-                                className={`chip ${active ? "active" : ""}`}
                                 onClick={() => toggleInterest(item.code)}
+                                className={cn(
+                                  "rounded-full border px-4 py-2.5 text-[15px] font-bold transition-colors",
+                                  active
+                                    ? "border-navy-900 bg-navy-900 text-white"
+                                    : "border-slate-300 bg-white text-navy-900 hover:border-slate-400"
+                                )}
                               >
                                 {item.label}
                               </button>
@@ -368,288 +392,27 @@ export default function MujProfilPage() {
                   </div>
                 </div>
 
-                {error ? <div className="errorBox">{error}</div> : null}
-                {success ? <div className="successBox">{success}</div> : null}
+                {error ? (
+                  <Alert variant="error" className="mt-3.5">
+                    {error}
+                  </Alert>
+                ) : null}
+                {success ? (
+                  <Alert variant="success" className="mt-3.5">
+                    {success}
+                  </Alert>
+                ) : null}
 
-                <div className="actions">
-                  <button type="submit" className="primaryBtn" disabled={saving}>
+                <div className="mt-7">
+                  <Button type="submit" disabled={saving}>
                     {saving ? "Ukládám…" : "Uložit profil"}
-                  </button>
+                  </Button>
                 </div>
               </form>
             )}
-          </section>
+          </Card>
         </div>
       </main>
-
-      <style jsx>{`
-        .pageWrap {
-          min-height: 100vh;
-          background: #f3f5f8;
-        }
-
-        .pageInner {
-          max-width: 980px;
-          margin: 0 auto;
-          padding: 32px 20px 56px;
-        }
-
-        .card {
-          background: #fff;
-          border: 1px solid #e5e7eb;
-          border-radius: 28px;
-          box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
-          padding: 28px;
-        }
-
-        .header {
-          margin-bottom: 20px;
-        }
-
-        .eyebrow {
-          margin: 0 0 8px;
-          font-size: 12px;
-          font-weight: 800;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: #64748b;
-        }
-
-        h1 {
-          margin: 0 0 10px;
-          font-size: 34px;
-          line-height: 1.1;
-          color: #0f172a;
-        }
-
-        .lead {
-          margin: 0;
-          max-width: 760px;
-          color: #475569;
-          line-height: 1.6;
-          font-size: 16px;
-        }
-
-        .field {
-          margin-top: 26px;
-        }
-
-        .label {
-          display: block;
-          margin-bottom: 10px;
-          font-size: 14px;
-          font-weight: 800;
-          color: #0f172a;
-        }
-
-        .helper {
-          margin: 0 0 12px;
-          color: #64748b;
-          line-height: 1.5;
-          font-size: 14px;
-        }
-
-        .input {
-          width: 100%;
-          min-height: 52px;
-          padding: 0 16px;
-          border-radius: 16px;
-          border: 1px solid #d1d5db;
-          font-size: 16px;
-          background: #fff;
-          color: #0f172a;
-          box-sizing: border-box;
-        }
-
-        .readonlyBox {
-          min-height: 52px;
-          display: flex;
-          align-items: center;
-          padding: 0 16px;
-          border: 1px solid #d1d5db;
-          border-radius: 16px;
-          background: #f8fafc;
-          color: #334155;
-          font-size: 16px;
-        }
-
-        .toggleRow {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 20px;
-          padding: 18px;
-          border: 1px solid #e5e7eb;
-          border-radius: 20px;
-          background: #f8fafc;
-        }
-
-        .switch {
-          position: relative;
-          display: inline-block;
-          width: 58px;
-          height: 34px;
-          flex: 0 0 auto;
-        }
-
-        .switch input {
-          opacity: 0;
-          width: 0;
-          height: 0;
-        }
-
-        .slider {
-          position: absolute;
-          cursor: pointer;
-          inset: 0;
-          background-color: #cbd5e1;
-          transition: 0.2s;
-          border-radius: 999px;
-        }
-
-        .slider:before {
-          position: absolute;
-          content: "";
-          height: 26px;
-          width: 26px;
-          left: 4px;
-          top: 4px;
-          background-color: white;
-          transition: 0.2s;
-          border-radius: 50%;
-          box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
-        }
-
-        .switch input:checked + .slider {
-          background-color: #0f172a;
-        }
-
-        .switch input:checked + .slider:before {
-          transform: translateX(24px);
-        }
-
-        .interestSections {
-          display: grid;
-          gap: 22px;
-        }
-
-        .interestGroup h3 {
-          margin: 0 0 12px;
-          font-size: 18px;
-          color: #0f172a;
-        }
-
-        .chips {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-        }
-
-        .chip {
-          appearance: none;
-          border: 1px solid #d1d5db;
-          background: #fff;
-          color: #0f172a;
-          padding: 11px 16px;
-          border-radius: 999px;
-          font-size: 15px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.18s ease;
-        }
-
-        .chip:hover {
-          border-color: #94a3b8;
-          transform: translateY(-1px);
-        }
-
-        .chip.active {
-          background: #0f172a;
-          border-color: #0f172a;
-          color: #fff;
-        }
-
-        .warningBox,
-        .errorBox,
-        .successBox,
-        .infoBox {
-          margin-top: 14px;
-          padding: 14px 16px;
-          border-radius: 16px;
-          line-height: 1.5;
-          font-weight: 600;
-        }
-
-        .warningBox {
-          background: #fff7ed;
-          border: 1px solid #fdba74;
-          color: #9a3412;
-        }
-
-        .errorBox {
-          background: #fef2f2;
-          border: 1px solid #fecaca;
-          color: #991b1b;
-        }
-
-        .successBox {
-          background: #ecfdf5;
-          border: 1px solid #86efac;
-          color: #166534;
-        }
-
-        .infoBox {
-          background: #eff6ff;
-          border: 1px solid #bfdbfe;
-          color: #1d4ed8;
-        }
-
-        .actions {
-          margin-top: 28px;
-        }
-
-        .primaryBtn {
-          appearance: none;
-          border: none;
-          border-radius: 16px;
-          background: #0f172a;
-          color: #fff;
-          padding: 14px 20px;
-          min-height: 52px;
-          font-size: 15px;
-          font-weight: 800;
-          cursor: pointer;
-          transition: opacity 0.18s ease;
-        }
-
-        .primaryBtn:hover {
-          opacity: 0.94;
-        }
-
-        .primaryBtn:disabled {
-          opacity: 0.6;
-          cursor: default;
-        }
-
-        @media (max-width: 760px) {
-          .pageInner {
-            padding: 20px 14px 40px;
-          }
-
-          .card {
-            padding: 20px;
-            border-radius: 22px;
-          }
-
-          h1 {
-            font-size: 28px;
-          }
-
-          .toggleRow {
-            align-items: flex-start;
-          }
-        }
-      `}</style>
     </RequireAuth>
   );
 }
