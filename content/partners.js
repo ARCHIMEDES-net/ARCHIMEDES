@@ -94,4 +94,13 @@ export const partners = [
       "Skautské oddíly a výchova dětí a mládeže k samostatnosti a odpovědnosti.",
     showOnHomepage: false,
   },
+  {
+    slug: "kridla-pro-budoucnost",
+    name: "Nadační fond Křídla pro budoucnost",
+    website: "https://nfkridlaprobudoucnost.cz",
+    logo: "/partners/kridla-pro-budoucnost.png",
+    description:
+      "Podporuje mladé lidi při přechodu z dětských domovů do samostatného života — vzděláváním, mentoringem a dlouhodobou podporou.",
+    showOnHomepage: false,
+  },
 ];

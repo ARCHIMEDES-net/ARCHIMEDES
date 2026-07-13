@@ -129,8 +129,7 @@ export const communityCategories = [
     code: "socialni",
     title: "Sociální a zdravotní oblast",
     description: "Charity, Červený kříž, dobrovolníci a pečující organizace",
-    partnerSlug: null,
-    icon: "HeartPulse",
+    partnerSlug: "kridla-pro-budoucnost",
     order: 13,
   },
   {

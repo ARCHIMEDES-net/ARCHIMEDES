@@ -3,6 +3,7 @@ import Image from "next/image";
 import SectionEyebrow from "../home/SectionEyebrow";
 import { Card } from "../ui/card";
 import { AREA_ICONS } from "./icons";
+import { cn } from "../../lib/utils";
 import {
   communityCategoriesSection,
   communityCategoriesCta,
@@ -55,8 +56,8 @@ export default function CommunityCategoriesSection() {
           {sorted.map((c) => {
             const partner = c.partnerSlug ? partners.find((p) => p.slug === c.partnerSlug) : null;
 
-            return (
-              <Card key={c.code} className="flex min-h-[96px] items-start gap-3 p-4">
+            const cardBody = (
+              <>
                 <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-eyebrow text-navy-600">
                   <AreaGlyph partner={partner} iconKey={c.icon} />
                 </span>
@@ -71,6 +72,27 @@ export default function CommunityCategoriesSection() {
                     {c.description}
                   </p>
                 </div>
+              </>
+            );
+
+            // Areas with a confirmed partner link out to that partner's
+            // official site; areas without one are informational only.
+            return partner?.website ? (
+              <a
+                key={c.code}
+                href={partner.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  "flex min-h-[96px] items-start gap-3 rounded-card-md border border-slate-900/[0.07] bg-white p-4",
+                  "transition-colors hover:border-slate-900/20"
+                )}
+              >
+                {cardBody}
+              </a>
+            ) : (
+              <Card key={c.code} className="flex min-h-[96px] items-start gap-3 p-4">
+                {cardBody}
               </Card>
             );
           })}
