@@ -81,12 +81,7 @@ export const partners = [
     slug: "rada-senioru",
     name: "Rada seniorů České republiky",
     website: "https://www.rscr.cz",
-    // No verified official logo asset was found for this organization
-    // (its own site has no distinct header logo, and no license-clear
-    // copy exists on Wikimedia Commons) — shown with a neutral icon
-    // instead of a placeholder. Replace with a real logo if one is
-    // supplied.
-    icon: "Users",
+    logo: "/partners/rada-senioru.png",
     description: "Kluby a spolky seniorů, mezigenerační program a osvěta pro aktivní stárnutí.",
     showOnHomepage: true,
   },
