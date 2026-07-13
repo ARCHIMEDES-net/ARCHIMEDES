@@ -21,13 +21,12 @@ import { fetchPublicUpcomingEvents } from "../lib/publicEvents";
 import { cn } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
-import StatCard from "../components/home/StatCard";
+import StatsSection from "../components/home/StatsSection";
 import FeatureCard from "../components/home/FeatureCard";
 import ReferenceCard from "../components/home/ReferenceCard";
 import PartnersSection from "../components/partners/PartnersSection";
 import {
   hero,
-  heroStats,
   liveSection,
   featuresSection,
   featureCards,
@@ -67,7 +66,6 @@ export default function Home() {
     };
   }, []);
 
-  const visibleStats = heroStats.filter((s) => s.visible);
   const visibleFeatures = featureCards.filter((f) => f.visible);
   const visibleAtmospherePhotos = atmospherePhotos.filter((p) => p.visible);
   const visibleReferences = references.filter((r) => r.visible);
@@ -154,15 +152,11 @@ export default function Home() {
               </div>
             </div>
 
-            {visibleStats.length ? (
-              <div className="grid grid-cols-2 gap-y-6 border-y border-slate-100 bg-slate-50 py-8 md:grid-cols-4">
-                {visibleStats.map((s) => (
-                  <StatCard key={s.id} value={s.value} label={s.label} />
-                ))}
-              </div>
-            ) : null}
           </div>
         </section>
+
+        {/* NETWORK SIZE STATS */}
+        <StatsSection />
 
         {/* LIVE + CALENDAR */}
         <section id="kalendar" className="py-12">

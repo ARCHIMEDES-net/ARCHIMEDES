@@ -152,8 +152,7 @@ export const communityCategories = [
     code: "smart_city",
     title: "Chytrá obec",
     description: "Smart City kluby, inovace a sdílení dobré praxe",
-    partnerSlug: null,
-    icon: "Building2",
+    partnerSlug: "jinag",
     order: 16,
   },
 ];

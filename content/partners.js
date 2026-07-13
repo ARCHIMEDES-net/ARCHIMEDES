@@ -103,4 +103,14 @@ export const partners = [
       "Podporuje mladé lidi při přechodu z dětských domovů do samostatného života — vzděláváním, mentoringem a dlouhodobou podporou.",
     showOnHomepage: false,
   },
+  {
+    slug: "jinag",
+    name: "JINAG",
+    fullName: "Jihomoravská agentura pro veřejné inovace",
+    website: "https://www.jinag.eu",
+    logo: "/partners/jinag.png",
+    description:
+      "Podporuje obce a kraj při zavádění chytrých a inovativních řešení ve veřejné správě.",
+    showOnHomepage: false,
+  },
 ];

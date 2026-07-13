@@ -25,11 +25,51 @@ export const hero = {
   },
 };
 
-export const heroStats = [
-  { id: "partnerske-obce", value: "2 000+", label: "partnerských obcí", visible: true },
-  { id: "aktivni-organizace", value: "250+", label: "aktivních organizací", visible: true },
-  { id: "zive-prenosy", value: "1 200+", label: "živých přenosů ročně", visible: true },
-  { id: "zapojeni-obcane", value: "100 000+", label: "zapojených občanů", visible: true },
+export const statsSection = {
+  title: "Budujeme digitální infrastrukturu pro české obce",
+  subtitle:
+    "ARCHIMEDES Live propojuje školy, spolky, seniory, rodiče i národní organizace do jednoho společného digitálního prostoru.",
+};
+
+// Every number here describes the SIZE OF THE NETWORK the platform is
+// built for (target municipalities/schools, cumulative programme
+// experience) — never a claim of current customers/active users. Do
+// not phrase any of these as "zapojených obcí", "partnerských obcí",
+// "aktivních uživatelů" or "registrovaných škol" unless that figure is
+// provably backed by real signed/active accounts.
+export const stats = [
+  {
+    id: "obce",
+    value: "2 400+",
+    label: "obcí, pro které platforma vzniká",
+    description:
+      "ARCHIMEDES Live je určen především českým obcím s přibližně 500 až 3 000 obyvateli.",
+    visible: true,
+  },
+  {
+    id: "zakladni-skoly",
+    value: "2 500+",
+    label: "základních škol",
+    description:
+      "Programy ARCHIMEDES Live mohou využívat základní školy v České republice i zahraničí.",
+    visible: true,
+  },
+  {
+    id: "zive-vysilani",
+    value: "350+",
+    label: "už sledovaly naše živé vysílání",
+    description:
+      "Do živého programu ARCHIMEDES se již zapojily školy ze stovek českých obcí.",
+    visible: true,
+  },
+  {
+    id: "hodiny-programu",
+    value: "1 000+",
+    label: "hodin živého programu",
+    description:
+      "Dlouhodobě ověřené zkušenosti s pravidelným živým vysíláním pro školy, obce a komunitní organizace.",
+    visible: true,
+  },
 ];
 
 export const liveSection = {
