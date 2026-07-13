@@ -1,21 +1,22 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 const heroImg = "/ucebna-exterier.webp";
 
 const classImg = "/detivetride.webp";
-const techImg = "/dino.jpg";
+const techImg = "/dino.webp";
 const communityImg = "/seni.webp";
 
 const ecosystemMainImg = "/IMG_0228_content.webp";
 const ecosystemNatureImg = "/zel.webp";
-const ecosystemOnlineImg = "/jak-funguje-online.jpg";
+const ecosystemOnlineImg = "/jak-funguje-online.webp";
 
 const klimaImg = "/otevrena-hero.webp";
-const natureImg = "/mikro.jpeg";
+const natureImg = "/mikro.webp";
 
 const salVideo = "/sal.mp4";
-const salPoster = "/sal-poster.jpg";
+const salPoster = "/sal-poster.webp";
 
 const mediaSectionImg = "/prestrih.webp";
 
@@ -321,16 +322,17 @@ export default function Ucebna() {
             </div>
 
             <div>
-              <div className="heroImageCard">
-                <img
+              <div
+                className="heroImageCard"
+                style={{ position: "relative", aspectRatio: "16/10" }}
+              >
+                <Image
                   src={heroImg}
                   alt="Venkovní učebna ARCHIMEDES®"
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    aspectRatio: "16/10",
-                    objectFit: "cover",
-                  }}
+                  fill
+                  priority
+                  sizes="(max-width: 1160px) 100vw, 620px"
+                  style={{ objectFit: "cover" }}
                 />
               </div>
             </div>
@@ -372,11 +374,16 @@ export default function Ucebna() {
                     <div className="awardTileText">{award.text}</div>
                   </div>
 
-                  <div className="awardTileImageWrap">
-                    <img
+                  <div
+                    className="awardTileImageWrap"
+                    style={{ aspectRatio: "16/9" }}
+                  >
+                    <Image
                       src={award.image}
                       alt={award.alt}
-                      className="awardTileImage"
+                      fill
+                      sizes="(max-width: 1160px) 90vw, 440px"
+                      style={{ objectFit: "cover" }}
                     />
                     <span className="awardTileZoom">Kliknutím zvětšíte</span>
                   </div>
@@ -437,43 +444,43 @@ export default function Ucebna() {
               </div>
 
               <div className="visualTriple">
-                <div className="visualCard visualCardLarge">
-                  <img
+                <div
+                  className="visualCard visualCardLarge"
+                  style={{ position: "relative", aspectRatio: "16/10" }}
+                >
+                  <Image
                     src={ecosystemMainImg}
                     alt="Detail učebny ARCHIMEDES®"
-                    style={{
-                      width: "100%",
-                      display: "block",
-                      aspectRatio: "16/10",
-                      objectFit: "cover",
-                    }}
+                    fill
+                    sizes="(max-width: 1160px) 90vw, 440px"
+                    style={{ objectFit: "cover" }}
                   />
                 </div>
 
                 <div className="doubleVisualGrid">
-                  <div className="visualCard">
-                    <img
+                  <div
+                    className="visualCard"
+                    style={{ position: "relative", aspectRatio: "16/10" }}
+                  >
+                    <Image
                       src={ecosystemNatureImg}
                       alt="Otevřený prostor učebny ARCHIMEDES®"
-                      style={{
-                        width: "100%",
-                        display: "block",
-                        aspectRatio: "16/10",
-                        objectFit: "cover",
-                      }}
+                      fill
+                      sizes="(max-width: 1160px) 44vw, 210px"
+                      style={{ objectFit: "cover" }}
                     />
                   </div>
 
-                  <div className="visualCard">
-                    <img
+                  <div
+                    className="visualCard"
+                    style={{ position: "relative", aspectRatio: "16/10" }}
+                  >
+                    <Image
                       src={ecosystemOnlineImg}
                       alt="Online propojení a technologie učebny ARCHIMEDES®"
-                      style={{
-                        width: "100%",
-                        display: "block",
-                        aspectRatio: "16/10",
-                        objectFit: "cover",
-                      }}
+                      fill
+                      sizes="(max-width: 1160px) 44vw, 210px"
+                      style={{ objectFit: "cover" }}
                     />
                   </div>
                 </div>
@@ -664,16 +671,16 @@ export default function Ucebna() {
                   </p>
                 </div>
 
-                <div className="zigzagImage">
-                  <img
+                <div
+                  className="zigzagImage"
+                  style={{ position: "relative", aspectRatio: "16/10" }}
+                >
+                  <Image
                     src={techImg}
                     alt="Žáci pracující u interaktivního panelu"
-                    style={{
-                      width: "100%",
-                      display: "block",
-                      aspectRatio: "16/10",
-                      objectFit: "cover",
-                    }}
+                    fill
+                    sizes="(max-width: 1160px) 90vw, 460px"
+                    style={{ objectFit: "cover" }}
                   />
                 </div>
               </div>
@@ -749,16 +756,16 @@ export default function Ucebna() {
                   </p>
                 </div>
 
-                <div className="zigzagImage">
-                  <img
+                <div
+                  className="zigzagImage"
+                  style={{ position: "relative", aspectRatio: "16/10" }}
+                >
+                  <Image
                     src={natureImg}
                     alt="Badatelské a přírodní prvky učebny"
-                    style={{
-                      width: "100%",
-                      display: "block",
-                      aspectRatio: "16/10",
-                      objectFit: "cover",
-                    }}
+                    fill
+                    sizes="(max-width: 1160px) 90vw, 460px"
+                    style={{ objectFit: "cover" }}
                   />
                 </div>
               </div>
@@ -1080,16 +1087,16 @@ export default function Ucebna() {
                 </div>
               </div>
 
-              <div className="mediaVisual">
-                <img
+              <div
+                className="mediaVisual"
+                style={{ position: "relative", aspectRatio: "16/10" }}
+              >
+                <Image
                   src={mediaSectionImg}
                   alt="Mediální a veřejná pozornost projektu ARCHIMEDES®"
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    aspectRatio: "16/10",
-                    objectFit: "cover",
-                  }}
+                  fill
+                  sizes="(max-width: 1160px) 90vw, 500px"
+                  style={{ objectFit: "cover" }}
                 />
               </div>
             </div>

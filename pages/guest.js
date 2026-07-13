@@ -1,9 +1,10 @@
 import Head from "next/head";
+import Image from "next/image";
 import Footer from "../components/Footer";
 
-const heroImg = "/hero-vyuka.jpg";
-const liveImgMain = "/jak-funguje-online.jpg";
-const liveImgSecondary = "/jak-funguje-trida.jpg";
+const heroImg = "/hero-vyuka.webp";
+const liveImgMain = "/jak-funguje-online.webp";
+const liveImgSecondary = "/jak-funguje-trida.webp";
 const guestImg = "/hoste.jpg";
 
 export default function GuestPage() {
@@ -20,7 +21,14 @@ export default function GuestPage() {
       <main className="bg-white text-navy-900">
         <section className="relative">
           <div className="absolute inset-0 overflow-hidden">
-            <img src={heroImg} alt="ARCHIMEDES Live with students" className="h-full w-full object-cover" />
+            <Image
+              src={heroImg}
+              alt="ARCHIMEDES Live with students"
+              fill
+              priority
+              sizes="100vw"
+              style={{ objectFit: "cover" }}
+            />
             <div className="absolute inset-0 bg-gradient-to-r from-[rgba(9,16,32,0.82)] via-[rgba(9,16,32,0.66)] to-[rgba(9,16,32,0.46)]" />
           </div>
 
@@ -245,11 +253,13 @@ export default function GuestPage() {
                 </div>
               </div>
 
-              <div>
-                <img
+              <div className="relative min-h-[260px] w-full overflow-hidden rounded-card-lg shadow-[0_18px_42px_rgba(15,23,42,0.12)] sm:min-h-[420px] lg:min-h-[540px]">
+                <Image
                   src={liveImgMain}
                   alt="ARCHIMEDES Live online session on screen"
-                  className="min-h-[260px] w-full rounded-card-lg object-cover shadow-[0_18px_42px_rgba(15,23,42,0.12)] sm:min-h-[420px] lg:min-h-[540px]"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 700px"
+                  style={{ objectFit: "cover" }}
                 />
               </div>
             </div>
@@ -269,11 +279,15 @@ export default function GuestPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.25fr_0.75fr]">
-              <img
-                src={liveImgSecondary}
-                alt="Students reacting during an ARCHIMEDES Live session"
-                className="min-h-[260px] w-full rounded-card-lg object-cover shadow-[0_14px_34px_rgba(15,23,42,0.08)] sm:min-h-[420px] lg:min-h-[560px]"
-              />
+              <div className="relative min-h-[260px] w-full overflow-hidden rounded-card-lg shadow-[0_14px_34px_rgba(15,23,42,0.08)] sm:min-h-[420px] lg:min-h-[560px]">
+                <Image
+                  src={liveImgSecondary}
+                  alt="Students reacting during an ARCHIMEDES Live session"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 720px"
+                  style={{ objectFit: "cover" }}
+                />
+              </div>
 
               <div className="grid gap-5">
                 <img

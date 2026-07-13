@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { X } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -11,7 +12,7 @@ const posters = Array.from({ length: 30 }, (_, i) => ({
   label: `Plakát ${i + 1}`,
 }));
 
-const heroPosters = ["/pl50.jpeg", "/pl51.jpeg", "/pl52.jpg", "/pl53.jpg"];
+const heroPosters = ["/pl50.webp", "/pl51.webp", "/pl52.webp", "/pl53.jpg"];
 
 export default function ProbehlaVysilaniPage() {
   const [activePoster, setActivePoster] = useState(null);
@@ -66,11 +67,13 @@ export default function ProbehlaVysilaniPage() {
               <div className="border-t border-slate-200 bg-gradient-to-b from-blue-50 to-slate-50 p-5 lg:border-l lg:border-t-0">
                 <div className="grid h-full grid-cols-2 gap-3">
                   {heroPosters.map((src, index) => (
-                    <div key={src} className="aspect-[3/4] overflow-hidden rounded-2xl bg-slate-200">
-                      <img
+                    <div key={src} className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-slate-200">
+                      <Image
                         src={src}
                         alt={`Ukázkový plakát ${index + 1}`}
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="(max-width: 1024px) 45vw, 240px"
+                        style={{ objectFit: "cover" }}
                       />
                     </div>
                   ))}

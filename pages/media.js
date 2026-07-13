@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { ArrowRight, ArrowUpRight, X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { cn } from "../lib/utils";
@@ -9,10 +10,10 @@ import SectionEyebrow from "../components/home/SectionEyebrow";
 const heroImg = "/kamera.webp";
 const aboutImg = "/detidoucebny.webp";
 
-const galleryClassImg = "/ucitelka.jpeg";
+const galleryClassImg = "/ucitelka.webp";
 const galleryTechImg = "/atmos.webp";
 const galleryCommunityImg = "/ucebna-komunita.webp";
-const galleryMediaImg = "/image-1.png";
+const galleryMediaImg = "/image-1.webp";
 
 const mediaSectionImg = "/ucebna-media.webp";
 const galleryHeroImg = "/techn.webp";
@@ -167,12 +168,24 @@ function SectionTitle({ children, className = "" }) {
   );
 }
 
-function SafeImage({ src, alt, className }) {
+function SafeImage({ src, alt, className, priority = false, sizes }) {
+  // Priority images are always our own local static assets (never the
+  // dynamic Supabase-hosted reference photos below), so they're the only
+  // ones safe to route through next/image without remotePatterns config.
+  if (priority) {
+    return (
+      <div className={cn("relative", className)}>
+        <Image src={src} alt={alt} fill priority sizes={sizes || "100vw"} style={{ objectFit: "cover" }} />
+      </div>
+    );
+  }
+
   return (
     <img
       src={src}
       alt={alt}
       className={className}
+      loading="lazy"
       onError={(e) => {
         e.currentTarget.style.display = "none";
         const parent = e.currentTarget.parentElement;
@@ -273,6 +286,8 @@ export default function MediaPage() {
               <SafeImage
                 src={heroImg}
                 alt="Venkovní učebna ARCHIMEDES®"
+                priority
+                sizes="(max-width: 1024px) 100vw, 610px"
                 className="aspect-[16/10] w-full object-cover"
               />
             </div>

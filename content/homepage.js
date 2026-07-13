@@ -86,7 +86,7 @@ export const liveSection = {
 export const featuresSection = {
   eyebrow: "Proč ARCHIMEDES Live",
   title: "Podporujeme komunitní život ve vaší obci",
-  photo: "/jak-funguje-online.jpg",
+  photo: "/jak-funguje-online.webp",
   photoAlt: "Živé online vysílání promítané v učebně ARCHIMEDES Live",
 };
 

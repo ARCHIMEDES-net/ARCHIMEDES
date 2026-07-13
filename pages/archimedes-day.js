@@ -1,14 +1,15 @@
 
 import Head from "next/head";
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import Footer from "../components/Footer";
 
-const LOGO_SRC = "/archimedes-day-logo.png";
-const CLASSROOM_SRC = "/archimedes-classroom.jpeg";
+const LOGO_SRC = "/archimedes-day-logo.webp";
+const CLASSROOM_SRC = "/archimedes-classroom.webp";
 
-const POSTER_CZ = "/AD CJ.jpg";
-const POSTER_EN = "/AD AJ.jpg";
+const POSTER_CZ = "/ad-cj.webp";
+const POSTER_EN = "/ad-aj.webp";
 
 const CONTENT = {
   cz: {
@@ -355,6 +356,7 @@ function PosterImage({ src, fallbackSrc, alt }) {
     <img
       src={currentSrc}
       alt={alt}
+      loading="lazy"
       className="ad-poster-image"
       onError={() => {
         if (fallbackSrc && currentSrc !== fallbackSrc) {
@@ -450,9 +452,13 @@ export default function ArchimedesDayPage() {
 
               <div className="ad-hero-logo-wrap">
                 <div className="ad-hero-logo-card">
-                  <img
+                  <Image
                     src={LOGO_SRC}
                     alt="ARCHIMEDES DAY logo"
+                    width={1152}
+                    height={922}
+                    priority
+                    sizes="(max-width: 900px) 90vw, 560px"
                     className="ad-hero-logo"
                   />
                 </div>
@@ -473,7 +479,7 @@ export default function ArchimedesDayPage() {
               <article className="ad-poster-card">
                 <PosterImage
                   src={POSTER_EN}
-                  fallbackSrc="/Kopie návrhu 19.6.2026_strana_1.jpeg"
+                  fallbackSrc="/ad-aj-fallback.webp"
                   alt="ARCHIMEDES DAY official poster in English"
                 />
               </article>
@@ -579,6 +585,7 @@ export default function ArchimedesDayPage() {
               <img
                 src={CLASSROOM_SRC}
                 alt={t.classroomCaption}
+                loading="lazy"
                 className="ad-classroom-image"
               />
               <div className="ad-classroom-caption">{t.classroomCaption}</div>

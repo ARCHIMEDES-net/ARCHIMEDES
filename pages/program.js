@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ArrowRight, X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
@@ -9,7 +10,7 @@ import { Badge } from "../components/ui/badge";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 
 const FALLBACK_POSTER = "/ucebna-exterier.webp";
-const MAY_PROGRAM_IMAGE = "/Program.jpg";
+const MAY_PROGRAM_IMAGE = "/program-card.webp";
 
 const schoolItems = [
   {
@@ -237,11 +238,13 @@ function CurrentProgramCard({ onOpen }) {
       onClick={onOpen}
       className="grid w-full grid-cols-1 items-center gap-4 rounded-card-lg border border-blue-100 bg-gradient-to-br from-white/96 to-blue-50/96 p-4 text-left shadow-[0_18px_40px_rgba(37,99,235,0.12)] transition-transform hover:-translate-y-0.5 sm:grid-cols-[118px_1fr]"
     >
-      <div className="relative overflow-hidden rounded-2xl bg-white shadow-[0_12px_28px_rgba(15,23,42,0.12)]">
-        <img
+      <div className="relative h-[150px] overflow-hidden rounded-2xl bg-white shadow-[0_12px_28px_rgba(15,23,42,0.12)]">
+        <Image
           src={MAY_PROGRAM_IMAGE}
           alt="Aktuální program květen 2026"
-          className="block h-[150px] w-full object-cover object-top"
+          fill
+          sizes="118px"
+          style={{ objectFit: "cover", objectPosition: "top" }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-navy-900/0 from-40% to-navy-900/58" />
         <div className="absolute bottom-2.5 left-2.5 rounded-full bg-red-500 px-2.5 py-1 text-xs font-black text-white">
