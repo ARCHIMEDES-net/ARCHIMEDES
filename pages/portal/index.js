@@ -914,7 +914,7 @@ function TeacherJoinHero({ event }) {
           <div className="help-list">
             <div><span>✓</span><p>Připojení je možné 15 minut před začátkem.</p></div>
             <div><span>✓</span><p>Klikněte na „Vstoupit do vysílání“.</p></div>
-            <div><span>✓</span><p>Otevře se okno Google Meet.</p></div>
+            <div><span>✓</span><p>Otevře se odkaz na vysílání od pořadatele.</p></div>
             <div><span>✓</span><p>Zkontrolujte, zda máte zapnutý/vypnutý mikrofon a kameru.</p></div>
           </div>
 

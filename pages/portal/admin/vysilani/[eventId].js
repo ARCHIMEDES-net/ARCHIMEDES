@@ -67,6 +67,10 @@ export default function AdminVysilaniDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [copyInfo, setCopyInfo] = useState("");
+  const [recipientGroups, setRecipientGroups] = useState([]);
+  const [selectedRecipientGroups, setSelectedRecipientGroups] = useState([]);
+  const [recipients, setRecipients] = useState([]);
+  const [recipientsLoading, setRecipientsLoading] = useState(false);
 
   const [eventRow, setEventRow] = useState(null);
   const [sessionId, setSessionId] = useState("");
@@ -112,7 +116,7 @@ export default function AdminVysilaniDetailPage() {
         {
           event_id: eventId,
           status: "draft",
-          platform: "google_meet",
+          platform: "webmeeting",
           recording_status: "none",
         },
       ])
@@ -155,10 +159,67 @@ export default function AdminVysilaniDetailPage() {
       setRecordingStatus(session.recording_status || "none");
       setNotesInternal(session.notes_internal || "");
       setStartsAt(toDateTimeLocalValue(session.starts_at || eventData.starts_at));
+      await loadRecipientGroups();
     } catch (e) {
       setError(e.message || "Nepodařilo se načíst detail vysílání.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function getAccessToken() {
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) throw new Error("Přihlášení vypršelo. Přihlaste se prosím znovu.");
+    return token;
+  }
+
+  async function loadRecipientGroups() {
+    const token = await getAccessToken();
+    const response = await fetch("/api/admin/group-counts", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "Nepodařilo se načíst skupiny zájmů.");
+    setRecipientGroups(Array.isArray(payload) ? payload : []);
+  }
+
+  async function generateRecipients() {
+    setRecipientsLoading(true);
+    setError("");
+    setCopyInfo("");
+    try {
+      const token = await getAccessToken();
+      const response = await fetch("/api/admin/broadcast-recipients", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ groups: selectedRecipientGroups }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Nepodařilo se vytvořit seznam příjemců.");
+      setRecipients(payload.users || []);
+      setCopyInfo(`Seznam obsahuje ${payload.count || 0} unikátních příjemců.`);
+    } catch (e) {
+      setRecipients([]);
+      setError(e.message || "Nepodařilo se vytvořit seznam příjemců.");
+    } finally {
+      setRecipientsLoading(false);
+    }
+  }
+
+  async function copyRecipients() {
+    if (!recipients.length) {
+      setError("Nejprve vytvořte seznam příjemců.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(recipients.map((item) => item.email).join(", "));
+      setCopyInfo(`${recipients.length} e-mailů bylo zkopírováno pro vložení do WebMeetingu.`);
+    } catch (_e) {
+      setCopyInfo("E-maily zkopírujte ručně.");
     }
   }
 
@@ -177,20 +238,16 @@ export default function AdminVysilaniDetailPage() {
       const normalizedViewerUrl = normalizeUrl(viewerUrl);
       const normalizedRecordingUrl = normalizeUrl(recordingUrl);
 
-      if (!normalizedViewerUrl) {
-        throw new Error("Vyplňte prosím Google Meet odkaz.");
-      }
-
       const payload = {
         status,
-        platform: "google_meet",
+        platform: "webmeeting",
         moderator_name: moderatorName.trim() || null,
         guest_1_name: guest1Name.trim() || null,
         guest_2_name: guest2Name.trim() || null,
         guest_3_name: guest3Name.trim() || null,
         guest_4_name: guest4Name.trim() || null,
         guest_5_name: guest5Name.trim() || null,
-        viewer_url: normalizedViewerUrl,
+        viewer_url: normalizedViewerUrl || null,
         recording_url: normalizedRecordingUrl || null,
         recording_status: recordingStatus,
         notes_internal: notesInternal.trim() || null,
@@ -205,24 +262,32 @@ export default function AdminVysilaniDetailPage() {
 
       if (updateError) throw updateError;
 
-      const eventPatch = {
-        stream_url: normalizedViewerUrl,
-      };
+      const eventPatch = {};
+
+      // Starší události mohou mít odkaz používaný portálem. Pokud správce
+      // nový odkaz nevyplní, existující hodnotu nemažeme.
+      if (normalizedViewerUrl) eventPatch.stream_url = normalizedViewerUrl;
 
       if (startsAt) {
         eventPatch.starts_at = new Date(startsAt).toISOString();
       }
 
-      const { error: eventUpdateError } = await supabase
-        .from("events")
-        .update(eventPatch)
-        .eq("id", eventId);
+      if (Object.keys(eventPatch).length > 0) {
+        const { error: eventUpdateError } = await supabase
+          .from("events")
+          .update(eventPatch)
+          .eq("id", eventId);
 
-      if (eventUpdateError) throw eventUpdateError;
+        if (eventUpdateError) throw eventUpdateError;
+      }
 
       setViewerUrl(normalizedViewerUrl);
       setRecordingUrl(normalizedRecordingUrl);
-      setMessage("Vysílání bylo uloženo a odkaz se propsal do události.");
+      setMessage(
+        normalizedViewerUrl
+          ? "Vysílání bylo uloženo; volitelný odkaz se propsal do události."
+          : "Vysílání bylo uloženo. Pozvánky a přístupový odkaz rozešle WebMeeting."
+      );
     } catch (e) {
       setError(e.message || "Vysílání se nepodařilo uložit.");
     } finally {
@@ -230,16 +295,16 @@ export default function AdminVysilaniDetailPage() {
     }
   }
 
-  async function handleCopyMeetLink() {
+  async function handleCopyViewerLink() {
     try {
       const normalizedViewerUrl = normalizeUrl(viewerUrl);
       if (!normalizedViewerUrl) {
-        setError("Nejprve vyplňte Google Meet odkaz.");
+        setError("Volitelný odkaz není vyplněný.");
         return;
       }
 
       await navigator.clipboard.writeText(normalizedViewerUrl);
-      setCopyInfo("Google Meet odkaz byl zkopírován.");
+      setCopyInfo("Volitelný odkaz byl zkopírován.");
     } catch (_e) {
       setCopyInfo("Odkaz zkopírujte ručně.");
     }
@@ -261,7 +326,7 @@ export default function AdminVysilaniDetailPage() {
         `Začátek: ${startsAt ? formatDateTimeCZ(new Date(startsAt).toISOString()) : "—"}`,
         `Moderátor: ${moderatorName.trim() || "—"}`,
         `Hosté: ${guestLines.length ? guestLines.join(", ") : "—"}`,
-        `Google Meet: ${normalizedViewerUrl || "—"}`,
+        `WebMeeting odkaz uložený v portálu: ${normalizedViewerUrl || "není potřeba"}`,
         `Stav vysílání: ${
           STATUS_OPTIONS.find((s) => s.value === status)?.label || status || "—"
         }`,
@@ -280,10 +345,6 @@ export default function AdminVysilaniDetailPage() {
   const normalizedViewerUrl = useMemo(() => normalizeUrl(viewerUrl), [viewerUrl]);
 
   const statusBadge = useMemo(() => {
-    if (!normalizedViewerUrl) {
-      return { label: "⚠ Vysílání nenastaveno", className: "border-amber-200 bg-amber-50 text-amber-800" };
-    }
-
     if (status === "scheduled") {
       return { label: "🟢 Vysílání připraveno", className: "border-emerald-200 bg-emerald-50 text-emerald-800" };
     }
@@ -297,7 +358,7 @@ export default function AdminVysilaniDetailPage() {
     }
 
     return { label: "🟡 Vysílání rozpracováno", className: "border-yellow-200 bg-yellow-50 text-yellow-800" };
-  }, [normalizedViewerUrl, status]);
+  }, [status]);
 
   return (
     <RequirePlatformAdmin>
@@ -313,7 +374,7 @@ export default function AdminVysilaniDetailPage() {
             <h1 className="text-[34px] font-black text-navy-900">Správa vysílání</h1>
 
             <p className="mt-1 leading-relaxed text-muted">
-              Produkční karta vysílání pro Google Meet, moderátora a až 5 hostů.
+              Produkční karta WebMeetingu, moderátora, hostů a seznamu pozvaných podle osobních zájmů.
             </p>
           </div>
 
@@ -364,18 +425,18 @@ export default function AdminVysilaniDetailPage() {
                     type="button"
                     onClick={() => {
                       if (!normalizedViewerUrl) {
-                        setError("Nejprve vyplňte Google Meet odkaz.");
+                        setError("Volitelný odkaz není vyplněný.");
                         return;
                       }
                       window.open(normalizedViewerUrl, "_blank", "noopener,noreferrer");
                     }}
                     variant="primary"
                   >
-                    Otevřít Google Meet
+                    Otevřít volitelný odkaz
                   </Button>
 
-                  <Button type="button" onClick={handleCopyMeetLink} variant="secondary">
-                    Zkopírovat Meet odkaz
+                  <Button type="button" onClick={handleCopyViewerLink} variant="secondary">
+                    Zkopírovat odkaz
                   </Button>
 
                   <Button type="button" onClick={handleCopyProductionSummary} variant="secondary">
@@ -416,12 +477,12 @@ export default function AdminVysilaniDetailPage() {
                     </div>
 
                     <div>
-                      <FieldLabel>Google Meet odkaz*</FieldLabel>
+                      <FieldLabel>Volitelný odkaz na vysílání</FieldLabel>
                       <Input
                         type="text"
                         value={viewerUrl}
                         onChange={(e) => setViewerUrl(e.target.value)}
-                        placeholder="https://meet.google.com/..."
+                        placeholder="Není nutný — pozvánku rozešle WebMeeting"
                       />
                     </div>
 
@@ -483,6 +544,10 @@ export default function AdminVysilaniDetailPage() {
                     </div>
                   </div>
 
+                  <div className="mt-3 text-sm text-slate-600">
+                    WebMeeting rozešle přístupový odkaz příjemcům. Toto pole zachovává kompatibilitu se staršími událostmi.
+                  </div>
+
                   <div className="mt-5 flex flex-wrap gap-3">
                     <Button type="submit" disabled={saving} variant="primary">
                       {saving ? "Ukládám..." : "Uložit vysílání"}
@@ -493,6 +558,45 @@ export default function AdminVysilaniDetailPage() {
                     </Button>
                   </div>
                 </form>
+
+                <div className="mt-7 border-t border-slate-200 pt-6">
+                  <h2 className="text-xl font-black text-navy-900">Příjemci pozvánky</h2>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                    Vyberte osobní zájmy. Jedna osoba se ve výsledku objeví pouze jednou, i když má vybráno více zájmů. Seznam pak vložte do WebMeetingu.
+                  </p>
+
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    {recipientGroups.map((group) => (
+                      <label key={group.slug} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
+                        <span className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedRecipientGroups.includes(group.slug)}
+                            onChange={() => {
+                              setRecipients([]);
+                              setSelectedRecipientGroups((current) =>
+                                current.includes(group.slug)
+                                  ? current.filter((slug) => slug !== group.slug)
+                                  : [...current, group.slug]
+                              );
+                            }}
+                          />
+                          <span>{group.label}</span>
+                        </span>
+                        <span className="text-sm font-bold text-slate-500">{group.count}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Button type="button" onClick={generateRecipients} disabled={recipientsLoading || !selectedRecipientGroups.length} variant="primary">
+                      {recipientsLoading ? "Vytvářím…" : "Vytvořit seznam"}
+                    </Button>
+                    <Button type="button" onClick={copyRecipients} disabled={!recipients.length} variant="secondary">
+                      Zkopírovat {recipients.length ? `${recipients.length} e-mailů` : "e-maily"}
+                    </Button>
+                  </div>
+                </div>
               </>
             )}
           </Card>

@@ -355,12 +355,12 @@ export default function NovaUdalost() {
             </label>
 
             <label className="grid gap-1">
-              <span className="text-sm text-slate-600">Odkaz na vysílání (stream_url)</span>
+              <span className="text-sm text-slate-600">Volitelný odkaz na vysílání (stream_url)</span>
               <input
                 value={streamUrl}
                 onChange={(e) => setStreamUrl(e.target.value)}
                 className="px-3 py-2 border rounded-xl"
-                placeholder="https://meet.google.com/..."
+                placeholder="Volitelné — pozvánku a odkaz rozešle WebMeeting"
               />
             </label>
 
