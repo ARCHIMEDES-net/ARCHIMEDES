@@ -8,6 +8,7 @@ import JoinBroadcastButton from "../../../components/JoinBroadcastButton";
 import { getStreamUrl } from "../../../lib/broadcastState";
 import { resolveLicenseMode } from "../../../lib/licenseMode";
 import { supabase } from "../../../lib/supabaseClient";
+import { fetchMyOrganization } from "../../../lib/myOrganizations";
 
 const BUCKET = "posters";
 
@@ -261,13 +262,7 @@ export default function UdalostDetail() {
           return;
         }
 
-        const { data: org, error: orgError } = await supabase
-          .from("organizations")
-          .select("license_status, license_valid_until")
-          .eq("id", orgId)
-          .maybeSingle();
-
-        if (orgError) throw orgError;
+        const org = await fetchMyOrganization(supabase, orgId);
 
         const mode = await resolveLicenseMode(supabase, orgId, org);
         if (mounted) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
+import { fetchMyOrganizations } from "../lib/myOrganizations";
 
 const DEMO_ORG_NAME = "ARCHIMEDES DEMO SKOLA";
 
@@ -45,14 +46,7 @@ export default function RequireAuth({ children }) {
         ...new Set(memberships.map((m) => m.organization_id).filter(Boolean)),
       ];
 
-      const { data: orgRows, error: orgError } = await supabase
-        .from("organizations")
-        .select("id, name")
-        .in("id", orgIds);
-
-      if (orgError) {
-        throw orgError;
-      }
+      const orgRows = await fetchMyOrganizations(supabase, orgIds);
 
       const orgById = new Map((orgRows || []).map((org) => [org.id, org]));
 

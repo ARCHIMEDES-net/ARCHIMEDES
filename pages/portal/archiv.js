@@ -5,6 +5,7 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { resolveLicenseMode } from "../../lib/licenseMode";
 import { supabase } from "../../lib/supabaseClient";
+import { fetchMyOrganization } from "../../lib/myOrganizations";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -274,13 +275,10 @@ export default function Archiv() {
           return;
         }
 
-        const { data: org, error: orgError } = await supabase
-          .from("organizations")
-          .select("license_status, license_valid_until")
-          .eq("id", profile.active_organization_id)
-          .maybeSingle();
-
-        if (orgError) throw orgError;
+        const org = await fetchMyOrganization(
+          supabase,
+          profile.active_organization_id
+        );
 
         if (!isMounted) return;
         const mode = await resolveLicenseMode(

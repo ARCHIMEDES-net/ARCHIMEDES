@@ -8,6 +8,7 @@ import JoinBroadcastButton from "../../components/JoinBroadcastButton";
 import { getEventStart, getJoinButtonState } from "../../lib/broadcastState";
 import { resolveLicenseMode } from "../../lib/licenseMode";
 import { supabase } from "../../lib/supabaseClient";
+import { fetchMyOrganization } from "../../lib/myOrganizations";
 
 const POSTERS_BUCKET = "posters";
 const FALLBACK_POSTER = "/ucebna-exterier.webp";
@@ -229,13 +230,7 @@ export default function PortalIndex() {
         }
 
         if (membership?.organization_id && resolvedOrganizationId) {
-          const { data: org, error: orgError } = await supabase
-            .from("organizations")
-            .select("id, name, join_code, license_status, license_valid_until")
-            .eq("id", resolvedOrganizationId)
-            .maybeSingle();
-
-          if (orgError) throw orgError;
+          const org = await fetchMyOrganization(supabase, resolvedOrganizationId);
           if (!alive) return;
 
           const roleInOrg = membership?.role_in_org || "";

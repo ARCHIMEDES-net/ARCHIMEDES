@@ -4,6 +4,7 @@ import { GraduationCap, Globe2, Landmark, Users } from "lucide-react";
 import PortalHeader from "../../components/PortalHeader";
 import RequireAuth from "../../components/RequireAuth";
 import { supabase } from "../../lib/supabaseClient";
+import { fetchMyOrganization } from "../../lib/myOrganizations";
 import { cn } from "../../lib/utils";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -148,7 +149,7 @@ export default function MujProfilPage() {
       setEmailNotificationsEnabled(profile?.email_notifications_enabled !== false);
 
       if (profile?.active_organization_id) {
-        const [{ data: membership, error: membershipError }, { data: organization, error: organizationError }] =
+        const [{ data: membership, error: membershipError }, organization] =
           await Promise.all([
             supabase
               .from("organization_members")
@@ -157,15 +158,10 @@ export default function MujProfilPage() {
               .eq("organization_id", profile.active_organization_id)
               .eq("status", "active")
               .maybeSingle(),
-            supabase
-              .from("organizations")
-              .select("name, join_code")
-              .eq("id", profile.active_organization_id)
-              .maybeSingle(),
+            fetchMyOrganization(supabase, profile.active_organization_id),
           ]);
 
         if (membershipError) throw membershipError;
-        if (organizationError) throw organizationError;
 
         setRoleText(roleLabel(membership?.role_in_org));
         setOrganizationName(organization?.name || "");

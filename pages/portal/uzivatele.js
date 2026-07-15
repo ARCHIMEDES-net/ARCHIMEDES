@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
+import { fetchMyOrganization } from "../../lib/myOrganizations";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -107,13 +108,10 @@ export default function UzivateleSkolyPage() {
         throw new Error("Uživatel není přiřazen k žádné organizaci.");
       }
 
-      const { data: organization, error: organizationError } = await supabase
-        .from("organizations")
-        .select("id, name, join_code")
-        .eq("id", membership.organization_id)
-        .maybeSingle();
-
-      if (organizationError) throw organizationError;
+      const organization = await fetchMyOrganization(
+        supabase,
+        membership.organization_id
+      );
       if (!organization) throw new Error("Organizace uživatele nebyla nalezena.");
 
       setOrganizationId(organization.id);
