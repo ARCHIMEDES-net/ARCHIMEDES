@@ -192,3 +192,13 @@ where o.org_type = 'school'
       and om.role_in_org = 'organization_admin'
       and om.status = 'active'
   );
+
+-- 12) Kontrola příjemců, kteří mají zájem, ale jsou výslovně neaktivní
+-- nebo vypnuli e-maily. Nový generátor je nesmí předat WebMeetingu.
+select
+  count(distinct ui.user_id) filter (where p.is_active = false)
+    as legacy_interest_profiles_inactive,
+  count(distinct ui.user_id) filter (where p.email_notifications_enabled = false)
+    as legacy_interest_profiles_opted_out
+from public.user_interests ui
+join public.profiles p on p.id = ui.user_id;
