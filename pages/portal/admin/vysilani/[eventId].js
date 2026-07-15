@@ -26,6 +26,32 @@ const RECORDING_STATUS_OPTIONS = [
   { value: "failed", label: "Chyba" },
 ];
 
+const AUDIENCE_TO_INTEREST = {
+  "i. stupeň": "skola_1_stupen",
+  "1. stupeň": "skola_1_stupen",
+  "ii. stupeň": "skola_2_stupen",
+  "2. stupeň": "skola_2_stupen",
+  učitelé: "ucitele",
+  senioři: "seniori",
+  komunita: "komunita",
+};
+
+function suggestRecipientGroups(event, availableGroups) {
+  const availableCodes = new Set(availableGroups.map((group) => group.slug));
+  const audience = Array.isArray(event?.audience_groups)
+    ? event.audience_groups
+    : String(event?.audience || "").split(",");
+
+  return [
+    ...new Set(
+      audience
+        .map((value) => String(value || "").trim().toLocaleLowerCase("cs"))
+        .map((value) => (availableCodes.has(value) ? value : AUDIENCE_TO_INTEREST[value]))
+        .filter((value) => value && availableCodes.has(value))
+    ),
+  ];
+}
+
 function toDateTimeLocalValue(date) {
   if (!date) return "";
   const d = new Date(date);
@@ -159,7 +185,8 @@ export default function AdminVysilaniDetailPage() {
       setRecordingStatus(session.recording_status || "none");
       setNotesInternal(session.notes_internal || "");
       setStartsAt(toDateTimeLocalValue(session.starts_at || eventData.starts_at));
-      await loadRecipientGroups();
+      const groups = await loadRecipientGroups();
+      setSelectedRecipientGroups(suggestRecipientGroups(eventData, groups));
     } catch (e) {
       setError(e.message || "Nepodařilo se načíst detail vysílání.");
     } finally {
@@ -181,7 +208,9 @@ export default function AdminVysilaniDetailPage() {
     });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || "Nepodařilo se načíst skupiny zájmů.");
-    setRecipientGroups(Array.isArray(payload) ? payload : []);
+    const groups = Array.isArray(payload) ? payload : [];
+    setRecipientGroups(groups);
+    return groups;
   }
 
   async function generateRecipients() {
@@ -563,6 +592,9 @@ export default function AdminVysilaniDetailPage() {
                   <h2 className="text-xl font-black text-navy-900">Příjemci pozvánky</h2>
                   <p className="mt-1 text-sm leading-relaxed text-slate-600">
                     Vyberte osobní zájmy. Jedna osoba se ve výsledku objeví pouze jednou, i když má vybráno více zájmů. Seznam pak vložte do WebMeetingu.
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                    Jednoznačné zájmy jsou předvybrané podle cílovek události. Výběr vždy zkontrolujte; činnost organizace se zde nepoužívá.
                   </p>
 
                   <div className="mt-4 grid gap-2 sm:grid-cols-2">
