@@ -448,7 +448,7 @@ export default function LoginPage() {
           </div>
 
           <Button href="/join" className="w-full">
-            Připojit k organizaci
+            Připojit se ke škole
           </Button>
         </div>
       </Card>

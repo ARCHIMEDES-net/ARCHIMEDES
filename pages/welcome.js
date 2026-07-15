@@ -193,38 +193,36 @@ export default function WelcomePage() {
               <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
                 <Card className="flex min-h-[220px] flex-col p-5">
                   <h2 className="mb-2.5 text-2xl font-black text-navy-900">
-                    Připojit se k organizaci
+                    Připojit se ke škole
                   </h2>
                   <p className="text-slate-600">
-                    Máte kód školy, obce, spolku nebo jiné organizace? Připojte se
-                    k již existujícímu účtu.
+                    Jste učitel a máte kód školy? Připojte svůj účet ke škole.
                   </p>
                   <div className="mt-auto">
                     <Button href="/join" className="mt-3.5">
                       Připojit se
                     </Button>
                     <div className="mt-2.5 text-sm leading-relaxed text-slate-500">
-                      Vhodné pro členy školy, obce, senior klubu nebo partnerské
-                      organizace.
+                      Samostatná registrace jednotlivých členů je výjimka určená
+                      pouze školám a jejich učitelům.
                     </div>
                   </div>
                 </Card>
 
                 <Card className="flex min-h-[220px] flex-col p-5">
                   <h2 className="mb-2.5 text-2xl font-black text-navy-900">
-                    Vytvořit organizaci
+                    Zaregistrovat organizaci
                   </h2>
                   <p className="text-slate-600">
-                    Jste oprávněný zástupce školy, obce nebo jiné organizace a
-                    chcete založit vlastní přístup?
+                    Obec nejprve podá žádost. Škola nebo spolek se potom
+                    zaregistrují pod aktivní obcí.
                   </p>
                   <div className="mt-auto">
-                    <Button href="/create-organization" className="mt-3.5">
-                      Vytvořit organizaci
+                    <Button href="/zadost" className="mt-3.5">
+                      Pokračovat k registraci
                     </Button>
                     <div className="mt-2.5 text-sm leading-relaxed text-slate-500">
-                      Tato volba je určena zejména pro školy, obce, spolky a
-                      partnery.
+                      Přímé založení organizace bez obce není možné.
                     </div>
                   </div>
                 </Card>

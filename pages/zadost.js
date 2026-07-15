@@ -371,10 +371,14 @@ export default function ZadostPage() {
 
               {!isDemoRequest ? (
                 <p className="mt-5 text-sm leading-relaxed text-slate-500">
-                  Zastupujete spolek, ne obecní úřad? Pokud vaše obec už má
-                  ARCHIMEDES Live aktivovaný, zaregistrujte se rovnou{" "}
+                  Pokud už má vaše obec ARCHIMEDES Live aktivovaný, můžete
+                  pokračovat přímo k registraci{" "}
                   <Link href="/registrace-spolku" className="font-bold text-navy-900">
-                    zde
+                    spolku
+                  </Link>
+                  {" nebo "}
+                  <Link href="/registrace-skoly" className="font-bold text-navy-900">
+                    školy
                   </Link>
                   .
                 </p>

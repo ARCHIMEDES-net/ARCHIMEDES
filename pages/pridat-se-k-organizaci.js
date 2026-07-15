@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { GraduationCap, Globe2, Landmark, Users } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { cn } from "../lib/utils";
@@ -66,6 +67,7 @@ const INTEREST_SECTIONS = [
 ];
 
 export default function PridatSeKOrganizaciPage() {
+  const router = useRouter();
   const [joinCode, setJoinCode] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -96,6 +98,12 @@ export default function PridatSeKOrganizaciPage() {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (router.isReady && typeof router.query.code === "string") {
+      setJoinCode(router.query.code.toUpperCase());
+    }
+  }, [router.isReady, router.query.code]);
 
   function toggle(code) {
     setSelected((prev) =>

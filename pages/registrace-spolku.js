@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -42,6 +43,27 @@ export default function RegistraceSpolkuPage() {
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [resultOrg, setResultOrg] = useState(null);
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted || !data?.session?.user) return;
+      const current = data.session;
+      setSession(current);
+      setForm((prev) => ({
+        ...prev,
+        email: current.user.email || "",
+        contactName:
+          current.user.user_metadata?.full_name ||
+          current.user.user_metadata?.name ||
+          "",
+      }));
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   function updateField(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -92,7 +114,12 @@ export default function RegistraceSpolkuPage() {
 
       const res = await fetch("/api/registrace-spolku", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {}),
+        },
         body: JSON.stringify({
           registrationNumber: trimmedRegistrationNumber,
           name: trimmedName,
@@ -147,6 +174,12 @@ export default function RegistraceSpolkuPage() {
                 </Alert>
               ) : null}
 
+              {session ? (
+                <Alert variant="neutral" className="mb-4">
+                  Použije se váš přihlášený účet. E-mail ani heslo se nezmění.
+                </Alert>
+              ) : null}
+
               <form onSubmit={submitForm} className="grid gap-4">
                 <div>
                   <Label htmlFor="registrationNumber">Registrační číslo obce*</Label>
@@ -183,7 +216,7 @@ export default function RegistraceSpolkuPage() {
 
                 <div>
                   <Label htmlFor="email">E-mail*</Label>
-                  <Input type="email" id="email" name="email" required value={form.email} onChange={updateField} />
+                  <Input type="email" id="email" name="email" required value={form.email} onChange={updateField} disabled={!!session} />
                 </div>
 
                 <div>
@@ -217,6 +250,11 @@ export default function RegistraceSpolkuPage() {
                   <Button href="/" variant="secondary">
                     Zpět na hlavní stránku
                   </Button>
+                  {!session ? (
+                    <Button href="/login?next=/registrace-spolku" variant="secondary">
+                      Už mám účet
+                    </Button>
+                  ) : null}
                 </div>
               </form>
             </>
@@ -234,7 +272,18 @@ export default function RegistraceSpolkuPage() {
                   : "Registraci jsme přijali."}
               </Alert>
 
-              <Button href="/">Zpět na hlavní stránku</Button>
+              <div className="flex flex-wrap gap-2.5">
+                {resultOrg?.join_code ? (
+                  <Button
+                    href={`/pridat-se-k-organizaci?code=${encodeURIComponent(
+                      resultOrg.join_code
+                    )}`}
+                  >
+                    Nastavit osobní zájmy
+                  </Button>
+                ) : null}
+                <Button href="/" variant="secondary">Zpět na hlavní stránku</Button>
+              </div>
             </>
           )}
         </Card>

@@ -19,6 +19,7 @@ export default function UzivateleSkolyPage() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [organizationId, setOrganizationId] = useState(null);
   const [organizationName, setOrganizationName] = useState("");
+  const [organizationType, setOrganizationType] = useState("");
   const [organizationJoinCode, setOrganizationJoinCode] = useState("");
 
   const [rows, setRows] = useState([]);
@@ -116,6 +117,7 @@ export default function UzivateleSkolyPage() {
 
       setOrganizationId(organization.id);
       setOrganizationName(organization.name || "");
+      setOrganizationType(organization.org_type || "");
       setOrganizationJoinCode(organization.join_code || "");
 
       const admin = membership.role_in_org === "organization_admin";
@@ -316,6 +318,26 @@ export default function UzivateleSkolyPage() {
                   Vaše organizace: <strong>{organizationName}</strong>
                 </p>
               ) : null}
+            </Card>
+          </main>
+        </div>
+      </RequireAuth>
+    );
+  }
+
+  if (organizationType !== "school") {
+    return (
+      <RequireAuth>
+        <div className="min-h-screen bg-slate-50">
+          <PortalHeader />
+          <main className="mx-auto max-w-[900px] px-4 py-8">
+            <Card className="p-6">
+              <h1 className="text-2xl font-black text-navy-900">Uživatelé organizace</h1>
+              <p className="mt-2 text-muted">
+                Samostatné účty jednotlivých členů jsou určené pouze školám a
+                jejich učitelům. U spolku se registruje kontaktní osoba a její
+                osobní zájmy, nikoli každý člen spolku.
+              </p>
             </Card>
           </main>
         </div>
