@@ -177,3 +177,18 @@ select
   ) as inactive_municipalities_with_active_admin
 from public.organizations o
 where o.org_type = 'obec';
+
+-- 11) Učitel se školním kódem je vždy member; správce musí vzniknout při
+-- registraci školy. Aktivní škola bez aktivního správce vyžaduje ruční
+-- opravu před spuštěním nové samoobslužné registrace učitelů.
+select count(*) as active_schools_without_active_admin_must_be_zero
+from public.organizations o
+where o.org_type = 'school'
+  and o.status = 'active'
+  and not exists (
+    select 1
+    from public.organization_members om
+    where om.organization_id = o.id
+      and om.role_in_org = 'organization_admin'
+      and om.status = 'active'
+  );

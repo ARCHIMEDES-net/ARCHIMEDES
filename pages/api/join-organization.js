@@ -150,17 +150,10 @@ export default async function handler(req, res) {
 
     if (existingMembershipError) throw existingMembershipError;
 
-    const { count: activeMembersCount, error: countError } = await supabaseAdmin
-      .from("organization_members")
-      .select("*", { count: "exact", head: true })
-      .eq("organization_id", organization.id)
-      .eq("status", "active");
-
-    if (countError) throw countError;
-
-    const assignedRole =
-      existingMembership?.role_in_org ||
-      ((activeMembersCount || 0) === 0 ? "organization_admin" : "member");
+    // Správce školy vzniká výhradně při registraci školy. Učitel, který
+    // se přidává školním kódem, nesmí získat administrátorskou roli ani
+    // tehdy, když jsou všechna ostatní členství dočasně neaktivní.
+    const assignedRole = existingMembership?.role_in_org || "member";
 
     const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
       {
@@ -197,9 +190,7 @@ export default async function handler(req, res) {
       assignedRole,
       message: !createdUserId
         ? "Stávající účet byl připojen ke škole. Přihlašovací údaje zůstaly beze změny."
-        : assignedRole === "organization_admin"
-          ? "Účet byl vytvořen a uživatel se stal prvním správcem školy."
-          : "Účet byl vytvořen a uživatel byl připojen ke škole.",
+        : "Účet byl vytvořen a uživatel byl připojen ke škole.",
     });
   } catch (err) {
     if (createdUserId) await safeDeleteAuthUser(createdUserId);

@@ -142,6 +142,21 @@ export default async function handler(req, res) {
       });
     }
 
+    const { data: duplicate, error: duplicateError } = await supabaseAdmin
+      .from("organizations")
+      .select("id")
+      .eq("parent_organization_id", obec.id)
+      .eq("org_type", "spolek")
+      .ilike("name", cleanName)
+      .limit(1);
+
+    if (duplicateError) throw duplicateError;
+    if (duplicate?.length) {
+      return res.status(409).json({
+        error: "Tento spolek už je pod obcí zaregistrovaný.",
+      });
+    }
+
     registrant = await resolveOrganizationRegistrant({
       supabaseAdmin,
       req,
