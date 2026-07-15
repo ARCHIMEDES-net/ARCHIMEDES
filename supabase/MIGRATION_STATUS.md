@@ -15,31 +15,34 @@ souborů do tohoto adresáře.
 - `0006` – sekce číselníku zájmů
 - `0007` – Dobrá praxe; v repozitáři rekonstruováno ze
   `schema_migrations.statements`, v produkci již aplikováno
-
-## Připraveno, dosud neaplikováno
-
 - `0008_protect_organization_registration_codes.sql`
+  - v produkci aplikováno jako verze `20260715201159`
   - bezpečné RPC `get_my_organizations`
   - efektivní licence školy/spolku se čte z rodičovské obce
   - kódy vidí jen správce organizace nebo platformový admin
   - přímý klientský SELECT celé tabulky `organizations` je omezen na
     platformové adminy
 - `0009_remove_demo_membership_role.sql`
+  - v produkci aplikováno jako verze `20260715201218`
   - před změnou se zastaví, pokud existuje jakékoli demo členství
   - odstraní staré překrývající se CHECK constrainty s `demo_viewer`
   - povolí už jen role `organization_admin` a `member`
 - `0010_atomic_municipality_activation.sql`
+  - v produkci aplikováno jako verze `20260715201241`
   - profil, členství správce a stav obce mění v jedné DB transakci
   - kontroluje platformového admina uvnitř `SECURITY DEFINER` funkce
   - existující Auth účet, UUID a heslo nijak nemění
 
-## Povinné pořadí nasazení
+## Stav nasazení
 
-1. Spustit `supabase/preflight/legacy_migration_readiness.sql` read-only.
-2. Uložit jeho výstup jako předmigrační protokol.
-3. Aplikovat databázové migrace `0008`, `0009` a následně `0010`.
-4. Teprve potom nasadit aplikační kód používající `get_my_organizations`.
-5. Preflight zopakovat a porovnat počty organizací, členství a příjemců.
+1. Předmigrační `supabase/preflight/legacy_migration_readiness.sql` byl
+   spuštěn read-only a jeho výstup zkontrolován.
+2. Databázové migrace `0008`, `0009` a `0010` byly aplikovány v tomto
+   pořadí a po každé byly ověřeny vzniklé objekty.
+3. Preflight byl po migracích zopakován; počty organizací, členství a
+   příjemců zůstaly beze změny.
+4. Následuje nasazení aplikačního kódu používajícího
+   `get_my_organizations` a cílený produkční smoke test.
 
 ## Neměnné migrační podmínky
 
