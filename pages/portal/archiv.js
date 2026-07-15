@@ -95,8 +95,28 @@ function getRecordingUrl(row) {
   return session?.recording_url || row?.broadcast_recording_url || "";
 }
 
+function isGoogleMeetUrl(url) {
+  if (!url) return false;
+  try {
+    return new URL(String(url).trim()).hostname.toLowerCase() === "meet.google.com";
+  } catch (_e) {
+    return false;
+  }
+}
+
 function getArchiveVideoUrl(row) {
-  return getRecordingUrl(row) || row?.stream_url || "";
+  const recordingUrl = getRecordingUrl(row);
+
+  // recording_url je určené výslovně pro hotový záznam. Ani zde ale
+  // nesmí omylem projít odkaz do živého Google Meetu.
+  if (recordingUrl && !isGoogleMeetUrl(recordingUrl)) return recordingUrl;
+
+  // Ve starých datech mohl být hotový YouTube záznam uložený ještě v
+  // stream_url. Zachováme pouze prokazatelný YouTube odkaz; Meet ani jiný
+  // živý odkaz se za archivní video nevydává.
+  if (extractYouTubeId(row?.stream_url)) return row.stream_url;
+
+  return "";
 }
 
 function getArchiveCoverUrl(row) {
@@ -347,7 +367,7 @@ export default function Archiv() {
       .map((r) => {
         const d = safeDate(r.starts_at);
         const recordingUrl = getRecordingUrl(r);
-        const archiveUrl = recordingUrl || r.stream_url || "";
+        const archiveUrl = getArchiveVideoUrl(r);
 
         return {
           ...r,
@@ -358,7 +378,7 @@ export default function Archiv() {
           _coverUrl: getArchiveCoverUrl(r),
         };
       })
-      .filter((r) => r._d && r._d < now);
+      .filter((r) => r._d && r._d < now && r._archiveUrl);
   }, [rows]);
 
   const categories = useMemo(() => {
