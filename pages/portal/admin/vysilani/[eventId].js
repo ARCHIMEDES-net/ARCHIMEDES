@@ -10,6 +10,7 @@ import { Textarea } from "../../../../components/ui/textarea";
 import { Select } from "../../../../components/ui/select";
 import { Button } from "../../../../components/ui/button";
 import { Alert } from "../../../../components/ui/alert";
+import { isGoogleMeetUrl } from "../../../../lib/archiveRecording";
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Rozpracováno" },
@@ -266,6 +267,20 @@ export default function AdminVysilaniDetailPage() {
 
       const normalizedViewerUrl = normalizeUrl(viewerUrl);
       const normalizedRecordingUrl = normalizeUrl(recordingUrl);
+
+      if (normalizedRecordingUrl && isGoogleMeetUrl(normalizedRecordingUrl)) {
+        throw new Error(
+          "Google Meet je odkaz na živé vysílání. Do pole záznamu vložte až hotové video."
+        );
+      }
+
+      if (normalizedRecordingUrl && recordingStatus === "none") {
+        throw new Error("U vloženého záznamu vyberte jeho aktuální stav.");
+      }
+
+      if (recordingStatus === "published" && !normalizedRecordingUrl) {
+        throw new Error("Publikovaný záznam musí mít vyplněný odkaz.");
+      }
 
       const payload = {
         status,
@@ -552,13 +567,16 @@ export default function AdminVysilaniDetailPage() {
                     </div>
 
                     <div className="sm:col-span-2">
-                      <FieldLabel>Odkaz na záznam</FieldLabel>
+                      <FieldLabel>Odkaz na hotový záznam</FieldLabel>
                       <Input
                         type="text"
                         value={recordingUrl}
                         onChange={(e) => setRecordingUrl(e.target.value)}
-                        placeholder="https://..."
+                        placeholder="Např. https://youtu.be/..."
                       />
+                      <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                        Nevkládejte sem Google Meet. V archivu se odkaz zobrazí až ve stavu Publikováno.
+                      </p>
                     </div>
 
                     <div className="sm:col-span-2">

@@ -54,6 +54,8 @@ souborů do tohoto adresáře.
 - Google Meet URL je odkaz pro živé vysílání, nikdy archivní záznam;
 - ze starého `events.stream_url` lze do archivu převzít jen prokazatelný
   YouTube odkaz; ostatní záznamy se doplní ručně do `recording_url`;
+- nový `broadcast_sessions.recording_url` se uživatelům ukáže až se stavem
+  `recording_status = 'published'`;
 - demo se neobnovuje.
 
 Ruční přiřazení škol pod obce přijde až po schválení konkrétní mapy

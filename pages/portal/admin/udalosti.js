@@ -162,6 +162,7 @@ function detectBroadcastState(row) {
   const status = row?.broadcast_status || "";
   const viewerUrl = normalizeText(row?.broadcast_viewer_url);
   const recordingUrl = normalizeText(row?.broadcast_recording_url);
+  const recordingStatus = normalizeText(row?.broadcast_recording_status).toLowerCase();
 
   if (!status && !viewerUrl && !recordingUrl) {
     return {
@@ -179,11 +180,19 @@ function detectBroadcastState(row) {
     };
   }
 
+  if (recordingUrl && recordingStatus === "published") {
+    return {
+      key: "finished",
+      label: "✅ Záznam publikován",
+      className: "border-blue-200 bg-blue-50 text-blue-700",
+    };
+  }
+
   if (status === "finished" || recordingUrl) {
     return {
       key: "finished",
-      label: "✅ Proběhlo / má záznam",
-      className: "border-blue-200 bg-blue-50 text-blue-700",
+      label: "⏳ Proběhlo / záznam není publikován",
+      className: "border-slate-200 bg-slate-50 text-slate-700",
     };
   }
 
@@ -287,7 +296,8 @@ export default function AdminUdalosti() {
             id,
             status,
             viewer_url,
-            recording_url
+            recording_url,
+            recording_status
           )
         `
       )
@@ -311,6 +321,7 @@ export default function AdminUdalosti() {
               broadcast_status: session?.status || "",
               broadcast_viewer_url: session?.viewer_url || "",
               broadcast_recording_url: session?.recording_url || "",
+              broadcast_recording_status: session?.recording_status || "none",
             };
           })
         : [];

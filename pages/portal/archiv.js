@@ -13,6 +13,11 @@ import { Select } from "../../components/ui/select";
 import { Label } from "../../components/ui/label";
 import { Alert } from "../../components/ui/alert";
 import { Badge } from "../../components/ui/badge";
+import {
+  extractYouTubeId,
+  getArchiveVideoUrl,
+  getRecordingUrl,
+} from "../../lib/archiveRecording";
 
 function safeDate(value) {
   if (!value) return null;
@@ -44,79 +49,6 @@ function normalizeGroups(row) {
     .split(",")
     .map((x) => x.trim())
     .filter(Boolean);
-}
-
-function normalizeSession(session) {
-  if (!session) return null;
-  if (Array.isArray(session)) return session[0] || null;
-  return session;
-}
-
-function extractYouTubeId(url) {
-  if (!url) return "";
-
-  try {
-    const parsed = new URL(String(url).trim());
-    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
-
-    if (host === "youtu.be") {
-      return (parsed.pathname || "").replace(/^\//, "").split("/")[0] || "";
-    }
-
-    if (
-      host === "youtube.com" ||
-      host === "m.youtube.com" ||
-      host === "music.youtube.com"
-    ) {
-      const v = parsed.searchParams.get("v");
-      if (v) return v;
-
-      const parts = (parsed.pathname || "").split("/").filter(Boolean);
-      const embedIndex = parts.findIndex(
-        (x) => x === "embed" || x === "shorts" || x === "live"
-      );
-      if (embedIndex >= 0 && parts[embedIndex + 1]) return parts[embedIndex + 1];
-    }
-
-    if (host === "youtube-nocookie.com") {
-      const parts = (parsed.pathname || "").split("/").filter(Boolean);
-      const embedIndex = parts.findIndex((x) => x === "embed");
-      if (embedIndex >= 0 && parts[embedIndex + 1]) return parts[embedIndex + 1];
-    }
-  } catch (_e) {
-    return "";
-  }
-
-  return "";
-}
-
-function getRecordingUrl(row) {
-  const session = normalizeSession(row?.broadcast_sessions);
-  return session?.recording_url || row?.broadcast_recording_url || "";
-}
-
-function isGoogleMeetUrl(url) {
-  if (!url) return false;
-  try {
-    return new URL(String(url).trim()).hostname.toLowerCase() === "meet.google.com";
-  } catch (_e) {
-    return false;
-  }
-}
-
-function getArchiveVideoUrl(row) {
-  const recordingUrl = getRecordingUrl(row);
-
-  // recording_url je určené výslovně pro hotový záznam. Ani zde ale
-  // nesmí omylem projít odkaz do živého Google Meetu.
-  if (recordingUrl && !isGoogleMeetUrl(recordingUrl)) return recordingUrl;
-
-  // Ve starých datech mohl být hotový YouTube záznam uložený ještě v
-  // stream_url. Zachováme pouze prokazatelný YouTube odkaz; Meet ani jiný
-  // živý odkaz se za archivní video nevydává.
-  if (extractYouTubeId(row?.stream_url)) return row.stream_url;
-
-  return "";
 }
 
 function getArchiveCoverUrl(row) {
@@ -332,6 +264,7 @@ export default function Archiv() {
             poster_url,
             broadcast_sessions (
               recording_url,
+              recording_status,
               viewer_url,
               status
             )
