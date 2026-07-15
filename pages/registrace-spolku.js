@@ -273,17 +273,15 @@ export default function RegistraceSpolkuPage() {
               </Alert>
 
               <div className="flex flex-wrap gap-2.5">
-                {resultOrg?.join_code ? (
-                  <Button
-                    href={`/pridat-se-k-organizaci?code=${encodeURIComponent(
-                      resultOrg.join_code
-                    )}`}
-                  >
-                    Nastavit osobní zájmy
-                  </Button>
-                ) : null}
+                <Button href="/login?next=/portal/muj-profil">
+                  Přihlásit se a nastavit osobní zájmy
+                </Button>
                 <Button href="/" variant="secondary">Zpět na hlavní stránku</Button>
               </div>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                Nový správce si nejprve nastaví heslo přes odkaz v e-mailu.
+                Potom si v profilu vybere vlastní témata nezávisle na činnosti spolku.
+              </p>
             </>
           )}
         </Card>

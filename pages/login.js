@@ -107,23 +107,26 @@ async function resolvePostLoginPath() {
     }
   }
 
-  const { data: fallbackMembership, error: fallbackMembershipError } =
+  const { data: fallbackMemberships, error: fallbackMembershipError } =
     await supabase
       .from("organization_members")
       .select("organization_id, status")
       .eq("user_id", user.id)
-      .eq("status", "active")
-      .limit(1)
-      .maybeSingle();
+      .eq("status", "active");
 
   if (fallbackMembershipError) throw fallbackMembershipError;
 
-  if (fallbackMembership?.organization_id) {
-    if (profile?.active_organization_id !== fallbackMembership.organization_id) {
+  const activeMemberships = Array.isArray(fallbackMemberships)
+    ? fallbackMemberships.filter((membership) => membership.organization_id)
+    : [];
+
+  if (activeMemberships.length === 1) {
+    const organizationId = activeMemberships[0].organization_id;
+    if (profile?.active_organization_id !== organizationId) {
       const { error: updateProfileError } = await supabase
         .from("profiles")
         .update({
-          active_organization_id: fallbackMembership.organization_id,
+          active_organization_id: organizationId,
         })
         .eq("id", user.id);
 
@@ -133,6 +136,10 @@ async function resolvePostLoginPath() {
     }
 
     return "/portal";
+  }
+
+  if (activeMemberships.length > 1) {
+    return "/welcome";
   }
 
   if (profile?.user_type === "individual") {

@@ -365,8 +365,8 @@ export default function MujProfilPage() {
 
                   {selectedCount === 0 ? (
                     <Alert variant="neutral" className="mb-3.5 border-orange-200 bg-orange-50 text-orange-800">
-                      Nevybrali jste žádné zájmy. Po uložení nastavíme automaticky
-                      1. stupeň a 2. stupeň.
+                      Nevybrali jste žádné zájmy. Po uložení nebudete zařazeni
+                      do žádné tematické pozvánkové skupiny.
                     </Alert>
                   ) : null}
 

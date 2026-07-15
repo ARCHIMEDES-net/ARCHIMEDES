@@ -118,8 +118,8 @@ export default async function handler(req, res) {
 
     // section='spolky' omezuje výběr na původní číselník (17 položek) —
     // od Kroku 3 activity_categories obsahuje i školní/tematické/klubové
-    // položky určené pro osobní odběr upozornění (/pridat-se-k-organizaci),
-    // ne pro vlastní činnost spolku.
+    // položky určené pro osobní preference uživatele, ne pro vlastní
+    // činnost spolku.
     if (!activity || !activity.is_active || activity.section !== "spolky") {
       return res.status(400).json({ error: "Neplatná činnost spolku." });
     }
@@ -184,7 +184,7 @@ export default async function handler(req, res) {
       const { data: insertedOrg, error: insertError } = await supabaseAdmin
         .from("organizations")
         .insert([orgInsertPayload])
-        .select("id, name, registration_number, join_code")
+        .select("id, name, registration_number")
         .single();
 
       if (!insertError) {

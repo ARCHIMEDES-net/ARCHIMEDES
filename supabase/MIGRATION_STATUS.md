@@ -51,6 +51,13 @@ souborů do tohoto adresáře.
 - Louny, Ostrava a Luže jsou obchodně potvrzené platící školy;
 - placená/darovaná licence není runtime oprávnění a nesmí rozdělit uživatele;
 - žádná preference zájmu nevytváří členství v organizaci;
+- veřejný kód spolku nezakládá další osobní účty; správce spolku upravuje
+  vlastní preference až ve svém přihlášeném profilu;
+- samostatné připojení člena k organizaci zůstává výjimkou pouze pro učitele
+  školy přes školní kód;
+- nový uživatel se nemůže sám označit jako `individual`; existující legacy
+  individuální profily se tím nemažou ani nemění;
+- při více aktivních členstvích se organizace nikdy nevybírá náhodně;
 - Google Meet URL je odkaz pro živé vysílání, nikdy archivní záznam;
 - ze starého `events.stream_url` lze do archivu převzít jen prokazatelný
   YouTube odkaz; ostatní záznamy se doplní ručně do `recording_url`;

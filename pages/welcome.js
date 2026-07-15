@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
@@ -7,6 +6,7 @@ import PortalHeader from "../components/PortalHeader";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Alert } from "../components/ui/alert";
+import { fetchMyOrganizations } from "../lib/myOrganizations";
 
 async function resolveWelcomeState() {
   const {
@@ -47,23 +47,26 @@ async function resolveWelcomeState() {
     }
   }
 
-  const { data: fallbackMembership, error: fallbackMembershipError } =
+  const { data: fallbackMemberships, error: fallbackMembershipError } =
     await supabase
       .from("organization_members")
       .select("organization_id, status")
       .eq("user_id", user.id)
-      .eq("status", "active")
-      .limit(1)
-      .maybeSingle();
+      .eq("status", "active");
 
   if (fallbackMembershipError) throw fallbackMembershipError;
 
-  if (fallbackMembership?.organization_id) {
-    if (profile?.active_organization_id !== fallbackMembership.organization_id) {
+  const activeMemberships = Array.isArray(fallbackMemberships)
+    ? fallbackMemberships.filter((membership) => membership.organization_id)
+    : [];
+
+  if (activeMemberships.length === 1) {
+    const organizationId = activeMemberships[0].organization_id;
+    if (profile?.active_organization_id !== organizationId) {
       const { error: updateProfileError } = await supabase
         .from("profiles")
         .update({
-          active_organization_id: fallbackMembership.organization_id,
+          active_organization_id: organizationId,
         })
         .eq("id", user.id);
 
@@ -73,17 +76,32 @@ async function resolveWelcomeState() {
     return { target: "/portal", shouldRedirect: true };
   }
 
+  if (activeMemberships.length > 1) {
+    const organizations = await fetchMyOrganizations(
+      supabase,
+      activeMemberships.map((membership) => membership.organization_id)
+    );
+
+    return {
+      target: "",
+      shouldRedirect: false,
+      user,
+      organizations,
+    };
+  }
+
   if (profile?.user_type === "individual") {
     return { target: "/portal", shouldRedirect: true };
   }
 
-  return { target: "", shouldRedirect: false, user };
+  return { target: "", shouldRedirect: false, user, organizations: [] };
 }
 
 export default function WelcomePage() {
   const router = useRouter();
 
-  const [savingIndividual, setSavingIndividual] = useState(false);
+  const [organizations, setOrganizations] = useState([]);
+  const [selectingOrganizationId, setSelectingOrganizationId] = useState("");
   const [error, setError] = useState("");
   const [checkingAccess, setCheckingAccess] = useState(true);
 
@@ -103,6 +121,9 @@ export default function WelcomePage() {
           return;
         }
 
+        setOrganizations(
+          Array.isArray(result?.organizations) ? result.organizations : []
+        );
         setCheckingAccess(false);
       } catch (e) {
         if (!cancelled) {
@@ -122,8 +143,8 @@ export default function WelcomePage() {
     };
   }, [router]);
 
-  async function continueAsIndividual() {
-    setSavingIndividual(true);
+  async function selectOrganization(organizationId) {
+    setSelectingOrganizationId(organizationId);
     setError("");
 
     try {
@@ -137,16 +158,16 @@ export default function WelcomePage() {
 
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ user_type: "individual" })
+        .update({ active_organization_id: organizationId })
         .eq("id", user.id);
 
       if (updateError) throw updateError;
 
       router.push("/portal");
     } catch (e) {
-      setError(e?.message || "Nepodařilo se pokračovat jako jednotlivec.");
+      setError(e?.message || "Nepodařilo se vybrat organizaci.");
     } finally {
-      setSavingIndividual(false);
+      setSelectingOrganizationId("");
     }
   }
 
@@ -173,14 +194,15 @@ export default function WelcomePage() {
                 </h1>
 
                 <p className="mb-2.5 max-w-[820px] text-[17px] leading-relaxed text-slate-700">
-                  Ještě nejste přiřazeni ke škole, obci ani jiné organizaci.
-                  Vyberte, jak chcete v ARCHIMEDES Live pokračovat.
+                  {organizations.length > 1
+                    ? "Váš účet patří do více organizací. Vyberte, se kterou chcete nyní pracovat."
+                    : "Ještě nejste přiřazeni ke škole, obci ani jiné organizaci. Vyberte, jak chcete v ARCHIMEDES Live pokračovat."}
                 </p>
 
                 <p className="max-w-[860px] text-[15px] leading-relaxed text-slate-500">
-                  Přístup do portálu je určen pro registrované organizace, jejich
-                  členy a vybrané jednotlivce. Pokud si nejste jistí správnou
-                  volbou, můžete jednoduše odeslat žádost o přístup.
+                  {organizations.length > 1
+                    ? "Výběr nemění váš účet, e-mail ani heslo. Pouze určí právě aktivní organizaci v portálu."
+                    : "Přístup do portálu je určen pro registrované organizace a jejich oprávněné uživatele. Pokud si nejste jistí správnou volbou, můžete odeslat žádost o přístup."}
                 </p>
 
                 {error ? (
@@ -190,7 +212,35 @@ export default function WelcomePage() {
                 ) : null}
               </Card>
 
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
+              {organizations.length > 1 ? (
+                <Card className="mb-5 p-6">
+                  <h2 className="text-2xl font-black text-navy-900">
+                    Vyberte organizaci
+                  </h2>
+                  <p className="mt-2 text-slate-600">
+                    Váš účet má více aktivních členství. Vyberte organizaci,
+                    se kterou chcete nyní pracovat.
+                  </p>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {organizations.map((organization) => (
+                      <Button
+                        key={organization.id}
+                        type="button"
+                        variant="secondary"
+                        disabled={!!selectingOrganizationId}
+                        onClick={() => selectOrganization(organization.id)}
+                      >
+                        {selectingOrganizationId === organization.id
+                          ? "Přepínám…"
+                          : organization.name}
+                      </Button>
+                    ))}
+                  </div>
+                </Card>
+              ) : null}
+
+              {organizations.length === 0 ? (
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4">
                 <Card className="flex min-h-[220px] flex-col p-5">
                   <h2 className="mb-2.5 text-2xl font-black text-navy-900">
                     Připojit se ke škole
@@ -229,29 +279,6 @@ export default function WelcomePage() {
 
                 <Card className="flex min-h-[220px] flex-col p-5">
                   <h2 className="mb-2.5 text-2xl font-black text-navy-900">
-                    Pokračovat jako jednotlivec
-                  </h2>
-                  <p className="text-slate-600">
-                    Individuální přístup je určen pro vybrané uživatele, hosty,
-                    moderátory, odborníky nebo partnery bez organizačního účtu.
-                  </p>
-                  <div className="mt-auto">
-                    <Button
-                      type="button"
-                      onClick={continueAsIndividual}
-                      disabled={savingIndividual}
-                      className="mt-3.5"
-                    >
-                      {savingIndividual ? "Pokračuji..." : "Pokračovat"}
-                    </Button>
-                    <div className="mt-2.5 text-sm leading-relaxed text-slate-500">
-                      Rozsah obsahu se může lišit od přístupu školy nebo obce.
-                    </div>
-                  </div>
-                </Card>
-
-                <Card className="flex min-h-[220px] flex-col p-5">
-                  <h2 className="mb-2.5 text-2xl font-black text-navy-900">
                     Požádat o přístup
                   </h2>
                   <p className="text-slate-600">
@@ -268,7 +295,8 @@ export default function WelcomePage() {
                     </div>
                   </div>
                 </Card>
-              </div>
+                </div>
+              ) : null}
             </>
           )}
         </main>
