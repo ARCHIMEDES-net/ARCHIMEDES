@@ -93,6 +93,7 @@ export default function PortalIndex() {
   const [loadingProfileType, setLoadingProfileType] = useState(true);
   const [dashboardType, setDashboardType] = useState("default");
   const [organizationName, setOrganizationName] = useState("");
+  const [organizationType, setOrganizationType] = useState("");
   const [organizationCode, setOrganizationCode] = useState("");
   const [membershipRole, setMembershipRole] = useState("");
   const [copiedCode, setCopiedCode] = useState(false);
@@ -164,6 +165,7 @@ export default function PortalIndex() {
         if (!user) {
           setMembershipRole("");
           setOrganizationName("");
+          setOrganizationType("");
           setOrganizationCode("");
           setLicenseValidUntil(null);
           setDashboardType("default");
@@ -230,6 +232,7 @@ export default function PortalIndex() {
           const roleInOrg = membership?.role_in_org || "";
           setMembershipRole(roleInOrg);
           setOrganizationName(org?.name || "");
+          setOrganizationType(org?.org_type || "");
           setOrganizationCode(org?.join_code || "");
           setLicenseValidUntil(org?.license_valid_until || null);
 
@@ -246,6 +249,7 @@ export default function PortalIndex() {
         if (profile?.user_type === "individual") {
           setMembershipRole("");
           setOrganizationName("");
+          setOrganizationType("");
           setOrganizationCode("");
           setLicenseValidUntil(null);
           setDashboardType("individual");
@@ -253,6 +257,7 @@ export default function PortalIndex() {
         } else {
           setMembershipRole("");
           setOrganizationName("");
+          setOrganizationType("");
           setOrganizationCode("");
           setLicenseValidUntil(null);
           setDashboardType("default");
@@ -262,6 +267,7 @@ export default function PortalIndex() {
         if (alive) {
           setMembershipRole("");
           setOrganizationName("");
+          setOrganizationType("");
           setOrganizationCode("");
           setLicenseValidUntil(null);
           setDashboardType("default");
@@ -298,6 +304,7 @@ export default function PortalIndex() {
     !loadingProfileType &&
     !!organizationName &&
     dashboardType === "organization" &&
+    organizationType === "school" &&
     membershipRole === "organization_admin";
 
   const showAdminSection = isAdmin;
@@ -426,7 +433,9 @@ export default function PortalIndex() {
                 <OnboardingStep
                   number="2"
                   title="Učitelé se sami připojí"
-                  text="Učitel si vytvoří účet, přihlásí se a na obrazovce Welcome zvolí připojení ke stávající organizaci."
+                  text="Učitel otevře stránku pro připojení ke škole, vytvoří si účet nebo použije stávající přihlášení a zadá školní kód."
+                  actionHref="/join"
+                  actionLabel="Otevřít připojení učitele"
                 />
 
                 <OnboardingStep

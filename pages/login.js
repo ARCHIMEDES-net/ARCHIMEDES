@@ -139,14 +139,14 @@ async function resolvePostLoginPath() {
   }
 
   if (activeMemberships.length > 1) {
-    return "/welcome";
+    return "/nastaveni-pristupu";
   }
 
   if (profile?.user_type === "individual") {
     return "/portal";
   }
 
-  return "/welcome";
+  return "/nastaveni-pristupu";
 }
 
 export default function LoginPage() {

@@ -21,13 +21,14 @@ export default function App({ Component, pageProps }) {
   const pathname = router.pathname || "";
 
   const isPortal = pathname.startsWith("/portal");
-  const isWelcomePage = pathname === "/welcome";
+  const isAccessSetupPage =
+    pathname === "/nastaveni-pristupu" || pathname === "/welcome";
   const isCreateOrganizationPage = pathname === "/create-organization";
   const isJoinPage = pathname === "/join";
 
   const showPublicHeader =
     !isPortal &&
-    !isWelcomePage &&
+    !isAccessSetupPage &&
     !isCreateOrganizationPage &&
     !isJoinPage;
 

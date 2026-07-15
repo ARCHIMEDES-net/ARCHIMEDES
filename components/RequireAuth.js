@@ -106,10 +106,10 @@ export default function RequireAuth({ children }) {
         const activeMembership = await resolveActiveMembership(user.id, profile);
 
         if (activeMembership?.ambiguous) {
-          if (pathname === "/welcome") {
+          if (pathname === "/nastaveni-pristupu") {
             await allow();
           } else {
-            await deny("/welcome");
+            await deny("/nastaveni-pristupu");
           }
           return;
         }
@@ -123,7 +123,7 @@ export default function RequireAuth({ children }) {
 
         const isProfilePage = pathname === "/portal/muj-profil";
         const isUsersPage = pathname === "/portal/uzivatele";
-        const isWelcomePage = pathname === "/welcome";
+        const isAccessSetupPage = pathname === "/nastaveni-pristupu";
         const isCreateOrganizationPage = pathname === "/create-organization";
         const isJoinPage = pathname === "/join";
 
@@ -153,7 +153,7 @@ export default function RequireAuth({ children }) {
         if (!profileComplete) {
           if (
             isProfilePage ||
-            isWelcomePage ||
+            isAccessSetupPage ||
             isCreateOrganizationPage ||
             isJoinPage
           ) {
@@ -168,7 +168,7 @@ export default function RequireAuth({ children }) {
         // 4) Uživatel bez organizace, ale s hotovým profilem
         if (!hasOrganization) {
           if (
-            isWelcomePage ||
+            isAccessSetupPage ||
             isCreateOrganizationPage ||
             isJoinPage ||
             isProfilePage
@@ -177,7 +177,7 @@ export default function RequireAuth({ children }) {
             return;
           }
 
-          await deny("/welcome");
+          await deny("/nastaveni-pristupu");
           return;
         }
 

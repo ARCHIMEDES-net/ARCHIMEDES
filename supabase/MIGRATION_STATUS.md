@@ -58,6 +58,11 @@ souborů do tohoto adresáře.
 - nový uživatel se nemůže sám označit jako `individual`; existující legacy
   individuální profily se tím nemažou ani nemění;
 - při více aktivních členstvích se organizace nikdy nevybírá náhodně;
+- původní `/welcome` není produktový onboarding; pouze přesměruje na
+  servisní `/nastaveni-pristupu` pro volbu organizace nebo řešení účtu bez
+  členství;
+- školní návod a školní kód se v portálu zobrazují jen správci školy, nikdy
+  správci obce nebo spolku;
 - Google Meet URL je odkaz pro živé vysílání, nikdy archivní záznam;
 - ze starého `events.stream_url` lze do archivu převzít jen prokazatelný
   YouTube odkaz; ostatní záznamy se doplní ručně do `recording_url`;
