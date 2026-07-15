@@ -438,6 +438,28 @@ export default async function handler(req, res) {
       }
     }
 
+    // Duplicitu ověříme před prvním zápisem. Původní pořadí nejprve
+    // vytvořilo lead a teprve potom vrátilo 409, takže opakovaný formulář
+    // zanechal v administraci falešnou novou žádost.
+    const { data: conflicting, error: conflictError } = await supabase.rpc(
+      "find_conflicting_obec",
+      { p_email: cleanEmail, p_name: cleanOrganization }
+    );
+
+    if (conflictError) {
+      console.error("duplicate obec check error:", conflictError);
+      return res.status(500).json({
+        error: "Nepodařilo se ověřit, zda obec už není zaregistrovaná.",
+      });
+    }
+
+    if (conflicting && conflicting.length > 0) {
+      return res.status(409).json({
+        error:
+          "Žádost pro tuto obec už evidujeme (podle e-mailu nebo názvu obce). Pokud potřebujete něco upravit nebo se nám ozvat znovu, napište nám prosím přes stránku Kontakt.",
+      });
+    }
+
     const createdAt = new Date().toISOString();
 
     const approveToken = demoMode
@@ -506,29 +528,6 @@ export default async function handler(req, res) {
     // pages/api/join-organization.js, který kontroluje jen status
     // active/trial.
     if (!demoMode) {
-      // Ochrana proti duplicitní obci (smoke test 11.7.2026 potvrdil, že
-      // opakované odeslání se stejným e-mailem/názvem dřív tiše založilo
-      // druhou samostatnou obec). Normalizace (lower + unaccent) řešená
-      // přímo v DB funkci — viz migrace 0005_obec_duplicate_check.sql.
-      const { data: conflicting, error: conflictError } = await supabase.rpc(
-        "find_conflicting_obec",
-        { p_email: cleanEmail, p_name: cleanOrganization }
-      );
-
-      if (conflictError) {
-        console.error("duplicate obec check error:", conflictError);
-        return res.status(500).json({
-          error: "Nepodařilo se ověřit, zda obec už není zaregistrovaná.",
-        });
-      }
-
-      if (conflicting && conflicting.length > 0) {
-        return res.status(409).json({
-          error:
-            "Žádost pro tuto obec už evidujeme (podle e-mailu nebo názvu obce). Pokud potřebujete něco upravit nebo se nám ozvat znovu, napište nám prosím přes stránku Kontakt.",
-        });
-      }
-
       const { data: orgData, error: orgError } = await supabase
         .from("organizations")
         .insert([

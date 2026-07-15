@@ -151,3 +151,29 @@ left join public.profiles p on p.id = pa.user_id;
 select count(*) as demo_memberships_must_be_zero
 from public.organization_members
 where role_in_org = 'demo_viewer';
+
+-- 10) Aktivace obce nesmí zanechat částečný stav. Po nasazení 0010 mají
+-- být oba počty 0 (před spuštěním nového portálu dnes obce neexistují).
+select
+  count(*) filter (
+    where o.status = 'active'
+      and not exists (
+        select 1
+        from public.organization_members om
+        where om.organization_id = o.id
+          and om.role_in_org = 'organization_admin'
+          and om.status = 'active'
+      )
+  ) as active_municipalities_without_active_admin,
+  count(*) filter (
+    where o.status <> 'active'
+      and exists (
+        select 1
+        from public.organization_members om
+        where om.organization_id = o.id
+          and om.role_in_org = 'organization_admin'
+          and om.status = 'active'
+      )
+  ) as inactive_municipalities_with_active_admin
+from public.organizations o
+where o.org_type = 'obec';

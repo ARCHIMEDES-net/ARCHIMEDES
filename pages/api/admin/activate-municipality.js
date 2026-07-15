@@ -10,6 +10,17 @@ const supabaseAdmin = createClient(
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
 
+function createAuthenticatedClient(token) {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      auth: { persistSession: false },
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    }
+  );
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -17,6 +28,7 @@ export default async function handler(req, res) {
   }
 
   let invitedUserId = null;
+  let activationCommitted = false;
 
   try {
     const admin = await requirePlatformAdmin(req, res, supabaseAdmin);
@@ -75,50 +87,43 @@ export default async function handler(req, res) {
 
     if (!userId) throw new Error("Nepodařilo se určit účet správce obce.");
 
-    const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
+    const token = String(req.headers.authorization || "").match(/^Bearer\s+(.+)$/i)?.[1];
+    if (!token) return res.status(401).json({ error: "Chybí autorizace uživatele." });
+
+    const authenticatedClient = createAuthenticatedClient(token);
+    const { data: activationRows, error: activationError } = await authenticatedClient.rpc(
+      "activate_municipality_with_admin",
       {
-        id: userId,
-        email: contactEmail,
-        full_name: contactName,
-        is_active: true,
-        ...(invitationSent ? { must_set_password: true } : {}),
-        active_organization_id: municipality.id,
-      },
-      { onConflict: "id" }
+        p_organization_id: municipality.id,
+        p_user_id: userId,
+        p_email: contactEmail,
+        p_full_name: contactName,
+        p_must_set_password: invitationSent,
+      }
     );
 
-    if (profileError) throw profileError;
-
-    const { error: membershipError } = await supabaseAdmin
-      .from("organization_members")
-      .upsert(
-        {
-          organization_id: municipality.id,
-          user_id: userId,
-          role_in_org: "organization_admin",
-          status: "active",
-        },
-        { onConflict: "user_id,organization_id" }
-      );
-
-    if (membershipError) throw membershipError;
-
-    const { error: activationError } = await supabaseAdmin
-      .from("organizations")
-      .update({ license_status: "active", status: "active" })
-      .eq("id", municipality.id)
-      .eq("org_type", "obec");
-
     if (activationError) throw activationError;
+    activationCommitted = true;
+
+    const activated = activationRows?.[0];
 
     return res.status(200).json({
       ok: true,
       organizationId: municipality.id,
-      registrationNumber: municipality.registration_number,
+      registrationNumber: activated?.registration_number || municipality.registration_number,
       invitationSent,
     });
   } catch (error) {
-    if (invitedUserId) {
+    if (invitedUserId && !activationCommitted) {
+      try {
+        await supabaseAdmin
+          .from("organization_members")
+          .delete()
+          .eq("user_id", invitedUserId);
+        await supabaseAdmin.from("profiles").delete().eq("id", invitedUserId);
+      } catch (_) {
+        // Zachováme původní chybu aktivace.
+      }
       try {
         await supabaseAdmin.auth.admin.deleteUser(invitedUserId);
       } catch (_) {

@@ -28,12 +28,16 @@ souborů do tohoto adresáře.
   - před změnou se zastaví, pokud existuje jakékoli demo členství
   - odstraní staré překrývající se CHECK constrainty s `demo_viewer`
   - povolí už jen role `organization_admin` a `member`
+- `0010_atomic_municipality_activation.sql`
+  - profil, členství správce a stav obce mění v jedné DB transakci
+  - kontroluje platformového admina uvnitř `SECURITY DEFINER` funkce
+  - existující Auth účet, UUID a heslo nijak nemění
 
 ## Povinné pořadí nasazení
 
 1. Spustit `supabase/preflight/legacy_migration_readiness.sql` read-only.
 2. Uložit jeho výstup jako předmigrační protokol.
-3. Aplikovat databázové migrace `0008` a následně `0009`.
+3. Aplikovat databázové migrace `0008`, `0009` a následně `0010`.
 4. Teprve potom nasadit aplikační kód používající `get_my_organizations`.
 5. Preflight zopakovat a porovnat počty organizací, členství a příjemců.
 
