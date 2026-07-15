@@ -186,11 +186,14 @@ export default function Home() {
               <div>
                 <SectionEyebrow>Jak to funguje</SectionEyebrow>
                 <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
-                  Obec propojí místní komunitu. My zajistíme program.
+                  Podporujeme to, co už ve vaší obci funguje.
                 </h2>
+                <p className="mt-3 max-w-md text-[15px] leading-relaxed text-muted">
+                  Přinášíme společný program školám, spolkům, seniorům a dalším lidem, kteří tvoří život obce.
+                </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                {["Obec se připojí", "Zapojí školu a spolky", "Komunita se setkává"].map((title, index) => (
+                {["Připravíme živý program", "Místní organizace dostanou pozvání", "Lidé se setkají společně"].map((title, index) => (
                   <div key={title} className="rounded-[18px] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
                     <span className="text-sm font-black text-brand">0{index + 1}</span>
                     <strong className="mt-3 block text-base text-navy-900">{title}</strong>

@@ -177,7 +177,7 @@ export const atmospherePhotos = [
 
 export const referencesSection = {
   eyebrow: "Reference",
-  title: "Obce, kterým pomáháme posilovat komunitu",
+  title: "Obce, kterým jsme pomohli k významnému ocenění",
   showAllLabel: "Zobrazit všechny reference",
   showAllHref: "/reference",
   readStoryLabel: "Přečíst příběh",
