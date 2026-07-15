@@ -1,54 +1,59 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { track } from "@vercel/analytics";
 import {
   ArrowRight,
   Users,
   GraduationCap,
-  Link2,
-  MessageCircle,
-  TrendingUp,
   Megaphone,
-  Archive,
+  Building2,
 } from "lucide-react";
 import Footer from "../components/Footer";
 import PhotoWithFallback from "../components/PhotoWithFallback";
-import PublicMonthCalendar from "../components/PublicMonthCalendar";
 import PublicEventCard from "../components/PublicEventCard";
 import { fetchPublicUpcomingEvents } from "../lib/publicEvents";
-import { cn } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import StatsSection from "../components/home/StatsSection";
-import FeatureCard from "../components/home/FeatureCard";
 import ReferenceCard from "../components/home/ReferenceCard";
 import PartnersSection from "../components/partners/PartnersSection";
 import {
   hero,
   liveSection,
-  featuresSection,
-  featureCards,
-  communitySection,
-  atmosphereSection,
-  atmospherePhotos,
   referencesSection,
   references,
   ctaBand,
 } from "../content/homepage";
 
-const FEATURE_ICONS = {
-  graduation: GraduationCap,
-  link: Link2,
-  chat: MessageCircle,
-  growth: TrendingUp,
-  megaphone: Megaphone,
-  archive: Archive,
-};
+const AUDIENCES = [
+  {
+    title: "Pro obce",
+    text: "Jedna licence propojí školu, spolky, seniory i místní komunitu.",
+    href: "/obec",
+    icon: Building2,
+  },
+  {
+    title: "Pro spolky a organizace",
+    text: "Společné vysílání, vzdělávání a setkávání členů v obci.",
+    href: "/pro-organizace",
+    icon: Users,
+  },
+  {
+    title: "Pro národní organizace",
+    text: "Obsah a hosté se dostanou přímo k místním komunitám.",
+    href: "/pro-organizace",
+    icon: Megaphone,
+  },
+  {
+    title: "Pro školy",
+    text: "Živé pořady, inspirativní hosté a program propojený s praxí.",
+    href: "/program",
+    icon: GraduationCap,
+  },
+];
 
 export default function Home() {
-  const router = useRouter();
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
 
@@ -66,8 +71,6 @@ export default function Home() {
     };
   }, []);
 
-  const visibleFeatures = featureCards.filter((f) => f.visible);
-  const visibleAtmospherePhotos = atmospherePhotos.filter((p) => p.visible);
   const visibleReferences = references.filter((r) => r.visible);
   const upcomingCards = events.slice(0, 3);
 
@@ -141,163 +144,66 @@ export default function Home() {
         {/* NETWORK SIZE STATS */}
         <StatsSection />
 
-        {/* LIVE + CALENDAR */}
-        <section id="kalendar" className="py-12">
-          <div className="mx-auto max-w-[1180px] px-5 grid gap-10 lg:grid-cols-[1.5fr_1fr] lg:items-start">
+        {/* LIVE PROGRAM */}
+        <section id="kalendar" className="py-10">
+          <div className="mx-auto grid max-w-[1180px] gap-7 px-5 lg:grid-cols-[280px_1fr] lg:items-start">
             <div>
               <SectionEyebrow>{liveSection.eyebrow}</SectionEyebrow>
-              <h2 className="flex items-center gap-2.5 text-3xl font-[950] tracking-[-0.045em] text-navy-900">
-                {liveSection.title}
-                <span
-                  className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500"
-                  aria-hidden="true"
-                />
+              <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
+                Program, který žije
               </h2>
-              <p className="mt-3 max-w-md text-[15.5px] leading-relaxed text-muted">
-                {liveSection.subtitle}
+              <p className="mt-3 text-[15px] leading-relaxed text-muted">
+                Každý týden živé vysílání, vzdělávání a setkávání pro různé generace.
               </p>
-
-              {eventsLoading ? (
-                <p className="mt-6 text-[15px] text-slate-500">Načítám nadcházející vysílání…</p>
-              ) : upcomingCards.length ? (
-                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  {upcomingCards.map((event) => (
-                    <PublicEventCard key={event.id} event={event} compact />
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-6 text-[15px] text-slate-500">Zatím žádné naplánované vysílání.</p>
-              )}
-
-              <Link
-                href="/kalendar"
-                className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-brand hover:text-navy-900"
-              >
-                {liveSection.showAllLabel} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              <Link href="/kalendar" className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-brand">
+                Zobrazit celý program <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
 
-            <div>
-              <PublicMonthCalendar
-                events={events}
-                lockedNote={liveSection.calendarLockedNote}
-                onNavigate={() => router.push("/kalendar")}
-              />
-            </div>
+            {eventsLoading ? (
+              <div className="rounded-[20px] border border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
+                Načítám nadcházející vysílání…
+              </div>
+            ) : upcomingCards.length ? (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {upcomingCards.map((event) => (
+                  <PublicEventCard key={event.id} event={event} compact />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-[20px] border border-slate-200 bg-slate-50 p-6">
+                <strong className="text-navy-900">Nový program právě připravujeme.</strong>
+                <p className="mt-1 text-sm text-muted">Všechny potvrzené termíny najdete průběžně v kalendáři.</p>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* PARTNERS */}
-        <PartnersSection />
-
-        {/* FEATURES */}
-        <section id="jak-to-funguje" className="py-12">
+        {/* HOW IT WORKS */}
+        <section id="jak-to-funguje" className="border-y border-slate-100 bg-[#f6f9fd] py-10">
           <div className="mx-auto max-w-[1180px] px-5">
-            <div className="flex flex-wrap items-center justify-between gap-8">
-              <div className="max-w-2xl flex-1">
-                <SectionEyebrow>{featuresSection.eyebrow}</SectionEyebrow>
-                <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
-                  {featuresSection.title}
-                </h2>
-              </div>
-
-              {featuresSection.photo ? (
-                <div className="aspect-video w-full max-w-[300px] flex-none overflow-hidden rounded-card-md shadow-[0_14px_34px_rgba(15,23,42,0.12)]">
-                  <PhotoWithFallback
-                    src={featuresSection.photo}
-                    alt={featuresSection.photoAlt}
-                    fallbackLabel="ARCHIMEDES Live"
-                    style={{ width: "100%", height: "100%" }}
-                    imgStyle={{ objectFit: "cover" }}
-                  />
-                </div>
-              ) : null}
-            </div>
-
-            <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {visibleFeatures.map((f) => (
-                <FeatureCard
-                  key={f.id}
-                  icon={FEATURE_ICONS[f.icon]}
-                  title={f.title}
-                  description={f.description}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* COMMUNITY & SENIORS */}
-        {communitySection.visible ? (
-          <section className="border-y border-slate-100 bg-slate-50 py-12">
-            <div className="mx-auto max-w-[1180px] px-5 grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-              <div className="aspect-[4/3.1] overflow-hidden rounded-card-lg shadow-[0_24px_60px_rgba(15,23,42,0.14)]">
-                <PhotoWithFallback
-                  src={communitySection.photo}
-                  alt={communitySection.photoAlt}
-                  fallbackLabel="ARCHIMEDES Live"
-                  style={{ width: "100%", height: "100%" }}
-                  imgStyle={{ objectFit: "cover" }}
-                />
-              </div>
-
+            <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
               <div>
-                <SectionEyebrow>{communitySection.eyebrow}</SectionEyebrow>
+                <SectionEyebrow>Jak to funguje</SectionEyebrow>
                 <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
-                  {communitySection.title}
+                  Obec propojí místní komunitu. My zajistíme program.
                 </h2>
-                <p className="mt-3 max-w-md text-[15.5px] leading-relaxed text-muted">
-                  {communitySection.text}
-                </p>
-                <Link
-                  href={communitySection.cta.href}
-                  className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-brand hover:text-navy-900"
-                >
-                  {communitySection.cta.label} <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
               </div>
-            </div>
-          </section>
-        ) : null}
-
-        {/* ATMOSPHERE / EVENTS */}
-        {atmosphereSection.visible && visibleAtmospherePhotos.length ? (
-          <section className="py-12">
-            <div className="mx-auto max-w-[1180px] px-5">
-              <SectionEyebrow>{atmosphereSection.eyebrow}</SectionEyebrow>
-              <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
-                {atmosphereSection.title}
-              </h2>
-              <p className="mt-3 max-w-lg text-[15.5px] leading-relaxed text-muted">
-                {atmosphereSection.subtitle}
-              </p>
-
-              <div className="mt-10 grid gap-4 md:h-[420px] md:grid-cols-[1.4fr_1fr] md:grid-rows-2">
-                {visibleAtmospherePhotos.map((p, i) => (
-                  <div
-                    key={p.id}
-                    className={cn(
-                      "relative aspect-[4/3] overflow-hidden rounded-card-md shadow-[0_14px_34px_rgba(15,23,42,0.1)] md:aspect-auto",
-                      i === 0 && "md:row-span-2"
-                    )}
-                  >
-                    <PhotoWithFallback
-                      src={p.src}
-                      alt={p.alt}
-                      fallbackLabel="ARCHIMEDES Live"
-                      style={{ width: "100%", height: "100%" }}
-                      imgStyle={{ objectFit: "cover", objectPosition: p.objectPosition || "center" }}
-                    />
+              <div className="grid gap-3 sm:grid-cols-3">
+                {["Obec se připojí", "Zapojí školu a spolky", "Komunita se setkává"].map((title, index) => (
+                  <div key={title} className="rounded-[18px] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
+                    <span className="text-sm font-black text-brand">0{index + 1}</span>
+                    <strong className="mt-3 block text-base text-navy-900">{title}</strong>
                   </div>
                 ))}
               </div>
             </div>
-          </section>
-        ) : null}
+          </div>
+        </section>
 
         {/* REFERENCES */}
         {visibleReferences.length ? (
-          <section id="reference" className="py-12">
+          <section id="reference" className="py-10">
             <div className="mx-auto max-w-[1180px] px-5">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
@@ -314,7 +220,7 @@ export default function Home() {
                 </Link>
               </div>
 
-              <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {visibleReferences.map((r) => (
                   <ReferenceCard
                     key={r.id}
@@ -327,9 +233,36 @@ export default function Home() {
           </section>
         ) : null}
 
+        {/* AUDIENCES */}
+        <section className="border-y border-slate-100 bg-[#f6f9fd] py-10">
+          <div className="mx-auto max-w-[1180px] px-5">
+            <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
+              Pro koho je ARCHIMEDES Live
+            </h2>
+            <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {AUDIENCES.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link key={item.title} href={item.href} className="group rounded-[18px] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)] transition hover:-translate-y-1 hover:shadow-[0_14px_30px_rgba(15,23,42,0.09)]">
+                    <Icon className="h-6 w-6 text-brand" aria-hidden="true" />
+                    <strong className="mt-4 block text-base text-navy-900">{item.title}</strong>
+                    <p className="mt-2 text-sm leading-relaxed text-muted">{item.text}</p>
+                    <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-brand">
+                      Zjistit více <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* PARTNERS */}
+        <PartnersSection />
+
         {/* CTA BAND */}
         {ctaBand.visible ? (
-          <section className="pb-16">
+          <section className="pb-12 pt-8">
             <div className="mx-auto max-w-[1180px] px-5">
               <div className="flex flex-col items-start gap-6 rounded-card-lg bg-eyebrow p-8 sm:flex-row sm:items-center sm:justify-between sm:p-10">
                 <div className="flex items-center gap-4">
