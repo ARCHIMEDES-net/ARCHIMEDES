@@ -7,7 +7,6 @@ import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
 const BUCKET = "marketplace";
-const ADMIN_EMAIL = "antonin.koplik@eduvision.cz";
 
 function typeLabel(type) {
   if (type === "offer") return "Nabídka";
@@ -29,6 +28,7 @@ export default function DetailInzeratu() {
 
   const [row, setRow] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
@@ -38,7 +38,17 @@ export default function DetailInzeratu() {
       if (!id) return;
 
       const { data: userData } = await supabase.auth.getUser();
-      setCurrentUser(userData?.user || null);
+      const user = userData?.user || null;
+      setCurrentUser(user);
+
+      if (user?.id) {
+        const { data: adminRow, error: adminError } = await supabase
+          .from("platform_admins")
+          .select("user_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        setIsPlatformAdmin(!adminError && !!adminRow?.user_id);
+      }
 
       const { data, error } = await supabase
         .from("marketplace_posts")
@@ -116,8 +126,6 @@ export default function DetailInzeratu() {
 
   const images = row.marketplace_attachments?.filter((a) => a.is_image) || [];
   const isOwner = currentUser?.id === row.author_id;
-  const isAdmin = (currentUser?.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
-
   return (
     <RequireAuth>
       <PortalHeader />
@@ -146,7 +154,7 @@ export default function DetailInzeratu() {
             </div>
 
             <div className="flex gap-2">
-              {isAdmin && (
+              {isPlatformAdmin && (
                 <button
                   disabled={busy}
                   onClick={() => togglePinned(!row.is_pinned)}

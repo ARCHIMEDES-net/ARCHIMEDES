@@ -6,7 +6,6 @@ import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
 const BUCKET = "marketplace";
-const ADMIN_EMAIL = "antonin.koplik@eduvision.cz";
 
 function typeBadge(type) {
   if (type === "offer") return "bg-green-100 text-green-800";
@@ -31,13 +30,21 @@ export default function Inzerce() {
   const [filterType, setFilterType] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
 
-  const [currentUser, setCurrentUser] = useState(null);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [pinBusyId, setPinBusyId] = useState(null);
 
   useEffect(() => {
     async function init() {
       const { data: userData } = await supabase.auth.getUser();
-      setCurrentUser(userData?.user || null);
+      const user = userData?.user || null;
+      if (user?.id) {
+        const { data: adminRow, error: adminError } = await supabase
+          .from("platform_admins")
+          .select("user_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        setIsPlatformAdmin(!adminError && !!adminRow?.user_id);
+      }
       load();
     }
     init();
@@ -79,8 +86,6 @@ export default function Inzerce() {
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(img.file_path);
     return data?.publicUrl || null;
   }
-
-  const isAdmin = (currentUser?.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
   async function togglePinned(postId, currentValue) {
     try {
@@ -251,7 +256,7 @@ export default function Inzerce() {
                     <span>{new Date(row.created_at).toLocaleDateString("cs-CZ")}</span>
 
                     <div className="flex items-center gap-3">
-                      {isAdmin && (
+                      {isPlatformAdmin && (
                         <button
                           onClick={() => togglePinned(row.id, row.is_pinned)}
                           disabled={pinBusyId === row.id}
