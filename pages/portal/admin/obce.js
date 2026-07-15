@@ -50,17 +50,37 @@ export default function AdminObcePage() {
   }
 
   async function activateObec(row) {
+    const confirmed = window.confirm(
+      `Aktivovat obec „${row.name}“ a přiřadit kontaktní osobu jako správce obce?`
+    );
+    if (!confirmed) return;
+
     setActivatingId(row.id);
     setError("");
     setMessage("");
 
-    const { error } = await supabase
-      .from("organizations")
-      .update({ license_status: "active", status: "active" })
-      .eq("id", row.id);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    if (error) {
-      setError("Aktivaci se nepodařilo uložit.");
+    if (!session?.access_token) {
+      setError("Přihlášení vypršelo. Přihlaste se znovu.");
+      setActivatingId("");
+      return;
+    }
+
+    const response = await fetch("/api/admin/activate-municipality", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ organizationId: row.id }),
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      setError(result?.error || "Aktivaci se nepodařilo uložit.");
       setActivatingId("");
       return;
     }
@@ -70,7 +90,11 @@ export default function AdminObcePage() {
         r.id === row.id ? { ...r, license_status: "active", status: "active" } : r
       )
     );
-    setMessage(`Obec „${row.name}“ byla aktivována.`);
+    setMessage(
+      `Obec „${row.name}“ byla aktivována.${
+        result.invitationSent ? " Kontaktní osobě byla odeslána pozvánka." : " Stávající účet kontaktní osoby byl zachován."
+      }`
+    );
     setActivatingId("");
   }
 
