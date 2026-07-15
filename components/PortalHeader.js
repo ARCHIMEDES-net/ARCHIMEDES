@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { cn } from "../lib/utils";
+import { fetchMyOrganizations } from "../lib/myOrganizations";
 
 const LOGO_SRC = "/logo-archimedes-live.png";
 
@@ -53,6 +54,10 @@ export default function PortalHeader({ title = "" }) {
   const [isOrgAdmin, setIsOrgAdmin] = useState(false);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [loadingRole, setLoadingRole] = useState(true);
+  const [activeOrganizationId, setActiveOrganizationId] = useState("");
+  const [organizations, setOrganizations] = useState([]);
+  const [switchingOrganization, setSwitchingOrganization] = useState(false);
+  const [organizationSwitchError, setOrganizationSwitchError] = useState("");
 
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -73,6 +78,8 @@ export default function PortalHeader({ title = "" }) {
         if (!user) {
           setIsOrgAdmin(false);
           setIsPlatformAdmin(false);
+          setActiveOrganizationId("");
+          setOrganizations([]);
           setLoadingRole(false);
           return;
         }
@@ -86,22 +93,37 @@ export default function PortalHeader({ title = "" }) {
         if (profileError) throw profileError;
         if (!alive) return;
 
-        let roleInActiveOrg = "";
+        const { data: membershipRows, error: membershipError } = await supabase
+          .from("organization_members")
+          .select("organization_id, role_in_org, status")
+          .eq("user_id", user.id)
+          .eq("status", "active");
 
-        if (profile?.active_organization_id) {
-          const { data: membership, error: membershipError } = await supabase
-            .from("organization_members")
-            .select("role_in_org, status")
-            .eq("user_id", user.id)
-            .eq("organization_id", profile.active_organization_id)
-            .eq("status", "active")
-            .maybeSingle();
+        if (membershipError) throw membershipError;
+        if (!alive) return;
 
-          if (membershipError) throw membershipError;
-          if (!alive) return;
+        const memberships = Array.isArray(membershipRows) ? membershipRows : [];
+        const activeMembership = memberships.find(
+          (membership) =>
+            membership.organization_id === profile?.active_organization_id
+        );
+        const roleInActiveOrg = activeMembership?.role_in_org || "";
 
-          roleInActiveOrg = membership?.role_in_org || "";
-        }
+        const organizationRows = memberships.length
+          ? await fetchMyOrganizations(
+              supabase,
+              memberships.map((membership) => membership.organization_id)
+            )
+          : [];
+
+        if (!alive) return;
+
+        setActiveOrganizationId(profile?.active_organization_id || "");
+        setOrganizations(
+          [...organizationRows].sort((a, b) =>
+            String(a.name || "").localeCompare(String(b.name || ""), "cs")
+          )
+        );
 
         setIsOrgAdmin(roleInActiveOrg === "organization_admin");
 
@@ -116,6 +138,8 @@ export default function PortalHeader({ title = "" }) {
         if (!alive) return;
         setIsOrgAdmin(false);
         setIsPlatformAdmin(false);
+        setActiveOrganizationId("");
+        setOrganizations([]);
       } finally {
         if (alive) setLoadingRole(false);
       }
@@ -173,6 +197,73 @@ export default function PortalHeader({ title = "" }) {
     }
   }
 
+  async function onOrganizationChange(event) {
+    const organizationId = event.target.value;
+    if (
+      !organizationId ||
+      organizationId === activeOrganizationId ||
+      !organizations.some((organization) => organization.id === organizationId)
+    ) {
+      return;
+    }
+
+    setSwitchingOrganization(true);
+    setOrganizationSwitchError("");
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) throw userError || new Error("Uživatel není přihlášen.");
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ active_organization_id: organizationId })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      setActiveOrganizationId(organizationId);
+      router.reload();
+    } catch (error) {
+      console.error("PortalHeader organization switch error:", error);
+      setOrganizationSwitchError("Organizaci se nepodařilo přepnout.");
+      setSwitchingOrganization(false);
+    }
+  }
+
+  const organizationSwitcher =
+    !loadingRole && organizations.length > 1 ? (
+      <div className="min-w-0">
+        <label className="flex min-w-0 items-center gap-2 text-sm font-bold text-slate-600">
+          <span className="shrink-0">Organizace</span>
+          <select
+            value={activeOrganizationId}
+            onChange={onOrganizationChange}
+            disabled={switchingOrganization}
+            aria-label="Aktivní organizace"
+            className="min-h-[42px] min-w-0 max-w-[260px] rounded-xl border border-slate-300 bg-white px-3 font-bold text-navy-900"
+          >
+            <option value="" disabled>
+              Vyberte organizaci
+            </option>
+            {organizations.map((organization) => (
+              <option key={organization.id} value={organization.id}>
+                {organization.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {organizationSwitchError ? (
+          <p className="mt-1 text-xs font-semibold text-red-600">
+            {organizationSwitchError}
+          </p>
+        ) : null}
+      </div>
+    ) : null;
+
   const mainLinks = [
     { key: "portal", href: "/portal", label: "Portál" },
     { key: "program", href: "/portal/kalendar", label: "Program" },
@@ -229,6 +320,8 @@ export default function PortalHeader({ title = "" }) {
             {!isMobile && title ? (
               <div className="truncate text-sm font-extrabold text-slate-500">{title}</div>
             ) : null}
+
+            {!isMobile ? organizationSwitcher : null}
           </div>
 
           {isMobile ? (
@@ -273,6 +366,12 @@ export default function PortalHeader({ title = "" }) {
         {isMobile && menuOpen ? (
           <div className="mt-3 rounded-2xl border border-slate-900/[0.08] bg-slate-50 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
             <nav className="grid gap-2.5">
+              {organizationSwitcher ? (
+                <div className="rounded-2xl border border-slate-200 bg-white p-3">
+                  {organizationSwitcher}
+                </div>
+              ) : null}
+
               {mainLinks.map((item) => (
                 <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}>
                   {item.label}
