@@ -16,7 +16,7 @@ export const hero = {
     "Propojujeme školy, spolky, seniory, rodiče i národní organizace do jednoho celoročního programu. ARCHIMEDES Live vytváří páteř komunitního života obce, která usnadňuje komunikaci, podporuje spolupráci a pomáhá budovat aktivní obec, ve které se dobře žije dnes i budoucím generacím.",
   primaryCta: { label: "Připojte svou obec", href: "/zadost" },
   secondaryCta: { label: "Jak to funguje", href: "#jak-to-funguje" },
-  photo: "/hero-komunita-dsc00554.jpg",
+  photo: "/hero-komunita-dsc00554.webp",
   photoAlt: "Mezigenerační komunitní setkání před učebnou ARCHIMEDES Live",
   floatingCard: {
     title: "Staňte se partnerskou obcí",
