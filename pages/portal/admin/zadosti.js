@@ -26,7 +26,6 @@ function formatDate(value) {
 export default function AdminZadostiPage() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [creatingOrgId, setCreatingOrgId] = useState("");
   const [savingId, setSavingId] = useState("");
   const [invitingId, setInvitingId] = useState("");
   const [error, setError] = useState("");
@@ -75,80 +74,6 @@ export default function AdminZadostiPage() {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
     setMessage("Stav žádosti byl uložen.");
     setSavingId("");
-  }
-
-  async function createOrganizationFromRequest(row) {
-    setCreatingOrgId(row.id);
-    setError("");
-    setMessage("");
-
-    try {
-      if (row.organization_id) {
-        setMessage("Organizace už existuje.");
-        return;
-      }
-
-      const [
-        {
-          data: { user },
-          error: userError,
-        },
-        {
-          data: { session },
-          error: sessionError,
-        },
-      ] = await Promise.all([
-        supabase.auth.getUser(),
-        supabase.auth.getSession(),
-      ]);
-
-      if (userError) throw userError;
-      if (sessionError) throw sessionError;
-
-      const accessToken = session?.access_token;
-
-      if (!user || !accessToken) {
-        throw new Error("Nejste přihlášen.");
-      }
-
-      const response = await fetch("/api/admin/create-organization-from-request", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          requestId: row.id,
-          organizationName: row.organization,
-          licenseType: row.license_type,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result?.error || "Nepodařilo se vytvořit organizaci.");
-      }
-
-      setRows((prev) =>
-        prev.map((r) =>
-          r.id === row.id
-            ? {
-                ...r,
-                organization_id: result.organization?.id || r.organization_id,
-              }
-            : r
-        )
-      );
-
-      setMessage(
-        `Organizace „${result.organization?.name || row.organization}“ byla vytvořena.`
-      );
-    } catch (e) {
-      setError(e.message || "Nepodařilo se vytvořit organizaci.");
-    } finally {
-      setCreatingOrgId("");
-    }
   }
 
   async function inviteOrganizationAdmin(row) {
@@ -347,19 +272,11 @@ export default function AdminZadostiPage() {
 
                     <TableCell>
                       <div className="flex flex-col gap-2">
-                        <Button
-                          type="button"
-                          onClick={() => createOrganizationFromRequest(row)}
-                          disabled={!!row.organization_id || creatingOrgId === row.id}
-                          variant="secondary"
-                          size="sm"
-                        >
-                          {creatingOrgId === row.id
-                            ? "Vytvářím..."
-                            : row.organization_id
-                              ? "Organizace existuje"
-                              : "Vytvořit organizaci"}
-                        </Button>
+                        <span className="text-xs text-slate-500">
+                          {row.organization_id
+                            ? "Organizace je propojena"
+                            : "Historická žádost bez organizace"}
+                        </span>
 
                         <Button
                           type="button"
