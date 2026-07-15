@@ -83,26 +83,26 @@ export default function Home() {
 
       <main className="bg-white text-slate-900">
         {/* HERO */}
-        <section className="relative min-h-[650px] overflow-hidden bg-navy-900 text-white lg:min-h-[720px]">
+        <section className="relative min-h-[680px] overflow-hidden bg-[#153a63] text-white lg:min-h-[78vh]">
           <div className="absolute inset-0">
             <PhotoWithFallback
               src={hero.photo}
               alt={hero.photoAlt}
               fallbackLabel="ARCHIMEDES Live"
               style={{ width: "100%", height: "100%" }}
-              imgStyle={{ objectFit: "cover", objectPosition: "center 42%" }}
+              imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
             />
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,12,24,0.96)_0%,rgba(5,12,24,0.84)_34%,rgba(5,12,24,0.34)_67%,rgba(5,12,24,0.18)_100%)]" />
-            <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(5,12,24,0.55)_0%,transparent_42%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(12,49,87,0.9)_0%,rgba(12,49,87,0.72)_27%,rgba(12,49,87,0.28)_52%,rgba(12,49,87,0.04)_78%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(9,35,64,0.28)_0%,transparent_34%)]" />
           </div>
 
-          <div className="relative mx-auto flex min-h-[650px] max-w-[1180px] items-center px-5 pb-28 pt-24 lg:min-h-[720px] lg:pb-32 lg:pt-28">
-            <div className="max-w-[690px]">
+          <div className="relative mx-auto flex min-h-[680px] max-w-[1280px] items-center px-5 pb-28 pt-24 lg:min-h-[78vh] lg:pb-32 lg:pt-28">
+            <div className="max-w-[620px]">
                 <span className="mb-6 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white/90 backdrop-blur">
                   {hero.eyebrow}
                 </span>
 
-                <h1 className="text-5xl font-[950] leading-[0.94] tracking-[-0.055em] text-white sm:text-6xl lg:text-[76px]">
+                <h1 className="text-5xl font-[950] leading-[0.94] tracking-[-0.055em] text-white sm:text-6xl lg:text-[72px]">
                   {hero.titleLine1}
                   <br />
                   <span className="text-[#efbd58]">{hero.titleLine2}</span>

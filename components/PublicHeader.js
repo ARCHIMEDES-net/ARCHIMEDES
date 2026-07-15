@@ -17,10 +17,14 @@ const NAV_ITEMS = [
   { key: "kontakt", href: "/kontakt", label: "Kontakt" },
 ];
 
-function LogoMark() {
+function LogoMark({ inverse = false }) {
   return (
     <span className="logoMark">
-      <img src="/logo-archimedes-live.png" alt="" className="logoImg" />
+      <img
+        src={inverse ? "/logo-archimedes-live-negative.png" : "/logo-archimedes-live.png"}
+        alt=""
+        className="logoImg"
+      />
 
       <style jsx>{`
         .logoMark {
@@ -69,7 +73,7 @@ export default function PublicHeader({ active = "" }) {
     <header className={`ph-header${isHome ? " ph-headerHome" : ""}`}>
       <div className="ph-bar">
         <Link href="/" className="ph-logoLink" aria-label="ARCHIMEDES Live — domů">
-          <LogoMark />
+          <LogoMark inverse={isHome} />
         </Link>
 
         <nav className="ph-nav" aria-label="Hlavní navigace">
@@ -141,7 +145,7 @@ export default function PublicHeader({ active = "" }) {
           left: 0;
           right: 0;
           color: #ffffff;
-          background: linear-gradient(180deg, rgba(5, 12, 24, 0.78), rgba(5, 12, 24, 0));
+          background: linear-gradient(180deg, rgba(12, 49, 87, 0.54), rgba(12, 49, 87, 0));
           border-bottom-color: transparent;
           backdrop-filter: none;
         }
