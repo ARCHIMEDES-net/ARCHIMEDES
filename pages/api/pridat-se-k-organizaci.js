@@ -61,7 +61,7 @@ async function sendConfirmationEmail({
     subject: "ARCHIMEDES Live – upozornění na vysílání nastavena",
     text: `Dobrý den${fullName ? ` ${fullName}` : ""},
 
-jste zaregistrováni k upozornění na vysílání a program ARCHIMEDES Live pro organizaci ${organizationName}.
+po ověření kódu organizace ${organizationName} jsme vám nastavili osobní upozornění na vysílání a program ARCHIMEDES Live.
 
 Vybrané okruhy:
 ${interestLabels.map((l) => `- ${l}`).join("\n")}
@@ -74,7 +74,7 @@ ${SITE_URL}`,
     html: `
       <div style="font-family:Segoe UI,Arial,sans-serif;color:#0f172a;line-height:1.6;">
         <p>Dobrý den${safeName ? ` ${safeName}` : ""},</p>
-        <p>jste zaregistrováni k <strong>upozornění na vysílání a program ARCHIMEDES Live</strong> pro organizaci <strong>${safeOrg}</strong>.</p>
+        <p>Po ověření kódu organizace <strong>${safeOrg}</strong> jsme vám nastavili osobní <strong>upozornění na vysílání a program ARCHIMEDES Live</strong>.</p>
         <p><strong>Vybrané okruhy:</strong></p>
         <ul>${listHtml}</ul>
         ${
@@ -174,14 +174,16 @@ export default async function handler(req, res) {
     const { data: activities, error: activitiesError } = await supabaseAdmin
       .from("activity_categories")
       .select("code, label, is_active")
-      .in("code", cleanActivityCodes);
+      .eq("is_active", true);
 
     if (activitiesError) {
       console.error("activity_categories lookup error:", activitiesError);
       return res.status(500).json({ error: "Nepodařilo se ověřit vybrané okruhy." });
     }
 
-    const validActivities = (activities || []).filter((a) => a.is_active);
+    const validActivities = (activities || []).filter((activity) =>
+      cleanActivityCodes.includes(activity.code)
+    );
 
     if (validActivities.length !== cleanActivityCodes.length) {
       return res.status(400).json({ error: "Vybrali jste neplatný okruh zájmu." });
@@ -277,10 +279,13 @@ export default async function handler(req, res) {
       }
     }
 
-    const preferenceRows = cleanActivityCodes.map((code) => ({
+    // Formulář představuje celý osobní výběr, ne pouze přírůstky. Proto
+    // zapíšeme i enabled=false pro nevybrané kódy; tím lze přepsat staré
+    // user_interests a skutečně se z dřívějšího odběru odhlásit.
+    const preferenceRows = (activities || []).map((activity) => ({
       profile_id: profileId,
-      activity_code: code,
-      enabled: true,
+      activity_code: activity.code,
+      enabled: cleanActivityCodes.includes(activity.code),
     }));
 
     const { error: preferencesError } = await supabaseAdmin

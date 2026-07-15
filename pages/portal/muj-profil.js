@@ -12,8 +12,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Alert } from "../../components/ui/alert";
 import { Switch } from "../../components/ui/switch";
-
-const DEFAULT_INTERESTS = ["skola_1_stupen", "skola_2_stupen"];
+import { LEGACY_INTEREST_MAP } from "../../lib/interestMappings";
 
 // Krok 3 (11.7.2026): sekce/položky odpovídají 1:1 activity_categories
 // (migrace 0006) — code tady musí sedět s DB, protože se ukládá do
@@ -170,19 +169,41 @@ export default function MujProfilPage() {
         setOrganizationCode("");
       }
 
-      const { data: preferences, error: preferencesError } = await supabase
-        .from("notification_preferences")
-        .select("activity_code, enabled")
-        .eq("profile_id", user.id);
+      const [preferencesResult, legacyResult] = await Promise.all([
+        supabase
+          .from("notification_preferences")
+          .select("activity_code, enabled")
+          .eq("profile_id", user.id),
+        supabase
+          .from("user_interests")
+          .select("interest_slug")
+          .eq("user_id", user.id),
+      ]);
 
-      if (preferencesError) throw preferencesError;
+      if (preferencesResult.error) throw preferencesResult.error;
+      if (legacyResult.error) throw legacyResult.error;
 
-      const enabledCodes = (preferences || [])
+      const explicitPreferences = new Map(
+        (preferencesResult.data || []).map((row) => [row.activity_code, row.enabled === true])
+      );
+      const enabledCodes = (preferencesResult.data || [])
         .filter((row) => row.enabled)
         .map((row) => row.activity_code)
         .filter((code) => ALL_INTEREST_CODES.includes(code));
 
-      setSelectedInterests(enabledCodes.length > 0 ? enabledCodes : DEFAULT_INTERESTS);
+      for (const legacy of legacyResult.data || []) {
+        const code = LEGACY_INTEREST_MAP[legacy.interest_slug];
+        if (
+          code &&
+          ALL_INTEREST_CODES.includes(code) &&
+          !explicitPreferences.has(code) &&
+          !enabledCodes.includes(code)
+        ) {
+          enabledCodes.push(code);
+        }
+      }
+
+      setSelectedInterests(enabledCodes);
     } catch (err) {
       console.error("muj-profil loadProfile error:", err);
       setError(err.message || "Nepodařilo se načíst profil.");
@@ -202,12 +223,7 @@ export default function MujProfilPage() {
         throw new Error("Chybí identita uživatele.");
       }
 
-      let toSave = [...selectedInterests];
-
-      if (toSave.length === 0) {
-        toSave = [...DEFAULT_INTERESTS];
-        setSelectedInterests(toSave);
-      }
+      const toSave = [...selectedInterests];
 
       const trimmedName = fullName.trim();
 
@@ -276,8 +292,8 @@ export default function MujProfilPage() {
               <h1 className="text-[34px] font-[950] leading-[1.1] text-navy-900">Zajímá mě</h1>
               <p className="mt-2.5 max-w-[760px] text-base leading-relaxed text-muted">
                 Vyberte, o jaká vysílání máte zájem. Budeme vám posílat jen to,
-                co si zvolíte. Pokud nic nevyberete, nastaví se základní program
-                pro 1. a 2. stupeň.
+                co si zvolíte. Pokud nic nevyberete, tematické pozvánky vám
+                posílat nebudeme.
               </p>
             </div>
 

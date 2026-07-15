@@ -298,9 +298,9 @@ export default function PridatSeKOrganizaciPage() {
               </h1>
 
               <Alert variant="success" className="mb-6 mt-5 text-base">
-                Budeme vám posílat upozornění na vysílání a program
-                ARCHIMEDES Live pro organizaci „{result.organizationName}“
-                podle vybraných okruhů.
+                Kód organizace „{result.organizationName}“ byl ověřen. Budeme
+                vám posílat osobní upozornění podle vybraných okruhů; výběr
+                není členstvím v této organizaci.
                 {result.emailSent === false
                   ? " Potvrzovací e-mail se teď nepodařilo odeslat, ale registrace proběhla v pořádku."
                   : result.existingAccount
