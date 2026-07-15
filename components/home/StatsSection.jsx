@@ -12,21 +12,13 @@ export default function StatsSection() {
   if (!visibleStats.length) return null;
 
   return (
-    <section className="border-y border-slate-100 bg-slate-50 py-14">
+    <section className="relative z-20 -mt-20 pb-8">
       <div className="mx-auto max-w-[1180px] px-5">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
-            {statsSection.title}
-          </h2>
-          <p className="mt-3 text-[15px] leading-relaxed text-muted">{statsSection.subtitle}</p>
-        </div>
-
-        <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[22px] border border-slate-200/80 bg-slate-200/80 shadow-[0_24px_60px_rgba(15,23,42,0.16)] lg:grid-cols-4">
           {visibleStats.map((s) => (
-            <div key={s.id} className="text-center sm:text-left">
-              <div className="text-3xl font-[950] tracking-tight text-navy-900">{s.value}</div>
-              <div className="mt-1 text-sm font-bold text-navy-900">{s.label}</div>
-              <p className="mt-2 text-[13.5px] leading-relaxed text-muted">{s.description}</p>
+            <div key={s.id} className="bg-white px-5 py-6 text-left sm:px-7">
+              <div className="text-2xl font-[950] tracking-tight text-navy-900 sm:text-3xl">{s.value}</div>
+              <div className="mt-1 text-xs font-bold leading-snug text-slate-600 sm:text-sm">{s.label}</div>
             </div>
           ))}
         </div>

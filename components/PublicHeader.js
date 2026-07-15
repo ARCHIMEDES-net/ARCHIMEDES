@@ -49,6 +49,7 @@ export default function PublicHeader({ active = "" }) {
   const pathname = router?.pathname || "";
   const asPath = stripQuery(router?.asPath || "");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isHome = pathname === "/";
 
   useEffect(() => {
     setMobileOpen(false);
@@ -65,7 +66,7 @@ export default function PublicHeader({ active = "" }) {
   };
 
   return (
-    <header className="ph-header">
+    <header className={`ph-header${isHome ? " ph-headerHome" : ""}`}>
       <div className="ph-bar">
         <Link href="/" className="ph-logoLink" aria-label="ARCHIMEDES Live — domů">
           <LogoMark />
@@ -133,6 +134,39 @@ export default function PublicHeader({ active = "" }) {
           background: rgba(255, 255, 255, 0.94);
           backdrop-filter: blur(10px);
           border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+        }
+
+        .ph-headerHome {
+          position: absolute;
+          left: 0;
+          right: 0;
+          color: #ffffff;
+          background: linear-gradient(180deg, rgba(5, 12, 24, 0.78), rgba(5, 12, 24, 0));
+          border-bottom-color: transparent;
+          backdrop-filter: none;
+        }
+
+        .ph-headerHome .ph-navLink,
+        .ph-headerHome .ph-login {
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        .ph-headerHome .ph-navLink:hover,
+        .ph-headerHome .ph-navLinkActive {
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.12);
+        }
+
+        .ph-headerHome .ph-cta {
+          color: #111827;
+          background: #efbd58;
+          box-shadow: 0 10px 24px rgba(239, 189, 88, 0.22);
+        }
+
+        .ph-headerHome .ph-toggle {
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.3);
         }
 
         .ph-bar {

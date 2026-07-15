@@ -83,28 +83,42 @@ export default function Home() {
 
       <main className="bg-white text-slate-900">
         {/* HERO */}
-        <section className="pt-10 md:pt-12">
-          <div className="mx-auto max-w-[1180px] px-5">
-            <div className="grid gap-10 pb-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-14">
-              <div>
-                <SectionEyebrow>{hero.eyebrow}</SectionEyebrow>
+        <section className="relative min-h-[650px] overflow-hidden bg-navy-900 text-white lg:min-h-[720px]">
+          <div className="absolute inset-0">
+            <PhotoWithFallback
+              src={hero.photo}
+              alt={hero.photoAlt}
+              fallbackLabel="ARCHIMEDES Live"
+              style={{ width: "100%", height: "100%" }}
+              imgStyle={{ objectFit: "cover", objectPosition: "center 42%" }}
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,12,24,0.96)_0%,rgba(5,12,24,0.84)_34%,rgba(5,12,24,0.34)_67%,rgba(5,12,24,0.18)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(5,12,24,0.55)_0%,transparent_42%)]" />
+          </div>
 
-                <h1 className="text-5xl font-[950] leading-[0.98] tracking-[-0.05em] text-navy-900 sm:text-6xl">
+          <div className="relative mx-auto flex min-h-[650px] max-w-[1180px] items-center px-5 pb-28 pt-24 lg:min-h-[720px] lg:pb-32 lg:pt-28">
+            <div className="max-w-[690px]">
+                <span className="mb-6 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white/90 backdrop-blur">
+                  {hero.eyebrow}
+                </span>
+
+                <h1 className="text-5xl font-[950] leading-[0.94] tracking-[-0.055em] text-white sm:text-6xl lg:text-[76px]">
                   {hero.titleLine1}
                   <br />
-                  <span className="text-blue-700">{hero.titleLine2}</span>
+                  <span className="text-[#efbd58]">{hero.titleLine2}</span>
                 </h1>
 
-                <p className="mt-5 text-xl font-bold tracking-tight text-navy-900">
+                <p className="mt-7 max-w-xl text-xl font-bold tracking-tight text-white">
                   {hero.subtitle}
                 </p>
-                <p className="mt-3 max-w-xl text-base leading-relaxed text-muted">
-                  {hero.lead}
+                <p className="mt-3 max-w-xl text-base leading-relaxed text-white/78 sm:text-lg">
+                  Propojujeme školy, spolky, seniory, rodiče i národní organizace do jednoho celoročního programu.
                 </p>
 
-                <div className="mt-8 flex flex-wrap gap-3">
+                <div className="mt-9 flex flex-wrap gap-3">
                   <Button
                     href={hero.primaryCta.href}
+                    className="bg-[#efbd58] text-slate-950 shadow-[0_16px_34px_rgba(239,189,88,0.24)] hover:bg-[#f5ca73]"
                     onClick={() => track("klik_home_cta_primary")}
                   >
                     {hero.primaryCta.label}
@@ -112,46 +126,15 @@ export default function Home() {
                   </Button>
                   <Button
                     href={hero.secondaryCta.href}
-                    variant="secondary"
+                    variant="light"
+                    className="border border-white/50 bg-white/5 text-white backdrop-blur hover:bg-white/15"
                     onClick={() => track("klik_home_jak_to_funguje")}
                   >
                     {hero.secondaryCta.label}
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </div>
-              </div>
-
-              <div className="relative aspect-[4/3.1] overflow-hidden rounded-card-lg shadow-[0_24px_60px_rgba(15,23,42,0.14)]">
-                <PhotoWithFallback
-                  src={hero.photo}
-                  alt={hero.photoAlt}
-                  fallbackLabel="ARCHIMEDES Live"
-                  style={{ width: "100%", height: "100%" }}
-                  imgStyle={{ objectFit: "cover", objectPosition: "25% center" }}
-                />
-
-                {hero.floatingCard.visible ? (
-                  <Link
-                    href={hero.primaryCta.href}
-                    onClick={() => track("klik_home_floating_card")}
-                    className="absolute inset-x-4 bottom-4 ml-auto flex max-w-[300px] items-center gap-3 rounded-[18px] bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.18)] transition-transform hover:-translate-y-0.5"
-                  >
-                    <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-navy-900 text-white">
-                      <Users className="h-5 w-5" aria-hidden="true" />
-                    </span>
-                    <div>
-                      <strong className="block text-sm font-bold text-navy-900">
-                        {hero.floatingCard.title}
-                      </strong>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">
-                        {hero.floatingCard.text}
-                      </span>
-                    </div>
-                  </Link>
-                ) : null}
-              </div>
             </div>
-
           </div>
         </section>
 
