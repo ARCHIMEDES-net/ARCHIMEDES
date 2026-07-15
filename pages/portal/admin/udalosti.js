@@ -171,11 +171,11 @@ function detectBroadcastState(row) {
     };
   }
 
-  if (status === "scheduled" || viewerUrl) {
+  if (status === "live") {
     return {
-      key: "ready",
-      label: "🟢 Vysílání připraveno",
-      className: "border-emerald-200 bg-emerald-50 text-emerald-800",
+      key: "live",
+      label: "🔴 Právě vysíláme",
+      className: "border-red-200 bg-red-50 text-red-700",
     };
   }
 
@@ -184,6 +184,14 @@ function detectBroadcastState(row) {
       key: "finished",
       label: "✅ Proběhlo / má záznam",
       className: "border-blue-200 bg-blue-50 text-blue-700",
+    };
+  }
+
+  if (status === "scheduled" || viewerUrl) {
+    return {
+      key: "ready",
+      label: "🟢 Vysílání připraveno",
+      className: "border-emerald-200 bg-emerald-50 text-emerald-800",
     };
   }
 
@@ -772,8 +780,12 @@ export default function AdminUdalosti() {
               </Field>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Field label="Odkaz na vysílání (stream_url)">
-                  <Input value={streamUrl} onChange={(e) => setStreamUrl(e.target.value)} />
+                <Field label="Volitelný odkaz na vysílání (stream_url)">
+                  <Input
+                    value={streamUrl}
+                    onChange={(e) => setStreamUrl(e.target.value)}
+                    placeholder="Není nutný — pozvánku a odkaz rozešle WebMeeting"
+                  />
                 </Field>
 
                 <Field label="Pracovní list (worksheet_url)">
