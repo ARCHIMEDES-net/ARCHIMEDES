@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, Wrench, Play, Lock, FileText, ArrowRight } from "lucide-react";
+import { Plus, Wrench, Play, FileText, ArrowRight } from "lucide-react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { resolveLicenseMode } from "../../lib/licenseMode";
@@ -212,7 +212,6 @@ export default function Archiv() {
   const [licenseLoading, setLicenseLoading] = useState(true);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [isOrgAdmin, setIsOrgAdmin] = useState(false);
-  const [isDemoViewer, setIsDemoViewer] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -232,7 +231,6 @@ export default function Archiv() {
         if (!user) {
           if (!isMounted) return;
           setIsOrgAdmin(false);
-          setIsDemoViewer(false);
           setLicenseMode("default");
           return;
         }
@@ -249,7 +247,6 @@ export default function Archiv() {
 
         if (!profile?.active_organization_id) {
           setIsOrgAdmin(false);
-          setIsDemoViewer(false);
           setLicenseMode("active");
           return;
         }
@@ -267,10 +264,8 @@ export default function Archiv() {
         if (!isMounted) return;
 
         setIsOrgAdmin(membership?.role_in_org === "organization_admin");
-        setIsDemoViewer(membership?.role_in_org === "demo_viewer");
 
         if (!membership?.organization_id) {
-          setIsDemoViewer(false);
           setLicenseMode("active");
           return;
         }
@@ -292,7 +287,6 @@ export default function Archiv() {
         if (!isMounted) return;
         setLicenseMode("inactive");
         setIsOrgAdmin(false);
-        setIsDemoViewer(false);
       } finally {
         if (isMounted) setLicenseLoading(false);
       }
@@ -400,10 +394,9 @@ export default function Archiv() {
   const isArchiveAdmin = isPlatformAdmin || isOrgAdmin;
   const effectiveMode = isPlatformAdmin ? "active" : licenseMode;
   const isLocked =
-    !isDemoViewer &&
-    (effectiveMode === "pending_approval" ||
-      effectiveMode === "inactive" ||
-      effectiveMode === "suspended");
+    effectiveMode === "pending_approval" ||
+    effectiveMode === "inactive" ||
+    effectiveMode === "suspended";
 
   if (licenseLoading) {
     return (
@@ -608,20 +601,14 @@ export default function Archiv() {
 
                       <div className="mt-2.5 flex flex-wrap gap-2.5">
                         {r._archiveUrl ? (
-                          isDemoViewer ? (
-                            <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 font-bold text-slate-500">
-                              <Lock className="h-4 w-4" aria-hidden="true" /> Video dostupné v plné licenci
-                            </span>
-                          ) : (
-                            <a
-                              href={r._archiveUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-navy-900 px-3.5 py-2.5 font-black text-white"
-                            >
-                              <Play className="h-4 w-4" aria-hidden="true" /> Otevřít video z archivu
-                            </a>
-                          )
+                          <a
+                            href={r._archiveUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-navy-900 px-3.5 py-2.5 font-black text-white"
+                          >
+                            <Play className="h-4 w-4" aria-hidden="true" /> Otevřít video z archivu
+                          </a>
                         ) : (
                           <Link
                             href={`/portal/udalost/${r.id}`}

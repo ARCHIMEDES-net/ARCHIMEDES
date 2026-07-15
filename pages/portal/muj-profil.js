@@ -84,8 +84,6 @@ function roleLabel(roleInOrg) {
       return "Administrátor organizace";
     case "member":
       return "Člen organizace";
-    case "demo_viewer":
-      return "Demo přístup";
     default:
       return "Uživatel";
   }

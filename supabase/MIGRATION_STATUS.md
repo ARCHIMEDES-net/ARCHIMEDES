@@ -24,12 +24,16 @@ souborů do tohoto adresáře.
   - kódy vidí jen správce organizace nebo platformový admin
   - přímý klientský SELECT celé tabulky `organizations` je omezen na
     platformové adminy
+- `0009_remove_demo_membership_role.sql`
+  - před změnou se zastaví, pokud existuje jakékoli demo členství
+  - odstraní staré překrývající se CHECK constrainty s `demo_viewer`
+  - povolí už jen role `organization_admin` a `member`
 
 ## Povinné pořadí nasazení
 
 1. Spustit `supabase/preflight/legacy_migration_readiness.sql` read-only.
 2. Uložit jeho výstup jako předmigrační protokol.
-3. Aplikovat databázovou migraci `0008`.
+3. Aplikovat databázové migrace `0008` a následně `0009`.
 4. Teprve potom nasadit aplikační kód používající `get_my_organizations`.
 5. Preflight zopakovat a porovnat počty organizací, členství a příjemců.
 

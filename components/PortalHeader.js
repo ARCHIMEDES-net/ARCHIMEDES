@@ -52,7 +52,6 @@ export default function PortalHeader({ title = "" }) {
 
   const [isOrgAdmin, setIsOrgAdmin] = useState(false);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
-  const [isDemoViewer, setIsDemoViewer] = useState(false);
   const [loadingRole, setLoadingRole] = useState(true);
 
   const [isMobile, setIsMobile] = useState(false);
@@ -74,7 +73,6 @@ export default function PortalHeader({ title = "" }) {
         if (!user) {
           setIsOrgAdmin(false);
           setIsPlatformAdmin(false);
-          setIsDemoViewer(false);
           setLoadingRole(false);
           return;
         }
@@ -106,7 +104,6 @@ export default function PortalHeader({ title = "" }) {
         }
 
         setIsOrgAdmin(roleInActiveOrg === "organization_admin");
-        setIsDemoViewer(roleInActiveOrg === "demo_viewer");
 
         const { data: isAdminResult, error: isAdminError } = await supabase.rpc("is_admin");
 
@@ -119,7 +116,6 @@ export default function PortalHeader({ title = "" }) {
         if (!alive) return;
         setIsOrgAdmin(false);
         setIsPlatformAdmin(false);
-        setIsDemoViewer(false);
       } finally {
         if (alive) setLoadingRole(false);
       }
@@ -187,28 +183,28 @@ export default function PortalHeader({ title = "" }) {
   ];
 
   const adminLinks = [
-    !loadingRole && !isDemoViewer && isPlatformAdmin
+    !loadingRole && isPlatformAdmin
       ? {
           key: "email-skupiny",
           href: "/portal/email-skupiny",
           label: "E-mailové skupiny",
         }
       : null,
-    !loadingRole && !isDemoViewer && isPlatformAdmin
+    !loadingRole && isPlatformAdmin
       ? {
           key: "sprava-vysilani",
           href: "/portal/admin-udalosti",
           label: "Správa vysílání",
         }
       : null,
-    !loadingRole && !isDemoViewer && isOrgAdmin
+    !loadingRole && isOrgAdmin
       ? {
           key: "uzivatele",
           href: "/portal/uzivatele",
           label: "Uživatelé",
         }
       : null,
-    !loadingRole && !isDemoViewer && isPlatformAdmin
+    !loadingRole && isPlatformAdmin
       ? {
           key: "admin",
           href: "/portal/admin",

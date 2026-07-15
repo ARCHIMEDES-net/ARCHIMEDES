@@ -146,3 +146,8 @@ select
 from public.platform_admins pa
 left join auth.users au on au.id = pa.user_id
 left join public.profiles p on p.id = pa.user_id;
+
+-- 9) Demo bylo obchodně zrušeno. Před aplikací 0009 musí být výsledek 0.
+select count(*) as demo_memberships_must_be_zero
+from public.organization_members
+where role_in_org = 'demo_viewer';
