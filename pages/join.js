@@ -23,6 +23,7 @@ export default function JoinPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [currentSession, setCurrentSession] = useState(null);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -30,6 +31,27 @@ export default function JoinPage() {
       setJoinCode(router.query.code.toUpperCase());
     }
   }, [router.isReady, router.query.code]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted || !data?.session?.user) return;
+
+      const session = data.session;
+      setCurrentSession(session);
+      setEmail(session.user.email || "");
+      setFullName(
+        session.user.user_metadata?.full_name ||
+          session.user.user_metadata?.name ||
+          ""
+      );
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const passwordTooShort = password.length > 0 && password.length < 8;
   const passwordMismatch =
@@ -50,17 +72,17 @@ export default function JoinPage() {
       return;
     }
 
-    if (password.length < 8) {
+    if (!currentSession && password.length < 8) {
       setError("Heslo musí mít alespoň 8 znaků.");
       return;
     }
 
-    if (!passwordConfirm) {
+    if (!currentSession && !passwordConfirm) {
       setError("Potvrďte prosím heslo.");
       return;
     }
 
-    if (password !== passwordConfirm) {
+    if (!currentSession && password !== passwordConfirm) {
       setError("Hesla se neshodují.");
       return;
     }
@@ -77,6 +99,9 @@ export default function JoinPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(currentSession?.access_token
+            ? { Authorization: `Bearer ${currentSession.access_token}` }
+            : {}),
         },
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
@@ -92,19 +117,17 @@ export default function JoinPage() {
         throw new Error(result?.error || "Nepodařilo se vytvořit účet.");
       }
 
-      setMessage(
-        result?.organizationName
-          ? `Účet byl vytvořen. Připojeno do organizace: ${result.organizationName}`
-          : "Účet byl vytvořen."
-      );
+      setMessage(result?.message || "Připojení ke škole bylo dokončeno.");
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      });
+      if (!currentSession) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
+        });
 
-      if (signInError) {
-        throw new Error(signInError.message);
+        if (signInError) {
+          throw new Error(signInError.message);
+        }
       }
 
       router.push("/portal/muj-profil");
@@ -126,8 +149,8 @@ export default function JoinPage() {
           </h1>
 
           <p className="mb-6 text-muted">
-            Pokud jste dostali kód školy nebo organizace, vyplňte formulář a účet se
-            automaticky připojí ke správné organizaci.
+            Pokud jste dostali kód školy, vyplňte formulář a účet se automaticky
+            připojí ke správné škole. Tato registrace je určena jednotlivým učitelům.
           </p>
 
           {error ? (
@@ -163,40 +186,51 @@ export default function JoinPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="jmeno@skola.cz"
                   autoComplete="email"
+                  disabled={!!currentSession}
                 />
               </div>
 
-              <div>
-                <Label>Heslo</Label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Alespoň 8 znaků"
-                  className={cn(passwordTooShort && "border-red-400 focus:ring-red-400")}
-                  autoComplete="new-password"
-                />
-                {passwordTooShort ? (
-                  <p className="mt-1.5 text-sm font-semibold text-red-600">
-                    Heslo musí mít alespoň 8 znaků.
-                  </p>
-                ) : null}
-              </div>
+              {!currentSession ? (
+                <>
+                  <div>
+                    <Label>Heslo</Label>
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Alespoň 8 znaků"
+                      className={cn(passwordTooShort && "border-red-400 focus:ring-red-400")}
+                      autoComplete="new-password"
+                    />
+                    {passwordTooShort ? (
+                      <p className="mt-1.5 text-sm font-semibold text-red-600">
+                        Heslo musí mít alespoň 8 znaků.
+                      </p>
+                    ) : null}
+                  </div>
 
-              <div>
-                <Label>Potvrzení hesla</Label>
-                <Input
-                  type="password"
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  placeholder="Zadejte heslo znovu"
-                  className={cn(passwordMismatch && "border-red-400 focus:ring-red-400")}
-                  autoComplete="new-password"
-                />
-                {passwordMismatch ? (
-                  <p className="mt-1.5 text-sm font-semibold text-red-600">Hesla se neshodují.</p>
-                ) : null}
-              </div>
+                  <div>
+                    <Label>Potvrzení hesla</Label>
+                    <Input
+                      type="password"
+                      value={passwordConfirm}
+                      onChange={(e) => setPasswordConfirm(e.target.value)}
+                      placeholder="Zadejte heslo znovu"
+                      className={cn(passwordMismatch && "border-red-400 focus:ring-red-400")}
+                      autoComplete="new-password"
+                    />
+                    {passwordMismatch ? (
+                      <p className="mt-1.5 text-sm font-semibold text-red-600">
+                        Hesla se neshodují.
+                      </p>
+                    ) : null}
+                  </div>
+                </>
+              ) : (
+                <Alert variant="neutral">
+                  Použije se váš přihlášený účet. Heslo ani e-mail se nezmění.
+                </Alert>
+              )}
 
               <div>
                 <Label>Kód organizace</Label>
@@ -212,18 +246,27 @@ export default function JoinPage() {
 
               <div className="pt-1.5">
                 <Button type="submit" disabled={saving}>
-                  {saving ? "Vytvářím účet…" : "Vytvořit účet a připojit se"}
+                  {saving
+                    ? "Připojuji…"
+                    : currentSession
+                      ? "Připojit stávající účet"
+                      : "Vytvořit účet a připojit se"}
                 </Button>
               </div>
             </div>
           </form>
 
-          <div className="mt-4 text-muted">
+          {!currentSession ? <div className="mt-4 text-muted">
             Už účet máte?{" "}
-            <Link href="/login" className="font-bold text-brand hover:underline">
+            <Link
+              href={`/login?next=${encodeURIComponent(
+                `/join${joinCode ? `?code=${joinCode}` : ""}`
+              )}`}
+              className="font-bold text-brand hover:underline"
+            >
               Přihlaste se
             </Link>
-          </div>
+          </div> : null}
         </Card>
       </main>
     </div>

@@ -69,13 +69,9 @@ export default function AdminPoptavky() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [q, setQ] = useState("");
 
-  const [approvingId, setApprovingId] = useState("");
-  const [actionMsg, setActionMsg] = useState("");
-
   async function load() {
     setLoading(true);
     setErr("");
-    setActionMsg("");
 
     const { data, error } = await supabase
       .from("leads")
@@ -106,86 +102,6 @@ export default function AdminPoptavky() {
     if (error) {
       setRows(prev);
       alert("Nepodařilo se uložit stav: " + error.message);
-    }
-  }
-
-  async function approveDemo(row) {
-    if (!row?.id) return;
-
-    const email = norm(row.email);
-    if (!email) {
-      alert("U této žádosti chybí e-mail.");
-      return;
-    }
-
-    const ok = window.confirm(`Schválit demo přístup pro ${email}?`);
-    if (!ok) return;
-
-    setApprovingId(row.id);
-    setActionMsg("");
-    setErr("");
-
-    try {
-      const [
-        {
-          data: { user },
-          error: userError,
-        },
-        {
-          data: { session },
-          error: sessionError,
-        },
-      ] = await Promise.all([
-        supabase.auth.getUser(),
-        supabase.auth.getSession(),
-      ]);
-
-      if (userError) {
-        throw userError;
-      }
-
-      if (sessionError) {
-        throw sessionError;
-      }
-
-      const accessToken = session?.access_token;
-
-      if (!user || !accessToken) {
-        throw new Error("Nejste přihlášen.");
-      }
-
-      const response = await fetch("/api/admin/approve-demo-request", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          requestId: row.id,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.error || "Schválení demo přístupu se nepodařilo.");
-      }
-
-      setRows((prev) =>
-        prev.map((x) =>
-          x.id === row.id
-            ? { ...x, status: "approved" }
-            : x
-        )
-      );
-
-      setActionMsg(`Demo přístup schválen pro ${email}.`);
-    } catch (e) {
-      const message = e?.message || "Schválení demo přístupu se nepodařilo.";
-      setErr(message);
-      alert(message);
-    } finally {
-      setApprovingId("");
     }
   }
 
@@ -266,12 +182,6 @@ export default function AdminPoptavky() {
           Přehled poptávek z formulářů <code>/poptavka</code> a <code>/zadost-o-pristup</code>.
           Řazeno podle nejnovějších.
         </p>
-
-        {actionMsg ? (
-          <Alert variant="success" className="mt-3.5">
-            {actionMsg}
-          </Alert>
-        ) : null}
 
         {err ? (
           <Alert variant="error" className="mt-3.5">
@@ -448,25 +358,6 @@ export default function AdminPoptavky() {
                             Vyřízeno
                           </button>
 
-                          {demoLead ? (
-                            <button
-                              onClick={() => approveDemo(r)}
-                              disabled={approvingId === r.id || s === "approved"}
-                              title="Schválit demo přístup"
-                              className={cn(
-                                "rounded-lg border px-2.5 py-2 text-xs font-black",
-                                approvingId === r.id || s === "approved"
-                                  ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-500"
-                                  : "border-brand bg-blue-50 text-brand"
-                              )}
-                            >
-                              {approvingId === r.id
-                                ? "Schvaluji..."
-                                : s === "approved"
-                                  ? "Schváleno"
-                                  : "Schválit demo"}
-                            </button>
-                          ) : null}
                         </div>
                       </TableCell>
                     </TableRow>

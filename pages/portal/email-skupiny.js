@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import PortalHeader from "../../components/PortalHeader";
 import RequirePlatformAdmin from "../../components/RequirePlatformAdmin";
+import { supabase } from "../../lib/supabaseClient";
 import { cn } from "../../lib/utils";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -37,14 +38,33 @@ export default function EmailSkupinyPage() {
 
   const selectedLabel = useMemo(() => {
     if (!selectedGroup) return "";
-    return GROUP_LABELS[selectedGroup] || selectedGroup;
-  }, [selectedGroup]);
+    return (
+      groups.find((group) => group.slug === selectedGroup)?.label ||
+      GROUP_LABELS[selectedGroup] ||
+      selectedGroup
+    );
+  }, [groups, selectedGroup]);
 
   async function loadGroups() {
     setCountsLoading(true);
+    setError("");
     try {
-      const res = await fetch("/api/admin/group-counts");
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error("Přihlášení vypršelo. Přihlaste se znovu.");
+      }
+
+      const res = await fetch("/api/admin/group-counts", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
       const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json?.error || "Nepodařilo se načíst skupiny.");
+      }
 
       const safeGroups = Array.isArray(json) ? json : [];
       setGroups(safeGroups);
@@ -54,6 +74,10 @@ export default function EmailSkupinyPage() {
         setSelectedGroup(first);
         await loadUsers(first);
       }
+    } catch (err) {
+      setGroups([]);
+      setUsers([]);
+      setError(err.message || "Nepodařilo se načíst skupiny.");
     } finally {
       setCountsLoading(false);
     }
@@ -63,7 +87,17 @@ export default function EmailSkupinyPage() {
     setUsersLoading(true);
     setError("");
     try {
-      const res = await fetch(`/api/admin/group-users?group=${encodeURIComponent(groupSlug)}`);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error("Přihlášení vypršelo. Přihlaste se znovu.");
+      }
+
+      const res = await fetch(`/api/admin/group-users?group=${encodeURIComponent(groupSlug)}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
       const json = await res.json();
 
       if (!res.ok) {
@@ -140,7 +174,7 @@ export default function EmailSkupinyPage() {
                         active ? "border-navy-900 bg-navy-900 text-white" : "bg-white text-navy-900"
                       )}
                     >
-                      <span>{GROUP_LABELS[group.slug] || group.slug}</span>
+                      <span>{group.label || GROUP_LABELS[group.slug] || group.slug}</span>
                       <b>{group.count}</b>
                     </button>
                   );

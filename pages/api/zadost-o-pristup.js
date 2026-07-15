@@ -395,6 +395,12 @@ export default async function handler(req, res) {
     const cleanMessage = String(message || "").trim();
     const demoMode = !!isDemoRequest;
 
+    if (demoMode) {
+      return res.status(410).json({
+        error: "Demo přístup již není součástí nabídky ARCHIMEDES Live.",
+      });
+    }
+
     if (!cleanName || cleanName.length < 2) {
       return res.status(400).json({ error: "Vyplňte prosím jméno a příjmení." });
     }

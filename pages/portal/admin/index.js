@@ -51,7 +51,7 @@ export default function AdminHome() {
             </Link>
           </AdminCard>
 
-          <AdminCard title="Poptávky" desc="Přehled leadů a práce s demo schválením.">
+          <AdminCard title="Poptávky" desc="Přehled žádostí a jejich zpracování.">
             <Link href="/portal/admin-poptavky" className="font-bold text-brand hover:underline">
               Otevřít admin poptávek
             </Link>

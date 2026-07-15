@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { getBearerToken } from "../../lib/server/platformAdminApi";
 
 const supabaseUrl =
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -10,19 +11,22 @@ if (!supabaseUrl || !serviceRoleKey) {
   );
 }
 
-const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+  auth: { persistSession: false },
+});
 
 async function safeDeleteAuthUser(userId) {
   if (!userId) return;
   try {
     await supabaseAdmin.auth.admin.deleteUser(userId);
   } catch (_) {
-    // záměrně mlčíme – nechceme přepsat původní chybu
+    // Zachováme původní chybu; úklid je pouze kompenzační krok.
   }
 }
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -30,17 +34,36 @@ export default async function handler(req, res) {
 
   try {
     const { email, password, fullName, joinCode } = req.body || {};
+    const token = getBearerToken(req);
+    let authenticatedUser = null;
 
-    const cleanEmail = String(email || "").trim().toLowerCase();
+    if (token) {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabaseAdmin.auth.getUser(token);
+
+      if (userError || !user) {
+        return res.status(401).json({ error: "Neplatné nebo expirované přihlášení." });
+      }
+
+      authenticatedUser = user;
+    }
+
+    const cleanEmail = String(authenticatedUser?.email || email || "")
+      .trim()
+      .toLowerCase();
     const cleanPassword = String(password || "");
-    const cleanFullName = String(fullName || "").trim();
+    const cleanFullName = String(
+      fullName || authenticatedUser?.user_metadata?.full_name || ""
+    ).trim();
     const cleanJoinCode = String(joinCode || "").trim().toUpperCase();
 
     if (!cleanEmail) {
       return res.status(400).json({ error: "Vyplňte e-mail." });
     }
 
-    if (!cleanPassword || cleanPassword.length < 8) {
+    if (!authenticatedUser && cleanPassword.length < 8) {
       return res.status(400).json({ error: "Heslo musí mít alespoň 8 znaků." });
     }
 
@@ -49,48 +72,83 @@ export default async function handler(req, res) {
     }
 
     if (!cleanJoinCode) {
-      return res.status(400).json({ error: "Vyplňte kód organizace." });
+      return res.status(400).json({ error: "Vyplňte kód školy." });
     }
 
     const { data: organization, error: orgError } = await supabaseAdmin
       .from("organizations")
-      .select("id, name, status")
+      .select("id, name, org_type, status")
       .eq("join_code", cleanJoinCode)
       .maybeSingle();
 
-    if (orgError) {
-      return res.status(400).json({ error: orgError.message });
-    }
+    if (orgError) throw orgError;
 
     if (!organization) {
-      return res
-        .status(404)
-        .json({ error: "Organizace s tímto kódem neexistuje." });
+      return res.status(404).json({ error: "Škola s tímto kódem neexistuje." });
+    }
+
+    if (organization.org_type !== "school") {
+      return res.status(403).json({
+        error: "Tento kód nepatří škole. Jednotlivé členství je určeno pouze učitelům škol.",
+      });
     }
 
     if (organization.status !== "active" && organization.status !== "trial") {
-      return res.status(403).json({ error: "Tato organizace není aktivní." });
+      return res.status(403).json({ error: "Tato škola není aktivní." });
     }
 
-    const { data: existingUsers, error: listUsersError } =
-      await supabaseAdmin.auth.admin.listUsers();
+    let userId = authenticatedUser?.id || null;
 
-    if (listUsersError) {
-      return res.status(400).json({
-        error: `Nepodařilo se ověřit existenci uživatele: ${listUsersError.message}`,
-      });
+    if (!userId) {
+      const { data: existingProfiles, error: existingProfileError } =
+        await supabaseAdmin
+          .from("profiles")
+          .select("id")
+          .ilike("email", cleanEmail)
+          .limit(1);
+
+      if (existingProfileError) throw existingProfileError;
+
+      if (existingProfiles?.length) {
+        return res.status(409).json({
+          error: "Účet s tímto e-mailem už existuje. Nejprve se přihlaste a potom zadejte kód školy znovu.",
+          accountExists: true,
+        });
+      }
+
+      const { data: createdUser, error: createUserError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email: cleanEmail,
+          password: cleanPassword,
+          email_confirm: true,
+          user_metadata: { full_name: cleanFullName },
+        });
+
+      if (createUserError) {
+        if (/already|registered|exists/i.test(createUserError.message || "")) {
+          return res.status(409).json({
+            error: "Účet s tímto e-mailem už existuje. Nejprve se přihlaste a potom zadejte kód školy znovu.",
+            accountExists: true,
+          });
+        }
+        throw createUserError;
+      }
+
+      userId = createdUser?.user?.id || null;
+      createdUserId = userId;
+
+      if (!userId) throw new Error("Nepodařilo se vytvořit uživatele.");
     }
 
-    const existingUser = existingUsers?.users?.find(
-      (user) => String(user.email || "").trim().toLowerCase() === cleanEmail
-    );
+    const { data: existingMembership, error: existingMembershipError } =
+      await supabaseAdmin
+        .from("organization_members")
+        .select("id, role_in_org, status")
+        .eq("organization_id", organization.id)
+        .eq("user_id", userId)
+        .maybeSingle();
 
-    if (existingUser) {
-      return res.status(409).json({
-        error:
-          "Účet s tímto e-mailem už existuje. Přihlaste se a připojte se ke škole jiným způsobem, nebo použijte obnovu hesla.",
-      });
-    }
+    if (existingMembershipError) throw existingMembershipError;
 
     const { count: activeMembersCount, error: countError } = await supabaseAdmin
       .from("organization_members")
@@ -98,76 +156,25 @@ export default async function handler(req, res) {
       .eq("organization_id", organization.id)
       .eq("status", "active");
 
-    if (countError) {
-      return res.status(400).json({
-        error: `Nepodařilo se ověřit členství organizace: ${countError.message}`,
-      });
-    }
+    if (countError) throw countError;
 
     const assignedRole =
-      (activeMembersCount || 0) === 0 ? "organization_admin" : "member";
+      existingMembership?.role_in_org ||
+      ((activeMembersCount || 0) === 0 ? "organization_admin" : "member");
 
-    const { data: createdUser, error: createUserError } =
-      await supabaseAdmin.auth.admin.createUser({
+    const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
+      {
+        id: userId,
         email: cleanEmail,
-        password: cleanPassword,
-        email_confirm: true,
-        user_metadata: {
-          full_name: cleanFullName,
-        },
-      });
+        full_name: cleanFullName,
+        is_active: true,
+        ...(createdUserId ? { must_set_password: false } : {}),
+        active_organization_id: organization.id,
+      },
+      { onConflict: "id" }
+    );
 
-    if (createUserError) {
-      return res.status(400).json({ error: createUserError.message });
-    }
-
-    const userId = createdUser?.user?.id;
-    createdUserId = userId;
-
-    if (!userId) {
-      return res.status(500).json({ error: "Nepodařilo se vytvořit uživatele." });
-    }
-
-    const { error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .upsert(
-        {
-          id: userId,
-          email: cleanEmail,
-          full_name: cleanFullName,
-          is_active: true,
-          must_set_password: false,
-          active_organization_id: organization.id,
-        },
-        { onConflict: "id" }
-      );
-
-    if (profileError) {
-      await safeDeleteAuthUser(userId);
-      return res.status(400).json({
-        error: `Profil se nepodařilo uložit: ${profileError.message}`,
-      });
-    }
-
-    const { data: savedProfile, error: savedProfileError } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (savedProfileError) {
-      await safeDeleteAuthUser(userId);
-      return res.status(400).json({
-        error: `Profil nelze ověřit: ${savedProfileError.message}`,
-      });
-    }
-
-    if (!savedProfile) {
-      await safeDeleteAuthUser(userId);
-      return res
-        .status(500)
-        .json({ error: "Profil nebyl po vytvoření nalezen." });
-    }
+    if (profileError) throw profileError;
 
     const { error: membershipError } = await supabaseAdmin
       .from("organization_members")
@@ -181,41 +188,23 @@ export default async function handler(req, res) {
         { onConflict: "user_id,organization_id" }
       );
 
-    if (membershipError) {
-      await safeDeleteAuthUser(userId);
-      return res.status(400).json({
-        error: `Členství se nepodařilo uložit: ${membershipError.message}`,
-      });
-    }
-
-    const { error: activateOrgError } = await supabaseAdmin
-      .from("profiles")
-      .update({ active_organization_id: organization.id })
-      .eq("id", userId);
-
-    if (activateOrgError) {
-      await safeDeleteAuthUser(userId);
-      return res.status(400).json({
-        error: `Nepodařilo se nastavit aktivní organizaci: ${activateOrgError.message}`,
-      });
-    }
+    if (membershipError) throw membershipError;
 
     return res.status(200).json({
       success: true,
+      existingAccount: !createdUserId,
       organizationName: organization.name,
       assignedRole,
-      message:
-        assignedRole === "organization_admin"
-          ? "Účet byl vytvořen a uživatel se stal prvním správcem organizace."
-          : "Účet byl vytvořen a uživatel byl připojen do organizace.",
+      message: !createdUserId
+        ? "Stávající účet byl připojen ke škole. Přihlašovací údaje zůstaly beze změny."
+        : assignedRole === "organization_admin"
+          ? "Účet byl vytvořen a uživatel se stal prvním správcem školy."
+          : "Účet byl vytvořen a uživatel byl připojen ke škole.",
     });
   } catch (err) {
-    if (createdUserId) {
-      await safeDeleteAuthUser(createdUserId);
-    }
+    if (createdUserId) await safeDeleteAuthUser(createdUserId);
 
-    return res.status(500).json({
-      error: err?.message || "Serverová chyba.",
-    });
+    console.error("join-organization error:", err);
+    return res.status(500).json({ error: "Připojení ke škole se nepodařilo." });
   }
 }

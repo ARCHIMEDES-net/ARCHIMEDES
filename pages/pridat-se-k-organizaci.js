@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GraduationCap, Globe2, Landmark, Users } from "lucide-react";
+import { supabase } from "../lib/supabaseClient";
 import { cn } from "../lib/utils";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
@@ -73,6 +74,28 @@ export default function PridatSeKOrganizaciPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+  const [currentSession, setCurrentSession] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted || !data?.session?.user) return;
+
+      const session = data.session;
+      setCurrentSession(session);
+      setEmail(session.user.email || "");
+      setFullName(
+        session.user.user_metadata?.full_name ||
+          session.user.user_metadata?.name ||
+          ""
+      );
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   function toggle(code) {
     setSelected((prev) =>
@@ -109,7 +132,12 @@ export default function PridatSeKOrganizaciPage() {
 
       const res = await fetch("/api/pridat-se-k-organizaci", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(currentSession?.access_token
+            ? { Authorization: `Bearer ${currentSession.access_token}` }
+            : {}),
+        },
         body: JSON.stringify({
           joinCode: trimmedJoinCode,
           fullName: trimmedName,
@@ -168,6 +196,13 @@ export default function PridatSeKOrganizaciPage() {
                 </Alert>
               ) : null}
 
+              {currentSession ? (
+                <Alert variant="neutral" className="mb-4">
+                  Zájmy se uloží k vašemu přihlášenému účtu. Členství v další
+                  organizaci tím nevznikne.
+                </Alert>
+              ) : null}
+
               <form onSubmit={submitForm} className="grid gap-4">
                 <div>
                   <Label htmlFor="joinCode">Kód organizace*</Label>
@@ -186,7 +221,13 @@ export default function PridatSeKOrganizaciPage() {
 
                 <div>
                   <Label htmlFor="email">E-mail*</Label>
-                  <Input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={!!currentSession}
+                  />
                 </div>
 
                 <div>
@@ -231,6 +272,14 @@ export default function PridatSeKOrganizaciPage() {
                   <Button href="/" variant="secondary">
                     Zpět na hlavní stránku
                   </Button>
+                  {!currentSession ? (
+                    <Button
+                      href="/login?next=/pridat-se-k-organizaci"
+                      variant="secondary"
+                    >
+                      Už mám účet
+                    </Button>
+                  ) : null}
                 </div>
               </form>
             </>
@@ -246,7 +295,9 @@ export default function PridatSeKOrganizaciPage() {
                 podle vybraných okruhů.
                 {result.emailSent === false
                   ? " Potvrzovací e-mail se teď nepodařilo odeslat, ale registrace proběhla v pořádku."
-                  : ""}
+                  : result.existingAccount
+                    ? " Zájmy byly uloženy k vašemu stávajícímu účtu."
+                    : " E-mailem jsme vám poslali také bezpečný odkaz pro nastavení hesla."}
               </Alert>
 
               <Button href="/">Zpět na hlavní stránku</Button>

@@ -145,6 +145,11 @@ async function resolvePostLoginPath() {
 export default function LoginPage() {
   const router = useRouter();
 
+  function requestedInternalPath() {
+    const next = typeof router.query.next === "string" ? router.query.next : "";
+    return next.startsWith("/") && !next.startsWith("//") ? next : "";
+  }
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -160,7 +165,7 @@ export default function LoginPage() {
     let cancelled = false;
 
     async function safeRedirectAfterAuth() {
-      const target = await resolvePostLoginPath();
+      const target = requestedInternalPath() || (await resolvePostLoginPath());
       if (!cancelled) {
         router.replace(target);
       }
@@ -190,23 +195,38 @@ export default function LoginPage() {
         }
 
         if (code) {
-          const { error: exchangeError } =
+          let sessionWasAlreadyExchanged = false;
+          const { data: exchangeData, error: exchangeError } =
             await supabase.auth.exchangeCodeForSession(code);
 
           if (exchangeError) {
-            if (!cancelled) {
-              setError(
-                exchangeError.message ||
-                  "Nepodařilo se dokončit přihlášení přes odkaz."
-              );
-              setCheckingLink(false);
+            // detectSessionInUrl může kód zpracovat automaticky dřív než
+            // tento efekt. V takovém případě je výměna podruhé neplatná,
+            // ale již existující relace je správný výsledek.
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+
+            if (!session?.user) {
+              if (!cancelled) {
+                setError(
+                  exchangeError.message ||
+                    "Nepodařilo se dokončit přihlášení přes odkaz."
+                );
+                setCheckingLink(false);
+              }
+              return;
             }
-            return;
+
+            sessionWasAlreadyExchanged = true;
           }
 
           clearAuthUrl();
 
-          if (isPasswordSetupFlow(type)) {
+          if (
+            sessionWasAlreadyExchanged ||
+            isPasswordSetupFlow(exchangeData?.redirectType || type)
+          ) {
             if (!cancelled) router.replace("/nastavit-heslo");
             return;
           }
@@ -325,7 +345,7 @@ export default function LoginPage() {
         return;
       }
 
-      const target = await resolvePostLoginPath();
+      const target = requestedInternalPath() || (await resolvePostLoginPath());
       router.push(target);
     } catch (e) {
       setError(e?.message || "Přihlášení se nepodařilo.");

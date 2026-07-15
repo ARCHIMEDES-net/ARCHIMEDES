@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -11,12 +10,9 @@ import { Label } from "../components/ui/label";
 import { Alert } from "../components/ui/alert";
 
 export default function ZadostPage() {
-  const router = useRouter();
-
-  const isDemoRequest = useMemo(
-    () => String(router.query.type || "").toLowerCase() === "demo",
-    [router.query.type]
-  );
+  // Demo nabídka byla obchodně ukončena. I starý odkaz ?type=demo proto
+  // zobrazí standardní žádost obce a nemůže založit demo lead.
+  const isDemoRequest = false;
 
   const initialType = isDemoRequest ? "škola" : "";
 

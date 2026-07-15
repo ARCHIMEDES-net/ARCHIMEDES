@@ -10,6 +10,8 @@ import { Alert } from "../components/ui/alert";
 function parseAuthStateFromUrl() {
   if (typeof window === "undefined") {
     return {
+      code: "",
+      tokenHash: "",
       accessToken: "",
       refreshToken: "",
       errorCode: "",
@@ -30,6 +32,8 @@ function parseAuthStateFromUrl() {
   const searchParams = new URLSearchParams(search);
 
   return {
+    code: searchParams.get("code") || "",
+    tokenHash: searchParams.get("token_hash") || "",
     accessToken:
       hashParams.get("access_token") ||
       searchParams.get("access_token") ||
@@ -90,10 +94,13 @@ export default function NastavitHeslo() {
     async function init() {
       try {
         const {
+          code,
+          tokenHash,
           accessToken,
           refreshToken,
           errorCode,
           errorDescription,
+          type,
         } = parseAuthStateFromUrl();
 
         if (errorCode) {
@@ -105,7 +112,28 @@ export default function NastavitHeslo() {
           return;
         }
 
-        if (accessToken && refreshToken) {
+        if (code) {
+          const { error: exchangeError } =
+            await supabase.auth.exchangeCodeForSession(code);
+
+          if (exchangeError) {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+
+            if (!session?.user) throw exchangeError;
+          }
+
+          cleanupUrl();
+        } else if (tokenHash && type) {
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type,
+          });
+
+          if (verifyError) throw verifyError;
+          cleanupUrl();
+        } else if (accessToken && refreshToken) {
           const { error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,

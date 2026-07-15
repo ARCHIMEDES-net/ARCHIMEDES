@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import { getBearerToken } from "../../lib/server/platformAdminApi";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -24,13 +25,15 @@ function escapeHtml(value = "") {
     .replace(/'/g, "&#039;");
 }
 
-// Krok 3: potvrzovací e-mail je záměrně jen "jste zaregistrováni k
-// upozorněním", ne Supabase systémový "nastavte si heslo" e-mail — proto
-// se účet zakládá přes admin.createUser (bez hesla, bez vestavěného
-// mailu), ne přes inviteUserByEmail. Stejný vzor tolerance k výpadku SMTP
-// jako v /api/zadost-o-pristup.js (Blok A): DB zápis je hotový dřív, e-mail
-// je jen "nice to have" a jeho selhání nesmí vrátit chybu žadateli.
-async function sendConfirmationEmail({ email, fullName, organizationName, interestLabels }) {
+// Nový příjemce dostane v našem potvrzovacím e-mailu jednorázový odkaz pro
+// nastavení hesla. Existujícímu přihlášenému účtu heslo ani e-mail neměníme.
+async function sendConfirmationEmail({
+  email,
+  fullName,
+  organizationName,
+  interestLabels,
+  setupUrl,
+}) {
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = Number(process.env.SMTP_PORT);
   const smtpUser = process.env.SMTP_USER;
@@ -64,6 +67,7 @@ Vybrané okruhy:
 ${interestLabels.map((l) => `- ${l}`).join("\n")}
 
 Kdykoliv si výběr můžete upravit ve svém profilu na ${SITE_URL}/login.
+${setupUrl ? `\nNejprve si nastavte heslo: ${setupUrl}\n` : ""}
 
 Tým ARCHIMEDES Live
 ${SITE_URL}`,
@@ -73,6 +77,11 @@ ${SITE_URL}`,
         <p>jste zaregistrováni k <strong>upozornění na vysílání a program ARCHIMEDES Live</strong> pro organizaci <strong>${safeOrg}</strong>.</p>
         <p><strong>Vybrané okruhy:</strong></p>
         <ul>${listHtml}</ul>
+        ${
+          setupUrl
+            ? `<p><a href="${escapeHtml(setupUrl)}" style="display:inline-block;padding:12px 18px;border-radius:10px;background:#1d4ed8;color:#fff;text-decoration:none;font-weight:700;">Nastavit heslo</a></p>`
+            : ""
+        }
         <p>Kdykoliv si výběr můžete upravit ve svém profilu na <a href="${escapeHtml(SITE_URL)}/login">${escapeHtml(SITE_URL)}/login</a>.</p>
         <p>Tým ARCHIMEDES Live<br/><a href="${escapeHtml(SITE_URL)}">${escapeHtml(SITE_URL)}</a></p>
       </div>
@@ -87,10 +96,29 @@ export default async function handler(req, res) {
 
   try {
     const { joinCode, fullName, email, activityCodes } = req.body || {};
+    const token = getBearerToken(req);
+    let authenticatedUser = null;
+
+    if (token) {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabaseAdmin.auth.getUser(token);
+
+      if (userError || !user) {
+        return res.status(401).json({ error: "Neplatné nebo expirované přihlášení." });
+      }
+
+      authenticatedUser = user;
+    }
 
     const cleanJoinCode = String(joinCode || "").trim().toUpperCase();
-    const cleanFullName = String(fullName || "").trim();
-    const cleanEmail = String(email || "").trim().toLowerCase();
+    const cleanFullName = String(
+      fullName || authenticatedUser?.user_metadata?.full_name || ""
+    ).trim();
+    const cleanEmail = String(authenticatedUser?.email || email || "")
+      .trim()
+      .toLowerCase();
     const cleanActivityCodes = Array.isArray(activityCodes)
       ? [...new Set(activityCodes.map((c) => String(c || "").trim()).filter(Boolean))]
       : [];
@@ -159,12 +187,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Vybrali jste neplatný okruh zájmu." });
     }
 
-    // Pokud e-mail už profil má, nezakládáme duplicitní účet — jen
-    // doplníme/aktualizujeme jeho notification_preferences (bod 2 zadání).
+    // Existující preference lze měnit pouze po přihlášení pod stejným UUID.
     const { data: existingProfiles, error: existingProfileError } = await supabaseAdmin
       .from("profiles")
       .select("id")
-      .eq("email", cleanEmail)
+      .ilike("email", cleanEmail)
       .limit(1);
 
     if (existingProfileError) {
@@ -173,8 +200,22 @@ export default async function handler(req, res) {
     }
 
     let profileId = existingProfiles?.[0]?.id || null;
+    let setupUrl = "";
 
-    if (!profileId) {
+    if (profileId && authenticatedUser?.id !== profileId) {
+      return res.status(409).json({
+        error: "Účet s tímto e-mailem už existuje. Přihlaste se a formulář odešlete znovu.",
+        accountExists: true,
+      });
+    }
+
+    if (!profileId && authenticatedUser?.id) {
+      profileId = authenticatedUser.id;
+    }
+
+    const isNewAccount = !profileId;
+
+    if (isNewAccount) {
       const { data: createdUser, error: createUserError } =
         await supabaseAdmin.auth.admin.createUser({
           email: cleanEmail,
@@ -193,6 +234,28 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Nepodařilo se založit profil." });
       }
 
+      const { data: linkData, error: linkError } =
+        await supabaseAdmin.auth.admin.generateLink({
+          type: "recovery",
+          email: cleanEmail,
+          options: { redirectTo: `${SITE_URL}/nastavit-heslo` },
+        });
+
+      if (linkError) {
+        console.error("password setup link error:", linkError);
+        await supabaseAdmin.auth.admin.deleteUser(profileId);
+        return res.status(500).json({ error: "Nepodařilo se připravit bezpečný odkaz pro nastavení hesla." });
+      }
+
+      setupUrl = linkData?.properties?.action_link || "";
+
+      if (!setupUrl) {
+        await supabaseAdmin.auth.admin.deleteUser(profileId);
+        return res.status(500).json({ error: "Nepodařilo se připravit bezpečný odkaz pro nastavení hesla." });
+      }
+    }
+
+    if (isNewAccount || !existingProfiles?.length) {
       const { error: profileUpsertError } = await supabaseAdmin
         .from("profiles")
         .upsert(
@@ -201,14 +264,15 @@ export default async function handler(req, res) {
             email: cleanEmail,
             full_name: cleanFullName,
             is_active: true,
-            must_set_password: true,
-            active_organization_id: organization.id,
+            must_set_password: isNewAccount,
+            user_type: "individual",
           },
           { onConflict: "id" }
         );
 
       if (profileUpsertError) {
         console.error("profile upsert error:", profileUpsertError);
+        if (isNewAccount) await supabaseAdmin.auth.admin.deleteUser(profileId);
         return res.status(500).json({ error: "Nepodařilo se uložit profil." });
       }
     }
@@ -225,6 +289,7 @@ export default async function handler(req, res) {
 
     if (preferencesError) {
       console.error("notification_preferences upsert error:", preferencesError);
+      if (isNewAccount) await supabaseAdmin.auth.admin.deleteUser(profileId);
       return res.status(500).json({ error: "Nepodařilo se uložit vybrané okruhy." });
     }
 
@@ -235,6 +300,7 @@ export default async function handler(req, res) {
         fullName: cleanFullName,
         organizationName: organization.name,
         interestLabels: validActivities.map((a) => a.label),
+        setupUrl,
       });
       emailSent = true;
     } catch (emailError) {
@@ -248,6 +314,7 @@ export default async function handler(req, res) {
       ok: true,
       organizationName: organization.name,
       emailSent,
+      existingAccount: !isNewAccount,
     });
   } catch (err) {
     console.error("pridat-se-k-organizaci API error:", err);
