@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
+import Footer from "../components/Footer";
 
 const heroImg = "/ucebna-exterier.webp";
 
@@ -368,7 +369,7 @@ export default function Ucebna() {
           <div className="awardsBand">
             <div className="awardsBandTop">
               <div>
-                <div className="awardsBandEyebrow">Ocenění projektu</div>
+                <div className="awardsBandEyebrow">Oceněné obce</div>
                 <div className="awardsBandTitle">
                   Uznání, která potvrzují reálný přínos učebny ARCHIMEDES®
                 </div>
@@ -1936,6 +1937,7 @@ export default function Ucebna() {
           }
         `}</style>
       </main>
+      <Footer />
     </div>
     </>
   );
