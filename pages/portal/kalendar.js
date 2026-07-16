@@ -447,9 +447,13 @@ export default function Kalendar() {
     };
   }, []);
 
-  const now = new Date();
-
   const visibleRows = useMemo(() => {
+    // Keep the derived array stable between renders. A fresh `new Date()` in
+    // component scope changed this memo on every render, which retriggered
+    // the attendee-loading effect below and could make portal navigation
+    // unresponsive through a continuous request/render loop.
+    const now = new Date();
+
     return rows.filter((r) => {
       const d = getEffectiveStart(r);
       if (!d) return false;
@@ -457,7 +461,7 @@ export default function Kalendar() {
       const keepUntil = new Date(d.getTime() + 24 * 60 * 60 * 1000);
       return keepUntil >= now;
     });
-  }, [rows, now]);
+  }, [rows]);
 
   const sortedRows = useMemo(() => {
     return [...visibleRows].sort((a, b) => {
