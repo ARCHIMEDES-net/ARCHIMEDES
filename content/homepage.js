@@ -9,8 +9,8 @@
 
 export const hero = {
   eyebrow: "ARCHIMEDES Live pro obce",
-  titleLine1: "Silná komunita.",
-  titleLine2: "Úspěšná obec.",
+  titleLine1: "Silná komunita",
+  titleLine2: "Úspěšná obec",
   subtitle: "Živý program pro celou obec.",
   lead:
     "Přinášíme obcím pravidelný živý program pro školy, spolky, seniory i další místní komunity. Program, při kterém se lidé setkávají, vzdělávají a sbližují.",
