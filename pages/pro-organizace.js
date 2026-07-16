@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, GraduationCap, MapPin, Radio, Users } from "lucide-react";
 import Footer from "../components/Footer";
@@ -65,10 +66,13 @@ export default function ProOrganizacePage() {
             </div>
 
             <div className="relative min-h-[400px] lg:min-h-full">
-              <img
+              <Image
                 src="/program-vysilani.webp"
                 alt="Živé odborné vysílání ARCHIMEDES v učebně"
-                className="absolute inset-0 h-full w-full object-cover"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 53vw"
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-navy-900/70 via-navy-900/10 to-transparent" />
             </div>
