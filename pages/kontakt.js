@@ -1,13 +1,8 @@
 import Head from "next/head";
-import Link from "next/link";
-import { ArrowRight, User } from "lucide-react";
+import { User } from "lucide-react";
 import Footer from "../components/Footer";
-import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
 import SectionEyebrow from "../components/home/SectionEyebrow";
-
-const heroImg = "/ceny.webp";
 
 const team = [
   {
@@ -37,13 +32,6 @@ const team = [
     email: "martina.lacnakova@eduvision.cz",
     phone: "+420 732 827 210",
     note: "Obchodní komunikace, poptávky, zakázky",
-  },
-  {
-    name: "Natálie Lípová",
-    role: "Manažerka programu a obsahu",
-    email: "natalie.lipova@archimedeslive.com",
-    phone: "+420 737 628 944",
-    note: "Program, vysílání, obsah platformy",
   },
   {
     name: "Simona Gavlíková",
@@ -106,60 +94,32 @@ export default function KontaktPage() {
         />
       </Head>
 
-      <main className="min-h-screen bg-slate-50">
-        <section className="mx-auto max-w-[1180px] px-5 pb-8 pt-12">
-          <div className="grid gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
+      <main className="min-h-screen bg-white">
+        <section className="bg-[#edf5fb]">
+          <div className="mx-auto grid max-w-[1180px] gap-10 px-5 py-14 lg:grid-cols-[1fr_0.9fr] lg:items-center lg:py-20">
             <div>
-              <SectionEyebrow>ARCHIMEDES Live • kontakt</SectionEyebrow>
+              <SectionEyebrow>Kontakt</SectionEyebrow>
 
               <h1 className="text-[42px] font-[950] leading-[1.05] tracking-[-0.03em] text-navy-900 sm:text-[52px]">
-                Spojte se s týmem
-                <br />
-                ARCHIMEDES Live
+                Spojte se rovnou se správným člověkem
               </h1>
 
               <p className="mt-4 max-w-[620px] text-lg leading-relaxed text-muted">
-                Rádi vám představíme program pro školy, obce a komunitu,
-                možnosti zapojení i vzorovou učebnu ARCHIMEDES®.
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Button href="/zadost">
-                  Chci program pro naši obec
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Button>
-                <Button href="/program" variant="secondary">
-                  Zobrazit program
-                </Button>
-              </div>
-
-              <div className="mt-6 flex max-w-[640px] flex-wrap items-center gap-2.5">
-                <Badge>1. místo • OBEC 2030</Badge>
-                <Badge variant="outline">Finalista • E.ON Energy Globe</Badge>
-              </div>
-              <p className="mt-3 max-w-[640px] text-sm leading-relaxed text-muted">
-                ARCHIMEDES Live je postaven na reálných realizacích,
-                zkušenostech z obcí a živém programu pro vzdělávání i komunitní
-                život.
+                Program pro obec, spolupráce se svazem, obsah vysílání i realizace
+                učebny mají vlastní odpovědnou osobu. Vyberte si kontakt podle
+                toho, co právě potřebujete řešit.
               </p>
             </div>
-
-            <div className="relative overflow-hidden rounded-card-lg border border-slate-900/[0.08] bg-white shadow-[0_24px_60px_rgba(15,23,42,0.12)]">
-              <img
-                src={heroImg}
-                alt="Ocenění projektu ARCHIMEDES"
-                className="aspect-[16/11] w-full object-cover"
-              />
-              <div className="absolute inset-x-4 bottom-4">
-                <div className="inline-flex w-fit items-center rounded-full bg-white/95 px-3.5 py-2 text-[13px] font-black text-navy-900 shadow-[0_10px_24px_rgba(15,23,42,0.12)]">
-                  Oceněný projekt pro školy a obce
-                </div>
-              </div>
+            <div className="rounded-[26px] bg-white p-7 shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
+              <span className="text-xs font-black uppercase tracking-[0.14em] text-brand">Obecný kontakt</span>
+              <a href="mailto:info@eduvision.cz" className="mt-4 block break-words text-2xl font-black text-navy-900">info@eduvision.cz</a>
+              <a href="tel:+420732827210" className="mt-2 block text-lg font-bold text-slate-700">+420 732 827 210</a>
+              <p className="mt-5 text-sm leading-relaxed text-slate-600">Pokud si nejste jistí, komu napsat, ozvěte se sem. Předáme zprávu správnému kolegovi.</p>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1180px] px-5 py-4">
+        <section className="mx-auto max-w-[1180px] px-5 py-10">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <ContactCard
               title="E-mail"
@@ -190,7 +150,7 @@ export default function KontaktPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1180px] px-5 py-8">
+        <section className="mx-auto max-w-[1180px] px-5 pb-16 pt-8">
           <div className="mb-7 max-w-[760px]">
             <SectionEyebrow>Tým ARCHIMEDES Live</SectionEyebrow>
             <h2 className="text-[36px] font-[950] tracking-[-0.03em] text-navy-900">
@@ -206,42 +166,6 @@ export default function KontaktPage() {
             {team.map((person) => (
               <TeamCard key={person.email} person={person} />
             ))}
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-[1180px] px-5 pb-16 pt-4">
-          <div className="overflow-hidden rounded-card-lg bg-gradient-to-br from-[#173b77] via-navy-900 to-[#081120] text-white shadow-[0_24px_60px_rgba(15,23,42,0.18)]">
-            <div className="grid gap-6 p-8 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div>
-                <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-[13px] font-bold text-white/90">
-                  Další krok
-                </span>
-
-                <h3 className="mt-3.5 text-[30px] font-[950] leading-[1.12] tracking-[-0.02em] text-white">
-                  Chcete učebnu ARCHIMEDES &bdquo;na klíč&ldquo;?
-                </h3>
-
-                <p className="mt-3 max-w-[700px] text-lg leading-relaxed text-white/78">
-                  Pošlete poptávku a ozveme se vám s dalším postupem, možností
-                  online schůzky nebo návštěvy vzorové učebny.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <Link
-                  href="/zadost"
-                  className="inline-flex h-[52px] items-center justify-center whitespace-nowrap rounded-2xl bg-white px-5 font-black text-navy-900"
-                >
-                  Chci program pro naši obec
-                </Link>
-                <Link
-                  href="/ucebna"
-                  className="inline-flex h-[52px] items-center justify-center whitespace-nowrap rounded-2xl border border-white/26 px-5 font-bold text-white"
-                >
-                  Zobrazit učebnu
-                </Link>
-              </div>
-            </div>
           </div>
         </section>
 
