@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check, MapPin, Radio, Users } from "lucide-react";
 import Footer from "../components/Footer";
+import FaqSection, { createFaqStructuredData } from "../components/FaqSection";
 import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 
@@ -51,6 +52,44 @@ const included = [
   "podpora při zapojení místních organizací",
 ];
 
+const municipalityFaqs = [
+  {
+    question: "Co obec v rámci licence ARCHIMEDES Live získá?",
+    answer:
+      "Obec získá pravidelný živý a moderovaný program, pozvánky podle zaměření místních organizací a přístup pro školu, spolky, seniory i další zapojené skupiny. Součástí je také podpora při jejich zapojení a dostupné záznamy či materiály u vybraných pořadů.",
+  },
+  {
+    question: "Kdo všechno může program v obci využívat?",
+    answer:
+      "Pod jedním registračním číslem obce se mohou zapojit místní školy, spolky, seniorské skupiny a další organizace. Každá z nich si zvolí oblasti zájmu a dostává pozvánky na pořady, které jsou pro její členy relevantní.",
+  },
+  {
+    question: "Kolik stojí licence pro obec?",
+    answer:
+      "Licence stojí 1 990 Kč měsíčně pro celou obec. Za jednotlivé školy, spolky, seniorské skupiny ani další místní organizace zapojené pod registračním číslem obce se nepřiplácí.",
+  },
+  {
+    question: "Musí obec připravovat a organizovat vlastní pořady?",
+    answer:
+      "Nemusí. ARCHIMEDES Live zajišťuje téma, hosta, moderaci i technické vysílání. Obec nebo místní organizace pouze vyberou vhodné pořady, pozvou účastníky a zajistí místo, kde se společně setkají.",
+  },
+  {
+    question: "Je pro zapojení nutná venkovní učebna ARCHIMEDES?",
+    answer:
+      "Není. Program lze sledovat ve škole, klubovně, knihovně, komunitním centru nebo jiném vhodném prostoru s internetem a obrazovkou. Venkovní učebna ARCHIMEDES je samostatná možnost pro obce, které chtějí vytvořit trvalé zázemí pro výuku i komunitní život.",
+  },
+  {
+    question: "Jak probíhá zapojení školy a místních organizací?",
+    answer:
+      "Po uzavření spolupráce získá obec registrační číslo. Škola a další místní organizace se pod tímto číslem zaregistrují, nastaví si oblasti zájmu a následně dostávají pozvánky na vhodná živá vysílání.",
+  },
+  {
+    question: "Jsou po vysílání dostupné záznamy?",
+    answer:
+      "Pokud je u konkrétního pořadu zveřejněný záznam, přihlášení uživatelé jej najdou v neveřejném archivu. Ne každý živý pořad musí mít záznam nebo navazující materiály k dispozici.",
+  },
+];
+
 export default function ObecPage() {
   return (
     <>
@@ -59,6 +98,12 @@ export default function ObecPage() {
         <meta
           name="description"
           content="Pravidelný živý program pro školy, spolky, seniory a další místní organizace v jedné obecní licenci."
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(createFaqStructuredData(municipalityFaqs)),
+          }}
         />
       </Head>
 
@@ -184,6 +229,12 @@ export default function ObecPage() {
             </div>
           </div>
         </section>
+
+        <FaqSection
+          title="Co obce nejčastěji potřebují vědět"
+          intro="Praktické odpovědi pro vedení obce, školu i místní organizace před zapojením do programu."
+          items={municipalityFaqs}
+        />
       </main>
 
       <Footer />
