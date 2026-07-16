@@ -105,11 +105,18 @@ jobs:
             --exclude storage.buckets_vectors \
             --exclude storage.vector_indexes
 
-          pg_dump "$SUPABASE_DB_URL" --format=custom --no-owner --no-privileges \
-            --file "$database/raw-full.dump"
-          pg_dump "$SUPABASE_DB_URL" --format=custom --data-only \
-            --no-owner --no-privileges --schema auth --schema storage \
-            --file "$database/auth-storage-data.dump"
+          pg17_image="ghcr.io/supabase/postgres:17.6.1.143"
+          docker run --rm --user "$(id -u):$(id -g)" --entrypoint pg_dump \
+            --volume "$database:/backup" \
+            "$pg17_image" "$SUPABASE_DB_URL" \
+            --format=custom --no-owner --no-privileges \
+            --file /backup/raw-full.dump
+          docker run --rm --user "$(id -u):$(id -g)" --entrypoint pg_dump \
+            --volume "$database:/backup" \
+            "$pg17_image" "$SUPABASE_DB_URL" \
+            --format=custom --data-only --no-owner --no-privileges \
+            --schema auth --schema storage \
+            --file /backup/auth-storage-data.dump
 
           BACKUP_STORAGE_DIR="$storage" \
             node scripts/backup/download-supabase-storage.mjs
@@ -215,8 +222,13 @@ jobs:
             cd "$payload"
             sha256sum --check MANIFEST.sha256
           )
-          pg_restore --list "$payload/database/raw-full.dump" > /dev/null
-          pg_restore --list "$payload/database/auth-storage-data.dump" > /dev/null
+          pg17_image="ghcr.io/supabase/postgres:17.6.1.143"
+          docker run --rm --user "$(id -u):$(id -g)" --entrypoint pg_restore \
+            --volume "$payload/database:/backup:ro" \
+            "$pg17_image" --list /backup/raw-full.dump > /dev/null
+          docker run --rm --user "$(id -u):$(id -g)" --entrypoint pg_restore \
+            --volume "$payload/database:/backup:ro" \
+            "$pg17_image" --list /backup/auth-storage-data.dump > /dev/null
 
           echo "payload=$payload" >> "$GITHUB_ENV"
 
