@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /portal/
+Disallow: /login
+Disallow: /logout
+Disallow: /nastavit-heslo
+Disallow: /nastaveni-pristupu
+Disallow: /reset-hesla
+Disallow: /join
+
+Sitemap: https://www.archimedeslive.com/sitemap.xml
