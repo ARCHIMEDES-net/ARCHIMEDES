@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PhotoWithFallback from "../PhotoWithFallback";
 import { Card } from "../ui/card";
 
@@ -5,7 +6,12 @@ export default function ReferenceCard({ reference }) {
   const r = reference;
 
   return (
-    <Card className="group overflow-hidden p-0">
+    <Link
+      href={r.storyHref || "/ucebna#oceneni"}
+      className="block rounded-card-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4"
+      aria-label={`${r.name}: ${r.badge}`}
+    >
+      <Card className="group overflow-hidden p-0 transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)]">
       <div className="relative aspect-[4/3] bg-eyebrow">
         <PhotoWithFallback
           src={r.photo}
@@ -42,6 +48,7 @@ export default function ReferenceCard({ reference }) {
           <strong className="mt-1 block text-xl font-black">{r.name}</strong>
         </div>
       </div>
-    </Card>
+      </Card>
+    </Link>
   );
 }
