@@ -147,6 +147,14 @@ export default function Footer() {
           color: #ffffff;
         }
 
+        .footer-link:focus-visible,
+        .footer-social-icon:focus-visible,
+        .footer-legal-link:focus-visible {
+          outline: 3px solid #efbd58;
+          outline-offset: 3px;
+          border-radius: 8px;
+        }
+
         .footer-social {
           display: flex;
           gap: 8px;
