@@ -67,12 +67,12 @@ export default function ProOrganizacePage() {
 
             <div className="relative min-h-[400px] lg:min-h-full">
               <Image
-                src="/pro-svazy-hasici.webp"
-                alt="Rozhovor se zástupcem hasičů při přípravě společného programu"
+                src="/program-vysilani.webp"
+                alt="Živé odborné vysílání ARCHIMEDES v učebně"
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 53vw"
-                className="object-cover object-[center_28%]"
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-navy-900/70 via-navy-900/10 to-transparent" />
             </div>
