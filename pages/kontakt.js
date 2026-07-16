@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Image from "next/image";
 import { User } from "lucide-react";
 import Footer from "../components/Footer";
 import { Card } from "../components/ui/card";
@@ -96,10 +97,13 @@ export default function KontaktPage() {
             </div>
 
             <div className="relative min-h-[470px] lg:min-h-full">
-              <img
+              <Image
                 src="/spolecna.jpg"
                 alt="Účastníci společného programu před učebnou ARCHIMEDES"
-                className="absolute inset-0 h-full w-full object-cover object-[52%_center]"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 55vw"
+                className="object-cover object-[52%_center]"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#edf5fb]/45 via-transparent to-transparent lg:from-[#edf5fb]/35" />
 
