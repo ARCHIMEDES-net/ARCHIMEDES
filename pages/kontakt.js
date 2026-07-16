@@ -42,24 +42,6 @@ const team = [
   },
 ];
 
-function ContactCard({ title, text, value, href }) {
-  return (
-    <Card className="p-6">
-      <div className="text-[13px] font-black uppercase tracking-[0.06em] text-slate-500">
-        {title}
-      </div>
-      {text ? <p className="mb-3.5 mt-2.5 text-sm leading-relaxed text-muted">{text}</p> : null}
-      {href ? (
-        <a href={href} className="break-words text-lg font-bold leading-relaxed text-navy-900">
-          {value}
-        </a>
-      ) : (
-        <div className="text-lg font-bold leading-relaxed text-navy-900">{value}</div>
-      )}
-    </Card>
-  );
-}
-
 function TeamCard({ person }) {
   return (
     <Card className="p-6 transition-colors hover:border-slate-300">
@@ -95,12 +77,13 @@ export default function KontaktPage() {
       </Head>
 
       <main className="min-h-screen bg-white">
-        <section className="bg-[#edf5fb]">
-          <div className="mx-auto grid max-w-[1180px] gap-10 px-5 py-14 lg:grid-cols-[1fr_0.9fr] lg:items-center lg:py-20">
-            <div>
+        <section className="overflow-hidden bg-[#edf5fb]">
+          <div className="mx-auto grid min-h-[610px] max-w-[1280px] lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="flex items-center px-5 py-16 sm:px-10 lg:px-12 lg:py-20">
+              <div className="max-w-[600px]">
               <SectionEyebrow>Kontakt</SectionEyebrow>
 
-              <h1 className="text-[42px] font-[950] leading-[1.05] tracking-[-0.03em] text-navy-900 sm:text-[52px]">
+              <h1 className="text-[clamp(42px,5vw,64px)] font-[950] leading-[0.98] tracking-[-0.045em] text-navy-900">
                 Spojte se rovnou se správným člověkem
               </h1>
 
@@ -109,48 +92,31 @@ export default function KontaktPage() {
                 učebny mají vlastní odpovědnou osobu. Vyberte si kontakt podle
                 toho, co právě potřebujete řešit.
               </p>
+              </div>
             </div>
-            <div className="rounded-[26px] bg-white p-7 shadow-[0_20px_55px_rgba(15,23,42,0.08)]">
-              <span className="text-xs font-black uppercase tracking-[0.14em] text-brand">Obecný kontakt</span>
-              <a href="mailto:info@eduvision.cz" className="mt-4 block break-words text-2xl font-black text-navy-900">info@eduvision.cz</a>
-              <a href="tel:+420732827210" className="mt-2 block text-lg font-bold text-slate-700">+420 732 827 210</a>
-              <p className="mt-5 text-sm leading-relaxed text-slate-600">Pokud si nejste jistí, komu napsat, ozvěte se sem. Předáme zprávu správnému kolegovi.</p>
+
+            <div className="relative min-h-[470px] lg:min-h-full">
+              <img
+                src="/spolecna.jpg"
+                alt="Tým a účastníci programu před učebnou ARCHIMEDES"
+                className="absolute inset-0 h-full w-full object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#edf5fb]/45 via-transparent to-transparent lg:from-[#edf5fb]/35" />
+
+              <div className="absolute bottom-5 left-5 right-5 max-w-[430px] rounded-[22px] bg-white/95 p-6 shadow-[0_20px_55px_rgba(15,23,42,0.18)] backdrop-blur sm:bottom-8 sm:left-8 sm:p-7">
+                <span className="text-xs font-black uppercase tracking-[0.14em] text-brand">Obecný kontakt</span>
+                <a href="mailto:info@eduvision.cz" className="mt-3 block break-words text-xl font-black text-navy-900 sm:text-2xl">info@eduvision.cz</a>
+                <a href="tel:+420732827210" className="mt-1.5 block text-base font-bold text-slate-700 sm:text-lg">+420 732 827 210</a>
+                <p className="mt-3 text-sm leading-relaxed text-slate-600">Nevíte, komu napsat? Předáme zprávu správnému kolegovi.</p>
+                <p className="mt-3 border-t border-slate-200 pt-3 text-xs leading-relaxed text-slate-500">
+                  EduVision s.r.o. · Purkyňova 649/127, 612 00 Brno
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1180px] px-5 py-10">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <ContactCard
-              title="E-mail"
-              text="Napište nám kvůli programu, učebně nebo spolupráci."
-              value="info@eduvision.cz"
-              href="mailto:info@eduvision.cz"
-            />
-            <ContactCard
-              title="Telefon"
-              text="Nejrychlejší cesta pro domluvu schůzky nebo ukázky."
-              value="+420 732 827 210"
-              href="tel:+420732827210"
-            />
-            <ContactCard
-              title="Provozovatel"
-              value={
-                <>
-                  EduVision s.r.o.
-                  <br />
-                  Purkyňova 649/127
-                  <br />
-                  Medlánky
-                  <br />
-                  612 00 Brno
-                </>
-              }
-            />
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-[1180px] px-5 pb-16 pt-8">
+        <section className="mx-auto max-w-[1180px] px-5 pb-16 pt-14 sm:pt-16">
           <div className="mb-7 max-w-[760px]">
             <SectionEyebrow>Tým ARCHIMEDES Live</SectionEyebrow>
             <h2 className="text-[36px] font-[950] tracking-[-0.03em] text-navy-900">
