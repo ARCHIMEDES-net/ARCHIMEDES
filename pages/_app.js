@@ -77,7 +77,7 @@ export default function App({ Component, pageProps }) {
         legalName: "EduVision s.r.o.",
         url: siteUrl,
         logo: `${siteUrl}/logo-archimedes-live.png`,
-        email: "info@eduvision.cz",
+        email: "zive@archimedeslive.com",
         telephone: "+420732827210",
         address: {
           "@type": "PostalAddress",
