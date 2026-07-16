@@ -29,6 +29,10 @@ export default function PartnerCard({ partner }) {
               className="h-full w-auto max-w-[160px] object-contain object-left"
             />
           )
+        ) : partner.mark ? (
+          <span className="inline-flex h-14 min-w-14 items-center justify-center rounded-2xl bg-navy-900 px-3 text-xl font-[950] tracking-[-0.04em] text-white">
+            {partner.mark}
+          </span>
         ) : (
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-eyebrow text-navy-600">
             <Icon className="h-6 w-6" aria-hidden="true" />
