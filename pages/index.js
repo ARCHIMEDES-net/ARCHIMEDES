@@ -43,7 +43,7 @@ const AUDIENCES = [
   {
     title: "Pro školy",
     text: "Živé pořady, inspirativní hosté a program propojený s praxí.",
-    href: "/program",
+    href: "/skoly",
     icon: GraduationCap,
   },
   {
