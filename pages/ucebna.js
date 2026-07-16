@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 
 const heroImg = "/ucebna-exterier.webp";
@@ -236,6 +237,15 @@ export default function Ucebna() {
   }, [lightboxImage]);
 
   return (
+    <>
+      <Head>
+        <title>Venkovní učebna ARCHIMEDES® | Pro školy a obce</title>
+        <meta
+          name="description"
+          content="Celoroční venkovní učebna ARCHIMEDES® pro moderní výuku, živé vysílání a komunitní program. Varianty, vybavení a výsledky realizací v obcích."
+        />
+      </Head>
+
     <div
       style={{
         fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
@@ -1116,8 +1126,7 @@ export default function Ucebna() {
           <div
             className="lightboxOverlay"
             onClick={() => setLightboxImage(null)}
-            role="button"
-            tabIndex={0}
+            role="presentation"
           >
             <button
               type="button"
@@ -1131,10 +1140,13 @@ export default function Ucebna() {
             <div
               className="lightboxDialog"
               onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="award-lightbox-title"
             >
               <div className="lightboxMeta">
                 <div className="lightboxKicker">{lightboxImage.label}</div>
-                <div className="lightboxTitle">{lightboxImage.title}</div>
+                <div id="award-lightbox-title" className="lightboxTitle">{lightboxImage.title}</div>
                 <div className="lightboxDescription">{lightboxImage.text}</div>
               </div>
               <img
@@ -1925,5 +1937,6 @@ export default function Ucebna() {
         `}</style>
       </main>
     </div>
+    </>
   );
 }
