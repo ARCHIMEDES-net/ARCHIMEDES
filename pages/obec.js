@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check, MapPin, Radio, Users } from "lucide-react";
 import Footer from "../components/Footer";
@@ -91,10 +92,13 @@ export default function ObecPage() {
             </div>
 
             <div className="relative min-h-[420px] lg:min-h-full">
-              <img
+              <Image
                 src="/ucebna-komunita.webp"
                 alt="Společné komunitní setkání u učebny ARCHIMEDES"
-                className="absolute inset-0 h-full w-full object-cover"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 54vw"
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#edf5fb]/35 via-transparent to-transparent lg:from-[#edf5fb]/55" />
             </div>
