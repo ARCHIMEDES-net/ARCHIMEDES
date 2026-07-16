@@ -197,7 +197,9 @@ export default function PortalHeader({ title = "" }) {
     if (key === "uzivatele") return path.startsWith("/portal/uzivatele");
     if (key === "sprava-vysilani") return path.startsWith("/portal/admin-udalosti");
     if (key === "email-skupiny") return path.startsWith("/portal/email-skupiny");
-    if (key === "admin") return path.startsWith("/portal/admin");
+    if (key === "admin") {
+      return path === "/portal/admin" || path.startsWith("/portal/admin/");
+    }
     return false;
   };
 

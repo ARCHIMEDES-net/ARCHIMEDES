@@ -40,7 +40,7 @@ export default function AdminNav({ active = "" }) {
         Inzerce
       </Link>
 
-      <Link href="/portal/program" style={active === "program" ? activeBtn : baseBtn}>
+      <Link href="/portal/kalendar" style={active === "program" ? activeBtn : baseBtn}>
         Program
       </Link>
 
