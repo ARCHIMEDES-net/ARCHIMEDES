@@ -1,9 +1,7 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import PhotoWithFallback from "../PhotoWithFallback";
 import { Card } from "../ui/card";
 
-export default function ReferenceCard({ reference, readStoryLabel }) {
+export default function ReferenceCard({ reference }) {
   const r = reference;
 
   return (
@@ -42,12 +40,6 @@ export default function ReferenceCard({ reference, readStoryLabel }) {
         <div className="absolute inset-x-0 bottom-0 p-4 text-white">
           <span className="block text-xs font-semibold text-white/70">{r.region}</span>
           <strong className="mt-1 block text-xl font-black">{r.name}</strong>
-        <Link
-          href={r.storyHref}
-            className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-white"
-        >
-          {readStoryLabel} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-        </Link>
         </div>
       </div>
     </Card>

@@ -176,8 +176,8 @@ export const atmospherePhotos = [
 ];
 
 export const referencesSection = {
-  eyebrow: "Reference",
-  title: "Obce, kterým jsme pomohli k významnému ocenění",
+  eyebrow: "Výsledky projektu ARCHIMEDES",
+  title: "Obce, kterým projekt ARCHIMEDES pomohl k významnému ocenění",
   showAllLabel: "Zobrazit všechny reference",
   showAllHref: "/reference",
   readStoryLabel: "Přečíst příběh",
@@ -189,7 +189,6 @@ export const references = [
     name: "Čejč",
     region: "Jihomoravský kraj",
     badge: "1. místo Vesnice roku 2026 JMK",
-    quote: "ARCHIMEDES Live nám pomohl propojit generace a oživit spolkový život v obci.",
     crest: null,
     crestAlt: null,
     photo: "/cejc.jpg",
@@ -202,7 +201,6 @@ export const references = [
     name: "Křenov",
     region: "Jihomoravský kraj",
     badge: "1. místo Obec 2030 ČR",
-    quote: "Díky programu se naše obec stala centrem komunitního dění.",
     crest: "/obec2030.jpeg",
     crestAlt: "Ocenění Obec 2030 ČR pro obec Křenov",
     photo: "/krenov.jpg",
@@ -215,7 +213,6 @@ export const references = [
     name: "Hodonín",
     region: "Jihomoravský kraj",
     badge: "3. místo Zdravá města ČR",
-    quote: "Moderní komunikace se spolky a občany na jednom místě.",
     crest: "/hodonin-erb.jpg",
     crestAlt: "Znak města Hodonín",
     photo: "/zdravamesta.jpg",
@@ -228,8 +225,6 @@ export const references = [
     name: "Provodov-Šonov",
     region: "Královéhradecký kraj",
     badge: "Bílá stuha, Vesnice roku 2026",
-    quote:
-      "Máme tu učebnu ARCHIMEDES Live, která pomohla k ocenění za naši práci s mládeží a rodinami.",
     crest: null,
     crestAlt: null,
     photo: "/provodov-sonov.png",

@@ -3,98 +3,104 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import Footer from "../components/Footer";
 import PhotoWithFallback from "../components/PhotoWithFallback";
-import { Card } from "../components/ui/card";
 import SectionEyebrow from "../components/home/SectionEyebrow";
-import PartnersSection from "../components/partners/PartnersSection";
-import { referencesSection, references } from "../content/homepage";
+import { references } from "../content/homepage";
 
 export default function ReferencePage() {
-  const visibleReferences = references.filter((r) => r.visible);
+  const visibleReferences = references.filter((reference) => reference.visible);
 
   return (
     <>
       <Head>
-        <title>Reference | ARCHIMEDES Live</title>
+        <title>Výsledky projektu ARCHIMEDES v obcích</title>
         <meta
           name="description"
-          content="Obce, kterým pomáháme posilovat komunitní život — Čejč, Křenov, Hodonín a Provodov-Šonov."
+          content="Obce, ve kterých realizované učebny ARCHIMEDES přispěly k rozvoji vzdělávání, práce s mládeží a komunitního života."
         />
       </Head>
 
-      <main className="min-h-screen bg-slate-50 pb-16 pt-10">
-        <div className="mx-auto max-w-[1100px] px-5">
-          <SectionEyebrow>{referencesSection.eyebrow}</SectionEyebrow>
-          <h1 className="max-w-[760px] text-[40px] font-[950] leading-[1.05] tracking-[-0.04em] text-navy-900">
-            {referencesSection.title}
+      <main className="min-h-screen bg-white pb-16 pt-12">
+        <section className="mx-auto max-w-[1100px] px-5">
+          <SectionEyebrow>Výsledky projektu ARCHIMEDES</SectionEyebrow>
+          <h1 className="max-w-[780px] text-[clamp(38px,6vw,64px)] font-[950] leading-[0.98] tracking-[-0.05em] text-navy-900">
+            Učebny, které pomáhají obcím uspět
           </h1>
-          <p className="mt-4 max-w-[680px] text-[17px] leading-relaxed text-muted">
-            Za dobu vysílání se do programu ARCHIMEDES Live zapojily přes 2
-            stovky obcí. Vybrané obce, kde ARCHIMEDES Live pomáhá propojit
-            školy, spolky, seniory i veřejnou správu do jednoho aktivního
-            komunitního života.
+          <p className="mt-5 max-w-[740px] text-[18px] leading-relaxed text-slate-600">
+            V těchto obcích jsme realizovali učebnu ARCHIMEDES. Stala se součástí
+            práce se školou, dětmi, rodinami a místní komunitou a přispěla k výsledkům,
+            které ocenily také celostátní nebo krajské soutěže.
           </p>
+          <p className="mt-3 max-w-[740px] text-sm font-semibold leading-relaxed text-slate-500">
+            Uvedené příklady se vztahují k realizovaným učebnám ARCHIMEDES, nikoli k novému programu ARCHIMEDES Live.
+          </p>
+        </section>
 
-          {visibleReferences.length ? (
-            <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {visibleReferences.map((r) => (
-                <Card key={r.id} className="overflow-hidden p-0">
-                  <div className="relative aspect-[4/3] bg-eyebrow">
-                    <PhotoWithFallback
-                      src={r.photo}
-                      alt={r.photoAlt || `Obec ${r.name}`}
-                      fallbackLabel={r.name}
-                      style={{ width: "100%", height: "100%" }}
-                      imgStyle={
-                        r.photoFit === "contain"
-                          ? { objectFit: "contain", padding: 24 }
-                          : { objectFit: "cover" }
-                      }
-                    />
-                    {r.crest ? (
-                      <div className="absolute -bottom-5 left-3 rounded-full border-4 border-white shadow-md">
-                        <PhotoWithFallback
-                          src={r.crest}
-                          alt={r.crestAlt || `Znak obce ${r.name}`}
-                          fallbackLabel={r.name}
-                          style={{ width: 40, height: 40 }}
-                          rounded
-                        />
-                      </div>
-                    ) : null}
-                    <div className="absolute right-2.5 top-2.5 max-w-[120px] rounded-lg bg-navy-900/[0.82] px-2.5 py-1.5 text-center text-[10.5px] font-bold leading-tight text-white">
-                      {r.badge}
+        <section className="mx-auto mt-10 max-w-[1100px] px-5">
+          <div className="divide-y divide-slate-200 border-y border-slate-200">
+            {visibleReferences.map((reference, index) => (
+              <article
+                key={reference.id}
+                className="grid gap-6 py-8 md:grid-cols-[280px_minmax(0,1fr)] md:items-center"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden rounded-[20px] bg-[#eef3f8]">
+                  <PhotoWithFallback
+                    src={reference.photo}
+                    alt={reference.photoAlt || `Obec ${reference.name}`}
+                    fallbackLabel={reference.name}
+                    style={{ width: "100%", height: "100%" }}
+                    imgStyle={
+                      reference.photoFit === "contain"
+                        ? { objectFit: "contain", padding: 24 }
+                        : { objectFit: "cover" }
+                    }
+                  />
+                  <span className="absolute left-3 top-3 rounded-full bg-white/94 px-3 py-1.5 text-xs font-black text-navy-900 shadow-sm backdrop-blur">
+                    0{index + 1}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-sm font-bold text-brand">{reference.region}</span>
+                  <h2 className="mt-1 text-3xl font-[950] tracking-[-0.04em] text-navy-900">
+                    {reference.name}
+                  </h2>
+                  <div className="mt-4 inline-flex rounded-full bg-[#eaf1ff] px-4 py-2 text-sm font-black text-brand">
+                    {reference.badge}
+                  </div>
+                  <dl className="mt-5 grid gap-3 text-[15px] leading-relaxed sm:grid-cols-2">
+                    <div>
+                      <dt className="font-black text-navy-900">Realizace</dt>
+                      <dd className="mt-1 text-slate-600">Učebna ARCHIMEDES</dd>
                     </div>
-                  </div>
+                    <div>
+                      <dt className="font-black text-navy-900">Výsledek</dt>
+                      <dd className="mt-1 text-slate-600">{reference.badge}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </article>
+            ))}
+          </div>
 
-                  <div className="p-4 pt-7">
-                    <strong className="block text-base font-bold text-navy-900">{r.name}</strong>
-                    <span className="mt-0.5 block text-xs font-semibold text-slate-400">{r.region}</span>
-                    <p className="mt-2.5 text-[13.5px] leading-relaxed text-muted">&bdquo;{r.quote}&ldquo;</p>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ) : null}
-
-          <div className="mt-10 flex flex-col items-start gap-5 rounded-card-lg bg-navy-900 p-7 text-white sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-10 flex flex-col items-start justify-between gap-5 rounded-[22px] bg-[#f2f6fb] p-7 sm:flex-row sm:items-center">
             <div>
-              <strong className="block text-lg font-bold">Chcete být další referencí?</strong>
-              <span className="mt-1.5 block text-sm text-white/75">
-                Vyplňte krátkou žádost a ozveme se vám s dalším postupem.
+              <strong className="block text-xl font-black text-navy-900">
+                Poznejte učebnu ARCHIMEDES
+              </strong>
+              <span className="mt-1.5 block text-sm text-slate-600">
+                Prostor pro moderní výuku, setkávání a život místní komunity.
               </span>
             </div>
             <Link
-              href="/zadost"
-              className="inline-flex h-12 flex-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-white px-5 text-[15px] font-black text-navy-900"
+              href="/ucebna"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-navy-900 px-5 text-sm font-black text-white"
             >
-              Chci program pro naši obec
+              Prohlédnout učebnu
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
-        </div>
+        </section>
       </main>
-
-      <PartnersSection showCta={false} />
 
       <Footer />
     </>
