@@ -137,7 +137,7 @@ export default function Home({ initialEvents = [] }) {
   useEffect(() => {
     let cancelled = false;
 
-    fetchPublicProgramWindow(5).then((res) => {
+    fetchPublicProgramWindow(3).then((res) => {
       if (cancelled) return;
       if (!res.error) setEvents(res.events || []);
     });
@@ -148,7 +148,7 @@ export default function Home({ initialEvents = [] }) {
   }, []);
 
   const visibleReferences = references.filter((r) => r.visible);
-  const programmeItems = events.slice(0, 5);
+  const programmeItems = events.slice(0, 3);
   const eventStructuredData = createPublicEventStructuredData(
     programmeItems,
     "https://www.archimedeslive.com/program"
@@ -261,9 +261,9 @@ export default function Home({ initialEvents = [] }) {
                   return (
                     <div
                       key={area.code}
-                      className="flex min-h-[66px] items-center gap-3 rounded-[16px] border border-slate-900/[0.06] bg-white px-3.5 py-3 shadow-[0_5px_16px_rgba(20,50,80,0.035)]"
+                      className="flex min-h-[54px] items-center gap-2.5 rounded-[14px] border border-slate-900/[0.06] bg-white px-3 py-2.5"
                     >
-                      <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[#eaf1f8] text-brand">
+                      <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-[#eaf1f8] text-brand">
                         <Icon className="h-4 w-4" aria-hidden="true" />
                       </span>
                       <strong className="text-[13px] leading-tight text-navy-900 sm:text-sm">
@@ -329,11 +329,15 @@ export default function Home({ initialEvents = [] }) {
                   Podporujeme to, co už ve vaší obci funguje.
                 </h2>
                 <p className="mt-3 max-w-md text-[15px] leading-relaxed text-muted">
-                  Přinášíme společný program školám, spolkům, seniorům a dalším lidem, kteří tvoří život obce.
+                  Jedna obecní licence zpřístupní program škole, spolkům, seniorům i dalším místním komunitám. Obsah a vysílání připravíme my.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                {["Připravíme živý program", "Místní organizace dostanou pozvání", "Lidé se setkají společně"].map((title, index) => (
+                {[
+                  "ARCHIMEDES připraví program a podklady",
+                  "Obec předá pozvánky místním organizacím",
+                  "Školy a spolky si vyberou a sledují společně",
+                ].map((title, index) => (
                   <div key={title} className="rounded-[18px] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
                     <span className="text-sm font-black text-brand">0{index + 1}</span>
                     <strong className="mt-3 block text-base text-navy-900">{title}</strong>
@@ -432,7 +436,7 @@ export default function Home({ initialEvents = [] }) {
 
 export async function getStaticProps() {
   try {
-    const result = await fetchPublicProgramWindow(5);
+    const result = await fetchPublicProgramWindow(3);
     return {
       props: { initialEvents: result.events || [] },
       revalidate: 300,
