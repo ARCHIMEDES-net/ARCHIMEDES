@@ -9,6 +9,10 @@ const nextConfig = {
       { source: "/demo", destination: "/zadost", permanent: true },
       { source: "/ukazka", destination: "/zadost", permanent: true },
       { source: "/financovani-skoly", destination: "/zadost", permanent: true },
+      { source: "/kalendar", destination: "/program#vysilani", permanent: true },
+      { source: "/vysilani", destination: "/program#archiv", permanent: true },
+      { source: "/aktualni-pozvanky", destination: "/program#vysilani", permanent: true },
+      { source: "/reference", destination: "/ucebna#oceneni", permanent: true },
     ];
   },
 };

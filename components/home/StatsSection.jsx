@@ -1,11 +1,6 @@
-import { statsSection, stats } from "../../content/homepage";
+import { stats } from "../../content/homepage";
 
-/**
- * Network-size proof section — every number here is the SIZE OF THE
- * TARGET NETWORK the platform is built for, not a claim of current
- * customers. Keep copy in content/homepage.js phrased accordingly
- * ("obcí, pro které platforma vzniká", not "zapojených obcí").
- */
+/** Verified experience and one explicit product fact — no target-market figures. */
 export default function StatsSection() {
   const visibleStats = stats.filter((s) => s.visible);
 

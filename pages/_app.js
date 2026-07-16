@@ -11,6 +11,7 @@ function activeKeyFromPath(pathname = "") {
   if (pathname === "/program") return "program";
   if (pathname === "/obec") return "obec";
   if (pathname === "/pro-organizace") return "pro-organizace";
+  if (pathname === "/ucebna") return "ucebna";
   if (pathname === "/o-nas") return "o-nas";
   if (pathname === "/kontakt") return "kontakt";
   return "";

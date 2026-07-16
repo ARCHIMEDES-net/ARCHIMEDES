@@ -7,13 +7,11 @@ function stripQuery(asPath) {
 }
 
 const NAV_ITEMS = [
-  { key: "program", href: "/program", label: "O programu" },
+  { key: "program", href: "/program", label: "Program" },
   { key: "obec", href: "/obec", label: "Pro obce" },
-  { key: "pro-organizace", href: "/pro-organizace", label: "Pro organizace" },
-  { key: "ucebna", href: "/ucebna", label: "Učebna" },
-  { key: "vysilani", href: "/#program", label: "Vysílání" },
-  { key: "reference", href: "/#reference", label: "Reference" },
-  { key: "o-nas", href: "/o-nas", label: "O nás" },
+  { key: "pro-organizace", href: "/pro-organizace", label: "Pro svazy" },
+  { key: "ucebna", href: "/ucebna", label: "Učebna ARCHIMEDES" },
+  { key: "o-nas", href: "/o-nas", label: "O projektu" },
   { key: "kontakt", href: "/kontakt", label: "Kontakt" },
 ];
 

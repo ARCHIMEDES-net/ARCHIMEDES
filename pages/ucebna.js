@@ -20,23 +20,34 @@ const salPoster = "/sal-poster.webp";
 
 const mediaSectionImg = "/prestrih.webp";
 
-const awardHealthyCitiesImg = "/zdravamesta.jpg";
-const awardObec2030Img = "/obec2030.jpeg";
-
 const awards = [
   {
-    label: "OBEC 2030",
-    title: "Vítěz 5. ročníku",
-    text: "Ocenění za inspirativní řešení pro moderní obec a komunitní rozvoj.",
-    image: awardObec2030Img,
-    alt: "Vítěz soutěže OBEC 2030",
+    label: "Křenov",
+    title: "1. místo Obec 2030 ČR",
+    text: "Obec s realizovanou učebnou ARCHIMEDES získala celostátní ocenění Obec 2030.",
+    image: "/krenov.jpg",
+    alt: "Obec Křenov, vítěz ocenění Obec 2030 ČR",
   },
   {
-    label: "Zdravá města ČR",
-    title: "NEJpraxe 2023",
-    text: "Uznání za excelentní praxi projektu Přírodní učebna ARCHIMEDES®.",
-    image: awardHealthyCitiesImg,
-    alt: "NEJpraxe Zdravých měst 2023",
+    label: "Hodonín",
+    title: "3. místo Zdravá města ČR",
+    text: "Realizace ARCHIMEDES byla součástí dobré praxe oceněné v celostátním srovnání.",
+    image: "/zdravamesta.jpg",
+    alt: "Ocenění Zdravá města ČR pro Hodonín",
+  },
+  {
+    label: "Čejč",
+    title: "1. místo Vesnice roku 2026 JMK",
+    text: "Učebna ARCHIMEDES přispěla k práci obce se školou, dětmi a místní komunitou.",
+    image: "/cejc.jpg",
+    alt: "Obec Čejč, vítěz soutěže Vesnice roku 2026 Jihomoravského kraje",
+  },
+  {
+    label: "Provodov-Šonov",
+    title: "Bílá stuha, Vesnice roku 2026",
+    text: "Obec získala ocenění za práci s mládeží a rodinami; součástí této práce je učebna ARCHIMEDES.",
+    image: "/provodov-sonov.png",
+    alt: "Provodov-Šonov, držitel Bílé stuhy v soutěži Vesnice roku 2026",
   },
 ];
 
@@ -76,7 +87,7 @@ const variants = [
     benefit:
       "Maximální energetická efektivita, odolnost a stabilní vnitřní prostředí v jakémkoli počasí.",
     suitable:
-      "Pro zřizovatele, kteří chtějí 100% bezpečný a celoročně izolovaný prostor s maximální tepelnou stabilitou i v těch největších mrazech.",
+      "Pro zřizovatele, kteří chtějí celoročně izolovaný prostor se stabilním vnitřním prostředím i v zimním období.",
     design:
       "Exteriér tvoří moderní fasáda v barvě dle vzorníku RAL, interiér hřeje příjemným dřevem. Podlaha je z vysoce odolného PVC. Konstrukce neumožňuje plné otevření stěn.",
   },
@@ -284,10 +295,7 @@ export default function Ucebna() {
                   maxWidth: 760,
                 }}
               >
-                Unikátní prostor, kde se příroda potkává s nejmodernějšími
-                technologiemi.
-                <br />
-                Revoluce ve výuce i komunitním životě.
+                Celoroční prostor, kde se výuka potkává s přírodou a digitálními technologiemi.
               </h2>
 
               <p
@@ -315,8 +323,8 @@ export default function Ucebna() {
                 <PrimaryButton href="/media">
                   Prohlédnout reference
                 </PrimaryButton>
-                <SecondaryButton href="/zadost">
-                  Chci program pro naši obec
+                <SecondaryButton href="/kontakt">
+                  Poptat učebnu
                 </SecondaryButton>
               </div>
             </div>
@@ -340,6 +348,7 @@ export default function Ucebna() {
         </section>
 
         <section
+          id="oceneni"
           style={{
             maxWidth: 1240,
             margin: "0 auto",
@@ -355,7 +364,7 @@ export default function Ucebna() {
                 </div>
               </div>
               <div className="awardsBandText">
-                Dvě významná ocenění z oblasti rozvoje obcí a dobré praxe.
+                Čtyři konkrétní výsledky obcí, ve kterých jsme učebnu realizovali.
               </div>
             </div>
 
@@ -407,7 +416,7 @@ export default function Ucebna() {
                 <SectionTitle>Víc než stavba. Celý ekosystém.</SectionTitle>
 
                 <p className="leadText" style={{ marginBottom: 18 }}>
-                  Zapomeňte na obyčejné dřevěné altány. ARCHIMEDES® je
+                  ARCHIMEDES® není pouze zastřešený venkovní prostor. Je
                   celosvětová síť high-tech venkovních učeben a edukativních
                   center. Stavíme z udržitelných přírodních materiálů a vracíme
                   děti i dospělé zpět k přírodě.
@@ -531,7 +540,7 @@ export default function Ucebna() {
                   <div className="pillarTitle">Pro školy a školky</div>
                   <p className="leadText" style={{ marginBottom: 16 }}>
                     Přeneste výuku ze čtyř stěn na čerstvý vzduch. Učebna
-                    ARCHIMEDES® nabízí bezkonkurenční zázemí pro zážitkovou
+                    ARCHIMEDES® nabízí kvalitní zázemí pro zážitkovou
                     výuku přírodních věd i dalších předmětů.
                   </p>
 
@@ -576,7 +585,7 @@ export default function Ucebna() {
                   <p className="leadText" style={{ marginBottom: 16 }}>
                     ARCHIMEDES® nežije jen dopoledne. Pro města a obce
                     představuje multifunkční prostor, který oživí veřejný život
-                    a stane se srdcem komunity.
+                    a může se stát místem pro společný komunitní program.
                   </p>
 
                   <div className="bulletList">
@@ -717,7 +726,7 @@ export default function Ucebna() {
                     className="leadText"
                     style={{ marginTop: 14, marginBottom: 0 }}
                   >
-                    Naprostou revolucí pro zdraví je pak systém
+                    Součástí řešení vnitřního prostředí je také systém
                     plnospektrálního osvětlení. Tato chytrá svítidla do detailu
                     simulují přirozené sluneční záření, čímž prokazatelně
                     snižují únavu očí, brání útlumu a přirozeně stimulují
@@ -891,8 +900,8 @@ export default function Ucebna() {
               </SectionTitle>
             </div>
 
-            <PrimaryButton href="/zadost">
-              Chci program pro naši obec
+            <PrimaryButton href="/kontakt">
+              Poptat učebnu
             </PrimaryButton>
           </div>
 
@@ -925,8 +934,8 @@ export default function Ucebna() {
                 </div>
 
                 <div style={{ marginTop: 18 }}>
-                  <PrimaryButton href="/zadost">
-                    Chci program pro naši obec
+                  <PrimaryButton href="/kontakt">
+                    Poptat tuto variantu
                   </PrimaryButton>
                 </div>
               </div>
@@ -983,7 +992,7 @@ export default function Ucebna() {
           <div className="premiumCard">
             <SectionEyebrow>Možnosti rozšíření</SectionEyebrow>
             <SectionTitle style={{ fontSize: 48 }}>
-              Zázemí pro naprostou nezávislost
+              Zázemí pro samostatný provoz
             </SectionTitle>
 
             <div className="equipGrid">
@@ -1016,8 +1025,8 @@ export default function Ucebna() {
               <div className="equipCard equipCardWide">
                 <div className="equipTitle">🏫 Nezávislá jednotka</div>
                 <div className="equipText">
-                  Díky rozšiřujícím modulům se ARCHIMEDES® může stát naprosto
-                  nezávislým prostorem bez nutnosti využívat hlavní budovu školy
+                  Díky rozšiřujícím modulům se ARCHIMEDES® může stát
+                  samostatně fungujícím prostorem bez nutnosti využívat hlavní budovu školy
                   nebo obecního úřadu.
                 </div>
                 <div className="equipList">
@@ -1039,7 +1048,7 @@ export default function Ucebna() {
                 marginTop: 28,
               }}
             >
-              <PrimaryButton href="/poptavka?typ=navsteva-vzorove-ucebny">
+              <PrimaryButton href="/kontakt">
                 Navštívit vzorovou učebnu BVV Brno
               </PrimaryButton>
             </div>
@@ -1204,7 +1213,7 @@ export default function Ucebna() {
 
           .awardsTiles {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 18px;
           }
 
@@ -1822,6 +1831,10 @@ export default function Ucebna() {
               grid-template-columns: 1fr;
             }
 
+            .awardsTiles {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
             .equipCardWide {
               grid-column: auto;
             }
@@ -1832,6 +1845,9 @@ export default function Ucebna() {
           }
 
           @media (max-width: 760px) {
+            .awardsTiles {
+              grid-template-columns: 1fr;
+            }
             .premiumCard,
             .awardsBand {
               padding: 22px 18px;

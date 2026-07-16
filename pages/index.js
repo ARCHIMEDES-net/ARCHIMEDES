@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Megaphone,
   Building2,
+  School,
 } from "lucide-react";
 import Footer from "../components/Footer";
 import PhotoWithFallback from "../components/PhotoWithFallback";
@@ -19,7 +20,6 @@ import ReferenceCard from "../components/home/ReferenceCard";
 import PartnersSection from "../components/partners/PartnersSection";
 import {
   hero,
-  liveSection,
   referencesSection,
   references,
   ctaBand,
@@ -28,19 +28,13 @@ import {
 const AUDIENCES = [
   {
     title: "Pro obce",
-    text: "Jedna licence propojí školu, spolky, seniory i místní komunitu.",
+    text: "Program pro školu, spolky i seniory pod jednou obecní licencí.",
     href: "/obec",
     icon: Building2,
   },
   {
-    title: "Pro spolky a organizace",
-    text: "Společné vysílání, vzdělávání a setkávání členů v obci.",
-    href: "/pro-organizace",
-    icon: Users,
-  },
-  {
-    title: "Pro národní organizace",
-    text: "Obsah a hosté se dostanou přímo k místním komunitám.",
+    title: "Pro svazy",
+    text: "Odborný obsah pro místní členy a popularizační pořady pro školy.",
     href: "/pro-organizace",
     icon: Megaphone,
   },
@@ -49,6 +43,12 @@ const AUDIENCES = [
     text: "Živé pořady, inspirativní hosté a program propojený s praxí.",
     href: "/program",
     icon: GraduationCap,
+  },
+  {
+    title: "Učebna ARCHIMEDES",
+    text: "Celoroční prostor pro moderní výuku a komunitní program.",
+    href: "/ucebna",
+    icon: School,
   },
 ];
 
@@ -149,7 +149,7 @@ export default function Home() {
         <title>ARCHIMEDES Live | Silná komunita. Úspěšná obec.</title>
         <meta
           name="description"
-          content="ARCHIMEDES Live spojuje všechny, kdo tvoří život vaší obce — školy, spolky, seniory, rodiče i národní organizace — do jednoho celoročního programu."
+          content="Pravidelný živý program pro školy, spolky, seniory a další místní komunity. Lidé se při něm setkávají, vzdělávají a sbližují."
         />
       </Head>
 
@@ -184,7 +184,7 @@ export default function Home() {
                   {hero.subtitle}
                 </p>
                 <p className="mt-3 max-w-xl text-base leading-relaxed text-white/78 sm:text-lg">
-                  Přinášíme obcím pravidelný živý program pro školy, spolky, seniory i další místní komunity. Program, při kterém se lidé setkávají, vzdělávají a sbližují.
+                  {hero.lead}
                 </p>
 
                 <div className="mt-9 flex flex-wrap gap-3">
@@ -225,7 +225,7 @@ export default function Home() {
                 <p className="mt-3 text-[15px] leading-relaxed text-muted">
                   Konkrétní pořady, které mohou školy, spolky, senioři a další lidé v obci sledovat společně.
                 </p>
-                <Link href="/kalendar" className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-brand">
+                <Link href="/program#vysilani" className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-brand">
                   Zobrazit celý program <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>

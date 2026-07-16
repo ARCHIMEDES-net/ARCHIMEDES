@@ -25,152 +25,35 @@ export const hero = {
   },
 };
 
-export const statsSection = {
-  title: "Budujeme digitální infrastrukturu pro české obce",
-  subtitle:
-    "ARCHIMEDES Live propojuje školy, spolky, seniory, rodiče i národní organizace do jednoho společného digitálního prostoru.",
-};
-
-// Every number here describes the SIZE OF THE NETWORK the platform is
-// built for (target municipalities/schools, cumulative programme
-// experience) — never a claim of current customers/active users. Do
-// not phrase any of these as "zapojených obcí", "partnerských obcí",
-// "aktivních uživatelů" or "registrovaných škol" unless that figure is
-// provably backed by real signed/active accounts.
+// Only verified experience and an explicit product fact belong here.
+// Do not use addressable-market or target-network figures as proof.
 export const stats = [
-  {
-    id: "obce",
-    value: "2 400+",
-    label: "obcí, pro které platforma vzniká",
-    description:
-      "ARCHIMEDES Live je určen především českým obcím s přibližně 500 až 3 000 obyvateli.",
-    visible: true,
-  },
-  {
-    id: "zakladni-skoly",
-    value: "2 500+",
-    label: "základních škol",
-    description:
-      "Programy ARCHIMEDES Live mohou využívat základní školy v České republice i zahraničí.",
-    visible: true,
-  },
   {
     id: "zive-vysilani",
     value: "350+",
-    label: "už sledovaly naše živé vysílání",
-    description:
-      "Do živého programu ARCHIMEDES se již zapojily školy ze stovek českých obcí.",
+    label: "škol už sledovalo naše živé vysílání",
+    description: "Doložená zkušenost s živým programem pro školy.",
     visible: true,
   },
   {
     id: "hodiny-programu",
     value: "1 000+",
     label: "hodin živého programu",
-    description:
-      "Dlouhodobě ověřené zkušenosti s pravidelným živým vysíláním pro školy, obce a komunitní organizace.",
-    visible: true,
-  },
-];
-
-export const liveSection = {
-  eyebrow: "Živé přenosy",
-  title: "Co se děje v ARCHIMEDES Live",
-  subtitle:
-    "Sledujte živé přenosy, webináře a vzdělávací pořady pro školy, seniory i spolky.",
-  calendarTitle: "Přehled vysílání",
-  calendarLockedNote: "Plný přístup pro členy",
-  showAllLabel: "Zobrazit celý program",
-  goToCalendarLabel: "Přejít na všechna vysílání",
-};
-
-export const featuresSection = {
-  eyebrow: "Proč ARCHIMEDES Live",
-  title: "Podporujeme komunitní život ve vaší obci",
-  photo: "/jak-funguje-online.webp",
-  photoAlt: "Živé online vysílání promítané v učebně ARCHIMEDES Live",
-};
-
-export const featureCards = [
-  {
-    id: "vzdelavani",
-    icon: "graduation",
-    title: "Vzdělávání pro všechny",
-    description: "Programy pro školy, seniory i spolky na jednom místě.",
+    description: "Zkušenost s pravidelným vysíláním a moderovaným obsahem.",
     visible: true,
   },
   {
-    id: "propojeni",
-    icon: "link",
-    title: "Propojení komunity",
-    description: "Spojujeme organizace, občany a národní svazy.",
+    id: "ocenene-obce",
+    value: "4",
+    label: "obce s významným oceněním",
+    description: "Výsledky širšího projektu ARCHIMEDES a realizovaných učeben.",
     visible: true,
   },
   {
-    id: "komunikace",
-    icon: "chat",
-    title: "Snadná komunikace",
-    description: "Živé přenosy, pozvánky a sdílení informací.",
-    visible: true,
-  },
-  {
-    id: "rozvoj",
-    icon: "growth",
-    title: "Růst a rozvoj",
-    description: "Inspirace, nové dovednosti a společné zážitky.",
-    visible: true,
-  },
-  {
-    id: "nabor",
-    icon: "megaphone",
-    title: "Nábor a osvěta",
-    description: "Spolky získávají nové členy a zvyšují povědomí.",
-    visible: true,
-  },
-  {
-    id: "archiv",
-    icon: "archive",
-    title: "Archiv záznamů",
-    description: "Záznamy všech akcí kdykoli k dispozici.",
-    visible: true,
-  },
-];
-
-export const communitySection = {
-  eyebrow: "Komunita a senioři",
-  title: "Prostor pro setkávání generací",
-  text: "Senioři, rodiny i spolky se u nás pravidelně potkávají na společných programech. Pomáháme posilovat sousedské vztahy a mezigenerační sdílení zkušeností v obci.",
-  cta: { label: "Program pro seniory", href: "/program" },
-  photo: "/seni.webp",
-  photoAlt: "Senioři na společném programu v učebně ARCHIMEDES Live",
-  visible: true,
-};
-
-export const atmosphereSection = {
-  eyebrow: "Atmosféra a akce",
-  title: "Živá atmosféra společných akcí",
-  subtitle:
-    "Setkání, workshopy a živá vysílání, díky kterým pomáháme posilovat komunitní život v partnerských obcích.",
-  visible: true,
-};
-
-export const atmospherePhotos = [
-  {
-    id: "atmos-spolecna",
-    src: "/spolecna.jpg",
-    alt: "Společná fotografie účastníků programu před učebnou ARCHIMEDES Live",
-    visible: true,
-  },
-  {
-    id: "atmos-tabule",
-    src: "/atmos.webp",
-    alt: "Žák pracuje s interaktivní tabulí během programu",
-    visible: true,
-  },
-  {
-    id: "atmos-lektor",
-    src: "/doc2.jpg",
-    alt: "Lektor představuje živé vysílání účastníkům",
-    objectPosition: "center",
+    id: "licence",
+    value: "1",
+    label: "licence pro celou obec",
+    description: "Škola, spolky i senioři se zapojují pod jedním registračním číslem.",
     visible: true,
   },
 ];
@@ -236,45 +119,41 @@ export const references = [
 ];
 
 export const ctaBand = {
-  title: "Připojte se k obcím, které budují aktivní komunitu",
-  subtitle: "Začněte ještě dnes a přineste moderní komunikaci do vaší obce.",
+  title: "Přineste společný živý program i do své obce",
+  subtitle: "Probereme s vámi, jak mohou program využívat místní školy, spolky a senioři.",
   cta: { label: "Chci program pro naši obec", href: "/zadost" },
   visible: true,
 };
 
 export const footerContent = {
   legalName: "EduVision s.r.o.",
-  tagline: "Páteř komunitního života obce.",
+  tagline: "Živý program, při kterém se lidé setkávají, vzdělávají a sbližují.",
   columns: [
     {
-      title: "Program",
+      title: "ARCHIMEDES Live",
       links: [
-        { label: "Pro školy", href: "/program" },
-        { label: "Pro seniory", href: "/program" },
-        { label: "Pro spolky", href: "/pro-organizace" },
+        { label: "Program", href: "/program" },
+        { label: "Pro obce", href: "/obec" },
+        { label: "Pro svazy", href: "/pro-organizace" },
       ],
     },
     {
-      title: "Pro obec",
+      title: "Projekt",
       links: [
-        { label: "Jak to funguje", href: "/obec" },
-        { label: "Ceník", href: "/obec#cenik" },
-      ],
-    },
-    {
-      title: "O nás",
-      links: [
-        { label: "O společnosti", href: "/o-nas" },
-        { label: "Partneři", href: "/pro-organizace" },
+        { label: "Učebna ARCHIMEDES", href: "/ucebna" },
+        { label: "O projektu", href: "/o-nas" },
         { label: "Kontakt", href: "/kontakt" },
       ],
     },
+    {
+      title: "Přístup",
+      links: [
+        { label: "Přihlášení", href: "/login" },
+        { label: "Žádost pro obec", href: "/zadost" },
+      ],
+    },
   ],
-  social: [
-    { label: "Facebook", href: "https://www.facebook.com", icon: "facebook", visible: true },
-    { label: "YouTube", href: "https://www.youtube.com", icon: "youtube", visible: true },
-    { label: "LinkedIn", href: "https://www.linkedin.com", icon: "linkedin", visible: true },
-  ],
+  social: [],
   legalLinks: [
     { label: "Ochrana osobních údajů", href: "/ochrana-osobnich-udaju" },
     { label: "Obchodní podmínky", href: "/vop" },
