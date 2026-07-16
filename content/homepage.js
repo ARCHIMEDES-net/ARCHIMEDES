@@ -77,10 +77,10 @@ export const liveSection = {
   title: "Co se děje v ARCHIMEDES Live",
   subtitle:
     "Sledujte živé přenosy, webináře a vzdělávací pořady pro školy, seniory i spolky.",
-  calendarTitle: "Kalendář akcí",
+  calendarTitle: "Přehled vysílání",
   calendarLockedNote: "Plný přístup pro členy",
-  showAllLabel: "Zobrazit celý kalendář",
-  goToCalendarLabel: "Přejít do kalendáře",
+  showAllLabel: "Zobrazit celý program",
+  goToCalendarLabel: "Přejít na všechna vysílání",
 };
 
 export const featuresSection = {
