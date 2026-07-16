@@ -184,7 +184,7 @@ export default function Home() {
                   {hero.subtitle}
                 </p>
                 <p className="mt-3 max-w-xl text-base leading-relaxed text-white/78 sm:text-lg">
-                  Přinášíme pravidelná živá vysílání pro školy, spolky, seniory i další místní komunity — připravená tak, aby je lidé sledovali společně.
+                  Přinášíme obcím pravidelný živý program pro školy, spolky, seniory i další místní komunity. Lidé se při něm setkávají osobně.
                 </p>
 
                 <div className="mt-9 flex flex-wrap gap-3">
