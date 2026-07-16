@@ -123,24 +123,39 @@ export default function ProOrganizacePage() {
           </div>
         </section>
 
-        <section className="bg-[#f3f7fb] py-16 sm:py-20">
-          <div className="mx-auto grid max-w-[1180px] gap-8 px-5 lg:grid-cols-[1fr_0.9fr] lg:items-center">
-            <div>
+        <section className="bg-[#f3f7fb] py-12 sm:py-14">
+          <div className="mx-auto grid max-w-[1180px] gap-8 px-5 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
+            <div className="max-w-md">
               <SectionEyebrow>Pro školy i členskou základnu</SectionEyebrow>
               <h2 className="max-w-xl text-[clamp(34px,4vw,48px)] font-[950] leading-[1.03] tracking-[-0.045em] text-navy-900">
                 Jedno partnerství, dva přirozené formáty
               </h2>
+              <p className="mt-4 text-[15px] leading-relaxed text-slate-600">
+                Odborný obsah svazu pomáhá místním členům a zároveň přibližuje
+                jejich činnost mladé generaci.
+              </p>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-              <div className="rounded-[22px] bg-white p-6">
-                <MapPin className="h-6 w-6 text-brand" aria-hidden="true" />
-                <h3 className="mt-4 text-xl font-black text-navy-900">Pro místní členy</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">Odborná témata, vzdělávání a společné diskuse v obcích.</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-[22px] border border-slate-900/[0.06] border-t-[3px] border-t-brand bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.045)]">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#eaf1f8] text-brand">
+                    <MapPin className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <h3 className="text-xl font-black text-navy-900">Pro místní členy</h3>
+                </div>
+                <p className="mt-4 text-sm leading-relaxed text-slate-600">Odborná témata, vzdělávání a společné diskuse v obcích.</p>
               </div>
-              <div className="rounded-[22px] bg-white p-6">
-                <GraduationCap className="h-6 w-6 text-brand" aria-hidden="true" />
-                <h3 className="mt-4 text-xl font-black text-navy-900">Pro základní školy</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">Dvakrát ročně popularizační nebo náborový pořad pro mladou generaci.</p>
+              <div className="rounded-[22px] border border-slate-900/[0.06] border-t-[3px] border-t-brand bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.045)]">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#eaf1f8] text-brand">
+                    <GraduationCap className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <h3 className="text-xl font-black text-navy-900">Pro základní školy</h3>
+                </div>
+                <p className="mt-4 text-sm leading-relaxed text-slate-600">Dvakrát ročně popularizační nebo náborový pořad pro mladou generaci.</p>
+                <Link href="/skoly" className="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-brand">
+                  Jak funguje program pro školy <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
               </div>
             </div>
           </div>

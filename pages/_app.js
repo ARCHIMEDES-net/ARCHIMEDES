@@ -12,6 +12,7 @@ import { applyCzechNonBreakingSpaces } from "../lib/czechTypography";
 function activeKeyFromPath(pathname = "") {
   if (pathname === "/program") return "program";
   if (pathname === "/obec") return "obec";
+  if (pathname === "/skoly") return "skoly";
   if (pathname === "/pro-organizace") return "pro-organizace";
   if (pathname === "/ucebna") return "ucebna";
   if (pathname === "/o-nas") return "o-nas";
@@ -76,7 +77,7 @@ export default function App({ Component, pageProps }) {
         legalName: "EduVision s.r.o.",
         url: siteUrl,
         logo: `${siteUrl}/logo-archimedes-live.png`,
-        email: "info@eduvision.cz",
+        email: "zive@archimedeslive.com",
         telephone: "+420732827210",
         address: {
           "@type": "PostalAddress",

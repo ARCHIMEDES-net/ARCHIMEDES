@@ -88,6 +88,11 @@ export default function RegistraceSkolyPage() {
                 registračního čísla aktivní obce. Po registraci získá škola
                 vlastní kód pro učitele.
               </p>
+              <div className="mb-5">
+                <Button href="/skoly" variant="ghost" size="sm">
+                  Co obsahuje program pro školy
+                </Button>
+              </div>
 
               {session ? (
                 <Alert variant="neutral" className="mb-4">

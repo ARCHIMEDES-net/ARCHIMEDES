@@ -135,6 +135,7 @@ export const footerContent = {
       links: [
         { label: "Program", href: "/program" },
         { label: "Pro obce", href: "/obec" },
+        { label: "Pro školy", href: "/skoly" },
         { label: "Pro svazy", href: "/pro-organizace" },
       ],
     },

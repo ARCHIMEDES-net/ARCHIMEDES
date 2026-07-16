@@ -359,10 +359,10 @@ export default function GuestPage() {
 
               <div className="mt-5 grid gap-2.5">
                 <a
-                  href="mailto:info@eduvision.cz"
+                  href="mailto:zive@archimedeslive.com"
                   className="text-lg font-black text-navy-900 hover:underline sm:text-xl"
                 >
-                  info@eduvision.cz
+                  zive@archimedeslive.com
                 </a>
                 <a href="tel:+420732827210" className="text-lg font-black text-navy-900 hover:underline sm:text-xl">
                   +420 732 827 210

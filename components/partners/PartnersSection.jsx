@@ -23,11 +23,17 @@ export default function PartnersSection({ showCta = true }) {
 
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {partners.map((p) => (
             <PartnerCard key={p.slug} partner={p} />
           ))}
         </div>
+
+        {partnersSection.closing ? (
+          <p className="mt-7 text-center text-base font-bold text-navy-900">
+            {partnersSection.closing}
+          </p>
+        ) : null}
 
         {showCta && partnersCta.visible ? (
           <div className="mt-10 flex flex-col items-start gap-5 rounded-card-lg bg-navy-900 p-7 text-white sm:flex-row sm:items-center sm:justify-between">

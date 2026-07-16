@@ -12,6 +12,7 @@ const team = [
     email: "zuzana.novotna@archimedeslive.com",
     phone: "+420 737 333 879",
     note: "Strategie, partnerství, rozvoj",
+    image: "/team-zuzana.webp",
   },
   {
     name: "Roman Tuzar",
@@ -19,6 +20,15 @@ const team = [
     email: "roman.tuzar@eduvision.cz",
     phone: "+420 736 457 835",
     note: "Spolupráce s institucemi, partnery a organizacemi",
+    image: "/team-roman.webp",
+  },
+  {
+    name: "Simona Gavlíková",
+    role: "Manažerka komunity a partnerství",
+    email: "simona.gavlikova@archimedeslive.com",
+    phone: "+420 603 467 337",
+    note: "Komunita, spolupráce, partneři",
+    image: "/team-simona.webp",
   },
   {
     name: "Dominik Ševčík",
@@ -34,33 +44,42 @@ const team = [
     phone: "+420 732 827 210",
     note: "Obchodní komunikace, poptávky, zakázky",
   },
-  {
-    name: "Simona Gavlíková",
-    role: "Manažerka komunity a partnerství",
-    email: "simona.gavlikova@archimedeslive.com",
-    phone: "+420 603 467 337",
-    note: "Komunita, spolupráce, partneři",
-  },
 ];
 
 function TeamCard({ person }) {
   return (
-    <Card className="p-6 transition-colors hover:border-slate-300">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-eyebrow">
-        <User className="h-6 w-6 text-brand" aria-hidden="true" />
-      </div>
-      <div className="mt-4 text-xl font-bold leading-tight text-navy-900">{person.name}</div>
-      <div className="mt-1.5 text-sm font-bold text-slate-700">{person.role}</div>
-      <div className="mt-2.5 min-h-[48px] text-sm leading-relaxed text-muted">{person.note}</div>
-      <div className="mt-4 grid gap-2">
-        <a href={`mailto:${person.email}`} className="break-words text-sm font-bold text-brand">
-          {person.email}
-        </a>
-        {person.phone ? (
-          <a href={`tel:${person.phone.replace(/\s+/g, "")}`} className="text-sm font-bold text-navy-900">
-            {person.phone}
-          </a>
+    <Card className="overflow-hidden p-0 transition-colors hover:border-slate-300">
+      {person.image ? (
+        <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+          <Image
+            src={person.image}
+            alt={`Portrét: ${person.name}`}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover object-[center_20%]"
+          />
+        </div>
+      ) : null}
+
+      <div className="p-6">
+        {!person.image ? (
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-eyebrow">
+            <User className="h-6 w-6 text-brand" aria-hidden="true" />
+          </div>
         ) : null}
+        <div className={`${person.image ? "" : "mt-4 "}text-xl font-bold leading-tight text-navy-900`}>{person.name}</div>
+        <div className="mt-1.5 text-sm font-bold text-slate-700">{person.role}</div>
+        <div className="mt-2.5 min-h-[48px] text-sm leading-relaxed text-muted">{person.note}</div>
+        <div className="mt-4 grid gap-2">
+          <a href={`mailto:${person.email}`} className="break-words text-sm font-bold text-brand">
+            {person.email}
+          </a>
+          {person.phone ? (
+            <a href={`tel:${person.phone.replace(/\s+/g, "")}`} className="text-sm font-bold text-navy-900">
+              {person.phone}
+            </a>
+          ) : null}
+        </div>
       </div>
     </Card>
   );
@@ -110,7 +129,7 @@ export default function KontaktPage() {
 
               <div className="absolute bottom-5 left-5 right-5 max-w-[430px] rounded-[22px] bg-white/95 p-6 shadow-[0_20px_55px_rgba(15,23,42,0.18)] backdrop-blur sm:bottom-8 sm:left-8 sm:p-7">
                 <span className="text-xs font-black uppercase tracking-[0.14em] text-brand">Obecný kontakt</span>
-                <a href="mailto:info@eduvision.cz" className="mt-3 block break-words text-xl font-black text-navy-900 sm:text-2xl">info@eduvision.cz</a>
+                <a href="mailto:zive@archimedeslive.com" className="mt-3 block break-words text-xl font-black text-navy-900 sm:text-2xl">zive@archimedeslive.com</a>
                 <a href="tel:+420732827210" className="mt-1.5 block text-base font-bold text-slate-700 sm:text-lg">+420 732 827 210</a>
                 <p className="mt-3 text-sm leading-relaxed text-slate-600">Nevíte, komu napsat? Předáme zprávu správnému kolegovi.</p>
                 <p className="mt-3 border-t border-slate-200 pt-3 text-xs leading-relaxed text-slate-500">
