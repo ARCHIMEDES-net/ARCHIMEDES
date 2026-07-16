@@ -89,9 +89,6 @@ export default function PublicHeader({ active = "" }) {
         </nav>
 
         <div className="ph-actions">
-          <Link href="/zadost" className="ph-cta">
-            Chci program pro naši obec
-          </Link>
           <Link href="/login" className="ph-login">
             <span aria-hidden="true">👤</span>
             <span className="ph-loginLabel">Přihlášení</span>
@@ -121,9 +118,6 @@ export default function PublicHeader({ active = "" }) {
             </Link>
           ))}
 
-          <Link href="/zadost" className="ph-mobileCta">
-            Chci program pro naši obec
-          </Link>
           <Link href="/login" className="ph-mobileLogin">
             👤 Přihlášení
           </Link>
