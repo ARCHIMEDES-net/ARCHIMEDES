@@ -141,6 +141,9 @@ export default function ProOrganizacePage() {
                 <GraduationCap className="h-6 w-6 text-brand" aria-hidden="true" />
                 <h3 className="mt-4 text-xl font-black text-navy-900">Pro základní školy</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">Dvakrát ročně popularizační nebo náborový pořad pro mladou generaci.</p>
+                <Link href="/skoly" className="mt-4 inline-flex items-center gap-1.5 text-sm font-black text-brand">
+                  Jak funguje program pro školy <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
               </div>
             </div>
           </div>
