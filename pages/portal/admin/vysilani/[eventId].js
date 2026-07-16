@@ -98,9 +98,15 @@ export default function AdminVysilaniDetailPage() {
   const [selectedRecipientGroups, setSelectedRecipientGroups] = useState([]);
   const [recipients, setRecipients] = useState([]);
   const [recipientsLoading, setRecipientsLoading] = useState(false);
+  const [webMeetingConfigured, setWebMeetingConfigured] = useState(null);
+  const [webMeetingChecking, setWebMeetingChecking] = useState(false);
+  const [webMeetingCreating, setWebMeetingCreating] = useState(false);
+  const [webMeetingSyncing, setWebMeetingSyncing] = useState(false);
 
   const [eventRow, setEventRow] = useState(null);
   const [sessionId, setSessionId] = useState("");
+  const [externalMeetingId, setExternalMeetingId] = useState("");
+  const [providerStatus, setProviderStatus] = useState("");
 
   const [status, setStatus] = useState("draft");
   const [moderatorName, setModeratorName] = useState("");
@@ -174,6 +180,8 @@ export default function AdminVysilaniDetailPage() {
       const session = await ensureSessionExists();
 
       setSessionId(session.id || "");
+      setExternalMeetingId(session.external_meeting_id || "");
+      setProviderStatus(session.provider_status || "");
       setStatus(session.status || "draft");
       setModeratorName(session.moderator_name || "");
       setGuest1Name(session.guest_1_name || "");
@@ -188,6 +196,7 @@ export default function AdminVysilaniDetailPage() {
       setStartsAt(toDateTimeLocalValue(session.starts_at || eventData.starts_at));
       const groups = await loadRecipientGroups();
       setSelectedRecipientGroups(suggestRecipientGroups(eventData, groups));
+      await loadWebMeetingStatus();
     } catch (e) {
       setError(e.message || "Nepodařilo se načíst detail vysílání.");
     } finally {
@@ -212,6 +221,124 @@ export default function AdminVysilaniDetailPage() {
     const groups = Array.isArray(payload) ? payload : [];
     setRecipientGroups(groups);
     return groups;
+  }
+
+  async function loadWebMeetingStatus() {
+    const token = await getAccessToken();
+    const response = await fetch("/api/admin/webmeeting/status", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "Nepodařilo se zjistit stav WebMeeting API.");
+    setWebMeetingConfigured(Boolean(payload.configured));
+    return payload;
+  }
+
+  async function testWebMeetingConnection() {
+    setWebMeetingChecking(true);
+    setError("");
+    setMessage("");
+    try {
+      const token = await getAccessToken();
+      const response = await fetch("/api/admin/webmeeting/status", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Spojení s WebMeeting API nefunguje.");
+      setWebMeetingConfigured(Boolean(payload.configured));
+      setMessage(payload.message || "Spojení s WebMeeting API funguje.");
+    } catch (e) {
+      setError(e.message || "Spojení s WebMeeting API se nepodařilo ověřit.");
+    } finally {
+      setWebMeetingChecking(false);
+    }
+  }
+
+  async function createWebMeetingRoom() {
+    if (externalMeetingId) {
+      setError("Pro tuto událost už byla místnost ve WebMeetingu vytvořena.");
+      return;
+    }
+
+    setWebMeetingCreating(true);
+    setError("");
+    setMessage("");
+    try {
+      const token = await getAccessToken();
+      const response = await fetch("/api/admin/webmeeting/create-meeting", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ eventId }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Místnost se nepodařilo vytvořit.");
+      await loadData();
+      setExternalMeetingId(payload.meetingId || "");
+      setProviderStatus("created");
+      setStatus(payload.status || "scheduled");
+      setMessage("Místnost byla bezpečně vytvořena ve WebMeetingu.");
+    } catch (e) {
+      setError(e.message || "Místnost se nepodařilo vytvořit.");
+    } finally {
+      setWebMeetingCreating(false);
+    }
+  }
+
+  async function openModeratorEntry() {
+    setError("");
+    try {
+      const token = await getAccessToken();
+      const response = await fetch("/api/admin/webmeeting/moderator-url", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ eventId }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.url) {
+        throw new Error(payload.error || "Moderátorský vstup se nepodařilo vytvořit.");
+      }
+      window.open(payload.url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      setError(e.message || "Moderátorský vstup se nepodařilo vytvořit.");
+    }
+  }
+
+  async function syncWebMeetingResults() {
+    setWebMeetingSyncing(true);
+    setError("");
+    setMessage("");
+    try {
+      const token = await getAccessToken();
+      const response = await fetch("/api/admin/webmeeting/sync-results", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ eventId }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Výsledky vysílání se nepodařilo synchronizovat.");
+      }
+      await loadData();
+      setMessage(
+        payload.recordingFound
+          ? `Synchronizace dokončena: záznam je připraven ke kontrole a docházka obsahuje ${payload.attendanceCount || 0} účastníků.`
+          : `Synchronizace docházky dokončena (${payload.attendanceCount || 0} účastníků). Záznam zatím WebMeeting nevrátil.`
+      );
+    } catch (e) {
+      setError(e.message || "Výsledky vysílání se nepodařilo synchronizovat.");
+    } finally {
+      setWebMeetingSyncing(false);
+    }
   }
 
   async function generateRecipients() {
@@ -467,6 +594,50 @@ export default function AdminVysilaniDetailPage() {
                 <div className="mb-4 flex flex-wrap gap-2.5">
                   <Button
                     type="button"
+                    onClick={testWebMeetingConnection}
+                    disabled={webMeetingChecking || webMeetingConfigured === false}
+                    variant="secondary"
+                  >
+                    {webMeetingChecking ? "Ověřuji propojení…" : "Ověřit WebMeeting API"}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={openModeratorEntry}
+                    disabled={!externalMeetingId}
+                    variant="secondary"
+                  >
+                    Vstoupit jako moderátor
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={syncWebMeetingResults}
+                    disabled={!externalMeetingId || webMeetingSyncing}
+                    variant="secondary"
+                  >
+                    {webMeetingSyncing ? "Synchronizuji…" : "Načíst záznam a docházku"}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={createWebMeetingRoom}
+                    disabled={
+                      webMeetingCreating ||
+                      webMeetingConfigured !== true ||
+                      Boolean(externalMeetingId)
+                    }
+                    variant="primary"
+                  >
+                    {webMeetingCreating
+                      ? "Zakládám místnost…"
+                      : externalMeetingId
+                        ? "Místnost je založena"
+                        : "Založit místnost ve WebMeetingu"}
+                  </Button>
+
+                  <Button
+                    type="button"
                     onClick={() => {
                       if (!normalizedViewerUrl) {
                         setError("Volitelný odkaz není vyplněný.");
@@ -486,6 +657,16 @@ export default function AdminVysilaniDetailPage() {
                   <Button type="button" onClick={handleCopyProductionSummary} variant="secondary">
                     Zkopírovat produkční shrnutí
                   </Button>
+                </div>
+
+                <div className="mb-5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  <div>
+                    API: {webMeetingConfigured === true ? "nakonfigurováno" : webMeetingConfigured === false ? "čeká na přístupové údaje" : "ověřuji"}
+                  </div>
+                  <div>
+                    Místnost: {externalMeetingId ? `WebMeeting ID ${externalMeetingId}` : "zatím nebyla vytvořena"}
+                    {providerStatus ? ` • ${providerStatus}` : ""}
+                  </div>
                 </div>
 
                 <form onSubmit={handleSave}>
@@ -526,7 +707,7 @@ export default function AdminVysilaniDetailPage() {
                         type="text"
                         value={viewerUrl}
                         onChange={(e) => setViewerUrl(e.target.value)}
-                        placeholder="Není nutný — pozvánku rozešle WebMeeting"
+                        placeholder="Pouze pro starší nebo náhradní vysílání"
                       />
                     </div>
 
@@ -592,7 +773,7 @@ export default function AdminVysilaniDetailPage() {
                   </div>
 
                   <div className="mt-3 text-sm text-slate-600">
-                    WebMeeting rozešle přístupový odkaz příjemcům. Toto pole zachovává kompatibilitu se staršími událostmi.
+                    Pozvánku rozesílá ARCHIMEDES Live na naši stránku události. Unikátní vstupní odkaz WebMeetingu se bude generovat až po ověření přihlášeného uživatele. Toto pole slouží jen pro starší nebo náhradní vysílání.
                   </div>
 
                   <div className="mt-5 flex flex-wrap gap-3">
@@ -609,7 +790,7 @@ export default function AdminVysilaniDetailPage() {
                 <div className="mt-7 border-t border-slate-200 pt-6">
                   <h2 className="text-xl font-black text-navy-900">Příjemci pozvánky</h2>
                   <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                    Vyberte osobní zájmy. Jedna osoba se ve výsledku objeví pouze jednou, i když má vybráno více zájmů. Seznam pak vložte do WebMeetingu.
+                    Vyberte osobní zájmy. Jedna osoba se ve výsledku objeví pouze jednou, i když má vybráno více zájmů. ARCHIMEDES Live použije seznam pro vlastní pozvánky a řízení oprávněných vstupů.
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-slate-500">
                     Jednoznačné zájmy jsou předvybrané podle cílovek události. Výběr vždy zkontrolujte; činnost organizace se zde nepoužívá.

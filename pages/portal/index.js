@@ -135,7 +135,8 @@ export default function PortalIndex() {
               event_id,
               status,
               viewer_url,
-              starts_at
+              starts_at,
+              external_meeting_id
             )
           `)
           .eq("is_published", true)
