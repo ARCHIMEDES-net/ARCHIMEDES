@@ -1,11 +1,22 @@
 import Link from "next/link";
 import { footerContent } from "../content/homepage";
 
-const SOCIAL_ICON = {
-  facebook: "f",
-  instagram: "◎",
-  linkedin: "in",
-};
+function SocialIcon({ name }) {
+  const paths = {
+    facebook:
+      "M13.8 8.5V6.6c0-.9.6-1.1 1-1.1H17V2h-3c-3.4 0-4.2 2.5-4.2 4.2v2.3H7V12h2.8v10h4V12h3l.4-3.5h-3.4Z",
+    instagram:
+      "M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7Zm5 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm5.3-3.4a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Z",
+    linkedin:
+      "M6.5 8.2H2.4V21h4.1V8.2ZM4.5 2A2.4 2.4 0 1 0 4.5 6.8 2.4 2.4 0 0 0 4.5 2ZM21.6 13.7c0-3.9-2.1-5.8-4.9-5.8-2.3 0-3.3 1.3-3.9 2.1V8.2H8.7V21h4.1v-6.4c0-1.7.3-3.3 2.4-3.3 2.1 0 2.2 2 2.2 3.5V21h4.1l.1-7.3Z",
+  };
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d={paths[name] || paths.facebook} fill="currentColor" />
+    </svg>
+  );
+}
 
 export default function Footer() {
   const { legalName, tagline, columns, social, legalLinks } = footerContent;
@@ -52,7 +63,7 @@ export default function Footer() {
                       title={s.label}
                       className="footer-social-icon"
                     >
-                      {SOCIAL_ICON[s.icon] || s.label[0]}
+                      <SocialIcon name={s.icon} />
                     </a>
                   );
                 })}
@@ -163,6 +174,13 @@ export default function Footer() {
 
         .footer-social-icon:hover {
           background: rgba(255, 255, 255, 0.16);
+          transform: translateY(-1px);
+        }
+
+        .footer-social-icon svg {
+          width: 16px;
+          height: 16px;
+          display: block;
         }
 
         .footer-bottom {
