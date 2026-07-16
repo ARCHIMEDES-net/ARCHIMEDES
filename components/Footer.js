@@ -34,6 +34,26 @@ export default function Footer() {
             />
           </div>
           <p className="footer-tagline">{tagline}</p>
+          {visibleSocial.length ? (
+            <div className="footer-brand-social">
+              <span className="footer-social-label">Sledujte nás</span>
+              <div className="footer-social">
+                {visibleSocial.map((s) => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label={s.label}
+                    title={s.label}
+                    className="footer-social-icon"
+                  >
+                    <SocialIcon name={s.icon} />
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="footer-columns">
@@ -48,31 +68,6 @@ export default function Footer() {
             </div>
           ))}
 
-          {visibleSocial.length ? (
-            <div className="footer-col">
-              <div className="footer-col-title">Sledujte nás</div>
-              <div className="footer-social">
-                {visibleSocial.map((s) => {
-                  return (
-                    <a
-                      key={s.label}
-                      href={s.href}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      aria-label={s.label}
-                      title={s.label}
-                      className="footer-social-icon"
-                    >
-                      <SocialIcon name={s.icon} />
-                    </a>
-                  );
-                })}
-              </div>
-              <Link href="/login" className="footer-link">
-                Přihlášení
-              </Link>
-            </div>
-          ) : null}
         </div>
       </div>
 
@@ -155,7 +150,20 @@ export default function Footer() {
         .footer-social {
           display: flex;
           gap: 8px;
-          margin-bottom: 14px;
+        }
+
+        .footer-brand-social {
+          margin-top: 22px;
+        }
+
+        .footer-social-label {
+          display: block;
+          margin-bottom: 10px;
+          color: rgba(255, 255, 255, 0.52);
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
         }
 
         .footer-social-icon {
