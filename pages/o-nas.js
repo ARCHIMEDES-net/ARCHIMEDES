@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Image from "next/image";
-import { ArrowRight, Building2, Radio, Users } from "lucide-react";
+import { ArrowRight, Building2, Quote, Radio, Users } from "lucide-react";
 import Footer from "../components/Footer";
 import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
@@ -20,6 +20,41 @@ const principles = [
     icon: Building2,
     title: "Stavíme na zkušenosti z obcí",
     text: "ARCHIMEDES vychází z reálných učeben, živých vysílání a dlouhodobé spolupráce se školami a samosprávami.",
+  },
+];
+
+const references = [
+  {
+    type: "Škola",
+    organization: "ZŠ T. G. Masaryka a MŠ Hovorany",
+    quote:
+      "ARCHIMEDES nám do výuky přináší inspirativní osobnosti a příklady z reálného života. Žáci díky tomu lépe vnímají smysl probíraných témat a získávají nové pohledy na svět studia i práce. Oceňujeme kvalitní a snadno dostupný obsah propojený s cíli současného kurikula.",
+    name: "Kateřina Riedlová",
+    role: "ředitelka školy",
+  },
+  {
+    type: "Škola",
+    organization: "Základní škola Louny",
+    quote:
+      "Na programu ARCHIMEDES Live oceňujeme zejména možnost vybírat pořady z archivu podle aktuálních potřeb jednotlivých tříd. Učitelé tak mohou kvalitní obsah snadno zařadit do výuky právě ve chvíli, kdy nejlépe doplňuje probírané téma, a nabídnout žákům setkání s inspirativními lidmi z praxe.",
+    name: "Vlastimil Lisse",
+    role: "ředitel školy",
+  },
+  {
+    type: "Obec",
+    organization: "Obec Křenov",
+    quote:
+      "Jsme malá obec, a právě proto je pro nás důležité vytvářet příležitosti, které lidi přirozeně spojují. Jsme rádi, že jsme se rozhodli do projektu ARCHIMEDES zapojit. Učebna i program ARCHIMEDES Live výrazně posílily komunitní život v naší obci a přispěly také k našemu úspěchu v soutěži Obec 2030.",
+    name: "Václav Dvořák",
+    role: "starosta obce",
+  },
+  {
+    type: "Obec",
+    organization: "Obec Provodov-Šonov",
+    quote:
+      "ARCHIMEDES vytvořil prostor, ve kterém se přirozeně propojují škola, obec i místní komunita. Učebna a program ARCHIMEDES Live nám pomáhají rozvíjet společné aktivity, posilovat vztahy mezi lidmi a významně přispěly také k získání ocenění Bílá stuha v soutěži Vesnice roku.",
+    name: "Ondřej Daněk",
+    role: "místostarosta obce",
   },
 ];
 
@@ -61,6 +96,47 @@ export default function ONasPage() {
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#edf5fb]/55 via-transparent to-transparent" />
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-[#f3f7fb] py-16 sm:py-20">
+          <div className="mx-auto max-w-[1180px] px-5">
+            <div className="max-w-[760px]">
+              <SectionEyebrow>Zkušenosti škol a obcí</SectionEyebrow>
+              <h2 className="mt-4 text-[clamp(34px,4vw,50px)] font-[950] leading-[1.03] tracking-[-0.045em] text-navy-900">
+                ARCHIMEDES v každodenní praxi
+              </h2>
+              <p className="mt-4 text-[17px] leading-relaxed text-slate-700">
+                Školám přináší inspirativní obsah do výuky. Obcím pomáhá
+                propojovat generace, rozvíjet komunitní život a vytvářet
+                prostor pro společná setkávání.
+              </p>
+            </div>
+
+            <div className="mt-9 grid gap-5 md:grid-cols-2">
+              {references.map((reference) => (
+                <figure
+                  key={reference.organization}
+                  className="flex h-full flex-col rounded-[26px] border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,35,65,0.07)] sm:p-8"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-brand">
+                      {reference.type}
+                    </span>
+                    <Quote className="h-7 w-7 text-brand/25" aria-hidden="true" />
+                  </div>
+                  <blockquote className="mt-5 flex-1 text-[16px] leading-[1.75] text-slate-700">
+                    „{reference.quote}“
+                  </blockquote>
+                  <figcaption className="mt-7 border-t border-slate-200 pt-5">
+                    <p className="font-black text-navy-900">{reference.name}</p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {reference.role}, {reference.organization}
+                    </p>
+                  </figcaption>
+                </figure>
+              ))}
             </div>
           </div>
         </section>
