@@ -55,9 +55,10 @@ export default function App({ Component, pageProps }) {
   const canonicalUrl = `${siteUrl}${publicPath === "/" ? "" : publicPath}`;
   const noIndex = isPortal || NO_INDEX_PATHS.has(pathname);
   const title = "ARCHIMEDES Live";
+  const socialTitle = "ARCHIMEDES Live | Živý program pro celou obec";
   const description =
     "Pravidelný živý program pro školy, spolky, seniory a další místní komunity. Lidé se při něm setkávají, vzdělávají a sbližují.";
-  const imageUrl = `${siteUrl}/og-image.jpg`;
+  const imageUrl = `${siteUrl}/spolecna.jpg`;
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -124,16 +125,27 @@ export default function App({ Component, pageProps }) {
         <link rel="apple-touch-icon" href="/logo-archimedes-live-mark-512.png" />
 
         <meta property="og:type" content="website" />
+        <meta property="og:locale" content="cs_CZ" />
         <meta property="og:site_name" content="ARCHIMEDES Live" />
-        <meta property="og:title" content={title} />
+        <meta property="og:title" content={socialTitle} />
         <meta property="og:description" content={description} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={imageUrl} />
+        <meta property="og:image:width" content="1024" />
+        <meta property="og:image:height" content="683" />
+        <meta
+          property="og:image:alt"
+          content="Účastníci společného programu před učebnou ARCHIMEDES"
+        />
 
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={title} />
+        <meta name="twitter:title" content={socialTitle} />
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={imageUrl} />
+        <meta
+          name="twitter:image:alt"
+          content="Účastníci společného programu před učebnou ARCHIMEDES"
+        />
 
         {!noIndex ? (
           <script
