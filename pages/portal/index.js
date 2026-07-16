@@ -530,7 +530,7 @@ export default function PortalIndex() {
               ) : isAdmin ? (
                 <div className="tiles-grid admin-grid">
                   <Tile href="/portal/admin-udalosti/novy" icon="➕" title="Nová událost" desc="Rychlé založení nového vysílání nebo akce do programu." cta="Vytvořit" />
-                  <Tile href="/portal/admin-udalosti" icon="🛠️" title="Správa vysílání" desc="Vkládání, úpravy, odkazy na vysílání, záznamy a publikace." cta="Otevřít" />
+                  <Tile href="/portal/admin/udalosti" icon="🛠️" title="Správa vysílání" desc="Vkládání, úpravy, odkazy na vysílání, záznamy a publikace." cta="Otevřít" />
                   <Tile href="/portal/archiv" icon="📁" title="Archiv" desc="Kontrola záznamů, návazných materiálů a výsledného zobrazení pro uživatele." cta="Otevřít" />
                   <Tile href="/portal/admin-inzerce" icon="✅" title="Inzerce" desc="Moderace, TOP, ARCHIMEDES a správa příspěvků." cta="Otevřít" />
                   <Tile href="/portal/admin-poptavky" icon="📨" title="Poptávky" desc="Přehled leadů a export do CSV." cta="Otevřít" />

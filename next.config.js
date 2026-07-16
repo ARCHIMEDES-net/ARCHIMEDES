@@ -14,6 +14,7 @@ const nextConfig = {
       { source: "/aktualni-pozvanky", destination: "/program#vysilani", permanent: true },
       { source: "/reference", destination: "/ucebna#oceneni", permanent: true },
       { source: "/portal/program", destination: "/portal/kalendar", permanent: true },
+      { source: "/portal/admin-udalosti", destination: "/portal/admin/udalosti", permanent: true },
     ];
   },
 };

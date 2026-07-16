@@ -197,7 +197,7 @@ export default function NovaUdalost() {
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <Link
-            href="/portal/admin-udalosti"
+            href="/portal/admin/udalosti"
             className="text-sm text-slate-500 hover:underline"
           >
             ← Zpět do Adminu událostí
@@ -393,7 +393,7 @@ export default function NovaUdalost() {
               </button>
 
               <Link
-                href="/portal/admin-udalosti"
+                href="/portal/admin/udalosti"
                 className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
               >
                 Zpět do seznamu

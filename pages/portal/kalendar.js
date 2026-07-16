@@ -536,7 +536,7 @@ export default function Kalendar() {
                   <Plus className="h-4 w-4" aria-hidden="true" /> Nová událost
                 </Link>
                 <Link
-                  href="/portal/admin-udalosti"
+                  href="/portal/admin/udalosti"
                   className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 hover:border-slate-300"
                 >
                   <Wrench className="h-4 w-4" aria-hidden="true" /> Správa vysílání

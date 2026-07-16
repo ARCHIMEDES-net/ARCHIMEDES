@@ -34,7 +34,7 @@ export default function AdminHome() {
           </AdminCard>
 
           <AdminCard title="Události" desc="Správa vysílání a kalendáře (vkládání, úpravy, publikace).">
-            <Link href="/portal/admin-udalosti" className="font-bold text-brand hover:underline">
+            <Link href="/portal/admin/udalosti" className="font-bold text-brand hover:underline">
               Otevřít admin událostí
             </Link>
           </AdminCard>

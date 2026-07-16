@@ -477,7 +477,7 @@ export default function Archiv() {
               <Button href="/portal/admin-udalosti/novy" size="sm">
                 <Plus className="h-4 w-4" aria-hidden="true" /> Nová událost
               </Button>
-              <Button href="/portal/admin-udalosti" variant="secondary" size="sm">
+              <Button href="/portal/admin/udalosti" variant="secondary" size="sm">
                 <Wrench className="h-4 w-4" aria-hidden="true" /> Správa vysílání
               </Button>
             </div>

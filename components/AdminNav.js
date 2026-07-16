@@ -32,7 +32,7 @@ export default function AdminNav({ active = "" }) {
         marginTop: 6,
       }}
     >
-      <Link href="/portal/admin-udalosti" style={active === "udalosti" ? activeBtn : baseBtn}>
+      <Link href="/portal/admin/udalosti" style={active === "udalosti" ? activeBtn : baseBtn}>
         Události
       </Link>
 
