@@ -170,8 +170,8 @@ export default function Footer() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 34px;
-          height: 34px;
+          width: 42px;
+          height: 42px;
           border-radius: 999px;
           background: rgba(255, 255, 255, 0.08);
           color: #ffffff;
