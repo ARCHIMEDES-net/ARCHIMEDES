@@ -9,6 +9,7 @@ function stripQuery(asPath) {
 const NAV_ITEMS = [
   { key: "program", href: "/program", label: "Program" },
   { key: "obec", href: "/obec", label: "Pro obce" },
+  { key: "skoly", href: "/skoly", label: "Pro školy" },
   { key: "pro-organizace", href: "/pro-organizace", label: "Pro svazy" },
   { key: "ucebna", href: "/ucebna", label: "Učebna ARCHIMEDES" },
   { key: "o-nas", href: "/o-nas", label: "Naše vize" },
