@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, GraduationCap, Leaf, Radio, School, Users } from "lucide-react";
@@ -97,10 +98,13 @@ export default function ProgramPage() {
             </div>
 
             <div className="relative min-h-[410px] lg:min-h-full">
-              <img
+              <Image
                 src="/program-hero.jpg"
                 alt="Společné sledování živého programu ARCHIMEDES"
-                className="absolute inset-0 h-full w-full object-cover"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 55vw"
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#eef5fb]/65 via-transparent to-transparent" />
             </div>
