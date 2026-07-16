@@ -96,11 +96,11 @@ export default function PublicHeader({ active = "" }) {
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
-          aria-label="Otevřít menu"
+          aria-label={mobileOpen ? "Zavřít menu" : "Otevřít menu"}
           aria-expanded={mobileOpen}
           className="ph-toggle"
         >
-          ☰
+          <span aria-hidden="true">{mobileOpen ? "×" : "☰"}</span>
         </button>
       </div>
 
@@ -313,7 +313,7 @@ export default function PublicHeader({ active = "" }) {
           text-align: center;
         }
 
-        @media (max-width: 1439px) {
+        @media (max-width: 1120px) {
           .ph-nav {
             display: none;
           }
