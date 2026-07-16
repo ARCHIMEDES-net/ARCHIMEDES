@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
+import { cn } from "../../../lib/utils";
+import { Card } from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Alert } from "../../../components/ui/alert";
+import { Select } from "../../../components/ui/select";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../../components/ui/table";
 
 const STATUS_OPTIONS = [
   { value: "new", label: "Nová" },
@@ -20,7 +26,6 @@ function formatDate(value) {
 export default function AdminZadostiPage() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [creatingOrgId, setCreatingOrgId] = useState("");
   const [savingId, setSavingId] = useState("");
   const [invitingId, setInvitingId] = useState("");
   const [error, setError] = useState("");
@@ -69,80 +74,6 @@ export default function AdminZadostiPage() {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
     setMessage("Stav žádosti byl uložen.");
     setSavingId("");
-  }
-
-  async function createOrganizationFromRequest(row) {
-    setCreatingOrgId(row.id);
-    setError("");
-    setMessage("");
-
-    try {
-      if (row.organization_id) {
-        setMessage("Organizace už existuje.");
-        return;
-      }
-
-      const [
-        {
-          data: { user },
-          error: userError,
-        },
-        {
-          data: { session },
-          error: sessionError,
-        },
-      ] = await Promise.all([
-        supabase.auth.getUser(),
-        supabase.auth.getSession(),
-      ]);
-
-      if (userError) throw userError;
-      if (sessionError) throw sessionError;
-
-      const accessToken = session?.access_token;
-
-      if (!user || !accessToken) {
-        throw new Error("Nejste přihlášen.");
-      }
-
-      const response = await fetch("/api/admin/create-organization-from-request", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          requestId: row.id,
-          organizationName: row.organization,
-          licenseType: row.license_type,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result?.error || "Nepodařilo se vytvořit organizaci.");
-      }
-
-      setRows((prev) =>
-        prev.map((r) =>
-          r.id === row.id
-            ? {
-                ...r,
-                organization_id: result.organization?.id || r.organization_id,
-              }
-            : r
-        )
-      );
-
-      setMessage(
-        `Organizace „${result.organization?.name || row.organization}“ byla vytvořena.`
-      );
-    } catch (e) {
-      setError(e.message || "Nepodařilo se vytvořit organizaci.");
-    } finally {
-      setCreatingOrgId("");
-    }
   }
 
   async function inviteOrganizationAdmin(row) {
@@ -208,301 +139,165 @@ export default function AdminZadostiPage() {
     }
   }
 
-  const actionButtonStyle = {
-    padding: "8px 10px",
-    borderRadius: 10,
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "#fff",
-    fontWeight: 700,
-    cursor: "pointer",
-  };
-
-  const thStyle = {
-    textAlign: "left",
-    padding: "12px 10px",
-    borderBottom: "1px solid rgba(0,0,0,0.08)",
-    fontSize: 14,
-  };
-
-  const tdStyle = {
-    padding: "12px 10px",
-    borderBottom: "1px solid rgba(0,0,0,0.06)",
-    verticalAlign: "top",
-    fontSize: 14,
-  };
-
   return (
     <RequirePlatformAdmin>
-      <div style={{ minHeight: "100vh", background: "#f6f7fb" }}>
+      <div className="min-h-screen bg-slate-50">
         <PortalHeader title="Admin • žádosti" />
 
-        <main style={{ maxWidth: 1240, margin: "0 auto", padding: 40 }}>
-          <h1 style={{ marginTop: 0, marginBottom: 10 }}>Žádosti o přístup</h1>
+        <main className="mx-auto max-w-[1240px] px-10 py-10">
+          <h1 className="text-2xl font-black text-navy-900">Žádosti o přístup</h1>
 
-          <p style={{ marginTop: 0, color: "rgba(0,0,0,0.65)", maxWidth: 900 }}>
+          <p className="mt-2.5 max-w-[900px] text-muted">
             Přehled zájemců o vstup do ARCHIMEDES Live. Z této stránky můžeš měnit
             stav žádosti, vytvořit organizaci a pozvat konkrétního administrátora.
           </p>
 
           {error ? (
-            <div
-              style={{
-                color: "#a40000",
-                background: "#fff1f1",
-                border: "1px solid #f2c9c9",
-                borderRadius: 10,
-                padding: 12,
-                marginBottom: 16,
-              }}
-            >
+            <Alert variant="error" className="mt-4">
               {error}
-            </div>
+            </Alert>
           ) : null}
 
           {message ? (
-            <div
-              style={{
-                color: "#166534",
-                background: "#eefaf0",
-                border: "1px solid #cfe8d3",
-                borderRadius: 10,
-                padding: 12,
-                marginBottom: 16,
-              }}
-            >
+            <Alert variant="success" className="mt-4">
               {message}
-            </div>
+            </Alert>
           ) : null}
 
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 18,
-              border: "1px solid rgba(0,0,0,0.08)",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                padding: 14,
-                borderBottom: "1px solid rgba(0,0,0,0.08)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 12,
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ fontWeight: 700 }}>Celkem žádostí: {rows.length}</div>
+          <Card className="mt-4 overflow-hidden p-0">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-900/[0.08] p-3.5">
+              <div className="font-bold text-navy-900">Celkem žádostí: {rows.length}</div>
 
-              <button
-                type="button"
-                onClick={loadRows}
-                disabled={loading}
-                style={{
-                  ...actionButtonStyle,
-                  opacity: loading ? 0.7 : 1,
-                  cursor: loading ? "default" : "pointer",
-                }}
-              >
+              <Button type="button" onClick={loadRows} disabled={loading} variant="secondary" size="sm">
                 {loading ? "Načítám..." : "Obnovit"}
-              </button>
+              </Button>
             </div>
 
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    <th style={thStyle}>Datum</th>
-                    <th style={thStyle}>Jméno</th>
-                    <th style={thStyle}>Organizace</th>
-                    <th style={thStyle}>E-mail</th>
-                    <th style={thStyle}>Telefon</th>
-                    <th style={thStyle}>Stav</th>
-                    <th style={thStyle}>Akce</th>
-                  </tr>
-                </thead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Datum</TableHead>
+                  <TableHead>Jméno</TableHead>
+                  <TableHead>Organizace</TableHead>
+                  <TableHead>E-mail</TableHead>
+                  <TableHead>Telefon</TableHead>
+                  <TableHead>Stav</TableHead>
+                  <TableHead>Akce</TableHead>
+                </TableRow>
+              </TableHeader>
 
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td style={tdStyle} colSpan={7}>
-                        Načítám…
-                      </td>
-                    </tr>
-                  ) : null}
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7}>Načítám…</TableCell>
+                  </TableRow>
+                ) : null}
 
-                  {!loading && rows.length === 0 ? (
-                    <tr>
-                      <td style={tdStyle} colSpan={7}>
-                        Zatím žádné žádosti.
-                      </td>
-                    </tr>
-                  ) : null}
+                {!loading && rows.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7}>Zatím žádné žádosti.</TableCell>
+                  </TableRow>
+                ) : null}
 
-                  {rows.map((row) => (
-                    <tr key={row.id}>
-                      <td style={tdStyle}>{formatDate(row.created_at)}</td>
+                {rows.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{formatDate(row.created_at)}</TableCell>
 
-                      <td style={tdStyle}>
-                        <div style={{ fontWeight: 700 }}>{row.contact_name || "—"}</div>
-                        {row.address ? (
-                          <div style={{ marginTop: 6, color: "rgba(0,0,0,0.62)" }}>
-                            {row.address}
-                          </div>
-                        ) : null}
-                        {row.message ? (
-                          <div
-                            style={{
-                              marginTop: 6,
-                              color: "rgba(0,0,0,0.62)",
-                              whiteSpace: "pre-wrap",
-                              maxWidth: 260,
-                            }}
-                          >
-                            {row.message}
-                          </div>
-                        ) : null}
-                      </td>
+                    <TableCell>
+                      <div className="font-bold">{row.contact_name || "—"}</div>
+                      {row.address ? <div className="mt-1.5 text-slate-500">{row.address}</div> : null}
+                      {row.message ? (
+                        <div className="mt-1.5 max-w-[260px] whitespace-pre-wrap text-slate-500">
+                          {row.message}
+                        </div>
+                      ) : null}
+                    </TableCell>
 
-                      <td style={tdStyle}>
-                        {row.organization || "—"}
-                        <div style={{ marginTop: 8 }}>
-                          {row.organization_id ? (
-                            <span
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                minHeight: 28,
-                                padding: "0 10px",
-                                borderRadius: 999,
-                                background: "#eefaf0",
-                                color: "#166534",
-                                border: "1px solid #cfe8d3",
-                                fontSize: 12,
-                                fontWeight: 700,
-                              }}
-                            >
-                              Organizace vytvořena
-                            </span>
-                          ) : (
-                            <span
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                minHeight: 28,
-                                padding: "0 10px",
-                                borderRadius: 999,
-                                background: "#f8fafc",
-                                color: "#475569",
-                                border: "1px solid #e2e8f0",
-                                fontSize: 12,
-                                fontWeight: 700,
-                              }}
-                            >
-                              Bez organizace
-                            </span>
+                    <TableCell>
+                      {row.organization || "—"}
+                      <div className="mt-2">
+                        <span
+                          className={cn(
+                            "inline-flex min-h-[28px] items-center rounded-full border px-2.5 text-xs font-bold",
+                            row.organization_id
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                              : "border-slate-200 bg-slate-50 text-slate-600"
                           )}
-                        </div>
-                      </td>
-
-                      <td style={tdStyle}>
-                        {row.email ? (
-                          <a href={`mailto:${row.email}`} style={{ color: "#111827" }}>
-                            {row.email}
-                          </a>
-                        ) : (
-                          "—"
-                        )}
-
-                        {row.admin_invited_email ? (
-                          <div style={{ marginTop: 8, fontSize: 12, color: "rgba(0,0,0,0.6)" }}>
-                            Pozvánka: {row.admin_invited_email}
-                          </div>
-                        ) : null}
-                      </td>
-
-                      <td style={tdStyle}>
-                        {row.phone ? (
-                          <a href={`tel:${row.phone}`} style={{ color: "#111827" }}>
-                            {row.phone}
-                          </a>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-
-                      <td style={tdStyle}>
-                        <select
-                          value={row.status || "new"}
-                          disabled={savingId === row.id}
-                          onChange={(e) => updateStatus(row.id, e.target.value)}
-                          style={{
-                            minWidth: 150,
-                            padding: "8px 10px",
-                            borderRadius: 10,
-                            border: "1px solid rgba(0,0,0,0.15)",
-                            background: "#fff",
-                          }}
                         >
-                          {STATUS_OPTIONS.map((s) => (
-                            <option key={s.value} value={s.value}>
-                              {s.label}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
+                          {row.organization_id ? "Organizace vytvořena" : "Bez organizace"}
+                        </span>
+                      </div>
+                    </TableCell>
 
-                      <td style={tdStyle}>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                          <button
-                            type="button"
-                            style={{
-                              ...actionButtonStyle,
-                              opacity:
-                                row.organization_id || creatingOrgId === row.id ? 0.7 : 1,
-                              cursor:
-                                row.organization_id || creatingOrgId === row.id
-                                  ? "default"
-                                  : "pointer",
-                            }}
-                            onClick={() => createOrganizationFromRequest(row)}
-                            disabled={!!row.organization_id || creatingOrgId === row.id}
-                          >
-                            {creatingOrgId === row.id
-                              ? "Vytvářím..."
-                              : row.organization_id
-                                ? "Organizace existuje"
-                                : "Vytvořit organizaci"}
-                          </button>
+                    <TableCell>
+                      {row.email ? (
+                        <a href={`mailto:${row.email}`} className="text-navy-900">
+                          {row.email}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
 
-                          <button
-                            type="button"
-                            style={{
-                              ...actionButtonStyle,
-                              opacity: !row.organization_id || invitingId === row.id ? 0.7 : 1,
-                              cursor:
-                                !row.organization_id || invitingId === row.id
-                                  ? "default"
-                                  : "pointer",
-                            }}
-                            onClick={() => inviteOrganizationAdmin(row)}
-                            disabled={!row.organization_id || invitingId === row.id}
-                          >
-                            {invitingId === row.id
-                              ? "Odesílám..."
-                              : row.admin_invited_email
-                                ? "Pozvat znovu admina"
-                                : "Pozvat administrátora"}
-                          </button>
+                      {row.admin_invited_email ? (
+                        <div className="mt-2 text-xs text-slate-500">
+                          Pozvánka: {row.admin_invited_email}
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                      ) : null}
+                    </TableCell>
+
+                    <TableCell>
+                      {row.phone ? (
+                        <a href={`tel:${row.phone}`} className="text-navy-900">
+                          {row.phone}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+
+                    <TableCell>
+                      <Select
+                        value={row.status || "new"}
+                        disabled={savingId === row.id}
+                        onChange={(e) => updateStatus(row.id, e.target.value)}
+                        className="h-10 min-w-[150px]"
+                      >
+                        {STATUS_OPTIONS.map((s) => (
+                          <option key={s.value} value={s.value}>
+                            {s.label}
+                          </option>
+                        ))}
+                      </Select>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex flex-col gap-2">
+                        <span className="text-xs text-slate-500">
+                          {row.organization_id
+                            ? "Organizace je propojena"
+                            : "Historická žádost bez organizace"}
+                        </span>
+
+                        <Button
+                          type="button"
+                          onClick={() => inviteOrganizationAdmin(row)}
+                          disabled={!row.organization_id || invitingId === row.id}
+                          variant="secondary"
+                          size="sm"
+                        >
+                          {invitingId === row.id
+                            ? "Odesílám..."
+                            : row.admin_invited_email
+                              ? "Pozvat znovu admina"
+                              : "Pozvat administrátora"}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
         </main>
       </div>
     </RequirePlatformAdmin>

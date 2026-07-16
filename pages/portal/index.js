@@ -6,16 +6,12 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import JoinBroadcastButton from "../../components/JoinBroadcastButton";
 import { getEventStart, getJoinButtonState } from "../../lib/broadcastState";
+import { resolveLicenseMode } from "../../lib/licenseMode";
 import { supabase } from "../../lib/supabaseClient";
+import { fetchMyOrganization } from "../../lib/myOrganizations";
 
 const POSTERS_BUCKET = "posters";
 const FALLBACK_POSTER = "/ucebna-exterier.webp";
-
-const DEMO_FEATURED_VIDEO = {
-  title: "Ukázka živého vstupu do výuky",
-  subtitle: "ZOO Praha – host ve školním programu ARCHIMEDES Live",
-  src: "https://www.youtube.com/embed/yvelfGeL6Jg",
-};
 
 function safeDate(value) {
   if (!value) return null;
@@ -87,24 +83,6 @@ function createCalendarHref(event) {
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}`;
 }
 
-function resolveLicenseMode(org) {
-  if (!org) return "default";
-
-  const status = String(org.license_status || "trial").toLowerCase().trim();
-  const validUntil = safeDate(org.license_valid_until);
-
-  if (status === "suspended") return "suspended";
-  if (status === "active") return "active";
-  if (status === "expired") return "expired";
-
-  if (status === "trial") {
-    if (!validUntil) return "trial";
-    return validUntil.getTime() >= Date.now() ? "trial" : "expired";
-  }
-
-  return "expired";
-}
-
 export default function PortalIndex() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
@@ -115,6 +93,7 @@ export default function PortalIndex() {
   const [loadingProfileType, setLoadingProfileType] = useState(true);
   const [dashboardType, setDashboardType] = useState("default");
   const [organizationName, setOrganizationName] = useState("");
+  const [organizationType, setOrganizationType] = useState("");
   const [organizationCode, setOrganizationCode] = useState("");
   const [membershipRole, setMembershipRole] = useState("");
   const [copiedCode, setCopiedCode] = useState(false);
@@ -186,6 +165,7 @@ export default function PortalIndex() {
         if (!user) {
           setMembershipRole("");
           setOrganizationName("");
+          setOrganizationType("");
           setOrganizationCode("");
           setLicenseValidUntil(null);
           setDashboardType("default");
@@ -246,24 +226,21 @@ export default function PortalIndex() {
         }
 
         if (membership?.organization_id && resolvedOrganizationId) {
-          const { data: org, error: orgError } = await supabase
-            .from("organizations")
-            .select("id, name, join_code, license_status, license_valid_until")
-            .eq("id", resolvedOrganizationId)
-            .maybeSingle();
-
-          if (orgError) throw orgError;
+          const org = await fetchMyOrganization(supabase, resolvedOrganizationId);
           if (!alive) return;
 
           const roleInOrg = membership?.role_in_org || "";
           setMembershipRole(roleInOrg);
           setOrganizationName(org?.name || "");
+          setOrganizationType(org?.org_type || "");
           setOrganizationCode(org?.join_code || "");
           setLicenseValidUntil(org?.license_valid_until || null);
-          setLicenseMode(resolveLicenseMode(org));
 
-          if (roleInOrg === "demo_viewer") setDashboardType("demo_viewer");
-          else setDashboardType("organization");
+          const mode = await resolveLicenseMode(supabase, resolvedOrganizationId, org);
+          if (!alive) return;
+          setLicenseMode(mode);
+
+          setDashboardType("organization");
 
           setLoadingProfileType(false);
           return;
@@ -272,6 +249,7 @@ export default function PortalIndex() {
         if (profile?.user_type === "individual") {
           setMembershipRole("");
           setOrganizationName("");
+          setOrganizationType("");
           setOrganizationCode("");
           setLicenseValidUntil(null);
           setDashboardType("individual");
@@ -279,6 +257,7 @@ export default function PortalIndex() {
         } else {
           setMembershipRole("");
           setOrganizationName("");
+          setOrganizationType("");
           setOrganizationCode("");
           setLicenseValidUntil(null);
           setDashboardType("default");
@@ -288,6 +267,7 @@ export default function PortalIndex() {
         if (alive) {
           setMembershipRole("");
           setOrganizationName("");
+          setOrganizationType("");
           setOrganizationCode("");
           setLicenseValidUntil(null);
           setDashboardType("default");
@@ -309,9 +289,6 @@ export default function PortalIndex() {
   const featuredEvent = hasEvents ? nextEvents[0] : null;
   const otherEvents = hasEvents ? nextEvents.slice(1) : [];
 
-  const isDemoViewer =
-    dashboardType === "demo_viewer" && membershipRole === "demo_viewer";
-
   const dashboard = useMemo(
     () =>
       getDashboardConfig(
@@ -327,17 +304,19 @@ export default function PortalIndex() {
     !loadingProfileType &&
     !!organizationName &&
     dashboardType === "organization" &&
+    organizationType === "school" &&
     membershipRole === "organization_admin";
 
-  const showAdminSection = !isDemoViewer && isAdmin;
+  const showAdminSection = isAdmin;
 
-  const showTrialBanner =
-    dashboardType === "organization" && licenseMode === "trial";
-  const showExpiredBanner =
-    (dashboardType === "organization" || dashboardType === "demo_viewer") &&
-    licenseMode === "expired";
+  const showPendingApprovalBanner =
+    dashboardType === "organization" &&
+    licenseMode === "pending_approval";
+  const showInactiveBanner =
+    dashboardType === "organization" &&
+    licenseMode === "inactive";
   const showSuspendedBanner =
-    (dashboardType === "organization" || dashboardType === "demo_viewer") &&
+    dashboardType === "organization" &&
     licenseMode === "suspended";
 
   async function handleCopyOrganizationCode() {
@@ -357,44 +336,33 @@ export default function PortalIndex() {
 
       <div className="portal-page">
         <div className="portal-wrap">
-          {isDemoViewer ? (
-            <DemoFeaturedSection
-              organizationName={organizationName}
-              validUntil={licenseValidUntil}
-            />
-          ) : null}
-
-          {showTrialBanner ? (
+          {showPendingApprovalBanner ? (
             <LicenseBanner
-              mode="trial"
-              title="ARCHIMEDES Live – ukázkový přístup"
+              mode="pending_approval"
+              title="Program vaší obce se připravuje"
               text={
                 <>
-                  Vaše organizace{organizationName ? ` ${organizationName}` : ""} má aktivní
-                  ukázkový přístup. Můžete si projít portál, podívat se na program a připravit si další krok
-                  pro zapojení školy.
+                  Žádost o program byla přijata a zpracováváme registraci.
+                  Ozveme se, jakmile bude vše hotové.
                 </>
               }
-              primaryHref="/start"
-              primaryLabel="Chci balíček START"
               secondaryHref="/portal/kalendar"
               secondaryLabel="Otevřít program"
             />
           ) : null}
 
-          {showExpiredBanner ? (
+          {showInactiveBanner ? (
             <LicenseBanner
-              mode="expired"
-              title="Ukázkový přístup skončil"
+              mode="inactive"
+              title="Program zde není aktivní"
               text={
                 <>
-                  Přístup organizace{organizationName ? ` ${organizationName}` : ""} je nyní v
-                  omezeném režimu. Pro pokračování v programu kontaktujte EduVision a vyberte
-                  vhodnou variantu zapojení školy.
+                  Vaše obec zatím nemá aktivní program ARCHIMEDES Live.
+                  Pokud si myslíte, že jde o chybu, kontaktujte nás.
                 </>
               }
-              primaryHref="/start"
-              primaryLabel="Chci balíček START"
+              primaryHref="/kontakt"
+              primaryLabel="Napsat nám"
               secondaryHref="/portal/skoly"
               secondaryLabel="Zobrazit síť učeben"
             />
@@ -403,15 +371,15 @@ export default function PortalIndex() {
           {showSuspendedBanner ? (
             <LicenseBanner
               mode="suspended"
-              title="Přístup organizace je pozastaven"
+              title="Program obce je dočasně pozastaven"
               text={
                 <>
-                  Přístup organizace{organizationName ? ` ${organizationName}` : ""} je dočasně
-                  pozastaven. Pro obnovení kontaktujte EduVision.
+                  Přístup obce k programu je momentálně pozastaven. Pro víc
+                  informací kontaktujte obecní úřad nebo nás.
                 </>
               }
-              primaryHref="/poptavka"
-              primaryLabel="Kontaktovat EduVision"
+              primaryHref="/kontakt"
+              primaryLabel="Napsat nám"
               secondaryHref="/portal/skoly"
               secondaryLabel="Zobrazit síť učeben"
             />
@@ -465,7 +433,9 @@ export default function PortalIndex() {
                 <OnboardingStep
                   number="2"
                   title="Učitelé se sami připojí"
-                  text="Učitel si vytvoří účet, přihlásí se a na obrazovce Welcome zvolí připojení ke stávající organizaci."
+                  text="Učitel otevře stránku pro připojení ke škole, vytvoří si účet nebo použije stávající přihlášení a zadá školní kód."
+                  actionHref="/join"
+                  actionLabel="Otevřít připojení učitele"
                 />
 
                 <OnboardingStep
@@ -560,7 +530,7 @@ export default function PortalIndex() {
               ) : isAdmin ? (
                 <div className="tiles-grid admin-grid">
                   <Tile href="/portal/admin-udalosti/novy" icon="➕" title="Nová událost" desc="Rychlé založení nového vysílání nebo akce do programu." cta="Vytvořit" />
-                  <Tile href="/portal/admin-udalosti" icon="🛠️" title="Správa vysílání" desc="Vkládání, úpravy, odkazy na vysílání, záznamy a publikace." cta="Otevřít" />
+                  <Tile href="/portal/admin/udalosti" icon="🛠️" title="Správa vysílání" desc="Vkládání, úpravy, odkazy na vysílání, záznamy a publikace." cta="Otevřít" />
                   <Tile href="/portal/archiv" icon="📁" title="Archiv" desc="Kontrola záznamů, návazných materiálů a výsledného zobrazení pro uživatele." cta="Otevřít" />
                   <Tile href="/portal/admin-inzerce" icon="✅" title="Inzerce" desc="Moderace, TOP, ARCHIMEDES a správa příspěvků." cta="Otevřít" />
                   <Tile href="/portal/admin-poptavky" icon="📨" title="Poptávky" desc="Přehled leadů a export do CSV." cta="Otevřít" />
@@ -936,7 +906,7 @@ function TeacherJoinHero({ event }) {
           <div className="help-list">
             <div><span>✓</span><p>Připojení je možné 15 minut před začátkem.</p></div>
             <div><span>✓</span><p>Klikněte na „Vstoupit do vysílání“.</p></div>
-            <div><span>✓</span><p>Otevře se okno Google Meet.</p></div>
+            <div><span>✓</span><p>Otevře se odkaz na vysílání od pořadatele.</p></div>
             <div><span>✓</span><p>Zkontrolujte, zda máte zapnutý/vypnutý mikrofon a kameru.</p></div>
           </div>
 
@@ -1459,14 +1429,14 @@ function LicenseBanner({
   secondaryLabel,
 }) {
   const config =
-    mode === "trial"
+    mode === "pending_approval"
       ? {
           bg: "linear-gradient(180deg, #fffdf6 0%, #fffaf0 100%)",
           border: "1px solid #f5d9a8",
           badgeBg: "#fff2cc",
           badgeColor: "#8a5a00",
         }
-      : mode === "expired"
+      : mode === "inactive"
       ? {
           bg: "linear-gradient(180deg, #fff8f8 0%, #fff3f3 100%)",
           border: "1px solid #f2c9c9",
@@ -1514,10 +1484,10 @@ function LicenseBanner({
               marginBottom: 10,
             }}
           >
-            {mode === "trial"
-              ? "Ukázkový režim"
-              : mode === "expired"
-              ? "Přístup skončil"
+            {mode === "pending_approval"
+              ? "Čeká na zpracování"
+              : mode === "inactive"
+              ? "Program není aktivní"
               : "Přístup pozastaven"}
           </div>
 
@@ -1592,236 +1562,15 @@ function LicenseBanner({
   );
 }
 
-function DemoFeaturedSection({ organizationName }) {
-  return (
-    <section className="demo-section">
-      <div className="demo-grid">
-        <div>
-          <div className="demo-pill">Ukázka pro ředitele školy</div>
-
-          <h1>
-            Podívejte se,
-            <br />
-            jak může škola pracovat s programem ARCHIMEDES Live
-          </h1>
-
-          <p>
-            Tohle je ukázkové prostředí ARCHIMEDES Live
-            {organizationName ? ` pro ${organizationName}` : ""}. Během několika minut
-            si projdete program, archiv i další části portálu a uvidíte,
-            jak vypadá živý vstup hosta do výuky.
-          </p>
-
-          <p>
-            Nejde o technickou ukázku systému. Jde o rychlou a srozumitelnou představu,
-            co může škola získat po zapojení do programu.
-          </p>
-
-          <div className="demo-actions">
-            <Link href="/start">Chci balíček START pro naši školu</Link>
-            <Link href="/poptavka">Chci celý program pro školu</Link>
-          </div>
-        </div>
-
-        <div className="video-card">
-          <div className="video-frame">
-            <iframe
-              width="100%"
-              height="100%"
-              src={DEMO_FEATURED_VIDEO.src}
-              title={DEMO_FEATURED_VIDEO.title}
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
-          </div>
-
-          <div className="video-text">
-            <h3>{DEMO_FEATURED_VIDEO.title}</h3>
-            <p>{DEMO_FEATURED_VIDEO.subtitle}</p>
-          </div>
-        </div>
-      </div>
-
-      <style jsx>{`
-        .demo-section {
-          background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          border-radius: 28px;
-          padding: 22px;
-          box-shadow: 0 16px 40px rgba(15, 23, 42, 0.05);
-          margin-bottom: 18px;
-        }
-
-        .demo-grid {
-          display: grid;
-          grid-template-columns: 1.02fr 1fr;
-          gap: 22px;
-          align-items: center;
-        }
-
-        .demo-pill {
-          display: inline-flex;
-          align-items: center;
-          padding: 7px 12px;
-          border-radius: 999px;
-          background: #eef2ff;
-          color: #1e3a8a;
-          font-size: 13px;
-          font-weight: 900;
-          margin-bottom: 14px;
-        }
-
-        h1 {
-          margin: 0;
-          font-size: 42px;
-          line-height: 1.04;
-          color: #0f172a;
-          letter-spacing: -0.03em;
-        }
-
-        p {
-          margin: 16px 0 0;
-          font-size: 17px;
-          line-height: 1.7;
-          color: #334155;
-          max-width: 700px;
-        }
-
-        .demo-actions {
-          display: flex;
-          gap: 12px;
-          flex-wrap: wrap;
-          margin-top: 24px;
-        }
-
-        .demo-actions a {
-          text-decoration: none;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 52px;
-          padding: 0 20px;
-          border-radius: 14px;
-          font-weight: 900;
-        }
-
-        .demo-actions a:first-child {
-          background: #0f172a;
-          color: white;
-          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16);
-        }
-
-        .demo-actions a:last-child {
-          background: #fff;
-          color: #0f172a;
-          border: 1px solid rgba(15, 23, 42, 0.12);
-        }
-
-        .video-card {
-          background: #fff;
-          border-radius: 24px;
-          overflow: hidden;
-          border: 1px solid #dbe3ef;
-          box-shadow: 0 18px 44px rgba(15, 23, 42, 0.1);
-        }
-
-        .video-frame {
-          aspect-ratio: 16 / 9;
-          background: #dbe4f0;
-        }
-
-        iframe {
-          display: block;
-          width: 100%;
-          height: 100%;
-        }
-
-        .video-text {
-          padding: 18px;
-        }
-
-        .video-text h3 {
-          margin: 0;
-          font-size: 19px;
-          font-weight: 900;
-          line-height: 1.3;
-          color: #0f172a;
-        }
-
-        .video-text p {
-          margin: 6px 0 0;
-          font-size: 15px;
-          line-height: 1.6;
-          color: #64748b;
-        }
-
-        @media (max-width: 920px) {
-          .demo-grid {
-            grid-template-columns: 1fr;
-          }
-
-          h1 {
-            font-size: 34px;
-          }
-        }
-      `}</style>
-    </section>
-  );
-}
-
 function getDashboardConfig(type, organizationName = "", licenseMode = "default") {
   const orgLabel = organizationName ? ` pro ${organizationName}` : "";
 
-  if (type === "demo_viewer") {
-    return {
-      tipBold: "Program",
-      quickTitle: "Co si projít dál v portálu",
-      quickSubtitle: "Po zhlédnutí ukázky živého vstupu si projděte další části, které škola běžně používá.",
-      primaryCtaLabel: "Otevřít program",
-      primaryCtaHref: "/portal/kalendar",
-      tiles: [
-        {
-          href: "/portal/kalendar",
-          icon: "🗓️",
-          title: "Program",
-          desc: "Podívejte se, jak je přehledně uspořádaný program a jak se škola dostává k jednotlivým vstupům.",
-          cta: "Otevřít",
-          highlight: true,
-          note: "Začněte zde",
-        },
-        {
-          href: "/portal/archiv",
-          icon: "📚",
-          title: "Archiv",
-          desc: "Uvidíte strukturu archivu a návaznost na výuku.",
-          cta: "Otevřít",
-        },
-        {
-          href: "/portal/skoly",
-          icon: "🏫",
-          title: "Síť učeben",
-          desc: "Inspirace z praxe a přehled škol a obcí zapojených do sítě ARCHIMEDES.",
-          cta: "Otevřít",
-        },
-        {
-          href: "/start",
-          icon: "🚀",
-          title: "Balíček START",
-          desc: "Nejrychlejší cesta, jak školu zapojit do programu.",
-          cta: "Chci START",
-          note: "Doporučeno",
-        },
-      ],
-    };
-  }
-
   if (type === "organization") {
-    if (licenseMode === "trial") {
+    if (licenseMode === "pending_approval") {
       return {
-        tipBold: "Program",
-        quickTitle: "Doporučené první kroky",
-        quickSubtitle: `Začněte tím, co vám nejrychleji ukáže hodnotu programu pro školu${orgLabel}.`,
+        tipBold: "Registrace",
+        quickTitle: "Než bude program aktivní",
+        quickSubtitle: `Zpracováváme registraci programu${orgLabel}. Mezitím si můžete prohlédnout, jak vypadá.`,
         primaryCtaLabel: "Otevřít program",
         primaryCtaHref: "/portal/kalendar",
         tiles: [
@@ -1829,7 +1578,7 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
             href: "/portal/kalendar",
             icon: "🗓️",
             title: "Program",
-            desc: "Podívejte se, jak vypadá program a jak se škola dostane k jednotlivým vstupům.",
+            desc: "Podívejte se, jak vypadá program a jak se obec dostane k jednotlivým vstupům.",
             cta: "Otevřít",
             highlight: true,
             note: "Začněte zde",
@@ -1845,50 +1594,42 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
             href: "/portal/skoly",
             icon: "🏫",
             title: "Síť učeben",
-            desc: "Prohlédněte si školy a obce, které už v síti ARCHIMEDES fungují.",
+            desc: "Prohlédněte si obce, které už v síti ARCHIMEDES fungují.",
             cta: "Otevřít",
           },
           {
-            href: "/start",
-            icon: "🚀",
-            title: "Balíček START",
-            desc: "Nejrychlejší způsob, jak se školou začít bez zbytečného odkladu.",
-            cta: "Chci START",
-            note: "Doporučeno",
+            href: "/kontakt",
+            icon: "✉️",
+            title: "Napsat nám",
+            desc: "Máte dotaz k registraci? Ozvěte se nám.",
+            cta: "Napsat",
           },
         ],
       };
     }
 
-    if (licenseMode === "expired") {
+    if (licenseMode === "inactive") {
       return {
-        tipBold: "Balíček START",
-        quickTitle: "Další doporučený krok",
-        quickSubtitle: "Obnovte plný přístup pro školu nebo obec.",
-        primaryCtaLabel: "Chci balíček START",
-        primaryCtaHref: "/start",
+        tipBold: "Kontakt",
+        quickTitle: "Program zatím není aktivní",
+        quickSubtitle: "Pokud si myslíte, že jde o chybu, napište nám.",
+        primaryCtaLabel: "Napsat nám",
+        primaryCtaHref: "/kontakt",
         tiles: [
           {
-            href: "/start",
-            icon: "🚀",
-            title: "Balíček START",
-            desc: "Nejrychlejší cesta k obnovení programu pro vaši školu.",
-            cta: "Chci START",
+            href: "/kontakt",
+            icon: "✉️",
+            title: "Napsat nám",
+            desc: "Ozvěte se nám a společně to vyřešíme.",
+            cta: "Napsat",
             highlight: true,
             note: "Doporučeno",
-          },
-          {
-            href: "/poptavka",
-            icon: "⭐",
-            title: "Celý program",
-            desc: "Pokud chcete pokračovat naplno, dejte nám vědět.",
-            cta: "Mám zájem",
           },
           {
             href: "/portal/skoly",
             icon: "🏫",
             title: "Síť učeben",
-            desc: "Inspirace z praxe a přehled zapojených škol.",
+            desc: "Inspirace z praxe a přehled zapojených obcí.",
             cta: "Otevřít",
           },
           {
@@ -1904,18 +1645,18 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
 
     if (licenseMode === "suspended") {
       return {
-        tipBold: "Kontakt s EduVision",
+        tipBold: "Kontakt",
         quickTitle: "Co můžete udělat teď",
-        quickSubtitle: "Nejrychlejší cesta k obnovení přístupu.",
-        primaryCtaLabel: "Kontaktovat EduVision",
-        primaryCtaHref: "/poptavka",
+        quickSubtitle: "Nejrychlejší cesta k obnovení přístupu je napsat nám.",
+        primaryCtaLabel: "Napsat nám",
+        primaryCtaHref: "/kontakt",
         tiles: [
           {
-            href: "/poptavka",
+            href: "/kontakt",
             icon: "📞",
-            title: "Kontaktovat EduVision",
+            title: "Napsat nám",
             desc: "Ozvěte se nám a společně nastavíme další postup.",
-            cta: "Kontaktovat",
+            cta: "Napsat",
             highlight: true,
             note: "Doporučeno",
           },
@@ -1923,7 +1664,7 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
             href: "/portal/skoly",
             icon: "🏫",
             title: "Síť učeben",
-            desc: "Přehled škol a obcí zapojených do sítě ARCHIMEDES.",
+            desc: "Přehled obcí zapojených do sítě ARCHIMEDES.",
             cta: "Otevřít",
           },
           {
@@ -1932,13 +1673,6 @@ function getDashboardConfig(type, organizationName = "", licenseMode = "default"
             title: "Program",
             desc: "Základní orientace v programu.",
             cta: "Otevřít",
-          },
-          {
-            href: "/poptavka",
-            icon: "✉️",
-            title: "Napsat zprávu",
-            desc: "Pošlete nám informaci a navážeme na další krok.",
-            cta: "Odeslat",
           },
         ],
       };

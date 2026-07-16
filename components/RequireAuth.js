@@ -2,26 +2,26 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 
-const DEMO_ORG_NAME = "ARCHIMEDES DEMO SKOLA";
-
-function normalizeText(value = "") {
-  return String(value).trim();
-}
+// Reuse a successful check only during the current client-side visit.
+// A full reload always performs the complete authorization check again.
+let portalSessionVerified = false;
 
 export default function RequireAuth({ children }) {
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
+  const [checking, setChecking] = useState(() => !portalSessionVerified);
 
   useEffect(() => {
     let mounted = true;
 
     async function deny(path = "/login") {
       if (!mounted) return;
+      portalSessionVerified = false;
       router.replace(path);
     }
 
     async function allow() {
       if (!mounted) return;
+      portalSessionVerified = true;
       setChecking(false);
     }
 
@@ -41,50 +41,19 @@ export default function RequireAuth({ children }) {
         return null;
       }
 
-      const orgIds = [
-        ...new Set(memberships.map((m) => m.organization_id).filter(Boolean)),
-      ];
-
-      const { data: orgRows, error: orgError } = await supabase
-        .from("organizations")
-        .select("id, name")
-        .in("id", orgIds);
-
-      if (orgError) {
-        throw orgError;
-      }
-
-      const orgById = new Map((orgRows || []).map((org) => [org.id, org]));
-
-      const enriched = memberships.map((m) => ({
-        ...m,
-        organization_name: orgById.get(m.organization_id)?.name || "",
-      }));
-
       let resolved = profile?.active_organization_id
-        ? enriched.find(
+        ? memberships.find(
             (m) => m.organization_id === profile.active_organization_id
           ) || null
         : null;
 
       if (!resolved) {
-        const realMemberships = enriched.filter(
-          (m) => normalizeText(m.organization_name) !== DEMO_ORG_NAME
-        );
-        const demoMemberships = enriched.filter(
-          (m) => normalizeText(m.organization_name) === DEMO_ORG_NAME
-        );
-
-        if (realMemberships.length === 1) {
-          resolved = realMemberships[0];
-        } else if (enriched.length === 1) {
-          resolved = enriched[0];
-        } else if (!realMemberships.length && demoMemberships.length === 1) {
-          resolved = demoMemberships[0];
+        if (memberships.length === 1) {
+          resolved = memberships[0];
         } else {
           console.error("RequireAuth: ambiguous memberships", {
             userId,
-            memberships: enriched,
+            organizationIds: memberships.map((membership) => membership.organization_id),
             activeOrganizationId: profile?.active_organization_id || null,
           });
           return { ambiguous: true };
@@ -122,31 +91,13 @@ export default function RequireAuth({ children }) {
 
         const pathname = router.pathname || "";
 
-        const [
-          { data: profile, error: profileError },
-          { data: audRows, error: audError },
-          { data: catRows, error: catError },
-        ] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select(
-              "id, full_name, must_set_password, user_type, active_organization_id"
-            )
-            .eq("id", user.id)
-            .maybeSingle(),
-
-          supabase
-            .from("user_audience_preferences")
-            .select("id")
-            .eq("user_id", user.id)
-            .limit(1),
-
-          supabase
-            .from("user_category_preferences")
-            .select("id")
-            .eq("user_id", user.id)
-            .limit(1),
-        ]);
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select(
+            "id, full_name, must_set_password, user_type, active_organization_id"
+          )
+          .eq("id", user.id)
+          .maybeSingle();
 
         if (profileError || !profile) {
           await deny("/login");
@@ -158,23 +109,19 @@ export default function RequireAuth({ children }) {
           return;
         }
 
-        if (audError || catError) {
-          await deny("/login");
-          return;
-        }
-
         const activeMembership = await resolveActiveMembership(user.id, profile);
 
         if (activeMembership?.ambiguous) {
-          await deny("/login");
+          if (pathname === "/nastaveni-pristupu") {
+            await allow();
+          } else {
+            await deny("/nastaveni-pristupu");
+          }
           return;
         }
 
         const hasFullName = !!profile?.full_name?.trim();
-        const hasAudience = Array.isArray(audRows) && audRows.length > 0;
-        const hasCategory = Array.isArray(catRows) && catRows.length > 0;
-
-        const profileComplete = hasFullName && hasAudience && hasCategory;
+        const profileComplete = hasFullName;
         const hasOrganization = !!activeMembership?.organization_id;
         const isOrgAdmin =
           activeMembership?.role_in_org === "organization_admin";
@@ -182,7 +129,7 @@ export default function RequireAuth({ children }) {
 
         const isProfilePage = pathname === "/portal/muj-profil";
         const isUsersPage = pathname === "/portal/uzivatele";
-        const isWelcomePage = pathname === "/welcome";
+        const isAccessSetupPage = pathname === "/nastaveni-pristupu";
         const isCreateOrganizationPage = pathname === "/create-organization";
         const isJoinPage = pathname === "/join";
 
@@ -212,7 +159,7 @@ export default function RequireAuth({ children }) {
         if (!profileComplete) {
           if (
             isProfilePage ||
-            isWelcomePage ||
+            isAccessSetupPage ||
             isCreateOrganizationPage ||
             isJoinPage
           ) {
@@ -227,7 +174,7 @@ export default function RequireAuth({ children }) {
         // 4) Uživatel bez organizace, ale s hotovým profilem
         if (!hasOrganization) {
           if (
-            isWelcomePage ||
+            isAccessSetupPage ||
             isCreateOrganizationPage ||
             isJoinPage ||
             isProfilePage
@@ -236,7 +183,7 @@ export default function RequireAuth({ children }) {
             return;
           }
 
-          await deny("/welcome");
+          await deny("/nastaveni-pristupu");
           return;
         }
 
@@ -252,6 +199,7 @@ export default function RequireAuth({ children }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
+        portalSessionVerified = false;
         router.replace("/login");
       }
     });

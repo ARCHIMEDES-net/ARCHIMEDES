@@ -4,6 +4,14 @@ import Link from "next/link";
 import RequirePlatformAdmin from "../../components/RequirePlatformAdmin";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
+import { cn } from "../../lib/utils";
+import { Card } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
+import { Switch } from "../../components/ui/switch";
+import { Button } from "../../components/ui/button";
+import { Alert } from "../../components/ui/alert";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/ui/table";
 
 const BUCKET = "schools";
 
@@ -61,17 +69,6 @@ function buildGeoQuery(form) {
   return parts.join(", ");
 }
 
-const inputStyle = {
-  width: "100%",
-  padding: "10px 12px",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.14)",
-  background: "white",
-  outline: "none",
-};
-
-const labelStyle = { fontSize: 12, opacity: 0.7, marginBottom: 6 };
-
 function emptyForm() {
   return {
     name: "",
@@ -92,6 +89,10 @@ function emptyForm() {
     is_published: true,
     photo_path: "",
   };
+}
+
+function FieldLabel({ children }) {
+  return <div className="mb-1.5 text-xs text-slate-500">{children}</div>;
 }
 
 export default function AdminSkoly() {
@@ -297,111 +298,47 @@ export default function AdminSkoly() {
     <RequirePlatformAdmin>
       <PortalHeader title="Admin – Školy" />
 
-      <div style={{ background: "#f6f7fb", minHeight: "100vh" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px 40px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+      <div className="min-h-screen bg-slate-50">
+        <div className="mx-auto max-w-[1100px] px-4 pb-10 pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div style={{ fontWeight: 900, fontSize: 22 }}>Admin – Školy</div>
-              <div style={{ fontSize: 13, opacity: 0.7, marginTop: 4 }}>
+              <div className="text-[22px] font-black text-navy-900">Admin – Školy</div>
+              <div className="mt-1 text-[13px] text-muted">
                 Databáze škol s učebnou ARCHIMEDES (interně spravovaná).
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-              <Link
-                href="/portal"
-                style={{
-                  textDecoration: "none",
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.18)",
-                  background: "white",
-                  fontWeight: 900,
-                  color: "#111827",
-                }}
-              >
+            <div className="flex flex-wrap justify-end gap-2.5">
+              <Button href="/portal" variant="secondary" size="sm">
                 ← Zpět do portálu
-              </Link>
+              </Button>
 
               {editingId ? (
-                <Link
-                  href={`/portal/skoly/${editingId}`}
-                  style={{
-                    textDecoration: "none",
-                    padding: "10px 12px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(0,0,0,0.18)",
-                    background: "white",
-                    fontWeight: 900,
-                    color: "#111827",
-                  }}
-                >
+                <Button href={`/portal/skoly/${editingId}`} variant="secondary" size="sm">
                   Zobrazit detail →
-                </Link>
+                </Button>
               ) : null}
 
-              <button
-                onClick={startNew}
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.18)",
-                  background: "white",
-                  fontWeight: 900,
-                  cursor: "pointer",
-                }}
-              >
+              <Button onClick={startNew} variant="secondary" size="sm">
                 Nový záznam
-              </button>
+              </Button>
 
-              <button
-                onClick={save}
-                disabled={saving}
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.18)",
-                  background: "#111827",
-                  color: "white",
-                  fontWeight: 900,
-                  cursor: saving ? "not-allowed" : "pointer",
-                  opacity: saving ? 0.7 : 1,
-                }}
-              >
+              <Button onClick={save} disabled={saving} variant="primary" size="sm">
                 {saving ? "Ukládám…" : "Uložit"}
-              </button>
+              </Button>
             </div>
           </div>
 
           {err ? (
-            <div
-              style={{
-                marginTop: 12,
-                background: "#fff3f3",
-                border: "1px solid #ffd0d0",
-                padding: 12,
-                borderRadius: 12,
-                color: "#8a1f1f",
-                whiteSpace: "pre-wrap",
-              }}
-            >
+            <Alert variant="error" className="mt-3 whitespace-pre-wrap">
               Chyba: {err}
-            </div>
+            </Alert>
           ) : null}
 
-          <div
-            style={{
-              marginTop: 14,
-              background: "white",
-              border: "1px solid rgba(0,0,0,0.08)",
-              borderRadius: 18,
-              padding: 14,
-              boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-              <div style={{ fontWeight: 900 }}>Přidat / upravit školu</div>
-              <div style={{ fontSize: 12, opacity: 0.6 }}>
+          <Card className="mt-3.5 p-3.5 shadow-card">
+            <div className="flex items-baseline justify-between gap-3">
+              <div className="font-black text-navy-900">Přidat / upravit školu</div>
+              <div className="text-xs text-slate-500">
                 {editingId ? (
                   <>
                     Editace ID: <b>{editingId}</b>
@@ -412,30 +349,28 @@ export default function AdminSkoly() {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 14, marginTop: 12 }}>
-              <div style={{ display: "grid", gap: 12 }}>
+            <div className="mt-3 grid grid-cols-1 gap-3.5 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="grid gap-3">
                 <div>
-                  <div style={labelStyle}>Název školy*</div>
-                  <input
+                  <FieldLabel>Název školy*</FieldLabel>
+                  <Input
                     value={form.name}
                     onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                    style={inputStyle}
                   />
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
-                    <div style={labelStyle}>Web školy</div>
-                    <input
+                    <FieldLabel>Web školy</FieldLabel>
+                    <Input
                       value={form.website}
                       onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))}
-                      style={inputStyle}
                       placeholder="https://… nebo www…"
                     />
                     {websiteHref ? (
-                      <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75 }}>
+                      <div className="mt-1.5 text-xs text-slate-500">
                         Odkaz:{" "}
-                        <a href={websiteHref} target="_blank" rel="noreferrer" style={{ fontWeight: 900 }}>
+                        <a href={websiteHref} target="_blank" rel="noreferrer" className="font-black text-brand">
                           otevřít
                         </a>
                       </div>
@@ -443,185 +378,152 @@ export default function AdminSkoly() {
                   </div>
 
                   <div>
-                    <div style={labelStyle}>Typ školy</div>
-                    <input
+                    <FieldLabel>Typ školy</FieldLabel>
+                    <Input
                       value={form.school_type}
                       onChange={(e) => setForm((p) => ({ ...p, school_type: e.target.value }))}
-                      style={inputStyle}
                       placeholder="ZŠ / MŠ / SŠ…"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div style={labelStyle}>Adresa</div>
-                  <input
+                  <FieldLabel>Adresa</FieldLabel>
+                  <Input
                     value={form.address}
                     onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))}
-                    style={inputStyle}
                     placeholder="Ulice, č.p."
                   />
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
-                    <div style={labelStyle}>Město / obec</div>
-                    <input
+                    <FieldLabel>Město / obec</FieldLabel>
+                    <Input
                       value={form.city}
                       onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
-                      style={inputStyle}
                     />
                   </div>
                   <div>
-                    <div style={labelStyle}>Země</div>
-                    <input
+                    <FieldLabel>Země</FieldLabel>
+                    <Input
                       value={form.country}
                       onChange={(e) => setForm((p) => ({ ...p, country: e.target.value }))}
-                      style={inputStyle}
                     />
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    border: "1px solid rgba(0,0,0,0.08)",
-                    background: "rgba(0,0,0,0.02)",
-                    borderRadius: 14,
-                    padding: 12,
-                  }}
-                >
-                  <div style={{ fontWeight: 900, marginBottom: 6 }}>Pomocník pro GPS</div>
-                  <div style={{ fontSize: 12, opacity: 0.75, lineHeight: 1.35 }}>
-                    Dotaz: <b>{geoQuery || "—"}</b>
+                <div className="rounded-2xl border border-slate-900/[0.08] bg-slate-900/[0.02] p-3">
+                  <div className="mb-1.5 font-black text-navy-900">Pomocník pro GPS</div>
+                  <div className="text-xs leading-normal text-slate-500">
+                    Dotaz: <b className="text-navy-900">{geoQuery || "—"}</b>
                   </div>
-                  <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                    <button
+                  <div className="mt-2.5 flex flex-wrap items-center gap-2.5">
+                    <Button
                       onClick={openMapy}
                       disabled={!geoQuery}
-                      style={{
-                        padding: "8px 10px",
-                        borderRadius: 12,
-                        border: "1px solid rgba(0,0,0,0.18)",
-                        background: "white",
-                        fontWeight: 900,
-                        cursor: geoQuery ? "pointer" : "not-allowed",
-                        opacity: geoQuery ? 1 : 0.6,
-                      }}
+                      variant="secondary"
+                      size="sm"
                     >
                       Otevřít v Mapy.cz →
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={openGoogleMaps}
                       disabled={!geoQuery}
-                      style={{
-                        padding: "8px 10px",
-                        borderRadius: 12,
-                        border: "1px solid rgba(0,0,0,0.18)",
-                        background: "white",
-                        fontWeight: 900,
-                        cursor: geoQuery ? "pointer" : "not-allowed",
-                        opacity: geoQuery ? 1 : 0.6,
-                      }}
+                      variant="secondary"
+                      size="sm"
                     >
                       Otevřít v Google Maps →
-                    </button>
-                    <div style={{ fontSize: 12, opacity: 0.7, alignSelf: "center" }}>
+                    </Button>
+                    <div className="text-xs text-slate-500">
                       Tip: z mapy zkopíruj souřadnice do polí Latitude/Longitude.
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
-                    <div style={labelStyle}>Latitude (GPS)</div>
-                    <input
+                    <FieldLabel>Latitude (GPS)</FieldLabel>
+                    <Input
                       value={form.latitude ?? ""}
                       onChange={(e) => setForm((p) => ({ ...p, latitude: e.target.value }))}
-                      style={inputStyle}
                       placeholder="např. 49.12345"
                     />
                   </div>
                   <div>
-                    <div style={labelStyle}>Longitude (GPS)</div>
-                    <input
+                    <FieldLabel>Longitude (GPS)</FieldLabel>
+                    <Input
                       value={form.longitude ?? ""}
                       onChange={(e) => setForm((p) => ({ ...p, longitude: e.target.value }))}
-                      style={inputStyle}
                       placeholder="např. 17.23456"
                     />
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div>
-                    <div style={labelStyle}>Kontaktní osoba</div>
-                    <input
+                    <FieldLabel>Kontaktní osoba</FieldLabel>
+                    <Input
                       value={form.contact_name}
                       onChange={(e) => setForm((p) => ({ ...p, contact_name: e.target.value }))}
-                      style={inputStyle}
                     />
                   </div>
                   <div>
-                    <div style={labelStyle}>Telefon</div>
-                    <input
+                    <FieldLabel>Telefon</FieldLabel>
+                    <Input
                       value={form.contact_phone}
                       onChange={(e) => setForm((p) => ({ ...p, contact_phone: e.target.value }))}
-                      style={inputStyle}
                     />
                   </div>
                   <div>
-                    <div style={labelStyle}>Email</div>
-                    <input
+                    <FieldLabel>Email</FieldLabel>
+                    <Input
                       value={form.contact_email}
                       onChange={(e) => setForm((p) => ({ ...p, contact_email: e.target.value }))}
-                      style={inputStyle}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div style={labelStyle}>Datum otevření učebny</div>
-                  <input
+                  <FieldLabel>Datum otevření učebny</FieldLabel>
+                  <Input
                     type="date"
                     value={form.archimedes_since}
                     onChange={(e) => setForm((p) => ({ ...p, archimedes_since: e.target.value }))}
-                    style={inputStyle}
                   />
                 </div>
 
                 <div>
-                  <div style={labelStyle}>Krátký popis školy</div>
-                  <textarea
+                  <FieldLabel>Krátký popis školy</FieldLabel>
+                  <Textarea
                     value={form.short_description}
                     onChange={(e) => setForm((p) => ({ ...p, short_description: e.target.value }))}
-                    style={{ ...inputStyle, minHeight: 90, resize: "vertical" }}
+                    className="min-h-[90px]"
                     placeholder="Stručně: čím je škola zajímavá…"
                   />
                 </div>
 
                 <div>
-                  <div style={labelStyle}>Popis učebny (text)</div>
-                  <textarea
+                  <FieldLabel>Popis učebny (text)</FieldLabel>
+                  <Textarea
                     value={form.classroom_description}
                     onChange={(e) => setForm((p) => ({ ...p, classroom_description: e.target.value }))}
-                    style={{ ...inputStyle, minHeight: 110, resize: "vertical", whiteSpace: "pre-wrap" }}
+                    className="min-h-[110px] whitespace-pre-wrap"
                     placeholder="Např. základní / voda / kuchyň / dílna / 3D tisk / specifika…"
                   />
                 </div>
 
-                <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 800 }}>
-                    <input
-                      type="checkbox"
+                <div className="flex flex-wrap items-center gap-3.5">
+                  <label className="flex items-center gap-2 font-bold text-navy-900">
+                    <Switch
                       checked={!!form.has_archimedes_classroom}
                       onChange={(e) => setForm((p) => ({ ...p, has_archimedes_classroom: e.target.checked }))}
                     />
                     Má učebnu ARCHIMEDES
                   </label>
 
-                  <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 800 }}>
-                    <input
-                      type="checkbox"
+                  <label className="flex items-center gap-2 font-bold text-navy-900">
+                    <Switch
                       checked={!!form.is_published}
                       onChange={(e) => setForm((p) => ({ ...p, is_published: e.target.checked }))}
                     />
@@ -630,49 +532,38 @@ export default function AdminSkoly() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gap: 12 }}>
+              <div className="grid gap-3">
                 <div>
-                  <div style={{ fontWeight: 900, marginBottom: 8 }}>Fotka učebny</div>
+                  <div className="mb-2 font-black text-navy-900">Fotka učebny</div>
 
-                  <div
-                    style={{
-                      height: 220,
-                      borderRadius: 16,
-                      border: "1px solid rgba(0,0,0,0.10)",
-                      background: "rgba(0,0,0,0.03)",
-                      overflow: "hidden",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
+                  <div className="flex h-[220px] items-center justify-center overflow-hidden rounded-2xl border border-slate-900/10 bg-slate-900/[0.03]">
                     {selectedPhotoUrl ? (
                       <img
                         src={selectedPhotoUrl}
                         alt="Fotka učebny"
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div style={{ fontSize: 13, opacity: 0.7, padding: 12, textAlign: "center" }}>
+                      <div className="p-3 text-center text-[13px] text-slate-500">
                         Zatím bez fotky.
-                        <div style={{ marginTop: 6, fontSize: 12 }}>
+                        <div className="mt-1.5 text-xs">
                           Vyber soubor níže a klikni <b>Uložit</b>.
                         </div>
                       </div>
                     )}
                   </div>
 
-                  <div style={{ marginTop: 10 }}>
+                  <div className="mt-2.5">
                     <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} />
-                    <div style={{ marginTop: 6, fontSize: 12, opacity: 0.65 }}>
+                    <div className="mt-1.5 text-xs text-slate-500">
                       Doporučení: JPG/PNG, šířka alespoň 1200 px.
                     </div>
                   </div>
 
                   {editingId ? (
-                    <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>
+                    <div className="mt-2.5 text-xs text-slate-500">
                       Tip: detail školy je na{" "}
-                      <Link href={`/portal/skoly/${editingId}`} style={{ fontWeight: 900 }}>
+                      <Link href={`/portal/skoly/${editingId}`} className="font-black text-navy-900">
                         /portal/skoly/{editingId}
                       </Link>
                     </div>
@@ -680,150 +571,90 @@ export default function AdminSkoly() {
                 </div>
 
                 {editingId ? (
-                  <button
+                  <Button
                     onClick={() => removeSchool(editingId)}
-                    style={{
-                      padding: "10px 12px",
-                      borderRadius: 12,
-                      border: "1px solid rgba(220,38,38,0.35)",
-                      background: "rgba(220,38,38,0.08)",
-                      fontWeight: 900,
-                      cursor: "pointer",
-                      color: "rgba(120,20,20,0.95)",
-                    }}
+                    variant="secondary"
+                    size="sm"
+                    className="w-fit border-red-300 bg-red-50 text-red-700 hover:border-red-400"
                   >
                     Smazat školu
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div
-            style={{
-              marginTop: 14,
-              background: "white",
-              border: "1px solid rgba(0,0,0,0.08)",
-              borderRadius: 18,
-              padding: 14,
-              boxShadow: "0 12px 30px rgba(0,0,0,0.06)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-              <div style={{ fontWeight: 900 }}>Seznam škol</div>
-              <div style={{ fontSize: 12, opacity: 0.65 }}>
+          <Card className="mt-3.5 p-3.5 shadow-card">
+            <div className="flex items-baseline justify-between gap-3">
+              <div className="font-black text-navy-900">Seznam škol</div>
+              <div className="text-xs text-slate-500">
                 Celkem: <b>{rows.length}</b>
               </div>
             </div>
 
             {loadingList ? (
-              <div style={{ marginTop: 10, opacity: 0.7 }}>Načítám…</div>
+              <div className="mt-2.5 text-muted">Načítám…</div>
             ) : rows.length === 0 ? (
-              <div style={{ marginTop: 10, opacity: 0.7 }}>Zatím žádné školy.</div>
+              <div className="mt-2.5 text-muted">Zatím žádné školy.</div>
             ) : (
-              <div style={{ marginTop: 10, overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr style={{ textAlign: "left" }}>
-                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Název</th>
-                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Město / obec</th>
-                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Země</th>
-                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>Publikace</th>
-                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}>GPS</th>
-                      <th style={{ fontSize: 12, opacity: 0.65, padding: "8px 8px" }}></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((r) => {
-                      const gpsOk =
-                        r.latitude !== null &&
-                        r.latitude !== undefined &&
-                        r.longitude !== null &&
-                        r.longitude !== undefined;
+              <Table className="mt-2.5">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Název</TableHead>
+                    <TableHead>Město / obec</TableHead>
+                    <TableHead>Země</TableHead>
+                    <TableHead>Publikace</TableHead>
+                    <TableHead>GPS</TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.map((r) => {
+                    const gpsOk =
+                      r.latitude !== null &&
+                      r.latitude !== undefined &&
+                      r.longitude !== null &&
+                      r.longitude !== undefined;
 
-                      return (
-                        <tr key={r.id} style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
-                          <td style={{ padding: "10px 8px", fontWeight: 900 }}>{r.name || "—"}</td>
-                          <td style={{ padding: "10px 8px", opacity: 0.85 }}>{r.city || "—"}</td>
-                          <td style={{ padding: "10px 8px", opacity: 0.85 }}>{r.country || "—"}</td>
-                          <td style={{ padding: "10px 8px" }}>
-                            {r.is_published ? (
-                              <span
-                                style={{
-                                  fontSize: 12,
-                                  padding: "4px 10px",
-                                  borderRadius: 999,
-                                  background: "rgba(16,185,129,0.12)",
-                                  border: "1px solid rgba(16,185,129,0.20)",
-                                }}
-                              >
-                                Publikováno
-                              </span>
-                            ) : (
-                              <span
-                                style={{
-                                  fontSize: 12,
-                                  padding: "4px 10px",
-                                  borderRadius: 999,
-                                  background: "rgba(0,0,0,0.04)",
-                                  border: "1px solid rgba(0,0,0,0.10)",
-                                }}
-                              >
-                                Skryté
-                              </span>
+                    return (
+                      <TableRow key={r.id}>
+                        <TableCell className="font-black">{r.name || "—"}</TableCell>
+                        <TableCell className="text-slate-600">{r.city || "—"}</TableCell>
+                        <TableCell className="text-slate-600">{r.country || "—"}</TableCell>
+                        <TableCell>
+                          <span
+                            className={cn(
+                              "rounded-full border px-2.5 py-1 text-xs",
+                              r.is_published
+                                ? "border-emerald-200 bg-emerald-50"
+                                : "border-slate-200 bg-slate-50"
                             )}
-                          </td>
-                          <td style={{ padding: "10px 8px" }}>
-                            {gpsOk ? (
-                              <span
-                                style={{
-                                  fontSize: 12,
-                                  padding: "4px 10px",
-                                  borderRadius: 999,
-                                  background: "rgba(59,130,246,0.12)",
-                                  border: "1px solid rgba(59,130,246,0.20)",
-                                }}
-                              >
-                                OK
-                              </span>
-                            ) : (
-                              <span
-                                style={{
-                                  fontSize: 12,
-                                  padding: "4px 10px",
-                                  borderRadius: 999,
-                                  background: "rgba(0,0,0,0.04)",
-                                  border: "1px solid rgba(0,0,0,0.10)",
-                                }}
-                              >
-                                Bez GPS
-                              </span>
+                          >
+                            {r.is_published ? "Publikováno" : "Skryté"}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={cn(
+                              "rounded-full border px-2.5 py-1 text-xs",
+                              gpsOk ? "border-blue-200 bg-blue-50" : "border-slate-200 bg-slate-50"
                             )}
-                          </td>
-                          <td style={{ padding: "10px 8px", textAlign: "right" }}>
-                            <button
-                              onClick={() => openRow(r)}
-                              style={{
-                                padding: "8px 10px",
-                                borderRadius: 12,
-                                border: "1px solid rgba(0,0,0,0.18)",
-                                background: "#111827",
-                                color: "white",
-                                fontWeight: 900,
-                                cursor: "pointer",
-                              }}
-                            >
-                              Otevřít
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                          >
+                            {gpsOk ? "OK" : "Bez GPS"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button onClick={() => openRow(r)} variant="primary" size="sm">
+                            Otevřít
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             )}
-          </div>
+          </Card>
         </div>
       </div>
     </RequirePlatformAdmin>

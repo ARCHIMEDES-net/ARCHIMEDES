@@ -3,8 +3,14 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { cn } from "../lib/utils";
+import { fetchMyOrganizations } from "../lib/myOrganizations";
 
 const LOGO_SRC = "/logo-archimedes-live.png";
+
+// Preserve role-dependent menu geometry across client-side route changes.
+// This memory-only cache is cleared on logout and resets on full reload.
+let cachedHeaderAccess = null;
 
 function normalizePath(value = "") {
   return (value || "").split("?")[0].split("#")[0];
@@ -12,66 +18,54 @@ function normalizePath(value = "") {
 
 function MenuIcon({ open = false }) {
   return (
-    <span
-      style={{
-        position: "relative",
-        display: "inline-block",
-        width: 18,
-        height: 14,
-      }}
-      aria-hidden="true"
-    >
+    <span className="relative inline-block h-3.5 w-[18px]" aria-hidden="true">
       <span
-        style={{
-          position: "absolute",
-          left: 0,
-          top: open ? 6 : 0,
-          width: 18,
-          height: 2,
-          borderRadius: 999,
-          background: "#0f172a",
-          transform: open ? "rotate(45deg)" : "none",
-          transition: "all 0.18s ease",
-        }}
+        className={cn(
+          "absolute left-0 h-0.5 w-[18px] rounded-full bg-navy-900 transition-all duration-200",
+          open ? "top-1.5 rotate-45" : "top-0"
+        )}
       />
       <span
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 6,
-          width: 18,
-          height: 2,
-          borderRadius: 999,
-          background: "#0f172a",
-          opacity: open ? 0 : 1,
-          transition: "all 0.18s ease",
-        }}
+        className={cn(
+          "absolute left-0 top-1.5 h-0.5 w-[18px] rounded-full bg-navy-900 transition-all duration-200",
+          open && "opacity-0"
+        )}
       />
       <span
-        style={{
-          position: "absolute",
-          left: 0,
-          top: open ? 6 : 12,
-          width: 18,
-          height: 2,
-          borderRadius: 999,
-          background: "#0f172a",
-          transform: open ? "rotate(-45deg)" : "none",
-          transition: "all 0.18s ease",
-        }}
+        className={cn(
+          "absolute left-0 h-0.5 w-[18px] rounded-full bg-navy-900 transition-all duration-200",
+          open ? "top-1.5 -rotate-45" : "top-3"
+        )}
       />
     </span>
   );
 }
 
+const NAV_ITEM_BASE =
+  "inline-flex min-h-[42px] items-center justify-center whitespace-nowrap rounded-full border px-3.5 text-sm font-extrabold transition-colors";
+const NAV_ITEM_INACTIVE = "border-slate-300 bg-white text-navy-900 hover:border-slate-400";
+const NAV_ITEM_ACTIVE = "border-navy-900 bg-navy-900 text-white";
+
+const MOBILE_ITEM_BASE =
+  "flex min-h-[48px] items-center justify-start rounded-2xl border px-3.5 py-3 text-[15px] font-extrabold";
+const MOBILE_ITEM_INACTIVE = "border-slate-200 bg-white text-navy-900";
+const MOBILE_ITEM_ACTIVE = "border-navy-900 bg-navy-900 text-white";
+
 export default function PortalHeader({ title = "" }) {
   const router = useRouter();
   const path = useMemo(() => normalizePath(router?.asPath || ""), [router?.asPath]);
 
-  const [isOrgAdmin, setIsOrgAdmin] = useState(false);
-  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
-  const [isDemoViewer, setIsDemoViewer] = useState(false);
-  const [loadingRole, setLoadingRole] = useState(true);
+  const [isOrgAdmin, setIsOrgAdmin] = useState(() => cachedHeaderAccess?.isOrgAdmin || false);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(() => cachedHeaderAccess?.isPlatformAdmin || false);
+  const [loadingRole, setLoadingRole] = useState(() => !cachedHeaderAccess);
+  const [activeOrganizationId, setActiveOrganizationId] = useState(
+    () => cachedHeaderAccess?.activeOrganizationId || ""
+  );
+  const [organizations, setOrganizations] = useState(
+    () => cachedHeaderAccess?.organizations || []
+  );
+  const [switchingOrganization, setSwitchingOrganization] = useState(false);
+  const [organizationSwitchError, setOrganizationSwitchError] = useState("");
 
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -92,7 +86,8 @@ export default function PortalHeader({ title = "" }) {
         if (!user) {
           setIsOrgAdmin(false);
           setIsPlatformAdmin(false);
-          setIsDemoViewer(false);
+          setActiveOrganizationId("");
+          setOrganizations([]);
           setLoadingRole(false);
           return;
         }
@@ -106,38 +101,61 @@ export default function PortalHeader({ title = "" }) {
         if (profileError) throw profileError;
         if (!alive) return;
 
-        let roleInActiveOrg = "";
+        const { data: membershipRows, error: membershipError } = await supabase
+          .from("organization_members")
+          .select("organization_id, role_in_org, status")
+          .eq("user_id", user.id)
+          .eq("status", "active");
 
-        if (profile?.active_organization_id) {
-          const { data: membership, error: membershipError } = await supabase
-            .from("organization_members")
-            .select("role_in_org, status")
-            .eq("user_id", user.id)
-            .eq("organization_id", profile.active_organization_id)
-            .eq("status", "active")
-            .maybeSingle();
+        if (membershipError) throw membershipError;
+        if (!alive) return;
 
-          if (membershipError) throw membershipError;
-          if (!alive) return;
+        const memberships = Array.isArray(membershipRows) ? membershipRows : [];
+        const activeMembership = memberships.find(
+          (membership) =>
+            membership.organization_id === profile?.active_organization_id
+        );
+        const roleInActiveOrg = activeMembership?.role_in_org || "";
 
-          roleInActiveOrg = membership?.role_in_org || "";
-        }
+        const organizationRows = memberships.length
+          ? await fetchMyOrganizations(
+              supabase,
+              memberships.map((membership) => membership.organization_id)
+            )
+          : [];
 
-        setIsOrgAdmin(roleInActiveOrg === "organization_admin");
-        setIsDemoViewer(roleInActiveOrg === "demo_viewer");
+        if (!alive) return;
+
+        const nextActiveOrganizationId = profile?.active_organization_id || "";
+        const nextOrganizations = [...organizationRows].sort((a, b) =>
+          String(a.name || "").localeCompare(String(b.name || ""), "cs")
+        );
+        const nextIsOrgAdmin = roleInActiveOrg === "organization_admin";
+
+        setActiveOrganizationId(nextActiveOrganizationId);
+        setOrganizations(nextOrganizations);
+        setIsOrgAdmin(nextIsOrgAdmin);
 
         const { data: isAdminResult, error: isAdminError } = await supabase.rpc("is_admin");
 
         if (isAdminError) throw isAdminError;
         if (!alive) return;
 
-        setIsPlatformAdmin(!!isAdminResult);
+        const nextIsPlatformAdmin = !!isAdminResult;
+        setIsPlatformAdmin(nextIsPlatformAdmin);
+        cachedHeaderAccess = {
+          isOrgAdmin: nextIsOrgAdmin,
+          isPlatformAdmin: nextIsPlatformAdmin,
+          activeOrganizationId: nextActiveOrganizationId,
+          organizations: nextOrganizations,
+        };
       } catch (err) {
         console.error("PortalHeader loadRole error:", err);
         if (!alive) return;
         setIsOrgAdmin(false);
         setIsPlatformAdmin(false);
-        setIsDemoViewer(false);
+        setActiveOrganizationId("");
+        setOrganizations([]);
       } finally {
         if (alive) setLoadingRole(false);
       }
@@ -169,101 +187,6 @@ export default function PortalHeader({ title = "" }) {
     setMenuOpen(false);
   }, [path]);
 
-  const itemBase = {
-    textDecoration: "none",
-    color: "#0f172a",
-    padding: "10px 14px",
-    borderRadius: 999,
-    fontWeight: 800,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    border: "1px solid #d1d5db",
-    background: "#fff",
-    fontSize: 14,
-    lineHeight: 1.1,
-    minHeight: 42,
-    whiteSpace: "nowrap",
-    boxSizing: "border-box",
-    transition: "all 0.18s ease",
-  };
-
-  const activeStyle = {
-    ...itemBase,
-    background: "#0f172a",
-    border: "1px solid #0f172a",
-    color: "#fff",
-  };
-
-  const publicWebStyle = {
-    ...itemBase,
-    background: "#f8fafc",
-  };
-
-  const mobileMenuButtonStyle = {
-    border: "1px solid rgba(15,23,42,0.12)",
-    background: "#ffffff",
-    color: "#0f172a",
-    minHeight: 42,
-    minWidth: 42,
-    padding: "0 14px",
-    borderRadius: 14,
-    fontWeight: 800,
-    fontSize: 14,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    cursor: "pointer",
-    boxSizing: "border-box",
-  };
-
-  const logoutButtonStyle = {
-    padding: "10px 14px",
-    borderRadius: 14,
-    border: "1px solid #e5e7eb",
-    background: "#fff",
-    cursor: "pointer",
-    fontWeight: 800,
-    fontSize: 14,
-    minHeight: 42,
-    color: "#0f172a",
-  };
-
-  const mobileLinkStyle = {
-    textDecoration: "none",
-    color: "#0f172a",
-    padding: "13px 14px",
-    borderRadius: 14,
-    fontWeight: 800,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    border: "1px solid #e5e7eb",
-    background: "#fff",
-    fontSize: 15,
-    lineHeight: 1.25,
-    minHeight: 48,
-    boxSizing: "border-box",
-  };
-
-  const mobileActiveStyle = {
-    ...mobileLinkStyle,
-    background: "#0f172a",
-    border: "1px solid #0f172a",
-    color: "#fff",
-  };
-
-  const mobileSecondaryGroupTitle = {
-    margin: "2px 0 8px",
-    fontSize: 12,
-    lineHeight: 1.4,
-    fontWeight: 800,
-    letterSpacing: "0.04em",
-    textTransform: "uppercase",
-    color: "#64748b",
-  };
-
   const isActive = (key) => {
     if (key === "portal") return path === "/portal" || path === "/portal/";
     if (key === "program") return path.startsWith("/portal/kalendar");
@@ -272,22 +195,101 @@ export default function PortalHeader({ title = "" }) {
     if (key === "souteze") return path.startsWith("/portal/souteze");
     if (key === "profil") return path.startsWith("/portal/muj-profil");
     if (key === "uzivatele") return path.startsWith("/portal/uzivatele");
-    if (key === "sprava-vysilani") return path.startsWith("/portal/admin-udalosti");
+    if (key === "sprava-vysilani") {
+      return path.startsWith("/portal/admin-udalosti") || path.startsWith("/portal/admin/udalosti");
+    }
     if (key === "email-skupiny") return path.startsWith("/portal/email-skupiny");
-    if (key === "admin") return path.startsWith("/portal/admin");
+    if (key === "admin") {
+      return path === "/portal/admin";
+    }
     return false;
   };
 
-  const navItem = (key) => (isActive(key) ? activeStyle : itemBase);
-  const mobileNavItem = (key) => (isActive(key) ? mobileActiveStyle : mobileLinkStyle);
+  const navItemClass = (key) => cn(NAV_ITEM_BASE, isActive(key) ? NAV_ITEM_ACTIVE : NAV_ITEM_INACTIVE);
+  const mobileNavItemClass = (key) =>
+    cn(MOBILE_ITEM_BASE, isActive(key) ? MOBILE_ITEM_ACTIVE : MOBILE_ITEM_INACTIVE);
 
   async function onLogout() {
     try {
+      cachedHeaderAccess = null;
       await supabase.auth.signOut();
     } finally {
       router.push("/login");
     }
   }
+
+  async function onOrganizationChange(event) {
+    const organizationId = event.target.value;
+    if (
+      !organizationId ||
+      organizationId === activeOrganizationId ||
+      !organizations.some((organization) => organization.id === organizationId)
+    ) {
+      return;
+    }
+
+    setSwitchingOrganization(true);
+    setOrganizationSwitchError("");
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) throw userError || new Error("Uživatel není přihlášen.");
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ active_organization_id: organizationId })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      setActiveOrganizationId(organizationId);
+      if (cachedHeaderAccess) {
+        cachedHeaderAccess = {
+          ...cachedHeaderAccess,
+          activeOrganizationId: organizationId,
+        };
+      }
+      router.reload();
+    } catch (error) {
+      console.error("PortalHeader organization switch error:", error);
+      setOrganizationSwitchError("Organizaci se nepodařilo přepnout.");
+      setSwitchingOrganization(false);
+    }
+  }
+
+  const organizationSwitcher =
+    !loadingRole && organizations.length > 1 ? (
+      <div className="min-w-0">
+        <label className="flex min-w-0 items-center gap-2 text-sm font-bold text-slate-600">
+          <span className="shrink-0">Organizace</span>
+          <select
+            value={activeOrganizationId}
+            onChange={onOrganizationChange}
+            disabled={switchingOrganization}
+            aria-label="Aktivní organizace"
+            className="min-h-[42px] min-w-0 max-w-[260px] rounded-xl border border-slate-300 bg-white px-3 font-bold text-navy-900"
+          >
+            <option value="" disabled>
+              Vyberte organizaci
+            </option>
+            {organizations.map((organization) => (
+              <option key={organization.id} value={organization.id}>
+                {organization.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {organizationSwitchError ? (
+          <p className="mt-1 text-xs font-semibold text-red-600">
+            {organizationSwitchError}
+          </p>
+        ) : null}
+      </div>
+    ) : null;
 
   const mainLinks = [
     { key: "portal", href: "/portal", label: "Portál" },
@@ -299,28 +301,28 @@ export default function PortalHeader({ title = "" }) {
   ];
 
   const adminLinks = [
-    !loadingRole && !isDemoViewer && isPlatformAdmin
+    !loadingRole && isPlatformAdmin
       ? {
           key: "email-skupiny",
           href: "/portal/email-skupiny",
           label: "E-mailové skupiny",
         }
       : null,
-    !loadingRole && !isDemoViewer && isPlatformAdmin
+    !loadingRole && isPlatformAdmin
       ? {
           key: "sprava-vysilani",
-          href: "/portal/admin-udalosti",
+          href: "/portal/admin/udalosti",
           label: "Správa vysílání",
         }
       : null,
-    !loadingRole && !isDemoViewer && isOrgAdmin
+    !loadingRole && isOrgAdmin
       ? {
           key: "uzivatele",
           href: "/portal/uzivatele",
           label: "Uživatelé",
         }
       : null,
-    !loadingRole && !isDemoViewer && isPlatformAdmin
+    !loadingRole && isPlatformAdmin
       ? {
           key: "admin",
           href: "/portal/admin",
@@ -330,74 +332,23 @@ export default function PortalHeader({ title = "" }) {
   ].filter(Boolean);
 
   return (
-    <header
-      style={{
-        background: "rgba(255,255,255,0.96)",
-        backdropFilter: "blur(10px)",
-        borderBottom: "1px solid rgba(15,23,42,0.08)",
-        position: "sticky",
-        top: 0,
-        zIndex: 30,
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1160,
-          margin: "0 auto",
-          padding: isMobile ? "12px 14px" : "12px 18px",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              minWidth: 0,
-              gap: 12,
-            }}
-          >
-            <Link
-              href="/portal"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                flexShrink: 0,
-              }}
-            >
+    <header className="sticky top-0 z-30 border-b border-slate-900/[0.08] bg-white/96 backdrop-blur-md">
+      <div className={cn("mx-auto max-w-[1160px]", isMobile ? "px-3.5 py-3" : "px-4 py-3")}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link href="/portal" className="flex shrink-0 items-center">
               <img
                 src={LOGO_SRC}
                 alt="ARCHIMEDES Live"
-                style={{
-                  height: isMobile ? 28 : 34,
-                  width: "auto",
-                  display: "block",
-                  marginTop: -2,
-                }}
+                className={cn("-mt-0.5 block w-auto", isMobile ? "h-7" : "h-[34px]")}
               />
             </Link>
 
             {!isMobile && title ? (
-              <div
-                style={{
-                  fontSize: 14,
-                  lineHeight: 1.3,
-                  fontWeight: 800,
-                  color: "#64748b",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {title}
-              </div>
+              <div className="truncate text-sm font-extrabold text-slate-500">{title}</div>
             ) : null}
+
+            {!isMobile ? organizationSwitcher : null}
           </div>
 
           {isMobile ? (
@@ -406,37 +357,33 @@ export default function PortalHeader({ title = "" }) {
               onClick={() => setMenuOpen((prev) => !prev)}
               aria-label={menuOpen ? "Zavřít menu" : "Otevřít menu"}
               aria-expanded={menuOpen}
-              style={mobileMenuButtonStyle}
+              className="flex h-[42px] min-w-[42px] items-center justify-center gap-2.5 rounded-2xl border border-slate-900/[0.12] bg-white px-3.5 font-extrabold text-navy-900"
             >
               <MenuIcon open={menuOpen} />
             </button>
           ) : (
-            <nav
-              style={{
-                display: "flex",
-                gap: 10,
-                alignItems: "center",
-                flexWrap: "wrap",
-                justifyContent: "flex-end",
-              }}
-            >
+            <nav className="flex flex-wrap items-center justify-end gap-2.5">
               {mainLinks.map((item) => (
-                <Link key={item.key} href={item.href} style={navItem(item.key)}>
+                <Link key={item.key} href={item.href} className={navItemClass(item.key)}>
                   {item.label}
                 </Link>
               ))}
 
               {adminLinks.map((item) => (
-                <Link key={item.key} href={item.href} style={navItem(item.key)}>
+                <Link key={item.key} href={item.href} className={navItemClass(item.key)}>
                   {item.label}
                 </Link>
               ))}
 
-              <Link href="/" style={publicWebStyle}>
+              <Link href="/" className={cn(NAV_ITEM_BASE, NAV_ITEM_INACTIVE, "bg-slate-50")}>
                 Veřejný web
               </Link>
 
-              <button type="button" onClick={onLogout} style={logoutButtonStyle}>
+              <button
+                type="button"
+                onClick={onLogout}
+                className="min-h-[42px] rounded-2xl border border-slate-200 bg-white px-3.5 text-sm font-extrabold text-navy-900"
+              >
                 Odhlásit
               </button>
             </nav>
@@ -444,54 +391,45 @@ export default function PortalHeader({ title = "" }) {
         </div>
 
         {isMobile && menuOpen ? (
-          <div
-            style={{
-              marginTop: 12,
-              padding: 12,
-              border: "1px solid rgba(15,23,42,0.08)",
-              borderRadius: 20,
-              background: "#f8fafc",
-              boxShadow: "0 12px 30px rgba(15,23,42,0.06)",
-            }}
-          >
-            <nav
-              style={{
-                display: "grid",
-                gap: 10,
-              }}
-            >
+          <div className="mt-3 rounded-2xl border border-slate-900/[0.08] bg-slate-50 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
+            <nav className="grid gap-2.5">
+              {organizationSwitcher ? (
+                <div className="rounded-2xl border border-slate-200 bg-white p-3">
+                  {organizationSwitcher}
+                </div>
+              ) : null}
+
               {mainLinks.map((item) => (
-                <Link key={item.key} href={item.href} style={mobileNavItem(item.key)}>
+                <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}>
                   {item.label}
                 </Link>
               ))}
 
               {adminLinks.length > 0 ? (
                 <>
-                  <div style={mobileSecondaryGroupTitle}>Správa a nastavení</div>
+                  <div className="mb-1 mt-0.5 text-xs font-extrabold uppercase tracking-[0.04em] text-slate-500">
+                    Správa a nastavení
+                  </div>
                   {adminLinks.map((item) => (
-                    <Link key={item.key} href={item.href} style={mobileNavItem(item.key)}>
+                    <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}>
                       {item.label}
                     </Link>
                   ))}
                 </>
               ) : null}
 
-              <div style={mobileSecondaryGroupTitle}>Další</div>
+              <div className="mb-1 mt-0.5 text-xs font-extrabold uppercase tracking-[0.04em] text-slate-500">
+                Další
+              </div>
 
-              <Link href="/" style={mobileLinkStyle}>
+              <Link href="/" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE)}>
                 Veřejný web
               </Link>
 
               <button
                 type="button"
                 onClick={onLogout}
-                style={{
-                  ...mobileLinkStyle,
-                  cursor: "pointer",
-                  textAlign: "left",
-                  justifyContent: "flex-start",
-                }}
+                className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE, "cursor-pointer text-left")}
               >
                 Odhlásit
               </button>

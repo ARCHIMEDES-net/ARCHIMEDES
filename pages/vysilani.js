@@ -1,5 +1,9 @@
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import Image from "next/image";
+import { X } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import SectionEyebrow from "../components/home/SectionEyebrow";
 
 const posters = Array.from({ length: 30 }, (_, i) => ({
   id: i + 1,
@@ -8,12 +12,7 @@ const posters = Array.from({ length: 30 }, (_, i) => ({
   label: `Plakát ${i + 1}`,
 }));
 
-const heroPosters = [
-  "/pl50.jpeg",
-  "/pl51.jpeg",
-  "/pl52.jpg",
-  "/pl53.jpg",
-];
+const heroPosters = ["/pl50.webp", "/pl51.webp", "/pl52.webp", "/pl53.jpg"];
 
 export default function ProbehlaVysilaniPage() {
   const [activePoster, setActivePoster] = useState(null);
@@ -21,393 +20,115 @@ export default function ProbehlaVysilaniPage() {
 
   return (
     <>
-      <main
-        style={{
-          background: "#f8fafc",
-          minHeight: "100vh",
-          padding: "42px 20px 90px",
-        }}
-      >
-        <div style={{ maxWidth: "1180px", margin: "0 auto" }}>
-          {/* HERO */}
-          <section
-            style={{
-              background: "#fff",
-              borderRadius: "30px",
-              border: "1px solid #e2e8f0",
-              boxShadow: "0 20px 60px rgba(15,23,42,0.06)",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1.02fr 1fr",
-                alignItems: "stretch",
-              }}
-              className="hero-grid"
-            >
-              <div style={{ padding: "42px 42px 38px" }}>
-                <div
-                  style={{
-                    display: "inline-block",
-                    padding: "8px 14px",
-                    borderRadius: 999,
-                    background: "#eef2ff",
-                    color: "#1e3a8a",
-                    fontSize: 14,
-                    fontWeight: 800,
-                    marginBottom: 18,
-                  }}
-                >
-                  ARCHIMEDES Live
-                </div>
+      <main className="min-h-screen bg-slate-50 px-5 pb-16 pt-10">
+        <div className="mx-auto max-w-[1180px]">
+          <Card className="overflow-hidden p-0">
+            <div className="grid grid-cols-1 items-stretch lg:grid-cols-[1.02fr_1fr]">
+              <div className="p-6 sm:p-9">
+                <SectionEyebrow>ARCHIMEDES Live</SectionEyebrow>
 
-                <h1
-                  style={{
-                    margin: 0,
-                    fontSize: "clamp(36px, 5vw, 62px)",
-                    lineHeight: 1.02,
-                    color: "#0f172a",
-                    letterSpacing: "-0.04em",
-                  }}
-                >
+                <h1 className="text-[clamp(36px,5vw,58px)] font-[950] leading-[1.02] tracking-[-0.04em] text-navy-900">
                   Naši hosté a témata
                 </h1>
 
-                <p
-                  style={{
-                    margin: "22px 0 0",
-                    fontSize: 20,
-                    lineHeight: 1.75,
-                    color: "#334155",
-                    maxWidth: 620,
-                  }}
-                >
+                <p className="mt-5 max-w-[620px] text-xl leading-relaxed text-slate-700">
                   Podívejte se na výběr z vysílání, která už v programu
                   ARCHIMEDES Live proběhla.
                 </p>
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 14,
-                    flexWrap: "wrap",
-                    marginTop: 26,
-                    marginBottom: 28,
-                  }}
-                >
-                  <div
-                    style={{
-                      background: "#f8fafc",
-                      border: "1px solid #dbe3ef",
-                      borderRadius: 20,
-                      padding: "18px 20px",
-                      minWidth: 170,
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 13,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.08em",
-                        color: "#64748b",
-                        marginBottom: 8,
-                        fontWeight: 700,
-                      }}
-                    >
+                <div className="mb-6 mt-6 flex flex-wrap gap-3.5">
+                  <div className="min-w-[170px] rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="mb-2 text-[13px] font-bold uppercase tracking-[0.08em] text-slate-500">
                       Plakátů
                     </div>
-                    <div
-                      style={{
-                        fontSize: 34,
-                        fontWeight: 900,
-                        lineHeight: 1,
-                        color: "#0f172a",
-                      }}
-                    >
+                    <div className="text-[34px] font-[950] leading-none text-navy-900">
                       {totalCount}
                     </div>
                   </div>
 
-                  <div
-                    style={{
-                      background: "#f8fafc",
-                      border: "1px solid #dbe3ef",
-                      borderRadius: 20,
-                      padding: "18px 20px",
-                      minWidth: 260,
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 13,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.08em",
-                        color: "#64748b",
-                        marginBottom: 8,
-                        fontWeight: 700,
-                      }}
-                    >
+                  <div className="min-w-[260px] rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="mb-2 text-[13px] font-bold uppercase tracking-[0.08em] text-slate-500">
                       Veřejná ukázka
                     </div>
-                    <div
-                      style={{
-                        fontSize: 18,
-                        fontWeight: 800,
-                        lineHeight: 1.35,
-                        color: "#334155",
-                      }}
-                    >
+                    <div className="text-lg font-bold leading-snug text-slate-700">
                       hostů, témat a programu
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <Link href="/program" style={primaryButtonStyle}>
-                    Zobrazit program
-                  </Link>
-                  <Link href="/demo" style={secondaryButtonStyle}>
-                    Získat přístup
-                  </Link>
+                <div className="flex flex-wrap gap-3">
+                  <Button href="/program">Zobrazit program</Button>
+                  <Button href="/zadost" variant="secondary">
+                    Chci program pro naši obec
+                  </Button>
                 </div>
               </div>
 
-              <div style={{ padding: "22px" }}>
-                <div
-                  style={{
-                    borderRadius: "28px",
-                    overflow: "hidden",
-                    background: "#f8fafc",
-                    border: "1px solid #dbe3ef",
-                    boxShadow: "0 16px 36px rgba(15,23,42,0.08)",
-                    padding: "12px",
-                    height: "100%",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "12px",
-                      height: "100%",
-                    }}
-                  >
-                    {heroPosters.map((src, index) => (
-                      <div
-                        key={src}
-                        style={{
-                          borderRadius: "18px",
-                          overflow: "hidden",
-                          background: "#e5e7eb",
-                          aspectRatio: "3 / 4",
-                        }}
-                      >
-                        <img
-                          src={src}
-                          alt={`Ukázkový plakát ${index + 1}`}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                            display: "block",
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </div>
+              <div className="border-t border-slate-200 bg-gradient-to-b from-blue-50 to-slate-50 p-5 lg:border-l lg:border-t-0">
+                <div className="grid h-full grid-cols-2 gap-3">
+                  {heroPosters.map((src, index) => (
+                    <div key={src} className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-slate-200">
+                      <Image
+                        src={src}
+                        alt={`Ukázkový plakát ${index + 1}`}
+                        fill
+                        sizes="(max-width: 1024px) 45vw, 240px"
+                        style={{ objectFit: "cover" }}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-          </section>
+          </Card>
 
-          {/* GALERIE */}
-          <section style={{ marginTop: 72 }}>
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems: "end",
-                justifyContent: "space-between",
-                gap: "18px",
-                marginBottom: "28px",
-              }}
-            >
+          <section className="mt-16">
+            <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <div
-                  style={{
-                    color: "#1e3a8a",
-                    fontWeight: 800,
-                    fontSize: "14px",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    marginBottom: "10px",
-                  }}
-                >
-                  Galerie plakátů
-                </div>
-                <h2
-                  style={{
-                    margin: 0,
-                    fontSize: "clamp(28px, 4vw, 42px)",
-                    lineHeight: 1.1,
-                    color: "#0f172a",
-                    fontWeight: 800,
-                    letterSpacing: "-0.03em",
-                  }}
-                >
+                <SectionEyebrow>Galerie plakátů</SectionEyebrow>
+                <h2 className="text-[clamp(28px,4vw,42px)] font-[950] leading-[1.1] tracking-[-0.03em] text-navy-900">
                   Přehled proběhlých vysílání
                 </h2>
               </div>
-
-              <p
-                style={{
-                  margin: 0,
-                  maxWidth: "560px",
-                  fontSize: "17px",
-                  lineHeight: 1.65,
-                  color: "#475569",
-                }}
-              >
+              <p className="max-w-[560px] text-[17px] leading-relaxed text-muted">
                 Kliknutím na libovolný plakát otevřete větší náhled.
               </p>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: "20px",
-              }}
-            >
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-5">
               {posters.map((poster) => (
                 <button
                   key={poster.id}
                   type="button"
                   onClick={() => setActivePoster(poster)}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    padding: 0,
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "22px",
-                    overflow: "hidden",
-                    background: "#fff",
-                    boxShadow: "0 12px 36px rgba(15, 23, 42, 0.08)",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    transition: "transform 0.18s ease, box-shadow 0.18s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-4px)";
-                    e.currentTarget.style.boxShadow =
-                      "0 18px 42px rgba(15, 23, 42, 0.13)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow =
-                      "0 12px 36px rgba(15, 23, 42, 0.08)";
-                  }}
+                  className="block overflow-hidden rounded-card-md border border-slate-200 bg-white text-left shadow-[0_12px_36px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(15,23,42,0.13)]"
                 >
-                  <div
-                    style={{
-                      background: "#eef2ff",
-                      aspectRatio: "3 / 4",
-                      overflow: "hidden",
-                    }}
-                  >
+                  <div className="aspect-[3/4] overflow-hidden bg-eyebrow">
                     <img
                       src={poster.src}
                       alt={poster.alt}
                       loading="lazy"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                      }}
+                      className="h-full w-full object-cover"
                     />
                   </div>
 
-                  <div style={{ padding: "14px 16px 16px" }}>
-                    <div
-                      style={{
-                        fontWeight: 800,
-                        color: "#0f172a",
-                        fontSize: "16px",
-                        marginBottom: "6px",
-                      }}
-                    >
-                      {poster.label}
-                    </div>
-                    <div
-                      style={{
-                        color: "#64748b",
-                        fontSize: "14px",
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      Otevřít větší náhled
-                    </div>
+                  <div className="p-4">
+                    <div className="mb-1.5 text-base font-bold text-navy-900">{poster.label}</div>
+                    <div className="text-sm leading-relaxed text-slate-500">Otevřít větší náhled</div>
                   </div>
                 </button>
               ))}
             </div>
           </section>
 
-          {/* CTA */}
-          <section style={{ marginTop: 84 }}>
-            <div
-              style={{
-                borderRadius: "30px",
-                background: "#fff",
-                border: "1px solid #e2e8f0",
-                boxShadow: "0 18px 46px rgba(15, 23, 42, 0.08)",
-                padding: "36px 28px",
-                display: "grid",
-                gridTemplateColumns: "1.15fr 0.85fr",
-                gap: "24px",
-                alignItems: "center",
-              }}
-              className="cta-grid"
-            >
+          <section className="mt-16">
+            <div className="grid grid-cols-1 items-center gap-6 rounded-card-lg border border-slate-200 bg-white p-7 shadow-[0_18px_46px_rgba(15,23,42,0.08)] sm:p-9 lg:grid-cols-[1.15fr_0.85fr]">
               <div>
-                <div
-                  style={{
-                    color: "#1e3a8a",
-                    fontWeight: 800,
-                    fontSize: "14px",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    marginBottom: "10px",
-                  }}
-                >
-                  Chcete vidět víc?
-                </div>
-
-                <h3
-                  style={{
-                    margin: "0 0 12px",
-                    fontSize: "clamp(26px, 3vw, 36px)",
-                    lineHeight: 1.12,
-                    color: "#0f172a",
-                    fontWeight: 800,
-                    letterSpacing: "-0.03em",
-                  }}
-                >
+                <SectionEyebrow>Chcete vidět víc?</SectionEyebrow>
+                <h3 className="mb-3 text-[clamp(26px,3vw,36px)] font-[950] leading-[1.12] tracking-[-0.03em] text-navy-900">
                   Kompletní archiv je určen pro zapojené školy a obce
                 </h3>
-
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: "17px",
-                    lineHeight: 1.7,
-                    color: "#475569",
-                    maxWidth: "720px",
-                  }}
-                >
+                <p className="max-w-[720px] text-[17px] leading-relaxed text-muted">
                   Tato stránka ukazuje veřejný výběr proběhlých vysílání.
                   Kompletní záznamy, navazující obsah a přístup do portálu jsou
                   součástí programu ARCHIMEDES Live pro školy, obce a další
@@ -415,21 +136,11 @@ export default function ProbehlaVysilaniPage() {
                 </p>
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-start",
-                  alignItems: "center",
-                  gap: "12px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <Link href="/demo" style={primaryButtonStyle}>
-                  Mám zájem o přístup
-                </Link>
-                <Link href="/ucebna" style={secondaryButtonStyle}>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button href="/zadost">Chci program pro naši obec</Button>
+                <Button href="/ucebna" variant="secondary">
                   Více o učebně
-                </Link>
+                </Button>
               </div>
             </div>
           </section>
@@ -441,112 +152,31 @@ export default function ProbehlaVysilaniPage() {
           role="dialog"
           aria-modal="true"
           onClick={() => setActivePoster(null)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1000,
-            background: "rgba(15, 23, 42, 0.82)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "24px",
-          }}
+          className="fixed inset-0 z-[1000] flex items-center justify-center bg-navy-900/82 p-6"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{
-              position: "relative",
-              width: "min(92vw, 860px)",
-              maxHeight: "90vh",
-              borderRadius: "24px",
-              overflow: "hidden",
-              background: "#fff",
-              boxShadow: "0 30px 100px rgba(0,0,0,0.35)",
-            }}
+            className="relative w-[min(92vw,860px)] max-h-[90vh] overflow-hidden rounded-card-lg bg-white shadow-[0_30px_100px_rgba(0,0,0,0.35)]"
           >
             <button
               type="button"
               onClick={() => setActivePoster(null)}
               aria-label="Zavřít"
-              style={{
-                position: "absolute",
-                top: "14px",
-                right: "14px",
-                zIndex: 2,
-                border: "none",
-                width: "44px",
-                height: "44px",
-                borderRadius: "999px",
-                background: "rgba(15, 23, 42, 0.72)",
-                color: "#fff",
-                fontSize: "24px",
-                cursor: "pointer",
-              }}
+              className="absolute right-3.5 top-3.5 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-navy-900/72 text-white"
             >
-              ×
+              <X className="h-5 w-5" aria-hidden="true" />
             </button>
 
-            <div style={{ background: "#f8fafc" }}>
+            <div className="bg-slate-50">
               <img
                 src={activePoster.src}
                 alt={activePoster.alt}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  maxHeight: "90vh",
-                  objectFit: "contain",
-                  background: "#f8fafc",
-                }}
+                className="block max-h-[90vh] w-full bg-slate-50 object-contain"
               />
             </div>
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        @media (max-width: 1100px) {
-          .hero-grid,
-          .cta-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-
-        @media (max-width: 760px) {
-          .hero-grid > div:first-child {
-            padding: 30px 22px 26px !important;
-          }
-        }
-      `}</style>
     </>
   );
 }
-
-const primaryButtonStyle = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minHeight: "52px",
-  padding: "0 20px",
-  borderRadius: "14px",
-  background: "#0f172a",
-  color: "#fff",
-  textDecoration: "none",
-  fontWeight: 800,
-  fontSize: "16px",
-  boxShadow: "0 14px 28px rgba(15, 23, 42, 0.16)",
-};
-
-const secondaryButtonStyle = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minHeight: "52px",
-  padding: "0 20px",
-  borderRadius: "14px",
-  background: "#fff",
-  color: "#0f172a",
-  textDecoration: "none",
-  fontWeight: 800,
-  fontSize: "16px",
-  border: "1px solid #cbd5e1",
-};

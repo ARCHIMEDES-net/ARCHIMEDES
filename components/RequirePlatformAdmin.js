@@ -2,9 +2,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 
+// Reuse a successful platform-admin check during client-side navigation.
+// The value is memory-only, resets on reload and is cleared on any denied
+// access or logout event.
+let platformAdminVerified = false;
+
 export default function RequirePlatformAdmin({ children }) {
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
+  const [checking, setChecking] = useState(() => !platformAdminVerified);
 
   useEffect(() => {
     let alive = true;
@@ -19,6 +24,7 @@ export default function RequirePlatformAdmin({ children }) {
         if (!alive) return;
 
         if (userError || !user) {
+          platformAdminVerified = false;
           router.replace("/login");
           return;
         }
@@ -32,12 +38,15 @@ export default function RequirePlatformAdmin({ children }) {
         if (!alive) return;
 
         if (error || !data?.user_id) {
+          platformAdminVerified = false;
           router.replace("/portal");
           return;
         }
 
+        platformAdminVerified = true;
         setChecking(false);
       } catch (_e) {
+        platformAdminVerified = false;
         router.replace("/portal");
       }
     }
@@ -48,6 +57,7 @@ export default function RequirePlatformAdmin({ children }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
+        platformAdminVerified = false;
         router.replace("/login");
       }
     });

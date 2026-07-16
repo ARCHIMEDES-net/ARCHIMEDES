@@ -1,4 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
+import { getEmailGroups } from "../../../lib/server/emailGroups";
+import { requirePlatformAdmin } from "../../../lib/server/platformAdminApi";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -7,36 +9,28 @@ const supabaseAdmin = createClient(
 );
 
 export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    res.setHeader("Allow", "GET");
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   try {
-    // 1. načti všechny interests
-    const { data, error } = await supabaseAdmin
-      .from("user_interests")
-      .select("interest_slug");
+    const admin = await requirePlatformAdmin(req, res, supabaseAdmin);
+    if (!admin) return;
 
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
+    const groups = await getEmailGroups(supabaseAdmin);
 
-    // 2. spočítej počty
-    const counts = {};
-
-    (data || []).forEach((row) => {
-      if (!row.interest_slug) return;
-      counts[row.interest_slug] = (counts[row.interest_slug] || 0) + 1;
-    });
-
-    // 3. převeď na pole
-    const result = Object.entries(counts).map(([slug, count]) => ({
-      slug,
-      count,
-    }));
-
-    // 4. seřaď od největší
-    result.sort((a, b) => b.count - a.count);
-
-    return res.status(200).json(result);
-
+    return res.status(200).json(
+      groups.map(({ slug, label, section, sort_order, count }) => ({
+        slug,
+        label,
+        section,
+        sort_order,
+        count,
+      }))
+    );
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error("group-counts error:", err);
+    return res.status(500).json({ error: "Nepodařilo se načíst e-mailové skupiny." });
   }
 }

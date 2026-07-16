@@ -32,7 +32,7 @@ export default function AdminNav({ active = "" }) {
         marginTop: 6,
       }}
     >
-      <Link href="/portal/admin-udalosti" style={active === "udalosti" ? activeBtn : baseBtn}>
+      <Link href="/portal/admin/udalosti" style={active === "udalosti" ? activeBtn : baseBtn}>
         Události
       </Link>
 
@@ -40,7 +40,7 @@ export default function AdminNav({ active = "" }) {
         Inzerce
       </Link>
 
-      <Link href="/portal/program" style={active === "program" ? activeBtn : baseBtn}>
+      <Link href="/portal/kalendar" style={active === "program" ? activeBtn : baseBtn}>
         Program
       </Link>
 

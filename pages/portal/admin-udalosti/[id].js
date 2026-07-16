@@ -201,7 +201,7 @@ export default function AdminUdalostEdit() {
       return;
     }
 
-    router.push("/portal/admin-udalosti");
+    router.push("/portal/admin/udalosti");
   }
 
   async function onPosterSelected(file) {
@@ -258,7 +258,7 @@ export default function AdminUdalostEdit() {
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex items-start justify-between gap-3 flex-wrap">
-          <Link href="/portal/admin-udalosti" className="text-sm text-slate-500 hover:underline">
+          <Link href="/portal/admin/udalosti" className="text-sm text-slate-500 hover:underline">
             ← Zpět do Adminu událostí
           </Link>
 
@@ -393,12 +393,12 @@ export default function AdminUdalostEdit() {
             </label>
 
             <label className="grid gap-1">
-              <span className="text-sm text-slate-600">Odkaz na vysílání (stream_url)</span>
+              <span className="text-sm text-slate-600">Volitelný odkaz na vysílání (stream_url)</span>
               <input
                 value={streamUrl}
                 onChange={(e) => setStreamUrl(e.target.value)}
                 className="px-3 py-2 border rounded-xl"
-                placeholder="https://meet.google.com/..."
+                placeholder="Volitelné — pozvánku a odkaz rozešle WebMeeting"
               />
             </label>
 
@@ -469,7 +469,7 @@ export default function AdminUdalostEdit() {
               </button>
 
               <Link
-                href="/portal/admin-udalosti"
+                href="/portal/admin/udalosti"
                 className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
               >
                 Zpět do seznamu

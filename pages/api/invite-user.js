@@ -6,8 +6,9 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const SITE_URL = "https://www.archimedeslive.com";
-const REDIRECT_TO = `${SITE_URL}/login`;
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
+const REDIRECT_TO = `${SITE_URL}/nastavit-heslo`;
 
 function getBearerToken(req) {
   const authHeader = req.headers.authorization || req.headers.Authorization;
@@ -61,11 +62,27 @@ export default async function handler(req, res) {
     }
 
     // 1) Najít organizaci a oprávnění skutečně přihlášeného uživatele
+    const { data: inviterProfile, error: inviterProfileError } =
+      await supabaseAdmin
+        .from("profiles")
+        .select("active_organization_id")
+        .eq("id", cleanInviterUserId)
+        .maybeSingle();
+
+    if (inviterProfileError) {
+      return res.status(400).json({ error: inviterProfileError.message });
+    }
+
+    if (!inviterProfile?.active_organization_id) {
+      return res.status(403).json({ error: "Chybí aktivní škola uživatele." });
+    }
+
     const { data: inviterMembership, error: inviterMembershipError } =
       await supabaseAdmin
         .from("organization_members")
         .select("organization_id, role_in_org, status")
         .eq("user_id", cleanInviterUserId)
+        .eq("organization_id", inviterProfile.active_organization_id)
         .eq("status", "active")
         .maybeSingle();
 
@@ -86,6 +103,22 @@ export default async function handler(req, res) {
     }
 
     const organizationId = inviterMembership.organization_id;
+
+    const { data: organization, error: organizationError } = await supabaseAdmin
+      .from("organizations")
+      .select("org_type, status")
+      .eq("id", organizationId)
+      .maybeSingle();
+
+    if (organizationError) {
+      return res.status(400).json({ error: organizationError.message });
+    }
+
+    if (!organization || organization.org_type !== "school" || organization.status !== "active") {
+      return res.status(403).json({
+        error: "Jednotlivé uživatele lze zvát pouze do aktivní školy.",
+      });
+    }
 
     // 2) Poslat pozvánku
     const { data: invitedUser, error: inviteError } =
@@ -108,29 +141,7 @@ export default async function handler(req, res) {
         .json({ error: "Nepodařilo se získat ID pozvaného uživatele." });
     }
 
-    // 3) Zkontrolovat, zda už uživatel není v jiné aktivní organizaci
-    const { data: existingMemberships, error: membershipLookupError } =
-      await supabaseAdmin
-        .from("organization_members")
-        .select("organization_id, status")
-        .eq("user_id", invitedUserId)
-        .eq("status", "active");
-
-    if (membershipLookupError) {
-      return res.status(400).json({ error: membershipLookupError.message });
-    }
-
-    const hasOtherActiveOrg = (existingMemberships || []).some(
-      (m) => m.organization_id !== organizationId
-    );
-
-    if (hasOtherActiveOrg) {
-      return res.status(400).json({
-        error: "Uživatel už je přiřazen k jiné aktivní organizaci.",
-      });
-    }
-
-    // 4) Profil
+    // 3) Profil — jiná členství stejného účtu zůstávají zachována.
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .upsert(
@@ -149,7 +160,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: profileError.message });
     }
 
-    // 5) Členství v organizaci
+    // 4) Členství ve škole
     const { error: membershipError } = await supabaseAdmin
       .from("organization_members")
       .upsert(

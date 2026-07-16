@@ -105,6 +105,24 @@ export default function JoinBroadcastButton({
     );
   }
 
+  if (state.state === "recording") {
+    return (
+      <span
+        style={{
+          ...baseButtonStyle,
+          ...sizeStyle(compact, fullWidth),
+          background: "#f8fafc",
+          color: "#475569",
+          borderColor: "rgba(15,23,42,0.12)",
+          cursor: "default",
+        }}
+        title="Odkaz do archivu se zobrazí po publikování hotového záznamu."
+      >
+        ⏳ {state.label || "Záznam připravujeme"}
+      </span>
+    );
+  }
+
   if (
     (state.state === "detail" || state.state === "disabled") &&
     showDetailFallback &&

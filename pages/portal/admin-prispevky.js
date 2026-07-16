@@ -3,6 +3,12 @@ import { useRouter } from "next/router";
 import RequirePlatformAdmin from "../../components/RequirePlatformAdmin";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
+import { Card } from "../../components/ui/card";
+import { Badge } from "../../components/ui/badge";
+import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
+import { Switch } from "../../components/ui/switch";
+import { Button } from "../../components/ui/button";
 
 const BUCKET = "portal-posts";
 
@@ -168,218 +174,86 @@ export default function AdminPrispevky() {
     <RequirePlatformAdmin>
       <PortalHeader title="Admin - příspěvek" />
 
-      <div style={{ background: "#f6f7fb", minHeight: "100vh", padding: 20 }}>
-        <div
-          style={{
-            maxWidth: 980,
-            margin: "0 auto",
-            background: "white",
-            borderRadius: 24,
-            border: "1px solid rgba(15,23,42,0.08)",
-            boxShadow: "0 14px 36px rgba(15,23,42,0.04)",
-            padding: 24,
-          }}
-        >
-          <div style={{ marginBottom: 18 }}>
-            <div
-              style={{
-                display: "inline-flex",
-                padding: "6px 10px",
-                borderRadius: 999,
-                background: "rgba(15,23,42,0.06)",
-                color: "#0f172a",
-                fontSize: 12,
-                fontWeight: 800,
-                marginBottom: 12,
-              }}
-            >
+      <div className="min-h-screen bg-slate-50 p-5">
+        <Card className="mx-auto max-w-[980px] p-6">
+          <div className="mb-4">
+            <Badge variant="dark" className="mb-3 normal-case tracking-normal">
               {resolvedSection === "contests"
                 ? "ARCHIMEDES Live • soutěže a projekty"
                 : "ARCHIMEDES Live • komunita"}
-            </div>
+            </Badge>
 
-            <h1
-              style={{
-                margin: 0,
-                fontSize: 30,
-                lineHeight: 1.1,
-                color: "#0f172a",
-              }}
-            >
+            <h1 className="text-[30px] leading-tight text-navy-900">
               {id ? "Upravit příspěvek" : "Nový příspěvek"}
             </h1>
           </div>
 
           <form onSubmit={handleSubmit}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
-              <div style={{ flex: "1 1 520px", minWidth: 0 }}>
-                <input
+            <div className="flex flex-wrap gap-6">
+              <div className="min-w-0 flex-1 basis-[520px]">
+                <Input
                   placeholder="Nadpis"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  style={inputStyle}
+                  className="mb-3"
                 />
 
-                <textarea
+                <Textarea
                   placeholder="Text"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  style={textareaStyle}
+                  className="mb-3 h-[220px]"
                 />
 
-                <div style={{ marginBottom: 12 }}>
+                <div className="mb-3">
                   <input type="file" accept="image/*" onChange={handleImageChange} />
                 </div>
 
-                <label style={checkboxRowStyle}>
-                  <input
-                    type="checkbox"
-                    checked={isPublished}
-                    onChange={(e) => setIsPublished(e.target.checked)}
-                  />
+                <label className="inline-flex items-center gap-2.5 font-bold text-navy-900">
+                  <Switch checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} />
                   <span>Publikovat</span>
                 </label>
 
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
-                  <button type="submit" disabled={loading} style={saveBtnStyle}>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <Button type="submit" disabled={loading} variant="primary">
                     {loading ? "Ukládám..." : "Uložit"}
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="secondary"
                     onClick={() =>
                       router.push(
                         resolvedSection === "contests" ? "/portal/souteze" : "/portal/komunita"
                       )
                     }
-                    style={cancelBtnStyle}
                   >
                     Zpět
-                  </button>
+                  </Button>
                 </div>
               </div>
 
-              <div style={{ flex: "0 0 320px", maxWidth: 320, width: "100%" }}>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 800,
-                    color: "rgba(15,23,42,0.68)",
-                    marginBottom: 10,
-                  }}
-                >
-                  Náhled obrázku
-                </div>
+              <div className="w-full max-w-[320px] flex-none basis-[320px]">
+                <div className="mb-2.5 text-xs font-black text-slate-500">Náhled obrázku</div>
 
                 {imagePreview ? (
-                  <div style={previewFrameStyle}>
+                  <div className="flex h-[260px] w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-900/[0.08] bg-white">
                     <img
                       src={imagePreview}
                       alt="Náhled obrázku"
-                      style={previewImageStyle}
+                      className="h-full w-full object-contain p-4"
                     />
                   </div>
                 ) : (
-                  <div style={previewEmptyStyle}>Zatím bez obrázku</div>
+                  <div className="flex h-[260px] w-full items-center justify-center rounded-2xl border border-dashed border-slate-900/[0.14] bg-slate-50 font-bold text-slate-400">
+                    Zatím bez obrázku
+                  </div>
                 )}
               </div>
             </div>
           </form>
-        </div>
+        </Card>
       </div>
     </RequirePlatformAdmin>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  marginBottom: 12,
-  padding: "14px 16px",
-  borderRadius: 14,
-  border: "1px solid rgba(15,23,42,0.12)",
-  fontSize: 16,
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-const textareaStyle = {
-  width: "100%",
-  height: 220,
-  marginBottom: 12,
-  padding: "14px 16px",
-  borderRadius: 14,
-  border: "1px solid rgba(15,23,42,0.12)",
-  fontSize: 16,
-  outline: "none",
-  boxSizing: "border-box",
-  resize: "vertical",
-};
-
-const checkboxRowStyle = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 10,
-  fontWeight: 700,
-  color: "#0f172a",
-};
-
-const saveBtnStyle = {
-  border: "none",
-  background: "#0f172a",
-  color: "white",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "12px 16px",
-  borderRadius: 14,
-  fontWeight: 900,
-  cursor: "pointer",
-};
-
-const cancelBtnStyle = {
-  border: "1px solid rgba(15,23,42,0.12)",
-  background: "white",
-  color: "#0f172a",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "12px 16px",
-  borderRadius: 14,
-  fontWeight: 900,
-  cursor: "pointer",
-};
-
-const previewFrameStyle = {
-  width: "100%",
-  height: 260,
-  background: "#ffffff",
-  borderRadius: 18,
-  border: "1px solid rgba(15,23,42,0.08)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  overflow: "hidden",
-};
-
-const previewImageStyle = {
-  width: "100%",
-  height: "100%",
-  objectFit: "contain",
-  objectPosition: "center",
-  display: "block",
-  padding: 18,
-  boxSizing: "border-box",
-};
-
-const previewEmptyStyle = {
-  width: "100%",
-  height: 260,
-  background: "#f8fafc",
-  borderRadius: 18,
-  border: "1px dashed rgba(15,23,42,0.14)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: "rgba(15,23,42,0.45)",
-  fontWeight: 700,
-};

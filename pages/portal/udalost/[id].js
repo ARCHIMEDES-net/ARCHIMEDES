@@ -1,11 +1,14 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Check, Lock, CalendarPlus, CalendarDays, FileText, X } from "lucide-react";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import JoinBroadcastButton from "../../../components/JoinBroadcastButton";
 import { getStreamUrl } from "../../../lib/broadcastState";
+import { resolveLicenseMode } from "../../../lib/licenseMode";
 import { supabase } from "../../../lib/supabaseClient";
+import { fetchMyOrganization } from "../../../lib/myOrganizations";
 
 const BUCKET = "posters";
 
@@ -67,24 +70,6 @@ function resolvePosterUrl(row) {
   const directUrl = String(row?.poster_url || "").trim();
   if (directUrl) return directUrl;
   return publicUrlFromPath(row?.poster_path);
-}
-
-function resolveLicenseMode(org) {
-  if (!org) return "default";
-
-  const status = String(org.license_status || "trial").toLowerCase().trim();
-  const validUntil = safeDate(org.license_valid_until);
-
-  if (status === "suspended") return "suspended";
-  if (status === "active") return "active";
-  if (status === "expired") return "expired";
-
-  if (status === "trial") {
-    if (!validUntil) return "trial";
-    return validUntil.getTime() >= Date.now() ? "trial" : "expired";
-  }
-
-  return "expired";
 }
 
 function formatGoogleDate(date) {
@@ -277,19 +262,14 @@ export default function UdalostDetail() {
           return;
         }
 
-        const { data: org, error: orgError } = await supabase
-          .from("organizations")
-          .select("license_status, license_valid_until")
-          .eq("id", orgId)
-          .maybeSingle();
+        const org = await fetchMyOrganization(supabase, orgId);
 
-        if (orgError) throw orgError;
-
+        const mode = await resolveLicenseMode(supabase, orgId, org);
         if (mounted) {
-          setLicenseMode(resolveLicenseMode(org));
+          setLicenseMode(mode);
         }
       } catch (_e) {
-        if (mounted) setLicenseMode("expired");
+        if (mounted) setLicenseMode("inactive");
       } finally {
         if (mounted) setLicenseLoading(false);
       }
@@ -569,11 +549,14 @@ export default function UdalostDetail() {
                       : "px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed"
                   }
                 >
-                  {attendeeSaving
-                    ? "Ukládám…"
-                    : isAttending
-                    ? "✓ Vaše škola je přihlášena"
-                    : "✓ Zúčastníme se vysílání"}
+                  {attendeeSaving ? (
+                    "Ukládám…"
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Check className="h-4 w-4" aria-hidden="true" />
+                      {isAttending ? "Vaše škola je přihlášena" : "Zúčastníme se vysílání"}
+                    </span>
+                  )}
                 </button>
               ) : (
                 <div className="text-sm text-slate-600">
@@ -608,17 +591,17 @@ export default function UdalostDetail() {
 
               <div className="mt-4 flex flex-wrap gap-2">
                 <Link
-                  href="/poptavka"
+                  href="/zadost"
                   className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
                 >
-                  Požádat o plnou licenci
+                  Chci program pro naši obec
                 </Link>
 
                 <Link
-                  href="/poptavka"
+                  href="/kontakt"
                   className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
                 >
-                  Domluvit další postup
+                  Napsat nám
                 </Link>
               </div>
             </div>
@@ -638,7 +621,9 @@ export default function UdalostDetail() {
                 className="px-4 py-2 rounded-xl bg-slate-200 text-slate-600 cursor-not-allowed font-semibold"
                 title="Dostupné pouze pro aktivní organizace"
               >
-                🔒 Vstup do vysílání
+                <span className="inline-flex items-center gap-1.5">
+                  <Lock className="h-4 w-4" aria-hidden="true" /> Vstup do vysílání
+                </span>
               </button>
             ) : null}
 
@@ -650,7 +635,9 @@ export default function UdalostDetail() {
                 className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
                 title="Přidat událost do Google kalendáře"
               >
-                📅 Přidat do Google kalendáře
+                <span className="inline-flex items-center gap-1.5">
+                  <CalendarPlus className="h-4 w-4" aria-hidden="true" /> Přidat do Google kalendáře
+                </span>
               </a>
             ) : null}
 
@@ -661,7 +648,9 @@ export default function UdalostDetail() {
                 className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
                 title="Stáhnout událost do kalendáře"
               >
-                📆 Stáhnout do kalendáře
+                <span className="inline-flex items-center gap-1.5">
+                  <CalendarDays className="h-4 w-4" aria-hidden="true" /> Stáhnout do kalendáře
+                </span>
               </button>
             ) : null}
 
@@ -672,7 +661,9 @@ export default function UdalostDetail() {
                 rel="noreferrer"
                 className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
               >
-                📄 Pracovní list
+                <span className="inline-flex items-center gap-1.5">
+                  <FileText className="h-4 w-4" aria-hidden="true" /> Pracovní list
+                </span>
               </a>
             ) : null}
 
@@ -703,7 +694,7 @@ export default function UdalostDetail() {
               className="absolute top-2 right-2 z-10 rounded-full bg-white/95 px-3 py-2 text-sm font-medium text-slate-900 shadow hover:bg-white"
               title="Zavřít"
             >
-              ✕
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
 
             <img

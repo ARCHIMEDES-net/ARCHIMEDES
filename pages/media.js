@@ -1,33 +1,33 @@
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Head from "next/head";
+import Image from "next/image";
+import { ArrowUpRight, X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
+import { cn } from "../lib/utils";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import SectionEyebrow from "../components/home/SectionEyebrow";
+import Footer from "../components/Footer";
 
 const heroImg = "/kamera.webp";
-
 const aboutImg = "/detidoucebny.webp";
 
-const galleryClassImg = "/ucitelka.jpeg";
+const galleryClassImg = "/ucitelka.webp";
 const galleryTechImg = "/atmos.webp";
 const galleryCommunityImg = "/ucebna-komunita.webp";
-const galleryMediaImg = "/image-1.png";
+const galleryMediaImg = "/image-1.webp";
 
 const mediaSectionImg = "/ucebna-media.webp";
 const galleryHeroImg = "/techn.webp";
 const SCHOOLS_BUCKET = "schools";
 
-const EXCLUDED_REFERENCE_CITIES = [
-  "Břeclav",
-  "Prešov",
-  "Provodov",
-  "Žleby",
-  "Humpolec",
-];
+const EXCLUDED_REFERENCE_CITIES = ["Břeclav", "Prešov", "Provodov", "Žleby", "Humpolec"];
 
 const mediaPoints = [
   "realizace ve školách a v obcích",
   "reprezentativní prostor pro vzdělávání i komunitní život",
   "spojení kvalitní architektury, technologií a přírody",
-  "silný vizuální i společenský přesah projektu",
+  "silný vizuální i společenský přesah",
 ];
 
 const storyGallery = [
@@ -58,7 +58,7 @@ const storyGallery = [
   {
     src: galleryMediaImg,
     title: "Veřejná a mediální pozornost",
-    text: "Projekt, který vzbuzuje zájem odborníků i veřejnosti.",
+    text: "Učebny, které vzbuzují zájem odborníků i veřejnosti.",
     ratio: "standard",
   },
 ];
@@ -84,7 +84,7 @@ const mediaLinks = [
   },
   {
     title: "Česká televize",
-    text: "Zpravodajský výstup věnovaný projektu ARCHIMEDES®.",
+    text: "Zpravodajský výstup věnovaný učebnám ARCHIMEDES®.",
     href: "https://www.ceskatelevize.cz/porady/10253066674-zpravy-ve-12/223411012000328/",
     domain: "ceskatelevize.cz",
   },
@@ -140,7 +140,7 @@ function normalizeText(value) {
   return (value || "")
     .toString()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
     .trim();
 }
@@ -151,132 +151,50 @@ function isExcludedReference(row) {
 
   return EXCLUDED_REFERENCE_CITIES.some((excluded) => {
     const value = normalizeText(excluded);
-
     return (
-      city.includes(value) ||
-      name.includes(value) ||
-      city.startsWith(value) ||
-      name.startsWith(value)
+      city.includes(value) || name.includes(value) || city.startsWith(value) || name.startsWith(value)
     );
   });
 }
 
-function PrimaryButton({ href, children }) {
+function SectionTitle({ children, className = "" }) {
   return (
-    <Link
-      href={href}
-      style={{
-        textDecoration: "none",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 22px",
-        borderRadius: 15,
-        background: "#0f172a",
-        color: "white",
-        fontWeight: 800,
-        border: "1px solid #0f172a",
-        boxShadow: "0 14px 30px rgba(15,23,42,0.14)",
-        transition: "transform 0.15s ease, box-shadow 0.15s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 18px 36px rgba(15,23,42,0.18)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 14px 30px rgba(15,23,42,0.14)";
-      }}
+    <h2
+      className={cn(
+        "mb-4 text-[42px] font-[950] leading-[1.02] tracking-[-0.04em] text-navy-900",
+        className
+      )}
     >
       {children}
-    </Link>
+    </h2>
   );
 }
 
-function SecondaryButton({ href, children, tinted = false }) {
-  return (
-    <Link
-      href={href}
-      style={{
-        textDecoration: "none",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 22px",
-        borderRadius: 15,
-        border: tinted
-          ? "1px solid rgba(15,23,42,0.10)"
-          : "1px solid rgba(15,23,42,0.16)",
-        background: tinted ? "rgba(255,255,255,0.72)" : "white",
-        color: "#0f172a",
-        fontWeight: 800,
-        boxShadow: tinted ? "0 10px 24px rgba(15,23,42,0.05)" : "none",
-        transition:
-          "transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 12px 26px rgba(15,23,42,0.08)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = tinted
-          ? "0 10px 24px rgba(15,23,42,0.05)"
-          : "none";
-      }}
-    >
-      {children}
-    </Link>
-  );
-}
+function SafeImage({ src, alt, className, priority = false, sizes }) {
+  // Priority images are always our own local static assets (never the
+  // dynamic Supabase-hosted reference photos below), so they're the only
+  // ones safe to route through next/image without remotePatterns config.
+  if (priority) {
+    return (
+      <div className={cn("relative", className)}>
+        <Image src={src} alt={alt} fill priority sizes={sizes || "100vw"} style={{ objectFit: "cover" }} />
+      </div>
+    );
+  }
 
-function SectionEyebrow({ children }) {
-  return (
-    <div
-      style={{
-        fontSize: 14,
-        fontWeight: 800,
-        color: "rgba(15,23,42,0.52)",
-        marginBottom: 10,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function SectionTitle({ children, style = {} }) {
-  return (
-    <div
-      style={{
-        fontSize: 46,
-        lineHeight: 1.02,
-        fontWeight: 900,
-        color: "#0f172a",
-        letterSpacing: "-0.04em",
-        marginBottom: 16,
-        ...style,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function SafeImage({ src, alt, style }) {
   return (
     <img
       src={src}
       alt={alt}
-      style={style}
+      className={className}
+      loading="lazy"
       onError={(e) => {
         e.currentTarget.style.display = "none";
         const parent = e.currentTarget.parentElement;
         if (parent && !parent.querySelector(".img-fallback")) {
           const fallback = document.createElement("div");
-          fallback.className = "img-fallback";
+          fallback.className =
+            "img-fallback flex min-h-[220px] items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 p-6 text-center text-[15px] leading-relaxed text-slate-500";
           fallback.innerText = alt;
           parent.appendChild(fallback);
         }
@@ -334,818 +252,303 @@ export default function MediaPage() {
   }, []);
 
   return (
-    <div
-      style={{
-        fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
-        background:
-          "linear-gradient(180deg, #f6f7fb 0%, #f7f8fb 28%, #f3f5f9 100%)",
-        minHeight: "100vh",
-      }}
-    >
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-slate-50 to-slate-100">
+      <Head>
+        <title>Média a realizace učeben ARCHIMEDES®</title>
+        <meta
+          name="description"
+          content="Reálné realizace venkovních učeben ARCHIMEDES®, jejich využití a výběr článků a reportáží."
+        />
+      </Head>
       <main>
-        <section
-          style={{
-            maxWidth: 1240,
-            margin: "0 auto",
-            padding: "64px 20px 26px",
-          }}
-        >
-          <div className="heroShell">
+        <section className="mx-auto max-w-[1240px] px-5 pb-6 pt-14">
+          <div className="grid grid-cols-1 items-center gap-9 lg:grid-cols-[1.02fr_0.98fr]">
             <div>
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "9px 15px",
-                  borderRadius: 999,
-                  background: "rgba(15,23,42,0.06)",
-                  color: "#0f172a",
-                  fontSize: 13,
-                  fontWeight: 800,
-                  marginBottom: 20,
-                }}
-              >
-                ARCHIMEDES® • média a reference
-              </div>
+              <SectionEyebrow>ARCHIMEDES® • média a reference</SectionEyebrow>
 
-              <h1
-                style={{
-                  fontSize: 62,
-                  lineHeight: 0.98,
-                  letterSpacing: "-0.05em",
-                  color: "#0f172a",
-                  margin: "0 0 18px",
-                }}
-              >
+              <h1 className="text-[46px] font-[950] leading-[0.98] tracking-[-0.05em] text-navy-900 sm:text-[58px]">
                 Média a reference
                 <br />
                 ARCHIMEDES®
               </h1>
 
-              <h2
-                style={{
-                  fontSize: 28,
-                  lineHeight: 1.22,
-                  color: "#334155",
-                  margin: "0 0 18px",
-                  fontWeight: 800,
-                  maxWidth: 720,
-                }}
-              >
-                Podívejte se na projekt, který spojuje vzdělávání, architekturu a komunitní život.
+              <h2 className="mt-4 max-w-[720px] text-2xl font-bold leading-[1.22] text-slate-700">
+                Podívejte se na řešení, které spojuje vzdělávání, architekturu a komunitní život.
               </h2>
 
-              <p
-                style={{
-                  fontSize: 20,
-                  lineHeight: 1.64,
-                  color: "rgba(15,23,42,0.74)",
-                  maxWidth: 760,
-                  margin: 0,
-                }}
-              >
+              <p className="mt-4 max-w-[760px] text-xl leading-relaxed text-muted">
                 ARCHIMEDES® je víc než stavba. Je to prostředí, které pomáhá školám
                 i obcím vytvářet silnější vztah ke vzdělávání, místu a společnému
                 prožívání. Na této stránce najdete reálné realizace i výběr mediálních
                 výstupů, které ukazují jeho skutečné využití a veřejný přesah.
               </p>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: 14,
-                  flexWrap: "wrap",
-                  marginTop: 30,
-                }}
-              >
-                <PrimaryButton href="/ucebna">Zpět na stránku učebny</PrimaryButton>
-                <SecondaryButton href="/poptavka">
-                  Mám zájem o učebnu
-                </SecondaryButton>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Button href="/ucebna">Zpět na stránku učebny</Button>
+                <Button href="/kontakt" variant="secondary">
+                  Poptat učebnu
+                </Button>
               </div>
             </div>
 
-            <div className="heroImageCard">
+            <div className="overflow-hidden rounded-card-lg border border-slate-900/[0.08] bg-white shadow-[0_28px_80px_rgba(15,23,42,0.12)]">
               <SafeImage
                 src={heroImg}
                 alt="Venkovní učebna ARCHIMEDES®"
-                style={{
-                  width: "100%",
-                  display: "block",
-                  aspectRatio: "16/10",
-                  objectFit: "cover",
-                }}
+                priority
+                sizes="(max-width: 1024px) 100vw, 610px"
+                className="aspect-[16/10] w-full object-cover"
               />
             </div>
           </div>
         </section>
 
-        <section
-          style={{
-            maxWidth: 1240,
-            margin: "0 auto",
-            padding: "8px 20px 24px",
-          }}
-        >
-          <div className="premiumCard">
-            <div className="infoGrid">
+        <section className="mx-auto max-w-[1240px] px-5 py-2">
+          <Card className="p-7 sm:p-8">
+            <div className="grid grid-cols-1 items-center gap-7 lg:grid-cols-[1fr_0.92fr]">
               <div>
-                <SectionEyebrow>O projektu</SectionEyebrow>
-                <SectionTitle style={{ fontSize: 42 }}>
-                  Co dělá ARCHIMEDES® výjimečným
-                </SectionTitle>
+                <SectionEyebrow>Podstata učebny</SectionEyebrow>
+                <SectionTitle>Co dělá ARCHIMEDES® výjimečným</SectionTitle>
 
-                <p className="leadText" style={{ marginBottom: 18 }}>
+                <p className="mb-4 text-lg leading-[1.78] text-muted">
                   ARCHIMEDES® vznikl jako odpověď na potřebu moderního,
                   reprezentativního a přitom lidského prostoru pro školy a obce.
                   Nejde jen o technické řešení. Jde o místo, které má atmosféru,
                   charakter a přirozeně zve děti i dospělé dovnitř.
                 </p>
 
-                <div className="bulletList">
+                <div className="grid gap-2.5 text-base leading-relaxed text-muted">
                   {mediaPoints.map((item) => (
                     <div key={item}>• {item}</div>
                   ))}
                 </div>
               </div>
 
-              <div className="sideCard">
+              <div className="overflow-hidden rounded-card-md border border-slate-900/[0.08] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.07)]">
                 <SafeImage
                   src={aboutImg}
                   alt="Výuka v učebně ARCHIMEDES®"
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    aspectRatio: "16/11",
-                    objectFit: "cover",
-                  }}
+                  className="aspect-[16/11] w-full object-cover"
                 />
               </div>
             </div>
-          </div>
+          </Card>
         </section>
 
-        <section
-          id="reference"
-          style={{
-            maxWidth: 1240,
-            margin: "0 auto",
-            padding: "8px 20px 24px",
-          }}
-        >
-          <div className="premiumCard">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-end",
-                justifyContent: "space-between",
-                gap: 18,
-                flexWrap: "wrap",
-                marginBottom: 20,
-              }}
-            >
+        <section id="reference" className="mx-auto max-w-[1240px] px-5 py-2">
+          <Card className="p-7 sm:p-8">
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <SectionEyebrow>Reference</SectionEyebrow>
-                <SectionTitle style={{ fontSize: 42 }}>
-                  Síť učeben ARCHIMEDES® v obcích a školách
-                </SectionTitle>
-                <p className="leadText" style={{ maxWidth: 900, marginBottom: 0 }}>
+                <SectionTitle>Síť učeben ARCHIMEDES® v obcích a školách</SectionTitle>
+                <p className="max-w-[900px] text-lg leading-[1.78] text-muted">
                   Níže vidíte realizace vybraných učeben ze sítě ARCHIMEDES®.
                 </p>
               </div>
 
-              <SecondaryButton href="/poptavka" tinted>
-                Chci podobné řešení
-              </SecondaryButton>
             </div>
 
             {loadingRealizace ? (
-              <div className="referencesEmpty">Načítám reference…</div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/90 p-5 text-center text-base leading-relaxed text-muted">
+                Načítám reference…
+              </div>
             ) : realizace.length > 0 ? (
-              <div className="realizationsGrid">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {realizace.map((item) => (
                   <button
                     key={item.id}
                     type="button"
-                    className="realizationCard"
                     onClick={() => setActiveImage(item)}
+                    className="group relative overflow-hidden rounded-2xl border-0 bg-white p-0 shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.12)]"
                   >
                     <img
                       src={item.img}
                       alt={item.city}
-                      className="realizationImg"
+                      className="aspect-[16/10] w-full object-cover"
                     />
-                    <div className="realizationOverlay">
-                      <span className="realizationCity">{item.city}</span>
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-navy-900/78 to-navy-900/0 px-4 pb-3.5 pt-4 text-left">
+                      <span className="text-base font-bold leading-tight text-white">
+                        {item.city}
+                      </span>
                     </div>
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="referencesEmpty">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/90 p-5 text-center text-base leading-relaxed text-muted">
                 Reference se zatím nepodařilo načíst.
               </div>
             )}
-          </div>
+          </Card>
         </section>
 
-        <section
-          style={{
-            maxWidth: 1240,
-            margin: "0 auto",
-            padding: "8px 20px 24px",
-          }}
-        >
-          <div className="premiumCard">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-end",
-                justifyContent: "space-between",
-                gap: 18,
-                flexWrap: "wrap",
-                marginBottom: 20,
-              }}
-            >
+        <section className="mx-auto max-w-[1240px] px-5 py-2">
+          <Card className="p-7 sm:p-8">
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <SectionEyebrow>Fotogalerie projektu</SectionEyebrow>
-                <SectionTitle style={{ fontSize: 42 }}>
-                  Atmosféra, technologie a využití
-                </SectionTitle>
+                <SectionEyebrow>Fotogalerie realizací</SectionEyebrow>
+                <SectionTitle>Atmosféra, technologie a využití</SectionTitle>
               </div>
 
-              <SecondaryButton href="/kontakt" tinted>
+              <Button href="/kontakt" variant="secondary">
                 Chci si domluvit návštěvu
-              </SecondaryButton>
+              </Button>
             </div>
 
-            <div className="galleryGrid">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {storyGallery.map((item) => (
                 <div
                   key={item.title}
-                  className={`galleryCard ${
-                    item.ratio === "wide" ? "galleryCardWide" : ""
-                  }`}
+                  className={cn(
+                    "overflow-hidden rounded-card-md border border-slate-900/[0.08] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.07)]",
+                    item.ratio === "wide" && "sm:col-span-2"
+                  )}
                 >
-                  <div className="galleryImageWrap">
+                  <div className="overflow-hidden bg-eyebrow">
                     <SafeImage
                       src={item.src}
                       alt={item.title}
-                      style={{
-                        width: "100%",
-                        display: "block",
-                        aspectRatio: item.ratio === "wide" ? "16/9" : "16/11",
-                        objectFit: "cover",
-                      }}
+                      className={cn(
+                        "w-full object-cover",
+                        item.ratio === "wide" ? "aspect-video" : "aspect-[16/11]"
+                      )}
                     />
                   </div>
 
-                  <div className="galleryContent">
-                    <div className="galleryTitle">{item.title}</div>
-                    <div className="galleryText">{item.text}</div>
+                  <div className="p-5">
+                    <div className="mb-2 text-xl font-black leading-[1.15] tracking-[-0.02em] text-navy-900">
+                      {item.title}
+                    </div>
+                    <div className="text-sm leading-relaxed text-muted">{item.text}</div>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         </section>
 
-        <section
-          style={{
-            maxWidth: 1240,
-            margin: "0 auto",
-            padding: "8px 20px 24px",
-          }}
-        >
-          <div className="premiumCard">
-            <div className="mediaGrid">
+        <section className="mx-auto max-w-[1240px] px-5 py-2">
+          <Card className="p-7 sm:p-8">
+            <div className="grid grid-cols-1 items-center gap-7 lg:grid-cols-[1fr_0.92fr]">
               <div>
                 <SectionEyebrow>Mediální přesah</SectionEyebrow>
-                <SectionTitle style={{ fontSize: 42 }}>
-                  Projekt, který je vidět
-                </SectionTitle>
+                <SectionTitle>Realizace, o kterých se mluví</SectionTitle>
 
-                <p className="leadText" style={{ marginBottom: 18 }}>
+                <p className="mb-4 text-lg leading-[1.78] text-muted">
                   ARCHIMEDES® zaujme nejen svým vzhledem, ale především tím,
                   jak přirozeně propojuje vzdělávání, veřejný prostor a komunitní
                   využití. Díky tomu budí pozornost partnerů, návštěvníků i médií.
                 </p>
 
-                <p className="leadText" style={{ marginBottom: 0 }}>
+                <p className="text-lg leading-[1.78] text-muted">
                   Každá realizace posiluje důvěru v to, že kvalitní prostředí má
                   ve vzdělávání i v životě obcí skutečný význam.
                 </p>
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 14,
-                    flexWrap: "wrap",
-                    marginTop: 26,
-                  }}
-                >
-                  <PrimaryButton href="/poptavka">
-                    Chci navrhnout řešení
-                  </PrimaryButton>
-                  <SecondaryButton href="/ucebna" tinted>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Button href="/ucebna" variant="secondary">
                     Zobrazit technické varianty
-                  </SecondaryButton>
+                  </Button>
                 </div>
               </div>
 
-              <div className="sideCard">
+              <div className="overflow-hidden rounded-card-md border border-slate-900/[0.08] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.07)]">
                 <SafeImage
                   src={mediaSectionImg}
-                  alt="Mediální pozornost projektu ARCHIMEDES®"
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    aspectRatio: "16/11",
-                    objectFit: "cover",
-                  }}
+                  alt="Mediální pozornost věnovaná učebnám ARCHIMEDES®"
+                  className="aspect-[16/11] w-full object-cover"
                 />
               </div>
             </div>
-          </div>
+          </Card>
         </section>
 
-        <section
-          style={{
-            maxWidth: 1240,
-            margin: "0 auto",
-            padding: "8px 20px 24px",
-          }}
-        >
-          <div className="premiumCard">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-end",
-                justifyContent: "space-between",
-                gap: 18,
-                flexWrap: "wrap",
-                marginBottom: 20,
-              }}
-            >
+        <section className="mx-auto max-w-[1240px] px-5 py-2">
+          <Card className="p-7 sm:p-8">
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <SectionEyebrow>ARCHIMEDES® v médiích</SectionEyebrow>
-                <SectionTitle style={{ fontSize: 42 }}>
-                  Výběr článků a reportáží
-                </SectionTitle>
+                <SectionTitle>Výběr článků a reportáží</SectionTitle>
               </div>
-
-              <a
-                href="https://www.archimedesoec.com/media/"
-                target="_blank"
-                rel="noreferrer"
-                className="externalGhostBtn"
-              >
-                Původní přehled médií ↗
-              </a>
             </div>
 
-            <div className="linksGrid">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {mediaLinks.map((item) => (
                 <a
                   key={item.href}
                   href={item.href}
                   target="_blank"
-                  rel="noreferrer"
-                  className="mediaLinkCard"
+                  rel="noreferrer noopener"
+                  className="block rounded-2xl border border-slate-900/[0.08] bg-gradient-to-b from-white to-slate-50 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.08)]"
                 >
-                  <div className="mediaLogoWrap">
-                    <img
-                      src={getFavicon(item.domain)}
-                      alt={item.title}
-                      className="mediaLogo"
-                    />
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-900/[0.08] bg-white shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
+                    <img src={getFavicon(item.domain)} alt={item.title} className="h-7 w-7 object-contain" />
                   </div>
 
-                  <div className="mediaLinkTitle">{item.title}</div>
-                  <div className="mediaLinkText">{item.text}</div>
-                  <div className="mediaLinkArrow">Otevřít článek ↗</div>
+                  <div className="mb-2.5 text-[22px] font-black leading-[1.14] tracking-[-0.02em] text-navy-900">
+                    {item.title}
+                  </div>
+                  <div className="text-sm leading-relaxed text-muted">{item.text}</div>
+                  <div className="mt-3.5 inline-flex items-center gap-1 text-sm font-bold text-navy-900">
+                    Otevřít článek <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </div>
                 </a>
               ))}
             </div>
-          </div>
+          </Card>
         </section>
 
-        <section
-          style={{
-            maxWidth: 1240,
-            margin: "0 auto",
-            padding: "8px 20px 84px",
-          }}
-        >
-          <div className="ctaCard">
+        <section className="mx-auto max-w-[1240px] px-5 pb-16 pt-2">
+          <Card className="bg-gradient-to-b from-white to-slate-50 p-8 text-center sm:p-9">
             <SectionEyebrow>Další krok</SectionEyebrow>
-            <SectionTitle style={{ fontSize: 44 }}>
+            <SectionTitle className="text-[36px] sm:text-[44px]">
               Chcete vidět, jak by ARCHIMEDES® fungoval u vás?
             </SectionTitle>
 
-            <p
-              style={{
-                fontSize: 19,
-                lineHeight: 1.72,
-                color: "rgba(15,23,42,0.74)",
-                maxWidth: 840,
-                margin: "0 auto 26px",
-              }}
-            >
+            <p className="mx-auto mb-6 max-w-[840px] text-lg leading-[1.72] text-muted">
               Rádi vám představíme vhodnou variantu, možnosti využití pro školu
               i obec a navrhneme řešení, které bude odpovídat vašemu prostoru,
               provozu i ambicím.
             </p>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: 14,
-                flexWrap: "wrap",
-              }}
-            >
-              <PrimaryButton href="/poptavka">Mám zájem o řešení</PrimaryButton>
-              <SecondaryButton href="/kontakt">
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button href="/kontakt">
                 Domluvit osobní konzultaci
-              </SecondaryButton>
+              </Button>
+              <Button href="/ucebna" variant="secondary">
+                Prohlédnout varianty učebny
+              </Button>
             </div>
-          </div>
+          </Card>
         </section>
 
         {activeImage && (
-          <div className="lightbox" onClick={() => setActiveImage(null)}>
-            <div
-              className="lightboxInner"
-              onClick={(e) => e.stopPropagation()}
-            >
+          <div
+            onClick={() => setActiveImage(null)}
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-navy-900/82 p-6"
+          >
+            <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-[1100px]">
               <button
                 type="button"
-                className="lightboxClose"
                 onClick={() => setActiveImage(null)}
                 aria-label="Zavřít"
+                className="absolute -right-2.5 -top-2.5 flex h-[42px] w-[42px] items-center justify-center rounded-full bg-white text-navy-900 shadow-[0_10px_24px_rgba(15,23,42,0.25)]"
               >
-                ×
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
 
               <img
                 src={activeImage.img}
                 alt={activeImage.city}
-                className="lightboxImg"
+                className="block max-h-[82vh] w-full rounded-2xl bg-white object-contain"
               />
 
-              <div className="lightboxCaption">{activeImage.city}</div>
+              <div className="mt-3 text-center text-lg font-bold text-white">{activeImage.city}</div>
             </div>
           </div>
         )}
-
-        <style jsx global>{`
-          .heroShell {
-            display: grid;
-            grid-template-columns: minmax(0, 1.02fr) minmax(420px, 0.98fr);
-            gap: 42px;
-            align-items: center;
-          }
-
-          .heroImageCard {
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 34px;
-            overflow: hidden;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow:
-              0 28px 80px rgba(15, 23, 42, 0.12),
-              0 8px 24px rgba(15, 23, 42, 0.05);
-            backdrop-filter: blur(8px);
-          }
-
-          .premiumCard {
-            background: rgba(255, 255, 255, 0.82);
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 32px;
-            padding: 30px 28px;
-            box-shadow:
-              0 18px 44px rgba(15, 23, 42, 0.06),
-              0 6px 18px rgba(15, 23, 42, 0.03);
-            backdrop-filter: blur(6px);
-          }
-
-          .ctaCard {
-            background: linear-gradient(
-              180deg,
-              rgba(255,255,255,0.92) 0%,
-              rgba(248,250,252,0.96) 100%
-            );
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 34px;
-            padding: 42px 28px;
-            box-shadow:
-              0 18px 44px rgba(15, 23, 42, 0.06),
-              0 6px 18px rgba(15, 23, 42, 0.03);
-            text-align: center;
-          }
-
-          .infoGrid,
-          .mediaGrid {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(340px, 0.92fr);
-            gap: 28px;
-            align-items: center;
-          }
-
-          .leadText {
-            font-size: 18px;
-            line-height: 1.78;
-            color: rgba(15, 23, 42, 0.74);
-            margin: 0;
-          }
-
-          .bulletList {
-            display: grid;
-            gap: 10px;
-            font-size: 16px;
-            line-height: 1.7;
-            color: rgba(15, 23, 42, 0.74);
-          }
-
-          .sideCard,
-          .galleryCard {
-            background: white;
-            border-radius: 28px;
-            overflow: hidden;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
-          }
-
-          .realizationsGrid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-          }
-
-          .referencesEmpty {
-            background: rgba(248, 250, 252, 0.9);
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 22px;
-            padding: 22px 18px;
-            text-align: center;
-            font-size: 16px;
-            line-height: 1.6;
-            color: rgba(15, 23, 42, 0.68);
-          }
-
-          .realizationCard {
-            position: relative;
-            padding: 0;
-            border: 0;
-            background: white;
-            border-radius: 22px;
-            overflow: hidden;
-            cursor: pointer;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-            transition: transform 0.16s ease, box-shadow 0.16s ease;
-          }
-
-          .realizationCard:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
-          }
-
-          .realizationImg {
-            width: 100%;
-            display: block;
-            aspect-ratio: 16 / 10;
-            object-fit: cover;
-          }
-
-          .realizationOverlay {
-            position: absolute;
-            inset: auto 0 0 0;
-            padding: 18px 16px 14px;
-            background: linear-gradient(
-              180deg,
-              rgba(15, 23, 42, 0) 0%,
-              rgba(15, 23, 42, 0.78) 100%
-            );
-            text-align: left;
-          }
-
-          .realizationCity {
-            color: white;
-            font-size: 16px;
-            font-weight: 800;
-            line-height: 1.2;
-          }
-
-          .galleryGrid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
-          }
-
-          .galleryCardWide {
-            grid-column: 1 / -1;
-          }
-
-          .galleryImageWrap {
-            overflow: hidden;
-            position: relative;
-            background: #eef2f7;
-          }
-
-          .galleryContent {
-            padding: 18px 18px 20px;
-          }
-
-          .galleryTitle {
-            font-size: 22px;
-            line-height: 1.15;
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 8px;
-            letter-spacing: -0.02em;
-          }
-
-          .galleryText {
-            font-size: 15px;
-            line-height: 1.66;
-            color: rgba(15, 23, 42, 0.72);
-          }
-
-          .linksGrid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
-          }
-
-          .mediaLinkCard {
-            display: block;
-            text-decoration: none;
-            background: linear-gradient(
-              180deg,
-              rgba(255,255,255,0.98) 0%,
-              rgba(247,249,252,0.98) 100%
-            );
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 24px;
-            padding: 22px 20px 18px;
-            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-          }
-
-          .mediaLinkCard:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
-          }
-
-          .mediaLogoWrap {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            background: #fff;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
-          }
-
-          .mediaLogo {
-            width: 30px;
-            height: 30px;
-            object-fit: contain;
-            display: block;
-          }
-
-          .mediaLinkTitle {
-            font-size: 23px;
-            line-height: 1.14;
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 10px;
-            letter-spacing: -0.02em;
-          }
-
-          .mediaLinkText {
-            font-size: 15px;
-            line-height: 1.68;
-            color: rgba(15, 23, 42, 0.72);
-          }
-
-          .mediaLinkArrow {
-            margin-top: 14px;
-            font-size: 14px;
-            font-weight: 800;
-            color: #0f172a;
-          }
-
-          .externalGhostBtn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 52px;
-            padding: 0 22px;
-            border-radius: 15px;
-            border: 1px solid rgba(15,23,42,0.10);
-            background: rgba(255,255,255,0.72);
-            color: #0f172a;
-            font-weight: 800;
-            text-decoration: none;
-            box-shadow: 0 10px 24px rgba(15,23,42,0.05);
-          }
-
-          .img-fallback {
-            min-height: 220px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            text-align: center;
-            font-size: 15px;
-            line-height: 1.5;
-            color: rgba(15, 23, 42, 0.58);
-            background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
-          }
-
-          .lightbox {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.82);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            z-index: 9999;
-          }
-
-          .lightboxInner {
-            position: relative;
-            max-width: 1100px;
-            width: 100%;
-          }
-
-          .lightboxClose {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            width: 42px;
-            height: 42px;
-            border-radius: 999px;
-            border: 0;
-            background: white;
-            color: #0f172a;
-            font-size: 28px;
-            line-height: 1;
-            cursor: pointer;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
-          }
-
-          .lightboxImg {
-            width: 100%;
-            max-height: 82vh;
-            object-fit: contain;
-            display: block;
-            border-radius: 22px;
-            background: white;
-          }
-
-          .lightboxCaption {
-            margin-top: 12px;
-            color: white;
-            font-size: 18px;
-            font-weight: 800;
-            text-align: center;
-          }
-
-          @media (max-width: 1160px) {
-            .heroShell,
-            .infoGrid,
-            .mediaGrid,
-            .galleryGrid,
-            .linksGrid,
-            .realizationsGrid {
-              grid-template-columns: 1fr;
-            }
-
-            .galleryCardWide {
-              grid-column: auto;
-            }
-          }
-
-          @media (max-width: 760px) {
-            .premiumCard,
-            .ctaCard {
-              padding: 22px 18px;
-              border-radius: 24px;
-            }
-
-            h1 {
-              font-size: 46px !important;
-            }
-          }
-        `}</style>
       </main>
+      <Footer />
     </div>
   );
 }

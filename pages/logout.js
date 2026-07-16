@@ -12,5 +12,5 @@ export default function Logout() {
     })();
   }, [router]);
 
-  return <div style={{ padding: 24, fontFamily: "system-ui" }}>Odhlašuji…</div>;
+  return <div className="p-6 text-muted">Odhlašuji…</div>;
 }

@@ -1,0 +1,168 @@
+import Head from "next/head";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, GraduationCap, MapPin, Radio, Users } from "lucide-react";
+import Footer from "../components/Footer";
+import { Button } from "../components/ui/button";
+import SectionEyebrow from "../components/home/SectionEyebrow";
+import PartnersSection from "../components/partners/PartnersSection";
+import CommunityCategoriesSection from "../components/partners/CommunityCategoriesSection";
+
+const benefits = [
+  {
+    icon: Users,
+    title: "Přímý kontakt s místními členy",
+    text: "Obsah svazu se dostane k základním organizacím a členům přímo v jejich obci.",
+  },
+  {
+    icon: GraduationCap,
+    title: "Osvěta a práce s mladou generací",
+    text: "Součástí spolupráce mohou být také pořady pro základní školy.",
+  },
+  {
+    icon: Radio,
+    title: "Produkci zajistí ARCHIMEDES",
+    text: "Téma a odborné podklady připravíme společně; vysílání, moderaci a distribuci zajistíme my.",
+  },
+];
+
+const cooperation = [
+  ["Téma", "Svaz navrhne důležité téma a doporučí odborníka nebo hosta."],
+  ["Příprava", "ARCHIMEDES připraví formát, termín, pozvánku a technickou realizaci."],
+  ["Pozvání", "Pozvánka se dostane k místním organizacím a lidem, kterých se téma týká."],
+  ["Setkání", "Členové se sejdou na jednom místě v obci a do vysílání se zapojí společně."],
+];
+
+export default function ProOrganizacePage() {
+  return (
+    <>
+      <Head>
+        <title>Pro svazy a národní organizace | ARCHIMEDES Live</title>
+        <meta
+          name="description"
+          content="Partnerství pro svazy a národní organizace, které chtějí vysílat k místním členům a přiblížit svou činnost školám."
+        />
+      </Head>
+
+      <main className="bg-white text-slate-900">
+        <section className="overflow-hidden bg-navy-900 text-white">
+          <div className="mx-auto grid min-h-[600px] max-w-[1280px] lg:grid-cols-[0.94fr_1.06fr]">
+            <div className="flex items-center px-5 py-16 sm:px-10 lg:px-12 lg:py-20">
+              <div className="max-w-[610px]">
+                <span className="text-xs font-black uppercase tracking-[0.18em] text-[#efbd58]">Pro svazy a národní organizace</span>
+                <h1 className="mt-5 text-[clamp(44px,6vw,70px)] font-[950] leading-[0.96] tracking-[-0.055em]">
+                  Váš obsah. Naše vysílání. Setkání přímo v obcích.
+                </h1>
+                <p className="mt-6 max-w-[570px] text-lg leading-relaxed text-white/78 sm:text-xl">
+                  Pomáháme svazům předávat odborný obsah místním organizacím,
+                  členům i školám. Nejde o individuální sledování doma — lidé se
+                  setkají ve své obci a zapojí se společně.
+                </p>
+                <Button href="/kontakt" className="mt-8 bg-[#efbd58] text-slate-950 hover:bg-[#f5ca73]">
+                  Probrat partnerství
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="relative min-h-[400px] lg:min-h-full">
+              <Image
+                src="/program-vysilani.webp"
+                alt="Živé odborné vysílání ARCHIMEDES v učebně"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 53vw"
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-navy-900/70 via-navy-900/10 to-transparent" />
+            </div>
+          </div>
+        </section>
+
+        <section className="border-b border-slate-200">
+          <div className="mx-auto grid max-w-[1180px] divide-y divide-slate-200 px-5 md:grid-cols-3 md:divide-x md:divide-y-0">
+            {benefits.map((item) => {
+              const Icon = item.icon;
+              return (
+                <article key={item.title} className="py-8 md:px-7 first:md:pl-0 last:md:pr-0">
+                  <Icon className="h-6 w-6 text-brand" aria-hidden="true" />
+                  <h2 className="mt-4 text-lg font-black text-navy-900">{item.title}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.text}</p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="py-16 sm:py-20">
+          <div className="mx-auto grid max-w-[1180px] gap-10 px-5 lg:grid-cols-[0.8fr_1.2fr]">
+            <div>
+              <SectionEyebrow>Jak spolupráce funguje</SectionEyebrow>
+              <h2 className="max-w-md text-[clamp(34px,4vw,50px)] font-[950] leading-[1.03] tracking-[-0.045em] text-navy-900">
+                Od odborného tématu ke společnému setkání
+              </h2>
+              <p className="mt-5 max-w-md text-base leading-relaxed text-slate-600">
+                Partnerství pro svazy není placená distribuce reklamy. Vzniká
+                společný odborný program, který má skutečnou hodnotu pro členy,
+                školy a místní komunitu.
+              </p>
+              <div className="mt-6 inline-flex rounded-full bg-[#e9f6ef] px-4 py-2 text-sm font-black text-[#167344]">
+                Spolupráce je pro svazy bezplatná
+              </div>
+            </div>
+
+            <div className="border-t border-slate-200">
+              {cooperation.map(([title, text], index) => (
+                <article key={title} className="grid gap-3 border-b border-slate-200 py-6 sm:grid-cols-[56px_120px_1fr] sm:items-start">
+                  <span className="text-sm font-black text-brand">0{index + 1}</span>
+                  <h3 className="font-black text-navy-900">{title}</h3>
+                  <p className="text-[15px] leading-relaxed text-slate-600">{text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-[#f3f7fb] py-16 sm:py-20">
+          <div className="mx-auto grid max-w-[1180px] gap-8 px-5 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+            <div>
+              <SectionEyebrow>Pro školy i členskou základnu</SectionEyebrow>
+              <h2 className="max-w-xl text-[clamp(34px,4vw,48px)] font-[950] leading-[1.03] tracking-[-0.045em] text-navy-900">
+                Jedno partnerství, dva přirozené formáty
+              </h2>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+              <div className="rounded-[22px] bg-white p-6">
+                <MapPin className="h-6 w-6 text-brand" aria-hidden="true" />
+                <h3 className="mt-4 text-xl font-black text-navy-900">Pro místní členy</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">Odborná témata, vzdělávání a společné diskuse v obcích.</p>
+              </div>
+              <div className="rounded-[22px] bg-white p-6">
+                <GraduationCap className="h-6 w-6 text-brand" aria-hidden="true" />
+                <h3 className="mt-4 text-xl font-black text-navy-900">Pro základní školy</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">Dvakrát ročně popularizační nebo náborový pořad pro mladou generaci.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <PartnersSection showCta={false} />
+        <CommunityCategoriesSection showCta={false} />
+
+        <section className="pb-16 pt-6">
+          <div className="mx-auto flex max-w-[1180px] flex-col items-start justify-between gap-5 px-5 sm:flex-row sm:items-center">
+            <div>
+              <strong className="text-xl font-black text-navy-900">Jste místní spolek nebo klub?</strong>
+              <p className="mt-1 text-sm text-slate-600">Místní organizace se zapojují pod registračním číslem své obce.</p>
+            </div>
+            <Link href="/obec" className="inline-flex items-center gap-2 text-sm font-black text-brand">
+              Jak funguje program pro obce <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </>
+  );
+}

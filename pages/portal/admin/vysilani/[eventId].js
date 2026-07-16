@@ -1,9 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import RequirePlatformAdmin from "../../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../../components/PortalHeader";
 import { supabase } from "../../../../lib/supabaseClient";
+import { cn } from "../../../../lib/utils";
+import { Card } from "../../../../components/ui/card";
+import { Input } from "../../../../components/ui/input";
+import { Textarea } from "../../../../components/ui/textarea";
+import { Select } from "../../../../components/ui/select";
+import { Button } from "../../../../components/ui/button";
+import { Alert } from "../../../../components/ui/alert";
+import { isGoogleMeetUrl } from "../../../../lib/archiveRecording";
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Rozpracováno" },
@@ -19,6 +26,32 @@ const RECORDING_STATUS_OPTIONS = [
   { value: "published", label: "Publikováno" },
   { value: "failed", label: "Chyba" },
 ];
+
+const AUDIENCE_TO_INTEREST = {
+  "i. stupeň": "skola_1_stupen",
+  "1. stupeň": "skola_1_stupen",
+  "ii. stupeň": "skola_2_stupen",
+  "2. stupeň": "skola_2_stupen",
+  učitelé: "ucitele",
+  senioři: "seniori",
+  komunita: "komunita",
+};
+
+function suggestRecipientGroups(event, availableGroups) {
+  const availableCodes = new Set(availableGroups.map((group) => group.slug));
+  const audience = Array.isArray(event?.audience_groups)
+    ? event.audience_groups
+    : String(event?.audience || "").split(",");
+
+  return [
+    ...new Set(
+      audience
+        .map((value) => String(value || "").trim().toLocaleLowerCase("cs"))
+        .map((value) => (availableCodes.has(value) ? value : AUDIENCE_TO_INTEREST[value]))
+        .filter((value) => value && availableCodes.has(value))
+    ),
+  ];
+}
 
 function toDateTimeLocalValue(date) {
   if (!date) return "";
@@ -50,6 +83,10 @@ function normalizeUrl(url) {
   return `https://${v}`;
 }
 
+function FieldLabel({ children }) {
+  return <label className="mb-2 block font-bold text-navy-900">{children}</label>;
+}
+
 export default function AdminVysilaniDetailPage() {
   const router = useRouter();
   const { eventId } = router.query;
@@ -57,6 +94,10 @@ export default function AdminVysilaniDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [copyInfo, setCopyInfo] = useState("");
+  const [recipientGroups, setRecipientGroups] = useState([]);
+  const [selectedRecipientGroups, setSelectedRecipientGroups] = useState([]);
+  const [recipients, setRecipients] = useState([]);
+  const [recipientsLoading, setRecipientsLoading] = useState(false);
 
   const [eventRow, setEventRow] = useState(null);
   const [sessionId, setSessionId] = useState("");
@@ -102,7 +143,7 @@ export default function AdminVysilaniDetailPage() {
         {
           event_id: eventId,
           status: "draft",
-          platform: "google_meet",
+          platform: "webmeeting",
           recording_status: "none",
         },
       ])
@@ -145,10 +186,70 @@ export default function AdminVysilaniDetailPage() {
       setRecordingStatus(session.recording_status || "none");
       setNotesInternal(session.notes_internal || "");
       setStartsAt(toDateTimeLocalValue(session.starts_at || eventData.starts_at));
+      const groups = await loadRecipientGroups();
+      setSelectedRecipientGroups(suggestRecipientGroups(eventData, groups));
     } catch (e) {
       setError(e.message || "Nepodařilo se načíst detail vysílání.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function getAccessToken() {
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) throw new Error("Přihlášení vypršelo. Přihlaste se prosím znovu.");
+    return token;
+  }
+
+  async function loadRecipientGroups() {
+    const token = await getAccessToken();
+    const response = await fetch("/api/admin/group-counts", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "Nepodařilo se načíst skupiny zájmů.");
+    const groups = Array.isArray(payload) ? payload : [];
+    setRecipientGroups(groups);
+    return groups;
+  }
+
+  async function generateRecipients() {
+    setRecipientsLoading(true);
+    setError("");
+    setCopyInfo("");
+    try {
+      const token = await getAccessToken();
+      const response = await fetch("/api/admin/broadcast-recipients", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ groups: selectedRecipientGroups }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Nepodařilo se vytvořit seznam příjemců.");
+      setRecipients(payload.users || []);
+      setCopyInfo(`Seznam obsahuje ${payload.count || 0} unikátních příjemců.`);
+    } catch (e) {
+      setRecipients([]);
+      setError(e.message || "Nepodařilo se vytvořit seznam příjemců.");
+    } finally {
+      setRecipientsLoading(false);
+    }
+  }
+
+  async function copyRecipients() {
+    if (!recipients.length) {
+      setError("Nejprve vytvořte seznam příjemců.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(recipients.map((item) => item.email).join(", "));
+      setCopyInfo(`${recipients.length} e-mailů bylo zkopírováno pro vložení do WebMeetingu.`);
+    } catch (_e) {
+      setCopyInfo("E-maily zkopírujte ručně.");
     }
   }
 
@@ -167,20 +268,30 @@ export default function AdminVysilaniDetailPage() {
       const normalizedViewerUrl = normalizeUrl(viewerUrl);
       const normalizedRecordingUrl = normalizeUrl(recordingUrl);
 
-      if (!normalizedViewerUrl) {
-        throw new Error("Vyplňte prosím Google Meet odkaz.");
+      if (normalizedRecordingUrl && isGoogleMeetUrl(normalizedRecordingUrl)) {
+        throw new Error(
+          "Google Meet je odkaz na živé vysílání. Do pole záznamu vložte až hotové video."
+        );
+      }
+
+      if (normalizedRecordingUrl && recordingStatus === "none") {
+        throw new Error("U vloženého záznamu vyberte jeho aktuální stav.");
+      }
+
+      if (recordingStatus === "published" && !normalizedRecordingUrl) {
+        throw new Error("Publikovaný záznam musí mít vyplněný odkaz.");
       }
 
       const payload = {
         status,
-        platform: "google_meet",
+        platform: "webmeeting",
         moderator_name: moderatorName.trim() || null,
         guest_1_name: guest1Name.trim() || null,
         guest_2_name: guest2Name.trim() || null,
         guest_3_name: guest3Name.trim() || null,
         guest_4_name: guest4Name.trim() || null,
         guest_5_name: guest5Name.trim() || null,
-        viewer_url: normalizedViewerUrl,
+        viewer_url: normalizedViewerUrl || null,
         recording_url: normalizedRecordingUrl || null,
         recording_status: recordingStatus,
         notes_internal: notesInternal.trim() || null,
@@ -195,24 +306,32 @@ export default function AdminVysilaniDetailPage() {
 
       if (updateError) throw updateError;
 
-      const eventPatch = {
-        stream_url: normalizedViewerUrl,
-      };
+      const eventPatch = {};
+
+      // Starší události mohou mít odkaz používaný portálem. Pokud správce
+      // nový odkaz nevyplní, existující hodnotu nemažeme.
+      if (normalizedViewerUrl) eventPatch.stream_url = normalizedViewerUrl;
 
       if (startsAt) {
         eventPatch.starts_at = new Date(startsAt).toISOString();
       }
 
-      const { error: eventUpdateError } = await supabase
-        .from("events")
-        .update(eventPatch)
-        .eq("id", eventId);
+      if (Object.keys(eventPatch).length > 0) {
+        const { error: eventUpdateError } = await supabase
+          .from("events")
+          .update(eventPatch)
+          .eq("id", eventId);
 
-      if (eventUpdateError) throw eventUpdateError;
+        if (eventUpdateError) throw eventUpdateError;
+      }
 
       setViewerUrl(normalizedViewerUrl);
       setRecordingUrl(normalizedRecordingUrl);
-      setMessage("Vysílání bylo uloženo a odkaz se propsal do události.");
+      setMessage(
+        normalizedViewerUrl
+          ? "Vysílání bylo uloženo; volitelný odkaz se propsal do události."
+          : "Vysílání bylo uloženo. Pozvánky a přístupový odkaz rozešle WebMeeting."
+      );
     } catch (e) {
       setError(e.message || "Vysílání se nepodařilo uložit.");
     } finally {
@@ -220,16 +339,16 @@ export default function AdminVysilaniDetailPage() {
     }
   }
 
-  async function handleCopyMeetLink() {
+  async function handleCopyViewerLink() {
     try {
       const normalizedViewerUrl = normalizeUrl(viewerUrl);
       if (!normalizedViewerUrl) {
-        setError("Nejprve vyplňte Google Meet odkaz.");
+        setError("Volitelný odkaz není vyplněný.");
         return;
       }
 
       await navigator.clipboard.writeText(normalizedViewerUrl);
-      setCopyInfo("Google Meet odkaz byl zkopírován.");
+      setCopyInfo("Volitelný odkaz byl zkopírován.");
     } catch (_e) {
       setCopyInfo("Odkaz zkopírujte ručně.");
     }
@@ -251,7 +370,7 @@ export default function AdminVysilaniDetailPage() {
         `Začátek: ${startsAt ? formatDateTimeCZ(new Date(startsAt).toISOString()) : "—"}`,
         `Moderátor: ${moderatorName.trim() || "—"}`,
         `Hosté: ${guestLines.length ? guestLines.join(", ") : "—"}`,
-        `Google Meet: ${normalizedViewerUrl || "—"}`,
+        `WebMeeting odkaz uložený v portálu: ${normalizedViewerUrl || "není potřeba"}`,
         `Stav vysílání: ${
           STATUS_OPTIONS.find((s) => s.value === status)?.label || status || "—"
         }`,
@@ -270,428 +389,269 @@ export default function AdminVysilaniDetailPage() {
   const normalizedViewerUrl = useMemo(() => normalizeUrl(viewerUrl), [viewerUrl]);
 
   const statusBadge = useMemo(() => {
-    if (!normalizedViewerUrl) {
-      return {
-        label: "⚠ Vysílání nenastaveno",
-        color: "#92400e",
-        bg: "#fff7ed",
-        border: "#fed7aa",
-      };
-    }
-
     if (status === "scheduled") {
-      return {
-        label: "🟢 Vysílání připraveno",
-        color: "#166534",
-        bg: "#eefaf0",
-        border: "#cfe8d3",
-      };
+      return { label: "🟢 Vysílání připraveno", className: "border-emerald-200 bg-emerald-50 text-emerald-800" };
     }
 
     if (status === "live") {
-      return {
-        label: "🔴 Právě vysíláme",
-        color: "#b91c1c",
-        bg: "#fef2f2",
-        border: "#fecaca",
-      };
+      return { label: "🔴 Právě vysíláme", className: "border-red-200 bg-red-50 text-red-700" };
     }
 
     if (status === "finished") {
-      return {
-        label: "✅ Dokončeno",
-        color: "#1d4ed8",
-        bg: "#eff6ff",
-        border: "#bfdbfe",
-      };
+      return { label: "✅ Dokončeno", className: "border-blue-200 bg-blue-50 text-blue-700" };
     }
 
-    return {
-      label: "🟡 Vysílání rozpracováno",
-      color: "#854d0e",
-      bg: "#fefce8",
-      border: "#fde68a",
-    };
-  }, [normalizedViewerUrl, status]);
-
-  const inputStyle = {
-    width: "100%",
-    minHeight: 46,
-    padding: "0 14px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.14)",
-    background: "#fff",
-    boxSizing: "border-box",
-    fontSize: 15,
-  };
-
-  const labelStyle = {
-    display: "block",
-    marginBottom: 8,
-    fontWeight: 700,
-    color: "#111827",
-  };
+    return { label: "🟡 Vysílání rozpracováno", className: "border-yellow-200 bg-yellow-50 text-yellow-800" };
+  }, [status]);
 
   return (
     <RequirePlatformAdmin>
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#f6f7fb",
-          fontFamily:
-            'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        }}
-      >
+      <div className="min-h-screen bg-slate-50">
         <PortalHeader title="Admin • vysílání" />
 
-        <main style={{ maxWidth: 980, margin: "0 auto", padding: "34px 16px 60px" }}>
-          <div style={{ marginBottom: 18 }}>
-            <Link
-              href="/portal/admin/udalosti"
-              style={{
-                display: "inline-flex",
-                textDecoration: "none",
-                color: "#111827",
-                fontWeight: 700,
-                marginBottom: 12,
-              }}
-            >
+        <main className="mx-auto max-w-[980px] px-4 pb-14 pt-8">
+          <div className="mb-4">
+            <Button href="/portal/admin/udalosti" variant="ghost" size="sm" className="mb-3">
               ← Zpět na admin událostí
-            </Link>
+            </Button>
 
-            <h1 style={{ margin: "0 0 8px 0", fontSize: 34 }}>Správa vysílání</h1>
+            <h1 className="text-[34px] font-black text-navy-900">Správa vysílání</h1>
 
-            <p style={{ margin: 0, color: "rgba(0,0,0,0.68)", lineHeight: 1.6 }}>
-              Produkční karta vysílání pro Google Meet, moderátora a až 5 hostů.
+            <p className="mt-1 leading-relaxed text-muted">
+              Produkční karta WebMeetingu, moderátora, hostů a seznamu pozvaných podle osobních zájmů.
             </p>
           </div>
 
           {eventRow ? (
-            <div
-              style={{
-                marginBottom: 18,
-                padding: 16,
-                borderRadius: 16,
-                background: "#fff",
-                border: "1px solid rgba(0,0,0,0.08)",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.04)",
-              }}
-            >
-              <div style={{ fontSize: 14, color: "rgba(0,0,0,0.56)", marginBottom: 6 }}>
-                Událost
-              </div>
-              <div style={{ fontWeight: 800, fontSize: 20, color: "#111827" }}>
-                {eventRow.title || "Bez názvu"}
-              </div>
-              <div style={{ marginTop: 6, color: "rgba(0,0,0,0.66)" }}>
+            <Card className="mb-4 p-4 shadow-card">
+              <div className="mb-1.5 text-sm text-slate-500">Událost</div>
+              <div className="text-xl font-black text-navy-900">{eventRow.title || "Bez názvu"}</div>
+              <div className="mt-1.5 text-slate-600">
                 Plánovaný čas: {eventRow.starts_at ? formatDateTimeCZ(eventRow.starts_at) : "—"}
               </div>
 
               <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  marginTop: 10,
-                  padding: "6px 10px",
-                  borderRadius: 999,
-                  background: statusBadge.bg,
-                  color: statusBadge.color,
-                  border: `1px solid ${statusBadge.border}`,
-                  fontSize: 13,
-                  fontWeight: 700,
-                }}
+                className={cn(
+                  "mt-2.5 inline-flex items-center rounded-full border px-2.5 py-1.5 text-[13px] font-bold",
+                  statusBadge.className
+                )}
               >
                 {statusBadge.label}
               </div>
-            </div>
+            </Card>
           ) : null}
 
           {error ? (
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 12,
-                borderRadius: 12,
-                background: "#fff1f1",
-                border: "1px solid #f2c9c9",
-                color: "#a40000",
-              }}
-            >
+            <Alert variant="error" className="mb-4">
               {error}
-            </div>
+            </Alert>
           ) : null}
 
           {message ? (
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 12,
-                borderRadius: 12,
-                background: "#eefaf0",
-                border: "1px solid #cfe8d3",
-                color: "#166534",
-              }}
-            >
+            <Alert variant="success" className="mb-4">
               {message}
-            </div>
+            </Alert>
           ) : null}
 
           {copyInfo ? (
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 12,
-                borderRadius: 12,
-                background: "#eff6ff",
-                border: "1px solid #bfdbfe",
-                color: "#1d4ed8",
-              }}
-            >
+            <Alert variant="info" className="mb-4">
               {copyInfo}
-            </div>
+            </Alert>
           ) : null}
 
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 20,
-              border: "1px solid rgba(0,0,0,0.08)",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
-              padding: 20,
-            }}
-          >
+          <Card className="p-5 shadow-card">
             {loading ? (
-              <div>Načítám…</div>
+              <div className="text-muted">Načítám…</div>
             ) : (
               <>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 10,
-                    flexWrap: "wrap",
-                    marginBottom: 18,
-                  }}
-                >
-                  <button
+                <div className="mb-4 flex flex-wrap gap-2.5">
+                  <Button
                     type="button"
                     onClick={() => {
                       if (!normalizedViewerUrl) {
-                        setError("Nejprve vyplňte Google Meet odkaz.");
+                        setError("Volitelný odkaz není vyplněný.");
                         return;
                       }
                       window.open(normalizedViewerUrl, "_blank", "noopener,noreferrer");
                     }}
-                    style={btnPrimary}
+                    variant="primary"
                   >
-                    Otevřít Google Meet
-                  </button>
+                    Otevřít volitelný odkaz
+                  </Button>
 
-                  <button type="button" onClick={handleCopyMeetLink} style={btnSecondary}>
-                    Zkopírovat Meet odkaz
-                  </button>
+                  <Button type="button" onClick={handleCopyViewerLink} variant="secondary">
+                    Zkopírovat odkaz
+                  </Button>
 
-                  <button type="button" onClick={handleCopyProductionSummary} style={btnSecondary}>
+                  <Button type="button" onClick={handleCopyProductionSummary} variant="secondary">
                     Zkopírovat produkční shrnutí
-                  </button>
+                  </Button>
                 </div>
 
                 <form onSubmit={handleSave}>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: 16,
-                    }}
-                  >
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <label style={labelStyle}>Stav vysílání</label>
-                      <select
-                        value={status}
-                        onChange={(e) => setStatus(e.target.value)}
-                        style={inputStyle}
-                      >
+                      <FieldLabel>Stav vysílání</FieldLabel>
+                      <Select value={status} onChange={(e) => setStatus(e.target.value)}>
                         {STATUS_OPTIONS.map((item) => (
                           <option key={item.value} value={item.value}>
                             {item.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Začátek vysílání</label>
-                      <input
+                      <FieldLabel>Začátek vysílání</FieldLabel>
+                      <Input
                         type="datetime-local"
                         value={startsAt}
                         onChange={(e) => setStartsAt(e.target.value)}
-                        style={inputStyle}
                       />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Moderátor</label>
-                      <input
+                      <FieldLabel>Moderátor</FieldLabel>
+                      <Input
                         type="text"
                         value={moderatorName}
                         onChange={(e) => setModeratorName(e.target.value)}
-                        style={inputStyle}
                         placeholder="Např. Simona Nováková"
                       />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Google Meet odkaz*</label>
-                      <input
+                      <FieldLabel>Volitelný odkaz na vysílání</FieldLabel>
+                      <Input
                         type="text"
                         value={viewerUrl}
                         onChange={(e) => setViewerUrl(e.target.value)}
-                        placeholder="https://meet.google.com/..."
-                        style={inputStyle}
+                        placeholder="Není nutný — pozvánku rozešle WebMeeting"
                       />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Host 1</label>
-                      <input
-                        type="text"
-                        value={guest1Name}
-                        onChange={(e) => setGuest1Name(e.target.value)}
-                        style={inputStyle}
-                      />
+                      <FieldLabel>Host 1</FieldLabel>
+                      <Input type="text" value={guest1Name} onChange={(e) => setGuest1Name(e.target.value)} />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Host 2</label>
-                      <input
-                        type="text"
-                        value={guest2Name}
-                        onChange={(e) => setGuest2Name(e.target.value)}
-                        style={inputStyle}
-                      />
+                      <FieldLabel>Host 2</FieldLabel>
+                      <Input type="text" value={guest2Name} onChange={(e) => setGuest2Name(e.target.value)} />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Host 3</label>
-                      <input
-                        type="text"
-                        value={guest3Name}
-                        onChange={(e) => setGuest3Name(e.target.value)}
-                        style={inputStyle}
-                      />
+                      <FieldLabel>Host 3</FieldLabel>
+                      <Input type="text" value={guest3Name} onChange={(e) => setGuest3Name(e.target.value)} />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Host 4</label>
-                      <input
-                        type="text"
-                        value={guest4Name}
-                        onChange={(e) => setGuest4Name(e.target.value)}
-                        style={inputStyle}
-                      />
+                      <FieldLabel>Host 4</FieldLabel>
+                      <Input type="text" value={guest4Name} onChange={(e) => setGuest4Name(e.target.value)} />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Host 5</label>
-                      <input
-                        type="text"
-                        value={guest5Name}
-                        onChange={(e) => setGuest5Name(e.target.value)}
-                        style={inputStyle}
-                      />
+                      <FieldLabel>Host 5</FieldLabel>
+                      <Input type="text" value={guest5Name} onChange={(e) => setGuest5Name(e.target.value)} />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Stav záznamu</label>
-                      <select
-                        value={recordingStatus}
-                        onChange={(e) => setRecordingStatus(e.target.value)}
-                        style={inputStyle}
-                      >
+                      <FieldLabel>Stav záznamu</FieldLabel>
+                      <Select value={recordingStatus} onChange={(e) => setRecordingStatus(e.target.value)}>
                         {RECORDING_STATUS_OPTIONS.map((item) => (
                           <option key={item.value} value={item.value}>
                             {item.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
 
-                    <div style={{ gridColumn: "1 / -1" }}>
-                      <label style={labelStyle}>Odkaz na záznam</label>
-                      <input
+                    <div className="sm:col-span-2">
+                      <FieldLabel>Odkaz na hotový záznam</FieldLabel>
+                      <Input
                         type="text"
                         value={recordingUrl}
                         onChange={(e) => setRecordingUrl(e.target.value)}
-                        placeholder="https://..."
-                        style={inputStyle}
+                        placeholder="Např. https://youtu.be/..."
                       />
+                      <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                        Nevkládejte sem Google Meet. V archivu se odkaz zobrazí až ve stavu Publikováno.
+                      </p>
                     </div>
 
-                    <div style={{ gridColumn: "1 / -1" }}>
-                      <label style={labelStyle}>Interní poznámka</label>
-                      <textarea
+                    <div className="sm:col-span-2">
+                      <FieldLabel>Interní poznámka</FieldLabel>
+                      <Textarea
                         value={notesInternal}
                         onChange={(e) => setNotesInternal(e.target.value)}
                         rows={5}
-                        style={{
-                          ...inputStyle,
-                          minHeight: 130,
-                          padding: 14,
-                          resize: "vertical",
-                        }}
+                        className="min-h-[130px]"
                         placeholder="Technické poznámky, instrukce pro moderátora, pořadí hostů apod."
                       />
                     </div>
                   </div>
 
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 12,
-                      flexWrap: "wrap",
-                      marginTop: 20,
-                    }}
-                  >
-                    <button type="submit" disabled={saving} style={btnPrimary}>
-                      {saving ? "Ukládám..." : "Uložit vysílání"}
-                    </button>
+                  <div className="mt-3 text-sm text-slate-600">
+                    WebMeeting rozešle přístupový odkaz příjemcům. Toto pole zachovává kompatibilitu se staršími událostmi.
+                  </div>
 
-                    <button
-                      type="button"
-                      onClick={loadData}
-                      disabled={loading}
-                      style={btnSecondary}
-                    >
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <Button type="submit" disabled={saving} variant="primary">
+                      {saving ? "Ukládám..." : "Uložit vysílání"}
+                    </Button>
+
+                    <Button type="button" onClick={loadData} disabled={loading} variant="secondary">
                       Obnovit
-                    </button>
+                    </Button>
                   </div>
                 </form>
+
+                <div className="mt-7 border-t border-slate-200 pt-6">
+                  <h2 className="text-xl font-black text-navy-900">Příjemci pozvánky</h2>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                    Vyberte osobní zájmy. Jedna osoba se ve výsledku objeví pouze jednou, i když má vybráno více zájmů. Seznam pak vložte do WebMeetingu.
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                    Jednoznačné zájmy jsou předvybrané podle cílovek události. Výběr vždy zkontrolujte; činnost organizace se zde nepoužívá.
+                  </p>
+
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    {recipientGroups.map((group) => (
+                      <label key={group.slug} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
+                        <span className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedRecipientGroups.includes(group.slug)}
+                            onChange={() => {
+                              setRecipients([]);
+                              setSelectedRecipientGroups((current) =>
+                                current.includes(group.slug)
+                                  ? current.filter((slug) => slug !== group.slug)
+                                  : [...current, group.slug]
+                              );
+                            }}
+                          />
+                          <span>{group.label}</span>
+                        </span>
+                        <span className="text-sm font-bold text-slate-500">{group.count}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Button type="button" onClick={generateRecipients} disabled={recipientsLoading || !selectedRecipientGroups.length} variant="primary">
+                      {recipientsLoading ? "Vytvářím…" : "Vytvořit seznam"}
+                    </Button>
+                    <Button type="button" onClick={copyRecipients} disabled={!recipients.length} variant="secondary">
+                      Zkopírovat {recipients.length ? `${recipients.length} e-mailů` : "e-maily"}
+                    </Button>
+                  </div>
+                </div>
               </>
             )}
-          </div>
+          </Card>
         </main>
       </div>
     </RequirePlatformAdmin>
   );
 }
-
-const btnPrimary = {
-  minHeight: 48,
-  padding: "0 18px",
-  borderRadius: 12,
-  border: "none",
-  background: "#111827",
-  color: "#fff",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const btnSecondary = {
-  minHeight: 48,
-  padding: "0 18px",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.12)",
-  background: "#fff",
-  color: "#111827",
-  fontWeight: 700,
-  cursor: "pointer",
-};

@@ -20,24 +20,18 @@ export default function AktualniPozvankyPage() {
         <title>Aktuální pozvánky | ARCHIMEDES Live</title>
       </Head>
 
-      <main style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 20px" }}>
-        <h1 style={{ fontSize: 32, marginBottom: 10 }}>
+      <main className="mx-auto max-w-[1200px] px-5 py-10">
+        <h1 className="text-[32px] font-[950] tracking-[-0.03em] text-navy-900">
           Aktuální pozvánky
         </h1>
 
-        <p style={{ marginBottom: 30, color: "#555" }}>
+        <p className="mb-7 mt-2 text-muted">
           Podívejte se, co se právě chystá v ARCHIMEDES Live.
         </p>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-            gap: 20,
-          }}
-        >
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-5">
           {FALLBACK_POSTS.map((url, index) => (
-            <div key={index} style={{ width: "100%" }}>
+            <div key={index} className="w-full">
               <iframe
                 src={getEmbedUrl(url)}
                 width="100%"
@@ -45,7 +39,7 @@ export default function AktualniPozvankyPage() {
                 frameBorder="0"
                 scrolling="no"
                 allowTransparency="true"
-                style={{ borderRadius: 12 }}
+                className="rounded-2xl"
               />
             </div>
           ))}

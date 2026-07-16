@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { RefreshCw, Trash2 } from "lucide-react";
 import RequirePlatformAdmin from "../../components/RequirePlatformAdmin";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { Alert } from "../../components/ui/alert";
+import { Switch } from "../../components/ui/switch";
 
 export default function AdminInzerce() {
   const [rows, setRows] = useState([]);
@@ -65,108 +69,49 @@ export default function AdminInzerce() {
     setRows((prev) => prev.filter((r) => r.id !== id));
   }
 
-  const pillBtn = (active = false) => ({
-    padding: "10px 12px",
-    borderRadius: 999,
-    border: "1px solid #e5e7eb",
-    background: active ? "#111827" : "#fff",
-    color: active ? "#fff" : "#111827",
-    fontWeight: 900,
-    textDecoration: "none",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-  });
-
-  const small = { fontSize: 12, color: "#6b7280" };
-
   return (
     <RequirePlatformAdmin>
       <PortalHeader />
 
-      <main style={{ padding: 16, maxWidth: 1100, margin: "0 auto" }}>
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            alignItems: "center",
-            flexWrap: "wrap",
-            marginBottom: 12,
-          }}
-        >
+      <div className="mx-auto max-w-[1100px] px-5 py-6">
+        <div className="flex flex-wrap items-center gap-3">
           <div>
-            <h1 style={{ margin: "8px 0 4px" }}>Admin – inzerce</h1>
-            <div style={{ color: "#374151" }}>
-              Správa inzerátů (TOP, ARCHIMEDES, mazání).
-            </div>
+            <h1 className="text-2xl font-black text-navy-900">Admin – inzerce</h1>
+            <p className="mt-1 text-sm text-muted">Správa inzerátů (TOP, ARCHIMEDES, mazání).</p>
           </div>
 
-          <div
-            style={{
-              marginLeft: "auto",
-              display: "flex",
-              gap: 10,
-              flexWrap: "wrap",
-              alignItems: "center",
-            }}
-          >
-            <Link href="/portal" style={pillBtn(false)}>
+          <div className="ml-auto flex flex-wrap items-center gap-2.5">
+            <Button href="/portal" variant="secondary" size="sm">
               Portál
-            </Link>
-            <Link href="/portal/inzerce" style={pillBtn(false)}>
+            </Button>
+            <Button href="/portal/inzerce" variant="secondary" size="sm">
               Inzerce
-            </Link>
-            <Link href="/portal/inzerce/novy" style={pillBtn(false)}>
+            </Button>
+            <Button href="/portal/inzerce/novy" variant="secondary" size="sm">
               + Nový inzerát
-            </Link>
-            <button
-              onClick={load}
-              style={{
-                padding: "10px 12px",
-                borderRadius: 999,
-                border: "1px solid #e5e7eb",
-                background: "#fff",
-                fontWeight: 900,
-                cursor: "pointer",
-              }}
-            >
-              Obnovit
-            </button>
+            </Button>
+            <Button onClick={load} variant="secondary" size="sm">
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Obnovit
+            </Button>
           </div>
         </div>
 
         {err ? (
-          <div
-            style={{
-              padding: 12,
-              border: "1px solid #fecaca",
-              background: "#fef2f2",
-              borderRadius: 12,
-              marginBottom: 12,
-            }}
-          >
+          <Alert variant="error" className="mt-4">
             <b>Chyba:</b> {err}
-          </div>
+          </Alert>
         ) : null}
 
         {loading ? (
-          <div style={{ padding: 12, opacity: 0.7 }}>Načítám…</div>
+          <div className="mt-6 text-muted">Načítám…</div>
         ) : (
-          <div style={{ display: "grid", gap: 12 }}>
+          <div className="mt-6 grid gap-3">
             {rows.map((r) => (
-              <div
-                key={r.id}
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 16,
-                  padding: 14,
-                  background: "#fff",
-                }}
-              >
-                <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                  <div style={{ fontWeight: 900, fontSize: 16 }}>{r.title}</div>
+              <Card key={r.id} className="p-4">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <div className="text-base font-black text-navy-900">{r.title}</div>
 
-                  <div style={{ ...small, marginLeft: 6 }}>
+                  <div className="ml-1.5 text-xs text-slate-500">
                     {r.category} • {r.type} • {r.status} •{" "}
                     {new Date(r.created_at).toLocaleString("cs-CZ")}
                     {r.expires_at
@@ -174,66 +119,47 @@ export default function AdminInzerce() {
                       : ""}
                   </div>
 
-                  <div
-                    style={{
-                      marginLeft: "auto",
-                      display: "flex",
-                      gap: 12,
-                      alignItems: "center",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <Link href={`/portal/inzerce/${r.id}`} style={{ fontWeight: 900 }}>
+                  <div className="ml-auto flex flex-wrap items-center gap-4">
+                    <Button href={`/portal/inzerce/${r.id}`} variant="ghost" size="sm">
                       Detail
-                    </Link>
+                    </Button>
 
-                    <label
-                      style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 900 }}
-                    >
-                      <input
-                        type="checkbox"
+                    <label className="flex items-center gap-2 text-sm font-bold text-navy-900">
+                      TOP
+                      <Switch
                         checked={!!r.is_pinned}
                         onChange={(e) => toggle(r.id, "is_pinned", e.target.checked)}
                       />
-                      TOP
                     </label>
 
-                    <label
-                      style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 900 }}
-                    >
-                      <input
-                        type="checkbox"
+                    <label className="flex items-center gap-2 text-sm font-bold text-navy-900">
+                      ARCHIMEDES
+                      <Switch
                         checked={!!r.is_archimedes}
                         onChange={(e) => toggle(r.id, "is_archimedes", e.target.checked)}
                       />
-                      ARCHIMEDES
                     </label>
 
-                    <button
+                    <Button
                       onClick={() => remove(r.id)}
-                      style={{
-                        padding: "10px 12px",
-                        borderRadius: 999,
-                        border: "1px solid #fecaca",
-                        background: "#fff",
-                        fontWeight: 900,
-                        cursor: "pointer",
-                      }}
+                      variant="secondary"
+                      size="sm"
+                      className="border-red-200 text-red-600 hover:border-red-300"
                     >
-                      Smazat
-                    </button>
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Smazat
+                    </Button>
                   </div>
                 </div>
 
-                <div style={{ marginTop: 6, ...small }}>
+                <div className="mt-2 text-xs text-slate-500">
                   Kontakt: {r.contact_email || "—"} • {r.contact_phone || "—"}{" "}
                   {r.location ? `• ${r.location}` : ""}
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}
-      </main>
+      </div>
     </RequirePlatformAdmin>
   );
 }

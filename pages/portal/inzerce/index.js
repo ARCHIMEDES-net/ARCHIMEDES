@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Star } from "lucide-react";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
 const BUCKET = "marketplace";
-const ADMIN_EMAIL = "antonin.koplik@eduvision.cz";
+const PAGE_SIZE = 24;
 
 function typeBadge(type) {
   if (type === "offer") return "bg-green-100 text-green-800";
@@ -29,18 +30,30 @@ export default function Inzerce() {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
+  const [filterStatus, setFilterStatus] = useState("active");
+  const [onlyArchimedes, setOnlyArchimedes] = useState(false);
+  const [onlyNotExpired, setOnlyNotExpired] = useState(true);
+  const [page, setPage] = useState(0);
 
-  const [currentUser, setCurrentUser] = useState(null);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [pinBusyId, setPinBusyId] = useState(null);
 
   useEffect(() => {
     async function init() {
       const { data: userData } = await supabase.auth.getUser();
-      setCurrentUser(userData?.user || null);
+      const user = userData?.user || null;
+      if (user?.id) {
+        const { data: adminRow, error: adminError } = await supabase
+          .from("platform_admins")
+          .select("user_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        setIsPlatformAdmin(!adminError && !!adminRow?.user_id);
+      }
       load();
     }
     init();
-  }, []);
+  }, [filterStatus]);
 
   async function load() {
     setLoading(true);
@@ -57,7 +70,7 @@ export default function Inzerce() {
         )
       `
       )
-      .eq("status", "active")
+      .eq("status", filterStatus)
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false });
 
@@ -78,8 +91,6 @@ export default function Inzerce() {
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(img.file_path);
     return data?.publicUrl || null;
   }
-
-  const isAdmin = (currentUser?.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
   async function togglePinned(postId, currentValue) {
     try {
@@ -129,10 +140,20 @@ export default function Inzerce() {
 
       const matchesType = !filterType || row.type === filterType;
       const matchesLoc = !filterLocation || (row.location || "").trim() === filterLocation;
+      const matchesArchimedes = !onlyArchimedes || row.is_archimedes;
+      const expiresAt = row.expires_at ? new Date(row.expires_at).getTime() : null;
+      const matchesExpiration = !onlyNotExpired || !expiresAt || expiresAt > Date.now();
 
-      return matchesSearch && matchesType && matchesLoc;
+      return matchesSearch && matchesType && matchesLoc && matchesArchimedes && matchesExpiration;
     });
-  }, [rows, search, filterType, filterLocation]);
+  }, [rows, search, filterType, filterLocation, onlyArchimedes, onlyNotExpired]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [search, filterType, filterLocation, filterStatus, onlyArchimedes, onlyNotExpired]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const visibleRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
     <RequireAuth>
@@ -151,7 +172,7 @@ export default function Inzerce() {
         </div>
 
         {/* Filtry */}
-        <div className="flex gap-3 mb-6 flex-wrap">
+        <div className="mb-6 flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <input
             type="text"
             placeholder="Vyhledat…"
@@ -178,12 +199,30 @@ export default function Inzerce() {
             ))}
           </select>
 
-          {(search || filterType || filterLocation) && (
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+            <option value="active">Aktivní</option>
+            <option value="closed">Uzavřené</option>
+          </select>
+
+          <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+            <input type="checkbox" checked={onlyNotExpired} onChange={(e) => setOnlyNotExpired(e.target.checked)} />
+            Jen neexpirované
+          </label>
+
+          <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+            <input type="checkbox" checked={onlyArchimedes} onChange={(e) => setOnlyArchimedes(e.target.checked)} />
+            Jen ARCHIMEDES
+          </label>
+
+          {(search || filterType || filterLocation || filterStatus !== "active" || onlyArchimedes || !onlyNotExpired) && (
             <button
               onClick={() => {
                 setSearch("");
                 setFilterType("");
                 setFilterLocation("");
+                setFilterStatus("active");
+                setOnlyArchimedes(false);
+                setOnlyNotExpired(true);
               }}
               className="px-3 py-2 border border-slate-200 rounded-xl bg-white hover:border-slate-300"
             >
@@ -201,7 +240,7 @@ export default function Inzerce() {
         {loading && <div>Načítám…</div>}
 
         <div className="space-y-4">
-          {filtered.map((row) => {
+          {visibleRows.map((row) => {
             const imgUrl = getImage(row);
 
             return (
@@ -229,7 +268,9 @@ export default function Inzerce() {
                       </span>
 
                       {row.is_pinned && (
-                        <span className="text-xs text-yellow-600 font-medium">★ Doporučeno</span>
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-yellow-600">
+                          <Star className="h-3 w-3 fill-current" aria-hidden="true" /> Doporučeno
+                        </span>
                       )}
 
                       {row.category && <span className="text-xs text-slate-500">{row.category}</span>}
@@ -248,14 +289,14 @@ export default function Inzerce() {
                     <span>{new Date(row.created_at).toLocaleDateString("cs-CZ")}</span>
 
                     <div className="flex items-center gap-3">
-                      {isAdmin && (
+                      {isPlatformAdmin && (
                         <button
                           onClick={() => togglePinned(row.id, row.is_pinned)}
                           disabled={pinBusyId === row.id}
                           className={pinBusyId === row.id ? "opacity-50" : "text-yellow-600 hover:text-yellow-800"}
                           title="Připnout / Odepnout"
                         >
-                          {row.is_pinned ? "★" : "☆"}
+                          <Star className={row.is_pinned ? "h-4 w-4 fill-current" : "h-4 w-4"} aria-hidden="true" />
                         </button>
                       )}
 
@@ -273,6 +314,32 @@ export default function Inzerce() {
         {!loading && filtered.length === 0 && (
           <div className="text-slate-500 mt-6">Žádné výsledky.</div>
         )}
+
+        {!loading && filtered.length > 0 ? (
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-5">
+            <span className="text-sm text-slate-500">
+              {filtered.length} výsledků · stránka {page + 1} z {pageCount}
+            </span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={page === 0}
+                onClick={() => setPage((value) => Math.max(0, value - 1))}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Předchozí
+              </button>
+              <button
+                type="button"
+                disabled={page + 1 >= pageCount}
+                onClick={() => setPage((value) => Math.min(pageCount - 1, value + 1))}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Další
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </RequireAuth>
   );

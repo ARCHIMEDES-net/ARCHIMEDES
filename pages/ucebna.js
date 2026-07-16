@@ -1,41 +1,55 @@
+import Image from "next/image";
 import Link from "next/link";
+import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
+import Footer from "../components/Footer";
 
 const heroImg = "/ucebna-exterier.webp";
 
 const classImg = "/detivetride.webp";
-const techImg = "/dino.jpg";
+const techImg = "/dino.webp";
 const communityImg = "/seni.webp";
 
 const ecosystemMainImg = "/IMG_0228_content.webp";
 const ecosystemNatureImg = "/zel.webp";
-const ecosystemOnlineImg = "/jak-funguje-online.jpg";
+const ecosystemOnlineImg = "/jak-funguje-online.webp";
 
 const klimaImg = "/otevrena-hero.webp";
-const natureImg = "/mikro.jpeg";
+const natureImg = "/mikro.webp";
 
 const salVideo = "/sal.mp4";
-const salPoster = "/sal-poster.jpg";
+const salPoster = "/sal-poster.webp";
 
 const mediaSectionImg = "/prestrih.webp";
 
-const awardHealthyCitiesImg = "/zdravamesta.jpg";
-const awardObec2030Img = "/obec2030.jpeg";
-
 const awards = [
   {
-    label: "OBEC 2030",
-    title: "Vítěz 5. ročníku",
-    text: "Ocenění za inspirativní řešení pro moderní obec a komunitní rozvoj.",
-    image: awardObec2030Img,
-    alt: "Vítěz soutěže OBEC 2030",
+    label: "Křenov",
+    title: "1. místo Obec 2030 ČR",
+    text: "Obec s realizovanou učebnou ARCHIMEDES získala celostátní ocenění Obec 2030.",
+    image: "/krenov.jpg",
+    alt: "Obec Křenov, vítěz ocenění Obec 2030 ČR",
   },
   {
-    label: "Zdravá města ČR",
-    title: "NEJpraxe 2023",
-    text: "Uznání za excelentní praxi projektu Přírodní učebna ARCHIMEDES®.",
-    image: awardHealthyCitiesImg,
-    alt: "NEJpraxe Zdravých měst 2023",
+    label: "Hodonín",
+    title: "3. místo Zdravá města ČR",
+    text: "Realizace ARCHIMEDES byla součástí dobré praxe oceněné v celostátním srovnání.",
+    image: "/zdravamesta.jpg",
+    alt: "Ocenění Zdravá města ČR pro Hodonín",
+  },
+  {
+    label: "Čejč",
+    title: "1. místo Vesnice roku 2026 JMK",
+    text: "Učebna ARCHIMEDES přispěla k práci obce se školou, dětmi a místní komunitou.",
+    image: "/cejc.jpg",
+    alt: "Obec Čejč, vítěz soutěže Vesnice roku 2026 Jihomoravského kraje",
+  },
+  {
+    label: "Provodov-Šonov",
+    title: "Bílá stuha, Vesnice roku 2026",
+    text: "Obec získala ocenění za práci s mládeží a rodinami; součástí této práce je učebna ARCHIMEDES.",
+    image: "/provodov-sonov.png",
+    alt: "Provodov-Šonov, držitel Bílé stuhy v soutěži Vesnice roku 2026",
   },
 ];
 
@@ -62,9 +76,9 @@ const variants = [
     benefit:
       "Vynikající izolační vlastnosti. Ideální pro plnohodnotné a každodenní využití s vysokým tepelným komfortem i v chladnějších měsících.",
     suitable:
-      "Pro školy a obce, které chtějí učebnu využívat každý den celou zimu a vyžadují špičkovou tepelnou izolaci.",
+      "Pro školy a obce, které chtějí učebnu pravidelně využívat také v zimě a potřebují vyšší tepelný komfort.",
     design:
-      "Dřevěný obklad s možností výběru odstínu dle vzorníku. Pro dosažení špičkové izolace nelze okna skrýt do stěn a nedosáhnete efektu úplně otevřeného altánu jako u verze OPTIMAL.",
+      "Dřevěný obklad s možností výběru odstínu dle vzorníku. Kvůli lepším izolačním vlastnostem nelze okna skrýt do stěn a prostor se neotevře v takové míře jako varianta OPTIMAL.",
   },
   {
     icon: "❄️",
@@ -75,7 +89,7 @@ const variants = [
     benefit:
       "Maximální energetická efektivita, odolnost a stabilní vnitřní prostředí v jakémkoli počasí.",
     suitable:
-      "Pro zřizovatele, kteří chtějí 100% bezpečný a celoročně izolovaný prostor s maximální tepelnou stabilitou i v těch největších mrazech.",
+      "Pro zřizovatele, kteří chtějí celoročně izolovaný prostor se stabilním vnitřním prostředím i v zimním období.",
     design:
       "Exteriér tvoří moderní fasáda v barvě dle vzorníku RAL, interiér hřeje příjemným dřevem. Podlaha je z vysoce odolného PVC. Konstrukce neumožňuje plné otevření stěn.",
   },
@@ -204,7 +218,19 @@ export default function Ucebna() {
       }
     };
 
-    tryPlay();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          tryPlay();
+        } else {
+          video.pause();
+        }
+      },
+      { rootMargin: "240px 0px", threshold: 0.05 }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -224,6 +250,15 @@ export default function Ucebna() {
   }, [lightboxImage]);
 
   return (
+    <>
+      <Head>
+        <title>Venkovní učebna ARCHIMEDES® | Pro školy a obce</title>
+        <meta
+          name="description"
+          content="Celoroční venkovní učebna ARCHIMEDES® pro moderní výuku, živé vysílání a komunitní program. Varianty, vybavení a výsledky realizací v obcích."
+        />
+      </Head>
+
     <div
       style={{
         fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
@@ -283,10 +318,7 @@ export default function Ucebna() {
                   maxWidth: 760,
                 }}
               >
-                Unikátní prostor, kde se příroda potkává s nejmodernějšími
-                technologiemi.
-                <br />
-                Revoluce ve výuce i komunitním životě.
+                Celoroční prostor, kde se výuka potkává s přírodou a digitálními technologiemi.
               </h2>
 
               <p
@@ -314,23 +346,24 @@ export default function Ucebna() {
                 <PrimaryButton href="/media">
                   Prohlédnout reference
                 </PrimaryButton>
-                <SecondaryButton href="/poptavka">
-                  Chci nezávaznou nabídku
+                <SecondaryButton href="/kontakt">
+                  Poptat učebnu
                 </SecondaryButton>
               </div>
             </div>
 
             <div>
-              <div className="heroImageCard">
-                <img
+              <div
+                className="heroImageCard"
+                style={{ position: "relative", aspectRatio: "16/10" }}
+              >
+                <Image
                   src={heroImg}
                   alt="Venkovní učebna ARCHIMEDES®"
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    aspectRatio: "16/10",
-                    objectFit: "cover",
-                  }}
+                  fill
+                  priority
+                  sizes="(max-width: 1160px) 100vw, 620px"
+                  style={{ objectFit: "cover" }}
                 />
               </div>
             </div>
@@ -338,6 +371,7 @@ export default function Ucebna() {
         </section>
 
         <section
+          id="oceneni"
           style={{
             maxWidth: 1240,
             margin: "0 auto",
@@ -347,13 +381,13 @@ export default function Ucebna() {
           <div className="awardsBand">
             <div className="awardsBandTop">
               <div>
-                <div className="awardsBandEyebrow">Ocenění projektu</div>
+                <div className="awardsBandEyebrow">Oceněné obce</div>
                 <div className="awardsBandTitle">
                   Uznání, která potvrzují reálný přínos učebny ARCHIMEDES®
                 </div>
               </div>
               <div className="awardsBandText">
-                Dvě významná ocenění z oblasti rozvoje obcí a dobré praxe.
+                Čtyři konkrétní výsledky obcí, ve kterých jsme učebnu realizovali.
               </div>
             </div>
 
@@ -372,11 +406,16 @@ export default function Ucebna() {
                     <div className="awardTileText">{award.text}</div>
                   </div>
 
-                  <div className="awardTileImageWrap">
-                    <img
+                  <div
+                    className="awardTileImageWrap"
+                    style={{ aspectRatio: "16/9" }}
+                  >
+                    <Image
                       src={award.image}
                       alt={award.alt}
-                      className="awardTileImage"
+                      fill
+                      sizes="(max-width: 1160px) 90vw, 440px"
+                      style={{ objectFit: "cover" }}
                     />
                     <span className="awardTileZoom">Kliknutím zvětšíte</span>
                   </div>
@@ -400,18 +439,16 @@ export default function Ucebna() {
                 <SectionTitle>Víc než stavba. Celý ekosystém.</SectionTitle>
 
                 <p className="leadText" style={{ marginBottom: 18 }}>
-                  Zapomeňte na obyčejné dřevěné altány. ARCHIMEDES® je
-                  celosvětová síť high-tech venkovních učeben a edukativních
-                  center. Stavíme z udržitelných přírodních materiálů a vracíme
-                  děti i dospělé zpět k přírodě.
+                  ARCHIMEDES® není pouze zastřešený venkovní prostor. Je to
+                  celoroční učebna, která spojuje kontakt s přírodou, moderní
+                  výuku a možnost komunitního využití v jednom místě.
                 </p>
 
                 <p className="leadText" style={{ marginBottom: 18 }}>
-                  Zároveň však učebny vybavujeme špičkovými technologiemi.
-                  Nejde jen o stavbu, jde o komplexní prostředí – všechny naše
-                  učebny jsou propojeny unikátním portálem Archimedes Live,
-                  který umožňuje globální sdílení projektů, online vstupy
-                  odborníků a spolupráci napříč kontinenty.
+                  Podle potřeb školy nebo obce ji vybavujeme audiovizuální
+                  technikou, interaktivními prvky a zázemím pro živé online
+                  vstupy. Učebna tak může sloužit běžné výuce, programu
+                  ARCHIMEDES Live i odpoledním setkáním místní komunity.
                 </p>
 
                 <div className="softPanel">
@@ -437,43 +474,43 @@ export default function Ucebna() {
               </div>
 
               <div className="visualTriple">
-                <div className="visualCard visualCardLarge">
-                  <img
+                <div
+                  className="visualCard visualCardLarge"
+                  style={{ position: "relative", aspectRatio: "16/10" }}
+                >
+                  <Image
                     src={ecosystemMainImg}
                     alt="Detail učebny ARCHIMEDES®"
-                    style={{
-                      width: "100%",
-                      display: "block",
-                      aspectRatio: "16/10",
-                      objectFit: "cover",
-                    }}
+                    fill
+                    sizes="(max-width: 1160px) 90vw, 440px"
+                    style={{ objectFit: "cover" }}
                   />
                 </div>
 
                 <div className="doubleVisualGrid">
-                  <div className="visualCard">
-                    <img
+                  <div
+                    className="visualCard"
+                    style={{ position: "relative", aspectRatio: "16/10" }}
+                  >
+                    <Image
                       src={ecosystemNatureImg}
                       alt="Otevřený prostor učebny ARCHIMEDES®"
-                      style={{
-                        width: "100%",
-                        display: "block",
-                        aspectRatio: "16/10",
-                        objectFit: "cover",
-                      }}
+                      fill
+                      sizes="(max-width: 1160px) 44vw, 210px"
+                      style={{ objectFit: "cover" }}
                     />
                   </div>
 
-                  <div className="visualCard">
-                    <img
+                  <div
+                    className="visualCard"
+                    style={{ position: "relative", aspectRatio: "16/10" }}
+                  >
+                    <Image
                       src={ecosystemOnlineImg}
                       alt="Online propojení a technologie učebny ARCHIMEDES®"
-                      style={{
-                        width: "100%",
-                        display: "block",
-                        aspectRatio: "16/10",
-                        objectFit: "cover",
-                      }}
+                      fill
+                      sizes="(max-width: 1160px) 44vw, 210px"
+                      style={{ objectFit: "cover" }}
                     />
                   </div>
                 </div>
@@ -524,7 +561,7 @@ export default function Ucebna() {
                   <div className="pillarTitle">Pro školy a školky</div>
                   <p className="leadText" style={{ marginBottom: 16 }}>
                     Přeneste výuku ze čtyř stěn na čerstvý vzduch. Učebna
-                    ARCHIMEDES® nabízí bezkonkurenční zázemí pro zážitkovou
+                    ARCHIMEDES® nabízí kvalitní zázemí pro zážitkovou
                     výuku přírodních věd i dalších předmětů.
                   </p>
 
@@ -534,17 +571,16 @@ export default function Ucebna() {
                       v kontaktu s přírodou a reálnými ekosystémy.
                     </div>
                     <div>
-                      • <strong>Globální propojení:</strong> Sdílení hodin
-                      (co-teaching) se školami na druhém konci světa.
+                      • <strong>Živé vstupy:</strong> Rozhovory s odborníky a
+                      společný online program přímo v učebně.
                     </div>
                     <div>
                       • <strong>Moderní nástroje:</strong> Využití edukačního 3D
                       softwaru, vizualizérů a interaktivních panelů.
                     </div>
                     <div>
-                      • <strong>Zdravé prostředí:</strong> Speciální
-                      plnospektrální osvětlení podporuje soustředění a vitalitu
-                      žáků.
+                      • <strong>Vnitřní prostředí:</strong> Osvětlení a další
+                      vybavení lze přizpůsobit celodennímu provozu učebny.
                     </div>
                   </div>
                 </div>
@@ -569,7 +605,7 @@ export default function Ucebna() {
                   <p className="leadText" style={{ marginBottom: 16 }}>
                     ARCHIMEDES® nežije jen dopoledne. Pro města a obce
                     představuje multifunkční prostor, který oživí veřejný život
-                    a stane se srdcem komunity.
+                    a může se stát místem pro společný komunitní program.
                   </p>
 
                   <div className="bulletList">
@@ -619,7 +655,7 @@ export default function Ucebna() {
         >
           <div className="premiumCard">
             <div style={{ textAlign: "center", marginBottom: 30 }}>
-              <SectionEyebrow>Unikátní vybavení učebny</SectionEyebrow>
+              <SectionEyebrow>Vybavení učebny</SectionEyebrow>
               <SectionTitle style={{ marginBottom: 12 }}>
                 Synergie přírody a technologií
               </SectionTitle>
@@ -627,9 +663,9 @@ export default function Ucebna() {
                 className="leadText"
                 style={{ maxWidth: 930, margin: "0 auto" }}
               >
-                Učebna ARCHIMEDES® je promyšlený ekosystém připravený na klíč.
-                Propojujeme to nejlepší z obou světů – od chytrých technologií
-                přes ideální klima až po badatelské prvky.
+                Učebnu ARCHIMEDES® lze dodat jako promyšlený celek na klíč.
+                Propojuje audiovizuální techniku, řešení vnitřního prostředí
+                a prvky pro praktickou a badatelskou výuku.
               </p>
             </div>
 
@@ -637,43 +673,38 @@ export default function Ucebna() {
               <div className="zigzagRow">
                 <div className="zigzagText">
                   <div className="zigzagTitle">
-                    Špičkové IT a audiovize
+                    Audiovizuální vybavení
                     <br />
-                    <span>(Spojení s celým světem)</span>
+                    <span>(Výuka, živé vstupy a prezentace)</span>
                   </div>
 
                   <p className="leadText" style={{ marginBottom: 0 }}>
-                    Učebna bourá hranice běžné výuky a funguje jako plně
-                    zasíťovaný multimediální hub s vysokorychlostní Wi-Fi.
-                    Srdcem prostoru je interaktivní panel doplněný o
-                    vizualizér, díky kterým ožije každý výklad.
+                    Učebnu lze vybavit datovým připojením, interaktivním
+                    panelem a vizualizérem. Učitel tak může kombinovat běžnou
+                    výuku s digitálním obsahem, prezentací nebo živým vstupem.
                   </p>
 
                   <p
                     className="leadText"
                     style={{ marginTop: 14, marginBottom: 0 }}
                   >
-                    Pro dokonalé spojení v rámci globální sítě Archimedes Live
-                    je prostor osazen profesionální zvukotechnikou a speciálním
-                    videobarem – chytrou konferenční kamerou s audiotrackingem,
-                    která automaticky rozpozná a plynule sleduje mluvčího.
-                    Během dne navíc učitelé ocení integrovaný projektor s
-                    plátnem pro velkoformátové prezentace, zatímco večer se díky
-                    němu prostor snadno promění v oblíbené letní kino pro celou
-                    komunitu.
+                    Pro online vysílání může prostor doplnit zvukotechnika a
+                    konferenční kamera se sledováním mluvčího. Projektor s
+                    plátnem pak slouží prezentacím během výuky a po skončení
+                    školy také například promítání pro místní komunitu.
                   </p>
                 </div>
 
-                <div className="zigzagImage">
-                  <img
+                <div
+                  className="zigzagImage"
+                  style={{ position: "relative", aspectRatio: "16/10" }}
+                >
+                  <Image
                     src={techImg}
                     alt="Žáci pracující u interaktivního panelu"
-                    style={{
-                      width: "100%",
-                      display: "block",
-                      aspectRatio: "16/10",
-                      objectFit: "cover",
-                    }}
+                    fill
+                    sizes="(max-width: 1160px) 90vw, 460px"
+                    style={{ objectFit: "cover" }}
                   />
                 </div>
               </div>
@@ -694,27 +725,25 @@ export default function Ucebna() {
 
                 <div className="zigzagText">
                   <div className="zigzagTitle">
-                    Ideální klima a prokognitivní osvětlení
+                    Řešení klimatu a osvětlení
                     <br />
-                    <span>(Prostředí pro mysl i tělo)</span>
+                    <span>(Podmínky pro celoroční provoz)</span>
                   </div>
 
                   <p className="leadText" style={{ marginBottom: 0 }}>
-                    V učebně ARCHIMEDES® se žáci i učitelé cítí skvěle za
-                    každého počasí. O okamžitý tepelný komfort v parném létě i
-                    mrazivé zimě se starají tiché a vysoce efektivní
-                    klimatizační jednotky.
+                    Podle zvolené varianty lze učebnu doplnit klimatizací a
+                    vytápěním. Řešení pomáhá udržet použitelné vnitřní prostředí
+                    také v teplých nebo chladných částech roku.
                   </p>
 
                   <p
                     className="leadText"
                     style={{ marginTop: 14, marginBottom: 0 }}
                   >
-                    Naprostou revolucí pro zdraví je pak systém
-                    plnospektrálního osvětlení. Tato chytrá svítidla do detailu
-                    simulují přirozené sluneční záření, čímž prokazatelně
-                    snižují únavu očí, brání útlumu a přirozeně stimulují
-                    soustředění a vitalitu během celého dne.
+                    Součástí řešení vnitřního prostředí je také systém
+                    plnospektrálního osvětlení. Jeho nastavení lze přizpůsobit
+                    denní době a způsobu využití prostoru tak, aby učebna měla
+                    vhodné světelné podmínky i při delším programu.
                   </p>
                 </div>
               </div>
@@ -749,16 +778,16 @@ export default function Ucebna() {
                   </p>
                 </div>
 
-                <div className="zigzagImage">
-                  <img
+                <div
+                  className="zigzagImage"
+                  style={{ position: "relative", aspectRatio: "16/10" }}
+                >
+                  <Image
                     src={natureImg}
                     alt="Badatelské a přírodní prvky učebny"
-                    style={{
-                      width: "100%",
-                      display: "block",
-                      aspectRatio: "16/10",
-                      objectFit: "cover",
-                    }}
+                    fill
+                    sizes="(max-width: 1160px) 90vw, 460px"
+                    style={{ objectFit: "cover" }}
                   />
                 </div>
               </div>
@@ -841,11 +870,10 @@ export default function Ucebna() {
                   <video
                     ref={salVideoRef}
                     poster={salPoster}
-                    autoPlay
                     muted
                     loop
                     playsInline
-                    preload="auto"
+                    preload="metadata"
                     controls
                     className="croppedVideo cinematicVideo"
                   >
@@ -884,8 +912,8 @@ export default function Ucebna() {
               </SectionTitle>
             </div>
 
-            <PrimaryButton href="/poptavka">
-              Chci nezávaznou nabídku
+            <PrimaryButton href="/kontakt">
+              Poptat učebnu
             </PrimaryButton>
           </div>
 
@@ -918,8 +946,8 @@ export default function Ucebna() {
                 </div>
 
                 <div style={{ marginTop: 18 }}>
-                  <PrimaryButton href="/poptavka">
-                    Chci nezávaznou nabídku
+                  <PrimaryButton href="/kontakt">
+                    Poptat tuto variantu
                   </PrimaryButton>
                 </div>
               </div>
@@ -930,7 +958,7 @@ export default function Ucebna() {
             <strong>Jak vybrat tu správnou?</strong> Pokud je pro vás prioritou,
             aby se dala učebna v létě zcela otevřít a propojit s přírodou,
             zvolte OPTIMAL. Pokud plánujete učebnu využívat každý den celou
-            zimu a vyžadujete špičkovou tepelnou izolaci, doporučujeme
+            zimu a potřebujete vyšší tepelný komfort, doporučujeme
             OPTIMAL+ nebo PREMIUM.
           </div>
         </section>
@@ -946,7 +974,7 @@ export default function Ucebna() {
             <div className="equipmentStripeInner">
               <div style={{ marginBottom: 14 }}>
                 <div className="equipmentEyebrow">
-                  Špičková výbava bez rozdílu
+                  Vybavení podle způsobu využití
                 </div>
                 <div className="equipmentTitle">
                   Všechny varianty umíme dodat na klíč
@@ -955,12 +983,11 @@ export default function Ucebna() {
 
               <p className="equipmentText">
                 Ať už si vyberete vzdušnou variantu OPTIMAL, nebo plně
-                izolovanou PREMIUM, o moderní technologie ani komfort
-                nepřijdete. Do každého modelu lze bez omezení integrovat chytré
-                IT panely a kamery, plnospektrální osvětlení, klimatizaci,
-                flexibilní nábytek i veškeré přírodní badatelské prvky. Záleží
-                jen na vašich potřebách – vnitřní vybavení vás při výběru
-                samotné stavby nijak nelimituje.
+                izolovanou PREMIUM, vybavení navrhneme podle plánovaného
+                provozu. Jednotlivé modely lze doplnit o interaktivní panely,
+                kamery, osvětlení, klimatizaci, flexibilní nábytek a vybrané
+                badatelské prvky. Konkrétní sestavu upřesníme podle technických
+                možností varianty a potřeb školy nebo obce.
               </p>
             </div>
           </div>
@@ -976,7 +1003,7 @@ export default function Ucebna() {
           <div className="premiumCard">
             <SectionEyebrow>Možnosti rozšíření</SectionEyebrow>
             <SectionTitle style={{ fontSize: 48 }}>
-              Zázemí pro naprostou nezávislost
+              Zázemí pro samostatný provoz
             </SectionTitle>
 
             <div className="equipGrid">
@@ -1009,8 +1036,8 @@ export default function Ucebna() {
               <div className="equipCard equipCardWide">
                 <div className="equipTitle">🏫 Nezávislá jednotka</div>
                 <div className="equipText">
-                  Díky rozšiřujícím modulům se ARCHIMEDES® může stát naprosto
-                  nezávislým prostorem bez nutnosti využívat hlavní budovu školy
+                  Díky rozšiřujícím modulům se ARCHIMEDES® může stát
+                  samostatně fungujícím prostorem bez nutnosti využívat hlavní budovu školy
                   nebo obecního úřadu.
                 </div>
                 <div className="equipList">
@@ -1032,7 +1059,7 @@ export default function Ucebna() {
                 marginTop: 28,
               }}
             >
-              <PrimaryButton href="/poptavka?typ=navsteva-vzorove-ucebny">
+              <PrimaryButton href="/kontakt">
                 Navštívit vzorovou učebnu BVV Brno
               </PrimaryButton>
             </div>
@@ -1080,16 +1107,16 @@ export default function Ucebna() {
                 </div>
               </div>
 
-              <div className="mediaVisual">
-                <img
+              <div
+                className="mediaVisual"
+                style={{ position: "relative", aspectRatio: "16/10" }}
+              >
+                <Image
                   src={mediaSectionImg}
                   alt="Mediální a veřejná pozornost projektu ARCHIMEDES®"
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    aspectRatio: "16/10",
-                    objectFit: "cover",
-                  }}
+                  fill
+                  sizes="(max-width: 1160px) 90vw, 500px"
+                  style={{ objectFit: "cover" }}
                 />
               </div>
             </div>
@@ -1100,8 +1127,7 @@ export default function Ucebna() {
           <div
             className="lightboxOverlay"
             onClick={() => setLightboxImage(null)}
-            role="button"
-            tabIndex={0}
+            role="presentation"
           >
             <button
               type="button"
@@ -1115,10 +1141,13 @@ export default function Ucebna() {
             <div
               className="lightboxDialog"
               onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="award-lightbox-title"
             >
               <div className="lightboxMeta">
                 <div className="lightboxKicker">{lightboxImage.label}</div>
-                <div className="lightboxTitle">{lightboxImage.title}</div>
+                <div id="award-lightbox-title" className="lightboxTitle">{lightboxImage.title}</div>
                 <div className="lightboxDescription">{lightboxImage.text}</div>
               </div>
               <img
@@ -1197,7 +1226,7 @@ export default function Ucebna() {
 
           .awardsTiles {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 18px;
           }
 
@@ -1815,6 +1844,10 @@ export default function Ucebna() {
               grid-template-columns: 1fr;
             }
 
+            .awardsTiles {
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
             .equipCardWide {
               grid-column: auto;
             }
@@ -1825,6 +1858,9 @@ export default function Ucebna() {
           }
 
           @media (max-width: 760px) {
+            .awardsTiles {
+              grid-template-columns: 1fr;
+            }
             .premiumCard,
             .awardsBand {
               padding: 22px 18px;
@@ -1901,6 +1937,8 @@ export default function Ucebna() {
           }
         `}</style>
       </main>
+      <Footer />
     </div>
+    </>
   );
 }

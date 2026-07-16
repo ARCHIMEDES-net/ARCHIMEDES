@@ -1,7 +1,11 @@
 // pages/reset-hesla.js
 import { useState } from "react";
-import Link from "next/link";
 import { supabase } from "../lib/supabaseClient";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Alert } from "../components/ui/alert";
 
 export default function ResetHeslaPage() {
   const [email, setEmail] = useState("");
@@ -46,177 +50,54 @@ export default function ResetHeslaPage() {
   }
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#f5f7fb",
-        padding: "48px 16px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily:
-          'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 560,
-          background: "#fff",
-          borderRadius: 28,
-          border: "1px solid rgba(15,23,42,0.08)",
-          boxShadow: "0 20px 60px rgba(15,23,42,0.08)",
-          padding: "26px 26px 24px",
-        }}
-      >
-        <div style={{ marginBottom: 18 }}>
-          <h1
-            style={{
-              margin: 0,
-              fontSize: 32,
-              lineHeight: 1.08,
-              letterSpacing: "-0.03em",
-              color: "#0f172a",
-            }}
-          >
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12">
+      <Card className="w-full max-w-[560px] p-6 sm:p-7">
+        <div className="mb-4">
+          <h1 className="text-[32px] font-[950] leading-[1.08] tracking-[-0.03em] text-navy-900">
             Obnova hesla
           </h1>
-
-          <p
-            style={{
-              margin: "10px 0 0",
-              fontSize: 16,
-              lineHeight: 1.65,
-              color: "rgba(15,23,42,0.68)",
-            }}
-          >
+          <p className="mt-2.5 text-base leading-relaxed text-muted">
             Zadejte e-mail, pod kterým jste registrováni. Pošleme vám odkaz pro
             nastavení nového hesla.
           </p>
         </div>
 
         {error ? (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "12px 14px",
-              borderRadius: 14,
-              background: "#fff1f2",
-              border: "1px solid #fecdd3",
-              color: "#be123c",
-              fontSize: 14,
-              lineHeight: 1.5,
-            }}
-          >
+          <Alert variant="error" className="mb-4">
             {error}
-          </div>
+          </Alert>
         ) : null}
 
         {message ? (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "12px 14px",
-              borderRadius: 14,
-              background: "#ecfdf5",
-              border: "1px solid #bbf7d0",
-              color: "#166534",
-              fontSize: 14,
-              lineHeight: 1.5,
-            }}
-          >
+          <Alert variant="success" className="mb-4">
             {message}
-          </div>
+          </Alert>
         ) : null}
 
         <form onSubmit={handleRequestReset}>
-          <div style={{ marginBottom: 18 }}>
-            <label
-              htmlFor="email"
-              style={{
-                display: "block",
-                marginBottom: 8,
-                fontSize: 15,
-                fontWeight: 800,
-                color: "#0f172a",
-              }}
-            >
-              E-mail
-            </label>
-
-            <input
+          <div className="mb-4">
+            <Label htmlFor="email">E-mail</Label>
+            <Input
               id="email"
               type="email"
               autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={{
-                width: "100%",
-                minHeight: 54,
-                padding: "0 16px",
-                borderRadius: 16,
-                border: "1px solid rgba(15,23,42,0.14)",
-                fontSize: 16,
-                color: "#0f172a",
-                background: "#fff",
-                outline: "none",
-                boxSizing: "border-box",
-              }}
             />
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              flexWrap: "wrap",
-              marginBottom: 14,
-            }}
-          >
-            <button
-              type="submit"
-              disabled={requestLoading}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: 48,
-                padding: "0 18px",
-                borderRadius: 14,
-                border: "1px solid #0f172a",
-                background: "#0f172a",
-                color: "#fff",
-                fontWeight: 800,
-                fontSize: 15,
-                cursor: requestLoading ? "default" : "pointer",
-              }}
-            >
+          <div className="mb-3.5 flex flex-wrap gap-2.5">
+            <Button type="submit" disabled={requestLoading}>
               {requestLoading ? "Odesílám..." : "Poslat odkaz"}
-            </button>
+            </Button>
 
-            <Link
-              href="/login"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: 48,
-                padding: "0 18px",
-                borderRadius: 14,
-                border: "1px solid rgba(15,23,42,0.14)",
-                background: "#fff",
-                color: "#0f172a",
-                fontWeight: 800,
-                fontSize: 15,
-                textDecoration: "none",
-              }}
-            >
+            <Button href="/login" variant="secondary">
               Zpět na přihlášení
-            </Link>
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </main>
   );
 }

@@ -1,8 +1,9 @@
 import Head from "next/head";
-import Link from "next/link";
+import Image from "next/image";
+import { User } from "lucide-react";
 import Footer from "../components/Footer";
-
-const heroImg = "/ceny.webp";
+import { Card } from "../components/ui/card";
+import SectionEyebrow from "../components/home/SectionEyebrow";
 
 const team = [
   {
@@ -34,13 +35,6 @@ const team = [
     note: "Obchodní komunikace, poptávky, zakázky",
   },
   {
-    name: "Natálie Lípová",
-    role: "Manažerka programu a obsahu",
-    email: "natalie.lipova@archimedeslive.com",
-    phone: "+420 737 628 944",
-    note: "Program, vysílání, obsah platformy",
-  },
-  {
     name: "Simona Gavlíková",
     role: "Manažerka komunity a partnerství",
     email: "simona.gavlikova@archimedeslive.com",
@@ -49,244 +43,26 @@ const team = [
   },
 ];
 
-function PrimaryButton({ href, children }) {
-  return (
-    <Link
-      href={href}
-      style={{
-        textDecoration: "none",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 22px",
-        borderRadius: 14,
-        background: "#0f172a",
-        color: "#fff",
-        fontWeight: 800,
-        border: "1px solid #0f172a",
-        boxShadow: "0 10px 24px rgba(15,23,42,0.14)",
-        transition: "transform 0.15s ease, box-shadow 0.15s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 14px 28px rgba(15,23,42,0.18)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 10px 24px rgba(15,23,42,0.14)";
-      }}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function SecondaryButton({ href, children }) {
-  return (
-    <Link
-      href={href}
-      style={{
-        textDecoration: "none",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 52,
-        padding: "0 22px",
-        borderRadius: 14,
-        border: "1px solid rgba(15,23,42,0.14)",
-        background: "white",
-        color: "#0f172a",
-        fontWeight: 800,
-        transition:
-          "transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-2px)";
-        e.currentTarget.style.boxShadow = "0 10px 22px rgba(15,23,42,0.08)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "none";
-      }}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function ContactCard({ title, text, value, href }) {
-  const body = href ? (
-    <a
-      href={href}
-      style={{
-        color: "#0f172a",
-        textDecoration: "none",
-        fontWeight: 800,
-        fontSize: 18,
-        lineHeight: 1.45,
-        wordBreak: "break-word",
-      }}
-    >
-      {value}
-    </a>
-  ) : (
-    <div
-      style={{
-        color: "#0f172a",
-        fontWeight: 800,
-        fontSize: 18,
-        lineHeight: 1.45,
-      }}
-    >
-      {value}
-    </div>
-  );
-
-  return (
-    <div
-      style={{
-        background: "white",
-        color: "#0f172a",
-        borderRadius: 22,
-        padding: 24,
-        border: "1px solid rgba(15,23,42,0.08)",
-        boxShadow: "0 12px 28px rgba(15,23,42,0.06)",
-      }}
-    >
-      <div
-        style={{
-          fontSize: 13,
-          fontWeight: 800,
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          color: "#64748b",
-          marginBottom: 10,
-        }}
-      >
-        {title}
-      </div>
-
-      {text ? (
-        <div
-          style={{
-            fontSize: 15,
-            lineHeight: 1.6,
-            color: "rgba(15,23,42,0.68)",
-            marginBottom: 14,
-          }}
-        >
-          {text}
-        </div>
-      ) : null}
-
-      <div>{body}</div>
-    </div>
-  );
-}
-
 function TeamCard({ person }) {
   return (
-    <div
-      style={{
-        background: "white",
-        borderRadius: 22,
-        padding: 24,
-        border: "1px solid rgba(15,23,42,0.08)",
-        boxShadow: "0 12px 28px rgba(15,23,42,0.06)",
-        transition: "transform 0.18s ease, box-shadow 0.18s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-4px)";
-        e.currentTarget.style.boxShadow = "0 18px 34px rgba(15,23,42,0.10)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 12px 28px rgba(15,23,42,0.06)";
-      }}
-    >
-      <div
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: 16,
-          background: "linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%)",
-          border: "1px solid rgba(15,23,42,0.06)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 24,
-          marginBottom: 18,
-        }}
-      >
-        👤
+    <Card className="p-6 transition-colors hover:border-slate-300">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-eyebrow">
+        <User className="h-6 w-6 text-brand" aria-hidden="true" />
       </div>
-
-      <div
-        style={{
-          fontSize: 22,
-          lineHeight: 1.2,
-          fontWeight: 800,
-          color: "#0f172a",
-          marginBottom: 8,
-        }}
-      >
-        {person.name}
-      </div>
-
-      <div
-        style={{
-          fontSize: 15,
-          lineHeight: 1.5,
-          color: "#334155",
-          fontWeight: 700,
-          marginBottom: 10,
-        }}
-      >
-        {person.role}
-      </div>
-
-      <div
-        style={{
-          fontSize: 15,
-          lineHeight: 1.6,
-          color: "rgba(15,23,42,0.68)",
-          marginBottom: 18,
-          minHeight: 48,
-        }}
-      >
-        {person.note}
-      </div>
-
-      <div style={{ display: "grid", gap: 10 }}>
-        <a
-          href={`mailto:${person.email}`}
-          style={{
-            textDecoration: "none",
-            color: "#173b77",
-            fontWeight: 800,
-            lineHeight: 1.5,
-            wordBreak: "break-word",
-          }}
-        >
+      <div className="mt-4 text-xl font-bold leading-tight text-navy-900">{person.name}</div>
+      <div className="mt-1.5 text-sm font-bold text-slate-700">{person.role}</div>
+      <div className="mt-2.5 min-h-[48px] text-sm leading-relaxed text-muted">{person.note}</div>
+      <div className="mt-4 grid gap-2">
+        <a href={`mailto:${person.email}`} className="break-words text-sm font-bold text-brand">
           {person.email}
         </a>
-
         {person.phone ? (
-          <a
-            href={`tel:${person.phone.replace(/\s+/g, "")}`}
-            style={{
-              textDecoration: "none",
-              color: "#0f172a",
-              fontWeight: 800,
-              lineHeight: 1.5,
-            }}
-          >
+          <a href={`tel:${person.phone.replace(/\s+/g, "")}`} className="text-sm font-bold text-navy-900">
             {person.phone}
           </a>
         ) : null}
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -301,450 +77,70 @@ export default function KontaktPage() {
         />
       </Head>
 
-      <main
-        style={{
-          fontFamily:
-            'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-          background: "#f6f7fb",
-          minHeight: "100vh",
-          color: "#0f172a",
-        }}
-      >
-        <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "56px 16px 32px" }}
-        >
-          <div className="heroGrid">
-            <div>
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "8px 14px",
-                  borderRadius: 999,
-                  background: "rgba(15,23,42,0.06)",
-                  color: "#0f172a",
-                  fontSize: 13,
-                  fontWeight: 800,
-                  marginBottom: 18,
-                }}
-              >
-                ARCHIMEDES Live • kontakt
-              </div>
+      <main className="min-h-screen bg-white">
+        <section className="overflow-hidden bg-[#edf5fb]">
+          <div className="mx-auto grid min-h-[610px] max-w-[1280px] lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="flex items-center px-5 py-16 sm:px-10 lg:px-12 lg:py-20">
+              <div className="max-w-[600px]">
+              <SectionEyebrow>Kontakt</SectionEyebrow>
 
-              <h1
-                style={{
-                  fontSize: 56,
-                  lineHeight: 1.04,
-                  letterSpacing: "-0.03em",
-                  color: "#0f172a",
-                  margin: "0 0 18px",
-                }}
-              >
-                Spojte se s týmem
-                <br />
-                ARCHIMEDES Live
+              <h1 className="text-[clamp(42px,5vw,64px)] font-[950] leading-[0.98] tracking-[-0.045em] text-navy-900">
+                Spojte se rovnou se správným člověkem
               </h1>
 
-              <p
-                style={{
-                  fontSize: 21,
-                  lineHeight: 1.6,
-                  color: "rgba(15,23,42,0.76)",
-                  maxWidth: 700,
-                  margin: "0 0 24px",
-                }}
-              >
-                Rádi vám představíme program pro školy, obce a komunitu,
-                možnosti zapojení i vzorovou učebnu ARCHIMEDES®.
+              <p className="mt-4 max-w-[620px] text-lg leading-relaxed text-muted">
+                Program pro obec, spolupráce se svazem, obsah vysílání i realizace
+                učebny mají vlastní odpovědnou osobu. Vyberte si kontakt podle
+                toho, co právě potřebujete řešit.
               </p>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: 14,
-                  flexWrap: "wrap",
-                  marginBottom: 26,
-                }}
-              >
-                <PrimaryButton href="/poptavka">Poslat poptávku</PrimaryButton>
-                <SecondaryButton href="/program">Zobrazit program</SecondaryButton>
-              </div>
-
-              <div
-                style={{
-                  display: "grid",
-                  gap: 10,
-                  maxWidth: 640,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 10,
-                    alignItems: "center",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      minHeight: 34,
-                      padding: "0 12px",
-                      borderRadius: 999,
-                      background: "#e8f1ff",
-                      color: "#173b77",
-                      fontWeight: 800,
-                      fontSize: 14,
-                    }}
-                  >
-                    1. místo • OBEC 2030
-                  </span>
-
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      minHeight: 34,
-                      padding: "0 12px",
-                      borderRadius: 999,
-                      background: "#eef2f7",
-                      color: "#334155",
-                      fontWeight: 800,
-                      fontSize: 14,
-                    }}
-                  >
-                    Finalista • E.ON Energy Globe
-                  </span>
-                </div>
-
-                <div
-                  style={{
-                    fontSize: 15,
-                    lineHeight: 1.6,
-                    color: "rgba(15,23,42,0.68)",
-                  }}
-                >
-                  ARCHIMEDES Live je postaven na reálných realizacích,
-                  zkušenostech z obcí a živém programu pro vzdělávání i komunitní
-                  život.
-                </div>
               </div>
             </div>
 
-            <div>
-              <div
-                style={{
-                  position: "relative",
-                  borderRadius: 28,
-                  overflow: "hidden",
-                  background: "white",
-                  boxShadow: "0 24px 60px rgba(15,23,42,0.12)",
-                  border: "1px solid rgba(15,23,42,0.08)",
-                }}
-              >
-                <img
-                  src={heroImg}
-                  alt="Ocenění projektu ARCHIMEDES"
-                  style={{
-                    width: "100%",
-                    display: "block",
-                    aspectRatio: "16 / 11",
-                    objectFit: "cover",
-                  }}
-                />
+            <div className="relative min-h-[470px] lg:min-h-full">
+              <Image
+                src="/spolecna.jpg"
+                alt="Účastníci společného programu před učebnou ARCHIMEDES"
+                fill
+                priority
+                quality={80}
+                sizes="(max-width: 1024px) 100vw, 55vw"
+                className="object-cover object-[52%_center]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#edf5fb]/45 via-transparent to-transparent lg:from-[#edf5fb]/35" />
 
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 18,
-                    right: 18,
-                    bottom: 18,
-                    display: "grid",
-                    gap: 8,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      width: "fit-content",
-                      padding: "9px 14px",
-                      borderRadius: 999,
-                      background: "rgba(255,255,255,0.94)",
-                      color: "#0f172a",
-                      fontSize: 13,
-                      fontWeight: 900,
-                      boxShadow: "0 10px 24px rgba(15,23,42,0.12)",
-                    }}
-                  >
-                    Oceněný projekt pro školy a obce
-                  </div>
-                </div>
+              <div className="absolute bottom-5 left-5 right-5 max-w-[430px] rounded-[22px] bg-white/95 p-6 shadow-[0_20px_55px_rgba(15,23,42,0.18)] backdrop-blur sm:bottom-8 sm:left-8 sm:p-7">
+                <span className="text-xs font-black uppercase tracking-[0.14em] text-brand">Obecný kontakt</span>
+                <a href="mailto:info@eduvision.cz" className="mt-3 block break-words text-xl font-black text-navy-900 sm:text-2xl">info@eduvision.cz</a>
+                <a href="tel:+420732827210" className="mt-1.5 block text-base font-bold text-slate-700 sm:text-lg">+420 732 827 210</a>
+                <p className="mt-3 text-sm leading-relaxed text-slate-600">Nevíte, komu napsat? Předáme zprávu správnému kolegovi.</p>
+                <p className="mt-3 border-t border-slate-200 pt-3 text-xs leading-relaxed text-slate-500">
+                  EduVision s.r.o. · Purkyňova 649/127, 612 00 Brno
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "8px 16px 18px" }}
-        >
-          <div className="contactGrid">
-            <ContactCard
-              title="E-mail"
-              text="Napište nám kvůli programu, učebně nebo spolupráci."
-              value="info@eduvision.cz"
-              href="mailto:info@eduvision.cz"
-            />
-            <ContactCard
-              title="Telefon"
-              text="Nejrychlejší cesta pro domluvu schůzky nebo ukázky."
-              value="+420 732 827 210"
-              href="tel:+420732827210"
-            />
-            <ContactCard
-              title="Provozovatel"
-              text=""
-              value={
-                <>
-                  EduVision s.r.o.
-                  <br />
-                  Purkyňova 649/127
-                  <br />
-                  Medlánky
-                  <br />
-                  612 00 Brno
-                </>
-              }
-            />
-          </div>
-        </section>
-
-        <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "18px 16px 12px" }}
-        >
-          <div style={{ maxWidth: 760, marginBottom: 26 }}>
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 800,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: "#64748b",
-                marginBottom: 12,
-              }}
-            >
-              Tým ARCHIMEDES Live
-            </div>
-
-            <h2
-              style={{
-                fontSize: 40,
-                lineHeight: 1.08,
-                letterSpacing: "-0.03em",
-                margin: "0 0 14px",
-                color: "#0f172a",
-              }}
-            >
+        <section className="mx-auto max-w-[1180px] px-5 pb-16 pt-14 sm:pt-16">
+          <div className="mb-7 max-w-[760px]">
+            <SectionEyebrow>Tým ARCHIMEDES Live</SectionEyebrow>
+            <h2 className="text-[36px] font-[950] tracking-[-0.03em] text-navy-900">
               Lidé, kteří vám pomohou
             </h2>
-
-            <p
-              style={{
-                margin: 0,
-                fontSize: 18,
-                lineHeight: 1.7,
-                color: "rgba(15,23,42,0.72)",
-              }}
-            >
+            <p className="mt-3 text-lg leading-relaxed text-muted">
               Potřebujete řešit obchod, program, partnerství nebo realizaci
               učebny? Ozvěte se přímo správnému člověku.
             </p>
           </div>
 
-          <div className="teamGrid">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {team.map((person) => (
               <TeamCard key={person.email} person={person} />
             ))}
           </div>
         </section>
 
-        <section
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "28px 16px 10px" }}
-        >
-          <div
-            style={{
-              borderRadius: 30,
-              overflow: "hidden",
-              background:
-                "linear-gradient(135deg, #173b77 0%, #0f172a 60%, #081120 100%)",
-              color: "#fff",
-              boxShadow: "0 24px 60px rgba(15,23,42,0.18)",
-            }}
-          >
-            <div className="ctaGrid" style={{ padding: "34px 30px" }}>
-              <div>
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    minHeight: 34,
-                    padding: "0 12px",
-                    borderRadius: 999,
-                    background: "rgba(255,255,255,0.10)",
-                    color: "rgba(255,255,255,0.9)",
-                    fontWeight: 800,
-                    fontSize: 13,
-                    marginBottom: 14,
-                  }}
-                >
-                  Další krok
-                </div>
-
-                <h3
-                  style={{
-                    fontSize: 34,
-                    lineHeight: 1.12,
-                    letterSpacing: "-0.02em",
-                    margin: "0 0 12px",
-                    color: "#fff",
-                  }}
-                >
-                  Chcete učebnu ARCHIMEDES "na klíč"?
-                </h3>
-
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: 18,
-                    lineHeight: 1.7,
-                    color: "rgba(255,255,255,0.78)",
-                    maxWidth: 700,
-                  }}
-                >
-                  Pošlete poptávku a ozveme se vám s dalším postupem, možností
-                  online schůzky nebo návštěvy vzorové učebny.
-                </p>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 12,
-                  justifyContent: "flex-start",
-                  alignItems: "center",
-                }}
-              >
-                <Link
-                  href="/poptavka"
-                  style={{
-                    textDecoration: "none",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: 52,
-                    padding: "0 22px",
-                    borderRadius: 14,
-                    background: "#fff",
-                    color: "#0f172a",
-                    fontWeight: 900,
-                    border: "1px solid rgba(255,255,255,0.18)",
-                  }}
-                >
-                  Odeslat poptávku
-                </Link>
-
-                <Link
-                  href="/ucebna"
-                  style={{
-                    textDecoration: "none",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: 52,
-                    padding: "0 22px",
-                    borderRadius: 14,
-                    border: "1px solid rgba(255,255,255,0.26)",
-                    background: "transparent",
-                    color: "#fff",
-                    fontWeight: 800,
-                  }}
-                >
-                  Zobrazit učebnu
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <Footer />
-
-        <style jsx>{`
-          .heroGrid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
-            gap: 28px;
-            align-items: center;
-          }
-
-          .contactGrid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 18px;
-          }
-
-          .teamGrid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 18px;
-          }
-
-          .ctaGrid {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 22px;
-            align-items: center;
-          }
-
-          @media (max-width: 1100px) {
-            .heroGrid,
-            .ctaGrid {
-              grid-template-columns: 1fr;
-            }
-
-            .teamGrid {
-              grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-          }
-
-          @media (max-width: 860px) {
-            .contactGrid,
-            .teamGrid {
-              grid-template-columns: 1fr;
-            }
-          }
-
-          @media (max-width: 720px) {
-            h1 {
-              font-size: 40px !important;
-            }
-
-            h2 {
-              font-size: 30px !important;
-            }
-
-            h3 {
-              font-size: 28px !important;
-            }
-
-            main :global(section) {
-              padding-left: 14px !important;
-              padding-right: 14px !important;
-            }
-          }
-        `}</style>
       </main>
     </>
   );

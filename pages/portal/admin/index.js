@@ -1,89 +1,75 @@
 import Link from "next/link";
 import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
+import { Card, CardContent } from "../../../components/ui/card";
+
+function AdminCard({ title, desc, children }) {
+  return (
+    <Card>
+      <CardContent>
+        <div className="text-base font-black text-navy-900">{title}</div>
+        <div className="mt-1.5 text-sm text-muted">{desc}</div>
+        <div className="mt-3">{children}</div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function AdminHome() {
   return (
     <RequirePlatformAdmin>
       <PortalHeader />
 
-      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "18px 16px" }}>
-        <h1 style={{ margin: "10px 0 6px" }}>Admin</h1>
-        <p style={{ margin: 0, color: "#374151" }}>
+      <main className="mx-auto max-w-[1100px] px-4 py-5">
+        <h1 className="text-2xl font-black text-navy-900">Admin</h1>
+        <p className="mt-1.5 text-muted">
           Správa obsahu a zákazníků platformy ARCHIMEDES Live.
         </p>
 
-        <section
-          style={{
-            marginTop: 16,
-            display: "grid",
-            gap: 12,
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-          }}
-        >
-          <Card
-            title="START objednávky"
-            desc="Přehled nových škol, onboarding a uživatelů."
-          >
-            <Link href="/portal/admin-start">Otevřít START přehled</Link>
-          </Card>
+        <section className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-3">
+          <AdminCard title="START objednávky" desc="Přehled nových škol, onboarding a uživatelů.">
+            <Link href="/portal/admin-start" className="font-bold text-brand hover:underline">
+              Otevřít START přehled
+            </Link>
+          </AdminCard>
 
-          <Card
-            title="Události"
-            desc="Správa vysílání a kalendáře (vkládání, úpravy, publikace)."
-          >
-            <Link href="/portal/admin-udalosti">Otevřít admin událostí</Link>
-          </Card>
+          <AdminCard title="Události" desc="Správa vysílání a kalendáře (vkládání, úpravy, publikace).">
+            <Link href="/portal/admin/udalosti" className="font-bold text-brand hover:underline">
+              Otevřít admin událostí
+            </Link>
+          </AdminCard>
 
-          <Card
-            title="Pracovní listy"
-            desc="MVP: zatím odkazová sekce (bude rozšířeno)."
-          >
-            <Link href="/portal/pracovni-listy">Otevřít pracovní listy</Link>
-          </Card>
+          <AdminCard title="Pracovní listy" desc="MVP: zatím odkazová sekce (bude rozšířeno).">
+            <Link href="/portal/pracovni-listy" className="font-bold text-brand hover:underline">
+              Otevřít pracovní listy
+            </Link>
+          </AdminCard>
 
-          <Card
-            title="Inzerce"
-            desc="MVP: jednoduchá stránka pro komunitní informace."
-          >
-            <Link href="/portal/admin-inzerce">Otevřít admin inzerce</Link>
-          </Card>
+          <AdminCard title="Inzerce" desc="MVP: jednoduchá stránka pro komunitní informace.">
+            <Link href="/portal/admin-inzerce" className="font-bold text-brand hover:underline">
+              Otevřít admin inzerce
+            </Link>
+          </AdminCard>
 
-          <Card
-            title="Poptávky"
-            desc="Přehled leadů a práce s demo schválením."
-          >
-            <Link href="/portal/admin-poptavky">Otevřít admin poptávek</Link>
-          </Card>
+          <AdminCard title="Poptávky" desc="Přehled žádostí a jejich zpracování.">
+            <Link href="/portal/admin-poptavky" className="font-bold text-brand hover:underline">
+              Otevřít admin poptávek
+            </Link>
+          </AdminCard>
 
-          <Card
-            title="Žádosti o přístup"
-            desc="Vytvoření organizace a pozvání administrátora."
-          >
-            <Link href="/portal/admin/zadosti">Otevřít žádosti</Link>
-          </Card>
+          <AdminCard title="Žádosti o přístup" desc="Vytvoření organizace a pozvání administrátora.">
+            <Link href="/portal/admin/zadosti" className="font-bold text-brand hover:underline">
+              Otevřít žádosti
+            </Link>
+          </AdminCard>
+
+          <AdminCard title="Obce" desc="Aktivace obcí založených přes /zadost.">
+            <Link href="/portal/admin/obce" className="font-bold text-brand hover:underline">
+              Otevřít obce
+            </Link>
+          </AdminCard>
         </section>
       </main>
     </RequirePlatformAdmin>
-  );
-}
-
-function Card({ title, desc, children }) {
-  return (
-    <div
-      style={{
-        border: "1px solid #e5e7eb",
-        borderRadius: 14,
-        padding: 16,
-        background: "#fff",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-      }}
-    >
-      <div style={{ fontWeight: 800, fontSize: 16 }}>{title}</div>
-      <div style={{ color: "#374151", marginTop: 6, fontSize: 14 }}>
-        {desc}
-      </div>
-      <div style={{ marginTop: 12 }}>{children}</div>
-    </div>
   );
 }
