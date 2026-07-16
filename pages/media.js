@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import Image from "next/image";
-import { ArrowRight, ArrowUpRight, X } from "lucide-react";
+import { ArrowUpRight, X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { cn } from "../lib/utils";
 import { Button } from "../components/ui/button";
@@ -285,8 +285,8 @@ export default function MediaPage() {
 
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button href="/ucebna">Zpět na stránku učebny</Button>
-                <Button href="/zadost" variant="secondary">
-                  Chci program pro naši obec
+                <Button href="/kontakt" variant="secondary">
+                  Poptat učebnu
                 </Button>
               </div>
             </div>
@@ -346,9 +346,6 @@ export default function MediaPage() {
                 </p>
               </div>
 
-              <Button href="/zadost" variant="secondary">
-                Chci program pro naši obec
-              </Button>
             </div>
 
             {loadingRealizace ? (
@@ -449,10 +446,6 @@ export default function MediaPage() {
                 </p>
 
                 <div className="mt-6 flex flex-wrap gap-3">
-                  <Button href="/zadost">
-                    Chci program pro naši obec
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Button>
                   <Button href="/ucebna" variant="secondary">
                     Zobrazit technické varianty
                   </Button>
@@ -519,9 +512,11 @@ export default function MediaPage() {
             </p>
 
             <div className="flex flex-wrap justify-center gap-3">
-              <Button href="/zadost">Chci program pro naši obec</Button>
-              <Button href="/kontakt" variant="secondary">
+              <Button href="/kontakt">
                 Domluvit osobní konzultaci
+              </Button>
+              <Button href="/ucebna" variant="secondary">
+                Prohlédnout varianty učebny
               </Button>
             </div>
           </Card>
