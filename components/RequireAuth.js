@@ -2,20 +2,26 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 
+// Reuse a successful check only during the current client-side visit.
+// A full reload always performs the complete authorization check again.
+let portalSessionVerified = false;
+
 export default function RequireAuth({ children }) {
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
+  const [checking, setChecking] = useState(() => !portalSessionVerified);
 
   useEffect(() => {
     let mounted = true;
 
     async function deny(path = "/login") {
       if (!mounted) return;
+      portalSessionVerified = false;
       router.replace(path);
     }
 
     async function allow() {
       if (!mounted) return;
+      portalSessionVerified = true;
       setChecking(false);
     }
 
@@ -193,6 +199,7 @@ export default function RequireAuth({ children }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
+        portalSessionVerified = false;
         router.replace("/login");
       }
     });

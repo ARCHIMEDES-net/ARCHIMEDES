@@ -8,6 +8,10 @@ import { fetchMyOrganizations } from "../lib/myOrganizations";
 
 const LOGO_SRC = "/logo-archimedes-live.png";
 
+// Preserve role-dependent menu geometry across client-side route changes.
+// This memory-only cache is cleared on logout and resets on full reload.
+let cachedHeaderAccess = null;
+
 function normalizePath(value = "") {
   return (value || "").split("?")[0].split("#")[0];
 }
@@ -51,11 +55,15 @@ export default function PortalHeader({ title = "" }) {
   const router = useRouter();
   const path = useMemo(() => normalizePath(router?.asPath || ""), [router?.asPath]);
 
-  const [isOrgAdmin, setIsOrgAdmin] = useState(false);
-  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
-  const [loadingRole, setLoadingRole] = useState(true);
-  const [activeOrganizationId, setActiveOrganizationId] = useState("");
-  const [organizations, setOrganizations] = useState([]);
+  const [isOrgAdmin, setIsOrgAdmin] = useState(() => cachedHeaderAccess?.isOrgAdmin || false);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(() => cachedHeaderAccess?.isPlatformAdmin || false);
+  const [loadingRole, setLoadingRole] = useState(() => !cachedHeaderAccess);
+  const [activeOrganizationId, setActiveOrganizationId] = useState(
+    () => cachedHeaderAccess?.activeOrganizationId || ""
+  );
+  const [organizations, setOrganizations] = useState(
+    () => cachedHeaderAccess?.organizations || []
+  );
   const [switchingOrganization, setSwitchingOrganization] = useState(false);
   const [organizationSwitchError, setOrganizationSwitchError] = useState("");
 
@@ -118,21 +126,29 @@ export default function PortalHeader({ title = "" }) {
 
         if (!alive) return;
 
-        setActiveOrganizationId(profile?.active_organization_id || "");
-        setOrganizations(
-          [...organizationRows].sort((a, b) =>
-            String(a.name || "").localeCompare(String(b.name || ""), "cs")
-          )
+        const nextActiveOrganizationId = profile?.active_organization_id || "";
+        const nextOrganizations = [...organizationRows].sort((a, b) =>
+          String(a.name || "").localeCompare(String(b.name || ""), "cs")
         );
+        const nextIsOrgAdmin = roleInActiveOrg === "organization_admin";
 
-        setIsOrgAdmin(roleInActiveOrg === "organization_admin");
+        setActiveOrganizationId(nextActiveOrganizationId);
+        setOrganizations(nextOrganizations);
+        setIsOrgAdmin(nextIsOrgAdmin);
 
         const { data: isAdminResult, error: isAdminError } = await supabase.rpc("is_admin");
 
         if (isAdminError) throw isAdminError;
         if (!alive) return;
 
-        setIsPlatformAdmin(!!isAdminResult);
+        const nextIsPlatformAdmin = !!isAdminResult;
+        setIsPlatformAdmin(nextIsPlatformAdmin);
+        cachedHeaderAccess = {
+          isOrgAdmin: nextIsOrgAdmin,
+          isPlatformAdmin: nextIsPlatformAdmin,
+          activeOrganizationId: nextActiveOrganizationId,
+          organizations: nextOrganizations,
+        };
       } catch (err) {
         console.error("PortalHeader loadRole error:", err);
         if (!alive) return;
@@ -191,6 +207,7 @@ export default function PortalHeader({ title = "" }) {
 
   async function onLogout() {
     try {
+      cachedHeaderAccess = null;
       await supabase.auth.signOut();
     } finally {
       router.push("/login");
@@ -226,6 +243,12 @@ export default function PortalHeader({ title = "" }) {
       if (updateError) throw updateError;
 
       setActiveOrganizationId(organizationId);
+      if (cachedHeaderAccess) {
+        cachedHeaderAccess = {
+          ...cachedHeaderAccess,
+          activeOrganizationId: organizationId,
+        };
+      }
       router.reload();
     } catch (error) {
       console.error("PortalHeader organization switch error:", error);
