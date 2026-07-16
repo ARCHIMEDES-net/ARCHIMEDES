@@ -76,9 +76,9 @@ const variants = [
     benefit:
       "Vynikající izolační vlastnosti. Ideální pro plnohodnotné a každodenní využití s vysokým tepelným komfortem i v chladnějších měsících.",
     suitable:
-      "Pro školy a obce, které chtějí učebnu využívat každý den celou zimu a vyžadují špičkovou tepelnou izolaci.",
+      "Pro školy a obce, které chtějí učebnu pravidelně využívat také v zimě a potřebují vyšší tepelný komfort.",
     design:
-      "Dřevěný obklad s možností výběru odstínu dle vzorníku. Pro dosažení špičkové izolace nelze okna skrýt do stěn a nedosáhnete efektu úplně otevřeného altánu jako u verze OPTIMAL.",
+      "Dřevěný obklad s možností výběru odstínu dle vzorníku. Kvůli lepším izolačním vlastnostem nelze okna skrýt do stěn a prostor se neotevře v takové míře jako varianta OPTIMAL.",
   },
   {
     icon: "❄️",
@@ -439,18 +439,16 @@ export default function Ucebna() {
                 <SectionTitle>Víc než stavba. Celý ekosystém.</SectionTitle>
 
                 <p className="leadText" style={{ marginBottom: 18 }}>
-                  ARCHIMEDES® není pouze zastřešený venkovní prostor. Je
-                  celosvětová síť high-tech venkovních učeben a edukativních
-                  center. Stavíme z udržitelných přírodních materiálů a vracíme
-                  děti i dospělé zpět k přírodě.
+                  ARCHIMEDES® není pouze zastřešený venkovní prostor. Je to
+                  celoroční učebna, která spojuje kontakt s přírodou, moderní
+                  výuku a možnost komunitního využití v jednom místě.
                 </p>
 
                 <p className="leadText" style={{ marginBottom: 18 }}>
-                  Zároveň však učebny vybavujeme špičkovými technologiemi.
-                  Nejde jen o stavbu, jde o komplexní prostředí – všechny naše
-                  učebny jsou propojeny unikátním portálem Archimedes Live,
-                  který umožňuje globální sdílení projektů, online vstupy
-                  odborníků a spolupráci napříč kontinenty.
+                  Podle potřeb školy nebo obce ji vybavujeme audiovizuální
+                  technikou, interaktivními prvky a zázemím pro živé online
+                  vstupy. Učebna tak může sloužit běžné výuce, programu
+                  ARCHIMEDES Live i odpoledním setkáním místní komunity.
                 </p>
 
                 <div className="softPanel">
@@ -573,17 +571,16 @@ export default function Ucebna() {
                       v kontaktu s přírodou a reálnými ekosystémy.
                     </div>
                     <div>
-                      • <strong>Globální propojení:</strong> Sdílení hodin
-                      (co-teaching) se školami na druhém konci světa.
+                      • <strong>Živé vstupy:</strong> Rozhovory s odborníky a
+                      společný online program přímo v učebně.
                     </div>
                     <div>
                       • <strong>Moderní nástroje:</strong> Využití edukačního 3D
                       softwaru, vizualizérů a interaktivních panelů.
                     </div>
                     <div>
-                      • <strong>Zdravé prostředí:</strong> Speciální
-                      plnospektrální osvětlení podporuje soustředění a vitalitu
-                      žáků.
+                      • <strong>Vnitřní prostředí:</strong> Osvětlení a další
+                      vybavení lze přizpůsobit celodennímu provozu učebny.
                     </div>
                   </div>
                 </div>
@@ -658,7 +655,7 @@ export default function Ucebna() {
         >
           <div className="premiumCard">
             <div style={{ textAlign: "center", marginBottom: 30 }}>
-              <SectionEyebrow>Unikátní vybavení učebny</SectionEyebrow>
+              <SectionEyebrow>Vybavení učebny</SectionEyebrow>
               <SectionTitle style={{ marginBottom: 12 }}>
                 Synergie přírody a technologií
               </SectionTitle>
@@ -666,9 +663,9 @@ export default function Ucebna() {
                 className="leadText"
                 style={{ maxWidth: 930, margin: "0 auto" }}
               >
-                Učebna ARCHIMEDES® je promyšlený ekosystém připravený na klíč.
-                Propojujeme to nejlepší z obou světů – od chytrých technologií
-                přes ideální klima až po badatelské prvky.
+                Učebnu ARCHIMEDES® lze dodat jako promyšlený celek na klíč.
+                Propojuje audiovizuální techniku, řešení vnitřního prostředí
+                a prvky pro praktickou a badatelskou výuku.
               </p>
             </div>
 
@@ -676,30 +673,25 @@ export default function Ucebna() {
               <div className="zigzagRow">
                 <div className="zigzagText">
                   <div className="zigzagTitle">
-                    Špičkové IT a audiovize
+                    Audiovizuální vybavení
                     <br />
-                    <span>(Spojení s celým světem)</span>
+                    <span>(Výuka, živé vstupy a prezentace)</span>
                   </div>
 
                   <p className="leadText" style={{ marginBottom: 0 }}>
-                    Učebna bourá hranice běžné výuky a funguje jako plně
-                    zasíťovaný multimediální hub s vysokorychlostní Wi-Fi.
-                    Srdcem prostoru je interaktivní panel doplněný o
-                    vizualizér, díky kterým ožije každý výklad.
+                    Učebnu lze vybavit datovým připojením, interaktivním
+                    panelem a vizualizérem. Učitel tak může kombinovat běžnou
+                    výuku s digitálním obsahem, prezentací nebo živým vstupem.
                   </p>
 
                   <p
                     className="leadText"
                     style={{ marginTop: 14, marginBottom: 0 }}
                   >
-                    Pro dokonalé spojení v rámci globální sítě Archimedes Live
-                    je prostor osazen profesionální zvukotechnikou a speciálním
-                    videobarem – chytrou konferenční kamerou s audiotrackingem,
-                    která automaticky rozpozná a plynule sleduje mluvčího.
-                    Během dne navíc učitelé ocení integrovaný projektor s
-                    plátnem pro velkoformátové prezentace, zatímco večer se díky
-                    němu prostor snadno promění v oblíbené letní kino pro celou
-                    komunitu.
+                    Pro online vysílání může prostor doplnit zvukotechnika a
+                    konferenční kamera se sledováním mluvčího. Projektor s
+                    plátnem pak slouží prezentacím během výuky a po skončení
+                    školy také například promítání pro místní komunitu.
                   </p>
                 </div>
 
@@ -733,16 +725,15 @@ export default function Ucebna() {
 
                 <div className="zigzagText">
                   <div className="zigzagTitle">
-                    Ideální klima a prokognitivní osvětlení
+                    Řešení klimatu a osvětlení
                     <br />
-                    <span>(Prostředí pro mysl i tělo)</span>
+                    <span>(Podmínky pro celoroční provoz)</span>
                   </div>
 
                   <p className="leadText" style={{ marginBottom: 0 }}>
-                    V učebně ARCHIMEDES® se žáci i učitelé cítí skvěle za
-                    každého počasí. O okamžitý tepelný komfort v parném létě i
-                    mrazivé zimě se starají tiché a vysoce efektivní
-                    klimatizační jednotky.
+                    Podle zvolené varianty lze učebnu doplnit klimatizací a
+                    vytápěním. Řešení pomáhá udržet použitelné vnitřní prostředí
+                    také v teplých nebo chladných částech roku.
                   </p>
 
                   <p
@@ -750,10 +741,9 @@ export default function Ucebna() {
                     style={{ marginTop: 14, marginBottom: 0 }}
                   >
                     Součástí řešení vnitřního prostředí je také systém
-                    plnospektrálního osvětlení. Tato chytrá svítidla do detailu
-                    simulují přirozené sluneční záření, čímž prokazatelně
-                    snižují únavu očí, brání útlumu a přirozeně stimulují
-                    soustředění a vitalitu během celého dne.
+                    plnospektrálního osvětlení. Jeho nastavení lze přizpůsobit
+                    denní době a způsobu využití prostoru tak, aby učebna měla
+                    vhodné světelné podmínky i při delším programu.
                   </p>
                 </div>
               </div>
@@ -968,7 +958,7 @@ export default function Ucebna() {
             <strong>Jak vybrat tu správnou?</strong> Pokud je pro vás prioritou,
             aby se dala učebna v létě zcela otevřít a propojit s přírodou,
             zvolte OPTIMAL. Pokud plánujete učebnu využívat každý den celou
-            zimu a vyžadujete špičkovou tepelnou izolaci, doporučujeme
+            zimu a potřebujete vyšší tepelný komfort, doporučujeme
             OPTIMAL+ nebo PREMIUM.
           </div>
         </section>
@@ -984,7 +974,7 @@ export default function Ucebna() {
             <div className="equipmentStripeInner">
               <div style={{ marginBottom: 14 }}>
                 <div className="equipmentEyebrow">
-                  Špičková výbava bez rozdílu
+                  Vybavení podle způsobu využití
                 </div>
                 <div className="equipmentTitle">
                   Všechny varianty umíme dodat na klíč
@@ -993,12 +983,11 @@ export default function Ucebna() {
 
               <p className="equipmentText">
                 Ať už si vyberete vzdušnou variantu OPTIMAL, nebo plně
-                izolovanou PREMIUM, o moderní technologie ani komfort
-                nepřijdete. Do každého modelu lze bez omezení integrovat chytré
-                IT panely a kamery, plnospektrální osvětlení, klimatizaci,
-                flexibilní nábytek i veškeré přírodní badatelské prvky. Záleží
-                jen na vašich potřebách – vnitřní vybavení vás při výběru
-                samotné stavby nijak nelimituje.
+                izolovanou PREMIUM, vybavení navrhneme podle plánovaného
+                provozu. Jednotlivé modely lze doplnit o interaktivní panely,
+                kamery, osvětlení, klimatizaci, flexibilní nábytek a vybrané
+                badatelské prvky. Konkrétní sestavu upřesníme podle technických
+                možností varianty a potřeb školy nebo obce.
               </p>
             </div>
           </div>
