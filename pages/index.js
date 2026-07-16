@@ -23,6 +23,7 @@ import {
 import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import StatsSection from "../components/home/StatsSection";
+import PatronageStrip from "../components/home/PatronageStrip";
 import ReferenceCard from "../components/home/ReferenceCard";
 import { AREA_ICONS } from "../components/partners/icons";
 import { communityCategories } from "../content/communityCategories";
@@ -231,6 +232,9 @@ export default function Home({ initialEvents = [] }) {
 
         {/* NETWORK SIZE STATS */}
         <StatsSection />
+
+        {/* PATRONAGE — compact trust signal without another navigation destination */}
+        <PatronageStrip />
 
         {/* COMMUNITY AREAS — make the value for a mayor visible immediately */}
         <section className="overflow-hidden bg-[#f2f7fb] py-12 sm:py-14">
