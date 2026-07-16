@@ -11,26 +11,26 @@ import CommunityCategoriesSection from "../components/partners/CommunityCategori
 const benefits = [
   {
     icon: Users,
-    title: "Přímý kontakt s místními členy",
-    text: "Obsah svazu se dostane k základním organizacím a členům přímo v jejich obci.",
+    title: "Silnější členská základna",
+    text: "Odborný obsah národního svazu se dostane k základním organizacím a členům přímo v jejich obcích.",
   },
   {
     icon: GraduationCap,
-    title: "Osvěta a práce s mladou generací",
-    text: "Součástí spolupráce mohou být také pořady pro základní školy.",
+    title: "Budoucnost vašeho oboru",
+    text: "Popularizační a náborové pořady představí činnost svazu školám a pomohou oslovit mladou generaci.",
   },
   {
     icon: Radio,
-    title: "Produkci zajistí ARCHIMEDES",
-    text: "Téma a odborné podklady připravíme společně; vysílání, moderaci a distribuci zajistíme my.",
+    title: "Minimální organizační zátěž",
+    text: "Témata připravíme společně; dramaturgii, moderaci, vysílání a podklady pro distribuci zajistí ARCHIMEDES.",
   },
 ];
 
 const cooperation = [
-  ["Téma", "Svaz navrhne důležité téma a doporučí odborníka nebo hosta."],
-  ["Příprava", "ARCHIMEDES připraví formát, termín, pozvánku a technickou realizaci."],
-  ["Pozvání", "Pozvánka se dostane k místním organizacím a lidem, kterých se téma týká."],
-  ["Setkání", "Členové se sejdou na jednom místě v obci a do vysílání se zapojí společně."],
+  ["Priority", "Vedení svazu určí důležitá témata, cílové skupiny a doporučí odborníky."],
+  ["Produkce", "ARCHIMEDES připraví dramaturgii, moderaci, termín, vysílání a komunikační podklady."],
+  ["Distribuce", "Svaz předá pozvánku své síti; ARCHIMEDES ji propojí s obcemi a zapojenými školami."],
+  ["Dopad", "Místní organizace získají odborný program a vybraná témata představí obor mladé generaci."],
 ];
 
 export default function ProOrganizacePage() {
@@ -51,12 +51,12 @@ export default function ProOrganizacePage() {
               <div className="max-w-[610px]">
                 <span className="text-xs font-black uppercase tracking-[0.18em] text-[#efbd58]">Pro svazy a národní organizace</span>
                 <h1 className="mt-5 text-[clamp(44px,6vw,70px)] font-[950] leading-[0.96] tracking-[-0.055em]">
-                  Váš obsah. Naše vysílání. Setkání přímo v obcích.
+                  Spojte celý svaz. Oslovte novou generaci.
                 </h1>
                 <p className="mt-6 max-w-[570px] text-lg leading-relaxed text-white/78 sm:text-xl">
-                  Pomáháme svazům předávat odborný obsah místním organizacím,
-                  členům i školám. Nejde o individuální sledování doma — lidé se
-                  setkají ve své obci a zapojí se společně.
+                  Pomáháme celorepublikovým svazům dostat odborný obsah k místním
+                  organizacím a současně představovat jejich obor školám a mladé
+                  generaci. ARCHIMEDES zajistí produkci a propojí program s obcemi.
                 </p>
                 <Button href="/kontakt" className="mt-8 bg-[#efbd58] text-slate-950 hover:bg-[#f5ca73]">
                   Probrat partnerství
@@ -99,12 +99,12 @@ export default function ProOrganizacePage() {
             <div>
               <SectionEyebrow>Jak spolupráce funguje</SectionEyebrow>
               <h2 className="max-w-md text-[clamp(34px,4vw,50px)] font-[950] leading-[1.03] tracking-[-0.045em] text-navy-900">
-                Od odborného tématu ke společnému setkání
+                Od priorit vedení svazu k dopadu v celé republice
               </h2>
               <p className="mt-5 max-w-md text-base leading-relaxed text-slate-600">
-                Partnerství pro svazy není placená distribuce reklamy. Vzniká
-                společný odborný program, který má skutečnou hodnotu pro členy,
-                školy a místní komunitu.
+                Nejde o reklamní prostor, ale o dlouhodobé obsahové partnerství.
+                Svaz dodá odbornost a svou síť, ARCHIMEDES převezme produkci a
+                pomůže dostat program k členům, obcím i školám.
               </p>
               <div className="mt-6 inline-flex rounded-full bg-[#e9f6ef] px-4 py-2 text-sm font-black text-[#167344]">
                 Spolupráce je pro svazy bezplatná

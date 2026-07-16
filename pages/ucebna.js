@@ -183,7 +183,7 @@ function SectionEyebrow({ children }) {
 
 function SectionTitle({ children, style = {} }) {
   return (
-    <div
+    <h2
       style={{
         fontSize: 46,
         lineHeight: 1.02,
@@ -195,7 +195,7 @@ function SectionTitle({ children, style = {} }) {
       }}
     >
       {children}
-    </div>
+    </h2>
   );
 }
 
@@ -370,6 +370,22 @@ export default function Ucebna() {
           </div>
         </section>
 
+        <nav className="classroomNav" aria-label="Obsah stránky venkovní učebny">
+          <div className="classroomNavInner">
+            {[
+              ["Co je učebna", "#prehled"],
+              ["Využití", "#vyuziti"],
+              ["Vybavení", "#vybaveni"],
+              ["Varianty", "#varianty"],
+              ["Rozšíření", "#rozsireni"],
+              ["Reference", "#oceneni"],
+            ].map(([label, href]) => (
+              <a key={href} href={href}>{label}</a>
+            ))}
+            <Link href="/kontakt">Poptat učebnu</Link>
+          </div>
+        </nav>
+
         <section
           id="oceneni"
           style={{
@@ -426,6 +442,7 @@ export default function Ucebna() {
         </section>
 
         <section
+          id="prehled"
           style={{
             maxWidth: 1240,
             margin: "0 auto",
@@ -520,6 +537,7 @@ export default function Ucebna() {
         </section>
 
         <section
+          id="vyuziti"
           style={{
             maxWidth: 1240,
             margin: "0 auto",
@@ -647,6 +665,7 @@ export default function Ucebna() {
         </section>
 
         <section
+          id="vybaveni"
           style={{
             maxWidth: 1240,
             margin: "0 auto",
@@ -918,6 +937,11 @@ export default function Ucebna() {
           </div>
 
           <div className="variantGrid">
+            <div className="variantComparison" aria-label="Rychlé srovnání variant venkovní učebny">
+              <div><strong>OPTIMAL</strong><span>Maximální otevření do přírody</span><b>Sezónní komfort</b></div>
+              <div><strong>OPTIMAL+</strong><span>Vyšší tepelný komfort</span><b>Pravidelný celoroční provoz</b></div>
+              <div><strong>PREMIUM</strong><span>Standard trvalé stavby</span><b>Intenzivní provoz po celý rok</b></div>
+            </div>
             {variants.map((item) => (
               <div key={item.title} className="variantCard">
                 <div className="variantHead">
@@ -994,6 +1018,7 @@ export default function Ucebna() {
         </section>
 
         <section
+          id="rozsireni"
           style={{
             maxWidth: 1240,
             margin: "0 auto",
@@ -1165,6 +1190,47 @@ export default function Ucebna() {
             grid-template-columns: minmax(0, 1.02fr) minmax(420px, 0.98fr);
             gap: 42px;
             align-items: center;
+          }
+
+          .classroomNav {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            border-top: 1px solid rgba(15, 23, 42, 0.08);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(14px);
+          }
+
+          .classroomNavInner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+          }
+
+          .classroomNavInner a {
+            flex: none;
+            padding: 9px 12px;
+            border-radius: 10px;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 800;
+            text-decoration: none;
+          }
+
+          .classroomNavInner a:hover {
+            background: #eef4fa;
+            color: #174f7c;
+          }
+
+          .classroomNavInner a:last-child {
+            margin-left: auto;
+            background: #0f172a;
+            color: #fff;
           }
 
           .heroImageCard {
@@ -1597,6 +1663,28 @@ export default function Ucebna() {
             gap: 18px;
           }
 
+          .variantComparison {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            overflow: hidden;
+            border: 1px solid rgba(15, 23, 42, 0.09);
+            border-radius: 18px;
+            background: #fff;
+          }
+
+          .variantComparison > div {
+            display: grid;
+            gap: 6px;
+            padding: 18px 20px;
+            border-right: 1px solid rgba(15, 23, 42, 0.09);
+          }
+
+          .variantComparison > div:last-child { border-right: 0; }
+          .variantComparison strong { color: #174f7c; font-size: 14px; }
+          .variantComparison span { color: #0f172a; font-weight: 850; }
+          .variantComparison b { color: #64748b; font-size: 13px; font-weight: 700; }
+
           .variantCard {
             background: rgba(255, 255, 255, 0.86);
             border: 1px solid rgba(15, 23, 42, 0.08);
@@ -1858,6 +1946,23 @@ export default function Ucebna() {
           }
 
           @media (max-width: 760px) {
+            .variantComparison {
+              grid-template-columns: 1fr;
+            }
+
+            .variantComparison > div {
+              border-right: 0;
+              border-bottom: 1px solid rgba(15, 23, 42, 0.09);
+            }
+
+            .variantComparison > div:last-child {
+              border-bottom: 0;
+            }
+
+            .classroomNavInner a:last-child {
+              margin-left: 0;
+            }
+
             .awardsTiles {
               grid-template-columns: 1fr;
             }
