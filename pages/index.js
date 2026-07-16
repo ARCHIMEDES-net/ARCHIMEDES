@@ -149,7 +149,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>ARCHIMEDES Live | Silná komunita. Úspěšná obec.</title>
+        <title>ARCHIMEDES Live | Živý program pro školy, obce a komunity</title>
         <meta
           name="description"
           content="Pravidelný živý program pro školy, spolky, seniory a další místní komunity. Lidé se při něm setkávají, vzdělávají a sbližují."
