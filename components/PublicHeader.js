@@ -182,6 +182,23 @@ export default function PublicHeader({ active = "" }) {
           flex: 0 0 auto;
         }
 
+        .ph-logoLink:focus-visible,
+        .ph-navLink:focus-visible,
+        .ph-login:focus-visible,
+        .ph-toggle:focus-visible,
+        .ph-mobileLink:focus-visible,
+        .ph-mobileLogin:focus-visible {
+          outline: 3px solid #2563eb;
+          outline-offset: 3px;
+        }
+
+        .ph-headerHome .ph-logoLink:focus-visible,
+        .ph-headerHome .ph-navLink:focus-visible,
+        .ph-headerHome .ph-login:focus-visible,
+        .ph-headerHome .ph-toggle:focus-visible {
+          outline-color: #efbd58;
+        }
+
         .ph-nav {
           display: flex;
           align-items: center;
