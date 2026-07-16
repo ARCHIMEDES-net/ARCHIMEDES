@@ -93,6 +93,12 @@ export default function ProgramPage() {
                   >
                     Program pro obec
                   </Link>
+                  <Link
+                    href="/skoly"
+                    className="inline-flex h-12 items-center rounded-full border border-slate-300 bg-white px-5 text-sm font-black text-navy-900"
+                  >
+                    Program pro školy
+                  </Link>
                 </div>
               </div>
             </div>
