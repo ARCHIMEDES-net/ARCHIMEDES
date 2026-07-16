@@ -58,7 +58,7 @@ const storyGallery = [
   {
     src: galleryMediaImg,
     title: "Veřejná a mediální pozornost",
-    text: "Projekt, který vzbuzuje zájem odborníků i veřejnosti.",
+    text: "Učebny, které vzbuzují zájem odborníků i veřejnosti.",
     ratio: "standard",
   },
 ];
@@ -84,7 +84,7 @@ const mediaLinks = [
   },
   {
     title: "Česká televize",
-    text: "Zpravodajský výstup věnovaný projektu ARCHIMEDES®.",
+    text: "Zpravodajský výstup věnovaný učebnám ARCHIMEDES®.",
     href: "https://www.ceskatelevize.cz/porady/10253066674-zpravy-ve-12/223411012000328/",
     domain: "ceskatelevize.cz",
   },
@@ -389,7 +389,7 @@ export default function MediaPage() {
           <Card className="p-7 sm:p-8">
             <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <SectionEyebrow>Fotogalerie projektu</SectionEyebrow>
+                <SectionEyebrow>Fotogalerie realizací</SectionEyebrow>
                 <SectionTitle>Atmosféra, technologie a využití</SectionTitle>
               </div>
 
@@ -435,7 +435,7 @@ export default function MediaPage() {
             <div className="grid grid-cols-1 items-center gap-7 lg:grid-cols-[1fr_0.92fr]">
               <div>
                 <SectionEyebrow>Mediální přesah</SectionEyebrow>
-                <SectionTitle>Projekt, který je vidět</SectionTitle>
+                <SectionTitle>Realizace, o kterých se mluví</SectionTitle>
 
                 <p className="mb-4 text-lg leading-[1.78] text-muted">
                   ARCHIMEDES® zaujme nejen svým vzhledem, ale především tím,
@@ -477,15 +477,6 @@ export default function MediaPage() {
                 <SectionEyebrow>ARCHIMEDES® v médiích</SectionEyebrow>
                 <SectionTitle>Výběr článků a reportáží</SectionTitle>
               </div>
-
-              <a
-                href="https://www.archimedesoec.com/media/"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex h-[52px] items-center gap-1.5 rounded-2xl border border-slate-900/10 bg-white/72 px-5 font-bold text-navy-900 shadow-[0_10px_24px_rgba(15,23,42,0.05)]"
-              >
-                Původní přehled médií <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-              </a>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -494,7 +485,7 @@ export default function MediaPage() {
                   key={item.href}
                   href={item.href}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noreferrer noopener"
                   className="block rounded-2xl border border-slate-900/[0.08] bg-gradient-to-b from-white to-slate-50 p-5 shadow-[0_14px_34px_rgba(15,23,42,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.08)]"
                 >
                   <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-900/[0.08] bg-white shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
