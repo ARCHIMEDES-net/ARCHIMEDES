@@ -70,10 +70,10 @@ export const patronageSection = {
       visible: true,
     },
     {
-      id: "msmt",
-      mark: "MŠMT",
-      name: "Ministerstvo školství",
-      role: "mládeže a tělovýchovy",
+      id: "mmr",
+      mark: "MMR",
+      name: "Ministerstvo pro místní rozvoj",
+      role: "České republiky",
       visible: true,
     },
     {
