@@ -97,9 +97,9 @@ export default function KontaktPage() {
 
             <div className="relative min-h-[470px] lg:min-h-full">
               <img
-                src="/komunita.jpg"
-                alt="Mladí lidé při společném programu ARCHIMEDES"
-                className="absolute inset-0 h-full w-full object-cover object-center"
+                src="/spolecna.jpg"
+                alt="Účastníci společného programu před učebnou ARCHIMEDES"
+                className="absolute inset-0 h-full w-full object-cover object-[52%_center]"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#edf5fb]/45 via-transparent to-transparent lg:from-[#edf5fb]/35" />
 
