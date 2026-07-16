@@ -2,10 +2,12 @@
 import "leaflet/dist/leaflet.css";
 import "../styles/globals.css";
 
+import { useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import PublicHeader from "../components/PublicHeader";
 import { Analytics } from "@vercel/analytics/react";
+import { applyCzechNonBreakingSpaces } from "../lib/czechTypography";
 
 function activeKeyFromPath(pathname = "") {
   if (pathname === "/program") return "program";
@@ -47,6 +49,11 @@ export default function App({ Component, pageProps }) {
     !isAccessSetupPage &&
     !isCreateOrganizationPage &&
     !isJoinPage;
+
+  useEffect(() => {
+    if (!showPublicHeader) return undefined;
+    return applyCzechNonBreakingSpaces(document.body);
+  }, [showPublicHeader]);
 
   const active = activeKeyFromPath(pathname);
 
