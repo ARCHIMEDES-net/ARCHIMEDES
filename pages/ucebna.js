@@ -218,7 +218,19 @@ export default function Ucebna() {
       }
     };
 
-    tryPlay();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          tryPlay();
+        } else {
+          video.pause();
+        }
+      },
+      { rootMargin: "240px 0px", threshold: 0.05 }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -868,11 +880,10 @@ export default function Ucebna() {
                   <video
                     ref={salVideoRef}
                     poster={salPoster}
-                    autoPlay
                     muted
                     loop
                     playsInline
-                    preload="auto"
+                    preload="metadata"
                     controls
                     className="croppedVideo cinematicVideo"
                   >
