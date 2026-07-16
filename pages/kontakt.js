@@ -102,6 +102,7 @@ export default function KontaktPage() {
                 alt="Účastníci společného programu před učebnou ARCHIMEDES"
                 fill
                 priority
+                quality={80}
                 sizes="(max-width: 1024px) 100vw, 55vw"
                 className="object-cover object-[52%_center]"
               />
