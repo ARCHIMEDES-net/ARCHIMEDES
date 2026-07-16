@@ -17,6 +17,8 @@ import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import StatsSection from "../components/home/StatsSection";
 import ReferenceCard from "../components/home/ReferenceCard";
+import { AREA_ICONS } from "../components/partners/icons";
+import { communityCategories } from "../content/communityCategories";
 import {
   hero,
   referencesSection,
@@ -141,6 +143,7 @@ export default function Home() {
 
   const visibleReferences = references.filter((r) => r.visible);
   const programmeItems = events.slice(0, 5);
+  const communityAreas = [...communityCategories].sort((a, b) => a.order - b.order);
 
   return (
     <>
@@ -211,6 +214,47 @@ export default function Home() {
 
         {/* NETWORK SIZE STATS */}
         <StatsSection />
+
+        {/* COMMUNITY AREAS — make the value for a mayor visible immediately */}
+        <section className="overflow-hidden bg-[#f2f7fb] py-12 sm:py-14">
+          <div className="mx-auto max-w-[1180px] px-5">
+            <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+              <div className="max-w-md">
+                <SectionEyebrow>Program pro život v obci</SectionEyebrow>
+                <h2 className="text-[clamp(32px,4vw,46px)] font-[950] leading-[1.02] tracking-[-0.045em] text-navy-900">
+                  Podpora pro spolky a komunity, které už u vás fungují
+                </h2>
+                <p className="mt-4 text-[15px] leading-relaxed text-slate-600">
+                  Připravujeme živá vysílání pro různé oblasti místního života.
+                  Každý spolek si vybírá témata, která odpovídají jeho činnosti,
+                  a zve na ně své členy.
+                </p>
+                <Link href="/obec" className="mt-6 inline-flex items-center gap-1.5 text-sm font-black text-brand">
+                  Co obec získá <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-3 lg:grid-cols-4">
+                {communityAreas.map((area) => {
+                  const Icon = AREA_ICONS[area.icon] || Users;
+                  return (
+                    <div
+                      key={area.code}
+                      className="flex min-h-[66px] items-center gap-3 rounded-[16px] border border-slate-900/[0.06] bg-white px-3.5 py-3 shadow-[0_5px_16px_rgba(20,50,80,0.035)]"
+                    >
+                      <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[#eaf1f8] text-brand">
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                      <strong className="text-[13px] leading-tight text-navy-900 sm:text-sm">
+                        {area.title}
+                      </strong>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* PROGRAMME — show the result, not an empty calendar */}
         <section id="program" className="py-12">

@@ -41,6 +41,7 @@ export const communityCategories = [
     title: "Požární ochrana",
     description: "Sbory dobrovolných hasičů a záchranářský dorost",
     partnerSlug: "sh-cms",
+    icon: "Flame",
     order: 1,
   },
   {
@@ -56,6 +57,7 @@ export const communityCategories = [
     title: "Myslivost",
     description: "Myslivecké spolky, péče o krajinu a zvěř",
     partnerSlug: "myslivecka-jednota",
+    icon: "Binoculars",
     order: 3,
   },
   {
@@ -63,6 +65,7 @@ export const communityCategories = [
     title: "Včelařství",
     description: "Včelařské spolky a osvěta o ochraně opylovačů",
     partnerSlug: "svaz-vcelaru",
+    icon: "Sparkles",
     order: 4,
   },
   {
@@ -70,6 +73,7 @@ export const communityCategories = [
     title: "Zahrádkáři a pěstitelé",
     description: "Zahrádkářské spolky a péče o obecní zeleň",
     partnerSlug: "svaz-zahradkaru",
+    icon: "Flower2",
     order: 5,
   },
   {
@@ -77,6 +81,7 @@ export const communityCategories = [
     title: "Rybářství",
     description: "Rybářské spolky a péče o vodní toky a revíry",
     partnerSlug: "rybarsky-svaz",
+    icon: "Fish",
     order: 6,
   },
   {
@@ -108,6 +113,7 @@ export const communityCategories = [
     title: "Senioři",
     description: "Kluby seniorů a mezigenerační program",
     partnerSlug: "rada-senioru",
+    icon: "Accessibility",
     order: 10,
   },
   {
@@ -123,6 +129,7 @@ export const communityCategories = [
     title: "Děti a mládež",
     description: "Skautské oddíly a další organizace pro děti a mládež",
     partnerSlug: "junak",
+    icon: "Users",
     order: 12,
   },
   {
@@ -130,6 +137,7 @@ export const communityCategories = [
     title: "Sociální a zdravotní oblast",
     description: "Charity, Červený kříž, dobrovolníci a pečující organizace",
     partnerSlug: "kridla-pro-budoucnost",
+    icon: "HeartPulse",
     order: 13,
   },
   {
@@ -153,6 +161,7 @@ export const communityCategories = [
     title: "Chytrá obec",
     description: "Smart City kluby, inovace a sdílení dobré praxe",
     partnerSlug: "jinag",
+    icon: "Building2",
     order: 16,
   },
 ];

@@ -9,6 +9,8 @@
 - Seznam se bude rozšiřovat. Nová organizace se přidá až po potvrzení spolupráce a poté se automaticky zobrazí v úplném přehledu.
 - Web je připravován pro zveřejnění ve chvíli, kdy bude potvrzena spolupráce s celým plánovaným souborem organizací.
 - Komunitní oblasti nejsou totéž co partnerské organizace. Nesmějí se vydávat za potvrzené partnery.
+- Homepage má rychle ukázat celou šíři podporovaných oblastí místního života. Tento přehled je nabídkou programu pro spolky a komunity v obci, nikoli seznamem partnerských svazů.
+- První obchodní dojem pro starostu: ARCHIMEDES přináší živý program a podporu pro spolky a komunity, které už v obci fungují.
 
 ## Obsahový princip
 

@@ -9,6 +9,12 @@ import {
   TreeDeciduous,
   Building2,
   Users,
+  Flame,
+  Binoculars,
+  Flower2,
+  Fish,
+  Accessibility,
+  Sparkles,
 } from "lucide-react";
 
 /**
@@ -28,4 +34,10 @@ export const AREA_ICONS = {
   TreeDeciduous,
   Building2,
   Users,
+  Flame,
+  Binoculars,
+  Flower2,
+  Fish,
+  Accessibility,
+  Sparkles,
 };
