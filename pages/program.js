@@ -171,8 +171,14 @@ export default function ProgramPage() {
           <div className="mx-auto grid max-w-[1180px] gap-8 px-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div className="grid grid-cols-3 gap-3">
               {["/pl50.webp", "/pl51.webp", "/pl52.webp"].map((src) => (
-                <div key={src} className="aspect-[3/4] overflow-hidden rounded-[18px] bg-slate-100">
-                  <img src={src} alt="Ukázka proběhlého vysílání ARCHIMEDES Live" className="h-full w-full object-cover" loading="lazy" />
+                <div key={src} className="relative aspect-[3/4] overflow-hidden rounded-[18px] bg-slate-100">
+                  <Image
+                    src={src}
+                    alt="Ukázka proběhlého vysílání ARCHIMEDES Live"
+                    fill
+                    sizes="(max-width: 1024px) 30vw, 180px"
+                    className="object-cover"
+                  />
                 </div>
               ))}
             </div>
