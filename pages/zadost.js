@@ -1,5 +1,7 @@
 import { useState } from "react";
+import Head from "next/head";
 import Link from "next/link";
+import Footer from "../components/Footer";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -86,6 +88,13 @@ export default function ZadostPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <Head>
+        <title>Program pro vaši obec | ARCHIMEDES Live</title>
+        <meta
+          name="description"
+          content="Požádejte o program ARCHIMEDES Live pro školy, spolky, seniory a další komunity ve vaší obci."
+        />
+      </Head>
       <main className="mx-auto max-w-[760px] px-4 py-10">
         <Card className="p-7">
           <Badge variant="outline">{submitted ? "Odesláno" : "Žádost o program pro obec"}</Badge>
@@ -190,6 +199,7 @@ export default function ZadostPage() {
           )}
         </Card>
       </main>
+      <Footer />
     </div>
   );
 }
