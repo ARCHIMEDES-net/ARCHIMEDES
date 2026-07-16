@@ -122,8 +122,8 @@ export default function SkolyPage() {
 
             <div className="relative min-h-[420px] lg:min-h-full">
               <Image
-                src="/hero-vyuka.webp"
-                alt="Žáci společně sledují živý vstup ARCHIMEDES Live"
+                src="/jak-funguje-trida.webp"
+                alt="Žáci se s nadšením zapojují do programu ARCHIMEDES Live"
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 54vw"
