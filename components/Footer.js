@@ -3,7 +3,7 @@ import { footerContent } from "../content/homepage";
 
 const SOCIAL_ICON = {
   facebook: "f",
-  youtube: "▶",
+  instagram: "◎",
   linkedin: "in",
 };
 
@@ -41,18 +41,21 @@ export default function Footer() {
             <div className="footer-col">
               <div className="footer-col-title">Sledujte nás</div>
               <div className="footer-social">
-                {visibleSocial.map((s) => (
-                  <a
-                    key={s.label}
-                    href={s.href}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    aria-label={s.label}
-                    className="footer-social-icon"
-                  >
-                    {SOCIAL_ICON[s.icon] || s.label[0]}
-                  </a>
-                ))}
+                {visibleSocial.map((s) => {
+                  return (
+                    <a
+                      key={s.label}
+                      href={s.href}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      aria-label={s.label}
+                      title={s.label}
+                      className="footer-social-icon"
+                    >
+                      {SOCIAL_ICON[s.icon] || s.label[0]}
+                    </a>
+                  );
+                })}
               </div>
               <Link href="/login" className="footer-link">
                 Přihlášení

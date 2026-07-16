@@ -153,7 +153,26 @@ export const footerContent = {
       ],
     },
   ],
-  social: [],
+  social: [
+    {
+      label: "ARCHIMEDES Live na Facebooku",
+      href: "https://www.facebook.com/profile.php?id=61566688307686&locale=cs_CZ",
+      icon: "facebook",
+      visible: true,
+    },
+    {
+      label: "ARCHIMEDES Live na Instagramu",
+      href: "https://www.instagram.com/archimedes_live/",
+      icon: "instagram",
+      visible: true,
+    },
+    {
+      label: "ARCHIMEDES Live na LinkedIn",
+      href: "https://www.linkedin.com/company/108554477/",
+      icon: "linkedin",
+      visible: true,
+    },
+  ],
   legalLinks: [
     { label: "Ochrana osobních údajů", href: "/ochrana-osobnich-udaju" },
     { label: "Obchodní podmínky", href: "/vop" },
