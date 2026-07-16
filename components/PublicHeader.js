@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { key: "obec", href: "/obec", label: "Pro obce" },
   { key: "pro-organizace", href: "/pro-organizace", label: "Pro organizace" },
   { key: "ucebna", href: "/ucebna", label: "Učebna" },
-  { key: "kalendar", href: "/#kalendar", label: "Kalendář" },
+  { key: "vysilani", href: "/#program", label: "Vysílání" },
   { key: "reference", href: "/#reference", label: "Reference" },
   { key: "o-nas", href: "/o-nas", label: "O nás" },
   { key: "kontakt", href: "/kontakt", label: "Kontakt" },
