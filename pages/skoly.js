@@ -19,6 +19,7 @@ import {
   Users,
 } from "lucide-react";
 import Footer from "../components/Footer";
+import FaqSection, { createFaqStructuredData } from "../components/FaqSection";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import { Button } from "../components/ui/button";
 
@@ -80,6 +81,44 @@ const practicalFacts = [
   "zveřejněné záznamy dostupné v neveřejném archivu",
 ];
 
+const schoolFaqs = [
+  {
+    question: "Pro jaké ročníky je program ARCHIMEDES Live určen?",
+    answer:
+      "Program připravujeme pro 1. i 2. stupeň základních škol. U každého vysílání škola vidí doporučenou věkovou skupinu a téma, takže si učitel snadno vybere pořad vhodný pro svou třídu.",
+  },
+  {
+    question: "Jak živé vysílání ve škole probíhá?",
+    answer:
+      "Učitel otevře pořad v portálu a promítne jej třídě na projektoru nebo interaktivní tabuli. Vysílání je moderované a podle konkrétního formátu mohou žáci reagovat nebo pokládat hostovi otázky.",
+  },
+  {
+    question: "Jaké technické vybavení škola potřebuje?",
+    answer:
+      "Stačí stabilní připojení k internetu, počítač a obrazovka, projektor nebo interaktivní tabule se zvukem. Není potřeba instalovat další složitý systém ani pořizovat speciální technické vybavení.",
+  },
+  {
+    question: "Mohou učitelé využívat také archiv pořadů?",
+    answer:
+      "Ano. Pokud je u pořadu zveřejněný záznam, najdou jej přihlášení učitelé v neveřejném archivu. Díky tomu mohou vhodný obsah zařadit do výuky také později podle aktuálních potřeb třídy.",
+  },
+  {
+    question: "Jsou k vysílání připravené pracovní listy?",
+    answer:
+      "U vybraných pořadů připravujeme pracovní listy nebo další navazující materiály. Pokud jsou k dispozici, učitel je najde u konkrétního vysílání v portálu.",
+  },
+  {
+    question: "Je pro sledování programu nutná venkovní učebna ARCHIMEDES?",
+    answer:
+      "Není. ARCHIMEDES Live lze sledovat v běžné třídě, počítačové učebně nebo jiném prostoru školy. Venkovní učebna ARCHIMEDES je samostatná možnost, která rozšiřuje využití programu i komunitních aktivit.",
+  },
+  {
+    question: "Jak se může škola do programu zapojit?",
+    answer:
+      "Škola se zapojuje pod aktivní partnerskou obcí ARCHIMEDES Live a získá vlastní přístupový kód pro své učitele. Pokud obec ještě zapojená není, škola nebo její zřizovatel nás mohou kontaktovat a společně připravíme další postup.",
+  },
+];
+
 export default function SkolyPage() {
   return (
     <>
@@ -88,6 +127,12 @@ export default function SkolyPage() {
         <meta
           name="description"
           content="Živé vstupy s odborníky, témata z praxe, pracovní listy a záznamy pro základní školy zapojené do ARCHIMEDES Live."
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(createFaqStructuredData(schoolFaqs)),
+          }}
         />
       </Head>
 
@@ -242,6 +287,12 @@ export default function SkolyPage() {
             </div>
           </div>
         </section>
+
+        <FaqSection
+          title="Co školy nejčastěji potřebují vědět"
+          intro="Praktické odpovědi pro vedení školy i učitele před zapojením do programu."
+          items={schoolFaqs}
+        />
 
         <section className="bg-navy-900 py-16 text-white sm:py-20">
           <div className="mx-auto grid max-w-[1180px] gap-9 px-5 lg:grid-cols-[1fr_0.9fr] lg:items-center">
