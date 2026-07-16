@@ -86,7 +86,7 @@ export default function Footer() {
 
       <style jsx global>{`
         .site-footer {
-          margin-top: 60px;
+          margin-top: 0;
           background: #0b1832;
           color: rgba(255, 255, 255, 0.86);
         }
