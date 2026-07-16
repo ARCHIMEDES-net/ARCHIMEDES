@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { track } from "@vercel/analytics";
@@ -159,12 +160,14 @@ export default function Home() {
         {/* HERO */}
         <section className="relative min-h-[680px] overflow-hidden bg-[#153a63] text-white lg:min-h-[78vh]">
           <div className="absolute inset-0">
-            <PhotoWithFallback
+            <Image
               src={hero.photo}
               alt={hero.photoAlt}
-              fallbackLabel="ARCHIMEDES Live"
-              style={{ width: "100%", height: "100%" }}
-              imgStyle={{ objectFit: "cover", objectPosition: "center center" }}
+              fill
+              priority
+              quality={88}
+              sizes="100vw"
+              className="object-cover object-center"
             />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(12,49,87,0.9)_0%,rgba(12,49,87,0.72)_27%,rgba(12,49,87,0.28)_52%,rgba(12,49,87,0.04)_78%)]" />
             <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(9,35,64,0.28)_0%,transparent_34%)]" />
