@@ -39,7 +39,7 @@ export default function CommunityCategoriesSection({ showCta = true }) {
   const sorted = [...communityCategories].sort((a, b) => a.order - b.order);
 
   return (
-    <section id="partnerske-organizace" className="scroll-mt-24 py-14">
+    <section id="oblasti-mistniho-zivota" className="scroll-mt-24 py-14">
       <div className="mx-auto max-w-[1180px] px-5">
         <div className="max-w-2xl">
           <SectionEyebrow>{communityCategoriesSection.eyebrow}</SectionEyebrow>
