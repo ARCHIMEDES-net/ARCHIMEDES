@@ -105,7 +105,7 @@ export default function ZadostPage() {
                 Chci program pro naši obec
               </h1>
               <p className="mb-5 mt-3 text-[17px] leading-relaxed text-muted">
-                Vyplňte krátký formulář — žádost zpracujeme a obec po kontrole zaregistrujeme.
+                Zanechte nám kontaktní údaje. Žádost ověříme a ozveme se vám s dalším postupem zapojení obce.
               </p>
 
               {error ? <Alert variant="error" className="mb-4">Chyba: {error}</Alert> : null}
@@ -122,46 +122,52 @@ export default function ZadostPage() {
                   className="pointer-events-none absolute left-[-9999px] h-0 w-0 opacity-0"
                 />
 
-                <div>
-                  <Label htmlFor="name">Jméno a příjmení*</Label>
-                  <Input id="name" name="name" required value={form.name} onChange={updateField} />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label htmlFor="name">Jméno a příjmení*</Label>
+                    <Input id="name" name="name" autoComplete="name" required value={form.name} onChange={updateField} />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="role">Funkce (volitelně)</Label>
+                    <Select id="role" name="role" value={form.role} onChange={updateField}>
+                      <option value="">Vyberte</option>
+                      <option value="starosta">Starosta/starostka</option>
+                      <option value="mistostarosta">Místostarosta/místostarostka</option>
+                      <option value="zamestnanec-uradu">Zaměstnanec obecního úřadu</option>
+                      <option value="zastupce-spolku">Zástupce spolku v obci</option>
+                      <option value="jine">Jiné</option>
+                    </Select>
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="role">Funkce (volitelně)</Label>
-                  <Select id="role" name="role" value={form.role} onChange={updateField}>
-                    <option value="">Vyberte</option>
-                    <option value="starosta">Starosta/starostka</option>
-                    <option value="mistostarosta">Místostarosta/ka</option>
-                    <option value="zamestnanec-uradu">Zaměstnanec obecního úřadu</option>
-                    <option value="zastupce-spolku">Zástupce spolku v obci</option>
-                    <option value="jine">Jiné</option>
-                  </Select>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label htmlFor="email">E-mail*</Label>
+                    <Input type="email" id="email" name="email" autoComplete="email" required value={form.email} onChange={updateField} />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="phone">Telefon*</Label>
+                    <Input type="tel" id="phone" name="phone" autoComplete="tel" inputMode="tel" required value={form.phone} onChange={updateField} />
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="organization">Název obce*</Label>
-                  <Input id="organization" name="organization" required value={form.organization} onChange={updateField} placeholder="Např. Obec Křenov" />
-                </div>
+                <div className="grid gap-4 sm:grid-cols-[1.35fr_0.65fr]">
+                  <div>
+                    <Label htmlFor="organization">Název obce*</Label>
+                    <Input id="organization" name="organization" autoComplete="organization" required value={form.organization} onChange={updateField} placeholder="Např. Obec Křenov" />
+                  </div>
 
-                <div>
-                  <Label htmlFor="email">E-mail*</Label>
-                  <Input type="email" id="email" name="email" required value={form.email} onChange={updateField} />
-                </div>
-
-                <div>
-                  <Label htmlFor="phone">Telefon*</Label>
-                  <Input id="phone" name="phone" required value={form.phone} onChange={updateField} />
+                  <div>
+                    <Label htmlFor="population">Počet obyvatel (volitelně)</Label>
+                    <Input id="population" name="population" inputMode="numeric" value={form.population} onChange={updateField} />
+                  </div>
                 </div>
 
                 <div>
                   <Label htmlFor="address">Adresa obecního úřadu*</Label>
-                  <Input id="address" name="address" required value={form.address} onChange={updateField} placeholder="Ulice, číslo popisné, obec, PSČ" />
-                </div>
-
-                <div>
-                  <Label htmlFor="population">Přibližný počet obyvatel (volitelně)</Label>
-                  <Input id="population" name="population" value={form.population} onChange={updateField} />
+                  <Input id="address" name="address" autoComplete="street-address" required value={form.address} onChange={updateField} placeholder="Ulice, číslo popisné, obec, PSČ" />
                 </div>
 
                 <div>
@@ -170,9 +176,14 @@ export default function ZadostPage() {
                 </div>
 
                 <div className="mt-1 flex flex-wrap gap-2.5">
-                  <Button type="submit" disabled={saving}>{saving ? "Odesílám..." : "Odeslat žádost"}</Button>
-                  <Button href="/" variant="secondary">Zpět na hlavní stránku</Button>
+                  <Button type="submit" disabled={saving} className="w-full sm:w-auto">{saving ? "Odesílám..." : "Odeslat žádost o program"}</Button>
+                  <Button href="/" variant="secondary" className="w-full sm:w-auto">Zpět na hlavní stránku</Button>
                 </div>
+
+                <p className="text-xs leading-relaxed text-slate-500">
+                  Kontaktní údaje použijeme pouze ke zpracování žádosti a navazující komunikaci. Podrobnosti najdete v {" "}
+                  <Link href="/ochrana-osobnich-udaju" className="font-bold text-navy-900 underline underline-offset-2">zásadách ochrany osobních údajů</Link>.
+                </p>
               </form>
 
               <p className="mt-5 text-sm leading-relaxed text-slate-500">
