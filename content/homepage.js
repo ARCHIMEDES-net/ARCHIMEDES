@@ -13,7 +13,7 @@ export const hero = {
   titleLine2: "Úspěšná obec.",
   subtitle: "Živý program pro celou obec.",
   lead:
-    "Přinášíme obcím pravidelný živý program pro školy, spolky, seniory i další místní komunity. Lidé se při něm setkávají osobně.",
+    "Přinášíme obcím pravidelný živý program pro školy, spolky, seniory i další místní komunity. Program, při kterém se lidé setkávají, vzdělávají a sbližují.",
   primaryCta: { label: "Připojte svou obec", href: "/zadost" },
   secondaryCta: { label: "Jak to funguje", href: "#jak-to-funguje" },
   photo: "/hero-komunita-dsc00554.webp",
