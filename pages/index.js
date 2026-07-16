@@ -11,8 +11,7 @@ import {
 } from "lucide-react";
 import Footer from "../components/Footer";
 import PhotoWithFallback from "../components/PhotoWithFallback";
-import PublicEventCard from "../components/PublicEventCard";
-import { fetchPublicUpcomingEvents } from "../lib/publicEvents";
+import { fetchPublicProgramWindow, normalizeAudience, resolvePosterUrl, safeDate } from "../lib/publicEvents";
 import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import StatsSection from "../components/home/StatsSection";
@@ -53,6 +52,76 @@ const AUDIENCES = [
   },
 ];
 
+const CZ_MONTHS = [
+  "ledna", "února", "března", "dubna", "května", "června",
+  "července", "srpna", "září", "října", "listopadu", "prosince",
+];
+
+function formatProgrammeDate(value) {
+  const date = safeDate(value);
+  if (!date) return "Termín upřesníme";
+  return `${date.getDate()}. ${CZ_MONTHS[date.getMonth()]} ${date.getFullYear()} · ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+function ProgrammeRow({ event, isNearestFuture }) {
+  const date = safeDate(event?.starts_at);
+  const isPast = date ? date.getTime() < Date.now() : false;
+  const posterUrl = resolvePosterUrl(event);
+  const audience = normalizeAudience(event?.audience_groups);
+
+  return (
+    <article className="group grid grid-cols-[72px_1fr] items-center gap-4 border-b border-slate-200 py-4 last:border-b-0 sm:grid-cols-[104px_145px_minmax(0,1fr)_auto]">
+      <div className="h-[58px] overflow-hidden rounded-xl bg-[#eaf1f8] sm:h-[72px]">
+        {posterUrl ? (
+          <img
+            src={posterUrl}
+            alt={event?.title || "Vysílání ARCHIMEDES Live"}
+            loading="lazy"
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-[11px] font-black uppercase tracking-[0.12em] text-brand">
+            Live
+          </div>
+        )}
+      </div>
+
+      <div className="hidden sm:block">
+        <span className="block text-[13px] font-bold leading-snug text-slate-500">
+          {formatProgrammeDate(event?.starts_at)}
+        </span>
+        <span className="mt-1 block text-[11px] font-black uppercase tracking-[0.12em] text-brand">
+          {event?.category || "ARCHIMEDES Live"}
+        </span>
+      </div>
+
+      <div className="min-w-0">
+        <div className="sm:hidden">
+          <span className="text-[12px] font-bold text-slate-500">{formatProgrammeDate(event?.starts_at)}</span>
+        </div>
+        <h3 className="mt-1 text-[17px] font-[900] leading-snug tracking-[-0.02em] text-navy-900 sm:mt-0 sm:text-[19px]">
+          {event?.title || "Připravované vysílání"}
+        </h3>
+        {audience.length ? (
+          <p className="mt-1 text-[13px] text-muted">{audience.slice(0, 2).join(" · ")}</p>
+        ) : null}
+      </div>
+
+      <div className="col-start-2 justify-self-start sm:col-start-auto sm:justify-self-end">
+        <span className={`inline-flex rounded-full px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.08em] ${
+          isNearestFuture
+            ? "bg-[#dff7e8] text-[#167344]"
+            : isPast
+              ? "bg-slate-100 text-slate-500"
+              : "bg-[#eaf1ff] text-brand"
+        }`}>
+          {isNearestFuture ? "Nejbližší vysílání" : isPast ? "Proběhlo" : "Připravujeme"}
+        </span>
+      </div>
+    </article>
+  );
+}
+
 export default function Home() {
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
@@ -60,7 +129,7 @@ export default function Home() {
   useEffect(() => {
     let cancelled = false;
 
-    fetchPublicUpcomingEvents().then((res) => {
+    fetchPublicProgramWindow(5).then((res) => {
       if (cancelled) return;
       setEvents(res.events);
       setEventsLoading(false);
@@ -72,7 +141,7 @@ export default function Home() {
   }, []);
 
   const visibleReferences = references.filter((r) => r.visible);
-  const upcomingCards = events.slice(0, 3);
+  const programmeItems = events.slice(0, 5);
 
   return (
     <>
@@ -144,38 +213,47 @@ export default function Home() {
         {/* NETWORK SIZE STATS */}
         <StatsSection />
 
-        {/* LIVE PROGRAM */}
-        <section id="kalendar" className="py-10">
-          <div className="mx-auto grid max-w-[1180px] gap-7 px-5 lg:grid-cols-[280px_1fr] lg:items-start">
-            <div>
-              <SectionEyebrow>{liveSection.eyebrow}</SectionEyebrow>
-              <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
-                Program, který žije
-              </h2>
-              <p className="mt-3 text-[15px] leading-relaxed text-muted">
-                Každý týden živé vysílání, vzdělávání a setkávání pro různé generace.
-              </p>
-              <Link href="/kalendar" className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-brand">
-                Zobrazit celý program <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </div>
+        {/* PROGRAMME — show the result, not an empty calendar */}
+        <section id="program" className="py-12">
+          <div className="mx-auto max-w-[1180px] px-5">
+            <div className="grid gap-7 lg:grid-cols-[280px_1fr] lg:items-start">
+              <div>
+                <SectionEyebrow>Program ARCHIMEDES Live</SectionEyebrow>
+                <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
+                  Co vysíláme
+                </h2>
+                <p className="mt-3 text-[15px] leading-relaxed text-muted">
+                  Konkrétní pořady, které mohou školy, spolky, senioři a další lidé v obci sledovat společně.
+                </p>
+                <Link href="/kalendar" className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-brand">
+                  Zobrazit celý program <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
 
-            {eventsLoading ? (
-              <div className="rounded-[20px] border border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
-                Načítám nadcházející vysílání…
+              <div className="overflow-hidden rounded-[22px] border border-slate-200 bg-white px-5 shadow-[0_14px_38px_rgba(15,23,42,0.06)] sm:px-6">
+                {eventsLoading ? (
+                  <div className="py-8 text-sm text-slate-500">Načítám vysílání…</div>
+                ) : programmeItems.length ? (
+                  programmeItems.map((event, index) => {
+                    const firstFutureIndex = programmeItems.findIndex(
+                      (item) => (safeDate(item?.starts_at)?.getTime() || 0) >= Date.now()
+                    );
+                    return (
+                      <ProgrammeRow
+                        key={event.id}
+                        event={event}
+                        isNearestFuture={index === firstFutureIndex}
+                      />
+                    );
+                  })
+                ) : (
+                  <div className="py-8">
+                    <strong className="text-navy-900">Program právě doplňujeme.</strong>
+                    <p className="mt-1 text-sm text-muted">Brzy zde uvidíte konkrétní připravovaná vysílání.</p>
+                  </div>
+                )}
               </div>
-            ) : upcomingCards.length ? (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {upcomingCards.map((event) => (
-                  <PublicEventCard key={event.id} event={event} compact />
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-[20px] border border-slate-200 bg-slate-50 p-6">
-                <strong className="text-navy-900">Nový program právě připravujeme.</strong>
-                <p className="mt-1 text-sm text-muted">Všechny potvrzené termíny najdete průběžně v kalendáři.</p>
-              </div>
-            )}
+            </div>
           </div>
         </section>
 
