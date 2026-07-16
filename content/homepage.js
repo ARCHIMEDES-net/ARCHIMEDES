@@ -127,7 +127,8 @@ export const ctaBand = {
 
 export const footerContent = {
   legalName: "EduVision s.r.o.",
-  tagline: "Živý program, při kterém se lidé setkávají, vzdělávají a sbližují.",
+  tagline:
+    "Pravidelný živý program pro školy, spolky, seniory a další komunity v obci.",
   columns: [
     {
       title: "ARCHIMEDES Live",
@@ -141,6 +142,7 @@ export const footerContent = {
       title: "ARCHIMEDES",
       links: [
         { label: "Učebna ARCHIMEDES", href: "/ucebna" },
+        { label: "Média a realizace", href: "/media" },
         { label: "Naše vize", href: "/o-nas" },
         { label: "Kontakt", href: "/kontakt" },
       ],
