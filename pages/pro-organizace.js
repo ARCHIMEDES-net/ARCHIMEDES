@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import PartnersSection from "../components/partners/PartnersSection";
+import CommunityCategoriesSection from "../components/partners/CommunityCategoriesSection";
 
 const benefits = [
   {
@@ -142,6 +143,7 @@ export default function ProOrganizacePage() {
         </section>
 
         <PartnersSection showCta={false} />
+        <CommunityCategoriesSection showCta={false} />
 
         <section className="pb-16 pt-6">
           <div className="mx-auto flex max-w-[1180px] flex-col items-start justify-between gap-5 px-5 sm:flex-row sm:items-center">

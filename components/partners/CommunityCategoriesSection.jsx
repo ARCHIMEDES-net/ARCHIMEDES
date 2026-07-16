@@ -29,14 +29,13 @@ function AreaGlyph({ partner, iconKey }) {
 }
 
 /**
- * The full, unranked overview of all 16 community areas — the "úplný
- * přehled" every "Zobrazit všechny partnerské organizace a oblasti"
- * link points to. Deliberately denser than the homepage's PartnersSection:
- * small glyph, one line of description max, no long copy, no carousel.
+ * Full overview of all 16 community areas used for interest selection.
+ * This is deliberately separate from the complete confirmed-partner list:
+ * an area without a partner must never look like a confirmed organization.
  * Areas are ordered by their fixed catalog `order`, never by partner
  * importance — most areas have no partner at all.
  */
-export default function CommunityCategoriesSection() {
+export default function CommunityCategoriesSection({ showCta = true }) {
   const sorted = [...communityCategories].sort((a, b) => a.order - b.order);
 
   return (
@@ -98,7 +97,7 @@ export default function CommunityCategoriesSection() {
           })}
         </div>
 
-        {communityCategoriesCta.visible ? (
+        {showCta && communityCategoriesCta.visible ? (
           <div className="mt-10 flex flex-col items-start gap-5 rounded-card-lg bg-navy-900 p-7 text-white sm:flex-row sm:items-center sm:justify-between">
             <div>
               <strong className="block text-lg font-bold">{communityCategoriesCta.title}</strong>

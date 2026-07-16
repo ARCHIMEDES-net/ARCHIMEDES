@@ -1,14 +1,10 @@
 /**
- * Data-driven content for the partner presentation (homepage, /obec,
- * /reference, /pro-organizace, footer).
+ * Single source of truth for the complete public partner list on
+ * /pro-organizace.
  *
- * All partners are equal, confirmed contractual partners of ARCHIMEDES
- * Live — there is no ranking or tier between them. `showOnHomepage` is
- * a *placement* flag only (does this org appear in the homepage's
- * space-limited representative selection), never a statement of
- * importance. The full, unranked list of every partner always lives
- * on /pro-organizace via content/communityCategories.js's `partnerSlug`
- * lookup against this file.
+ * All partners are equal. There is no ranking, tier, featured subset or
+ * homepage selection. Every record in this file must render in the public
+ * list. Add an organization only after its collaboration is confirmed.
  *
  * Logos live in /public/partners. A partner without a verified,
  * license-clear official logo asset has no `logo` field and instead
@@ -18,11 +14,9 @@
 
 export const partnersSection = {
   eyebrow: "Partnerské organizace",
-  title: "Společně propojujeme spolky a komunity napříč Českou republikou",
+  title: "Organizace zapojené do společného programu",
   subtitle:
-    "Do ARCHIMEDES Live jsou zapojeny celostátní organizace i místní spolky z různých oblastí komunitního života.",
-  showAllLabel: "Zobrazit všechny partnerské organizace a oblasti",
-  showAllHref: "/pro-organizace#partnerske-organizace",
+    "Úplný, rovnocenný přehled potvrzených partnerů ARCHIMEDES Live. Seznam se průběžně rozšiřuje po potvrzení další spolupráce.",
 };
 
 export const partnersCta = {
@@ -41,7 +35,6 @@ export const partners = [
     logo: "/partners/svaz-vcelaru.png",
     description:
       "Národní organizace sdružující včelaře z celé České republiky. Obcím přináší osvětu o včelaření a ochraně opylovačů.",
-    showOnHomepage: true,
   },
   {
     slug: "myslivecka-jednota",
@@ -50,7 +43,6 @@ export const partners = [
     logo: "/partners/myslivecka-jednota.svg",
     description:
       "Myslivecké spolky po celé republice, péče o krajinu, zvěř a vztah k přírodě.",
-    showOnHomepage: true,
   },
   {
     slug: "sh-cms",
@@ -59,7 +51,6 @@ export const partners = [
     website: "https://www.dh.cz",
     logo: "/partners/sh-cms.png",
     description: "Sbory dobrovolných hasičů a záchranářský dorost po celé republice.",
-    showOnHomepage: true,
   },
   {
     slug: "rybarsky-svaz",
@@ -67,7 +58,6 @@ export const partners = [
     website: "https://www.rybsvaz.cz",
     logo: "/partners/rybarsky-svaz.svg",
     description: "Rybářské spolky a péče o revíry, vodní toky a mladé rybáře.",
-    showOnHomepage: true,
   },
   {
     slug: "svaz-zahradkaru",
@@ -75,7 +65,6 @@ export const partners = [
     website: "https://www.zahradkari.cz",
     logo: "/partners/svaz-zahradkaru.png",
     description: "Zahrádkářské spolky, pěstitelství a péče o veřejnou zeleň v obci.",
-    showOnHomepage: true,
   },
   {
     slug: "rada-senioru",
@@ -83,7 +72,6 @@ export const partners = [
     website: "https://www.rscr.cz",
     logo: "/partners/rada-senioru.png",
     description: "Kluby a spolky seniorů, mezigenerační program a osvěta pro aktivní stárnutí.",
-    showOnHomepage: true,
   },
   {
     slug: "junak",
@@ -92,7 +80,6 @@ export const partners = [
     logo: "/partners/junak.png",
     description:
       "Skautské oddíly a výchova dětí a mládeže k samostatnosti a odpovědnosti.",
-    showOnHomepage: false,
   },
   {
     slug: "kridla-pro-budoucnost",
@@ -101,7 +88,6 @@ export const partners = [
     logo: "/partners/kridla-pro-budoucnost.png",
     description:
       "Podporuje mladé lidi při přechodu z dětských domovů do samostatného života — vzděláváním, mentoringem a dlouhodobou podporou.",
-    showOnHomepage: false,
   },
   {
     slug: "jinag",
@@ -111,6 +97,5 @@ export const partners = [
     logo: "/partners/jinag.png",
     description:
       "Podporuje obce a kraj při zavádění chytrých a inovativních řešení ve veřejné správě.",
-    showOnHomepage: false,
   },
 ];

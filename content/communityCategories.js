@@ -21,10 +21,10 @@
  */
 
 export const communityCategoriesSection = {
-  eyebrow: "Partnerské organizace a oblasti",
-  title: "Celý přehled partnerských organizací a komunitních oblastí",
+  eyebrow: "Oblasti místního života",
+  title: "Pro jaké místní organizace program vzniká",
   subtitle:
-    "16 oblastí komunitního života, kterým ARCHIMEDES Live pomáhá — s konkrétní partnerskou organizací tam, kde existuje.",
+    "Přehled oblastí, podle kterých si místní organizace vybírají témata a pozvánky. Partnerská organizace je uvedena pouze tam, kde je spolupráce potvrzená.",
 };
 
 export const communityCategoriesCta = {

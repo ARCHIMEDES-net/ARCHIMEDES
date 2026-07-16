@@ -17,7 +17,6 @@ import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import StatsSection from "../components/home/StatsSection";
 import ReferenceCard from "../components/home/ReferenceCard";
-import PartnersSection from "../components/partners/PartnersSection";
 import {
   hero,
   referencesSection,
@@ -330,9 +329,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        {/* PARTNERS */}
-        <PartnersSection />
 
         {/* CTA BAND */}
         {ctaBand.visible ? (

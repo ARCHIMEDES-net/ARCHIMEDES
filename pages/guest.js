@@ -349,7 +349,7 @@ export default function GuestPage() {
 
               <div className="mt-6">
                 <div className="text-[28px] font-black leading-[1.08] tracking-[-0.03em] text-[#101b37] sm:text-[32px]">
-                  Natálie Lípová
+                  Tým ARCHIMEDES Live
                 </div>
                 <div className="mt-2 text-lg font-black text-[#315594]">Program & Content Manager</div>
                 <div className="mt-1.5 text-base leading-relaxed text-slate-500">
@@ -359,13 +359,13 @@ export default function GuestPage() {
 
               <div className="mt-5 grid gap-2.5">
                 <a
-                  href="mailto:natalie.lipova@archimedeslive.com"
+                  href="mailto:info@eduvision.cz"
                   className="text-lg font-black text-navy-900 hover:underline sm:text-xl"
                 >
-                  natalie.lipova@archimedeslive.com
+                  info@eduvision.cz
                 </a>
-                <a href="tel:+420737628944" className="text-lg font-black text-navy-900 hover:underline sm:text-xl">
-                  +420 737 628 944
+                <a href="tel:+420732827210" className="text-lg font-black text-navy-900 hover:underline sm:text-xl">
+                  +420 732 827 210
                 </a>
               </div>
             </div>

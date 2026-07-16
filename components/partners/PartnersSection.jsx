@@ -1,23 +1,14 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import SectionEyebrow from "../home/SectionEyebrow";
 import PartnerCard from "./PartnerCard";
 import { partnersSection, partnersCta, partners } from "../../content/partners";
 
-/**
- * Compact, space-limited representative selection of partners — used on
- * the homepage, /obec, /reference and /pro-organizace. `showOnHomepage`
- * on each partner record is a placement flag only, not a ranking: this
- * is never presented as the complete partner list (that lives at
- * /pro-organizace#partnerske-organizace, linked via `showAllLink`).
- */
-export default function PartnersSection({ showAllLink = true, showCta = true }) {
-  const selectedPartners = partners.filter((p) => p.showOnHomepage);
-
-  if (!selectedPartners.length) return null;
+/** Complete, unranked list. Every partner record renders equally. */
+export default function PartnersSection({ showCta = true }) {
+  if (!partners.length) return null;
 
   return (
-    <section className="border-y border-slate-100 bg-slate-50 py-14">
+    <section id="partnerske-organizace" className="scroll-mt-24 border-y border-slate-100 bg-slate-50 py-14">
       <div className="mx-auto max-w-[1180px] px-5">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -30,18 +21,10 @@ export default function PartnersSection({ showAllLink = true, showCta = true }) 
             </p>
           </div>
 
-          {showAllLink ? (
-            <Link
-              href={partnersSection.showAllHref}
-              className="inline-flex items-center gap-1.5 text-sm font-bold text-brand hover:text-navy-900"
-            >
-              {partnersSection.showAllLabel} <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          ) : null}
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {selectedPartners.map((p) => (
+          {partners.map((p) => (
             <PartnerCard key={p.slug} partner={p} />
           ))}
         </div>
