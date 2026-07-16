@@ -13,7 +13,13 @@ import {
 } from "lucide-react";
 import Footer from "../components/Footer";
 import PhotoWithFallback from "../components/PhotoWithFallback";
-import { fetchPublicProgramWindow, normalizeAudience, resolvePosterUrl, safeDate } from "../lib/publicEvents";
+import {
+  createPublicEventStructuredData,
+  fetchPublicProgramWindow,
+  normalizeAudience,
+  resolvePosterUrl,
+  safeDate,
+} from "../lib/publicEvents";
 import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import StatsSection from "../components/home/StatsSection";
@@ -124,17 +130,15 @@ function ProgrammeRow({ event, isNearestFuture }) {
   );
 }
 
-export default function Home() {
-  const [events, setEvents] = useState([]);
-  const [eventsLoading, setEventsLoading] = useState(true);
+export default function Home({ initialEvents = [] }) {
+  const [events, setEvents] = useState(initialEvents);
 
   useEffect(() => {
     let cancelled = false;
 
     fetchPublicProgramWindow(5).then((res) => {
       if (cancelled) return;
-      setEvents(res.events);
-      setEventsLoading(false);
+      if (!res.error) setEvents(res.events || []);
     });
 
     return () => {
@@ -144,6 +148,10 @@ export default function Home() {
 
   const visibleReferences = references.filter((r) => r.visible);
   const programmeItems = events.slice(0, 5);
+  const eventStructuredData = createPublicEventStructuredData(
+    programmeItems,
+    "https://www.archimedeslive.com/program"
+  );
   const communityAreas = [...communityCategories].sort((a, b) => a.order - b.order);
 
   return (
@@ -154,6 +162,12 @@ export default function Home() {
           name="description"
           content="Pravidelný živý program pro školy, spolky, seniory a další místní komunity. Lidé se při něm setkávají, vzdělávají a sbližují."
         />
+        {eventStructuredData ? (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(eventStructuredData) }}
+          />
+        ) : null}
       </Head>
 
       <main className="bg-white text-slate-900">
@@ -277,9 +291,7 @@ export default function Home() {
               </div>
 
               <div className="overflow-hidden rounded-[22px] border border-slate-200 bg-white px-5 shadow-[0_14px_38px_rgba(15,23,42,0.06)] sm:px-6">
-                {eventsLoading ? (
-                  <div className="py-8 text-sm text-slate-500">Načítám vysílání…</div>
-                ) : programmeItems.length ? (
+                {programmeItems.length ? (
                   programmeItems.map((event, index) => {
                     const firstFutureIndex = programmeItems.findIndex(
                       (item) => (safeDate(item?.starts_at)?.getTime() || 0) >= Date.now()
@@ -412,4 +424,19 @@ export default function Home() {
       </main>
     </>
   );
+}
+
+export async function getStaticProps() {
+  try {
+    const result = await fetchPublicProgramWindow(5);
+    return {
+      props: { initialEvents: result.events || [] },
+      revalidate: 300,
+    };
+  } catch {
+    return {
+      props: { initialEvents: [] },
+      revalidate: 300,
+    };
+  }
 }

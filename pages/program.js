@@ -7,7 +7,10 @@ import Footer from "../components/Footer";
 import PublicEventCard from "../components/PublicEventCard";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import { Button } from "../components/ui/button";
-import { fetchPublicProgramWindow } from "../lib/publicEvents";
+import {
+  createPublicEventStructuredData,
+  fetchPublicProgramWindow,
+} from "../lib/publicEvents";
 
 const formats = [
   {
@@ -42,21 +45,24 @@ const formats = [
   },
 ];
 
-export default function ProgramPage() {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function ProgramPage({ initialEvents = [] }) {
+  const [events, setEvents] = useState(initialEvents);
 
   useEffect(() => {
     let cancelled = false;
     fetchPublicProgramWindow(8).then((result) => {
       if (cancelled) return;
-      setEvents(result.events || []);
-      setLoading(false);
+      if (!result.error) setEvents(result.events || []);
     });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const eventStructuredData = createPublicEventStructuredData(
+    events,
+    "https://www.archimedeslive.com/program"
+  );
 
   return (
     <>
@@ -66,6 +72,12 @@ export default function ProgramPage() {
           name="description"
           content="Konkrétní živá vysílání a program ARCHIMEDES Live pro školy, spolky, seniory a místní komunity."
         />
+        {eventStructuredData ? (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(eventStructuredData) }}
+          />
+        ) : null}
       </Head>
 
       <main className="bg-white text-slate-900">
@@ -132,9 +144,7 @@ export default function ProgramPage() {
               </p>
             </div>
 
-            {loading ? (
-              <div className="mt-8 rounded-[22px] bg-[#f3f7fb] p-7 text-sm text-slate-500">Načítám program…</div>
-            ) : events.length ? (
+            {events.length ? (
               <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {events.map((event) => (
                   <PublicEventCard key={event.id} event={event} compact />
@@ -210,4 +220,19 @@ export default function ProgramPage() {
       <Footer />
     </>
   );
+}
+
+export async function getStaticProps() {
+  try {
+    const result = await fetchPublicProgramWindow(8);
+    return {
+      props: { initialEvents: result.events || [] },
+      revalidate: 300,
+    };
+  } catch {
+    return {
+      props: { initialEvents: [] },
+      revalidate: 300,
+    };
+  }
 }
