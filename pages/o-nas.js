@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Image from "next/image";
 import { ArrowRight, Building2, Radio, Users } from "lucide-react";
 import Footer from "../components/Footer";
 import { Button } from "../components/ui/button";
@@ -51,10 +52,13 @@ export default function ONasPage() {
             </div>
 
             <div className="relative min-h-[410px] lg:min-h-full">
-              <img
+              <Image
                 src="/spolecna.jpg"
                 alt="Lidé při společném komunitním setkání ARCHIMEDES"
-                className="absolute inset-0 h-full w-full object-cover"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 55vw"
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#edf5fb]/55 via-transparent to-transparent" />
             </div>
