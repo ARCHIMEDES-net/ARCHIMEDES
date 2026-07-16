@@ -62,7 +62,7 @@ export const referencesSection = {
   eyebrow: "Výsledky projektu ARCHIMEDES",
   title: "Obce, kterým projekt ARCHIMEDES pomohl k významnému ocenění",
   showAllLabel: "Zobrazit všechny reference",
-  showAllHref: "/reference",
+  showAllHref: "/ucebna#oceneni",
   readStoryLabel: "Přečíst příběh",
 };
 
@@ -76,7 +76,7 @@ export const references = [
     crestAlt: null,
     photo: "/cejc.jpg",
     photoAlt: "Obec Čejč, oceněná 1. místem v soutěži Vesnice roku 2026 JMK",
-    storyHref: "/reference",
+    storyHref: "/ucebna#oceneni",
     visible: true,
   },
   {
@@ -88,7 +88,7 @@ export const references = [
     crestAlt: "Ocenění Obec 2030 ČR pro obec Křenov",
     photo: "/krenov.jpg",
     photoAlt: "Obec Křenov, vítěz ocenění Obec 2030 ČR",
-    storyHref: "/reference",
+    storyHref: "/ucebna#oceneni",
     visible: true,
   },
   {
@@ -100,7 +100,7 @@ export const references = [
     crestAlt: "Znak města Hodonín",
     photo: "/zdravamesta.jpg",
     photoAlt: "Ocenění Zdravá města ČR pro Hodonín",
-    storyHref: "/reference",
+    storyHref: "/ucebna#oceneni",
     visible: true,
   },
   {
@@ -113,7 +113,7 @@ export const references = [
     photo: "/provodov-sonov.png",
     photoAlt: "Znak obce Provodov-Šonov, oceněné Bílou stuhou v soutěži Vesnice roku 2026",
     photoFit: "contain",
-    storyHref: "/reference",
+    storyHref: "/ucebna#oceneni",
     visible: true,
   },
 ];
