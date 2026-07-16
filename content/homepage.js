@@ -138,10 +138,10 @@ export const footerContent = {
       ],
     },
     {
-      title: "Projekt",
+      title: "ARCHIMEDES",
       links: [
         { label: "Učebna ARCHIMEDES", href: "/ucebna" },
-        { label: "O projektu", href: "/o-nas" },
+        { label: "Naše vize", href: "/o-nas" },
         { label: "Kontakt", href: "/kontakt" },
       ],
     },

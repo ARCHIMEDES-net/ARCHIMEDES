@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { key: "obec", href: "/obec", label: "Pro obce" },
   { key: "pro-organizace", href: "/pro-organizace", label: "Pro svazy" },
   { key: "ucebna", href: "/ucebna", label: "Učebna ARCHIMEDES" },
-  { key: "o-nas", href: "/o-nas", label: "O projektu" },
+  { key: "o-nas", href: "/o-nas", label: "Naše vize" },
   { key: "kontakt", href: "/kontakt", label: "Kontakt" },
 ];
 

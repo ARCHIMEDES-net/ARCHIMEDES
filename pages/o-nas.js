@@ -26,10 +26,10 @@ export default function ONasPage() {
   return (
     <>
       <Head>
-        <title>O projektu | ARCHIMEDES Live</title>
+        <title>Naše vize | ARCHIMEDES Live</title>
         <meta
           name="description"
-          content="Kdo stojí za projektem ARCHIMEDES Live a proč využíváme živé vysílání k podpoře osobního setkávání v obcích."
+          content="Naší vizí jsou obce, ve kterých kvalitní živý program podporuje školy, spolky a komunity a přivádí lidi k osobnímu setkávání."
         />
       </Head>
 
@@ -38,14 +38,14 @@ export default function ONasPage() {
           <div className="mx-auto grid min-h-[610px] max-w-[1280px] lg:grid-cols-[0.9fr_1.1fr]">
             <div className="flex items-center px-5 py-16 sm:px-10 lg:px-12 lg:py-20">
               <div className="max-w-[600px]">
-                <SectionEyebrow>O projektu</SectionEyebrow>
+                <SectionEyebrow>Naše vize</SectionEyebrow>
                 <h1 className="text-[clamp(44px,6vw,70px)] font-[950] leading-[0.96] tracking-[-0.055em] text-navy-900">
                   Moderní technologie mají lidi přivádět k sobě
                 </h1>
                 <p className="mt-6 max-w-[570px] text-lg leading-relaxed text-slate-700 sm:text-xl">
-                  ARCHIMEDES Live vzniká z jednoduché myšlenky: kvalitní živý
-                  obsah může být důvodem, proč se lidé v obci pravidelně
-                  setkávají, vzdělávají a sdílejí společný čas.
+                  Chceme, aby obce měly dostupný kvalitní program, který
+                  podporuje jejich školy, spolky a komunity a dává lidem další
+                  dobrý důvod setkávat se osobně.
                 </p>
               </div>
             </div>
@@ -53,7 +53,7 @@ export default function ONasPage() {
             <div className="relative min-h-[410px] lg:min-h-full">
               <img
                 src="/spolecna.jpg"
-                alt="Lidé zapojení do projektu před učebnou ARCHIMEDES"
+                alt="Lidé při společném komunitním setkání ARCHIMEDES"
                 className="absolute inset-0 h-full w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#edf5fb]/55 via-transparent to-transparent" />
@@ -64,27 +64,28 @@ export default function ONasPage() {
         <section className="py-16 sm:py-20">
           <div className="mx-auto grid max-w-[1180px] gap-10 px-5 lg:grid-cols-[0.82fr_1.18fr]">
             <div>
-              <SectionEyebrow>Kdo za projektem stojí</SectionEyebrow>
+              <SectionEyebrow>Naše mise</SectionEyebrow>
               <h2 className="max-w-md text-[clamp(34px,4vw,50px)] font-[950] leading-[1.03] tracking-[-0.045em] text-navy-900">
-                Od učeben a školních vysílání k programu pro celou obec
+                Přinášet pravidelný živý program tam, kde lidé skutečně žijí
               </h2>
             </div>
             <div className="space-y-5 text-[17px] leading-relaxed text-slate-700">
               <p>
-                Projekt ARCHIMEDES rozvíjí společnost EduVision s.r.o. Naše
-                zkušenost začala u moderních učeben a živých vzdělávacích pořadů
-                pro školy. Postupně jsme ověřili, že stejný princip může přinášet
-                hodnotu také seniorům, spolkům a dalším místním organizacím.
+                Naší misí je připravovat živá vysílání, odborné hosty a témata,
+                která mohou využívat školy, spolky, senioři i další místní
+                komunity. Obec tak nemusí celý program vytvářet sama.
               </p>
               <p>
-                ARCHIMEDES Live proto spojuje odbornou přípravu pořadu, živé
-                vysílání a místní organizaci setkání. Obsah a technické řešení
-                připravuje náš tým s odbornými partnery. Lidé se zapojují
-                společně ve škole, klubovně, komunitním centru nebo učebně.
+                ARCHIMEDES Live zajišťuje přípravu pořadu, živé vysílání a
+                podklady pro pozvání účastníků. Místní organizace si vybírají
+                užitečná témata a setkání pořádají ve škole, klubovně,
+                komunitním centru nebo učebně.
               </p>
               <p>
-                Program nenahrazuje to, co už v obcích funguje. Nabízí místním
-                komunitám další kvalitní důvod, proč se sejít.
+                Vycházíme ze zkušeností společnosti EduVision s moderními
+                učebnami, živým vzdělávacím programem a dlouhodobou spoluprací
+                se školami a samosprávami. Nenahrazujeme to, co už v obcích
+                funguje. Podporujeme to dalším kvalitním programem.
               </p>
             </div>
           </div>

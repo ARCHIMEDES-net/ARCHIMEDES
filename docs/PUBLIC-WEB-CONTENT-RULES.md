@@ -18,3 +18,4 @@
 - Komunity v obcích už existují a fungují; ARCHIMEDES jejich činnost podporuje společným živým programem.
 - Výsledky realizovaných učeben se nesmějí vydávat za reference programu ARCHIMEDES Live.
 - Veřejná tvrzení, čísla, partneři a ocenění musí být před zveřejněním doložené.
+- Stránka **Naše vize** vysvětluje budoucnost, o kterou usilujeme, a naši misi — co pro ni konkrétně děláme. Není prezentována jako stránka dočasného projektu.
