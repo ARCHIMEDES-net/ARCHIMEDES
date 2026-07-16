@@ -58,6 +58,41 @@ export const stats = [
   },
 ];
 
+export const patronageSection = {
+  eyebrow: "Důvěra",
+  title: "Projekt ARCHIMEDES pod významnými záštitami",
+  items: [
+    {
+      id: "eva-pavlova",
+      mark: "EP",
+      name: "Eva Pavlová",
+      role: "manželka prezidenta České republiky",
+      visible: true,
+    },
+    {
+      id: "msmt",
+      mark: "MŠMT",
+      name: "Ministerstvo školství",
+      role: "mládeže a tělovýchovy",
+      visible: true,
+    },
+    {
+      id: "mpo",
+      mark: "MPO",
+      name: "Ministerstvo průmyslu",
+      role: "a obchodu",
+      visible: true,
+    },
+    {
+      id: "mzp",
+      mark: "MŽP",
+      name: "Ministerstvo životního prostředí",
+      role: "České republiky",
+      visible: true,
+    },
+  ],
+};
+
 export const referencesSection = {
   eyebrow: "Výsledky projektu ARCHIMEDES",
   title: "Obce, kterým projekt ARCHIMEDES pomohl k významnému ocenění",
