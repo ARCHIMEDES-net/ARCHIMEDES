@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Head from "next/head";
 import Image from "next/image";
 import { ArrowRight, ArrowUpRight, X } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
@@ -6,6 +7,7 @@ import { cn } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import SectionEyebrow from "../components/home/SectionEyebrow";
+import Footer from "../components/Footer";
 
 const heroImg = "/kamera.webp";
 const aboutImg = "/detidoucebny.webp";
@@ -25,7 +27,7 @@ const mediaPoints = [
   "realizace ve školách a v obcích",
   "reprezentativní prostor pro vzdělávání i komunitní život",
   "spojení kvalitní architektury, technologií a přírody",
-  "silný vizuální i společenský přesah projektu",
+  "silný vizuální i společenský přesah",
 ];
 
 const storyGallery = [
@@ -251,6 +253,13 @@ export default function MediaPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-slate-50 to-slate-100">
+      <Head>
+        <title>Média a realizace učeben ARCHIMEDES®</title>
+        <meta
+          name="description"
+          content="Reálné realizace venkovních učeben ARCHIMEDES®, jejich využití a výběr článků a reportáží."
+        />
+      </Head>
       <main>
         <section className="mx-auto max-w-[1240px] px-5 pb-6 pt-14">
           <div className="grid grid-cols-1 items-center gap-9 lg:grid-cols-[1.02fr_0.98fr]">
@@ -264,7 +273,7 @@ export default function MediaPage() {
               </h1>
 
               <h2 className="mt-4 max-w-[720px] text-2xl font-bold leading-[1.22] text-slate-700">
-                Podívejte se na projekt, který spojuje vzdělávání, architekturu a komunitní život.
+                Podívejte se na řešení, které spojuje vzdělávání, architekturu a komunitní život.
               </h2>
 
               <p className="mt-4 max-w-[760px] text-xl leading-relaxed text-muted">
@@ -298,7 +307,7 @@ export default function MediaPage() {
           <Card className="p-7 sm:p-8">
             <div className="grid grid-cols-1 items-center gap-7 lg:grid-cols-[1fr_0.92fr]">
               <div>
-                <SectionEyebrow>O projektu</SectionEyebrow>
+                <SectionEyebrow>Podstata učebny</SectionEyebrow>
                 <SectionTitle>Co dělá ARCHIMEDES® výjimečným</SectionTitle>
 
                 <p className="mb-4 text-lg leading-[1.78] text-muted">
@@ -453,7 +462,7 @@ export default function MediaPage() {
               <div className="overflow-hidden rounded-card-md border border-slate-900/[0.08] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.07)]">
                 <SafeImage
                   src={mediaSectionImg}
-                  alt="Mediální pozornost projektu ARCHIMEDES®"
+                  alt="Mediální pozornost věnovaná učebnám ARCHIMEDES®"
                   className="aspect-[16/11] w-full object-cover"
                 />
               </div>
@@ -553,6 +562,7 @@ export default function MediaPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
