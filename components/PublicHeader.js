@@ -191,6 +191,9 @@ export default function PublicHeader({ active = "" }) {
         }
 
         .ph-navLink {
+          display: inline-flex;
+          min-height: 44px;
+          align-items: center;
           text-decoration: none;
           padding: 9px 12px;
           border-radius: 999px;
@@ -240,6 +243,7 @@ export default function PublicHeader({ active = "" }) {
         .ph-login {
           display: inline-flex;
           align-items: center;
+          min-height: 44px;
           gap: 6px;
           text-decoration: none;
           font-size: 14px;
