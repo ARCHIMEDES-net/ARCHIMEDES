@@ -1,0 +1,271 @@
+name: Supabase backup and recovery test
+
+on:
+  schedule:
+    - cron: "17 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: archimedes-live-supabase-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Encrypted database and Storage backup
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      PROJECT_REF: gipikahmjlcynkqexxmz
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+      BACKUP_S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+      BACKUP_S3_REGION: ${{ secrets.BACKUP_S3_REGION }}
+      BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install application dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Validate backup configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            SUPABASE_DB_URL
+            SUPABASE_URL
+            SUPABASE_SERVICE_ROLE_KEY
+            BACKUP_ENCRYPTION_PASSPHRASE
+            BACKUP_S3_ENDPOINT
+            BACKUP_S3_REGION
+            BACKUP_S3_BUCKET
+            AWS_ACCESS_KEY_ID
+            AWS_SECRET_ACCESS_KEY
+          )
+
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required GitHub secret: ${name}" >&2
+              exit 1
+            fi
+          done
+
+          if [[ ${#BACKUP_ENCRYPTION_PASSPHRASE} -lt 24 ]]; then
+            echo "BACKUP_ENCRYPTION_PASSPHRASE must contain at least 24 characters" >&2
+            exit 1
+          fi
+
+      - name: Create database and Storage snapshot
+        id: snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+
+          timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          payload="$RUNNER_TEMP/archimedes-live-${timestamp}"
+          database="$payload/database"
+          storage="$payload/storage"
+          dist="$RUNNER_TEMP/dist"
+          archive="archimedes-live-${timestamp}-${GITHUB_SHA::12}.tar.gz.enc"
+
+          mkdir -p "$database" "$storage" "$dist"
+
+          supabase db dump --db-url "$SUPABASE_DB_URL" \
+            --file "$database/roles.sql" --role-only
+          supabase db dump --db-url "$SUPABASE_DB_URL" \
+            --file "$database/schema.sql"
+          supabase db dump --db-url "$SUPABASE_DB_URL" \
+            --file "$database/data.sql" --use-copy --data-only \
+            --exclude storage.buckets_vectors \
+            --exclude storage.vector_indexes
+
+          pg_dump "$SUPABASE_DB_URL" --format=custom --no-owner --no-privileges \
+            --file "$database/raw-full.dump"
+          pg_dump "$SUPABASE_DB_URL" --format=custom --data-only \
+            --no-owner --no-privileges --schema auth --schema storage \
+            --file "$database/auth-storage-data.dump"
+
+          BACKUP_STORAGE_DIR="$storage" \
+            node scripts/backup/download-supabase-storage.mjs
+
+          cat > "$payload/backup-metadata.json" <<EOF
+          {
+            "projectRef": "$PROJECT_REF",
+            "createdAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "repository": "$GITHUB_REPOSITORY",
+            "commit": "$GITHUB_SHA",
+            "workflowRun": "$GITHUB_RUN_ID"
+          }
+          EOF
+
+          (
+            cd "$payload"
+            find . -type f ! -name MANIFEST.sha256 -print0 \
+              | sort -z \
+              | xargs -0 sha256sum > MANIFEST.sha256
+            sha256sum --check MANIFEST.sha256
+          )
+
+          tar -C "$(dirname "$payload")" -czf "$RUNNER_TEMP/plain.tar.gz" \
+            "$(basename "$payload")"
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 600000 \
+            -in "$RUNNER_TEMP/plain.tar.gz" \
+            -out "$dist/$archive" \
+            -pass env:BACKUP_ENCRYPTION_PASSPHRASE
+
+          (
+            cd "$dist"
+            sha256sum "$archive" > "$archive.sha256"
+          )
+
+          rm -rf "$payload" "$RUNNER_TEMP/plain.tar.gz"
+
+          echo "timestamp=$timestamp" >> "$GITHUB_OUTPUT"
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+          echo "dist=$dist" >> "$GITHUB_OUTPUT"
+          echo "weekday=$(date -u +%u)" >> "$GITHUB_OUTPUT"
+          echo "monthday=$(date -u +%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload encrypted snapshot to independent storage
+        shell: bash
+        env:
+          ARCHIVE: ${{ steps.snapshot.outputs.archive }}
+          DIST: ${{ steps.snapshot.outputs.dist }}
+          TIMESTAMP: ${{ steps.snapshot.outputs.timestamp }}
+          MONTHDAY: ${{ steps.snapshot.outputs.monthday }}
+        run: |
+          set -euo pipefail
+          endpoint=(--endpoint-url "$BACKUP_S3_ENDPOINT")
+          daily="s3://$BACKUP_S3_BUCKET/archimedes-live/daily/$ARCHIVE"
+
+          aws "${endpoint[@]}" s3 cp "$DIST/$ARCHIVE" "$daily" \
+            --region "$BACKUP_S3_REGION" --only-show-errors
+          aws "${endpoint[@]}" s3 cp "$DIST/$ARCHIVE.sha256" "$daily.sha256" \
+            --region "$BACKUP_S3_REGION" --only-show-errors
+
+          if [[ "$MONTHDAY" == "01" ]]; then
+            monthly_prefix="s3://$BACKUP_S3_BUCKET/archimedes-live/monthly/${TIMESTAMP:0:6}"
+            aws "${endpoint[@]}" s3 cp "$DIST/$ARCHIVE" \
+              "$monthly_prefix/$ARCHIVE" \
+              --region "$BACKUP_S3_REGION" --only-show-errors
+            aws "${endpoint[@]}" s3 cp "$DIST/$ARCHIVE.sha256" \
+              "$monthly_prefix/$ARCHIVE.sha256" \
+              --region "$BACKUP_S3_REGION" --only-show-errors
+          fi
+
+      - name: Download the off-site copy and verify integrity
+        shell: bash
+        env:
+          ARCHIVE: ${{ steps.snapshot.outputs.archive }}
+          DIST: ${{ steps.snapshot.outputs.dist }}
+        run: |
+          set -euo pipefail
+          endpoint=(--endpoint-url "$BACKUP_S3_ENDPOINT")
+          source="s3://$BACKUP_S3_BUCKET/archimedes-live/daily/$ARCHIVE"
+          verify="$RUNNER_TEMP/offsite-verify"
+          restored="$RUNNER_TEMP/restored"
+          mkdir -p "$verify" "$restored"
+
+          rm -f "$DIST/$ARCHIVE" "$DIST/$ARCHIVE.sha256"
+          aws "${endpoint[@]}" s3 cp "$source" "$verify/$ARCHIVE" \
+            --region "$BACKUP_S3_REGION" --only-show-errors
+          aws "${endpoint[@]}" s3 cp "$source.sha256" "$verify/$ARCHIVE.sha256" \
+            --region "$BACKUP_S3_REGION" --only-show-errors
+
+          (
+            cd "$verify"
+            sha256sum --check "$ARCHIVE.sha256"
+          )
+
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
+            -in "$verify/$ARCHIVE" \
+            -out "$RUNNER_TEMP/restored.tar.gz" \
+            -pass env:BACKUP_ENCRYPTION_PASSPHRASE
+          tar -C "$restored" -xzf "$RUNNER_TEMP/restored.tar.gz"
+
+          payload="$(find "$restored" -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          test -n "$payload"
+          (
+            cd "$payload"
+            sha256sum --check MANIFEST.sha256
+          )
+          pg_restore --list "$payload/database/raw-full.dump" > /dev/null
+          pg_restore --list "$payload/database/auth-storage-data.dump" > /dev/null
+
+          echo "payload=$payload" >> "$GITHUB_ENV"
+
+      - name: Run weekly database restore test
+        if: steps.snapshot.outputs.weekday == '7' || github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          restore_project="$RUNNER_TEMP/supabase-restore-test"
+          mkdir -p "$restore_project"
+          cd "$restore_project"
+          supabase init
+          supabase start
+
+          local_db="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+          psql --single-transaction --variable ON_ERROR_STOP=1 \
+            --file "$payload/database/roles.sql" \
+            --file "$payload/database/schema.sql" \
+            --command "SET session_replication_role = 'replica';" \
+            --file "$payload/database/data.sql" \
+            --dbname "$local_db"
+
+          psql --variable ON_ERROR_STOP=1 --dbname "$local_db" <<'SQL'
+          DO $$
+          BEGIN
+            IF to_regclass('public.organizations') IS NULL THEN
+              RAISE EXCEPTION 'Restored table public.organizations is missing';
+            END IF;
+            IF to_regclass('public.organization_members') IS NULL THEN
+              RAISE EXCEPTION 'Restored table public.organization_members is missing';
+            END IF;
+            IF to_regclass('public.profiles') IS NULL THEN
+              RAISE EXCEPTION 'Restored table public.profiles is missing';
+            END IF;
+          END
+          $$;
+          SELECT count(*) AS organizations FROM public.organizations;
+          SELECT count(*) AS organization_members FROM public.organization_members;
+          SELECT count(*) AS profiles FROM public.profiles;
+          SQL
+
+          supabase stop --no-backup
+
+      - name: Keep a short encrypted emergency copy in GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backup-${{ steps.snapshot.outputs.timestamp }}
+          path: |
+            ${{ runner.temp }}/offsite-verify/${{ steps.snapshot.outputs.archive }}
+            ${{ runner.temp }}/offsite-verify/${{ steps.snapshot.outputs.archive }}.sha256
+          retention-days: 14
+          if-no-files-found: error
