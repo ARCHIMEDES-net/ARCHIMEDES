@@ -188,7 +188,7 @@ export default function ZadostPage() {
               <div className="mb-7 grid gap-3 text-base leading-relaxed text-muted">
                 <div><strong className="text-navy-900">Co bude následovat:</strong></div>
                 <div>1. Vaši žádost zaevidujeme a zkontrolujeme.</div>
-                <div>2. Obec aktivuje platformový administrátor.</div>
+                <div>2. Po ověření obec aktivujeme v ARCHIMEDES Live.</div>
                 <div>3. Kontaktní osoba obdrží přístup pod svým stávajícím nebo nově založeným účtem.</div>
               </div>
               <div className="flex flex-wrap gap-2.5">
