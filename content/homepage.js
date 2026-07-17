@@ -178,6 +178,7 @@ export const footerContent = {
       title: "ARCHIMEDES",
       links: [
         { label: "Učebna ARCHIMEDES", href: "/ucebna" },
+        { label: "ARCHIMEDES DAY", href: "/archimedes-day" },
         { label: "Média a realizace", href: "/media" },
         { label: "Naše vize", href: "/o-nas" },
         { label: "Kontakt", href: "/kontakt" },
