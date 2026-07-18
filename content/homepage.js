@@ -189,7 +189,7 @@ export const footerContent = {
       title: "Přístup",
       links: [
         { label: "Přihlášení", href: "/login" },
-        { label: "Žádost pro obec", href: "/zadost" },
+        { label: "Žádost o program", href: "/zadost" },
       ],
     },
   ],
