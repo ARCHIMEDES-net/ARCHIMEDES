@@ -7,6 +7,14 @@ import SectionEyebrow from "../components/home/SectionEyebrow";
 
 const team = [
   {
+    name: "Antonín Koplík",
+    role: "Jednatel společnosti",
+    email: "antonin.koplik@archimedeslive.com",
+    phone: "+420 733 643 121",
+    note: "Autor ARCHIMEDES Live",
+    image: "/team-antonin.webp",
+  },
+  {
     name: "Zuzana Novotná",
     role: "Manažerka platformy",
     email: "zuzana.novotna@archimedeslive.com",
