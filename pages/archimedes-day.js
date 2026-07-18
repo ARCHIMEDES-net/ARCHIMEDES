@@ -466,6 +466,31 @@ export default function ArchimedesDayPage() {
           </div>
         </section>
 
+        <section id="gallery" className="ad-section ad-section-dark">
+          <div className="ad-shell">
+            <div className="ad-heading">
+              <p className="ad-kicker">{t.galleryKicker}</p>
+              <h2>{t.galleryTitle}</h2>
+              <p>{t.galleryIntro}</p>
+            </div>
+
+            <div className="ad-gallery">
+              {GALLERY.map((item) => (
+                <figure className="ad-gallery-item" key={item.src}>
+                  <Image
+                    src={`${GALLERY_PATH}/${item.src}`}
+                    alt={lang === "cz" ? item.cz : item.en}
+                    width={1024}
+                    height={item.landscape ? 683 : 1536}
+                    sizes="(max-width: 720px) 100vw, (max-width: 1120px) 50vw, 33vw"
+                    className="ad-gallery-image"
+                  />
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section className="ad-section ad-section-light">
           <div className="ad-shell ad-intro">
             <div className="ad-intro-text">
@@ -568,31 +593,6 @@ export default function ArchimedesDayPage() {
               <h2>{t.classroomTitle}</h2>
               <p>{t.classroomText1}</p>
               <p>{t.classroomText2}</p>
-            </div>
-          </div>
-        </section>
-
-        <section id="gallery" className="ad-section ad-section-dark">
-          <div className="ad-shell">
-            <div className="ad-heading">
-              <p className="ad-kicker">{t.galleryKicker}</p>
-              <h2>{t.galleryTitle}</h2>
-              <p>{t.galleryIntro}</p>
-            </div>
-
-            <div className="ad-gallery">
-              {GALLERY.map((item) => (
-                <figure className="ad-gallery-item" key={item.src}>
-                  <Image
-                    src={`${GALLERY_PATH}/${item.src}`}
-                    alt={lang === "cz" ? item.cz : item.en}
-                    width={1024}
-                    height={item.landscape ? 683 : 1536}
-                    sizes="(max-width: 720px) 100vw, (max-width: 1120px) 50vw, 33vw"
-                    className="ad-gallery-image"
-                  />
-                </figure>
-              ))}
             </div>
           </div>
         </section>
