@@ -23,20 +23,20 @@ const team = [
     image: "/team-zuzana.webp",
   },
   {
-    name: "Roman Tuzar",
-    role: "Ředitel pro strategická partnerství",
-    email: "roman.tuzar@eduvision.cz",
-    phone: "+420 736 457 835",
-    note: "Spolupráce s institucemi, partnery a organizacemi",
-    image: "/team-roman.webp",
-  },
-  {
     name: "Simona Gavlíková",
     role: "Manažerka komunity a partnerství",
     email: "simona.gavlikova@archimedeslive.com",
     phone: "+420 603 467 337",
     note: "Komunita, spolupráce, partneři",
     image: "/team-simona.webp",
+  },
+  {
+    name: "Roman Tuzar",
+    role: "Ředitel pro strategická partnerství",
+    email: "roman.tuzar@eduvision.cz",
+    phone: "+420 736 457 835",
+    note: "Spolupráce s institucemi, partnery a organizacemi",
+    image: "/team-roman.webp",
   },
   {
     name: "Dominik Ševčík",
