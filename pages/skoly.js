@@ -57,8 +57,8 @@ const categories = [
 const steps = [
   {
     number: "01",
-    title: "Obec zapojí školu do programu",
-    text: "Škola se registruje pod aktivní partnerskou obcí ARCHIMEDES Live. Jedna obecní licence tak slouží škole i dalším místním organizacím.",
+    title: "Škola si zvolí způsob zapojení",
+    text: "Může využít program své aktivní partnerské obce, nebo si celý ARCHIMEDES Live objednat samostatně za stejnou jednotnou cenu.",
   },
   {
     number: "02",
@@ -115,7 +115,7 @@ const schoolFaqs = [
   {
     question: "Jak se může škola do programu zapojit?",
     answer:
-      "Škola se zapojuje pod aktivní partnerskou obcí ARCHIMEDES Live a získá vlastní přístupový kód pro své učitele. Pokud obec ještě zapojená není, škola nebo její zřizovatel nás mohou kontaktovat a společně připravíme další postup.",
+      "Škola se může zapojit pod aktivní partnerskou obcí ARCHIMEDES Live, nebo si celý program objednat samostatně. V obou případech získá vlastní přístupový kód pro své učitele a stejný obsah programu.",
   },
 ];
 
@@ -264,12 +264,12 @@ export default function SkolyPage() {
               <div className="lg:sticky lg:top-28">
                 <SectionEyebrow>Zapojení školy</SectionEyebrow>
                 <h2 className="max-w-md text-[clamp(34px,4vw,50px)] font-[950] leading-[1.03] tracking-[-0.045em] text-navy-900">
-                  Škola je součástí programu své obce
+                  Škola se může zapojit samostatně i prostřednictvím obce
                 </h2>
                 <p className="mt-5 max-w-md text-base leading-relaxed text-slate-600">
-                  ARCHIMEDES Live funguje jako společný program pro obec. Škola
-                  proto nemusí pořizovat oddělenou licenci a zapojuje se pod
-                  registračním číslem partnerské obce.
+                  Pokud je obec zapojená, škola může využít její společný program.
+                  Ve velkém městě, u soukromé školy nebo tam, kde obec zatím
+                  zapojená není, si škola objedná stejný program sama.
                 </p>
               </div>
 
@@ -317,17 +317,17 @@ export default function SkolyPage() {
                 Chcete zapojit svou školu?
               </h3>
               <p className="mt-3 text-[15px] leading-relaxed text-slate-600">
-                Pokud už je vaše obec v ARCHIMEDES Live aktivní, můžete školu
-                rovnou zaregistrovat. Pokud ještě zapojená není, ozvěte se nám
-                a společně připravíme další postup pro školu i zřizovatele.
+                Celý program stojí 1 990 Kč měsíčně. Pokud už je vaše obec
+                v ARCHIMEDES Live aktivní, můžete školu připojit jejím
+                registračním číslem bez samostatného předplatného.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
-                <Button href="/registrace-skoly">
-                  Registrovat školu
+                <Button href="/zadost?type=skola">
+                  Chci program pro školu
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Button>
-                <Button href="/kontakt" variant="secondary">
-                  Kontaktovat nás
+                <Button href="/registrace-skoly" variant="secondary">
+                  Máme kód obce
                 </Button>
               </div>
             </div>

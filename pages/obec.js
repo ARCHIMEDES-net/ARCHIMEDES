@@ -16,7 +16,7 @@ const outcomes = [
   {
     icon: Users,
     title: "Program pro různé skupiny",
-    text: "Škola, spolky, senioři a další místní organizace využívají jednu obecní licenci.",
+    text: "Škola, spolky i senioři využívají jeden společný program obce.",
   },
   {
     icon: MapPin,
@@ -29,12 +29,12 @@ const steps = [
   {
     number: "01",
     title: "Obec vstoupí do programu",
-    text: "Po uzavření spolupráce získá registrační číslo pro místní školu, spolky a organizace.",
+    text: "Po uzavření spolupráce získá registrační číslo pro školu a spolky v obci.",
   },
   {
     number: "02",
-    title: "Organizace si vyberou témata",
-    text: "Každá organizace se zaregistruje pod svou obcí a označí oblasti, které ji zajímají.",
+    title: "Škola a spolky si vyberou témata",
+    text: "Škola a jednotlivé spolky se zaregistrují pod obcí a označí oblasti, které je zajímají.",
   },
   {
     number: "03",
@@ -45,33 +45,33 @@ const steps = [
 
 const included = [
   "živá vysílání a moderovaný program",
-  "pozvánky podle zaměření organizace",
+  "pozvánky podle zaměření školy nebo spolku",
   "přístup školy, spolků i seniorů",
   "záznamy a navazující materiály, jsou-li u pořadu k dispozici",
   "jedno registrační číslo pro celou obec",
-  "podpora při zapojení místních organizací",
+  "podpora při zapojení školy a spolků",
 ];
 
 const municipalityFaqs = [
   {
-    question: "Co obec v rámci licence ARCHIMEDES Live získá?",
+    question: "Co obec v rámci ARCHIMEDES Live získá?",
     answer:
-      "Obec získá pravidelný živý a moderovaný program, pozvánky podle zaměření místních organizací a přístup pro školu, spolky, seniory i další zapojené skupiny. Součástí je také podpora při jejich zapojení a dostupné záznamy či materiály u vybraných pořadů.",
+      "Obec získá pravidelný živý a moderovaný program, pozvánky podle zaměření školy a spolků a přístup pro školu, spolky, seniory i další zapojené skupiny. Součástí je také podpora při jejich zapojení a dostupné záznamy či materiály u vybraných pořadů.",
   },
   {
     question: "Kdo všechno může program v obci využívat?",
     answer:
-      "Pod jedním registračním číslem obce se mohou zapojit místní školy, spolky, seniorské skupiny a další organizace. Každá z nich si zvolí oblasti zájmu a dostává pozvánky na pořady, které jsou pro její členy relevantní.",
+      "Pod jedním registračním číslem obce se mohou zapojit škola, spolky a seniorské skupiny. Každý zapojený subjekt si zvolí oblasti zájmu a dostává pozvánky na relevantní pořady.",
   },
   {
-    question: "Kolik stojí licence pro obec?",
+    question: "Kolik stojí program pro obec?",
     answer:
-      "Licence stojí 1 990 Kč měsíčně pro celou obec. Za jednotlivé školy, spolky, seniorské skupiny ani další místní organizace zapojené pod registračním číslem obce se nepřiplácí.",
+      "Program stojí 1 990 Kč měsíčně pro celou obec. Za školu, spolky ani seniorské skupiny zapojené pod registračním číslem obce se nepřiplácí.",
   },
   {
     question: "Musí obec připravovat a organizovat vlastní pořady?",
     answer:
-      "Nemusí. ARCHIMEDES Live zajišťuje téma, hosta, moderaci i technické vysílání. Obec nebo místní organizace pouze vyberou vhodné pořady, pozvou účastníky a zajistí místo, kde se společně setkají.",
+      "Nemusí. ARCHIMEDES Live zajišťuje téma, hosta, moderaci i technické vysílání. Obec, škola nebo spolek pouze vyberou vhodné pořady, pozvou účastníky a zajistí místo, kde se společně setkají.",
   },
   {
     question: "Je pro zapojení nutná venkovní učebna ARCHIMEDES?",
@@ -79,9 +79,9 @@ const municipalityFaqs = [
       "Není. Program lze sledovat ve škole, klubovně, knihovně, komunitním centru nebo jiném vhodném prostoru s internetem a obrazovkou. Venkovní učebna ARCHIMEDES je samostatná možnost pro obce, které chtějí vytvořit trvalé zázemí pro výuku i komunitní život.",
   },
   {
-    question: "Jak probíhá zapojení školy a místních organizací?",
+    question: "Jak probíhá zapojení školy a spolků?",
     answer:
-      "Po uzavření spolupráce získá obec registrační číslo. Škola a další místní organizace se pod tímto číslem zaregistrují, nastaví si oblasti zájmu a následně dostávají pozvánky na vhodná živá vysílání.",
+      "Po uzavření spolupráce získá obec registrační číslo. Škola a spolky se pod tímto číslem zaregistrují, nastaví si oblasti zájmu a následně dostávají pozvánky na vhodná živá vysílání.",
   },
   {
     question: "Jsou po vysílání dostupné záznamy?",
@@ -97,7 +97,7 @@ export default function ObecPage() {
         <title>Program pro obce | ARCHIMEDES Live</title>
         <meta
           name="description"
-          content="Pravidelný živý program pro školy, spolky, seniory a další místní organizace v jedné obecní licenci."
+          content="Pravidelný živý program pro školu, spolky, seniory a další obyvatele v jednom předplatném pro celou obec."
         />
         <script
           type="application/ld+json"
@@ -118,7 +118,7 @@ export default function ObecPage() {
                 </h1>
                 <p className="mt-6 max-w-[570px] text-lg leading-relaxed text-slate-700 sm:text-xl">
                   Obec získá pravidelný živý program pro místní školu, spolky,
-                  seniory a další organizace. Obsah připravíme my. Lidé se díky
+                  seniory a další obyvatele. Obsah připravíme my. Lidé se díky
                   němu potkají přímo ve své obci.
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3">
@@ -174,9 +174,9 @@ export default function ObecPage() {
                   Obec nemusí vytvářet další program sama
                 </h2>
                 <p className="mt-5 max-w-md text-base leading-relaxed text-slate-600">
-                  ARCHIMEDES zajišťuje obsah a vysílání. Místní organizace si
-                  vybírají témata a svolávají své členy na pořady, které jsou pro
-                  ně užitečné.
+                  ARCHIMEDES zajišťuje obsah a vysílání. Škola a spolky si
+                  vybírají témata a svolávají žáky nebo členy na pořady, které
+                  jsou pro ně užitečné.
                 </p>
               </div>
 
@@ -198,7 +198,7 @@ export default function ObecPage() {
         <section className="bg-[#f3f7fb] py-16 sm:py-20">
           <div className="mx-auto grid max-w-[1180px] gap-8 px-5 lg:grid-cols-[1fr_0.9fr] lg:items-center">
             <div>
-              <SectionEyebrow>Jedna obecní licence</SectionEyebrow>
+              <SectionEyebrow>Jedno předplatné pro obec</SectionEyebrow>
               <h2 className="max-w-xl text-[clamp(34px,4vw,50px)] font-[950] leading-[1.03] tracking-[-0.045em] text-navy-900">
                 Jeden program pro školu, spolky i seniory
               </h2>
@@ -219,8 +219,8 @@ export default function ObecPage() {
                 <span className="ml-2 text-base font-bold tracking-normal text-slate-500">/ měsíc</span>
               </div>
               <p className="mt-4 text-[15px] leading-relaxed text-slate-600">
-                Jedna licence pro celou obec, bez příplatku za jednotlivé místní
-                organizace zapojené pod jejím registračním číslem.
+                Jeden celý program pro obec, bez příplatku za školu a jednotlivé
+                spolky zapojené pod jejím registračním číslem.
               </p>
               <Button href="/zadost" className="mt-7 w-full sm:w-auto">
                 Nezávazně probrat zapojení
@@ -232,7 +232,7 @@ export default function ObecPage() {
 
         <FaqSection
           title="Co obce nejčastěji potřebují vědět"
-          intro="Praktické odpovědi pro vedení obce, školu i místní organizace před zapojením do programu."
+          intro="Praktické odpovědi pro vedení obce, školu i spolky před zapojením do programu."
           items={municipalityFaqs}
         />
       </main>

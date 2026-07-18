@@ -22,16 +22,16 @@
 
 export const communityCategoriesSection = {
   eyebrow: "Oblasti místního života",
-  title: "Pro jaké místní organizace program vzniká",
+  title: "Pro jaké spolky program vzniká",
   subtitle:
-    "Přehled oblastí, podle kterých si místní organizace vybírají témata a pozvánky. Partnerská organizace je uvedena pouze tam, kde je spolupráce potvrzená.",
+    "Přehled oblastí, podle kterých si spolky vybírají témata a pozvánky. Národní svaz nebo organizace jsou uvedeny pouze tam, kde je spolupráce potvrzená.",
 };
 
 export const communityCategoriesCta = {
-  title: "Zapojte celou obec",
+  title: "Zapojte obec nebo svůj spolek",
   subtitle:
-    "Vyplňte krátkou žádost a ozveme se vám s dalším postupem, jak zapojit spolky ve vaší obci.",
-  cta: { label: "Chci program pro naši obec", href: "/zadost" },
+    "Vyplňte krátkou žádost. Spolek se může zapojit prostřednictvím obce nebo samostatně.",
+  cta: { label: "Chci zapojit obec nebo spolek", href: "/zadost" },
   visible: true,
 };
 

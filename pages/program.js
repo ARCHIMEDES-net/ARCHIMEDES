@@ -199,7 +199,7 @@ export default function ProgramPage({ initialEvents = [] }) {
               ))}
             </div>
             <div>
-              <SectionEyebrow>Archiv pro zapojené obce</SectionEyebrow>
+              <SectionEyebrow>Archiv pro zapojené obce, školy a spolky</SectionEyebrow>
               <h2 className="text-[clamp(32px,4vw,46px)] font-[950] leading-[1.04] tracking-[-0.045em] text-navy-900">
                 Vysíláním program nekončí
               </h2>
@@ -210,7 +210,7 @@ export default function ProgramPage({ initialEvents = [] }) {
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button href="/login">Přihlásit se do portálu</Button>
-                <Button href="/zadost" variant="secondary">Chci program pro naši obec</Button>
+                <Button href="/zadost" variant="secondary">Chci zapojit obec, školu nebo spolek</Button>
               </div>
             </div>
           </div>

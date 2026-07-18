@@ -36,28 +36,32 @@ export default async function handler(req, res) {
 
     const organizationId = String(req.body?.organizationId || "").trim();
     if (!organizationId) {
-      return res.status(400).json({ error: "Chybí ID obce." });
+      return res.status(400).json({ error: "Chybí ID organizace." });
     }
 
-    const { data: municipality, error: municipalityError } = await supabaseAdmin
+    const { data: customer, error: customerError } = await supabaseAdmin
       .from("organizations")
       .select(
-        "id, name, org_type, status, license_status, contact_name, contact_email, registration_number"
+        "id, name, org_type, status, license_status, parent_organization_id, contact_name, contact_email, registration_number"
       )
       .eq("id", organizationId)
       .maybeSingle();
 
-    if (municipalityError) throw municipalityError;
-    if (!municipality || municipality.org_type !== "obec") {
-      return res.status(404).json({ error: "Obec nebyla nalezena." });
+    if (customerError) throw customerError;
+    if (
+      !customer ||
+      !["municipality", "obec", "school", "association", "spolek"].includes(customer.org_type) ||
+      customer.parent_organization_id
+    ) {
+      return res.status(404).json({ error: "Samostatný zákazník nebyl nalezen." });
     }
 
-    const contactEmail = String(municipality.contact_email || "").trim().toLowerCase();
-    const contactName = String(municipality.contact_name || "").trim();
+    const contactEmail = String(customer.contact_email || "").trim().toLowerCase();
+    const contactName = String(customer.contact_name || "").trim();
 
     if (!contactEmail || !contactName) {
       return res.status(409).json({
-        error: "Obec nemá kompletní kontaktní osobu a nelze jí bezpečně vytvořit správce.",
+        error: "Zákazník nemá kompletní kontaktní osobu a nelze mu bezpečně vytvořit správce.",
       });
     }
 
@@ -85,16 +89,16 @@ export default async function handler(req, res) {
       invitationSent = true;
     }
 
-    if (!userId) throw new Error("Nepodařilo se určit účet správce obce.");
+    if (!userId) throw new Error("Nepodařilo se určit účet správce organizace.");
 
     const token = String(req.headers.authorization || "").match(/^Bearer\s+(.+)$/i)?.[1];
     if (!token) return res.status(401).json({ error: "Chybí autorizace uživatele." });
 
     const authenticatedClient = createAuthenticatedClient(token);
     const { data: activationRows, error: activationError } = await authenticatedClient.rpc(
-      "activate_municipality_with_admin",
+      "activate_customer_with_admin",
       {
-        p_organization_id: municipality.id,
+        p_organization_id: customer.id,
         p_user_id: userId,
         p_email: contactEmail,
         p_full_name: contactName,
@@ -109,8 +113,9 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       ok: true,
-      organizationId: municipality.id,
-      registrationNumber: activated?.registration_number || municipality.registration_number,
+      organizationId: customer.id,
+      registrationNumber: activated?.registration_number || customer.registration_number,
+      organizationType: customer.org_type,
       invitationSent,
     });
   } catch (error) {
@@ -130,7 +135,7 @@ export default async function handler(req, res) {
         // Zachováme původní chybu aktivace.
       }
     }
-    console.error("activate-municipality error:", error);
-    return res.status(500).json({ error: "Aktivaci obce se nepodařilo dokončit." });
+    console.error("activate-customer error:", error);
+    return res.status(500).json({ error: "Aktivaci zákazníka se nepodařilo dokončit." });
   }
 }

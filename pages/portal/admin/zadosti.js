@@ -9,6 +9,15 @@ import { Alert } from "../../../components/ui/alert";
 import { Select } from "../../../components/ui/select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../../components/ui/table";
 
+export function getServerSideProps() {
+  return {
+    redirect: {
+      destination: "/portal/admin/obce",
+      permanent: false,
+    },
+  };
+}
+
 const STATUS_OPTIONS = [
   { value: "new", label: "Nová" },
   { value: "contacted", label: "Kontaktováno" },

@@ -71,7 +71,7 @@ const PAGE_SEO = {
   "/obec": {
     title: "Program pro obce | ARCHIMEDES Live",
     description:
-      "Pravidelný živý program pro školy, spolky, seniory a další místní organizace v jedné obecní licenci.",
+      "Pravidelný živý program pro školu, spolky, seniory a další obyvatele v jednom předplatném pro celou obec.",
     image: "/ucebna-komunita.webp",
     imageWidth: 700,
     imageHeight: 467,
@@ -80,7 +80,7 @@ const PAGE_SEO = {
     service: {
       name: "ARCHIMEDES Live pro obce",
       serviceType: "Živý vzdělávací a komunitní program pro obce",
-      audienceType: "Obce, jejich školy, spolky, senioři a místní organizace",
+      audienceType: "Obce, jejich školy, spolky, senioři a další obyvatelé",
     },
   },
   "/skoly": {
@@ -98,10 +98,25 @@ const PAGE_SEO = {
       audienceType: "Žáci a učitelé 1. a 2. stupně základních škol",
     },
   },
-  "/pro-organizace": {
-    title: "Pro svazy a národní organizace | ARCHIMEDES Live",
+  "/spolky": {
+    title: "Živý program pro spolky | ARCHIMEDES Live",
     description:
-      "Partnerství pro svazy a národní organizace, které chtějí vysílat k místním členům a přiblížit svou činnost školám.",
+      "Živý odborný program pro hasiče, včelaře, myslivce, rybáře, zahrádkáře, seniorské a další spolky.",
+    image: "/ucebna-komunita.webp",
+    imageWidth: 700,
+    imageHeight: 467,
+    imageAlt: "Společné setkání u programu ARCHIMEDES Live",
+    breadcrumbName: "Pro spolky",
+    service: {
+      name: "ARCHIMEDES Live pro spolky",
+      serviceType: "Živý vzdělávací a komunitní program pro spolky",
+      audienceType: "Spolky a jejich členové",
+    },
+  },
+  "/pro-organizace": {
+    title: "Pro národní svazy a organizace | ARCHIMEDES Live",
+    description:
+      "Partnerství pro národní svazy a organizace, které chtějí vysílat k místním členům a přiblížit svou činnost školám.",
     image: "/program-vysilani.webp",
     imageWidth: 1024,
     imageHeight: 683,
@@ -148,14 +163,14 @@ const PAGE_SEO = {
     breadcrumbName: "Kontakt",
   },
   "/zadost": {
-    title: "Program pro vaši obec | ARCHIMEDES Live",
+    title: "Zapojit obec, školu nebo spolek | ARCHIMEDES Live",
     description:
-      "Požádejte o program ARCHIMEDES Live pro školy, spolky, seniory a další komunity ve vaší obci.",
+      "Objednejte jednotný program ARCHIMEDES Live pro obec, školu nebo spolek za 1 990 Kč měsíčně.",
     image: "/ucebna-komunita.webp",
     imageWidth: 700,
     imageHeight: 467,
     imageAlt: "Komunitní program ARCHIMEDES Live v obci",
-    breadcrumbName: "Žádost pro obec",
+    breadcrumbName: "Žádost o program",
   },
   "/media": {
     title: "Média a realizace učeben ARCHIMEDES®",

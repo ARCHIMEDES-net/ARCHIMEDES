@@ -1,7 +1,6 @@
 
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
-import crypto from "crypto";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -15,20 +14,33 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 }
 
-function normalizeLeadType(value, isDemoRequest = false) {
-  if (isDemoRequest) return "demo";
+const CUSTOMER_TYPES = {
+  obec: {
+    orgType: "municipality",
+    leadType: "obec",
+    label: "Obec",
+    accusative: "obec",
+    duplicateLabel: "obec",
+  },
+  skola: {
+    orgType: "school",
+    leadType: "skola",
+    label: "Škola",
+    accusative: "školu",
+    duplicateLabel: "školu",
+  },
+  spolek: {
+    orgType: "association",
+    leadType: "komunita",
+    label: "Spolek",
+    accusative: "spolek",
+    duplicateLabel: "spolek",
+  },
+};
 
-  const v = String(value || "").toLowerCase().trim();
-
-  if (["škola", "skola", "school"].includes(v)) return "skola";
-  if (["obec", "město", "mesto", "obec / město", "obec / mesto"].includes(v)) {
-    return "obec";
-  }
-  if (["senior-klub", "senior klub", "senior", "senior club"].includes(v)) {
-    return "senior";
-  }
-  if (["spolek", "komunita", "community"].includes(v)) return "komunita";
-  return "obec";
+function resolveCustomerType(value) {
+  const key = String(value || "").toLowerCase().trim();
+  return CUSTOMER_TYPES[key] ? { key, ...CUSTOMER_TYPES[key] } : null;
 }
 
 function escapeHtml(value = "") {
@@ -124,7 +136,7 @@ function buildEmailLayout({
   `;
 }
 
-function buildApplicantEmail({ name, isDemoRequest }) {
+function buildApplicantEmail({ name, customer }) {
   const safeName = escapeHtml(name || "");
 
   const intro = `
@@ -132,74 +144,32 @@ function buildApplicantEmail({ name, isDemoRequest }) {
     <p style="margin:0;">děkujeme za Váš zájem o ARCHIMEDES Live.</p>
   `;
 
-  const bodyHtml = isDemoRequest
-    ? `
-      <div style="padding:18px 20px;border-radius:18px;background:#eefaf0;border:1px solid #cfe8d3;color:#166534;">
-        <strong>Vaši žádost o ukázkový přístup jsme v pořádku přijali.</strong>
-      </div>
-
-      <div style="margin-top:20px;">
-        <p style="margin:0 0 12px;">
-          Nyní ji zpracujeme a po schválení Vám pošleme e-mail s tlačítkem pro vstup do ukázkového prostředí ARCHIMEDES Live.
-        </p>
-
-        <p style="margin:0 0 12px;">
-          V ukázce si můžete projít, jak ARCHIMEDES Live funguje z pohledu školy a jak vypadá prostředí programu, archivu a pracovních materiálů.
-        </p>
-      </div>
-    `
-    : `
+  const bodyHtml = `
       <div style="padding:18px 20px;border-radius:18px;background:#eefaf0;border:1px solid #cfe8d3;color:#166534;">
         <strong>Vaši žádost o přístup jsme v pořádku přijali.</strong>
       </div>
 
       <div style="margin-top:20px;">
         <p style="margin:0 0 12px;">
-          Zpracujeme Vaši žádost a obec zaregistrujeme.
+          Žádost ověříme a poté ${escapeHtml(customer.accusative)} zaregistrujeme.
         </p>
       </div>
     `;
 
-  const noteHtml = isDemoRequest
-    ? `
-      Pokud e-mail během několika minut nenajdete, zkontrolujte prosím i složku Hromadné nebo Spam.<br /><br />
-      Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
-    `
-    : `
+  const noteHtml = `
       Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
     `;
 
   return {
     subject: "ARCHIMEDES Live – přijali jsme Vaši žádost",
-    text: isDemoRequest
-      ? `
-Dobrý den${name ? ` ${name}` : ""},
-
-děkujeme za Váš zájem o ARCHIMEDES Live.
-
-Vaši žádost o ukázkový přístup jsme v pořádku přijali.
-
-Nyní ji zpracujeme a po schválení Vám pošleme e-mail s tlačítkem pro vstup do ukázkového prostředí ARCHIMEDES Live.
-
-V ukázce si můžete projít, jak ARCHIMEDES Live funguje z pohledu školy a jak vypadá prostředí programu, archivu a pracovních materiálů.
-
-Pokud e-mail během několika minut nenajdete, zkontrolujte prosím i složku Hromadné nebo Spam.
-
-Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
-
-S pozdravem,
-
-Tým ARCHIMEDES Live
-${SITE_URL}
-      `.trim()
-      : `
+    text: `
 Dobrý den${name ? ` ${name}` : ""},
 
 děkujeme za Váš zájem o ARCHIMEDES Live.
 
 Vaši žádost o přístup jsme v pořádku přijali.
 
-Zpracujeme Vaši žádost a obec zaregistrujeme.
+Žádost ověříme a poté ${customer.accusative} zaregistrujeme.
 
 Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
 
@@ -209,13 +179,9 @@ Tým ARCHIMEDES Live
 ${SITE_URL}
       `.trim(),
     html: buildEmailLayout({
-      preheader: isDemoRequest
-        ? "Vaši žádost o ukázkový přístup jsme přijali."
-        : "Vaši žádost o přístup jsme přijali.",
-      eyebrow: isDemoRequest ? "Ukázkový přístup" : "Žádost o přístup",
-      title: isDemoRequest
-        ? "Žádost o ukázkový přístup jsme přijali"
-        : "Žádost jsme přijali",
+      preheader: "Vaši žádost o přístup jsme přijali.",
+      eyebrow: `Žádost • ${customer.label}`,
+      title: "Žádost jsme přijali",
       intro,
       bodyHtml,
       noteHtml,
@@ -231,19 +197,18 @@ ${SITE_URL}
 // takže žadatel klidně mohl zkusit formulář odeslat znovu a omylem
 // založit duplicitní obec (smoke test 11.7.2026).
 async function sendRequestEmails({
-  demoMode,
+  customer,
   cleanEmail,
   cleanName,
   cleanRole,
   cleanOrganization,
   cleanAddress,
   cleanPopulation,
-  cleanType,
+  cleanLegalIdentifier,
   cleanMessage,
   cleanPhone,
   createdAt,
   leadId,
-  approveUrl,
 }) {
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = Number(process.env.SMTP_PORT);
@@ -270,30 +235,30 @@ async function sendRequestEmails({
     from: mailFrom,
     to: mailTo,
     replyTo: cleanEmail,
-    subject: demoMode
-      ? `ARCHIMEDES Live – DEMO | ${cleanOrganization} | ${cleanName}`
-      : `ARCHIMEDES Live – ŽÁDOST | ${cleanOrganization} | ${cleanName}`,
+    subject: `ARCHIMEDES Live – ŽÁDOST ${customer.label.toUpperCase()} | ${cleanOrganization} | ${cleanName}`,
     priority: "high",
     text: `
 Přišla nová žádost z webu ARCHIMEDES Live
 
 ID: ${leadId}
 
-Typ žádosti:
-${demoMode ? "Ukázkový přístup" : "Standardní přístup"}
-
-Typ organizace:
-${cleanType || "-"}
+Typ zákazníka:
+${customer.label}
 
 Jméno:
 ${cleanName}
-${!demoMode ? `\nFunkce:\n${cleanRole || "-"}\n` : ""}
+Funkce:
+${cleanRole || "-"}
 Organizace:
 ${cleanOrganization}
 
 Adresa:
 ${cleanAddress}
-${!demoMode ? `\nPřibližný počet obyvatel:\n${cleanPopulation || "-"}\n` : ""}
+IČO:
+${cleanLegalIdentifier || "-"}
+
+Přibližný počet obyvatel:
+${cleanPopulation || "-"}
 Email:
 ${cleanEmail}
 
@@ -306,46 +271,31 @@ ${cleanMessage || "-"}
 Datum:
 ${createdAt}
 
-${approveUrl ? `Schválit demo: ${approveUrl}` : ""}
       `.trim(),
     html: `
         <div style="font-family:Segoe UI,Arial,sans-serif;color:#0f172a;line-height:1.6;">
           <h2 style="margin:0 0 16px;">Přišla nová žádost z webu ARCHIMEDES Live</h2>
 
           <p><strong>ID:</strong> ${escapeHtml(String(leadId))}</p>
-          <p><strong>Typ žádosti:</strong> ${demoMode ? "Ukázkový přístup" : "Standardní přístup"}</p>
-          <p><strong>Typ organizace:</strong> ${escapeHtml(cleanType || "-")}</p>
+          <p><strong>Typ zákazníka:</strong> ${escapeHtml(customer.label)}</p>
           <p><strong>Jméno:</strong> ${escapeHtml(cleanName)}</p>
-          ${!demoMode ? `<p><strong>Funkce:</strong> ${escapeHtml(cleanRole || "-")}</p>` : ""}
+          <p><strong>Funkce:</strong> ${escapeHtml(cleanRole || "-")}</p>
           <p><strong>Organizace:</strong> ${escapeHtml(cleanOrganization)}</p>
           <p><strong>Adresa:</strong> ${escapeHtml(cleanAddress)}</p>
-          ${!demoMode ? `<p><strong>Přibližný počet obyvatel:</strong> ${escapeHtml(cleanPopulation || "-")}</p>` : ""}
+          <p><strong>IČO:</strong> ${escapeHtml(cleanLegalIdentifier || "-")}</p>
+          <p><strong>Přibližný počet obyvatel:</strong> ${escapeHtml(cleanPopulation || "-")}</p>
           <p><strong>Email:</strong> ${escapeHtml(cleanEmail)}</p>
           <p><strong>Telefon:</strong> ${escapeHtml(cleanPhone || "-")}</p>
           <p><strong>Zpráva:</strong><br />${escapeHtml(cleanMessage || "-").replace(/\n/g, "<br />")}</p>
           <p><strong>Datum:</strong> ${escapeHtml(createdAt)}</p>
 
-          ${
-            approveUrl
-              ? `
-                <div style="margin-top:24px;">
-                  <a
-                    href="${escapeHtml(approveUrl)}"
-                    style="display:inline-block;padding:12px 18px;background:#111827;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;"
-                  >
-                    Schválit demo
-                  </a>
-                </div>
-              `
-              : ""
-          }
         </div>
       `,
   });
 
   const applicantMail = buildApplicantEmail({
     name: cleanName,
-    isDemoRequest: demoMode,
+    customer,
   });
 
   await transporter.sendMail({
@@ -371,6 +321,7 @@ export default async function handler(req, res) {
       organization,
       address,
       population,
+      legalIdentifier,
       type,
       message,
       isDemoRequest,
@@ -390,8 +341,10 @@ export default async function handler(req, res) {
     const cleanPhone = String(phone || "").trim();
     const cleanOrganization = String(organization || "").trim();
     const cleanAddress = String(address || "").trim();
-    const cleanPopulation = String(population || "").trim();
-    const cleanType = String(type || "").trim();
+    const requestedPopulation = String(population || "").trim();
+    const cleanLegalIdentifier = String(legalIdentifier || "").replace(/\s+/g, "").trim();
+    const customer = resolveCustomerType(type);
+    const cleanPopulation = customer?.key === "obec" ? requestedPopulation : "";
     const cleanMessage = String(message || "").trim();
     const demoMode = !!isDemoRequest;
 
@@ -399,6 +352,14 @@ export default async function handler(req, res) {
       return res.status(410).json({
         error: "Demo přístup již není součástí nabídky ARCHIMEDES Live.",
       });
+    }
+
+    if (!customer) {
+      return res.status(400).json({ error: "Vyberte prosím obec, školu nebo spolek." });
+    }
+
+    if (cleanLegalIdentifier && !/^\d{8}$/.test(cleanLegalIdentifier)) {
+      return res.status(400).json({ error: "IČO musí obsahovat přesně 8 číslic." });
     }
 
     if (!cleanName || cleanName.length < 2) {
@@ -411,75 +372,63 @@ export default async function handler(req, res) {
 
     if (!cleanOrganization) {
       return res.status(400).json({
-        error: demoMode
-          ? "Vyplňte prosím školu nebo organizaci."
-          : "Vyplňte prosím název obce.",
+        error: `Vyplňte prosím název: ${customer.label.toLowerCase()}.`,
       });
     }
 
     if (!cleanAddress) {
       return res.status(400).json({
-        error: demoMode
-          ? "Vyplňte prosím adresu."
-          : "Vyplňte prosím adresu obecního úřadu.",
+        error: "Vyplňte prosím adresu sídla.",
       });
     }
 
-    if (demoMode) {
-      if (cleanPhone && cleanPhone.length < 6) {
-        return res.status(400).json({ error: "Telefon je příliš krátký." });
-      }
-    } else {
-      if (!cleanPhone) {
-        return res.status(400).json({ error: "Vyplňte prosím telefon." });
-      }
-      if (cleanPhone.length < 6) {
-        return res.status(400).json({ error: "Telefon je příliš krátký." });
-      }
+    if (!cleanPhone) {
+      return res.status(400).json({ error: "Vyplňte prosím telefon." });
+    }
+    if (cleanPhone.length < 6) {
+      return res.status(400).json({ error: "Telefon je příliš krátký." });
     }
 
     // Duplicitu ověříme před prvním zápisem. Původní pořadí nejprve
     // vytvořilo lead a teprve potom vrátilo 409, takže opakovaný formulář
     // zanechal v administraci falešnou novou žádost.
     const { data: conflicting, error: conflictError } = await supabase.rpc(
-      "find_conflicting_obec",
-      { p_email: cleanEmail, p_name: cleanOrganization }
+      "find_conflicting_customer",
+      {
+        p_org_type: customer.orgType,
+        p_email: cleanEmail,
+        p_name: cleanOrganization,
+        p_legal_identifier: cleanLegalIdentifier || null,
+        p_address: cleanAddress,
+      }
     );
 
     if (conflictError) {
-      console.error("duplicate obec check error:", conflictError);
+      console.error("duplicate customer check error:", conflictError);
       return res.status(500).json({
-        error: "Nepodařilo se ověřit, zda obec už není zaregistrovaná.",
+        error: "Nepodařilo se ověřit, zda už subjekt není zaregistrovaný.",
       });
     }
 
     if (conflicting && conflicting.length > 0) {
       return res.status(409).json({
         error:
-          "Žádost pro tuto obec už evidujeme (podle e-mailu nebo názvu obce). Pokud potřebujete něco upravit nebo se nám ozvat znovu, napište nám prosím přes stránku Kontakt.",
+          `Žádost pro ${customer.duplicateLabel} už evidujeme. Pokud potřebujete něco upravit, napište nám prosím přes stránku Kontakt.`,
       });
     }
 
     const createdAt = new Date().toISOString();
 
-    const approveToken = demoMode
-      ? crypto.randomBytes(32).toString("hex")
-      : null;
-
-    const requestHeader = demoMode
-      ? "Typ žádosti: demo přístup"
-      : "Typ žádosti: standardní přístup";
-
-    const organizationTypeLine = demoMode
-      ? `Typ organizace: ${cleanType || "neuvedeno"}`
-      : "";
+    const requestHeader = "Typ žádosti: standardní přístup";
+    const organizationTypeLine = `Typ zákazníka: ${customer.label}`;
     const roleLine = cleanRole ? `Funkce: ${cleanRole}` : "";
-    const sourceLine = demoMode
-      ? "Zdroj: web archimedeslive.com/zadost-o-pristup?type=demo"
-      : "Zdroj: web archimedeslive.com/zadost-o-pristup";
+    const sourceLine = `Zdroj: web archimedeslive.com/zadost?type=${customer.key}`;
     const addressLine = `Adresa: ${cleanAddress}`;
     const populationLine = cleanPopulation
       ? `Přibližný počet obyvatel: ${cleanPopulation}`
+      : "";
+    const legalIdentifierLine = cleanLegalIdentifier
+      ? `IČO: ${cleanLegalIdentifier}`
       : "";
 
     const composedMessage = [
@@ -487,6 +436,7 @@ export default async function handler(req, res) {
       roleLine,
       organizationTypeLine,
       addressLine,
+      legalIdentifierLine,
       populationLine,
       sourceLine,
       cleanMessage || "",
@@ -498,7 +448,7 @@ export default async function handler(req, res) {
       .from("leads")
       .insert([
         {
-          type: normalizeLeadType(cleanType, demoMode),
+          type: customer.leadType,
           contact_name: cleanName,
           email: cleanEmail,
           organization: cleanOrganization,
@@ -506,8 +456,8 @@ export default async function handler(req, res) {
           note: composedMessage,
           status: "new",
           created_at: createdAt,
-          approve_token: approveToken,
-          approve_token_created_at: approveToken ? createdAt : null,
+          approve_token: null,
+          approve_token_created_at: null,
         },
       ])
       .select("id")
@@ -520,75 +470,77 @@ export default async function handler(req, res) {
 
     const leadId = data?.id || "-";
 
-    // Krok 1 (obec): odeslání žádosti rovnou zakládá organizaci se stavem
-    // pending_approval — žádná fronta, obec vzniká okamžitě, jen neaktivní.
-    // registration_number se dopočítá triggerem (viz migrace 0003).
+    // Odeslání žádosti zakládá zvoleného zákazníka se stavem
+    // pending_approval. Organizace je do ručního schválení neaktivní.
     // status: "inactive" navíc (nad rámec license_status) brání tomu, aby
     // šlo neschválenou obec obejít přes auto-generovaný join_code v
     // pages/api/join-organization.js, který kontroluje jen status
     // active/trial.
-    if (!demoMode) {
-      const { data: orgData, error: orgError } = await supabase
-        .from("organizations")
-        .insert([
-          {
-            name: cleanOrganization,
-            org_type: "obec",
-            status: "inactive",
-            contact_name: cleanName,
-            contact_email: cleanEmail,
-            contact_phone: cleanPhone || null,
-          },
-        ])
-        .select("id, registration_number")
-        .single();
-
-      if (orgError) {
-        console.error("Organization creation error:", orgError);
-        return res.status(500).json({ error: "Nepodařilo se založit obec." });
+    const { data: orgRows, error: orgError } = await supabase.rpc(
+      "create_pending_customer",
+      {
+        p_name: cleanOrganization,
+        p_org_type: customer.orgType,
+        p_legal_identifier: cleanLegalIdentifier || null,
+        p_address: cleanAddress,
+        p_contact_name: cleanName,
+        p_contact_email: cleanEmail,
+        p_contact_phone: cleanPhone || null,
       }
+    );
 
-      // Archiv/log žádosti — schválně nesmí být blokující krok (§5.1).
-      try {
-        await supabase.from("access_requests").insert([
-          {
-            license_type: "obec",
-            contact_name: cleanName,
-            organization: cleanOrganization,
-            address: cleanAddress,
-            email: cleanEmail,
-            phone: cleanPhone || null,
-            message: composedMessage,
-            status: "new",
-            organization_id: orgData.id,
-          },
-        ]);
-      } catch (archiveError) {
-        console.error("access_requests archive error:", archiveError);
+    const orgData = orgRows?.[0];
+
+    if (orgError) {
+      console.error("Organization creation error:", orgError);
+      await supabase.from("leads").delete().eq("id", leadId);
+      if (orgError.code === "23505") {
+        return res.status(409).json({
+          error: `Žádost pro ${customer.duplicateLabel} už evidujeme.`,
+        });
       }
+      return res.status(500).json({ error: "Nepodařilo se založit čekající organizaci." });
     }
 
-    const approveUrl =
-      demoMode && approveToken
-        ? `${SITE_URL}/api/demo-approve-from-email?token=${approveToken}`
-        : null;
+    if (!orgData?.id) {
+      await supabase.from("leads").delete().eq("id", leadId);
+      return res.status(500).json({ error: "Nepodařilo se ověřit vytvořenou organizaci." });
+    }
+
+    // Archiv/log žádosti je doplňkový a nesmí zablokovat
+    // hotovou žádost. Supabase chybu vrací v objektu, nevyhazuje ji.
+    const { error: archiveError } = await supabase.from("access_requests").insert([
+      {
+        license_type: customer.key,
+        contact_name: cleanName,
+        organization: cleanOrganization,
+        address: cleanAddress,
+        email: cleanEmail,
+        phone: cleanPhone || null,
+        message: composedMessage,
+        status: "new",
+        organization_id: orgData.id,
+      },
+    ]);
+    if (archiveError) {
+      console.error("access_requests archive error:", archiveError);
+    }
 
     let emailSent = false;
     try {
       await sendRequestEmails({
-        demoMode,
+        customer,
         cleanEmail,
         cleanName,
         cleanRole,
         cleanOrganization,
         cleanAddress,
         cleanPopulation,
-        cleanType,
+        cleanLegalIdentifier,
         cleanMessage,
         cleanPhone,
         createdAt,
         leadId,
-        approveUrl,
       });
       emailSent = true;
     } catch (emailError) {

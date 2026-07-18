@@ -77,9 +77,11 @@ export default async function handler(req, res) {
   let schoolId = null;
 
   try {
-    const { registrationNumber, name, contactName, email, phone } = req.body || {};
+    const { registrationNumber, name, address, legalIdentifier, contactName, email, phone } = req.body || {};
     const cleanRegistrationNumber = String(registrationNumber || "").trim();
     const cleanName = String(name || "").trim();
+    const cleanAddress = String(address || "").trim();
+    const cleanLegalIdentifier = String(legalIdentifier || "").replace(/\s+/g, "").trim();
     const cleanContactName = String(contactName || "").trim();
     const cleanEmail = String(email || "").trim().toLowerCase();
     const cleanPhone = String(phone || "").trim();
@@ -88,6 +90,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Vyplňte registrační číslo obce." });
     }
     if (!cleanName) return res.status(400).json({ error: "Vyplňte název školy." });
+    if (!cleanAddress) return res.status(400).json({ error: "Vyplňte adresu školy." });
+    if (cleanLegalIdentifier && !/^\d{8}$/.test(cleanLegalIdentifier)) {
+      return res.status(400).json({ error: "IČO musí obsahovat přesně 8 číslic." });
+    }
     if (cleanContactName.length < 2) {
       return res.status(400).json({ error: "Vyplňte kontaktní osobu." });
     }
@@ -102,7 +108,7 @@ export default async function handler(req, res) {
       .from("organizations")
       .select("id, status, license_status")
       .eq("registration_number", cleanRegistrationNumber)
-      .eq("org_type", "obec")
+      .in("org_type", ["municipality", "obec"])
       .maybeSingle();
 
     if (municipalityError) throw municipalityError;
@@ -116,17 +122,33 @@ export default async function handler(req, res) {
       });
     }
 
-    const { data: duplicate, error: duplicateError } = await supabaseAdmin
-      .from("organizations")
-      .select("id")
-      .eq("parent_organization_id", municipality.id)
-      .eq("org_type", "school")
-      .ilike("name", cleanName)
-      .limit(1);
+    const { data: duplicateUnderMunicipality, error: duplicateUnderMunicipalityError } =
+      await supabaseAdmin
+        .from("organizations")
+        .select("id")
+        .eq("parent_organization_id", municipality.id)
+        .eq("org_type", "school")
+        .ilike("name", cleanName)
+        .limit(1);
+
+    if (duplicateUnderMunicipalityError) throw duplicateUnderMunicipalityError;
+
+    const { data: duplicate, error: duplicateError } = await supabaseAdmin.rpc(
+      "find_conflicting_customer",
+      {
+        p_org_type: "school",
+        p_email: cleanEmail,
+        p_name: cleanName,
+        p_legal_identifier: cleanLegalIdentifier || null,
+        p_address: cleanAddress,
+      }
+    );
 
     if (duplicateError) throw duplicateError;
-    if (duplicate?.length) {
-      return res.status(409).json({ error: "Tato škola už je pod obcí zaregistrovaná." });
+    if (duplicateUnderMunicipality?.length || duplicate?.length) {
+      return res.status(409).json({
+        error: "Tuto školu už evidujeme. Kvůli zachování účtů a historie ji nepřipojujte podruhé; kontaktujte nás a existující školu bezpečně propojíme s obcí.",
+      });
     }
 
     registrant = await resolveOrganizationRegistrant({
@@ -144,6 +166,8 @@ export default async function handler(req, res) {
         org_type: "school",
         status: "active",
         parent_organization_id: municipality.id,
+        legal_identifier: cleanLegalIdentifier || null,
+        registered_address: cleanAddress,
         contact_name: registrant.fullName,
         contact_email: registrant.email,
         contact_phone: cleanPhone,

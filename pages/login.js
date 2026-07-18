@@ -444,7 +444,7 @@ export default function LoginPage() {
             </Button>
 
             <Button href="/zadost" variant="secondary">
-              Chci program pro naši obec
+              Chci zapojit obec, školu nebo spolek
             </Button>
           </div>
         </form>
