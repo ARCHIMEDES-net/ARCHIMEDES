@@ -37,10 +37,10 @@ export default function ProOrganizacePage() {
   return (
     <>
       <Head>
-        <title>Pro svazy a národní organizace | ARCHIMEDES Live</title>
+        <title>Pro národní svazy a organizace | ARCHIMEDES Live</title>
         <meta
           name="description"
-          content="Partnerství pro svazy a národní organizace, které chtějí vysílat k místním členům a přiblížit svou činnost školám."
+          content="Partnerství pro národní svazy a organizace, které chtějí vysílat k místním členům a přiblížit svou činnost školám."
         />
       </Head>
 
@@ -49,7 +49,7 @@ export default function ProOrganizacePage() {
           <div className="mx-auto grid min-h-[600px] max-w-[1280px] lg:grid-cols-[0.94fr_1.06fr]">
             <div className="flex items-center px-5 py-16 sm:px-10 lg:px-12 lg:py-20">
               <div className="max-w-[610px]">
-                <span className="text-xs font-black uppercase tracking-[0.18em] text-[#efbd58]">Pro svazy a národní organizace</span>
+                <span className="text-xs font-black uppercase tracking-[0.18em] text-[#efbd58]">Pro národní svazy a organizace</span>
                 <h1 className="mt-5 text-[clamp(44px,6vw,70px)] font-[950] leading-[0.96] tracking-[-0.055em]">
                   Spojte celý svaz. Oslovte novou generaci.
                 </h1>
@@ -167,11 +167,11 @@ export default function ProOrganizacePage() {
         <section className="pb-16 pt-6">
           <div className="mx-auto flex max-w-[1180px] flex-col items-start justify-between gap-5 px-5 sm:flex-row sm:items-center">
             <div>
-              <strong className="text-xl font-black text-navy-900">Jste místní spolek nebo klub?</strong>
-              <p className="mt-1 text-sm text-slate-600">Místní organizace se zapojují pod registračním číslem své obce.</p>
+              <strong className="text-xl font-black text-navy-900">Jste spolek?</strong>
+              <p className="mt-1 text-sm text-slate-600">Zapojte se prostřednictvím své obce, nebo si objednejte celý program samostatně.</p>
             </div>
-            <Link href="/obec" className="inline-flex items-center gap-2 text-sm font-black text-brand">
-              Jak funguje program pro obce <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            <Link href="/spolky" className="inline-flex items-center gap-2 text-sm font-black text-brand">
+              Jak funguje program pro spolky <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
         </section>

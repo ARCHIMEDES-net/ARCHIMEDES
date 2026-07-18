@@ -60,6 +60,8 @@ export default async function handler(req, res) {
     const {
       registrationNumber,
       name,
+      address,
+      legalIdentifier,
       contactName,
       email,
       phone,
@@ -69,6 +71,8 @@ export default async function handler(req, res) {
 
     const cleanRegistrationNumber = String(registrationNumber || "").trim();
     const cleanName = String(name || "").trim();
+    const cleanAddress = String(address || "").trim();
+    const cleanLegalIdentifier = String(legalIdentifier || "").replace(/\s+/g, "").trim();
     const cleanContactName = String(contactName || "").trim();
     const cleanEmail = String(email || "").trim().toLowerCase();
     const cleanPhone = String(phone || "").trim();
@@ -81,6 +85,14 @@ export default async function handler(req, res) {
 
     if (!cleanName) {
       return res.status(400).json({ error: "Vyplňte prosím název spolku." });
+    }
+
+    if (!cleanAddress) {
+      return res.status(400).json({ error: "Vyplňte prosím sídlo spolku." });
+    }
+
+    if (cleanLegalIdentifier && !/^\d{8}$/.test(cleanLegalIdentifier)) {
+      return res.status(400).json({ error: "IČO musí obsahovat přesně 8 číslic." });
     }
 
     if (!cleanContactName) {
@@ -128,7 +140,7 @@ export default async function handler(req, res) {
       .from("organizations")
       .select("id, status, license_status")
       .eq("registration_number", cleanRegistrationNumber)
-      .eq("org_type", "obec")
+      .in("org_type", ["municipality", "obec"])
       .maybeSingle();
 
     if (obecError) {
@@ -142,18 +154,32 @@ export default async function handler(req, res) {
       });
     }
 
-    const { data: duplicate, error: duplicateError } = await supabaseAdmin
-      .from("organizations")
-      .select("id")
-      .eq("parent_organization_id", obec.id)
-      .eq("org_type", "spolek")
-      .ilike("name", cleanName)
-      .limit(1);
+    const { data: duplicateUnderMunicipality, error: duplicateUnderMunicipalityError } =
+      await supabaseAdmin
+        .from("organizations")
+        .select("id")
+        .eq("parent_organization_id", obec.id)
+        .in("org_type", ["association", "spolek"])
+        .ilike("name", cleanName)
+        .limit(1);
+
+    if (duplicateUnderMunicipalityError) throw duplicateUnderMunicipalityError;
+
+    const { data: duplicate, error: duplicateError } = await supabaseAdmin.rpc(
+      "find_conflicting_customer",
+      {
+        p_org_type: "association",
+        p_email: cleanEmail,
+        p_name: cleanName,
+        p_legal_identifier: cleanLegalIdentifier || null,
+        p_address: cleanAddress,
+      }
+    );
 
     if (duplicateError) throw duplicateError;
-    if (duplicate?.length) {
+    if (duplicateUnderMunicipality?.length || duplicate?.length) {
       return res.status(409).json({
-        error: "Tento spolek už je pod obcí zaregistrovaný.",
+        error: "Tento spolek už evidujeme. Kvůli zachování účtů a historie ho neregistrujte podruhé; kontaktujte nás a existující spolek bezpečně propojíme s obcí.",
       });
     }
 
@@ -167,9 +193,11 @@ export default async function handler(req, res) {
 
     const orgInsertPayload = {
       name: cleanName,
-      org_type: "spolek",
+      org_type: "association",
       status: "active",
       parent_organization_id: obec.id,
+      legal_identifier: cleanLegalIdentifier || null,
+      registered_address: cleanAddress,
       primary_activity_code: cleanActivityCode,
       primary_activity_custom_text: cleanActivityCode === "jine" ? cleanCustomText : null,
       contact_name: registrant.fullName,

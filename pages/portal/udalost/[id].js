@@ -594,7 +594,7 @@ export default function UdalostDetail() {
                   href="/zadost"
                   className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
                 >
-                  Chci program pro naši obec
+                  Chci zapojit obec, školu nebo spolek
                 </Link>
 
                 <Link

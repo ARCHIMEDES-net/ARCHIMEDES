@@ -57,15 +57,9 @@ export default function AdminHome() {
             </Link>
           </AdminCard>
 
-          <AdminCard title="Žádosti o přístup" desc="Vytvoření organizace a pozvání administrátora.">
-            <Link href="/portal/admin/zadosti" className="font-bold text-brand hover:underline">
-              Otevřít žádosti
-            </Link>
-          </AdminCard>
-
-          <AdminCard title="Obce" desc="Aktivace obcí založených přes /zadost.">
+          <AdminCard title="Zákazníci" desc="Aktivace obcí, škol a spolků založených přes /zadost.">
             <Link href="/portal/admin/obce" className="font-bold text-brand hover:underline">
-              Otevřít obce
+              Otevřít zákazníky
             </Link>
           </AdminCard>
         </section>

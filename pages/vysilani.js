@@ -59,7 +59,7 @@ export default function ProbehlaVysilaniPage() {
                 <div className="flex flex-wrap gap-3">
                   <Button href="/program">Zobrazit program</Button>
                   <Button href="/zadost" variant="secondary">
-                    Chci program pro naši obec
+                    Chci zapojit obec, školu nebo spolek
                   </Button>
                 </div>
               </div>
@@ -137,7 +137,7 @@ export default function ProbehlaVysilaniPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <Button href="/zadost">Chci program pro naši obec</Button>
+                <Button href="/zadost">Chci zapojit obec, školu nebo spolek</Button>
                 <Button href="/ucebna" variant="secondary">
                   Více o učebně
                 </Button>

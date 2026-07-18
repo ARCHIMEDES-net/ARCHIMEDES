@@ -171,6 +171,7 @@ export const footerContent = {
         { label: "Program", href: "/program" },
         { label: "Pro obce", href: "/obec" },
         { label: "Pro školy", href: "/skoly" },
+        { label: "Pro spolky", href: "/spolky" },
         { label: "Pro svazy", href: "/pro-organizace" },
       ],
     },
@@ -188,7 +189,7 @@ export const footerContent = {
       title: "Přístup",
       links: [
         { label: "Přihlášení", href: "/login" },
-        { label: "Žádost pro obec", href: "/zadost" },
+        { label: "Žádost o program", href: "/zadost" },
       ],
     },
   ],

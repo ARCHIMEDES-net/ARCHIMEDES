@@ -15,6 +15,14 @@ function formatDate(value) {
   return d.toLocaleString("cs-CZ");
 }
 
+const ORGANIZATION_LABELS = {
+  municipality: "Obec",
+  obec: "Obec",
+  school: "Škola",
+  association: "Spolek",
+  spolek: "Spolek",
+};
+
 export default function AdminObcePage() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,13 +42,14 @@ export default function AdminObcePage() {
     const { data, error } = await supabase
       .from("organizations")
       .select(
-        "id, name, registration_number, license_status, status, contact_name, contact_email, contact_phone, created_at"
+        "id, name, org_type, parent_organization_id, registration_number, license_status, status, contact_name, contact_email, contact_phone, created_at"
       )
-      .eq("org_type", "obec")
+      .in("org_type", ["municipality", "obec", "school", "association", "spolek"])
+      .is("parent_organization_id", null)
       .order("created_at", { ascending: false });
 
     if (error) {
-      setError("Obce se nepodařilo načíst.");
+      setError("Zákazníky se nepodařilo načíst.");
       setLoading(false);
       return;
     }
@@ -49,9 +58,10 @@ export default function AdminObcePage() {
     setLoading(false);
   }
 
-  async function activateObec(row) {
+  async function activateCustomer(row) {
+    const typeLabel = ORGANIZATION_LABELS[row.org_type] || "Organizace";
     const confirmed = window.confirm(
-      `Aktivovat obec „${row.name}“ a přiřadit kontaktní osobu jako správce obce?`
+      `Aktivovat: ${typeLabel.toLowerCase()} „${row.name}“ a přiřadit kontaktní osobu jako správce?`
     );
     if (!confirmed) return;
 
@@ -91,7 +101,7 @@ export default function AdminObcePage() {
       )
     );
     setMessage(
-      `Obec „${row.name}“ byla aktivována.${
+      `${typeLabel} „${row.name}“ ${["association", "spolek"].includes(row.org_type) ? "byl aktivován" : "byla aktivována"}.${
         result.invitationSent ? " Kontaktní osobě byla odeslána pozvánka." : " Stávající účet kontaktní osoby byl zachován."
       }`
     );
@@ -101,16 +111,15 @@ export default function AdminObcePage() {
   return (
     <RequirePlatformAdmin>
       <div className="min-h-screen bg-slate-50">
-        <PortalHeader title="Admin • obce" />
+        <PortalHeader title="Admin • zákazníci" />
 
         <main className="mx-auto max-w-[1240px] px-10 py-10">
-          <h1 className="text-2xl font-black text-navy-900">Obce</h1>
+          <h1 className="text-2xl font-black text-navy-900">Zákazníci</h1>
 
           <p className="mt-2.5 max-w-[900px] text-muted">
-            Přehled obcí založených přes /zadost. Nová obec vzniká rovnou se
-            stavem „Čeká na schválení“ — tlačítkem níže ji aktivuješ, aby
-            mohla program používat a pod jejím registračním číslem se mohly
-            registrovat spolky.
+            Přehled obcí, škol a spolků založených přes /zadost. Nový subjekt
+            vzniká se stavem „Čeká na schválení“ a přístup získá až po ručním
+            ověření a aktivaci.
           </p>
 
           {error ? (
@@ -127,7 +136,7 @@ export default function AdminObcePage() {
 
           <Card className="mt-4 overflow-hidden p-0">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-900/[0.08] p-3.5">
-              <div className="font-bold text-navy-900">Celkem obcí: {rows.length}</div>
+              <div className="font-bold text-navy-900">Celkem zákazníků: {rows.length}</div>
 
               <Button type="button" onClick={loadRows} disabled={loading} variant="secondary" size="sm">
                 {loading ? "Načítám..." : "Obnovit"}
@@ -138,7 +147,8 @@ export default function AdminObcePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Datum</TableHead>
-                  <TableHead>Obec</TableHead>
+                  <TableHead>Typ</TableHead>
+                  <TableHead>Název</TableHead>
                   <TableHead>Reg. číslo</TableHead>
                   <TableHead>Kontakt</TableHead>
                   <TableHead>Stav</TableHead>
@@ -149,19 +159,21 @@ export default function AdminObcePage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6}>Načítám…</TableCell>
+                    <TableCell colSpan={7}>Načítám…</TableCell>
                   </TableRow>
                 ) : null}
 
                 {!loading && rows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6}>Zatím žádné obce.</TableCell>
+                    <TableCell colSpan={7}>Zatím žádní zákazníci.</TableCell>
                   </TableRow>
                 ) : null}
 
                 {rows.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell>{formatDate(row.created_at)}</TableCell>
+
+                    <TableCell>{ORGANIZATION_LABELS[row.org_type] || row.org_type}</TableCell>
 
                     <TableCell>
                       <div className="font-bold">{row.name}</div>
@@ -200,7 +212,7 @@ export default function AdminObcePage() {
                     <TableCell>
                       <Button
                         type="button"
-                        onClick={() => activateObec(row)}
+                        onClick={() => activateCustomer(row)}
                         disabled={row.license_status === "active" || activatingId === row.id}
                         variant="secondary"
                         size="sm"

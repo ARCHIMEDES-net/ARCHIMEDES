@@ -9,7 +9,6 @@ import {
   GraduationCap,
   Megaphone,
   Building2,
-  School,
 } from "lucide-react";
 import Footer from "../components/Footer";
 import PhotoWithFallback from "../components/PhotoWithFallback";
@@ -37,27 +36,27 @@ import {
 const AUDIENCES = [
   {
     title: "Pro obce",
-    text: "Program pro školu, spolky i seniory pod jednou obecní licencí.",
+    text: "Jeden společný program pro školu, spolky, seniory i další obyvatele.",
     href: "/obec",
     icon: Building2,
   },
   {
-    title: "Pro svazy",
-    text: "Odborný obsah pro místní členy a popularizační pořady pro školy.",
-    href: "/pro-organizace",
-    icon: Megaphone,
-  },
-  {
     title: "Pro školy",
-    text: "Živé pořady, inspirativní hosté a program propojený s praxí.",
+    text: "Celý program pro školu zapojenou přes obec i pro samostatného zákazníka.",
     href: "/skoly",
     icon: GraduationCap,
   },
   {
-    title: "Učebna ARCHIMEDES",
-    text: "Celoroční prostor pro moderní výuku a komunitní program.",
-    href: "/ucebna",
-    icon: School,
+    title: "Pro spolky",
+    text: "Odborné pořady a společná setkání pro členy spolku za jednotnou cenu.",
+    href: "/spolky",
+    icon: Users,
+  },
+  {
+    title: "Pro národní svazy a organizace",
+    text: "Partnerství pro ty, kdo připravují odborný obsah a vysílají k místním členům.",
+    href: "/pro-organizace",
+    icon: Megaphone,
   },
 ];
 
@@ -329,13 +328,13 @@ export default function Home({ initialEvents = [] }) {
                   Podporujeme to, co už ve vaší obci funguje.
                 </h2>
                 <p className="mt-3 max-w-md text-[15px] leading-relaxed text-muted">
-                  Jedna obecní licence zpřístupní program škole, spolkům, seniorům i dalším místním komunitám. Obsah a vysílání připravíme my.
+                  Program si může objednat obec, škola nebo spolek. Vždy získává celý obsah za stejnou cenu; obec jej může zpřístupnit škole i spolkům ve svém území.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
                 {[
                   "ARCHIMEDES připraví program a podklady",
-                  "Obec předá pozvánky místním organizacím",
+                  "Obec, škola nebo spolek vyberou vhodná témata",
                   "Školy a spolky si vyberou a sledují společně",
                 ].map((title, index) => (
                   <div key={title} className="rounded-[18px] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">

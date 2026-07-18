@@ -11,6 +11,8 @@ export default function RegistraceSkolyPage() {
   const [form, setForm] = useState({
     registrationNumber: "",
     name: "",
+    address: "",
+    legalIdentifier: "",
     contactName: "",
     email: "",
     phone: "",
@@ -50,6 +52,13 @@ export default function RegistraceSkolyPage() {
     setError("");
 
     try {
+      const cleanAddress = form.address.trim();
+      const cleanLegalIdentifier = form.legalIdentifier.replace(/\s+/g, "").trim();
+      if (!cleanAddress) throw new Error("Vyplňte adresu školy.");
+      if (cleanLegalIdentifier && !/^\d{8}$/.test(cleanLegalIdentifier)) {
+        throw new Error("IČO musí obsahovat přesně 8 číslic.");
+      }
+
       const response = await fetch("/api/registrace-skoly", {
         method: "POST",
         headers: {
@@ -58,7 +67,11 @@ export default function RegistraceSkolyPage() {
             ? { Authorization: `Bearer ${session.access_token}` }
             : {}),
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          address: cleanAddress,
+          legalIdentifier: cleanLegalIdentifier,
+        }),
       });
       const data = await response.json();
       if (!response.ok) {
@@ -109,6 +122,16 @@ export default function RegistraceSkolyPage() {
                 <div>
                   <Label htmlFor="name">Název školy*</Label>
                   <Input id="name" name="name" required value={form.name} onChange={updateField} />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-[1.35fr_0.65fr]">
+                  <div>
+                    <Label htmlFor="address">Adresa školy*</Label>
+                    <Input id="address" name="address" required value={form.address} onChange={updateField} placeholder="Ulice, obec, PSČ" />
+                  </div>
+                  <div>
+                    <Label htmlFor="legalIdentifier">IČO (volitelně)</Label>
+                    <Input id="legalIdentifier" name="legalIdentifier" inputMode="numeric" value={form.legalIdentifier} onChange={updateField} placeholder="8 číslic" />
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="contactName">Ředitel nebo správce školy*</Label>

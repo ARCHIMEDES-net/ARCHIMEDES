@@ -84,7 +84,7 @@ export default function KalendarPage() {
               href="/zadost"
               className="inline-flex h-12 flex-none items-center justify-center gap-2 whitespace-nowrap rounded-full bg-white px-5 text-[15px] font-black text-navy-900"
             >
-              Chci program pro naši obec
+              Chci zapojit obec, školu nebo spolek
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </div>

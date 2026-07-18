@@ -21,9 +21,9 @@ export const partnersSection = {
 };
 
 export const partnersCta = {
-  title: "Zastupujete organizaci nebo svaz?",
+  title: "Zastupujete národní svaz nebo organizaci?",
   subtitle:
-    "Pokud vedete celostátní svaz, spolek nebo místní organizaci, pomůžeme vám oslovit lidi přímo v zapojených obcích.",
+    "Pomůžeme vám připravit odborné vysílání a oslovit členy i školy přímo v zapojených obcích.",
   cta: { label: "Zapojit naši organizaci", href: "/pro-organizace" },
   visible: true,
 };

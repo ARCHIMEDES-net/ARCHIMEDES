@@ -130,6 +130,10 @@ export default function AdminPoptavky() {
           return t.includes("senior");
         }
 
+        if (typeFilter === "spolek") {
+          return t.includes("spolek") || t.includes("komunita");
+        }
+
         return t.includes("obec");
       });
     }
@@ -201,6 +205,7 @@ export default function AdminPoptavky() {
               <option value="demo">Demo</option>
               <option value="obec">Obec</option>
               <option value="skola">Škola</option>
+              <option value="spolek">Spolek</option>
               <option value="senior">Senior</option>
             </Select>
           </label>

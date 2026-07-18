@@ -32,6 +32,8 @@ export default function RegistraceSpolkuPage() {
   const [form, setForm] = useState({
     registrationNumber: "",
     name: "",
+    address: "",
+    legalIdentifier: "",
     contactName: "",
     email: "",
     phone: "",
@@ -78,6 +80,8 @@ export default function RegistraceSpolkuPage() {
     try {
       const trimmedRegistrationNumber = form.registrationNumber.trim();
       const trimmedName = form.name.trim();
+      const trimmedAddress = form.address.trim();
+      const trimmedLegalIdentifier = form.legalIdentifier.replace(/\s+/g, "").trim();
       const trimmedContactName = form.contactName.trim();
       const trimmedEmail = form.email.trim();
       const trimmedPhone = form.phone.trim();
@@ -89,6 +93,14 @@ export default function RegistraceSpolkuPage() {
 
       if (!trimmedName) {
         throw new Error("Vyplňte prosím název spolku.");
+      }
+
+      if (!trimmedAddress) {
+        throw new Error("Vyplňte prosím sídlo spolku.");
+      }
+
+      if (trimmedLegalIdentifier && !/^\d{8}$/.test(trimmedLegalIdentifier)) {
+        throw new Error("IČO musí obsahovat přesně 8 číslic.");
       }
 
       if (!trimmedContactName) {
@@ -123,6 +135,8 @@ export default function RegistraceSpolkuPage() {
         body: JSON.stringify({
           registrationNumber: trimmedRegistrationNumber,
           name: trimmedName,
+          address: trimmedAddress,
+          legalIdentifier: trimmedLegalIdentifier,
           contactName: trimmedContactName,
           email: trimmedEmail,
           phone: trimmedPhone,
@@ -207,6 +221,17 @@ export default function RegistraceSpolkuPage() {
                     onChange={updateField}
                     placeholder="Např. SDH Křenov"
                   />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-[1.35fr_0.65fr]">
+                  <div>
+                    <Label htmlFor="address">Sídlo spolku*</Label>
+                    <Input id="address" name="address" required value={form.address} onChange={updateField} placeholder="Ulice, obec, PSČ" />
+                  </div>
+                  <div>
+                    <Label htmlFor="legalIdentifier">IČO (volitelně)</Label>
+                    <Input id="legalIdentifier" name="legalIdentifier" inputMode="numeric" value={form.legalIdentifier} onChange={updateField} placeholder="8 číslic" />
+                  </div>
                 </div>
 
                 <div>
