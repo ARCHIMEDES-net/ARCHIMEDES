@@ -11,7 +11,7 @@ const team = [
     role: "Jednatel společnosti",
     email: "antonin.koplik@archimedeslive.com",
     phone: "+420 733 643 121",
-    note: "Autor projektu ARCHIMEDES",
+    note: "Autor ARCHIMEDES Live",
     image: "/team-antonin.webp",
   },
   {
