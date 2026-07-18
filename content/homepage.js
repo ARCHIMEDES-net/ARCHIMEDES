@@ -8,13 +8,13 @@
  */
 
 export const hero = {
-  eyebrow: "ARCHIMEDES Live pro obce",
-  titleLine1: "Silná komunita",
-  titleLine2: "Úspěšná obec",
-  subtitle: "Živý program pro celou obec.",
+  eyebrow: "ARCHIMEDES Live",
+  titleLine1: "Jeden živý program",
+  titleLine2: "pro obce, školy a spolky",
+  subtitle: "Živě. Společně. Přímo u vás.",
   lead:
-    "Přinášíme obcím pravidelný živý program pro školy, spolky, seniory i další místní komunity. Program, při kterém se lidé setkávají, vzdělávají a sbližují.",
-  primaryCta: { label: "Připojte svou obec", href: "/zadost" },
+    "Přinášíme pravidelná živá vysílání s odborníky. Program, při kterém se lidé setkávají, vzdělávají a sbližují.",
+  primaryCta: { label: "Chci program", href: "/zadost" },
   secondaryCta: { label: "Jak to funguje", href: "#jak-to-funguje" },
   photo: "/hero-komunita-dsc00554.webp",
   photoAlt: "Mezigenerační komunitní setkání před učebnou ARCHIMEDES Live",

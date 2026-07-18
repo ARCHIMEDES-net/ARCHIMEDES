@@ -157,10 +157,10 @@ export default function Home({ initialEvents = [] }) {
   return (
     <>
       <Head>
-        <title>ARCHIMEDES Live | Živý program pro školy, obce a komunity</title>
+        <title>ARCHIMEDES Live | Živý program pro obce, školy a spolky</title>
         <meta
           name="description"
-          content="Pravidelný živý program pro školy, spolky, seniory a další místní komunity. Lidé se při něm setkávají, vzdělávají a sbližují."
+          content="Pravidelný živý program s odborníky pro obce, školy a spolky. Lidé se při něm setkávají, vzdělávají a sbližují."
         />
         {eventStructuredData ? (
           <script
@@ -188,15 +188,15 @@ export default function Home({ initialEvents = [] }) {
           </div>
 
           <div className="relative mx-auto flex min-h-[680px] max-w-[1280px] items-center px-5 pb-28 pt-24 lg:min-h-[78vh] lg:pb-32 lg:pt-28">
-            <div className="max-w-[620px]">
+            <div className="max-w-[780px]">
                 <span className="mb-6 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white/90 backdrop-blur">
                   {hero.eyebrow}
                 </span>
 
-                <h1 className="text-5xl font-[950] leading-[0.94] tracking-[-0.055em] text-white sm:text-6xl lg:text-[72px]">
+                <h1 className="text-[clamp(44px,6vw,72px)] font-[950] leading-[0.94] tracking-[-0.055em] text-white">
                   {hero.titleLine1}
                   <br />
-                  <span className="text-[#efbd58]">{hero.titleLine2}</span>
+                  <span className="text-[clamp(36px,5vw,64px)] text-[#efbd58]">{hero.titleLine2}</span>
                 </h1>
 
                 <p className="mt-7 max-w-xl text-xl font-bold tracking-tight text-white">
