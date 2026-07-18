@@ -346,7 +346,7 @@ export default function Ucebna() {
                 <PrimaryButton href="/media">
                   Prohlédnout reference
                 </PrimaryButton>
-                <SecondaryButton href="/kontakt">
+                <SecondaryButton href="/poptavka-ucebny">
                   Poptat učebnu
                 </SecondaryButton>
               </div>
@@ -382,7 +382,6 @@ export default function Ucebna() {
             ].map(([label, href]) => (
               <a key={href} href={href}>{label}</a>
             ))}
-            <Link href="/kontakt">Poptat učebnu</Link>
           </div>
         </nav>
 
@@ -931,9 +930,6 @@ export default function Ucebna() {
               </SectionTitle>
             </div>
 
-            <PrimaryButton href="/kontakt">
-              Poptat učebnu
-            </PrimaryButton>
           </div>
 
           <div className="variantGrid">

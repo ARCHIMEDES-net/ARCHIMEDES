@@ -173,6 +173,16 @@ const PAGE_SEO = {
     imageAlt: "Komunitní program ARCHIMEDES Live v obci",
     breadcrumbName: "Žádost o program",
   },
+  "/poptavka-ucebny": {
+    title: "Poptávka venkovní učebny ARCHIMEDES®",
+    description:
+      "Nezávazná poptávka venkovní učebny ARCHIMEDES® pro školu nebo obec. Ozveme se vám kvůli variantě, místu realizace a dalšímu postupu.",
+    image: "/ucebna-exterier.webp",
+    imageWidth: 2048,
+    imageHeight: 1280,
+    imageAlt: "Venkovní učebna ARCHIMEDES",
+    breadcrumbName: "Poptávka učebny",
+  },
   "/media": {
     title: "Média a realizace učeben ARCHIMEDES®",
     description:

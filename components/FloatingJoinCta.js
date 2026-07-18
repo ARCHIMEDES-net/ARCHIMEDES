@@ -6,6 +6,8 @@ import { ArrowUpRight, Building2, GraduationCap, Users, X } from "lucide-react";
 
 const HIDDEN_ROUTES = new Set([
   "/zadost",
+  "/ucebna",
+  "/poptavka-ucebny",
   "/login",
   "/logout",
   "/reset-hesla",
