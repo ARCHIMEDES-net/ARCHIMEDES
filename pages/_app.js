@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import PublicHeader from "../components/PublicHeader";
+import FloatingJoinCta from "../components/FloatingJoinCta";
 import { Analytics } from "@vercel/analytics/react";
 import { applyCzechNonBreakingSpaces } from "../lib/czechTypography";
 
@@ -40,15 +41,15 @@ const DEFAULT_DESCRIPTION =
 
 const PAGE_SEO = {
   "/": {
-    title: "ARCHIMEDES Live | Živý program pro školy, obce a komunity",
+    title: "ARCHIMEDES Live | Živý program pro obce, školy a spolky",
     description:
-      "ARCHIMEDES Live přináší školám a obcím živé vstupy s odborníky, témata z praxe a společný program pro místní komunity.",
+      "ARCHIMEDES Live přináší obcím, školám a spolkům pravidelná živá vysílání s odborníky a společný program, který lidi vzdělává a sbližuje.",
     image: "/hero-komunita-dsc00554.webp",
     imageWidth: 2048,
     imageHeight: 1365,
     imageAlt: "Společné komunitní setkání u učebny ARCHIMEDES",
     service: {
-      name: "ARCHIMEDES Live – živý program pro školy, obce a komunity",
+      name: "ARCHIMEDES Live – živý program pro obce, školy a spolky",
       serviceType: "Živý vzdělávací a komunitní program",
       audienceType: "Obce, školy, spolky, senioři a místní komunity",
     },
@@ -357,6 +358,8 @@ export default function App({ Component, pageProps }) {
       {showPublicHeader && <PublicHeader active={active} />}
 
       <Component {...pageProps} />
+
+      <FloatingJoinCta />
 
       {/* Vercel Analytics */}
       <Analytics />
