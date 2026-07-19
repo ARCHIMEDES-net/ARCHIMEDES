@@ -60,7 +60,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const startsAt = existingSession?.starts_at || event.starts_at;
+    const startsAt = event.starts_at || existingSession?.starts_at;
     const moderatorName = String(existingSession?.moderator_name || "ARCHIMEDES Live").trim();
     const externalMeetingId = await webMeeting.createMeeting({
       name: String(event.title || "Vysílání ARCHIMEDES Live").trim(),
