@@ -232,6 +232,45 @@ export default function Home({ initialEvents = [] }) {
         {/* NETWORK SIZE STATS */}
         <StatsSection />
 
+        {/* FEATURED MUNICIPALITY STORY — early, concrete proof for mayors */}
+        <section aria-labelledby="krenov-story-title" className="pb-10 pt-1">
+          <div className="mx-auto max-w-[1180px] px-5">
+            <div className="grid overflow-hidden rounded-[24px] bg-navy-900 text-white shadow-[0_20px_50px_rgba(15,23,42,0.14)] lg:grid-cols-[1.08fr_0.92fr]">
+              <div className="relative min-h-[300px] sm:min-h-[380px] lg:min-h-[420px]">
+                <Image
+                  src="/obec2030.jpeg"
+                  alt="Obec Křenov přebírá ocenění Obec 2030"
+                  fill
+                  quality={88}
+                  sizes="(max-width: 1024px) 100vw, 55vw"
+                  className="object-cover object-center"
+                />
+              </div>
+
+              <div className="flex flex-col justify-center px-6 py-9 sm:px-10 sm:py-12 lg:px-12">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[#efbd58]">
+                    Příběh obce Křenov
+                  </span>
+                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.08em] text-white/85">
+                    1. místo Obec 2030
+                  </span>
+                </div>
+
+                <blockquote className="mt-6">
+                  <p id="krenov-story-title" className="text-[clamp(24px,3vw,36px)] font-[900] leading-[1.15] tracking-[-0.035em] text-white">
+                    „Projekt ARCHIMEDES nám pomohl nejen k vítězství v soutěži Obec 2030, ale významně podpořil také komunitní život v Křenově.“
+                  </p>
+                  <footer className="mt-7 border-t border-white/15 pt-5">
+                    <strong className="block text-base text-white">Václav Dvořák</strong>
+                    <span className="mt-1 block text-sm text-white/65">starosta obce Křenov</span>
+                  </footer>
+                </blockquote>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* PATRONAGE — compact trust signal without another navigation destination */}
         <PatronageStrip />
 
