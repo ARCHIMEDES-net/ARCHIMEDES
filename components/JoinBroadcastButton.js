@@ -33,6 +33,7 @@ export default function JoinBroadcastButton({
   archiveHref = "/portal/archiv",
   showWaiting = true,
   showDetailFallback = true,
+  forceDynamicJoin = false,
 }) {
   const [, setTick] = useState(0);
   const [joining, setJoining] = useState(false);
@@ -46,7 +47,18 @@ export default function JoinBroadcastButton({
     return () => clearInterval(interval);
   }, []);
 
-  const state = getJoinButtonState(event);
+  const session = Array.isArray(event?.broadcast_sessions)
+    ? event.broadcast_sessions[0]
+    : event?.broadcast_sessions || event?.broadcast_session;
+  const state = forceDynamicJoin && session?.external_meeting_id
+    ? {
+        state: "join",
+        label: "Vstoupit do testovacího vysílání",
+        href: "",
+        dynamicJoin: true,
+        reason: "admin-preview",
+      }
+    : getJoinButtonState(event);
 
   async function joinThroughArchimedes() {
     setJoining(true);
