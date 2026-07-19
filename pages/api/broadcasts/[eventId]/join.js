@@ -13,10 +13,26 @@ const supabaseAdmin = createClient(
   { auth: { persistSession: false } }
 );
 
-function firstValue(value) {
-  if (Array.isArray(value)) return value[0];
-  if (value && typeof value === "object") return value[0] ?? value["0"];
-  return value;
+function enterUrl(value) {
+  if (typeof value === "string") return /^https?:\/\//i.test(value) ? value : "";
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const url = enterUrl(item);
+      if (url) return url;
+    }
+    return "";
+  }
+  if (value && typeof value === "object") {
+    for (const key of ["url", "enter_url", "enterUrl", "participant_url", "participantEnterURL"]) {
+      const url = enterUrl(value[key]);
+      if (url) return url;
+    }
+    for (const item of Object.values(value)) {
+      const url = enterUrl(item);
+      if (url) return url;
+    }
+  }
+  return "";
 }
 
 export default async function handler(req, res) {
@@ -60,20 +76,12 @@ export default async function handler(req, res) {
     assertJoinWindow(session.starts_at || event.starts_at, identity.isPlatformAdmin);
 
     const participant = webMeetingParticipant(identity);
-    const imported = await webMeeting.importParticipants(
+    const imported = await webMeeting.importParticipantAndGetEnterURL(
       session.external_meeting_id,
-      [participant],
+      participant,
       1
     );
-    const participantId = firstValue(imported);
-    if (participantId === null || participantId === undefined || participantId === "") {
-      throw new WebMeetingApiError("WebMeeting nevrátil ID účastníka.", { status: 502 });
-    }
-
-    const url = await webMeeting.getParticipantEnterURL(
-      session.external_meeting_id,
-      participantId
-    );
+    const url = enterUrl(imported);
     if (!url) throw new WebMeetingApiError("WebMeeting nevrátil vstupní odkaz.", { status: 502 });
 
     const { error: auditError } = await supabaseAdmin.from("broadcast_participants").upsert(
@@ -81,7 +89,7 @@ export default async function handler(req, res) {
         session_id: session.id,
         user_id: identity.user.id,
         organization_id: identity.organizationId,
-        provider_participant_id: String(participantId),
+        provider_participant_id: String(participant.number),
         join_requested_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
