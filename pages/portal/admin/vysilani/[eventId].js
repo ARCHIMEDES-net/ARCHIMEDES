@@ -11,6 +11,7 @@ import { Select } from "../../../../components/ui/select";
 import { Button } from "../../../../components/ui/button";
 import { Alert } from "../../../../components/ui/alert";
 import { isGoogleMeetUrl } from "../../../../lib/archiveRecording";
+import { getBroadcastLifecycle } from "../../../../lib/broadcastLifecycle";
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Rozpracováno" },
@@ -428,22 +429,28 @@ export default function AdminVysilaniDetailPage() {
         throw new Error("Publikovaný záznam musí mít vyplněný odkaz.");
       }
 
-      const payload = {
-        status,
-        platform: "webmeeting",
-        moderator_name: moderatorName.trim() || null,
-        guest_1_name: guest1Name.trim() || null,
-        guest_2_name: guest2Name.trim() || null,
-        guest_3_name: guest3Name.trim() || null,
-        guest_4_name: guest4Name.trim() || null,
-        guest_5_name: guest5Name.trim() || null,
-        viewer_url: normalizedViewerUrl || null,
+      const postProductionPayload = {
         recording_url: normalizedRecordingUrl || null,
         recording_status: recordingStatus,
         notes_internal: notesInternal.trim() || null,
-        starts_at: startsAt ? new Date(startsAt).toISOString() : null,
-        is_published: status !== "draft",
       };
+
+      const payload = operationalLocked
+        ? postProductionPayload
+        : {
+            ...postProductionPayload,
+            status,
+            platform: "webmeeting",
+            moderator_name: moderatorName.trim() || null,
+            guest_1_name: guest1Name.trim() || null,
+            guest_2_name: guest2Name.trim() || null,
+            guest_3_name: guest3Name.trim() || null,
+            guest_4_name: guest4Name.trim() || null,
+            guest_5_name: guest5Name.trim() || null,
+            viewer_url: normalizedViewerUrl || null,
+            starts_at: startsAt ? new Date(startsAt).toISOString() : null,
+            is_published: status !== "draft",
+          };
 
       const { error: updateError } = await supabase
         .from("broadcast_sessions")
@@ -456,9 +463,9 @@ export default function AdminVysilaniDetailPage() {
 
       // Starší události mohou mít odkaz používaný portálem. Pokud správce
       // nový odkaz nevyplní, existující hodnotu nemažeme.
-      if (normalizedViewerUrl) eventPatch.stream_url = normalizedViewerUrl;
+      if (!operationalLocked && normalizedViewerUrl) eventPatch.stream_url = normalizedViewerUrl;
 
-      if (startsAt) {
+      if (!operationalLocked && startsAt) {
         eventPatch.starts_at = new Date(startsAt).toISOString();
       }
 
@@ -472,7 +479,7 @@ export default function AdminVysilaniDetailPage() {
       }
 
       let providerSynced = false;
-      if (externalMeetingId) {
+      if (!operationalLocked && externalMeetingId) {
         const token = await getAccessToken();
         const response = await fetch("/api/admin/webmeeting/update-meeting", {
           method: "POST",
@@ -496,7 +503,9 @@ export default function AdminVysilaniDetailPage() {
       setViewerUrl(normalizedViewerUrl);
       setRecordingUrl(normalizedRecordingUrl);
       setMessage(
-        providerSynced
+        operationalLocked
+          ? "Záznam a interní poznámka byly uloženy. Technické údaje vysílání zůstaly uzamčené."
+          : providerSynced
           ? "Změny byly uloženy v ARCHIMEDES a propsány do WebMeetingu."
           : normalizedViewerUrl
             ? "Vysílání bylo uloženo; volitelný odkaz se propsal do události."
@@ -558,21 +567,34 @@ export default function AdminVysilaniDetailPage() {
 
   const normalizedViewerUrl = useMemo(() => normalizeUrl(viewerUrl), [viewerUrl]);
 
+  const lifecycle = useMemo(
+    () =>
+      getBroadcastLifecycle({
+        startsAt: eventRow?.starts_at,
+        status,
+        recordingStatus,
+        recordingUrl,
+        providerStatus,
+      }),
+    [eventRow?.starts_at, status, recordingStatus, recordingUrl, providerStatus]
+  );
+  const operationalLocked = lifecycle !== "planned";
+
   const statusBadge = useMemo(() => {
-    if (status === "scheduled") {
+    if (lifecycle === "planned" && status === "scheduled") {
       return { label: "🟢 Vysílání připraveno", className: "border-emerald-200 bg-emerald-50 text-emerald-800" };
     }
 
-    if (status === "live") {
+    if (lifecycle === "live") {
       return { label: "🔴 Právě vysíláme", className: "border-red-200 bg-red-50 text-red-700" };
     }
 
-    if (status === "finished") {
+    if (lifecycle === "finished") {
       return { label: "✅ Dokončeno", className: "border-blue-200 bg-blue-50 text-blue-700" };
     }
 
     return { label: "🟡 Vysílání rozpracováno", className: "border-yellow-200 bg-yellow-50 text-yellow-800" };
-  }, [status]);
+  }, [lifecycle, status]);
 
   return (
     <RequirePlatformAdmin>
@@ -772,11 +794,19 @@ export default function AdminVysilaniDetailPage() {
                   )}
                 </div>
 
+                {operationalLocked ? (
+                  <Alert variant="info" className="mb-5">
+                    {lifecycle === "live"
+                      ? "Vysílání už začalo. Čas, stav, moderátor, hosté a vstupní odkaz jsou uzamčené; uložit lze pouze záznam a interní poznámku."
+                      : "Vysílání je dokončeno. Technické nastavení je uzamčené; upravit lze pouze záznam pro archiv a interní poznámku."}
+                  </Alert>
+                ) : null}
+
                 <form onSubmit={handleSave}>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <FieldLabel>Stav vysílání</FieldLabel>
-                      <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+                      <Select value={status} onChange={(e) => setStatus(e.target.value)} disabled={operationalLocked}>
                         {STATUS_OPTIONS.map((item) => (
                           <option key={item.value} value={item.value}>
                             {item.label}
@@ -791,6 +821,7 @@ export default function AdminVysilaniDetailPage() {
                         type="datetime-local"
                         value={startsAt}
                         onChange={(e) => setStartsAt(e.target.value)}
+                        disabled={operationalLocked}
                       />
                     </div>
 
@@ -801,6 +832,7 @@ export default function AdminVysilaniDetailPage() {
                         value={moderatorName}
                         onChange={(e) => setModeratorName(e.target.value)}
                         placeholder="Např. Simona Nováková"
+                        disabled={operationalLocked}
                       />
                     </div>
 
@@ -811,32 +843,33 @@ export default function AdminVysilaniDetailPage() {
                         value={viewerUrl}
                         onChange={(e) => setViewerUrl(e.target.value)}
                         placeholder="Pouze pro starší nebo náhradní vysílání"
+                        disabled={operationalLocked}
                       />
                     </div>
 
                     <div>
                       <FieldLabel>Host 1</FieldLabel>
-                      <Input type="text" value={guest1Name} onChange={(e) => setGuest1Name(e.target.value)} />
+                      <Input type="text" value={guest1Name} onChange={(e) => setGuest1Name(e.target.value)} disabled={operationalLocked} />
                     </div>
 
                     <div>
                       <FieldLabel>Host 2</FieldLabel>
-                      <Input type="text" value={guest2Name} onChange={(e) => setGuest2Name(e.target.value)} />
+                      <Input type="text" value={guest2Name} onChange={(e) => setGuest2Name(e.target.value)} disabled={operationalLocked} />
                     </div>
 
                     <div>
                       <FieldLabel>Host 3</FieldLabel>
-                      <Input type="text" value={guest3Name} onChange={(e) => setGuest3Name(e.target.value)} />
+                      <Input type="text" value={guest3Name} onChange={(e) => setGuest3Name(e.target.value)} disabled={operationalLocked} />
                     </div>
 
                     <div>
                       <FieldLabel>Host 4</FieldLabel>
-                      <Input type="text" value={guest4Name} onChange={(e) => setGuest4Name(e.target.value)} />
+                      <Input type="text" value={guest4Name} onChange={(e) => setGuest4Name(e.target.value)} disabled={operationalLocked} />
                     </div>
 
                     <div>
                       <FieldLabel>Host 5</FieldLabel>
-                      <Input type="text" value={guest5Name} onChange={(e) => setGuest5Name(e.target.value)} />
+                      <Input type="text" value={guest5Name} onChange={(e) => setGuest5Name(e.target.value)} disabled={operationalLocked} />
                     </div>
 
                     <div>
@@ -881,7 +914,11 @@ export default function AdminVysilaniDetailPage() {
 
                   <div className="mt-5 flex flex-wrap gap-3">
                     <Button type="submit" disabled={saving} variant="primary">
-                      {saving ? "Ukládám..." : "Uložit vysílání"}
+                      {saving
+                        ? "Ukládám..."
+                        : operationalLocked
+                          ? "Uložit záznam a poznámku"
+                          : "Uložit nastavení vysílání"}
                     </Button>
 
                     <Button type="button" onClick={loadData} disabled={loading} variant="secondary">
