@@ -618,6 +618,7 @@ export default function UdalostDetail() {
                 event={row}
                 detailHref={`/portal/udalost/${row?.id}`}
                 showWaiting
+                forceDynamicJoin={isPlatformAdmin && hasWebMeetingRoom}
               />
             ) : streamUrl || hasWebMeetingRoom ? (
               <button
