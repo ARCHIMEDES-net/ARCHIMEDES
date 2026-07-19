@@ -102,6 +102,8 @@ export default function AdminVysilaniDetailPage() {
   const [webMeetingChecking, setWebMeetingChecking] = useState(false);
   const [webMeetingCreating, setWebMeetingCreating] = useState(false);
   const [webMeetingSyncing, setWebMeetingSyncing] = useState(false);
+  const [attendance, setAttendance] = useState([]);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
 
   const [eventRow, setEventRow] = useState(null);
   const [sessionId, setSessionId] = useState("");
@@ -196,7 +198,7 @@ export default function AdminVysilaniDetailPage() {
       setStartsAt(toDateTimeLocalValue(eventData.starts_at || session.starts_at));
       const groups = await loadRecipientGroups();
       setSelectedRecipientGroups(suggestRecipientGroups(eventData, groups));
-      await loadWebMeetingStatus();
+      await Promise.all([loadWebMeetingStatus(), loadAttendance()]);
     } catch (e) {
       setError(e.message || "Nepodařilo se načíst detail vysílání.");
     } finally {
@@ -232,6 +234,23 @@ export default function AdminVysilaniDetailPage() {
     if (!response.ok) throw new Error(payload.error || "Nepodařilo se zjistit stav WebMeeting API.");
     setWebMeetingConfigured(Boolean(payload.configured));
     return payload;
+  }
+
+  async function loadAttendance() {
+    setAttendanceLoading(true);
+    try {
+      const token = await getAccessToken();
+      const response = await fetch(
+        `/api/admin/webmeeting/attendance?eventId=${encodeURIComponent(eventId)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Seznam účastníků se nepodařilo načíst.");
+      setAttendance(Array.isArray(payload.attendees) ? payload.attendees : []);
+      return payload;
+    } finally {
+      setAttendanceLoading(false);
+    }
   }
 
   async function testWebMeetingConnection() {
@@ -328,7 +347,7 @@ export default function AdminVysilaniDetailPage() {
       if (!response.ok) {
         throw new Error(payload.error || "Výsledky vysílání se nepodařilo synchronizovat.");
       }
-      await loadData();
+      await Promise.all([loadData(), loadAttendance()]);
       setMessage(
         payload.recordingFound
           ? `Synchronizace dokončena: záznam je připraven ke kontrole a docházka obsahuje ${payload.attendanceCount || 0} účastníků.`
@@ -691,6 +710,66 @@ export default function AdminVysilaniDetailPage() {
                     Místnost: {externalMeetingId ? `WebMeeting ID ${externalMeetingId}` : "zatím nebyla vytvořena"}
                     {providerStatus ? ` • ${providerStatus}` : ""}
                   </div>
+                </div>
+
+                <div className="mb-5 rounded-xl border border-slate-200 bg-white p-4">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h2 className="font-black text-navy-900">Docházka účastníků</h2>
+                      <p className="mt-1 text-sm text-muted">
+                        Účastníci, kteří vstoupili přes ARCHIMEDES. Stav přítomnosti se načítá z WebMeetingu.
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-bold text-slate-700">
+                      {attendance.length} {attendance.length === 1 ? "účastník" : "účastníků"}
+                    </span>
+                  </div>
+
+                  {attendanceLoading ? (
+                    <div className="text-sm text-muted">Načítám docházku…</div>
+                  ) : attendance.length ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[680px] border-collapse text-left text-sm">
+                        <thead>
+                          <tr className="border-b border-slate-200 text-slate-500">
+                            <th className="px-2 py-2 font-bold">Jméno</th>
+                            <th className="px-2 py-2 font-bold">E-mail</th>
+                            <th className="px-2 py-2 font-bold">Organizace</th>
+                            <th className="px-2 py-2 font-bold">Vstup vyžádán</th>
+                            <th className="px-2 py-2 font-bold">Docházka</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {attendance.map((item) => (
+                            <tr key={item.id} className="border-b border-slate-100 last:border-0">
+                              <td className="px-2 py-3 font-bold text-navy-900">{item.name}</td>
+                              <td className="px-2 py-3 text-slate-700">{item.email || "—"}</td>
+                              <td className="px-2 py-3 text-slate-700">{item.organization || "—"}</td>
+                              <td className="px-2 py-3 text-slate-700">
+                                {formatDateTimeCZ(item.joinRequestedAt)}
+                              </td>
+                              <td className="px-2 py-3">
+                                <span
+                                  className={cn(
+                                    "inline-flex rounded-full px-2.5 py-1 text-xs font-bold",
+                                    item.present
+                                      ? "bg-emerald-100 text-emerald-800"
+                                      : "bg-amber-100 text-amber-800"
+                                  )}
+                                >
+                                  {item.present ? "Potvrzena" : "Čeká na synchronizaci"}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="rounded-lg bg-slate-50 px-3 py-3 text-sm text-muted">
+                      Zatím se nepřihlásil žádný účastník přes ARCHIMEDES.
+                    </div>
+                  )}
                 </div>
 
                 <form onSubmit={handleSave}>
