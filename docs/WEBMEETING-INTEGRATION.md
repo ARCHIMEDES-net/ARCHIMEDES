@@ -26,14 +26,14 @@ WEBMEETING_API_CLIENT=
 WEBMEETING_API_REQUEST_SECRET=
 WEBMEETING_API_RESPONSE_SECRET=
 WEBMEETING_API_TIMEOUT_MS=10000
-WEBMEETING_MEETING_TYPE=
+WEBMEETING_MEETING_TYPE=9
 WEBMEETING_LOGOUT_URL=https://www.archimedeslive.com/portal/kalendar
 ```
 
 `WEBMEETING_API_CLIENT` je volitelný; bez něj se použije API login. Účet
-ARCHIMEDES Live má tarif `pro_premium_live`. Číselná hodnota typu místnosti
-se nesmí odhadovat; do `WEBMEETING_MEETING_TYPE` se doplní až hodnota
-potvrzená WebMeetingem pro tento tarif a API `createMeeting`.
+ARCHIMEDES Live má tarif `pro_premium_live`, který má podle aktuálního ceníku
+kapacitu 201 účastníků. Oficiální dokumentace API přiřazuje místnosti pro
+201 účastníků číselný typ `9`, proto se používá `WEBMEETING_MEETING_TYPE=9`.
 
 ## Nasazení
 
@@ -49,6 +49,8 @@ potvrzená WebMeetingem pro tento tarif a API `createMeeting`.
 ## Bezpečnostní pravidla
 
 - API odpověď bez platného HMAC podpisu se odmítne.
+- Podepsaná odpověď se odmítne také při chybějícím nebo neaktuálním
+  `server_timestamp`; povolená odchylka je nejvýše pět minut.
 - Všechny integrační endpointy administrace vyžadují platformního správce.
 - Divácký endpoint je `POST`, používá bearer token a vrací `Cache-Control: no-store`.
 - Místnost není veřejná a jedna pozvánka nemá být použitelná více lidmi.
