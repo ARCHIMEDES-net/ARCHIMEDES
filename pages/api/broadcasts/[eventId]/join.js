@@ -35,6 +35,36 @@ function enterUrl(value) {
   return "";
 }
 
+function providerParticipantId(value) {
+  if (typeof value === "number" && Number.isSafeInteger(value) && value > 0) {
+    return String(value);
+  }
+  if (typeof value === "string" && /^\d+$/.test(value) && Number(value) > 0) {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const id = providerParticipantId(item);
+      if (id) return id;
+    }
+    return "";
+  }
+  if (value && typeof value === "object") {
+    for (const key of ["participantId", "participant_id", "id"]) {
+      const id = providerParticipantId(value[key]);
+      if (id) return id;
+    }
+    const nestedValues = Object.entries(value)
+      .filter(([key]) => /^\d+$/.test(key) || ["participants", "data", "response", "result"].includes(key))
+      .map(([, item]) => item);
+    for (const item of nestedValues) {
+      const id = providerParticipantId(item);
+      if (id) return id;
+    }
+  }
+  return "";
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -73,7 +103,7 @@ export default async function handler(req, res) {
       throw new BroadcastAccessError("Živé vysílání už není dostupné.", 410);
     }
 
-    assertJoinWindow(session.starts_at || event.starts_at, identity.isPlatformAdmin);
+    assertJoinWindow(event.starts_at || session.starts_at, identity.isPlatformAdmin);
 
     const participant = webMeetingParticipant(identity);
     const imported = await webMeeting.importParticipantAndGetEnterURL(
@@ -84,12 +114,26 @@ export default async function handler(req, res) {
     const url = enterUrl(imported);
     if (!url) throw new WebMeetingApiError("WebMeeting nevrátil vstupní odkaz.", { status: 502 });
 
+    let internalParticipantId = providerParticipantId(imported);
+    if (!internalParticipantId) {
+      try {
+        const importedIds = await webMeeting.importParticipants(
+          session.external_meeting_id,
+          [participant],
+          1
+        );
+        internalParticipantId = providerParticipantId(importedIds);
+      } catch (participantIdError) {
+        console.warn("webmeeting participant id recovery error:", participantIdError);
+      }
+    }
+
     const { error: auditError } = await supabaseAdmin.from("broadcast_participants").upsert(
       {
         session_id: session.id,
         user_id: identity.user.id,
         organization_id: identity.organizationId,
-        provider_participant_id: String(participant.number),
+        provider_participant_id: internalParticipantId || String(participant.number),
         join_requested_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
