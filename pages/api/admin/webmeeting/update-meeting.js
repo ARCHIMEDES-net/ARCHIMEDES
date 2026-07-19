@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { requirePlatformAdmin } from "../../../../lib/server/platformAdminApi";
 import { WebMeetingApiError, webMeeting } from "../../../../lib/server/webmeetingClient";
+import { canUpdateWebMeeting } from "../../../../lib/broadcastLifecycle";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -50,6 +51,21 @@ export default async function handler(req, res) {
     const session = sessions?.[0] || null;
     if (!session?.external_meeting_id) {
       return res.status(200).json({ synced: false, reason: "meeting_not_created" });
+    }
+
+    if (
+      !canUpdateWebMeeting({
+        startsAt: event.starts_at || session.starts_at,
+        status: session.status,
+        recordingStatus: session.recording_status,
+        recordingUrl: session.recording_url,
+        providerStatus: session.provider_status,
+      })
+    ) {
+      return res.status(409).json({
+        error:
+          "Technické nastavení WebMeetingu je po začátku vysílání uzamčeno. Upravovat lze už jen záznam a interní poznámku v ARCHIMEDES.",
+      });
     }
 
     const moderatorName = String(session.moderator_name || "ARCHIMEDES Live").trim();
