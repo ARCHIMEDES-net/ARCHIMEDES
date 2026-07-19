@@ -80,6 +80,7 @@ export default async function handler(req, res) {
       sessionPatch.recording_url = recording.url;
       sessionPatch.recording_status =
         session.recording_status === "published" ? "published" : "ready";
+      sessionPatch.status = "finished";
     }
 
     const { error: updateSessionError } = await supabaseAdmin
