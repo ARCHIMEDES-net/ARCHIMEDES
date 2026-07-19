@@ -24,6 +24,7 @@ import SectionEyebrow from "../components/home/SectionEyebrow";
 import StatsSection from "../components/home/StatsSection";
 import PatronageStrip from "../components/home/PatronageStrip";
 import ReferenceCard from "../components/home/ReferenceCard";
+import HomeShowreel from "../components/home/HomeShowreel";
 import { AREA_ICONS } from "../components/partners/icons";
 import { communityCategories } from "../content/communityCategories";
 import {
@@ -228,6 +229,9 @@ export default function Home({ initialEvents = [] }) {
             </div>
           </div>
         </section>
+
+        {/* SHOWREEL — emotional proof before numbers and awards */}
+        <HomeShowreel />
 
         {/* NETWORK SIZE STATS */}
         <StatsSection />
