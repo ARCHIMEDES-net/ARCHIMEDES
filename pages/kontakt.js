@@ -7,14 +7,6 @@ import SectionEyebrow from "../components/home/SectionEyebrow";
 
 const team = [
   {
-    name: "Antonín Koplík",
-    role: "Jednatel společnosti",
-    email: "antonin.koplik@archimedeslive.com",
-    phone: "+420 733 643 121",
-    note: "Autor ARCHIMEDES Live",
-    image: "/team-antonin.webp",
-  },
-  {
     name: "Zuzana Novotná",
     role: "Manažerka platformy",
     email: "zuzana.novotna@archimedeslive.com",
@@ -37,6 +29,22 @@ const team = [
     phone: "+420 736 457 835",
     note: "Spolupráce s institucemi, partnery a organizacemi",
     image: "/team-roman.webp",
+  },
+  {
+    name: "Petr Čumba",
+    role: "Jednatel, CFO",
+    email: "petr.cumba@eduvision.cz",
+    phone: "+420 602 770 128",
+    note: "Finance a ekonomické řízení",
+    image: "/team-petr.webp",
+  },
+  {
+    name: "Antonín Koplík",
+    role: "Jednatel, CDO",
+    email: "antonin.koplik@archimedeslive.com",
+    phone: "+420 733 643 121",
+    note: "Autor ARCHIMEDES Live",
+    image: "/team-antonin.webp",
   },
   {
     name: "Dominik Ševčík",
