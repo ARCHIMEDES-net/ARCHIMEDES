@@ -574,7 +574,32 @@ export default function AdminUdalosti() {
       if (editingId) {
         const { error } = await supabase.from("events").update(payload).eq("id", editingId);
         if (error) throw error;
-        setInfo("Událost byla upravena.");
+
+        const { data: authData } = await supabase.auth.getSession();
+        const token = authData?.session?.access_token;
+        if (!token) throw new Error("Událost byla uložena, ale přihlášení vypršelo.");
+
+        const response = await fetch("/api/admin/webmeeting/update-meeting", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ eventId: editingId }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(
+            `Událost je uložená v ARCHIMEDES, ale WebMeeting změnu nepřijal: ${
+              result.error || "neznámá chyba"
+            }`
+          );
+        }
+        setInfo(
+          result.synced
+            ? "Událost byla upravena a změna se propsala do WebMeetingu."
+            : "Událost byla upravena. Místnost ve WebMeetingu ještě není založena."
+        );
       } else {
         const { data, error } = await supabase
           .from("events")
