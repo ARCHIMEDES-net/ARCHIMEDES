@@ -193,7 +193,7 @@ export default function AdminVysilaniDetailPage() {
       setRecordingUrl(session.recording_url || "");
       setRecordingStatus(session.recording_status || "none");
       setNotesInternal(session.notes_internal || "");
-      setStartsAt(toDateTimeLocalValue(session.starts_at || eventData.starts_at));
+      setStartsAt(toDateTimeLocalValue(eventData.starts_at || session.starts_at));
       const groups = await loadRecipientGroups();
       setSelectedRecipientGroups(suggestRecipientGroups(eventData, groups));
       await loadWebMeetingStatus();
@@ -452,12 +452,36 @@ export default function AdminVysilaniDetailPage() {
         if (eventUpdateError) throw eventUpdateError;
       }
 
+      let providerSynced = false;
+      if (externalMeetingId) {
+        const token = await getAccessToken();
+        const response = await fetch("/api/admin/webmeeting/update-meeting", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ eventId }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(
+            `ARCHIMEDES změnu uložil, ale WebMeeting ji nepřijal: ${
+              result.error || "neznámá chyba"
+            }`
+          );
+        }
+        providerSynced = Boolean(result.synced);
+      }
+
       setViewerUrl(normalizedViewerUrl);
       setRecordingUrl(normalizedRecordingUrl);
       setMessage(
-        normalizedViewerUrl
-          ? "Vysílání bylo uloženo; volitelný odkaz se propsal do události."
-          : "Vysílání bylo uloženo. Pozvánky a přístupový odkaz rozešle WebMeeting."
+        providerSynced
+          ? "Změny byly uloženy v ARCHIMEDES a propsány do WebMeetingu."
+          : normalizedViewerUrl
+            ? "Vysílání bylo uloženo; volitelný odkaz se propsal do události."
+            : "Vysílání bylo uloženo. Pozvánky a přístupový odkaz rozešle WebMeeting."
       );
     } catch (e) {
       setError(e.message || "Vysílání se nepodařilo uložit.");
