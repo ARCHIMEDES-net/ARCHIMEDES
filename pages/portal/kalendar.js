@@ -324,7 +324,8 @@ export default function Kalendar() {
           guest_4_name,
           guest_5_name,
           notes_internal,
-          starts_at
+          starts_at,
+          external_meeting_id
         )
       `)
       .eq("is_published", true)

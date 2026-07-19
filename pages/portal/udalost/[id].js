@@ -184,7 +184,8 @@ export default function UdalostDetail() {
             viewer_url,
             recording_url,
             recording_status,
-            starts_at
+            starts_at,
+            external_meeting_id
           )
         `)
         .eq("id", id)
@@ -358,15 +359,19 @@ export default function UdalostDetail() {
   );
 
   const streamUrl = getStreamUrl(row);
+  const broadcastSession = Array.isArray(row?.broadcast_sessions)
+    ? row.broadcast_sessions[0]
+    : row?.broadcast_sessions;
+  const hasWebMeetingRoom = Boolean(broadcastSession?.external_meeting_id);
   const worksheetUrl = row?.worksheet_url || "";
   const posterUrl = useMemo(() => resolvePosterUrl(row), [row]);
 
   const canAccessStream =
-    !!streamUrl &&
+    (Boolean(streamUrl) || hasWebMeetingRoom) &&
     (isPlatformAdmin || licenseMode === "active");
 
   const showLockedStreamNotice =
-    !!streamUrl &&
+    (Boolean(streamUrl) || hasWebMeetingRoom) &&
     !canAccessStream &&
     !licenseLoading;
 
@@ -613,8 +618,9 @@ export default function UdalostDetail() {
                 event={row}
                 detailHref={`/portal/udalost/${row?.id}`}
                 showWaiting
+                forceDynamicJoin={isPlatformAdmin && hasWebMeetingRoom}
               />
-            ) : streamUrl ? (
+            ) : streamUrl || hasWebMeetingRoom ? (
               <button
                 type="button"
                 disabled
