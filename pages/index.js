@@ -233,7 +233,11 @@ export default function Home({ initialEvents = [] }) {
         {/* VERTICAL VIDEO STORIES */}
         <section id="program" aria-label="ARCHIMEDES Live ve videu" className="py-12">
           <div className="mx-auto max-w-[1180px] px-5">
-            <div className="mx-auto grid max-w-[760px] grid-cols-1 justify-items-center gap-5 sm:grid-cols-2 sm:gap-7">
+            <h2 className="mb-8 text-center text-3xl font-[950] tracking-[-0.045em] text-navy-900">
+              Vysílali jsme…
+            </h2>
+
+            <div className="grid grid-cols-1 justify-items-center gap-5 sm:grid-cols-2 sm:gap-7 lg:grid-cols-3">
               <div className="w-full max-w-[360px] overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-[0_18px_44px_rgba(15,23,42,0.14)]">
                 <video
                   controls
@@ -258,6 +262,20 @@ export default function Home({ initialEvents = [] }) {
                   aria-label="Živý program ARCHIMEDES Live v učebně ARCHIMEDES"
                 >
                   <source src="/zir-video.mp4" type="video/mp4" />
+                  Váš prohlížeč nepodporuje přehrávání videa.
+                </video>
+              </div>
+
+              <div className="w-full max-w-[360px] overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-[0_18px_44px_rgba(15,23,42,0.14)]">
+                <video
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster="/petr-video-poster.webp"
+                  className="aspect-[9/16] h-auto w-full object-contain"
+                  aria-label="Inspirativní vysílání ARCHIMEDES Live se jménem Petr"
+                >
+                  <source src="/petr-video.mp4" type="video/mp4" />
                   Váš prohlížeč nepodporuje přehrávání videa.
                 </video>
               </div>
