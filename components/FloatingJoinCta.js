@@ -65,7 +65,7 @@ export default function FloatingJoinCta() {
     const updateVisibility = () => {
       frame = 0;
       const threshold = pathname === "/" ? Math.min(window.innerHeight * 0.58, 610) : 180;
-      const footer = document.querySelector("footer");
+      const footer = document.querySelector("footer.site-footer");
       const footerIsNear = footer
         ? footer.getBoundingClientRect().top < window.innerHeight - 24
         : false;
