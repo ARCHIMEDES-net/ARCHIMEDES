@@ -1,7 +1,6 @@
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { track } from "@vercel/analytics";
 import {
   ArrowRight,
@@ -15,9 +14,6 @@ import PhotoWithFallback from "../components/PhotoWithFallback";
 import {
   createPublicEventStructuredData,
   fetchPublicProgramWindow,
-  normalizeAudience,
-  resolvePosterUrl,
-  safeDate,
 } from "../lib/publicEvents";
 import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
@@ -61,94 +57,9 @@ const AUDIENCES = [
   },
 ];
 
-const CZ_MONTHS = [
-  "ledna", "února", "března", "dubna", "května", "června",
-  "července", "srpna", "září", "října", "listopadu", "prosince",
-];
-
-function formatProgrammeDate(value) {
-  const date = safeDate(value);
-  if (!date) return "Termín upřesníme";
-  return `${date.getDate()}. ${CZ_MONTHS[date.getMonth()]} ${date.getFullYear()} · ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-}
-
-function ProgrammeRow({ event, isNearestFuture }) {
-  const date = safeDate(event?.starts_at);
-  const isPast = date ? date.getTime() < Date.now() : false;
-  const posterUrl = resolvePosterUrl(event);
-  const audience = normalizeAudience(event?.audience_groups);
-
-  return (
-    <article className="group grid grid-cols-[72px_1fr] items-center gap-4 border-b border-slate-200 py-4 last:border-b-0 sm:grid-cols-[104px_145px_minmax(0,1fr)_auto]">
-      <div className="h-[58px] overflow-hidden rounded-xl bg-[#eaf1f8] sm:h-[72px]">
-        {posterUrl ? (
-          <img
-            src={posterUrl}
-            alt={event?.title || "Vysílání ARCHIMEDES Live"}
-            loading="lazy"
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-[11px] font-black uppercase tracking-[0.12em] text-brand">
-            Live
-          </div>
-        )}
-      </div>
-
-      <div className="hidden sm:block">
-        <span className="block text-[13px] font-bold leading-snug text-slate-500">
-          {formatProgrammeDate(event?.starts_at)}
-        </span>
-        <span className="mt-1 block text-[11px] font-black uppercase tracking-[0.12em] text-brand">
-          {event?.category || "ARCHIMEDES Live"}
-        </span>
-      </div>
-
-      <div className="min-w-0">
-        <div className="sm:hidden">
-          <span className="text-[12px] font-bold text-slate-500">{formatProgrammeDate(event?.starts_at)}</span>
-        </div>
-        <h3 className="mt-1 text-[17px] font-[900] leading-snug tracking-[-0.02em] text-navy-900 sm:mt-0 sm:text-[19px]">
-          {event?.title || "Připravované vysílání"}
-        </h3>
-        {audience.length ? (
-          <p className="mt-1 text-[13px] text-muted">{audience.slice(0, 2).join(" · ")}</p>
-        ) : null}
-      </div>
-
-      <div className="col-start-2 justify-self-start sm:col-start-auto sm:justify-self-end">
-        <span className={`inline-flex rounded-full px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.08em] ${
-          isNearestFuture
-            ? "bg-[#dff7e8] text-[#167344]"
-            : isPast
-              ? "bg-slate-100 text-slate-500"
-              : "bg-[#eaf1ff] text-brand"
-        }`}>
-          {isNearestFuture ? "Nejbližší vysílání" : isPast ? "Proběhlo" : "Připravujeme"}
-        </span>
-      </div>
-    </article>
-  );
-}
-
 export default function Home({ initialEvents = [] }) {
-  const [events, setEvents] = useState(initialEvents);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    fetchPublicProgramWindow(3).then((res) => {
-      if (cancelled) return;
-      if (!res.error) setEvents(res.events || []);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const visibleReferences = references.filter((r) => r.visible);
-  const programmeItems = events.slice(0, 3);
+  const programmeItems = initialEvents.slice(0, 3);
   const eventStructuredData = createPublicEventStructuredData(
     programmeItems,
     "https://www.archimedeslive.com/program"
@@ -319,43 +230,36 @@ export default function Home({ initialEvents = [] }) {
           </div>
         </section>
 
-        {/* PROGRAMME — show the result, not an empty calendar */}
-        <section id="program" className="py-12">
+        {/* VERTICAL VIDEO STORIES */}
+        <section id="program" aria-label="ARCHIMEDES Live ve videu" className="py-12">
           <div className="mx-auto max-w-[1180px] px-5">
-            <div className="grid gap-7 lg:grid-cols-[280px_1fr] lg:items-start">
-              <div>
-                <SectionEyebrow>Program ARCHIMEDES Live</SectionEyebrow>
-                <h2 className="text-3xl font-[950] tracking-[-0.045em] text-navy-900">
-                  Co vysíláme
-                </h2>
-                <p className="mt-3 text-[15px] leading-relaxed text-muted">
-                  Konkrétní pořady, které mohou školy, spolky, senioři a další lidé v obci sledovat společně.
-                </p>
-                <Link href="/program#vysilani" className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-brand">
-                  Zobrazit celý program <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
+            <div className="mx-auto grid max-w-[760px] grid-cols-1 justify-items-center gap-5 sm:grid-cols-2 sm:gap-7">
+              <div className="w-full max-w-[360px] overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-[0_18px_44px_rgba(15,23,42,0.14)]">
+                <video
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster="/ad-video-poster.webp"
+                  className="aspect-[9/16] h-auto w-full object-contain"
+                  aria-label="ARCHIMEDES DAY v učebně ARCHIMEDES"
+                >
+                  <source src="/ad-video.mp4" type="video/mp4" />
+                  Váš prohlížeč nepodporuje přehrávání videa.
+                </video>
               </div>
 
-              <div className="overflow-hidden rounded-[22px] border border-slate-200 bg-white px-5 shadow-[0_14px_38px_rgba(15,23,42,0.06)] sm:px-6">
-                {programmeItems.length ? (
-                  programmeItems.map((event, index) => {
-                    const firstFutureIndex = programmeItems.findIndex(
-                      (item) => (safeDate(item?.starts_at)?.getTime() || 0) >= Date.now()
-                    );
-                    return (
-                      <ProgrammeRow
-                        key={event.id}
-                        event={event}
-                        isNearestFuture={index === firstFutureIndex}
-                      />
-                    );
-                  })
-                ) : (
-                  <div className="py-8">
-                    <strong className="text-navy-900">Program právě doplňujeme.</strong>
-                    <p className="mt-1 text-sm text-muted">Brzy zde uvidíte konkrétní připravovaná vysílání.</p>
-                  </div>
-                )}
+              <div className="w-full max-w-[360px] overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-[0_18px_44px_rgba(15,23,42,0.14)]">
+                <video
+                  controls
+                  playsInline
+                  preload="metadata"
+                  poster="/zir-video-poster.webp"
+                  className="aspect-[9/16] h-auto w-full object-contain"
+                  aria-label="Živý program ARCHIMEDES Live v učebně ARCHIMEDES"
+                >
+                  <source src="/zir-video.mp4" type="video/mp4" />
+                  Váš prohlížeč nepodporuje přehrávání videa.
+                </video>
               </div>
             </div>
           </div>
