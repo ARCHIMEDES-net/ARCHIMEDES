@@ -3,12 +3,23 @@
 -- existujici ucty, clenstvi ani licence.
 
 alter table public.organizations
+  add column if not exists requested_license_plan text,
+  add column if not exists terms_accepted_at timestamptz,
+  add column if not exists terms_version text,
   add column if not exists license_plan text,
   add column if not exists license_started_at timestamptz,
   add column if not exists contract_status text not null default 'pending',
   add column if not exists billing_status text not null default 'pending',
   add column if not exists activated_at timestamptz,
   add column if not exists activated_by uuid references auth.users(id);
+
+alter table public.organizations
+  drop constraint if exists organizations_requested_license_plan_allowed,
+  add constraint organizations_requested_license_plan_allowed
+    check (
+      requested_license_plan is null
+      or requested_license_plan in ('paid_monthly', 'paid_annual', 'classroom_free_12m')
+    );
 
 alter table public.organizations
   drop constraint if exists organizations_license_plan_allowed,
