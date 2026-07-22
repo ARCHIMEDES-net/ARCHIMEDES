@@ -5,7 +5,8 @@ import { ArrowRight, Check, MapPin, Radio, Users } from "lucide-react";
 import Footer from "../components/Footer";
 import FaqSection, { createFaqStructuredData } from "../components/FaqSection";
 import { Button } from "../components/ui/button";
-import SectionEyebrow from "../components/home/SectionEyebrow";\nimport MunicipalityBroadcastGallery from "../components/MunicipalityBroadcastGallery";
+import SectionEyebrow from "../components/home/SectionEyebrow";
+import MunicipalityBroadcastGallery from "../components/MunicipalityBroadcastGallery";
 
 const outcomes = [
   {
@@ -195,7 +196,9 @@ export default function ObecPage() {
           </div>
         </section>
 
-        <MunicipalityBroadcastGallery />\n\n        <section className="bg-[#f3f7fb] py-16 sm:py-20">
+        <MunicipalityBroadcastGallery />
+
+        <section className="bg-[#f3f7fb] py-16 sm:py-20">
           <div className="mx-auto grid max-w-[1180px] gap-8 px-5 lg:grid-cols-[1fr_0.9fr] lg:items-center">
             <div>
               <SectionEyebrow>Jedno předplatné pro obec</SectionEyebrow>
