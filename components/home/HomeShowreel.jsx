@@ -61,7 +61,7 @@ export default function HomeShowreel() {
                 href="/program"
                 className="mt-6 inline-flex items-center gap-1.5 text-sm font-black text-brand transition hover:text-navy-900"
               >
-                Prohlédnout program
+                Podívat se, co přinášíme
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>

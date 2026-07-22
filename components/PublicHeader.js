@@ -7,7 +7,7 @@ function stripQuery(asPath) {
 }
 
 const NAV_ITEMS = [
-  { key: "program", href: "/program", label: "Program" },
+  { key: "program", href: "/program", label: "Co přinášíme" },
   { key: "obec", href: "/obec", label: "Pro obce" },
   { key: "skoly", href: "/skoly", label: "Pro školy" },
   { key: "pro-organizace", href: "/pro-organizace", label: "Pro spolky" },
