@@ -37,8 +37,8 @@ jobs:
           set -euo pipefail
           test -n "$SUPABASE_DB_URL"
 
-      - name: Capture protected baseline and pending test request
-        id: baseline
+      - name: Capture protected baseline
+        id: counts
         shell: bash
         run: |
           set -euo pipefail
@@ -46,6 +46,12 @@ jobs:
           baseline="$(printf '%s\n' "$baseline" | sed -nE '/^[[:space:]]*[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+[[:space:]]*$/p' | tr -d '[:space:]' | tail -n 1)"
           [[ "$baseline" =~ ^[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+$ ]]
           echo "BASELINE=$baseline" >> "$GITHUB_ENV"
+
+      - name: Confirm pending test request
+        id: request
+        shell: bash
+        run: |
+          set -euo pipefail
           pending="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --command="select count(*) from public.orders_start o join public.organizations g on g.id=o.organization_id where ((to_jsonb(o)->>'id')='628a8a4d-f24a-4701-b86b-d18dacac7fbc' or o.organization_id::text='628a8a4d-f24a-4701-b86b-d18dacac7fbc') and g.status <> 'active';" | sed -nE '/^[[:space:]]*[0-9]+[[:space:]]*$/p' | tr -d '[:space:]' | tail -n 1)"
           test "$pending" = "1"
 
@@ -80,7 +86,7 @@ jobs:
           language plpgsql
           security definer
           set search_path = public
-          as $
+          as $function$
           #variable_conflict use_column
           declare
             customer public.organizations%rowtype;
@@ -223,7 +229,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           CONFIG: ${{ steps.config.outcome }}
-          BASELINE: ${{ steps.baseline.outcome }}
+          COUNTS: ${{ steps.counts.outcome }}
+          REQUEST: ${{ steps.request.outcome }}
           PREPARE: ${{ steps.prepare.outcome }}
           APPLY: ${{ steps.apply.outcome }}
           VERIFY: ${{ steps.verify.outcome }}
@@ -234,11 +241,12 @@ jobs:
           else
             state=failure
             failed=config
-            [ "$CONFIG" = "success" ] && failed=baseline
-            [ "$BASELINE" = "success" ] && failed=prepare
+            [ "$CONFIG" = "success" ] && failed=counts
+            [ "$COUNTS" = "success" ] && failed=request
+            [ "$REQUEST" = "success" ] && failed=prepare
             [ "$PREPARE" = "success" ] && failed=apply
             [ "$APPLY" = "success" ] && failed=verify
             context="Supabase 0015 failure at $failed"
           fi
-          description="config=$CONFIG baseline=$BASELINE prepare=$PREPARE apply=$APPLY verify=$VERIFY"
+          description="config=$CONFIG counts=$COUNTS request=$REQUEST prepare=$PREPARE apply=$APPLY verify=$VERIFY"
           gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state="$state" -f context="$context" -f description="$description"
