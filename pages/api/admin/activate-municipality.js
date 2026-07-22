@@ -91,7 +91,7 @@ async function sendOnboardingEmail({
   await transporter.sendMail({
     from: process.env.MAIL_FROM,
     to: email,
-    subject: "ARCHIMEDES Live – přístup obce byl aktivován",
+    subject: "ARCHIMEDES Live – přístup byl aktivován",
     text: `Dobrý den ${fullName},
 
 přístup pro ${organizationName} byl aktivován.
