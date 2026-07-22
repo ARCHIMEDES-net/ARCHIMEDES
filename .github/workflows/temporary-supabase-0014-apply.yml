@@ -26,12 +26,14 @@ jobs:
 
     steps:
       - name: Validate protected configuration
+        id: validate
         shell: bash
         run: |
           set -euo pipefail
           test -n "$SUPABASE_DB_URL"
 
       - name: Prepare fixed migration 0014
+        id: prepare
         shell: bash
         run: |
           set -euo pipefail
@@ -328,6 +330,7 @@ jobs:
           echo "migration_sha256=$(sha256sum "$RUNNER_TEMP/0014.sql" | cut -d' ' -f1)" >> "$GITHUB_ENV"
 
       - name: Capture protected baseline
+        id: baseline
         shell: bash
         run: |
           set -euo pipefail
@@ -344,6 +347,7 @@ jobs:
           echo "Approved baseline confirmed: organizations=11 memberships=53 profiles=84 orders=10"
 
       - name: Confirm recent encrypted recovery point
+        id: recovery
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -477,10 +481,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          validate_outcome="${{ steps.validate.outcome }}"
+          prepare_outcome="${{ steps.prepare.outcome }}"
+          baseline_outcome="${{ steps.baseline.outcome }}"
+          recovery_outcome="${{ steps.recovery.outcome }}"
           apply_outcome="${{ steps.apply.outcome }}"
           verify_outcome="${{ steps.verify.outcome }}"
           apply_error="${{ steps.apply.outputs.error }}"
-          if [[ "$apply_outcome" != "success" ]]; then
+          if [[ "$validate_outcome" != "success" ]]; then
+            state="failure"
+            description="Pre-step failed: protected configuration"
+          elif [[ "$prepare_outcome" != "success" ]]; then
+            state="failure"
+            description="Pre-step failed: prepare migration SQL"
+          elif [[ "$baseline_outcome" != "success" ]]; then
+            state="failure"
+            description="Pre-step failed: protected baseline"
+          elif [[ "$recovery_outcome" != "success" ]]; then
+            state="failure"
+            description="Pre-step failed: recent recovery point"
+          elif [[ "$apply_outcome" != "success" ]]; then
             state="failure"
             description="Apply failed: ${apply_error:-unknown database error}"
           elif [[ "$verify_outcome" != "success" ]]; then
