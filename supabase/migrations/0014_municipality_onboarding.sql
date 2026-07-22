@@ -11,7 +11,7 @@ alter table public.organizations
   add column if not exists contract_status text not null default 'pending',
   add column if not exists billing_status text not null default 'pending',
   add column if not exists activated_at timestamptz,
-  add column if not exists activated_by uuid references auth.users(id);
+  add column if not exists activated_by uuid references auth.users(id) on delete set null;
 
 alter table public.organizations
   drop constraint if exists organizations_requested_license_plan_allowed,
@@ -49,10 +49,10 @@ create table if not exists public.municipality_organization_invites (
   status text not null default 'pending'
     check (status in ('pending', 'used', 'revoked', 'expired')),
   expires_at timestamptz not null,
-  created_by uuid not null references auth.users(id),
+  created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
   used_at timestamptz,
-  used_organization_id uuid references public.organizations(id)
+  used_organization_id uuid references public.organizations(id) on delete set null
 );
 
 create index if not exists municipality_organization_invites_municipality_idx
