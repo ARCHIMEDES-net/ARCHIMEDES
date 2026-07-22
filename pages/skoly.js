@@ -365,9 +365,9 @@ export default function SkolyPage() {
                   Chci program pro školu
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Button>
-                <Button href="/registrace-skoly" variant="secondary">
-                  Máme kód obce
-                </Button>
+                <span className="self-center text-sm leading-relaxed text-slate-500">
+                  Pokud je zapojená obec, správce obce pošle škole jednorázovou pozvánku.
+                </span>
               </div>
             </div>
           </div>
