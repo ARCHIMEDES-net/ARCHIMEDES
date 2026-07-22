@@ -49,6 +49,7 @@ async function sendOnboardingEmail({
   email,
   fullName,
   organizationName,
+  organizationType,
   registrationNumber,
   licensePlan,
   licenseValidUntil,
@@ -74,6 +75,18 @@ async function sendOnboardingEmail({
   const validUntilText = licenseValidUntil
     ? new Date(licenseValidUntil).toLocaleDateString("cs-CZ")
     : "do ukončení měsíční licence";
+  const isMunicipality = ["municipality", "obec"].includes(organizationType);
+  const nextStepUrl = isMunicipality
+    ? `${SITE_URL}/portal/organizace-obce`
+    : organizationType === "school"
+      ? `${SITE_URL}/portal/uzivatele`
+      : `${SITE_URL}/portal/muj-profil`;
+  const registrationLine = isMunicipality
+    ? `Registrační číslo obce: ${registrationNumber || "bude doplněno v portálu"}\n`
+    : "";
+  const organizationInstruction = isMunicipality
+    ? "\nRegistrační číslo identifikuje program obce. Pro bezpečné zapojení školy nebo spolku vytvořte v portálu jednorázovou pozvánku.\n"
+    : "";
 
   await transporter.sendMail({
     from: process.env.MAIL_FROM,
@@ -85,13 +98,10 @@ přístup pro ${organizationName} byl aktivován.
 
 Varianta: ${LICENSE_LABELS[licensePlan] || licensePlan}
 Platnost: ${validUntilText}
-Registrační číslo obce: ${registrationNumber || "bude doplněno v portálu"}
-
+${registrationLine}
 Přihlášení: ${SITE_URL}/login
-Zapojení školy nebo spolku: ${SITE_URL}/portal/organizace-obce
-
-Registrační číslo identifikuje program obce. Pro bezpečné zapojení školy nebo spolku vytvořte v portálu jednorázovou pozvánku.
-
+Další nastavení: ${nextStepUrl}
+${organizationInstruction}
 Tým ARCHIMEDES Live`,
   });
 }
@@ -229,6 +239,7 @@ export default async function handler(req, res) {
         email: contactEmail,
         fullName: contactName,
         organizationName: customer.name,
+        organizationType: customer.org_type,
         registrationNumber:
           activated?.registration_number || customer.registration_number,
         licensePlan,
