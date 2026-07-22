@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Head from "next/head";
 import { supabase } from "../lib/supabaseClient";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
@@ -110,6 +111,9 @@ export default function RegistraceSkolyPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <Head>
+        <meta name="referrer" content="no-referrer" />
+      </Head>
       <main className="mx-auto max-w-[760px] px-4 py-10">
         <Card className="p-7">
           <Badge variant="outline">Registrace školy</Badge>
