@@ -414,12 +414,128 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          post_counts="$(docker run --rm \
-            -e PGDATABASE="$SUPABASE_DB_URL" \
-            --entrypoint psql "$PG17_IMAGE" \
-            --no-psqlrc --tuples-only --no-align --field-separator='|' \
+          post_counts="$(psql "$SUPABASE_DB_URL" -X --tuples-only --no-align --field-separator='|' \
             --command="select (select count(*) from public.organizations), (select count(*) from public.organization_members), (select count(*) from public.profiles), (select count(*) from public.orders_start);")"
-          post_counts="$(printf '%s' "$post_counts" | tr -d '[:space:]')"
+          post_counts="$(printf '%s' "$post_counts" | grep -Eo '^[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+
+          if [[ "$post_counts" != "$BASELINE_COUNTS" ]]; then
+            echo "Protected anonymous counts changed during migration: before=$BASELINE_COUNTS after=$post_counts" >&2
+            exit 1
+          fi
+          echo "Post-migration anonymous counts match baseline: $post_counts"
+
+          psql "$SUPABASE_DB_URL" -X --set=ON_ERROR_STOP=1 <<'SQL'
+          DO $verify$
+          BEGIN
+            IF NOT EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_schema='public' AND table_name='organizations'
+                AND column_name='license_plan'
+            ) THEN
+              RAISE EXCEPTION 'license_plan column missing';
+            END IF;
+
+            IF to_regclass('public.municipality_organization_invites') IS NULL
+               OR to_regclass('public.api_rate_limits') IS NULL THEN
+              RAISE EXCEPTION 'Required 0014 table missing';
+            END IF;
+
+            IF to_regprocedure(
+              'public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)'
+            ) IS NULL
+               OR to_regprocedure(
+              'public.consume_api_rate_limit(text,text,integer,integer)'
+            ) IS NULL THEN
+              RAISE EXCEPTION 'Required 0014 function missing';
+            END IF;
+          END
+          $verify$;
+
+          SELECT
+            (SELECT count(*) FROM public.organizations) AS organizations,
+            (SELECT count(*) FROM public.organization_members) AS memberships,
+            (SELECT count(*) FROM public.profiles) AS profiles,
+            (SELECT count(*) FROM public.orders_start) AS orders,
+            to_regclass('public.municipality_organization_invites') IS NOT NULL AS invites_ready,
+            to_regclass('public.api_rate_limits') IS NOT NULL AS rate_limit_ready,
+            to_regprocedure(
+              'public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)'
+            ) IS NOT NULL AS activation_v2_ready,
+            to_regprocedure(
+              'public.consume_api_rate_limit(text,text,integer,integer)'
+            ) IS NOT NULL AS rate_limit_function_ready;
+          SQL
+
+      - name: Publish run summary
+        if: steps.apply.outcome == 'success' && steps.verify.outcome == 'success'
+        shell: bash
+        run: |
+          {
+            echo "## Supabase migration 0014"
+            echo
+            echo "- Recent encrypted restore-verified recovery point: confirmed"
+            echo "- Migration SHA-256: `$migration_sha256`"
+            echo "- Transaction: committed"
+            echo "- Protected anonymous counts before/after: $BASELINE_COUNTS"
+            echo "- Required columns, tables and functions: verified"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish migration status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ job.status }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          validate_outcome="${{ steps.validate.outcome }}"
+          prepare_outcome="${{ steps.prepare.outcome }}"
+          baseline_outcome="${{ steps.baseline.outcome }}"
+          recovery_outcome="${{ steps.recovery.outcome }}"
+          apply_outcome="${{ steps.apply.outcome }}"
+          verify_outcome="${{ steps.verify.outcome }}"
+          apply_error="${{ steps.apply.outputs.error }}"
+          if [[ "$validate_outcome" != "success" ]]; then
+            state="failure"
+            description="Pre-step failed: protected configuration"
+          elif [[ "$prepare_outcome" != "success" ]]; then
+            state="failure"
+            description="Pre-step failed: prepare migration SQL"
+          elif [[ "$baseline_outcome" != "success" ]]; then
+            state="failure"
+            description="Pre-step failed: protected baseline"
+          elif [[ "$recovery_outcome" != "success" ]]; then
+            state="failure"
+            description="Pre-step failed: recent recovery point"
+          elif [[ "$apply_outcome" != "success" ]]; then
+            state="failure"
+            description="Apply failed: ${apply_error:-unknown database error}"
+          elif [[ "$verify_outcome" != "success" ]]; then
+            state="failure"
+            description="Migration committed but post-migration verification failed"
+          else
+            state="success"
+            description="Migration 0014 committed; schema and protected counts verified"
+          fi
+          description="$(printf '%s' "$description" | cut -c1-140)"
+          if [[ "$state" == "failure" ]]; then
+            context="Supabase error: $(printf '%s' "$description" | cut -c1-75)"
+          else
+            context="Supabase 0014 migration"
+          fi
+          jq -n --arg state "$state" --arg description "$description" \
+            --arg context "$context" \
+            '{state:$state,description:$description,context:$context}' \
+            | curl --fail --silent --show-error -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+              -d @- > /dev/null
+
+      - name: Fail workflow when apply or verification failed
+        if: steps.apply.outcome != 'success' || steps.verify.outcome != 'success'
+        run: exit 1
+ | tail -n 1)"
           if [[ "$post_counts" != "$BASELINE_COUNTS" ]]; then
             echo "Protected anonymous counts changed during migration: before=$BASELINE_COUNTS after=$post_counts" >&2
             exit 1
