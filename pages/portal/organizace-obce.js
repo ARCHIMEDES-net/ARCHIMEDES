@@ -310,7 +310,6 @@ export default function MunicipalityOrganizationsPage() {
                         <div className="font-bold text-navy-900">{organization.name}</div>
                         <div className="mt-1 text-sm text-slate-500">
                           {TYPE_LABELS[organization.org_type] || organization.org_type}
-                          {organization.contact_email ? ` • ${organization.contact_email}` : ""}
                         </div>
                       </div>
                       <Badge variant="outline">{organization.status === "active" ? "Aktivní" : organization.status}</Badge>
