@@ -11,7 +11,9 @@ alter table public.organizations
   add column if not exists contract_status text not null default 'pending',
   add column if not exists billing_status text not null default 'pending',
   add column if not exists activated_at timestamptz,
-  add column if not exists activated_by uuid references auth.users(id) on delete set null;
+  add column if not exists activated_by uuid references auth.users(id) on delete set null,
+  add column if not exists classroom_eligibility_verified_at timestamptz,
+  add column if not exists classroom_eligibility_verified_by uuid references auth.users(id) on delete set null;
 
 alter table public.organizations
   drop constraint if exists organizations_requested_license_plan_allowed,
@@ -79,6 +81,7 @@ create or replace function public.activate_customer_with_admin_v2(
   p_license_valid_until timestamptz,
   p_contract_status text,
   p_billing_status text,
+  p_classroom_eligibility_verified boolean default false,
   p_must_set_password boolean default false
 )
 returns table (
@@ -114,6 +117,11 @@ begin
   if p_license_plan = 'classroom_free_12m'
      and p_billing_status <> 'not_applicable' then
     raise exception 'Bezplatna licence musi mit fakturaci bez uhrady.';
+  end if;
+
+  if p_license_plan = 'classroom_free_12m'
+     and not p_classroom_eligibility_verified then
+    raise exception 'Pred bezplatnou aktivaci overte ucebnu ARCHIMEDES.';
   end if;
 
   if p_license_plan in ('paid_annual', 'classroom_free_12m')
@@ -173,7 +181,13 @@ begin
     contract_status = p_contract_status,
     billing_status = p_billing_status,
     activated_at = now(),
-    activated_by = auth.uid()
+    activated_by = auth.uid(),
+    classroom_eligibility_verified_at = case
+      when p_license_plan = 'classroom_free_12m' then now() else null
+    end,
+    classroom_eligibility_verified_by = case
+      when p_license_plan = 'classroom_free_12m' then auth.uid() else null
+    end
   where id = customer.id;
 
   return query
@@ -186,11 +200,11 @@ end;
 $$;
 
 revoke all on function public.activate_customer_with_admin_v2(
-  uuid, uuid, text, text, text, timestamptz, timestamptz, text, text, boolean
+  uuid, uuid, text, text, text, timestamptz, timestamptz, text, text, boolean, boolean
 ) from public, anon;
 
 grant execute on function public.activate_customer_with_admin_v2(
-  uuid, uuid, text, text, text, timestamptz, timestamptz, text, text, boolean
+  uuid, uuid, text, text, text, timestamptz, timestamptz, text, text, boolean, boolean
 ) to authenticated;
 
 
