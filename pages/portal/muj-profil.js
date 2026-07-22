@@ -97,7 +97,9 @@ export default function MujProfilPage() {
   const [userId, setUserId] = useState("");
   const [roleText, setRoleText] = useState("Uživatel");
   const [organizationName, setOrganizationName] = useState("");
+  const [organizationType, setOrganizationType] = useState("");
   const [organizationCode, setOrganizationCode] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState("");
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -162,11 +164,21 @@ export default function MujProfilPage() {
 
         setRoleText(roleLabel(membership?.role_in_org));
         setOrganizationName(organization?.name || "");
-        setOrganizationCode(organization?.join_code || "");
+        setOrganizationType(organization?.org_type || "");
+        setOrganizationCode(
+          organization?.org_type === "school" ? organization?.join_code || "" : ""
+        );
+        setRegistrationNumber(
+          ["municipality", "obec"].includes(organization?.org_type)
+            ? organization?.registration_number || ""
+            : ""
+        );
       } else {
         setRoleText("Uživatel");
         setOrganizationName("");
+        setOrganizationType("");
         setOrganizationCode("");
+        setRegistrationNumber("");
       }
 
       const [preferencesResult, legacyResult] = await Promise.all([
@@ -333,12 +345,27 @@ export default function MujProfilPage() {
                   </div>
                 </div>
 
-                <div className="mt-6">
-                  <Label>Kód organizace</Label>
-                  <div className="flex min-h-[52px] items-center rounded-2xl border border-slate-300 bg-slate-50 px-4 text-base text-slate-700">
-                    {organizationCode || "—"}
+                {["municipality", "obec"].includes(organizationType) ? (
+                  <div className="mt-6">
+                    <Label>Registrační číslo obce</Label>
+                    <div className="flex min-h-[52px] items-center rounded-2xl border border-slate-300 bg-slate-50 px-4 font-mono text-base text-slate-700">
+                      {registrationNumber || "—"}
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                      Číslo identifikuje program obce. Školy a spolky zapojujte
+                      jednorázovou pozvánkou v sekci Organizace obce.
+                    </p>
                   </div>
-                </div>
+                ) : null}
+
+                {organizationType === "school" ? (
+                  <div className="mt-6">
+                    <Label>Kód školy pro učitele</Label>
+                    <div className="flex min-h-[52px] items-center rounded-2xl border border-slate-300 bg-slate-50 px-4 font-mono text-base text-slate-700">
+                      {organizationCode || "—"}
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="mt-6">
                   <div className="flex items-center justify-between gap-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
