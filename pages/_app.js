@@ -55,14 +55,14 @@ const PAGE_SEO = {
     },
   },
   "/program": {
-    title: "Program a vysílání | ARCHIMEDES Live",
+    title: "Co přinášíme | ARCHIMEDES Live",
     description:
       "Konkrétní živá vysílání a program ARCHIMEDES Live pro školy, spolky, seniory a místní komunity.",
     image: "/program-hero.jpg",
     imageWidth: 2048,
     imageHeight: 1152,
     imageAlt: "Společné sledování živého programu ARCHIMEDES Live",
-    breadcrumbName: "Program",
+    breadcrumbName: "Co přinášíme",
     service: {
       name: "Program a živá vysílání ARCHIMEDES Live",
       serviceType: "Moderovaná živá vzdělávací vysílání",
