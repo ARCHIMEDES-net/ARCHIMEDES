@@ -1,0 +1,177 @@
+name: One-time Supabase 0014 verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/temporary-supabase-0014-verify.yml"
+
+permissions:
+  contents: read
+  actions: read
+  statuses: write
+
+jobs:
+  verify:
+    name: Verify backup artifact and production schema
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      PG17_IMAGE: ghcr.io/supabase/postgres:17.6.1.143
+
+    steps:
+      - name: Verify encrypted backup artifact exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$(curl --fail --silent --show-error \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100")"
+          count="$(jq '[.artifacts[] | select(
+            (.expired == false)
+            and (.name | startswith("supabase-pre-0014-"))
+          )] | length' <<<"$response")"
+          if [[ "$count" -lt 1 ]]; then
+            echo "No active encrypted pre-0014 backup artifact found." >&2
+            exit 1
+          fi
+          echo "Active encrypted pre-0014 backup artifact confirmed."
+
+      - name: Verify migration 0014 read only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL"
+          docker run --rm -i \
+            -e PGDATABASE="$SUPABASE_DB_URL" \
+            --entrypoint psql "$PG17_IMAGE" \
+            --no-psqlrc --set=ON_ERROR_STOP=1 <<'SQL'
+          BEGIN TRANSACTION READ ONLY;
+
+          DO $verify$
+          DECLARE
+            current_counts text;
+            organization_shape text;
+            required_column_count integer;
+          BEGIN
+            SELECT concat_ws('|',
+              (SELECT count(*) FROM public.organizations),
+              (SELECT count(*) FROM public.organization_members),
+              (SELECT count(*) FROM public.profiles),
+              (SELECT count(*) FROM public.orders_start)
+            ) INTO current_counts;
+
+            IF current_counts <> '11|53|84|10' THEN
+              RAISE EXCEPTION 'Protected counts changed: %', current_counts;
+            END IF;
+
+            SELECT concat_ws('|',
+              (SELECT count(*) FROM public.organizations WHERE org_type = 'school'),
+              (SELECT count(*) FROM public.organizations WHERE org_type IN ('municipality','obec')),
+              (SELECT count(*) FROM public.organizations WHERE org_type IN ('association','spolek')),
+              (SELECT count(*) FROM public.organizations WHERE license_status = 'active')
+            ) INTO organization_shape;
+
+            IF organization_shape <> '11|0|0|11' THEN
+              RAISE EXCEPTION 'Organization baseline changed: %', organization_shape;
+            END IF;
+
+            SELECT count(*) INTO required_column_count
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'organizations'
+              AND column_name = ANY (ARRAY[
+                'requested_license_plan',
+                'terms_accepted_at',
+                'terms_version',
+                'license_plan',
+                'license_started_at',
+                'contract_status',
+                'billing_status',
+                'activated_at',
+                'activated_by',
+                'classroom_eligibility_verified_at',
+                'classroom_eligibility_verified_by'
+              ]);
+
+            IF required_column_count <> 11 THEN
+              RAISE EXCEPTION 'Only % of 11 required organization columns exist',
+                required_column_count;
+            END IF;
+
+            IF to_regclass('public.municipality_organization_invites') IS NULL
+               OR to_regclass('public.api_rate_limits') IS NULL THEN
+              RAISE EXCEPTION 'Required 0014 table missing';
+            END IF;
+
+            IF to_regprocedure(
+              'public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)'
+            ) IS NULL
+               OR to_regprocedure(
+              'public.consume_api_rate_limit(text,text,integer,integer)'
+            ) IS NULL THEN
+              RAISE EXCEPTION 'Required 0014 function missing';
+            END IF;
+
+            IF NOT EXISTS (
+              SELECT 1 FROM pg_class c
+              JOIN pg_namespace n ON n.oid = c.relnamespace
+              WHERE n.nspname = 'public'
+                AND c.relname = 'municipality_organization_invites'
+                AND c.relrowsecurity
+            ) OR NOT EXISTS (
+              SELECT 1 FROM pg_class c
+              JOIN pg_namespace n ON n.oid = c.relnamespace
+              WHERE n.nspname = 'public'
+                AND c.relname = 'api_rate_limits'
+                AND c.relrowsecurity
+            ) THEN
+              RAISE EXCEPTION 'RLS is not enabled on a required 0014 table';
+            END IF;
+          END
+          $verify$;
+
+          SELECT
+            11 AS organizations,
+            53 AS memberships,
+            84 AS profiles,
+            10 AS orders,
+            true AS backup_ready,
+            true AS migration_0014_ready,
+            true AS rls_ready;
+
+          ROLLBACK;
+          SQL
+
+      - name: Publish verifiable commit status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ job.status }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RESULT" == "success" ]]; then
+            state="success"
+            description="Backup exists; migration 0014 and protected counts verified"
+          else
+            state="failure"
+            description="Supabase 0014 verification failed; inspect Actions log"
+          fi
+          payload="$(jq -n \
+            --arg state "$state" \
+            --arg description "$description" \
+            --arg context "Supabase 0014 verification" \
+            '{state:$state, description:$description, context:$context}')"
+          curl --fail --silent --show-error \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -d "$payload" > /dev/null
