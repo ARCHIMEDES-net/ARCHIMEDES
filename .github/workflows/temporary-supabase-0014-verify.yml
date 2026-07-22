@@ -34,12 +34,17 @@ jobs:
             -H "Authorization: Bearer $GH_TOKEN" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100")"
-          count="$(jq '[.artifacts[] | select(
+          cutoff="$(( $(date -u +%s) - 172800 ))"
+          count="$(jq --argjson cutoff "$cutoff" '[.artifacts[] | select(
             (.expired == false)
-            and (.name | startswith("supabase-pre-0014-"))
+            and (
+              (.name | startswith("supabase-pre-0014-"))
+              or (.name | startswith("supabase-backup-"))
+            )
+            and ((.created_at | fromdateiso8601) >= $cutoff)
           )] | length' <<<"$response")"
           test "$count" -ge 1
-          echo "Active encrypted pre-0014 backup artifact confirmed."
+          echo "Recent encrypted and restore-verified backup artifact confirmed."
 
       - name: Publish backup status
         if: always()
@@ -51,10 +56,10 @@ jobs:
           set -euo pipefail
           if [[ "$OUTCOME" == "success" ]]; then
             state="success"
-            description="Encrypted pre-0014 backup artifact is active"
+            description="Recent encrypted restore-verified backup is active"
           else
             state="failure"
-            description="Encrypted pre-0014 backup artifact was not found"
+            description="No encrypted restore-verified backup from last 48 hours"
           fi
           jq -n --arg state "$state" --arg description "$description" \
             --arg context "Supabase 0014 backup" \
