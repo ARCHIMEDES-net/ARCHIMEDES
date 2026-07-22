@@ -28,14 +28,19 @@ function createAuthenticatedClient(token) {
   );
 }
 
-function parseDate(value, required = false) {
+function parseDate(value, required = false, endOfDay = false) {
   const clean = String(value || "").trim();
   if (!clean) {
     if (required) throw new Error("Vyplňte datum konce licence.");
     return null;
   }
 
-  const date = new Date(clean);
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(clean);
+  const date = new Date(
+    dateOnly
+      ? `${clean}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}Z`
+      : clean
+  );
   if (Number.isNaN(date.getTime())) throw new Error("Datum licence není platné.");
   return date.toISOString();
 }
@@ -129,7 +134,11 @@ export default async function handler(req, res) {
 
     const licenseStartedAt = parseDate(req.body?.licenseStartedAt) || new Date().toISOString();
     const needsEndDate = ["paid_annual", "classroom_free_12m"].includes(licensePlan);
-    const licenseValidUntil = parseDate(req.body?.licenseValidUntil, needsEndDate);
+    const licenseValidUntil = parseDate(
+      req.body?.licenseValidUntil,
+      needsEndDate,
+      true
+    );
 
     if (licenseValidUntil && new Date(licenseValidUntil) <= new Date(licenseStartedAt)) {
       return res.status(400).json({
