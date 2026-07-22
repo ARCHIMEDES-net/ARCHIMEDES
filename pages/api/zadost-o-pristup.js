@@ -14,6 +14,14 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 }
 
+const LICENSE_PLANS = {
+  paid_monthly: "1 990 Kč měsíčně",
+  paid_annual: "12 měsíců placených najednou",
+  classroom_free_12m: "12 měsíců zdarma pro obec s učebnou ARCHIMEDES",
+};
+
+const TERMS_VERSION = "2026-07-22";
+
 const CUSTOMER_TYPES = {
   obec: {
     orgType: "municipality",
@@ -316,6 +324,8 @@ export default async function handler(req, res) {
     const {
       name,
       role,
+      licensePlan,
+      termsAccepted,
       email,
       phone,
       organization,
@@ -336,6 +346,8 @@ export default async function handler(req, res) {
     }
 
     const cleanName = String(name || "").trim();
+    const cleanLicensePlan = String(licensePlan || "").trim();
+    const acceptedTerms = termsAccepted === true;
     const cleanRole = String(role || "").trim();
     const cleanEmail = String(email || "").trim().toLowerCase();
     const cleanPhone = String(phone || "").trim();
@@ -356,6 +368,22 @@ export default async function handler(req, res) {
 
     if (!customer) {
       return res.status(400).json({ error: "Vyberte prosím obec, školu nebo spolek." });
+    }
+
+    if (!LICENSE_PLANS[cleanLicensePlan]) {
+      return res.status(400).json({ error: "Vyberte prosím variantu licence." });
+    }
+
+    if (cleanLicensePlan === "classroom_free_12m" && customer.key !== "obec") {
+      return res.status(400).json({
+        error: "Bezplatný první rok je určen pouze obcím s učebnou ARCHIMEDES.",
+      });
+    }
+
+    if (!acceptedTerms) {
+      return res.status(400).json({
+        error: "Pro odeslání objednávky potvrďte VOP a zpracování údajů.",
+      });
     }
 
     if (cleanLegalIdentifier && !/^\d{8}$/.test(cleanLegalIdentifier)) {
@@ -421,6 +449,8 @@ export default async function handler(req, res) {
 
     const requestHeader = "Typ žádosti: standardní přístup";
     const organizationTypeLine = `Typ zákazníka: ${customer.label}`;
+    const licensePlanLine = `Požadovaná varianta: ${LICENSE_PLANS[cleanLicensePlan]}`;
+    const termsLine = `VOP přijaty: ano (verze ${TERMS_VERSION}, ${createdAt})`;
     const roleLine = cleanRole ? `Funkce: ${cleanRole}` : "";
     const sourceLine = `Zdroj: web archimedeslive.com/zadost?type=${customer.key}`;
     const addressLine = `Adresa: ${cleanAddress}`;
@@ -435,6 +465,8 @@ export default async function handler(req, res) {
       requestHeader,
       roleLine,
       organizationTypeLine,
+      licensePlanLine,
+      termsLine,
       addressLine,
       legalIdentifierLine,
       populationLine,
@@ -505,6 +537,24 @@ export default async function handler(req, res) {
     if (!orgData?.id) {
       await supabase.from("leads").delete().eq("id", leadId);
       return res.status(500).json({ error: "Nepodařilo se ověřit vytvořenou organizaci." });
+    }
+
+    const { error: requestMetadataError } = await supabase
+      .from("organizations")
+      .update({
+        requested_license_plan: cleanLicensePlan,
+        terms_accepted_at: createdAt,
+        terms_version: TERMS_VERSION,
+      })
+      .eq("id", orgData.id);
+
+    if (requestMetadataError) {
+      console.error("request metadata error:", requestMetadataError);
+      await supabase.from("organizations").delete().eq("id", orgData.id);
+      await supabase.from("leads").delete().eq("id", leadId);
+      return res.status(500).json({
+        error: "Nepodařilo se uložit variantu licence a souhlas objednatele.",
+      });
     }
 
     // Archiv/log žádosti je doplňkový a nesmí zablokovat
