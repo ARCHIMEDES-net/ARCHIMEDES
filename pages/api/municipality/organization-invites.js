@@ -48,7 +48,7 @@ async function requireMunicipalityAdmin(req, res, municipalityId) {
         .maybeSingle(),
       supabaseAdmin
         .from("organizations")
-        .select("id, name, org_type, status, license_status, license_valid_until, registration_number")
+        .select("id, name, org_type, status, license_status, license_plan, license_started_at, license_valid_until, registration_number")
         .eq("id", municipalityId)
         .maybeSingle(),
     ]);
@@ -122,7 +122,7 @@ Tým ARCHIMEDES Live`,
 
 export default async function handler(req, res) {
   const municipalityId = String(
-    req.method === "GET" ? req.query?.municipalityId : req.body?.municipalityId
+    (req.method === "GET" ? req.query?.municipalityId : req.body?.municipalityId) || ""
   ).trim();
 
   if (!municipalityId) {
