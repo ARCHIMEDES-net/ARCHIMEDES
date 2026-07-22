@@ -46,7 +46,7 @@ jobs:
           baseline="$(printf '%s\n' "$baseline" | sed -nE '/^[[:space:]]*[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+[[:space:]]*$/p' | tr -d '[:space:]' | tail -n 1)"
           [[ "$baseline" =~ ^[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+$ ]]
           echo "BASELINE=$baseline" >> "$GITHUB_ENV"
-          pending="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --command="select count(*) from public.orders_start o join public.organizations g on g.id=o.organization_id where o.id='628a8a4d-f24a-4701-b86b-d18dacac7fbc'::uuid and g.status <> 'active';" | sed -nE '/^[[:space:]]*[0-9]+[[:space:]]*$/p' | tr -d '[:space:]' | tail -n 1)"
+          pending="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --command="select count(*) from public.orders_start o join public.organizations g on g.id=o.organization_id where ((to_jsonb(o)->>'id')='628a8a4d-f24a-4701-b86b-d18dacac7fbc' or o.organization_id::text='628a8a4d-f24a-4701-b86b-d18dacac7fbc') and g.status <> 'active';" | sed -nE '/^[[:space:]]*[0-9]+[[:space:]]*$/p' | tr -d '[:space:]' | tail -n 1)"
           test "$pending" = "1"
 
       - name: Prepare fixed function
