@@ -491,8 +491,13 @@ jobs:
             description="Migration 0014 committed; schema and protected counts verified"
           fi
           description="$(printf '%s' "$description" | cut -c1-140)"
+          if [[ "$state" == "failure" ]]; then
+            context="Supabase error: $(printf '%s' "$description" | cut -c1-75)"
+          else
+            context="Supabase 0014 migration"
+          fi
           jq -n --arg state "$state" --arg description "$description" \
-            --arg context "Supabase 0014 migration" \
+            --arg context "$context" \
             '{state:$state,description:$description,context:$context}' \
             | curl --fail --silent --show-error -X POST \
               -H "Accept: application/vnd.github+json" \
