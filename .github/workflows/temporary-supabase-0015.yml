@@ -230,8 +230,15 @@ jobs:
         run: |
           if [ "$VERIFY" = "success" ]; then
             state=success
+            context="Supabase 0015 hotfix"
           else
             state=failure
+            failed=config
+            [ "$CONFIG" = "success" ] && failed=baseline
+            [ "$BASELINE" = "success" ] && failed=prepare
+            [ "$PREPARE" = "success" ] && failed=apply
+            [ "$APPLY" = "success" ] && failed=verify
+            context="Supabase 0015 failure at $failed"
           fi
           description="config=$CONFIG baseline=$BASELINE prepare=$PREPARE apply=$APPLY verify=$VERIFY"
-          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state="$state" -f context="Supabase 0015 hotfix" -f description="$description"
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state="$state" -f context="$context" -f description="$description"
