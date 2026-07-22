@@ -47,20 +47,23 @@ from public.organizations
 group by org_type, status, license_status
 order by org_type, status, license_status;
 
--- Aktivni casove omezena licence, ktera je uz po platnosti.
-select id, name, org_type, license_status, license_valid_until
+-- Aktivni casove omezene licence, ktere jsou uz po platnosti.
+-- Vystup je zamerne agregovany, aby CI log neobsahoval nazvy ani UUID.
+select count(*) as expired_active_licenses
 from public.organizations
 where license_status = 'active'
   and license_valid_until is not null
-  and license_valid_until < now()
-order by license_valid_until;
+  and license_valid_until < now();
 
 -- Top-level zakaznik musi mit nejvyse jedno aktivni clenstvi daneho spravce
 -- v ramci organizace; vypis odhali duplicity pred atomickym upsertem.
-select organization_id, user_id, count(*) as duplicate_count
-from public.organization_members
-group by organization_id, user_id
-having count(*) > 1;
+select count(*) as duplicate_membership_pairs
+from (
+  select organization_id, user_id
+  from public.organization_members
+  group by organization_id, user_id
+  having count(*) > 1
+) duplicates;
 
 -- Kontrola povinnych objektu, na ktere 0014 navazuje.
 select
@@ -98,7 +101,10 @@ select
     'public.consume_api_rate_limit(text,text,integer,integer)'
   ) is not null as rate_limit_function_exists;
 
--- Nemenny systemovy subjekt musi zustat zachovan.
-select id, name, org_type, status, license_status, is_system
+-- Nemenny systemovy subjekt musi zustat zachovan. CI vypisuje pouze stav.
+select
+  count(*) = 1 as system_organization_exists,
+  bool_and(org_type = 'school') as system_organization_is_school,
+  bool_and(is_system) as system_organization_is_system
 from public.organizations
 where id = '339612be-8577-4cce-8ef4-e77a4bc0b442'::uuid;
