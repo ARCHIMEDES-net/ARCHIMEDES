@@ -21,6 +21,7 @@ import {
 import Footer from "../components/Footer";
 import FaqSection, { createFaqStructuredData } from "../components/FaqSection";
 import SectionEyebrow from "../components/home/SectionEyebrow";
+import SchoolBroadcastGallery from "../components/SchoolBroadcastGallery";
 import { Button } from "../components/ui/button";
 
 const benefits = [
@@ -194,7 +195,7 @@ export default function SkolyPage() {
           </div>
         </section>
 
-        <section className="py-16 sm:py-20">
+        <section className="pb-8 pt-16 sm:pb-10 sm:pt-20">
           <div className="mx-auto max-w-[1180px] px-5">
             <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
               <div className="max-w-md lg:sticky lg:top-28">
@@ -227,6 +228,8 @@ export default function SkolyPage() {
             </div>
           </div>
         </section>
+
+        <SchoolBroadcastGallery />
 
         <section className="bg-[#f3f7fb] py-16 sm:py-20">
           <div className="mx-auto grid max-w-[1180px] gap-10 px-5 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
