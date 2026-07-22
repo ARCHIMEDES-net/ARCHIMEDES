@@ -10,10 +10,10 @@ const broadcasts = [
     title: "Chantal Poullain",
   },
   {
-    src: "/pl15.webp",
-    alt: "Kariérní vysílání s Markem ze Zrádců",
-    category: "Kariéra",
-    title: "Marek ze Zrádců",
+    src: "/pl10.webp",
+    alt: "Čtenářský klub s Pavlem Klusákem, autorem knihy GOTT",
+    category: "Čtenářský klub",
+    title: "GOTT s Pavlem Klusákem",
   },
   {
     src: "/pl14.webp",
