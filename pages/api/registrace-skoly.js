@@ -5,6 +5,11 @@ import {
   RegistrantError,
   resolveOrganizationRegistrant,
 } from "../../lib/server/organizationRegistrant";
+import {
+  consumeMunicipalityInvite,
+  MunicipalityInviteError,
+  resolveMunicipalityInvite,
+} from "../../lib/server/municipalityOrganizationInvite";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -77,8 +82,7 @@ export default async function handler(req, res) {
   let schoolId = null;
 
   try {
-    const { registrationNumber, name, address, legalIdentifier, contactName, email, phone } = req.body || {};
-    const cleanRegistrationNumber = String(registrationNumber || "").trim();
+    const { inviteToken, name, address, legalIdentifier, contactName, email, phone } = req.body || {};
     const cleanName = String(name || "").trim();
     const cleanAddress = String(address || "").trim();
     const cleanLegalIdentifier = String(legalIdentifier || "").replace(/\s+/g, "").trim();
@@ -86,9 +90,6 @@ export default async function handler(req, res) {
     const cleanEmail = String(email || "").trim().toLowerCase();
     const cleanPhone = String(phone || "").trim();
 
-    if (!cleanRegistrationNumber) {
-      return res.status(400).json({ error: "Vyplňte registrační číslo obce." });
-    }
     if (!cleanName) return res.status(400).json({ error: "Vyplňte název školy." });
     if (!cleanAddress) return res.status(400).json({ error: "Vyplňte adresu školy." });
     if (cleanLegalIdentifier && !/^\d{8}$/.test(cleanLegalIdentifier)) {
@@ -104,23 +105,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Vyplňte platný telefon." });
     }
 
-    const { data: municipality, error: municipalityError } = await supabaseAdmin
-      .from("organizations")
-      .select("id, status, license_status")
-      .eq("registration_number", cleanRegistrationNumber)
-      .in("org_type", ["municipality", "obec"])
-      .maybeSingle();
-
-    if (municipalityError) throw municipalityError;
-    if (
-      !municipality ||
-      municipality.status !== "active" ||
-      municipality.license_status !== "active"
-    ) {
-      return res.status(404).json({
-        error: "Obec s tímto registračním číslem neexistuje nebo není aktivní.",
-      });
-    }
+    const { invite, municipality } = await resolveMunicipalityInvite({
+      supabaseAdmin,
+      rawToken: inviteToken,
+      organizationType: "school",
+      email: cleanEmail,
+    });
 
     const { data: duplicateUnderMunicipality, error: duplicateUnderMunicipalityError } =
       await supabaseAdmin
@@ -206,6 +196,12 @@ export default async function handler(req, res) {
 
     if (profileError) throw profileError;
 
+    await consumeMunicipalityInvite({
+      supabaseAdmin,
+      inviteId: invite.id,
+      organizationId: school.id,
+    });
+
     let emailSent = false;
     try {
       await sendRegistrationEmail({
@@ -232,12 +228,14 @@ export default async function handler(req, res) {
     await cleanupNewRegistrant(supabaseAdmin, registrant);
 
     console.error("registrace-skoly error:", error);
-    const status = error instanceof RegistrantError ? error.status : 500;
+    const expectedError =
+      error instanceof RegistrantError ||
+      error instanceof MunicipalityInviteError;
+    const status = expectedError ? error.status : 500;
     return res.status(status).json({
-      error:
-        error instanceof RegistrantError
-          ? error.message
-          : "Registraci školy se nepodařilo dokončit.",
+      error: expectedError
+        ? error.message
+        : "Registraci školy se nepodařilo dokončit.",
     });
   }
 }
