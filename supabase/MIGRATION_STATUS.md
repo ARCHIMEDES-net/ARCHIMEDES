@@ -33,6 +33,18 @@ souborů do tohoto adresáře.
   - kontroluje platformového admina uvnitř `SECURITY DEFINER` funkce
   - existující Auth účet, UUID a heslo nijak nemění
 
+## Připraveno, ale v produkci zatím neaplikováno
+
+- `0014_municipality_onboarding.sql`
+  - obchodní metadata licence, přesná platnost a audit aktivace;
+  - samostatné ověření nároku obce s učebnou na 12 měsíců zdarma;
+  - jednorázové hashované pozvánky školy/spolku pod obec;
+  - databázový rate limit veřejné objednávky a registrací;
+  - nová aktivační funkce `activate_customer_with_admin_v2`.
+- Migrace se nesmí aplikovat bez aktuálního read-only preflightu a následného
+  cíleného testu objednávka → aktivace → pozvánka → registrace.
+- Aplikační kód používající `0014` se nesmí nasadit před databázovou migrací.
+
 ## Stav nasazení
 
 1. Předmigrační `supabase/preflight/legacy_migration_readiness.sql` byl
