@@ -31,12 +31,14 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=pending -f context="Supabase 0015 hotfix" -f description="Activation hotfix verification is running"
 
       - name: Validate protected configuration
+        id: config
         shell: bash
         run: |
           set -euo pipefail
           test -n "$SUPABASE_DB_URL"
 
       - name: Capture protected baseline and pending test request
+        id: baseline
         shell: bash
         run: |
           set -euo pipefail
@@ -48,6 +50,7 @@ jobs:
           test "$pending" = "1"
 
       - name: Prepare fixed function
+        id: prepare
         shell: bash
         run: |
           set -euo pipefail
@@ -195,12 +198,14 @@ jobs:
           SQL
 
       - name: Apply hotfix in one transaction
+        id: apply
         shell: bash
         run: |
           set -euo pipefail
           psql "$SUPABASE_DB_URL" --no-psqlrc --set=ON_ERROR_STOP=1 --single-transaction --file="$RUNNER_TEMP/0015.sql"
 
       - name: Verify function and unchanged data
+        id: verify
         shell: bash
         run: |
           set -euo pipefail
@@ -212,18 +217,21 @@ jobs:
           pending="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --command="select count(*) from public.orders_start o join public.organizations g on g.id=o.organization_id where o.id='628a8a4d-f24a-4701-b86b-d18dacac7fbc'::uuid and g.status <> 'active' and g.license_status='pending_approval';" | tr -d '[:space:]')"
           test "$pending" = "1"
 
-      - name: Publish success status
-        if: success()
+      - name: Publish diagnostic status
+        if: always()
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          CONFIG: ${{ steps.config.outcome }}
+          BASELINE: ${{ steps.baseline.outcome }}
+          PREPARE: ${{ steps.prepare.outcome }}
+          APPLY: ${{ steps.apply.outcome }}
+          VERIFY: ${{ steps.verify.outcome }}
         run: |
-          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=success -f context="Supabase 0015 hotfix" -f description="Function fixed; protected data unchanged"
-
-      - name: Publish failure status
-        if: failure()
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=failure -f context="Supabase 0015 hotfix" -f description="Hotfix or verification failed"
+          if [ "$VERIFY" = "success" ]; then
+            state=success
+          else
+            state=failure
+          fi
+          description="config=$CONFIG baseline=$BASELINE prepare=$PREPARE apply=$APPLY verify=$VERIFY"
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state="$state" -f context="Supabase 0015 hotfix" -f description="$description"
