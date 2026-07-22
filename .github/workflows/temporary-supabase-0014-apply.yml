@@ -340,11 +340,17 @@ jobs:
             --no-psqlrc --tuples-only --no-align --field-separator='|' \
             --command="select (select count(*) from public.organizations), (select count(*) from public.organization_members), (select count(*) from public.profiles), (select count(*) from public.orders_start);")"
           baseline="$(printf '%s' "$baseline" | tr -d '[:space:]')"
-          if [[ ! "$baseline" =~ ^[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+$ ]]; then
-            echo "Unable to capture the four approved anonymous counts." >&2
+          IFS='|' read -r organizations memberships profiles orders extra <<<"$baseline"
+          for value in "$organizations" "$memberships" "$profiles" "$orders"; do
+            if [[ ! "$value" =~ ^[0-9]+$ ]]; then
+              echo "Unable to capture the four approved anonymous counts." >&2
+              exit 1
+            fi
+          done
+          if [[ -n "${extra:-}" ]]; then
+            echo "Unexpected anonymous count payload." >&2
             exit 1
           fi
-          IFS='|' read -r organizations memberships profiles orders <<<"$baseline"
           echo "BASELINE_COUNTS=$baseline" >> "$GITHUB_ENV"
           echo "Approved anonymous baseline: organizations=$organizations memberships=$memberships profiles=$profiles orders=$orders"
 
