@@ -95,7 +95,8 @@ returns table (
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $
+#variable_conflict use_column
 declare
   customer public.organizations%rowtype;
   effective_start timestamptz;
