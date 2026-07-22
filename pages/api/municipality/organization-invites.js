@@ -121,6 +121,8 @@ Tým ARCHIMEDES Live`,
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   const municipalityId = String(
     (req.method === "GET" ? req.query?.municipalityId : req.body?.municipalityId) || ""
   ).trim();
