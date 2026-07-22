@@ -123,6 +123,8 @@ export default async function handler(req, res) {
     const licensePlan = String(req.body?.licensePlan || "").trim();
     const contractStatus = String(req.body?.contractStatus || "").trim();
     const billingStatus = String(req.body?.billingStatus || "").trim();
+    const classroomEligibilityVerified =
+      req.body?.classroomEligibilityVerified === true;
 
     if (!organizationId) {
       return res.status(400).json({ error: "Chybí ID organizace." });
@@ -139,6 +141,11 @@ export default async function handler(req, res) {
     if (licensePlan === "classroom_free_12m" && billingStatus !== "not_applicable") {
       return res.status(400).json({
         error: "Bezplatná licence musí mít stav fakturace „Bez úhrady“.",
+      });
+    }
+    if (licensePlan === "classroom_free_12m" && !classroomEligibilityVerified) {
+      return res.status(400).json({
+        error: "Před bezplatnou aktivací potvrďte ověření učebny ARCHIMEDES.",
       });
     }
 
@@ -224,6 +231,7 @@ export default async function handler(req, res) {
         p_license_valid_until: licenseValidUntil,
         p_contract_status: contractStatus,
         p_billing_status: billingStatus,
+        p_classroom_eligibility_verified: classroomEligibilityVerified,
         p_must_set_password: invitationSent,
       }
     );
