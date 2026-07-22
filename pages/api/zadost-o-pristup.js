@@ -1,6 +1,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -342,6 +343,21 @@ export default async function handler(req, res) {
       return res.status(200).json({
         ok: true,
         message: "Žádost byla odeslána.",
+      });
+    }
+
+    const rateLimitAllowed = await consumePublicRateLimit({
+      supabaseAdmin: supabase,
+      req,
+      route: "order-request",
+      limit: 5,
+      windowSeconds: 60 * 60,
+    });
+
+    if (!rateLimitAllowed) {
+      res.setHeader("Retry-After", "3600");
+      return res.status(429).json({
+        error: "Z tohoto připojení bylo odesláno příliš mnoho objednávek. Zkuste to prosím později.",
       });
     }
 
