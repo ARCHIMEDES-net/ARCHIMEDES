@@ -44,6 +44,13 @@ souborů do tohoto adresáře.
   - jednorázové hashované pozvánky školy/spolku pod obec;
   - databázový rate limit veřejné objednávky a registrací;
   - nová aktivační funkce `activate_customer_with_admin_v2`.
+- `0015_fix_activation_variable_conflict.sql`
+  - v produkci transakčně aplikováno a ověřeno 22. 7. 2026;
+  - opravuje nejednoznačný odkaz `organization_id` ve funkci
+    `activate_customer_with_admin_v2`;
+  - před a po aplikaci se shodovaly souhrnné počty organizací, členství,
+    profilů a objednávek;
+  - testovací obec zůstala neaktivní a připravená k opakování aktivace.
 - Aplikační kód používající `0014` zatím nebyl sloučen ani nasazen.
 - Následuje řízený test objednávka → aktivace → pozvánka → registrace
   a ověření negativních scénářů před produkčním nasazením aplikace.
