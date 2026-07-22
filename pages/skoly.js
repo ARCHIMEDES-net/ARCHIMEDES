@@ -195,6 +195,42 @@ export default function SkolyPage() {
           </div>
         </section>
 
+        <section className="overflow-hidden bg-[#f3f7fb] py-12 sm:py-16">
+          <div className="mx-auto grid max-w-[1180px] items-center gap-10 px-5 lg:grid-cols-[1fr_0.72fr] lg:gap-16">
+            <div className="max-w-[650px]">
+              <SectionEyebrow>Skutečný svět přímo ve třídě</SectionEyebrow>
+              <h2 className="text-[clamp(36px,4.8vw,58px)] font-[950] leading-[0.98] tracking-[-0.05em] text-navy-900">
+                Přineste dětem zážitky, na které se nezapomíná
+              </h2>
+              <p className="mt-6 max-w-[610px] text-lg leading-relaxed text-slate-700 sm:text-xl">
+                Živé vstupy z míst, kam se běžně nedostanou. Skuteční odborníci,
+                známé osobnosti a témata, která děti vtáhnou do děje.
+              </p>
+              <p className="mt-4 max-w-[590px] text-base leading-relaxed text-slate-600">
+                Třída se připojí jednoduše přes obrazovku a může být u toho,
+                když se příběhy, profese i učivo mění ve společný zážitek.
+              </p>
+            </div>
+
+            <div className="flex justify-center lg:justify-end">
+              <div className="w-full max-w-[340px] overflow-hidden rounded-[28px] border border-white/80 bg-navy-900 shadow-[0_28px_70px_rgba(15,42,70,0.22)]">
+                <video
+                  className="block h-auto w-full"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  poster="/zir-video-poster.webp"
+                  aria-label="Ukázka živého programu ARCHIMEDES pro školy"
+                >
+                  <source src="/zir-video.mp4" type="video/mp4" />
+                </video>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="pb-8 pt-16 sm:pb-10 sm:pt-20">
           <div className="mx-auto max-w-[1180px] px-5">
             <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
