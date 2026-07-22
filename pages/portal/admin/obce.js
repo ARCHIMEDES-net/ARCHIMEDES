@@ -34,6 +34,7 @@ function inputDate(value = new Date()) {
 function oneYearAfter(value) {
   const date = new Date(`${value}T12:00:00`);
   date.setFullYear(date.getFullYear() + 1);
+  date.setDate(date.getDate() - 1);
   return inputDate(date);
 }
 
