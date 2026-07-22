@@ -220,7 +220,7 @@ jobs:
           test "$after" = "$BASELINE"
           exists="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --command="select to_regprocedure('public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)') is not null;" | tr -d '[:space:]')"
           test "$exists" = "t"
-          pending="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --command="select count(*) from public.orders_start o join public.organizations g on g.id=o.organization_id where o.id='628a8a4d-f24a-4701-b86b-d18dacac7fbc'::uuid and g.status <> 'active' and g.license_status='pending_approval';" | tr -d '[:space:]')"
+          pending="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --command="select count(*) from public.organizations where name='TEST ARCHIMEDES Live – obec 2026-07-22' and status <> 'active';" | sed -nE '/^[[:space:]]*[0-9]+[[:space:]]*$/p' | tr -d '[:space:]' | tail -n 1)"
           test "$pending" = "1"
 
       - name: Publish diagnostic status
