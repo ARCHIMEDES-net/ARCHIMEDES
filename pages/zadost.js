@@ -70,7 +70,16 @@ export default function ZadostPage() {
   }, [router.isReady, router.query.type]);
 
   function updateField(event) {
-    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+    const { name, value } = event.target;
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === "type" &&
+      value !== "obec" &&
+      current.licensePlan === "classroom_free_12m"
+        ? { licensePlan: "paid_monthly" }
+        : {}),
+    }));
   }
 
   async function submitForm(event) {
