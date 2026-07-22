@@ -56,7 +56,7 @@ export default function MunicipalityBroadcastGallery() {
   }, [activeBroadcast]);
 
   return (
-    <section aria-labelledby="vysilali-jsme-title" className="border-y border-slate-100 bg-white py-16 sm:py-20">
+    <section aria-labelledby="vysilali-jsme-title" className="border-y border-slate-100 bg-white pb-16 pt-8 sm:pb-20 sm:pt-10">
       <div className="mx-auto max-w-[1180px] px-5">
         <div className="max-w-3xl">
           <span className="text-xs font-black uppercase tracking-[0.16em] text-brand">
