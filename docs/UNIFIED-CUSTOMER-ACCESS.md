@@ -2,13 +2,16 @@
 
 ## Neměnné produktové zásady
 
-- ARCHIMEDES Live je jeden program za jednu cenu 1 990 Kč měsíčně.
+- ARCHIMEDES Live je jeden program za standardní cenu 1 990 Kč měsíčně.
+- Zákazník může zvolit měsíční režim, dvanáct měsíců placených najednou
+  nebo – pouze u ověřené obce s učebnou ARCHIMEDES – prvních 12 měsíců zdarma.
 - Samostatným zákazníkem může být obec, škola nebo spolek.
 - Škola a spolek se mohou alternativně zapojit pod aktivní obcí bez
   samostatného předplatného.
 - Národní svaz nebo organizace je obsahový partner. Nejde o stejnou roli
   jako spolek, který program využívá.
-- Odeslání žádosti nikdy samo neaktivuje placený přístup.
+- Odeslání objednávky nikdy samo neaktivuje přístup. Aktivace vyžaduje
+  kontrolu smlouvy, fakturace, doby platnosti a správce zákazníka.
 
 ## Datový model
 
@@ -38,6 +41,29 @@ Organizace má přístup, pokud je sama aktivní a platí alespoň jedna možnos
 Vlastní aktivní předplatné se nesmí zneplatnit jen proto, že nadřazená obec
 své předplatné pozastavila. Administrativně zablokovaná organizace nemá
 přístup bez ohledu na zdroj předplatného.
+
+## Objednávka a aktivace
+
+1. Objednávka založí neaktivního zákazníka s `pending_approval`, uloží
+   požadovanou variantu, čas a verzi přijatých VOP.
+2. Platformní správce ověří subjekt, kontaktní osobu, smlouvu a fakturaci.
+3. U bezplatného roku samostatně potvrdí existenci učebny ARCHIMEDES.
+4. Aktivace atomicky vytvoří nebo zachová účet správce, členství a přesnou
+   platnost licence.
+5. Kontaktní osoba obdrží onboardingový e-mail odpovídající typu zákazníka.
+
+## Zapojení organizace pod obec
+
+- Čtyřmístné registrační číslo identifikuje program obce, ale není
+  autentizační tajemství a samo nesmí založit školu ani spolek.
+- Správce aktivní obce vytvoří jednorázovou pozvánku pro školu nebo spolek.
+- Token má 256 bitů náhodnosti, v databázi se ukládá pouze jeho SHA-256 hash,
+  platí 14 dní a po použití nebo zrušení už není platný.
+- Pozvánku lze volitelně svázat s konkrétní e-mailovou adresou.
+- Škola nebo spolek se po kontrole duplicity připojí k obci a čerpá její
+  aktivní licenci.
+- Správce obce vidí název, typ a stav připojených organizací, nikoli jejich
+  uživatelské profily ani osobní nastavení.
 
 ## Přechodové scénáře
 
@@ -87,12 +113,14 @@ organizace.
 
 ## Bezpečnost a provoz
 
-- Žádost vytváří pouze neaktivní organizaci s `pending_approval`.
+- Objednávka vytváří pouze neaktivní organizaci s `pending_approval`.
 - Aktivace zákazníka a přiřazení správce probíhají atomicky.
 - Souběžné odeslání stejné žádosti je serializované databázovým advisory
   lockem a nesmí vytvořit dvě organizace.
 - RLS a členství zůstávají zdrojem administrátorských oprávnění. Dědění
   předplatného nesmí rozšiřovat právo číst nebo měnit data dítěte.
+- Veřejná objednávka a registrace organizace používají sdílený databázový
+  rate limit; objednávka navíc obsahuje honeypot.
 - WebMeeting a všechny další vstupní body musí používat stejné pravidlo
   efektivního přístupu: vlastní aktivní předplatné NEBO aktivní předplatné
   obce, vždy při aktivním stavu organizace.
@@ -110,3 +138,8 @@ organizace.
 8. Opakované a souběžné odeslání žádosti nevytvoří duplicitu.
 9. Stejný uživatel může bezpečně přepínat mezi školou a spolkem.
 10. Správce obce nevidí osobní data školy nebo spolku bez vlastního členství.
+11. Registrační číslo obce samo nezaloží organizaci.
+12. Neplatný, expirovaný, zrušený nebo již použitý token je odmítnut.
+13. Pozvánka svázaná s e-mailem odmítne jinou adresu.
+14. Roční a bezplatná licence nejde aktivovat bez data konce.
+15. Bezplatná licence nejde aktivovat bez potvrzení učebny ARCHIMEDES.
