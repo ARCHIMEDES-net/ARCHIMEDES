@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 concurrency:
   group: archimedes-live-supabase-migration
@@ -22,6 +23,13 @@ jobs:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
     steps:
+      - name: Publish pending status
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=pending -f context="Supabase 0015 hotfix" -f description="Activation hotfix verification is running"
+
       - name: Validate protected configuration
         shell: bash
         run: |
@@ -203,3 +211,19 @@ jobs:
           test "$exists" = "t"
           pending="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --command="select count(*) from public.orders_start o join public.organizations g on g.id=o.organization_id where o.id='628a8a4d-f24a-4701-b86b-d18dacac7fbc'::uuid and g.status <> 'active' and g.license_status='pending_approval';" | tr -d '[:space:]')"
           test "$pending" = "1"
+
+      - name: Publish success status
+        if: success()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=success -f context="Supabase 0015 hotfix" -f description="Function fixed; protected data unchanged"
+
+      - name: Publish failure status
+        if: failure()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=failure -f context="Supabase 0015 hotfix" -f description="Hotfix or verification failed"
