@@ -142,7 +142,7 @@ export default async function handler(req, res) {
           .order("created_at", { ascending: false }),
         supabaseAdmin
           .from("organizations")
-          .select("id, name, org_type, status, contact_name, contact_email, created_at")
+          .select("id, name, org_type, status, created_at")
           .eq("parent_organization_id", municipalityId)
           .in("org_type", ["school", "association", "spolek"])
           .order("created_at", { ascending: false }),
