@@ -1,4 +1,4 @@
-name: One-time Supabase 0014 transactional apply
+name: One-time Supabase 0014 read-only verification
 
 on:
   push:
@@ -8,430 +8,91 @@ on:
 
 permissions:
   contents: read
-  actions: read
   statuses: write
 
 concurrency:
-  group: archimedes-live-supabase-migration
+  group: archimedes-live-supabase-verification
   cancel-in-progress: false
 
 jobs:
-  backup-migrate-verify:
-    name: Apply migration 0014 and verify protected data
+  verify:
+    name: Verify migration 0014 read only
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 10
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
     steps:
-      - name: Validate protected configuration
-        id: validate
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "$SUPABASE_DB_URL"
-
       - name: Ensure PostgreSQL client is available
         shell: bash
         run: |
           set -euo pipefail
+          test -n "$SUPABASE_DB_URL"
           if ! command -v psql >/dev/null 2>&1; then
             sudo apt-get update -qq
             sudo apt-get install -y postgresql-client
           fi
 
-      - name: Prepare fixed migration 0014
-        id: prepare
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          cat > "$RUNNER_TEMP/0014.sql" <<'MIGRATION_SQL'
-          -- Dokonceni onboardingu obce: obchodni metadata licence a bezpecne
-          -- jednorazove pozvanky skol/spolku. Migrace je aditivni a nemeni
-          -- existujici ucty, clenstvi ani licence.
-          
-          alter table public.organizations
-            add column if not exists requested_license_plan text,
-            add column if not exists terms_accepted_at timestamptz,
-            add column if not exists terms_version text,
-            add column if not exists license_plan text,
-            add column if not exists license_started_at timestamptz,
-            add column if not exists contract_status text not null default 'pending',
-            add column if not exists billing_status text not null default 'pending',
-            add column if not exists activated_at timestamptz,
-            add column if not exists activated_by uuid references auth.users(id) on delete set null,
-            add column if not exists classroom_eligibility_verified_at timestamptz,
-            add column if not exists classroom_eligibility_verified_by uuid references auth.users(id) on delete set null;
-          
-          alter table public.organizations
-            drop constraint if exists organizations_requested_license_plan_allowed,
-            add constraint organizations_requested_license_plan_allowed
-              check (
-                requested_license_plan is null
-                or requested_license_plan in ('paid_monthly', 'paid_annual', 'classroom_free_12m')
-              );
-          
-          alter table public.organizations
-            drop constraint if exists organizations_license_plan_allowed,
-            add constraint organizations_license_plan_allowed
-              check (
-                license_plan is null
-                or license_plan in ('paid_monthly', 'paid_annual', 'classroom_free_12m')
-              );
-          
-          alter table public.organizations
-            drop constraint if exists organizations_contract_status_allowed,
-            add constraint organizations_contract_status_allowed
-              check (contract_status in ('pending', 'accepted', 'cancelled'));
-          
-          alter table public.organizations
-            drop constraint if exists organizations_billing_status_allowed,
-            add constraint organizations_billing_status_allowed
-              check (billing_status in ('pending', 'paid', 'not_applicable', 'overdue'));
-          
-          create table if not exists public.municipality_organization_invites (
-            id uuid primary key default gen_random_uuid(),
-            municipality_id uuid not null references public.organizations(id) on delete cascade,
-            organization_type text not null
-              check (organization_type in ('school', 'association')),
-            invited_email text,
-            token_hash text not null unique,
-            status text not null default 'pending'
-              check (status in ('pending', 'used', 'revoked', 'expired')),
-            expires_at timestamptz not null,
-            created_by uuid references auth.users(id) on delete set null,
-            created_at timestamptz not null default now(),
-            used_at timestamptz,
-            used_organization_id uuid references public.organizations(id) on delete set null
-          );
-          
-          create index if not exists municipality_organization_invites_municipality_idx
-            on public.municipality_organization_invites (municipality_id, created_at desc);
-          
-          create index if not exists municipality_organization_invites_pending_idx
-            on public.municipality_organization_invites (token_hash, expires_at)
-            where status = 'pending';
-          
-          alter table public.municipality_organization_invites enable row level security;
-          
-          -- Tabulku obsluhuji pouze serverova API se service_role. Spravce obce se
-          -- overuje v API podle skutecneho bearer tokenu a organization_members.
-          revoke all on public.municipality_organization_invites
-            from public, anon, authenticated;
-          grant select, insert, update, delete
-            on public.municipality_organization_invites to service_role;
-          
-          create or replace function public.activate_customer_with_admin_v2(
-            p_organization_id uuid,
-            p_user_id uuid,
-            p_email text,
-            p_full_name text,
-            p_license_plan text,
-            p_license_started_at timestamptz,
-            p_license_valid_until timestamptz,
-            p_contract_status text,
-            p_billing_status text,
-            p_classroom_eligibility_verified boolean default false,
-            p_must_set_password boolean default false
-          )
-          returns table (
-            organization_id uuid,
-            registration_number text,
-            license_plan text,
-            license_valid_until timestamptz
-          )
-          language plpgsql
-          security definer
-          set search_path = public
-          as $$
-          declare
-            customer public.organizations%rowtype;
-            effective_start timestamptz;
-          begin
-            if not public.is_admin() then
-              raise exception 'Tuto akci muze provest pouze spravce platformy.';
-            end if;
-          
-            if p_license_plan not in ('paid_monthly', 'paid_annual', 'classroom_free_12m') then
-              raise exception 'Vyberte platny rezim licence.';
-            end if;
-          
-            if p_contract_status <> 'accepted' then
-              raise exception 'Pred aktivaci musi byt potvrzena smlouva.';
-            end if;
-          
-            if p_billing_status not in ('pending', 'paid', 'not_applicable') then
-              raise exception 'Neplatny stav fakturace.';
-            end if;
-          
-            if p_license_plan = 'classroom_free_12m'
-               and p_billing_status <> 'not_applicable' then
-              raise exception 'Bezplatna licence musi mit fakturaci bez uhrady.';
-            end if;
-          
-            if p_license_plan = 'classroom_free_12m'
-               and not p_classroom_eligibility_verified then
-              raise exception 'Pred bezplatnou aktivaci overte ucebnu ARCHIMEDES.';
-            end if;
-          
-            if p_license_plan in ('paid_annual', 'classroom_free_12m')
-               and p_license_valid_until is null then
-              raise exception 'U rocni a bezplatne licence je povinne datum konce.';
-            end if;
-          
-            effective_start := coalesce(p_license_started_at, now());
-          
-            if p_license_valid_until is not null
-               and p_license_valid_until <= effective_start then
-              raise exception 'Datum konce licence musi byt pozdeji nez datum zacatku.';
-            end if;
-          
-            select * into customer
-            from public.organizations
-            where id = p_organization_id
-              and org_type in ('municipality', 'obec', 'school', 'association', 'spolek')
-              and parent_organization_id is null
-            for update;
-          
-            if not found then
-              raise exception 'Zakaznik nebyl nalezen.';
-            end if;
-          
-            insert into public.profiles (
-              id, email, full_name, is_active, must_set_password, active_organization_id
-            ) values (
-              p_user_id, lower(trim(p_email)), trim(p_full_name), true,
-              p_must_set_password, customer.id
-            )
-            on conflict (id) do update set
-              email = excluded.email,
-              full_name = excluded.full_name,
-              is_active = true,
-              must_set_password = case
-                when p_must_set_password then true else profiles.must_set_password
-              end,
-              active_organization_id = customer.id;
-          
-            insert into public.organization_members (
-              organization_id, user_id, role_in_org, status
-            ) values (
-              customer.id, p_user_id, 'organization_admin', 'active'
-            )
-            on conflict (user_id, organization_id) do update set
-              role_in_org = 'organization_admin',
-              status = 'active';
-          
-            update public.organizations
-            set
-              license_status = 'active',
-              status = 'active',
-              license_plan = p_license_plan,
-              license_started_at = effective_start,
-              license_valid_until = p_license_valid_until,
-              contract_status = p_contract_status,
-              billing_status = p_billing_status,
-              activated_at = now(),
-              activated_by = auth.uid(),
-              classroom_eligibility_verified_at = case
-                when p_license_plan = 'classroom_free_12m' then now() else null
-              end,
-              classroom_eligibility_verified_by = case
-                when p_license_plan = 'classroom_free_12m' then auth.uid() else null
-              end
-            where id = customer.id;
-          
-            return query
-            select
-              customer.id,
-              customer.registration_number,
-              p_license_plan,
-              p_license_valid_until;
-          end;
-          $$;
-          
-          revoke all on function public.activate_customer_with_admin_v2(
-            uuid, uuid, text, text, text, timestamptz, timestamptz, text, text, boolean, boolean
-          ) from public, anon;
-          
-          grant execute on function public.activate_customer_with_admin_v2(
-            uuid, uuid, text, text, text, timestamptz, timestamptz, text, text, boolean, boolean
-          ) to authenticated;
-          
-          
-          -- Sdileny databazovy rate limit pro verejne serverove formulare.
-          create table if not exists public.api_rate_limits (
-            route text not null,
-            key_hash text not null,
-            window_started_at timestamptz not null default now(),
-            request_count integer not null default 0 check (request_count >= 0),
-            primary key (route, key_hash)
-          );
-          
-          alter table public.api_rate_limits enable row level security;
-          revoke all on public.api_rate_limits from public, anon, authenticated;
-          grant select, insert, update, delete on public.api_rate_limits to service_role;
-          
-          create or replace function public.consume_api_rate_limit(
-            p_route text,
-            p_key_hash text,
-            p_limit integer,
-            p_window_seconds integer
-          )
-          returns boolean
-          language plpgsql
-          security definer
-          set search_path = public
-          as $$
-          declare
-            current_row public.api_rate_limits%rowtype;
-          begin
-            if p_route is null or btrim(p_route) = ''
-               or p_key_hash is null or btrim(p_key_hash) = ''
-               or p_limit < 1
-               or p_window_seconds < 1 then
-              raise exception 'Neplatne parametry rate limitu.';
-            end if;
-          
-            perform pg_advisory_xact_lock(
-              hashtextextended(p_route || ':' || p_key_hash, 0)
-            );
-          
-            select * into current_row
-            from public.api_rate_limits
-            where route = p_route and key_hash = p_key_hash
-            for update;
-          
-            if not found
-               or current_row.window_started_at
-                 <= now() - make_interval(secs => p_window_seconds) then
-              insert into public.api_rate_limits (
-                route, key_hash, window_started_at, request_count
-              ) values (
-                p_route, p_key_hash, now(), 1
-              )
-              on conflict (route, key_hash) do update set
-                window_started_at = excluded.window_started_at,
-                request_count = 1;
-              return true;
-            end if;
-          
-            if current_row.request_count >= p_limit then
-              return false;
-            end if;
-          
-            update public.api_rate_limits
-            set request_count = request_count + 1
-            where route = p_route and key_hash = p_key_hash;
-          
-            return true;
-          end;
-          $$;
-          
-          revoke all on function public.consume_api_rate_limit(text, text, integer, integer)
-            from public, anon, authenticated;
-          grant execute on function public.consume_api_rate_limit(text, text, integer, integer)
-            to service_role;
-          
-          MIGRATION_SQL
-          test -s "$RUNNER_TEMP/0014.sql"
-          echo "migration_sha256=$(sha256sum "$RUNNER_TEMP/0014.sql" | cut -d' ' -f1)" >> "$GITHUB_ENV"
-
-      - name: Capture protected baseline
-        id: baseline
-        shell: bash
-        run: |
-          set -euo pipefail
-          output_file="$RUNNER_TEMP/baseline-counts.log"
-          set +e
-          psql "$SUPABASE_DB_URL" -X --tuples-only --no-align --field-separator='|' \
-            --command="select (select count(*) from public.organizations), (select count(*) from public.organization_members), (select count(*) from public.profiles), (select count(*) from public.orders_start);" \
-            >"$output_file" 2>&1
-          code=$?
-          set -e
-          if [[ "$code" -ne 0 ]]; then
-            echo "Unable to query the four approved anonymous counts." >&2
-            exit "$code"
-          fi
-          baseline="$(grep -Eo '^[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+$' "$output_file" | tail -n 1)"
-          if [[ -z "$baseline" ]]; then
-            echo "Unable to extract the four approved anonymous counts." >&2
-            exit 1
-          fi
-          IFS='|' read -r organizations memberships profiles orders <<<"$baseline"
-          echo "BASELINE_COUNTS=$baseline" >> "$GITHUB_ENV"
-          echo "Approved anonymous baseline: organizations=$organizations memberships=$memberships profiles=$profiles orders=$orders"
-
-      - name: Confirm recent encrypted recovery point
-        id: recovery
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          response="$(curl --fail --silent --show-error \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100")"
-          cutoff="$(( $(date -u +%s) - 172800 ))"
-          count="$(jq --argjson cutoff "$cutoff" '[.artifacts[] | select(
-            (.expired == false)
-            and (
-              (.name | startswith("supabase-pre-0014-"))
-              or (.name | startswith("supabase-backup-"))
-            )
-            and ((.created_at | fromdateiso8601) >= $cutoff)
-          )] | length' <<<"$response")"
-          test "$count" -ge 1
-          echo "Recent encrypted and restore-verified recovery point confirmed."
-
-      - name: Apply migration 0014 in one transaction
-        id: apply
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -uo pipefail
-          output_file="$RUNNER_TEMP/migration-0014-output.log"
-          set +e
-          psql "$SUPABASE_DB_URL" -X --set=ON_ERROR_STOP=1 --single-transaction \
-            < "$RUNNER_TEMP/0014.sql" > "$output_file" 2>&1
-          code=$?
-          set -e
-          sed -E 's#(postgres(ql)?://)[^[:space:]]+#\\1***#g' "$output_file"
-          if [[ "$code" -ne 0 ]]; then
-            error_line="$(grep -m1 -E 'ERROR:|FATAL:' "$output_file" || tail -n 1 "$output_file")"
-            error_line="$(printf '%s' "$error_line" | tr '\r\n' ' ' | cut -c1-100)"
-            echo "error=$error_line" >> "$GITHUB_OUTPUT"
-            exit "$code"
-          fi
-          echo "Migration 0014 transaction committed."
-
-      - name: Verify migration and unchanged protected counts
+      - name: Run fixed read-only verification
         id: verify
-        if: steps.apply.outcome == 'success'
-        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
-          post_counts="$(psql "$SUPABASE_DB_URL" -X --tuples-only --no-align --field-separator='|' \
-            --command="select (select count(*) from public.organizations), (select count(*) from public.organization_members), (select count(*) from public.profiles), (select count(*) from public.orders_start);")"
-          post_counts="$(printf '%s' "$post_counts" | grep -Eo '^[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+
-          if [[ "$post_counts" != "$BASELINE_COUNTS" ]]; then
-            echo "Protected anonymous counts changed during migration: before=$BASELINE_COUNTS after=$post_counts" >&2
-            exit 1
-          fi
-          echo "Post-migration anonymous counts match baseline: $post_counts"
+          output_file="$RUNNER_TEMP/supabase-0014-verification.log"
 
-          psql "$SUPABASE_DB_URL" -X --set=ON_ERROR_STOP=1 <<'SQL'
+          psql "$SUPABASE_DB_URL" -X --set=ON_ERROR_STOP=1 >"$output_file" <<'SQL'
+          BEGIN TRANSACTION READ ONLY;
+
           DO $verify$
+          DECLARE
+            missing_columns integer;
+            missing_constraints integer;
           BEGIN
-            IF NOT EXISTS (
-              SELECT 1 FROM information_schema.columns
-              WHERE table_schema='public' AND table_name='organizations'
-                AND column_name='license_plan'
-            ) THEN
-              RAISE EXCEPTION 'license_plan column missing';
+            SELECT count(*) INTO missing_columns
+            FROM unnest(ARRAY[
+              'requested_license_plan',
+              'terms_accepted_at',
+              'terms_version',
+              'license_plan',
+              'license_started_at',
+              'contract_status',
+              'billing_status',
+              'activated_at',
+              'activated_by',
+              'classroom_eligibility_verified_at',
+              'classroom_eligibility_verified_by'
+            ]) AS expected(column_name)
+            WHERE NOT EXISTS (
+              SELECT 1
+              FROM information_schema.columns actual
+              WHERE actual.table_schema = 'public'
+                AND actual.table_name = 'organizations'
+                AND actual.column_name = expected.column_name
+            );
+
+            IF missing_columns <> 0 THEN
+              RAISE EXCEPTION 'Missing required 0014 organization columns: %', missing_columns;
+            END IF;
+
+            SELECT count(*) INTO missing_constraints
+            FROM unnest(ARRAY[
+              'organizations_requested_license_plan_allowed',
+              'organizations_license_plan_allowed',
+              'organizations_contract_status_allowed',
+              'organizations_billing_status_allowed'
+            ]) AS expected(constraint_name)
+            WHERE NOT EXISTS (
+              SELECT 1
+              FROM pg_constraint actual
+              JOIN pg_class relation ON relation.oid = actual.conrelid
+              JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace
+              WHERE namespace.nspname = 'public'
+                AND relation.relname = 'organizations'
+                AND actual.conname = expected.constraint_name
+            );
+
+            IF missing_constraints <> 0 THEN
+              RAISE EXCEPTION 'Missing required 0014 constraints: %', missing_constraints;
             END IF;
 
             IF to_regclass('public.municipality_organization_invites') IS NULL
@@ -439,13 +100,59 @@ jobs:
               RAISE EXCEPTION 'Required 0014 table missing';
             END IF;
 
+            IF NOT (
+              SELECT relrowsecurity
+              FROM pg_class
+              WHERE oid = 'public.municipality_organization_invites'::regclass
+            ) OR NOT (
+              SELECT relrowsecurity
+              FROM pg_class
+              WHERE oid = 'public.api_rate_limits'::regclass
+            ) THEN
+              RAISE EXCEPTION 'RLS is not enabled on a required 0014 table';
+            END IF;
+
             IF to_regprocedure(
               'public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)'
-            ) IS NULL
-               OR to_regprocedure(
+            ) IS NULL OR to_regprocedure(
               'public.consume_api_rate_limit(text,text,integer,integer)'
             ) IS NULL THEN
               RAISE EXCEPTION 'Required 0014 function missing';
+            END IF;
+
+            IF has_table_privilege('anon', 'public.municipality_organization_invites', 'SELECT')
+               OR has_table_privilege('authenticated', 'public.municipality_organization_invites', 'SELECT')
+               OR has_table_privilege('anon', 'public.api_rate_limits', 'SELECT')
+               OR has_table_privilege('authenticated', 'public.api_rate_limits', 'SELECT') THEN
+              RAISE EXCEPTION 'Public roles have an unexpected 0014 table privilege';
+            END IF;
+
+            IF NOT has_table_privilege(
+              'service_role', 'public.municipality_organization_invites', 'SELECT,INSERT,UPDATE,DELETE'
+            ) OR NOT has_table_privilege(
+              'service_role', 'public.api_rate_limits', 'SELECT,INSERT,UPDATE,DELETE'
+            ) THEN
+              RAISE EXCEPTION 'service_role is missing a required 0014 table privilege';
+            END IF;
+
+            IF has_function_privilege(
+              'anon',
+              'public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)',
+              'EXECUTE'
+            ) OR NOT has_function_privilege(
+              'authenticated',
+              'public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)',
+              'EXECUTE'
+            ) OR has_function_privilege(
+              'authenticated',
+              'public.consume_api_rate_limit(text,text,integer,integer)',
+              'EXECUTE'
+            ) OR NOT has_function_privilege(
+              'service_role',
+              'public.consume_api_rate_limit(text,text,integer,integer)',
+              'EXECUTE'
+            ) THEN
+              RAISE EXCEPTION 'Unexpected 0014 function privileges';
             END IF;
           END
           $verify$;
@@ -455,202 +162,50 @@ jobs:
             (SELECT count(*) FROM public.organization_members) AS memberships,
             (SELECT count(*) FROM public.profiles) AS profiles,
             (SELECT count(*) FROM public.orders_start) AS orders,
-            to_regclass('public.municipality_organization_invites') IS NOT NULL AS invites_ready,
-            to_regclass('public.api_rate_limits') IS NOT NULL AS rate_limit_ready,
-            to_regprocedure(
-              'public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)'
-            ) IS NOT NULL AS activation_v2_ready,
-            to_regprocedure(
-              'public.consume_api_rate_limit(text,text,integer,integer)'
-            ) IS NOT NULL AS rate_limit_function_ready;
+            (SELECT count(*) FROM public.municipality_organization_invites) AS invites,
+            (SELECT count(*) FROM public.api_rate_limits) AS rate_limit_rows;
+
+          ROLLBACK;
           SQL
 
-      - name: Publish run summary
-        if: steps.apply.outcome == 'success' && steps.verify.outcome == 'success'
+          counts="$(awk -F'|' '
+            /^[[:space:]]*[0-9]+[[:space:]]*\|[[:space:]]*[0-9]+[[:space:]]*\|[[:space:]]*[0-9]+[[:space:]]*\|[[:space:]]*[0-9]+[[:space:]]*\|[[:space:]]*[0-9]+[[:space:]]*\|[[:space:]]*[0-9]+[[:space:]]*$/ {
+              gsub(/[[:space:]]/, "", $0); value=$0
+            }
+            END { print value }
+          ' "$output_file")"
+          test -n "$counts"
+          echo "COUNTS=$counts" >> "$GITHUB_ENV"
+          echo "Read-only verification passed. Anonymous counts: $counts"
+
+      - name: Publish verification summary
         shell: bash
         run: |
           {
-            echo "## Supabase migration 0014"
+            echo "## Supabase migration 0014 verification"
             echo
-            echo "- Recent encrypted restore-verified recovery point: confirmed"
-            echo "- Migration SHA-256: `$migration_sha256`"
-            echo "- Transaction: committed"
-            echo "- Protected anonymous counts before/after: $BASELINE_COUNTS"
-            echo "- Required columns, tables and functions: verified"
+            echo "- Transaction mode: READ ONLY"
+            echo "- Transaction end: ROLLBACK"
+            echo "- 11 organization columns: verified"
+            echo "- 4 organization constraints: verified"
+            echo "- 2 tables and RLS: verified"
+            echo "- 2 functions and privileges: verified"
+            echo "- Anonymous counts (organizations|memberships|profiles|orders|invites|rate-limit rows): $COUNTS"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Publish migration status
+      - name: Publish commit status
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-          RESULT: ${{ job.status }}
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
         shell: bash
         run: |
           set -euo pipefail
-          validate_outcome="${{ steps.validate.outcome }}"
-          prepare_outcome="${{ steps.prepare.outcome }}"
-          baseline_outcome="${{ steps.baseline.outcome }}"
-          recovery_outcome="${{ steps.recovery.outcome }}"
-          apply_outcome="${{ steps.apply.outcome }}"
-          verify_outcome="${{ steps.verify.outcome }}"
-          apply_error="${{ steps.apply.outputs.error }}"
-          if [[ "$validate_outcome" != "success" ]]; then
-            state="failure"
-            description="Pre-step failed: protected configuration"
-          elif [[ "$prepare_outcome" != "success" ]]; then
-            state="failure"
-            description="Pre-step failed: prepare migration SQL"
-          elif [[ "$baseline_outcome" != "success" ]]; then
-            state="failure"
-            description="Pre-step failed: protected baseline"
-          elif [[ "$recovery_outcome" != "success" ]]; then
-            state="failure"
-            description="Pre-step failed: recent recovery point"
-          elif [[ "$apply_outcome" != "success" ]]; then
-            state="failure"
-            description="Apply failed: ${apply_error:-unknown database error}"
-          elif [[ "$verify_outcome" != "success" ]]; then
-            state="failure"
-            description="Migration committed but post-migration verification failed"
-          else
+          if [[ "$VERIFY_OUTCOME" == "success" ]]; then
             state="success"
-            description="Migration 0014 committed; schema and protected counts verified"
-          fi
-          description="$(printf '%s' "$description" | cut -c1-140)"
-          if [[ "$state" == "failure" ]]; then
-            context="Supabase error: $(printf '%s' "$description" | cut -c1-75)"
+            description="Migration 0014 schema, RLS, privileges and anonymous counts verified read only"
           else
-            context="Supabase 0014 migration"
+            state="failure"
+            description="Read-only verification of migration 0014 failed"
           fi
-          jq -n --arg state "$state" --arg description "$description" \
-            --arg context "$context" \
-            '{state:$state,description:$description,context:$context}' \
-            | curl --fail --silent --show-error -X POST \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
-              -d @- > /dev/null
-
-      - name: Fail workflow when apply or verification failed
-        if: steps.apply.outcome != 'success' || steps.verify.outcome != 'success'
-        run: exit 1
- | tail -n 1)"
-          if [[ "$post_counts" != "$BASELINE_COUNTS" ]]; then
-            echo "Protected anonymous counts changed during migration: before=$BASELINE_COUNTS after=$post_counts" >&2
-            exit 1
-          fi
-          echo "Post-migration anonymous counts match baseline: $post_counts"
-
-          psql "$SUPABASE_DB_URL" -X --set=ON_ERROR_STOP=1 <<'SQL'
-          DO $verify$
-          BEGIN
-            IF NOT EXISTS (
-              SELECT 1 FROM information_schema.columns
-              WHERE table_schema='public' AND table_name='organizations'
-                AND column_name='license_plan'
-            ) THEN
-              RAISE EXCEPTION 'license_plan column missing';
-            END IF;
-
-            IF to_regclass('public.municipality_organization_invites') IS NULL
-               OR to_regclass('public.api_rate_limits') IS NULL THEN
-              RAISE EXCEPTION 'Required 0014 table missing';
-            END IF;
-
-            IF to_regprocedure(
-              'public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)'
-            ) IS NULL
-               OR to_regprocedure(
-              'public.consume_api_rate_limit(text,text,integer,integer)'
-            ) IS NULL THEN
-              RAISE EXCEPTION 'Required 0014 function missing';
-            END IF;
-          END
-          $verify$;
-
-          SELECT
-            (SELECT count(*) FROM public.organizations) AS organizations,
-            (SELECT count(*) FROM public.organization_members) AS memberships,
-            (SELECT count(*) FROM public.profiles) AS profiles,
-            (SELECT count(*) FROM public.orders_start) AS orders,
-            to_regclass('public.municipality_organization_invites') IS NOT NULL AS invites_ready,
-            to_regclass('public.api_rate_limits') IS NOT NULL AS rate_limit_ready,
-            to_regprocedure(
-              'public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)'
-            ) IS NOT NULL AS activation_v2_ready,
-            to_regprocedure(
-              'public.consume_api_rate_limit(text,text,integer,integer)'
-            ) IS NOT NULL AS rate_limit_function_ready;
-          SQL
-
-      - name: Publish run summary
-        if: steps.apply.outcome == 'success' && steps.verify.outcome == 'success'
-        shell: bash
-        run: |
-          {
-            echo "## Supabase migration 0014"
-            echo
-            echo "- Recent encrypted restore-verified recovery point: confirmed"
-            echo "- Migration SHA-256: `$migration_sha256`"
-            echo "- Transaction: committed"
-            echo "- Protected anonymous counts before/after: $BASELINE_COUNTS"
-            echo "- Required columns, tables and functions: verified"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Publish migration status
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RESULT: ${{ job.status }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          validate_outcome="${{ steps.validate.outcome }}"
-          prepare_outcome="${{ steps.prepare.outcome }}"
-          baseline_outcome="${{ steps.baseline.outcome }}"
-          recovery_outcome="${{ steps.recovery.outcome }}"
-          apply_outcome="${{ steps.apply.outcome }}"
-          verify_outcome="${{ steps.verify.outcome }}"
-          apply_error="${{ steps.apply.outputs.error }}"
-          if [[ "$validate_outcome" != "success" ]]; then
-            state="failure"
-            description="Pre-step failed: protected configuration"
-          elif [[ "$prepare_outcome" != "success" ]]; then
-            state="failure"
-            description="Pre-step failed: prepare migration SQL"
-          elif [[ "$baseline_outcome" != "success" ]]; then
-            state="failure"
-            description="Pre-step failed: protected baseline"
-          elif [[ "$recovery_outcome" != "success" ]]; then
-            state="failure"
-            description="Pre-step failed: recent recovery point"
-          elif [[ "$apply_outcome" != "success" ]]; then
-            state="failure"
-            description="Apply failed: ${apply_error:-unknown database error}"
-          elif [[ "$verify_outcome" != "success" ]]; then
-            state="failure"
-            description="Migration committed but post-migration verification failed"
-          else
-            state="success"
-            description="Migration 0014 committed; schema and protected counts verified"
-          fi
-          description="$(printf '%s' "$description" | cut -c1-140)"
-          if [[ "$state" == "failure" ]]; then
-            context="Supabase error: $(printf '%s' "$description" | cut -c1-75)"
-          else
-            context="Supabase 0014 migration"
-          fi
-          jq -n --arg state "$state" --arg description "$description" \
-            --arg context "$context" \
-            '{state:$state,description:$description,context:$context}' \
-            | curl --fail --silent --show-error -X POST \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
-              -d @- > /dev/null
-
-      - name: Fail workflow when apply or verification failed
-        if: steps.apply.outcome != 'success' || steps.verify.outcome != 'success'
-        run: exit 1
+          jq -n --arg state "$state" --arg description "$description"             '{state:$state,description:$description,context:"Supabase 0014 read-only verification"}'             | curl --fail --silent --show-error -X POST               -H "Accept: application/vnd.github+json"               -H "Authorization: Bearer $GH_TOKEN"               -H "X-GitHub-Api-Version: 2022-11-28"               "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA"               -d @- > /dev/null
