@@ -367,17 +367,33 @@ jobs:
           echo "Recent encrypted and restore-verified recovery point confirmed."
 
       - name: Apply migration 0014 in one transaction
+        id: apply
+        continue-on-error: true
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          output_file="$RUNNER_TEMP/migration-0014-output.log"
+          set +e
           docker run --rm -i \
             -e PGDATABASE="$SUPABASE_DB_URL" \
             --entrypoint psql "$PG17_IMAGE" \
             --no-psqlrc --set=ON_ERROR_STOP=1 --single-transaction \
-            < "$RUNNER_TEMP/0014.sql"
+            < "$RUNNER_TEMP/0014.sql" > "$output_file" 2>&1
+          code=$?
+          set -e
+          sed -E 's#(postgres(ql)?://)[^[:space:]]+#\\1***#g' "$output_file"
+          if [[ "$code" -ne 0 ]]; then
+            error_line="$(grep -m1 -E 'ERROR:|FATAL:' "$output_file" || tail -n 1 "$output_file")"
+            error_line="$(printf '%s' "$error_line" | tr '\r\n' ' ' | cut -c1-100)"
+            echo "error=$error_line" >> "$GITHUB_OUTPUT"
+            exit "$code"
+          fi
           echo "Migration 0014 transaction committed."
 
       - name: Verify migration and unchanged protected counts
+        id: verify
+        if: steps.apply.outcome == 'success'
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -440,6 +456,7 @@ jobs:
           SQL
 
       - name: Publish run summary
+        if: steps.apply.outcome == 'success' && steps.verify.outcome == 'success'
         shell: bash
         run: |
           {
@@ -460,13 +477,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$RESULT" == "success" ]]; then
+          apply_outcome="${{ steps.apply.outcome }}"
+          verify_outcome="${{ steps.verify.outcome }}"
+          apply_error="${{ steps.apply.outputs.error }}"
+          if [[ "$apply_outcome" != "success" ]]; then
+            state="failure"
+            description="Apply failed: ${apply_error:-unknown database error}"
+          elif [[ "$verify_outcome" != "success" ]]; then
+            state="failure"
+            description="Migration committed but post-migration verification failed"
+          else
             state="success"
             description="Migration 0014 committed; schema and protected counts verified"
-          else
-            state="failure"
-            description="Migration 0014 was not committed or verification failed"
           fi
+          description="$(printf '%s' "$description" | cut -c1-140)"
           jq -n --arg state "$state" --arg description "$description" \
             --arg context "Supabase 0014 migration" \
             '{state:$state,description:$description,context:$context}' \
@@ -476,3 +500,7 @@ jobs:
               -H "X-GitHub-Api-Version: 2022-11-28" \
               "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
               -d @- > /dev/null
+
+      - name: Fail workflow when apply or verification failed
+        if: steps.apply.outcome != 'success' || steps.verify.outcome != 'success'
+        run: exit 1
