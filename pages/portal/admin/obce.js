@@ -58,6 +58,7 @@ function createDraft() {
     licenseStartedAt: inputDate(),
     licenseValidUntil: "",
     contractAccepted: false,
+    classroomEligibilityVerified: false,
     billingStatus: "pending",
   };
 }
@@ -131,6 +132,7 @@ export default function AdminObcePage() {
         licenseValidUntil: needsEnd
           ? current.licenseValidUntil || oneYearAfter(current.licenseStartedAt)
           : "",
+        classroomEligibilityVerified: false,
         billingStatus:
           licensePlan === "classroom_free_12m"
             ? "not_applicable"
@@ -170,6 +172,14 @@ export default function AdminObcePage() {
       return;
     }
 
+    if (
+      draft.licensePlan === "classroom_free_12m" &&
+      !draft.classroomEligibilityVerified
+    ) {
+      setError("Potvrďte ověření, že obec má učebnu ARCHIMEDES.");
+      return;
+    }
+
     const typeLabel = ORGANIZATION_LABELS[row.org_type] || "Organizace";
     const confirmed = window.confirm(
       `Aktivovat: ${typeLabel.toLowerCase()} „${row.name}“ s variantou ${LICENSE_LABELS[draft.licensePlan]}?`
@@ -204,6 +214,7 @@ export default function AdminObcePage() {
           licenseValidUntil: draft.licenseValidUntil || null,
           contractStatus: "accepted",
           billingStatus: draft.billingStatus,
+          classroomEligibilityVerified: draft.classroomEligibilityVerified,
         }),
       });
       const result = await response.json();
@@ -313,6 +324,26 @@ export default function AdminObcePage() {
                   </Select>
                 </div>
               </div>
+
+              {draft.licensePlan === "classroom_free_12m" ? (
+                <label className="mt-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                  <input
+                    type="checkbox"
+                    checked={draft.classroomEligibilityVerified}
+                    onChange={(event) =>
+                      setDraft((current) => ({
+                        ...current,
+                        classroomEligibilityVerified: event.target.checked,
+                      }))
+                    }
+                    className="mt-1 h-4 w-4"
+                  />
+                  <span className="text-sm font-semibold leading-relaxed text-amber-900">
+                    Ověřil/a jsem, že obec má učebnu ARCHIMEDES a splňuje
+                    podmínku pro prvních 12 měsíců zdarma.
+                  </span>
+                </label>
+              ) : null}
 
               <label className="mt-5 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <input
