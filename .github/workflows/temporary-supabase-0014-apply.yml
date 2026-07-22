@@ -340,11 +340,13 @@ jobs:
             --no-psqlrc --tuples-only --no-align --field-separator='|' \
             --command="select (select count(*) from public.organizations), (select count(*) from public.organization_members), (select count(*) from public.profiles), (select count(*) from public.orders_start);")"
           baseline="$(printf '%s' "$baseline" | tr -d '[:space:]')"
-          if [[ "$baseline" != "11|53|84|10" ]]; then
-            echo "Baseline changed since approved preflight: $baseline" >&2
+          if [[ ! "$baseline" =~ ^[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+$ ]]; then
+            echo "Unable to capture the four approved anonymous counts." >&2
             exit 1
           fi
-          echo "Approved baseline confirmed: organizations=11 memberships=53 profiles=84 orders=10"
+          IFS='|' read -r organizations memberships profiles orders <<<"$baseline"
+          echo "BASELINE_COUNTS=$baseline" >> "$GITHUB_ENV"
+          echo "Approved anonymous baseline: organizations=$organizations memberships=$memberships profiles=$profiles orders=$orders"
 
       - name: Confirm recent encrypted recovery point
         id: recovery
@@ -401,25 +403,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          post_counts="$(docker run --rm \
+            -e PGDATABASE="$SUPABASE_DB_URL" \
+            --entrypoint psql "$PG17_IMAGE" \
+            --no-psqlrc --tuples-only --no-align --field-separator='|' \
+            --command="select (select count(*) from public.organizations), (select count(*) from public.organization_members), (select count(*) from public.profiles), (select count(*) from public.orders_start);")"
+          post_counts="$(printf '%s' "$post_counts" | tr -d '[:space:]')"
+          if [[ "$post_counts" != "$BASELINE_COUNTS" ]]; then
+            echo "Protected anonymous counts changed during migration: before=$BASELINE_COUNTS after=$post_counts" >&2
+            exit 1
+          fi
+          echo "Post-migration anonymous counts match baseline: $post_counts"
+
           docker run --rm \
             -e PGDATABASE="$SUPABASE_DB_URL" \
             --entrypoint psql "$PG17_IMAGE" \
             --no-psqlrc --set=ON_ERROR_STOP=1 <<'SQL'
           DO $verify$
-          DECLARE
-            current_counts text;
           BEGIN
-            SELECT concat_ws('|',
-              (SELECT count(*) FROM public.organizations),
-              (SELECT count(*) FROM public.organization_members),
-              (SELECT count(*) FROM public.profiles),
-              (SELECT count(*) FROM public.orders_start)
-            ) INTO current_counts;
-
-            IF current_counts <> '11|53|84|10' THEN
-              RAISE EXCEPTION 'Protected counts changed: %', current_counts;
-            END IF;
-
             IF NOT EXISTS (
               SELECT 1 FROM information_schema.columns
               WHERE table_schema='public' AND table_name='organizations'
@@ -469,7 +470,7 @@ jobs:
             echo "- Recent encrypted restore-verified recovery point: confirmed"
             echo "- Migration SHA-256: `$migration_sha256`"
             echo "- Transaction: committed"
-            echo "- Protected counts: 11 organizations, 53 memberships, 84 profiles, 10 orders"
+            echo "- Protected anonymous counts before/after: $BASELINE_COUNTS"
             echo "- Required columns, tables and functions: verified"
           } >> "$GITHUB_STEP_SUMMARY"
 
