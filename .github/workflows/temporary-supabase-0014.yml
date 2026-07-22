@@ -357,13 +357,13 @@ jobs:
           dump="$RUNNER_TEMP/archimedes-production-before-0014-$timestamp.dump"
           encrypted="$dump.enc"
 
+          # Stream the dump to the runner instead of bind-mounting RUNNER_TEMP.
+          # This avoids Docker host-path differences on GitHub-hosted runners.
           docker run --rm \
             -e PGDATABASE="$SUPABASE_DB_URL" \
-            --user "$(id -u):$(id -g)" \
-            --volume "$RUNNER_TEMP:/backup" \
             --entrypoint pg_dump "$PG17_IMAGE" \
             --format=custom --no-owner --no-privileges \
-            --file "/backup/$(basename "$dump")"
+            > "$dump"
 
           test -s "$dump"
           openssl enc -aes-256-cbc -salt -pbkdf2 -iter 600000 \
@@ -374,11 +374,9 @@ jobs:
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
             -in "$encrypted" -out "$RUNNER_TEMP/verified.dump" \
             -pass env:BACKUP_ENCRYPTION_PASSPHRASE
-          docker run --rm \
-            --user "$(id -u):$(id -g)" \
-            --volume "$RUNNER_TEMP:/backup:ro" \
+          docker run --rm -i \
             --entrypoint pg_restore "$PG17_IMAGE" \
-            --list /backup/verified.dump > /dev/null
+            --list < "$RUNNER_TEMP/verified.dump" > /dev/null
 
           rm -f "$dump" "$RUNNER_TEMP/verified.dump"
           echo "encrypted=$encrypted" >> "$GITHUB_OUTPUT"
@@ -400,12 +398,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker run --rm \
+          docker run --rm -i \
             -e PGDATABASE="$SUPABASE_DB_URL" \
-            --volume "$RUNNER_TEMP:/work:ro" \
             --entrypoint psql "$PG17_IMAGE" \
             --no-psqlrc --set=ON_ERROR_STOP=1 --single-transaction \
-            --file=/work/0014.sql
+            < "$RUNNER_TEMP/0014.sql"
           echo "Migration 0014 transaction committed."
 
       - name: Verify migration and unchanged protected counts
