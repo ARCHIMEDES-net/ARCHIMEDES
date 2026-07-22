@@ -82,7 +82,7 @@ export default function AdminObcePage() {
     const { data, error: loadError } = await supabase
       .from("organizations")
       .select(
-        "id, name, org_type, parent_organization_id, registration_number, license_status, license_plan, license_started_at, license_valid_until, contract_status, billing_status, status, contact_name, contact_email, contact_phone, created_at"
+        "id, name, org_type, parent_organization_id, registration_number, license_status, requested_license_plan, license_plan, license_started_at, license_valid_until, contract_status, billing_status, status, contact_name, contact_email, contact_phone, created_at"
       )
       .in("org_type", [
         "municipality",
@@ -108,7 +108,17 @@ export default function AdminObcePage() {
     setSelectedCustomer(row);
     setError("");
     setMessage("");
-    setDraft(createDraft());
+    const nextDraft = createDraft();
+    if (LICENSE_LABELS[row.requested_license_plan]) {
+      nextDraft.licensePlan = row.requested_license_plan;
+      if (["paid_annual", "classroom_free_12m"].includes(row.requested_license_plan)) {
+        nextDraft.licenseValidUntil = oneYearAfter(nextDraft.licenseStartedAt);
+      }
+      if (row.requested_license_plan === "classroom_free_12m") {
+        nextDraft.billingStatus = "not_applicable";
+      }
+    }
+    setDraft(nextDraft);
   }
 
   function updatePlan(licensePlan) {
