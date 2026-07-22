@@ -166,7 +166,7 @@ export default function ObecPage() {
           </div>
         </section>
 
-        <section id="jak-to-funguje" className="scroll-mt-24 py-16 sm:py-20">
+        <section id="jak-to-funguje" className="scroll-mt-24 pb-8 pt-16 sm:pb-10 sm:pt-20">
           <div className="mx-auto max-w-[1180px] px-5">
             <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
               <div className="lg:sticky lg:top-28">
