@@ -67,7 +67,7 @@ export default function ProgramPage({ initialEvents = [] }) {
   return (
     <>
       <Head>
-        <title>Program a vysílání | ARCHIMEDES Live</title>
+        <title>Co přinášíme | ARCHIMEDES Live</title>
         <meta
           name="description"
           content="Konkrétní živá vysílání a program ARCHIMEDES Live pro školy, spolky, seniory a místní komunity."
@@ -85,7 +85,7 @@ export default function ProgramPage({ initialEvents = [] }) {
           <div className="mx-auto grid min-h-[610px] max-w-[1280px] lg:grid-cols-[0.9fr_1.1fr]">
             <div className="flex items-center px-5 py-16 sm:px-10 lg:px-12 lg:py-20">
               <div className="max-w-[590px]">
-                <SectionEyebrow>Program ARCHIMEDES Live</SectionEyebrow>
+                <SectionEyebrow>Co přinášíme</SectionEyebrow>
                 <h1 className="text-[clamp(44px,6vw,72px)] font-[950] leading-[0.95] tracking-[-0.055em] text-navy-900">
                   Živý obsah, který má pokračování v obci
                 </h1>
