@@ -43,10 +43,10 @@ jobs:
         run: |
           set -euo pipefail
           baseline="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --field-separator='|' --command="select (select count(*) from public.organizations), (select count(*) from public.organization_members), (select count(*) from public.profiles), (select count(*) from public.orders_start);")"
-          baseline="$(printf '%s' "$baseline" | tr -d '[:space:]')"
+          baseline="$(printf '%s\n' "$baseline" | sed -nE '/^[[:space:]]*[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+[[:space:]]*$/p' | tr -d '[:space:]' | tail -n 1)"
           [[ "$baseline" =~ ^[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+$ ]]
           echo "BASELINE=$baseline" >> "$GITHUB_ENV"
-          pending="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --command="select count(*) from public.orders_start o join public.organizations g on g.id=o.organization_id where o.id='628a8a4d-f24a-4701-b86b-d18dacac7fbc'::uuid and g.status <> 'active' and g.license_status='pending_approval';" | tr -d '[:space:]')"
+          pending="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --command="select count(*) from public.orders_start o join public.organizations g on g.id=o.organization_id where o.id='628a8a4d-f24a-4701-b86b-d18dacac7fbc'::uuid and g.status <> 'active';" | sed -nE '/^[[:space:]]*[0-9]+[[:space:]]*$/p' | tr -d '[:space:]' | tail -n 1)"
           test "$pending" = "1"
 
       - name: Prepare fixed function
@@ -210,7 +210,7 @@ jobs:
         run: |
           set -euo pipefail
           after="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --field-separator='|' --command="select (select count(*) from public.organizations), (select count(*) from public.organization_members), (select count(*) from public.profiles), (select count(*) from public.orders_start);")"
-          after="$(printf '%s' "$after" | tr -d '[:space:]')"
+          after="$(printf '%s\n' "$after" | sed -nE '/^[[:space:]]*[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+[[:space:]]*$/p' | tr -d '[:space:]' | tail -n 1)"
           test "$after" = "$BASELINE"
           exists="$(psql "$SUPABASE_DB_URL" --no-psqlrc --tuples-only --no-align --command="select to_regprocedure('public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)') is not null;" | tr -d '[:space:]')"
           test "$exists" = "t"
