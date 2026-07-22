@@ -5,6 +5,11 @@ import {
   RegistrantError,
   resolveOrganizationRegistrant,
 } from "../../lib/server/organizationRegistrant";
+import {
+  consumeMunicipalityInvite,
+  MunicipalityInviteError,
+  resolveMunicipalityInvite,
+} from "../../lib/server/municipalityOrganizationInvite";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -58,7 +63,7 @@ export default async function handler(req, res) {
 
   try {
     const {
-      registrationNumber,
+      inviteToken,
       name,
       address,
       legalIdentifier,
@@ -69,7 +74,6 @@ export default async function handler(req, res) {
       customText,
     } = req.body || {};
 
-    const cleanRegistrationNumber = String(registrationNumber || "").trim();
     const cleanName = String(name || "").trim();
     const cleanAddress = String(address || "").trim();
     const cleanLegalIdentifier = String(legalIdentifier || "").replace(/\s+/g, "").trim();
@@ -78,10 +82,6 @@ export default async function handler(req, res) {
     const cleanPhone = String(phone || "").trim();
     const cleanActivityCode = String(activityCode || "").trim();
     const cleanCustomText = String(customText || "").trim();
-
-    if (!cleanRegistrationNumber) {
-      return res.status(400).json({ error: "Vyplňte prosím registrační číslo obce." });
-    }
 
     if (!cleanName) {
       return res.status(400).json({ error: "Vyplňte prosím název spolku." });
@@ -136,23 +136,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Neplatná činnost spolku." });
     }
 
-    const { data: obec, error: obecError } = await supabaseAdmin
-      .from("organizations")
-      .select("id, status, license_status")
-      .eq("registration_number", cleanRegistrationNumber)
-      .in("org_type", ["municipality", "obec"])
-      .maybeSingle();
-
-    if (obecError) {
-      console.error("obec lookup error:", obecError);
-      return res.status(500).json({ error: "Nepodařilo se ověřit registrační číslo obce." });
-    }
-
-    if (!obec || obec.status !== "active" || obec.license_status !== "active") {
-      return res.status(404).json({
-        error: "Obec s tímto registračním číslem neexistuje nebo zatím není aktivní.",
-      });
-    }
+    const { invite, municipality: obec } = await resolveMunicipalityInvite({
+      supabaseAdmin,
+      rawToken: inviteToken,
+      organizationType: "association",
+      email: cleanEmail,
+    });
 
     const { data: duplicateUnderMunicipality, error: duplicateUnderMunicipalityError } =
       await supabaseAdmin
@@ -279,6 +268,12 @@ export default async function handler(req, res) {
 
     if (profileError) throw profileError;
 
+    await consumeMunicipalityInvite({
+      supabaseAdmin,
+      inviteId: invite.id,
+      organizationId: spolek.id,
+    });
+
     let emailSent = false;
     try {
       await sendRegistrationEmail({
@@ -304,12 +299,14 @@ export default async function handler(req, res) {
     }
     await cleanupNewRegistrant(supabaseAdmin, registrant);
     console.error("registrace-spolku API error:", err);
-    const status = err instanceof RegistrantError ? err.status : 500;
+    const expectedError =
+      err instanceof RegistrantError ||
+      err instanceof MunicipalityInviteError;
+    const status = expectedError ? err.status : 500;
     return res.status(status).json({
-      error:
-        err instanceof RegistrantError
-          ? err.message
-          : "Registraci spolku se nepodařilo dokončit.",
+      error: expectedError
+        ? err.message
+        : "Registraci spolku se nepodařilo dokončit.",
     });
   }
 }
