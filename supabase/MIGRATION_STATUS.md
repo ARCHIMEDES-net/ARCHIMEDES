@@ -33,17 +33,20 @@ souborů do tohoto adresáře.
   - kontroluje platformového admina uvnitř `SECURITY DEFINER` funkce
   - existující Auth účet, UUID a heslo nijak nemění
 
-## Připraveno, ale v produkci zatím neaplikováno
-
 - `0014_municipality_onboarding.sql`
+  - v produkci transakčně aplikováno 22. 7. 2026;
+  - před aplikací potvrzen aktuální šifrovaný a obnovou prověřený bod obnovy;
+  - po aplikaci read-only ověřeno všech 11 nových sloupců, 4 omezení,
+    obě tabulky, RLS, obě funkce a přístupová práva;
+  - kontrola proběhla v transakci `READ ONLY` zakončené `ROLLBACK`;
   - obchodní metadata licence, přesná platnost a audit aktivace;
   - samostatné ověření nároku obce s učebnou na 12 měsíců zdarma;
   - jednorázové hashované pozvánky školy/spolku pod obec;
   - databázový rate limit veřejné objednávky a registrací;
   - nová aktivační funkce `activate_customer_with_admin_v2`.
-- Migrace se nesmí aplikovat bez aktuálního read-only preflightu a následného
-  cíleného testu objednávka → aktivace → pozvánka → registrace.
-- Aplikační kód používající `0014` se nesmí nasadit před databázovou migrací.
+- Aplikační kód používající `0014` zatím nebyl sloučen ani nasazen.
+- Následuje řízený test objednávka → aktivace → pozvánka → registrace
+  a ověření negativních scénářů před produkčním nasazením aplikace.
 
 ## Stav nasazení
 
@@ -53,8 +56,10 @@ souborů do tohoto adresáře.
    pořadí a po každé byly ověřeny vzniklé objekty.
 3. Preflight byl po migracích zopakován; počty organizací, členství a
    příjemců zůstaly beze změny.
-4. Následuje nasazení aplikačního kódu používajícího
-   `get_my_organizations` a cílený produkční smoke test.
+4. Migrace `0014` byla po potvrzení bodu obnovy aplikována v jediné
+   transakci a následně samostatně ověřena read-only kontrolou.
+5. Aplikační PR č. 39 zůstává nesloučený; před jeho nasazením následuje
+   řízený test onboardingu a negativních scénářů.
 
 ## Neměnné migrační podmínky
 
