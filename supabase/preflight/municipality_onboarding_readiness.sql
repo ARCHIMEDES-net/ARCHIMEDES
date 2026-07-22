@@ -25,6 +25,19 @@ select
   ) as pending_licenses
 from public.organizations;
 
+-- Referencni pocty pro porovnani pred a po migraci. Vystup neobsahuje
+-- osobni udaje; 0014 nesmi zadny z techto existujicich zaznamu zmenit.
+select
+  (select count(*) from public.organizations) as organizations_total,
+  (select count(*) from public.organization_members) as memberships_total,
+  (select count(*) from public.profiles) as profiles_total,
+  (select count(*) from public.orders_start) as orders_total,
+  (
+    select count(*)
+    from public.orders_start
+    where organization_id is not null
+  ) as orders_linked_to_organization;
+
 select
   org_type,
   status,
