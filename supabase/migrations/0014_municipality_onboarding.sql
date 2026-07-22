@@ -70,6 +70,8 @@ alter table public.municipality_organization_invites enable row level security;
 -- overuje v API podle skutecneho bearer tokenu a organization_members.
 revoke all on public.municipality_organization_invites
   from public, anon, authenticated;
+grant select, insert, update, delete
+  on public.municipality_organization_invites to service_role;
 
 create or replace function public.activate_customer_with_admin_v2(
   p_organization_id uuid,
@@ -219,6 +221,7 @@ create table if not exists public.api_rate_limits (
 
 alter table public.api_rate_limits enable row level security;
 revoke all on public.api_rate_limits from public, anon, authenticated;
+grant select, insert, update, delete on public.api_rate_limits to service_role;
 
 create or replace function public.consume_api_rate_limit(
   p_route text,
