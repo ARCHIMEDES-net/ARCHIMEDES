@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 import {
   cleanupNewRegistrant,
   RegistrantError,
@@ -62,6 +63,20 @@ export default async function handler(req, res) {
   let spolekId = null;
 
   try {
+    const rateLimitAllowed = await consumePublicRateLimit({
+      supabaseAdmin,
+      req,
+      route: "association-registration",
+      limit: 20,
+      windowSeconds: 60 * 60,
+    });
+    if (!rateLimitAllowed) {
+      res.setHeader("Retry-After", "3600");
+      return res.status(429).json({
+        error: "Bylo provedeno příliš mnoho pokusů o registraci. Zkuste to prosím později.",
+      });
+    }
+
     const {
       inviteToken,
       name,
