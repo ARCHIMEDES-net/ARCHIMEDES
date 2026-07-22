@@ -192,3 +192,77 @@ revoke all on function public.activate_customer_with_admin_v2(
 grant execute on function public.activate_customer_with_admin_v2(
   uuid, uuid, text, text, text, timestamptz, timestamptz, text, text, boolean
 ) to authenticated;
+
+
+-- Sdileny databazovy rate limit pro verejne serverove formulare.
+create table if not exists public.api_rate_limits (
+  route text not null,
+  key_hash text not null,
+  window_started_at timestamptz not null default now(),
+  request_count integer not null default 0 check (request_count >= 0),
+  primary key (route, key_hash)
+);
+
+alter table public.api_rate_limits enable row level security;
+revoke all on public.api_rate_limits from public, anon, authenticated;
+
+create or replace function public.consume_api_rate_limit(
+  p_route text,
+  p_key_hash text,
+  p_limit integer,
+  p_window_seconds integer
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  current_row public.api_rate_limits%rowtype;
+begin
+  if p_route is null or btrim(p_route) = ''
+     or p_key_hash is null or btrim(p_key_hash) = ''
+     or p_limit < 1
+     or p_window_seconds < 1 then
+    raise exception 'Neplatne parametry rate limitu.';
+  end if;
+
+  perform pg_advisory_xact_lock(
+    hashtextextended(p_route || ':' || p_key_hash, 0)
+  );
+
+  select * into current_row
+  from public.api_rate_limits
+  where route = p_route and key_hash = p_key_hash
+  for update;
+
+  if not found
+     or current_row.window_started_at
+       <= now() - make_interval(secs => p_window_seconds) then
+    insert into public.api_rate_limits (
+      route, key_hash, window_started_at, request_count
+    ) values (
+      p_route, p_key_hash, now(), 1
+    )
+    on conflict (route, key_hash) do update set
+      window_started_at = excluded.window_started_at,
+      request_count = 1;
+    return true;
+  end if;
+
+  if current_row.request_count >= p_limit then
+    return false;
+  end if;
+
+  update public.api_rate_limits
+  set request_count = request_count + 1
+  where route = p_route and key_hash = p_key_hash;
+
+  return true;
+end;
+$$;
+
+revoke all on function public.consume_api_rate_limit(text, text, integer, integer)
+  from public, anon, authenticated;
+grant execute on function public.consume_api_rate_limit(text, text, integer, integer)
+  to service_role;
