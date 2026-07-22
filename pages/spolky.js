@@ -126,12 +126,15 @@ export default function SpolkyPage() {
                 <span className="ml-2 text-base font-bold tracking-normal text-slate-500">/ měsíc</span>
               </div>
               <p className="mt-4 text-[15px] leading-relaxed text-slate-600">
-                Pokud je vaše obec už zapojená, spolek může program využít pod
-                jejím registračním číslem bez samostatného předplatného.
+                Pokud je vaše obec už zapojená, spolek může program využít bez
+                samostatného předplatného. Správce obce mu vytvoří jednorázovou
+                pozvánku.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button href="/zadost?type=spolek">Chci samostatné zapojení</Button>
-                <Button href="/registrace-spolku" variant="secondary">Máme kód obce</Button>
+                <span className="self-center text-sm leading-relaxed text-slate-500">
+                  Registrační odkaz obdrží kontaktní osoba přímo od obce.
+                </span>
               </div>
             </div>
           </div>
