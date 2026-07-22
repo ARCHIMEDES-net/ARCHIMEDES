@@ -1,0 +1,139 @@
+-- Hotfix aktivace zakaznika po produkcni migraci 0014.
+-- Pouze predefinuje funkci a nemeni zadna data ani tabulky.
+
+create or replace function public.activate_customer_with_admin_v2(
+  p_organization_id uuid,
+  p_user_id uuid,
+  p_email text,
+  p_full_name text,
+  p_license_plan text,
+  p_license_started_at timestamptz,
+  p_license_valid_until timestamptz,
+  p_contract_status text,
+  p_billing_status text,
+  p_classroom_eligibility_verified boolean default false,
+  p_must_set_password boolean default false
+)
+returns table (
+  organization_id uuid,
+  registration_number text,
+  license_plan text,
+  license_valid_until timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $
+#variable_conflict use_column
+declare
+  customer public.organizations%rowtype;
+  effective_start timestamptz;
+begin
+  if not public.is_admin() then
+    raise exception 'Tuto akci muze provest pouze spravce platformy.';
+  end if;
+
+  if p_license_plan not in ('paid_monthly', 'paid_annual', 'classroom_free_12m') then
+    raise exception 'Vyberte platny rezim licence.';
+  end if;
+
+  if p_contract_status <> 'accepted' then
+    raise exception 'Pred aktivaci musi byt potvrzena smlouva.';
+  end if;
+
+  if p_billing_status not in ('pending', 'paid', 'not_applicable') then
+    raise exception 'Neplatny stav fakturace.';
+  end if;
+
+  if p_license_plan = 'classroom_free_12m'
+     and p_billing_status <> 'not_applicable' then
+    raise exception 'Bezplatna licence musi mit fakturaci bez uhrady.';
+  end if;
+
+  if p_license_plan = 'classroom_free_12m'
+     and not p_classroom_eligibility_verified then
+    raise exception 'Pred bezplatnou aktivaci overte ucebnu ARCHIMEDES.';
+  end if;
+
+  if p_license_plan in ('paid_annual', 'classroom_free_12m')
+     and p_license_valid_until is null then
+    raise exception 'U rocni a bezplatne licence je povinne datum konce.';
+  end if;
+
+  effective_start := coalesce(p_license_started_at, now());
+
+  if p_license_valid_until is not null
+     and p_license_valid_until <= effective_start then
+    raise exception 'Datum konce licence musi byt pozdeji nez datum zacatku.';
+  end if;
+
+  select * into customer
+  from public.organizations
+  where id = p_organization_id
+    and org_type in ('municipality', 'obec', 'school', 'association', 'spolek')
+    and parent_organization_id is null
+  for update;
+
+  if not found then
+    raise exception 'Zakaznik nebyl nalezen.';
+  end if;
+
+  insert into public.profiles (
+    id, email, full_name, is_active, must_set_password, active_organization_id
+  ) values (
+    p_user_id, lower(trim(p_email)), trim(p_full_name), true,
+    p_must_set_password, customer.id
+  )
+  on conflict (id) do update set
+    email = excluded.email,
+    full_name = excluded.full_name,
+    is_active = true,
+    must_set_password = case
+      when p_must_set_password then true else profiles.must_set_password
+    end,
+    active_organization_id = customer.id;
+
+  insert into public.organization_members (
+    organization_id, user_id, role_in_org, status
+  ) values (
+    customer.id, p_user_id, 'organization_admin', 'active'
+  )
+  on conflict (user_id, organization_id) do update set
+    role_in_org = 'organization_admin',
+    status = 'active';
+
+  update public.organizations
+  set
+    license_status = 'active',
+    status = 'active',
+    license_plan = p_license_plan,
+    license_started_at = effective_start,
+    license_valid_until = p_license_valid_until,
+    contract_status = p_contract_status,
+    billing_status = p_billing_status,
+    activated_at = now(),
+    activated_by = auth.uid(),
+    classroom_eligibility_verified_at = case
+      when p_license_plan = 'classroom_free_12m' then now() else null
+    end,
+    classroom_eligibility_verified_by = case
+      when p_license_plan = 'classroom_free_12m' then auth.uid() else null
+    end
+  where id = customer.id;
+
+  return query
+  select
+    customer.id,
+    customer.registration_number,
+    p_license_plan,
+    p_license_valid_until;
+end;
+$$;
+
+revoke all on function public.activate_customer_with_admin_v2(
+  uuid, uuid, text, text, text, timestamptz, timestamptz, text, text, boolean, boolean
+) from public, anon;
+
+grant execute on function public.activate_customer_with_admin_v2(
+  uuid, uuid, text, text, text, timestamptz, timestamptz, text, text, boolean, boolean
+) to authenticated;
