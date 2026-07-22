@@ -39,8 +39,9 @@ export default function VopPage() {
       <h2>3. Objednávka a uzavření smlouvy</h2>
       <p>
         Odesláním online objednávky a potvrzením příslušných souhlasů dochází k
-        uzavření smlouvy o poskytování služby ARCHIMEDES Live v rozsahu zvoleného
-        balíčku.
+        uzavření smlouvy o poskytování služby ARCHIMEDES Live v rozsahu zvolené
+        varianty licence. Aktivace přístupu následuje po ověření objednávky
+        poskytovatelem.
       </p>
       <p>
         Zákazník odesláním objednávky potvrzuje, že je oprávněn jednat jménem
@@ -50,8 +51,15 @@ export default function VopPage() {
 
       <h2>4. Cena a fakturace</h2>
       <p>
-        Cena služby je uvedena v objednávce nebo na příslušné objednávkové
-        stránce. Na základě přijaté objednávky bude zákazníkovi vystavena faktura.
+        Standardní cena jednoho programu činí 1 990 Kč měsíčně. Zákazník může
+        zvolit měsíční fakturaci nebo úhradu dvanácti měsíců najednou. Konkrétní
+        období a splatnost jsou uvedeny v objednávce a na faktuře.
+      </p>
+      <p>
+        Obec s učebnou ARCHIMEDES může po ověření poskytovatelem získat prvních
+        dvanáct měsíců programu bez úhrady. Bezplatné období se automaticky
+        nemění na placenou licenci; další pokračování vyžaduje dohodu se
+        zákazníkem.
       </p>
       <p>
         Není-li uvedeno jinak, jsou ceny uváděny bez DPH a k ceně bude připočtena
@@ -61,7 +69,8 @@ export default function VopPage() {
       <h2>5. Rozsah oprávnění k užívání</h2>
       <p>
         Zákazník získává nevýhradní, nepřevoditelné a časově omezené oprávnění
-        užívat službu ARCHIMEDES Live v rozsahu sjednaného balíčku.
+        užívat službu ARCHIMEDES Live v rozsahu sjednaného programu a po dobu
+        aktivní licence.
       </p>
       <p>
         Zákazník není oprávněn bez souhlasu poskytovatele službu, záznamy,
