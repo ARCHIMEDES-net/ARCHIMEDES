@@ -1,0 +1,484 @@
+name: One-time Supabase 0014 migration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/temporary-supabase-0014.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: archimedes-live-supabase-migration
+  cancel-in-progress: false
+
+jobs:
+  backup-migrate-verify:
+    name: Encrypted backup, migration 0014 and verification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+      PG17_IMAGE: ghcr.io/supabase/postgres:17.6.1.143
+
+    steps:
+      - name: Validate protected configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_DB_URL"
+          test -n "$BACKUP_ENCRYPTION_PASSPHRASE"
+          if [[ ${#BACKUP_ENCRYPTION_PASSPHRASE} -lt 24 ]]; then
+            echo "Encryption passphrase must contain at least 24 characters." >&2
+            exit 1
+          fi
+
+      - name: Prepare fixed migration 0014
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > "$RUNNER_TEMP/0014.sql" <<'MIGRATION_SQL'
+          -- Dokonceni onboardingu obce: obchodni metadata licence a bezpecne
+          -- jednorazove pozvanky skol/spolku. Migrace je aditivni a nemeni
+          -- existujici ucty, clenstvi ani licence.
+          
+          alter table public.organizations
+            add column if not exists requested_license_plan text,
+            add column if not exists terms_accepted_at timestamptz,
+            add column if not exists terms_version text,
+            add column if not exists license_plan text,
+            add column if not exists license_started_at timestamptz,
+            add column if not exists contract_status text not null default 'pending',
+            add column if not exists billing_status text not null default 'pending',
+            add column if not exists activated_at timestamptz,
+            add column if not exists activated_by uuid references auth.users(id) on delete set null,
+            add column if not exists classroom_eligibility_verified_at timestamptz,
+            add column if not exists classroom_eligibility_verified_by uuid references auth.users(id) on delete set null;
+          
+          alter table public.organizations
+            drop constraint if exists organizations_requested_license_plan_allowed,
+            add constraint organizations_requested_license_plan_allowed
+              check (
+                requested_license_plan is null
+                or requested_license_plan in ('paid_monthly', 'paid_annual', 'classroom_free_12m')
+              );
+          
+          alter table public.organizations
+            drop constraint if exists organizations_license_plan_allowed,
+            add constraint organizations_license_plan_allowed
+              check (
+                license_plan is null
+                or license_plan in ('paid_monthly', 'paid_annual', 'classroom_free_12m')
+              );
+          
+          alter table public.organizations
+            drop constraint if exists organizations_contract_status_allowed,
+            add constraint organizations_contract_status_allowed
+              check (contract_status in ('pending', 'accepted', 'cancelled'));
+          
+          alter table public.organizations
+            drop constraint if exists organizations_billing_status_allowed,
+            add constraint organizations_billing_status_allowed
+              check (billing_status in ('pending', 'paid', 'not_applicable', 'overdue'));
+          
+          create table if not exists public.municipality_organization_invites (
+            id uuid primary key default gen_random_uuid(),
+            municipality_id uuid not null references public.organizations(id) on delete cascade,
+            organization_type text not null
+              check (organization_type in ('school', 'association')),
+            invited_email text,
+            token_hash text not null unique,
+            status text not null default 'pending'
+              check (status in ('pending', 'used', 'revoked', 'expired')),
+            expires_at timestamptz not null,
+            created_by uuid references auth.users(id) on delete set null,
+            created_at timestamptz not null default now(),
+            used_at timestamptz,
+            used_organization_id uuid references public.organizations(id) on delete set null
+          );
+          
+          create index if not exists municipality_organization_invites_municipality_idx
+            on public.municipality_organization_invites (municipality_id, created_at desc);
+          
+          create index if not exists municipality_organization_invites_pending_idx
+            on public.municipality_organization_invites (token_hash, expires_at)
+            where status = 'pending';
+          
+          alter table public.municipality_organization_invites enable row level security;
+          
+          -- Tabulku obsluhuji pouze serverova API se service_role. Spravce obce se
+          -- overuje v API podle skutecneho bearer tokenu a organization_members.
+          revoke all on public.municipality_organization_invites
+            from public, anon, authenticated;
+          grant select, insert, update, delete
+            on public.municipality_organization_invites to service_role;
+          
+          create or replace function public.activate_customer_with_admin_v2(
+            p_organization_id uuid,
+            p_user_id uuid,
+            p_email text,
+            p_full_name text,
+            p_license_plan text,
+            p_license_started_at timestamptz,
+            p_license_valid_until timestamptz,
+            p_contract_status text,
+            p_billing_status text,
+            p_classroom_eligibility_verified boolean default false,
+            p_must_set_password boolean default false
+          )
+          returns table (
+            organization_id uuid,
+            registration_number text,
+            license_plan text,
+            license_valid_until timestamptz
+          )
+          language plpgsql
+          security definer
+          set search_path = public
+          as $$
+          declare
+            customer public.organizations%rowtype;
+            effective_start timestamptz;
+          begin
+            if not public.is_admin() then
+              raise exception 'Tuto akci muze provest pouze spravce platformy.';
+            end if;
+          
+            if p_license_plan not in ('paid_monthly', 'paid_annual', 'classroom_free_12m') then
+              raise exception 'Vyberte platny rezim licence.';
+            end if;
+          
+            if p_contract_status <> 'accepted' then
+              raise exception 'Pred aktivaci musi byt potvrzena smlouva.';
+            end if;
+          
+            if p_billing_status not in ('pending', 'paid', 'not_applicable') then
+              raise exception 'Neplatny stav fakturace.';
+            end if;
+          
+            if p_license_plan = 'classroom_free_12m'
+               and p_billing_status <> 'not_applicable' then
+              raise exception 'Bezplatna licence musi mit fakturaci bez uhrady.';
+            end if;
+          
+            if p_license_plan = 'classroom_free_12m'
+               and not p_classroom_eligibility_verified then
+              raise exception 'Pred bezplatnou aktivaci overte ucebnu ARCHIMEDES.';
+            end if;
+          
+            if p_license_plan in ('paid_annual', 'classroom_free_12m')
+               and p_license_valid_until is null then
+              raise exception 'U rocni a bezplatne licence je povinne datum konce.';
+            end if;
+          
+            effective_start := coalesce(p_license_started_at, now());
+          
+            if p_license_valid_until is not null
+               and p_license_valid_until <= effective_start then
+              raise exception 'Datum konce licence musi byt pozdeji nez datum zacatku.';
+            end if;
+          
+            select * into customer
+            from public.organizations
+            where id = p_organization_id
+              and org_type in ('municipality', 'obec', 'school', 'association', 'spolek')
+              and parent_organization_id is null
+            for update;
+          
+            if not found then
+              raise exception 'Zakaznik nebyl nalezen.';
+            end if;
+          
+            insert into public.profiles (
+              id, email, full_name, is_active, must_set_password, active_organization_id
+            ) values (
+              p_user_id, lower(trim(p_email)), trim(p_full_name), true,
+              p_must_set_password, customer.id
+            )
+            on conflict (id) do update set
+              email = excluded.email,
+              full_name = excluded.full_name,
+              is_active = true,
+              must_set_password = case
+                when p_must_set_password then true else profiles.must_set_password
+              end,
+              active_organization_id = customer.id;
+          
+            insert into public.organization_members (
+              organization_id, user_id, role_in_org, status
+            ) values (
+              customer.id, p_user_id, 'organization_admin', 'active'
+            )
+            on conflict (user_id, organization_id) do update set
+              role_in_org = 'organization_admin',
+              status = 'active';
+          
+            update public.organizations
+            set
+              license_status = 'active',
+              status = 'active',
+              license_plan = p_license_plan,
+              license_started_at = effective_start,
+              license_valid_until = p_license_valid_until,
+              contract_status = p_contract_status,
+              billing_status = p_billing_status,
+              activated_at = now(),
+              activated_by = auth.uid(),
+              classroom_eligibility_verified_at = case
+                when p_license_plan = 'classroom_free_12m' then now() else null
+              end,
+              classroom_eligibility_verified_by = case
+                when p_license_plan = 'classroom_free_12m' then auth.uid() else null
+              end
+            where id = customer.id;
+          
+            return query
+            select
+              customer.id,
+              customer.registration_number,
+              p_license_plan,
+              p_license_valid_until;
+          end;
+          $$;
+          
+          revoke all on function public.activate_customer_with_admin_v2(
+            uuid, uuid, text, text, text, timestamptz, timestamptz, text, text, boolean, boolean
+          ) from public, anon;
+          
+          grant execute on function public.activate_customer_with_admin_v2(
+            uuid, uuid, text, text, text, timestamptz, timestamptz, text, text, boolean, boolean
+          ) to authenticated;
+          
+          
+          -- Sdileny databazovy rate limit pro verejne serverove formulare.
+          create table if not exists public.api_rate_limits (
+            route text not null,
+            key_hash text not null,
+            window_started_at timestamptz not null default now(),
+            request_count integer not null default 0 check (request_count >= 0),
+            primary key (route, key_hash)
+          );
+          
+          alter table public.api_rate_limits enable row level security;
+          revoke all on public.api_rate_limits from public, anon, authenticated;
+          grant select, insert, update, delete on public.api_rate_limits to service_role;
+          
+          create or replace function public.consume_api_rate_limit(
+            p_route text,
+            p_key_hash text,
+            p_limit integer,
+            p_window_seconds integer
+          )
+          returns boolean
+          language plpgsql
+          security definer
+          set search_path = public
+          as $$
+          declare
+            current_row public.api_rate_limits%rowtype;
+          begin
+            if p_route is null or btrim(p_route) = ''
+               or p_key_hash is null or btrim(p_key_hash) = ''
+               or p_limit < 1
+               or p_window_seconds < 1 then
+              raise exception 'Neplatne parametry rate limitu.';
+            end if;
+          
+            perform pg_advisory_xact_lock(
+              hashtextextended(p_route || ':' || p_key_hash, 0)
+            );
+          
+            select * into current_row
+            from public.api_rate_limits
+            where route = p_route and key_hash = p_key_hash
+            for update;
+          
+            if not found
+               or current_row.window_started_at
+                 <= now() - make_interval(secs => p_window_seconds) then
+              insert into public.api_rate_limits (
+                route, key_hash, window_started_at, request_count
+              ) values (
+                p_route, p_key_hash, now(), 1
+              )
+              on conflict (route, key_hash) do update set
+                window_started_at = excluded.window_started_at,
+                request_count = 1;
+              return true;
+            end if;
+          
+            if current_row.request_count >= p_limit then
+              return false;
+            end if;
+          
+            update public.api_rate_limits
+            set request_count = request_count + 1
+            where route = p_route and key_hash = p_key_hash;
+          
+            return true;
+          end;
+          $$;
+          
+          revoke all on function public.consume_api_rate_limit(text, text, integer, integer)
+            from public, anon, authenticated;
+          grant execute on function public.consume_api_rate_limit(text, text, integer, integer)
+            to service_role;
+          
+          MIGRATION_SQL
+          test -s "$RUNNER_TEMP/0014.sql"
+          echo "migration_sha256=$(sha256sum "$RUNNER_TEMP/0014.sql" | cut -d' ' -f1)" >> "$GITHUB_ENV"
+
+      - name: Capture protected baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          baseline="$(docker run --rm \
+            -e PGDATABASE="$SUPABASE_DB_URL" \
+            --entrypoint psql "$PG17_IMAGE" \
+            --no-psqlrc --tuples-only --no-align --field-separator='|' \
+            --command="select (select count(*) from public.organizations), (select count(*) from public.organization_members), (select count(*) from public.profiles), (select count(*) from public.orders_start);")"
+          baseline="$(printf '%s' "$baseline" | tr -d '[:space:]')"
+          if [[ "$baseline" != "11|53|84|10" ]]; then
+            echo "Baseline changed since approved preflight: $baseline" >&2
+            exit 1
+          fi
+          echo "Approved baseline confirmed: organizations=11 memberships=53 profiles=84 orders=10"
+
+      - name: Create full encrypted production backup
+        id: backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          dump="$RUNNER_TEMP/archimedes-production-before-0014-$timestamp.dump"
+          encrypted="$dump.enc"
+
+          docker run --rm \
+            -e PGDATABASE="$SUPABASE_DB_URL" \
+            --user "$(id -u):$(id -g)" \
+            --volume "$RUNNER_TEMP:/backup" \
+            --entrypoint pg_dump "$PG17_IMAGE" \
+            --format=custom --no-owner --no-privileges \
+            --file "/backup/$(basename "$dump")"
+
+          test -s "$dump"
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 600000 \
+            -in "$dump" -out "$encrypted" \
+            -pass env:BACKUP_ENCRYPTION_PASSPHRASE
+          sha256sum "$encrypted" > "$encrypted.sha256"
+
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 \
+            -in "$encrypted" -out "$RUNNER_TEMP/verified.dump" \
+            -pass env:BACKUP_ENCRYPTION_PASSPHRASE
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            --volume "$RUNNER_TEMP:/backup:ro" \
+            --entrypoint pg_restore "$PG17_IMAGE" \
+            --list /backup/verified.dump > /dev/null
+
+          rm -f "$dump" "$RUNNER_TEMP/verified.dump"
+          echo "encrypted=$encrypted" >> "$GITHUB_OUTPUT"
+          echo "checksum=$encrypted.sha256" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=supabase-pre-0014-$timestamp" >> "$GITHUB_OUTPUT"
+          echo "Encrypted backup created and verified."
+
+      - name: Upload encrypted emergency backup for 14 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.backup.outputs.artifact_name }}
+          path: |
+            ${{ steps.backup.outputs.encrypted }}
+            ${{ steps.backup.outputs.checksum }}
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Apply migration 0014 in one transaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -e PGDATABASE="$SUPABASE_DB_URL" \
+            --volume "$RUNNER_TEMP:/work:ro" \
+            --entrypoint psql "$PG17_IMAGE" \
+            --no-psqlrc --set=ON_ERROR_STOP=1 --single-transaction \
+            --file=/work/0014.sql
+          echo "Migration 0014 transaction committed."
+
+      - name: Verify migration and unchanged protected counts
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -e PGDATABASE="$SUPABASE_DB_URL" \
+            --entrypoint psql "$PG17_IMAGE" \
+            --no-psqlrc --set=ON_ERROR_STOP=1 <<'SQL'
+          DO $verify$
+          DECLARE
+            current_counts text;
+          BEGIN
+            SELECT concat_ws('|',
+              (SELECT count(*) FROM public.organizations),
+              (SELECT count(*) FROM public.organization_members),
+              (SELECT count(*) FROM public.profiles),
+              (SELECT count(*) FROM public.orders_start)
+            ) INTO current_counts;
+
+            IF current_counts <> '11|53|84|10' THEN
+              RAISE EXCEPTION 'Protected counts changed: %', current_counts;
+            END IF;
+
+            IF NOT EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_schema='public' AND table_name='organizations'
+                AND column_name='license_plan'
+            ) THEN
+              RAISE EXCEPTION 'license_plan column missing';
+            END IF;
+
+            IF to_regclass('public.municipality_organization_invites') IS NULL
+               OR to_regclass('public.api_rate_limits') IS NULL THEN
+              RAISE EXCEPTION 'Required 0014 table missing';
+            END IF;
+
+            IF to_regprocedure(
+              'public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)'
+            ) IS NULL
+               OR to_regprocedure(
+              'public.consume_api_rate_limit(text,text,integer,integer)'
+            ) IS NULL THEN
+              RAISE EXCEPTION 'Required 0014 function missing';
+            END IF;
+          END
+          $verify$;
+
+          SELECT
+            (SELECT count(*) FROM public.organizations) AS organizations,
+            (SELECT count(*) FROM public.organization_members) AS memberships,
+            (SELECT count(*) FROM public.profiles) AS profiles,
+            (SELECT count(*) FROM public.orders_start) AS orders,
+            to_regclass('public.municipality_organization_invites') IS NOT NULL AS invites_ready,
+            to_regclass('public.api_rate_limits') IS NOT NULL AS rate_limit_ready,
+            to_regprocedure(
+              'public.activate_customer_with_admin_v2(uuid,uuid,text,text,text,timestamptz,timestamptz,text,text,boolean,boolean)'
+            ) IS NOT NULL AS activation_v2_ready,
+            to_regprocedure(
+              'public.consume_api_rate_limit(text,text,integer,integer)'
+            ) IS NOT NULL AS rate_limit_function_ready;
+          SQL
+
+      - name: Publish run summary
+        shell: bash
+        run: |
+          {
+            echo "## Supabase migration 0014"
+            echo
+            echo "- Encrypted pre-migration backup: verified and retained for 14 days"
+            echo "- Migration SHA-256: `$migration_sha256`"
+            echo "- Transaction: committed"
+            echo "- Protected counts: 11 organizations, 53 memberships, 84 profiles, 10 orders"
+            echo "- Required columns, tables and functions: verified"
+          } >> "$GITHUB_STEP_SUMMARY"
