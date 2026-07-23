@@ -14,6 +14,8 @@ import { Alert } from "../components/ui/alert";
 
 const EMPTY_FORM = {
   type: "",
+  licensePlan: "paid_monthly",
+  termsAccepted: false,
   name: "",
   role: "",
   email: "",
@@ -68,7 +70,16 @@ export default function ZadostPage() {
   }, [router.isReady, router.query.type]);
 
   function updateField(event) {
-    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+    const { name, value } = event.target;
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === "type" &&
+      value !== "obec" &&
+      current.licensePlan === "classroom_free_12m"
+        ? { licensePlan: "paid_monthly" }
+        : {}),
+    }));
   }
 
   async function submitForm(event) {
@@ -80,6 +91,8 @@ export default function ZadostPage() {
     try {
       const payload = {
         type: form.type,
+        licensePlan: form.licensePlan,
+        termsAccepted: form.termsAccepted,
         name: form.name.trim(),
         role: form.role.trim(),
         email: form.email.trim(),
@@ -93,6 +106,15 @@ export default function ZadostPage() {
       };
 
       if (!CUSTOMER_TYPES[payload.type]) throw new Error("Vyberte prosím, koho chcete zapojit.");
+      if (!["paid_monthly", "paid_annual", "classroom_free_12m"].includes(payload.licensePlan)) {
+        throw new Error("Vyberte prosím variantu licence.");
+      }
+      if (payload.licensePlan === "classroom_free_12m" && payload.type !== "obec") {
+        throw new Error("Bezplatný první rok je určen pouze obcím s učebnou ARCHIMEDES.");
+      }
+      if (!payload.termsAccepted) {
+        throw new Error("Pro odeslání objednávky potvrďte VOP a zpracování údajů.");
+      }
       if (!payload.name) throw new Error("Vyplňte prosím jméno a příjmení.");
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
         throw new Error("Zadejte prosím platný e-mail.");
@@ -136,7 +158,7 @@ export default function ZadostPage() {
       </Head>
       <main className="mx-auto max-w-[760px] px-4 py-10">
         <Card className="p-7">
-          <Badge variant="outline">{submitted ? "Odesláno" : "Žádost o program"}</Badge>
+          <Badge variant="outline">{submitted ? "Odesláno" : "Objednávka programu"}</Badge>
 
           {!submitted ? (
             <>
@@ -144,8 +166,8 @@ export default function ZadostPage() {
                 Chci zapojit obec, školu nebo spolek
               </h1>
               <p className="mb-5 mt-3 text-[17px] leading-relaxed text-muted">
-                Jeden společný program stojí 1 990 Kč měsíčně. Žádost ověříme
-                a ozveme se vám s dalším postupem zapojení.
+                Jeden společný program stojí 1 990 Kč měsíčně. Objednávku
+                ověříme a před aktivací potvrdíme variantu, platnost a fakturaci.
               </p>
 
               {error ? <Alert variant="error" className="mb-4">Chyba: {error}</Alert> : null}
@@ -169,6 +191,19 @@ export default function ZadostPage() {
                     <option value="obec">Obec</option>
                     <option value="skola">Školu</option>
                     <option value="spolek">Spolek</option>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="licensePlan">Varianta licence*</Label>
+                  <Select id="licensePlan" name="licensePlan" required value={form.licensePlan} onChange={updateField}>
+                    <option value="paid_monthly">1 990 Kč měsíčně</option>
+                    <option value="paid_annual">12 měsíců placených najednou</option>
+                    {form.type === "obec" ? (
+                      <option value="classroom_free_12m">
+                        12 měsíců zdarma pro obec s učebnou ARCHIMEDES
+                      </option>
+                    ) : null}
                   </Select>
                 </div>
 
@@ -241,8 +276,33 @@ export default function ZadostPage() {
                   <Textarea id="message" name="message" rows={5} value={form.message} onChange={updateField} placeholder="Můžete doplnit cokoli, co nám pomůže žádost zpracovat." />
                 </div>
 
+                <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <input
+                    type="checkbox"
+                    name="termsAccepted"
+                    checked={form.termsAccepted}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        termsAccepted: event.target.checked,
+                      }))
+                    }
+                    className="mt-1 h-4 w-4"
+                  />
+                  <span className="text-sm leading-relaxed text-slate-700">
+                    Souhlasím s{" "}
+                    <Link href="/vop" className="font-bold underline underline-offset-2">
+                      všeobecnými obchodními podmínkami
+                    </Link>{" "}
+                    a potvrzuji seznámení se{" "}
+                    <Link href="/ochrana-osobnich-udaju" className="font-bold underline underline-offset-2">
+                      zásadami ochrany osobních údajů
+                    </Link>.
+                  </span>
+                </label>
+
                 <div className="mt-1 flex flex-wrap gap-2.5">
-                  <Button type="submit" disabled={saving} className="w-full sm:w-auto">{saving ? "Odesílám..." : "Odeslat žádost o program"}</Button>
+                  <Button type="submit" disabled={saving} className="w-full sm:w-auto">{saving ? "Odesílám..." : "Odeslat objednávku programu"}</Button>
                   <Button href="/" variant="secondary" className="w-full sm:w-auto">Zpět na hlavní stránku</Button>
                 </div>
 
@@ -253,14 +313,13 @@ export default function ZadostPage() {
               </form>
 
               <p className="mt-5 text-sm leading-relaxed text-slate-500">
-                Pokud už má vaše obec ARCHIMEDES Live aktivovaný, můžete pokračovat přímo k registraci{" "}
-                <Link href="/registrace-spolku" className="font-bold text-navy-900">spolku</Link>{" nebo "}
-                <Link href="/registrace-skoly" className="font-bold text-navy-900">školy</Link>.
+                Pokud už má vaše obec ARCHIMEDES Live aktivovaný, požádejte
+                správce obce o jednorázovou pozvánku školy nebo spolku.
               </p>
             </>
           ) : (
             <>
-              <h1 className="mt-4 text-[34px] font-[950] leading-[1.12] tracking-[-0.03em] text-navy-900">Žádost jsme přijali</h1>
+              <h1 className="mt-4 text-[34px] font-[950] leading-[1.12] tracking-[-0.03em] text-navy-900">Objednávku jsme přijali</h1>
               <Alert variant="success" className="mb-6 mt-5 whitespace-pre-line text-base">{message}</Alert>
               <div className="mb-7 grid gap-3 text-base leading-relaxed text-muted">
                 <div><strong className="text-navy-900">Co bude následovat:</strong></div>

@@ -194,6 +194,7 @@ export default function PortalHeader({ title = "" }) {
     if (key === "komunita") return path.startsWith("/portal/komunita");
     if (key === "souteze") return path.startsWith("/portal/souteze");
     if (key === "profil") return path.startsWith("/portal/muj-profil");
+    if (key === "organizace-obce") return path.startsWith("/portal/organizace-obce");
     if (key === "uzivatele") return path.startsWith("/portal/uzivatele");
     if (key === "sprava-vysilani") {
       return path.startsWith("/portal/admin-udalosti") || path.startsWith("/portal/admin/udalosti");
@@ -291,6 +292,11 @@ export default function PortalHeader({ title = "" }) {
       </div>
     ) : null;
 
+  const activeOrganization = organizations.find(
+    (organization) => organization.id === activeOrganizationId
+  );
+  const activeOrganizationType = activeOrganization?.org_type || "";
+
   const mainLinks = [
     { key: "portal", href: "/portal", label: "Portál" },
     { key: "program", href: "/portal/kalendar", label: "Program" },
@@ -315,7 +321,16 @@ export default function PortalHeader({ title = "" }) {
           label: "Správa vysílání",
         }
       : null,
-    !loadingRole && isOrgAdmin
+    !loadingRole &&
+    isOrgAdmin &&
+    ["municipality", "obec"].includes(activeOrganizationType)
+      ? {
+          key: "organizace-obce",
+          href: "/portal/organizace-obce",
+          label: "Organizace obce",
+        }
+      : null,
+    !loadingRole && isOrgAdmin && activeOrganizationType === "school"
       ? {
           key: "uzivatele",
           href: "/portal/uzivatele",

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import Head from "next/head";
 import { supabase } from "../lib/supabaseClient";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
@@ -29,8 +31,11 @@ const ACTIVITY_OPTIONS = [
 ];
 
 export default function RegistraceSpolkuPage() {
+  const router = useRouter();
+  const inviteToken =
+    typeof router.query.invite === "string" ? router.query.invite : "";
+
   const [form, setForm] = useState({
-    registrationNumber: "",
     name: "",
     address: "",
     legalIdentifier: "",
@@ -78,7 +83,10 @@ export default function RegistraceSpolkuPage() {
     setSubmitted(false);
 
     try {
-      const trimmedRegistrationNumber = form.registrationNumber.trim();
+      if (!inviteToken) {
+        throw new Error("Registraci musí zahájit obec jednorázovou pozvánkou.");
+      }
+
       const trimmedName = form.name.trim();
       const trimmedAddress = form.address.trim();
       const trimmedLegalIdentifier = form.legalIdentifier.replace(/\s+/g, "").trim();
@@ -86,10 +94,6 @@ export default function RegistraceSpolkuPage() {
       const trimmedEmail = form.email.trim();
       const trimmedPhone = form.phone.trim();
       const trimmedCustomText = form.customText.trim();
-
-      if (!trimmedRegistrationNumber) {
-        throw new Error("Vyplňte prosím registrační číslo obce.");
-      }
 
       if (!trimmedName) {
         throw new Error("Vyplňte prosím název spolku.");
@@ -133,7 +137,7 @@ export default function RegistraceSpolkuPage() {
             : {}),
         },
         body: JSON.stringify({
-          registrationNumber: trimmedRegistrationNumber,
+          inviteToken,
           name: trimmedName,
           address: trimmedAddress,
           legalIdentifier: trimmedLegalIdentifier,
@@ -167,6 +171,9 @@ export default function RegistraceSpolkuPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <Head>
+        <meta name="referrer" content="no-referrer" />
+      </Head>
       <main className="mx-auto max-w-[760px] px-4 py-10">
         <Card className="p-7">
           <Badge variant="outline">{submitted ? "Registrace přijata" : "Registrace spolku"}</Badge>
@@ -178,9 +185,17 @@ export default function RegistraceSpolkuPage() {
               </h1>
 
               <p className="mb-5 mt-3 text-[17px] leading-relaxed text-muted">
-                Vyplňte registrační číslo vaší obce (obdržíte ho od obecního
-                úřadu) a údaje o spolku.
+                Otevíráte bezpečnou jednorázovou pozvánku vytvořenou
+                správcem obce. Doplňte údaje o spolku a kontaktní osobě.
               </p>
+
+              {router.isReady && !inviteToken ? (
+                <Alert variant="neutral" className="mb-4">
+                  Spolek může do programu připojit pouze obec s aktivním
+                  ARCHIMEDES Live. Požádejte obecní úřad o jednorázový
+                  registrační odkaz.
+                </Alert>
+              ) : null}
 
               {error ? (
                 <Alert variant="error" className="mb-4">
@@ -195,22 +210,6 @@ export default function RegistraceSpolkuPage() {
               ) : null}
 
               <form onSubmit={submitForm} className="grid gap-4">
-                <div>
-                  <Label htmlFor="registrationNumber">Registrační číslo obce*</Label>
-                  <Input
-                    id="registrationNumber"
-                    name="registrationNumber"
-                    required
-                    value={form.registrationNumber}
-                    onChange={updateField}
-                    placeholder="Např. 4823"
-                  />
-                  <p className="mt-1.5 text-[13px] leading-relaxed text-slate-500">
-                    Registrační číslo vám sdělí obecní úřad, který má
-                    ARCHIMEDES Live aktivovaný.
-                  </p>
-                </div>
-
                 <div>
                   <Label htmlFor="name">Název spolku*</Label>
                   <Input
@@ -269,14 +268,19 @@ export default function RegistraceSpolkuPage() {
                 ) : null}
 
                 <div className="mt-1 flex flex-wrap gap-2.5">
-                  <Button type="submit" disabled={saving}>
+                  <Button type="submit" disabled={saving || !inviteToken}>
                     {saving ? "Odesílám..." : "Registrovat spolek"}
                   </Button>
                   <Button href="/" variant="secondary">
                     Zpět na hlavní stránku
                   </Button>
                   {!session ? (
-                    <Button href="/login?next=/registrace-spolku" variant="secondary">
+                    <Button
+                      href={`/login?next=${encodeURIComponent(
+                        `/registrace-spolku?invite=${inviteToken}`
+                      )}`}
+                      variant="secondary"
+                    >
                       Už mám účet
                     </Button>
                   ) : null}

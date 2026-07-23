@@ -1,19 +1,23 @@
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 import {
   cleanupNewRegistrant,
   RegistrantError,
   resolveOrganizationRegistrant,
 } from "../../lib/server/organizationRegistrant";
+import {
+  consumeMunicipalityInvite,
+  MunicipalityInviteError,
+  resolveMunicipalityInvite,
+} from "../../lib/server/municipalityOrganizationInvite";
+import { getServerSiteUrl } from "../../lib/server/siteUrl";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   { auth: { persistSession: false } }
 );
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
@@ -28,7 +32,13 @@ function escapeHtml(value = "") {
     .replace(/'/g, "&#039;");
 }
 
-async function sendRegistrationEmail({ email, fullName, schoolName, setupUrl }) {
+async function sendRegistrationEmail({
+  email,
+  fullName,
+  schoolName,
+  setupUrl,
+  siteUrl,
+}) {
   const port = Number(process.env.SMTP_PORT);
   if (
     !process.env.SMTP_HOST ||
@@ -53,7 +63,7 @@ async function sendRegistrationEmail({ email, fullName, schoolName, setupUrl }) 
     subject: "ARCHIMEDES Live – škola byla zaregistrována",
     text: `Dobrý den ${fullName},\n\nškola ${schoolName} byla zaregistrována do ARCHIMEDES Live.\n${
       setupUrl ? `\nNastavte si heslo: ${setupUrl}\n` : ""
-    }\nPřihlášení: ${SITE_URL}/login\n`,
+    }\nPřihlášení: ${siteUrl}/login\n`,
     html: `<div style="font-family:Segoe UI,Arial,sans-serif;color:#0f172a;line-height:1.6">
       <p>Dobrý den ${escapeHtml(fullName)},</p>
       <p>škola <strong>${escapeHtml(schoolName)}</strong> byla zaregistrována do ARCHIMEDES Live.</p>
@@ -62,7 +72,7 @@ async function sendRegistrationEmail({ email, fullName, schoolName, setupUrl }) 
           ? `<p><a href="${escapeHtml(setupUrl)}" style="display:inline-block;padding:12px 18px;border-radius:10px;background:#1d4ed8;color:white;text-decoration:none;font-weight:700">Nastavit heslo</a></p>`
           : ""
       }
-      <p><a href="${escapeHtml(SITE_URL)}/login">Přihlášení do portálu</a></p>
+      <p><a href="${escapeHtml(siteUrl)}/login">Přihlášení do portálu</a></p>
     </div>`,
   });
 }
@@ -77,8 +87,22 @@ export default async function handler(req, res) {
   let schoolId = null;
 
   try {
-    const { registrationNumber, name, address, legalIdentifier, contactName, email, phone } = req.body || {};
-    const cleanRegistrationNumber = String(registrationNumber || "").trim();
+    const siteUrl = getServerSiteUrl();
+    const rateLimitAllowed = await consumePublicRateLimit({
+      supabaseAdmin,
+      req,
+      route: "school-registration",
+      limit: 20,
+      windowSeconds: 60 * 60,
+    });
+    if (!rateLimitAllowed) {
+      res.setHeader("Retry-After", "3600");
+      return res.status(429).json({
+        error: "Bylo provedeno příliš mnoho pokusů o registraci. Zkuste to prosím později.",
+      });
+    }
+
+    const { inviteToken, name, address, legalIdentifier, contactName, email, phone } = req.body || {};
     const cleanName = String(name || "").trim();
     const cleanAddress = String(address || "").trim();
     const cleanLegalIdentifier = String(legalIdentifier || "").replace(/\s+/g, "").trim();
@@ -86,9 +110,6 @@ export default async function handler(req, res) {
     const cleanEmail = String(email || "").trim().toLowerCase();
     const cleanPhone = String(phone || "").trim();
 
-    if (!cleanRegistrationNumber) {
-      return res.status(400).json({ error: "Vyplňte registrační číslo obce." });
-    }
     if (!cleanName) return res.status(400).json({ error: "Vyplňte název školy." });
     if (!cleanAddress) return res.status(400).json({ error: "Vyplňte adresu školy." });
     if (cleanLegalIdentifier && !/^\d{8}$/.test(cleanLegalIdentifier)) {
@@ -104,23 +125,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Vyplňte platný telefon." });
     }
 
-    const { data: municipality, error: municipalityError } = await supabaseAdmin
-      .from("organizations")
-      .select("id, status, license_status")
-      .eq("registration_number", cleanRegistrationNumber)
-      .in("org_type", ["municipality", "obec"])
-      .maybeSingle();
-
-    if (municipalityError) throw municipalityError;
-    if (
-      !municipality ||
-      municipality.status !== "active" ||
-      municipality.license_status !== "active"
-    ) {
-      return res.status(404).json({
-        error: "Obec s tímto registračním číslem neexistuje nebo není aktivní.",
-      });
-    }
+    const { invite, municipality } = await resolveMunicipalityInvite({
+      supabaseAdmin,
+      rawToken: inviteToken,
+      organizationType: "school",
+      email: cleanEmail,
+    });
 
     const { data: duplicateUnderMunicipality, error: duplicateUnderMunicipalityError } =
       await supabaseAdmin
@@ -156,7 +166,7 @@ export default async function handler(req, res) {
       req,
       email: cleanEmail,
       fullName: cleanContactName,
-      redirectTo: `${SITE_URL}/nastavit-heslo`,
+      redirectTo: `${siteUrl}/nastavit-heslo`,
     });
 
     const { data: school, error: schoolError } = await supabaseAdmin
@@ -206,6 +216,12 @@ export default async function handler(req, res) {
 
     if (profileError) throw profileError;
 
+    await consumeMunicipalityInvite({
+      supabaseAdmin,
+      inviteId: invite.id,
+      organizationId: school.id,
+    });
+
     let emailSent = false;
     try {
       await sendRegistrationEmail({
@@ -213,6 +229,7 @@ export default async function handler(req, res) {
         fullName: registrant.fullName,
         schoolName: school.name,
         setupUrl: registrant.setupUrl,
+        siteUrl,
       });
       emailSent = true;
     } catch (emailError) {
@@ -232,12 +249,14 @@ export default async function handler(req, res) {
     await cleanupNewRegistrant(supabaseAdmin, registrant);
 
     console.error("registrace-skoly error:", error);
-    const status = error instanceof RegistrantError ? error.status : 500;
+    const expectedError =
+      error instanceof RegistrantError ||
+      error instanceof MunicipalityInviteError;
+    const status = expectedError ? error.status : 500;
     return res.status(status).json({
-      error:
-        error instanceof RegistrantError
-          ? error.message
-          : "Registraci školy se nepodařilo dokončit.",
+      error: expectedError
+        ? error.message
+        : "Registraci školy se nepodařilo dokončit.",
     });
   }
 }

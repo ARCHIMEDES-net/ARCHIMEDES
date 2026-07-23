@@ -1,5 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
+import nodemailer from "nodemailer";
 import { requirePlatformAdmin } from "../../../lib/server/platformAdminApi";
+import { getServerSiteUrl } from "../../../lib/server/siteUrl";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -7,8 +9,11 @@ const supabaseAdmin = createClient(
   { auth: { persistSession: false } }
 );
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
+const LICENSE_LABELS = {
+  paid_monthly: "Měsíční licence",
+  paid_annual: "Roční licence",
+  classroom_free_12m: "12 měsíců zdarma pro obec s učebnou ARCHIMEDES",
+};
 
 function createAuthenticatedClient(token) {
   return createClient(
@@ -19,6 +24,85 @@ function createAuthenticatedClient(token) {
       global: { headers: { Authorization: `Bearer ${token}` } },
     }
   );
+}
+
+function parseDate(value, required = false, endOfDay = false) {
+  const clean = String(value || "").trim();
+  if (!clean) {
+    if (required) throw new Error("Vyplňte datum konce licence.");
+    return null;
+  }
+
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(clean);
+  const date = new Date(
+    dateOnly
+      ? `${clean}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}Z`
+      : clean
+  );
+  if (Number.isNaN(date.getTime())) throw new Error("Datum licence není platné.");
+  return date.toISOString();
+}
+
+async function sendOnboardingEmail({
+  email,
+  fullName,
+  organizationName,
+  organizationType,
+  registrationNumber,
+  licensePlan,
+  licenseValidUntil,
+  siteUrl,
+}) {
+  const port = Number(process.env.SMTP_PORT);
+  if (
+    !process.env.SMTP_HOST ||
+    !port ||
+    !process.env.SMTP_USER ||
+    !process.env.SMTP_PASS ||
+    !process.env.MAIL_FROM
+  ) {
+    throw new Error("SMTP config missing");
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port,
+    secure: port === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+
+  const validUntilText = licenseValidUntil
+    ? new Date(licenseValidUntil).toLocaleDateString("cs-CZ")
+    : "do ukončení měsíční licence";
+  const isMunicipality = ["municipality", "obec"].includes(organizationType);
+  const nextStepUrl = isMunicipality
+    ? `${siteUrl}/portal/organizace-obce`
+    : organizationType === "school"
+      ? `${siteUrl}/portal/uzivatele`
+      : `${siteUrl}/portal/muj-profil`;
+  const registrationLine = isMunicipality
+    ? `Registrační číslo obce: ${registrationNumber || "bude doplněno v portálu"}\n`
+    : "";
+  const organizationInstruction = isMunicipality
+    ? "\nRegistrační číslo identifikuje program obce. Pro bezpečné zapojení školy nebo spolku vytvořte v portálu jednorázovou pozvánku.\n"
+    : "";
+
+  await transporter.sendMail({
+    from: process.env.MAIL_FROM,
+    to: email,
+    subject: "ARCHIMEDES Live – přístup byl aktivován",
+    text: `Dobrý den ${fullName},
+
+přístup pro ${organizationName} byl aktivován.
+
+Varianta: ${LICENSE_LABELS[licensePlan] || licensePlan}
+Platnost: ${validUntilText}
+${registrationLine}
+Přihlášení: ${siteUrl}/login
+Další nastavení: ${nextStepUrl}
+${organizationInstruction}
+Tým ARCHIMEDES Live`,
+  });
 }
 
 export default async function handler(req, res) {
@@ -33,10 +117,50 @@ export default async function handler(req, res) {
   try {
     const admin = await requirePlatformAdmin(req, res, supabaseAdmin);
     if (!admin) return;
+    const siteUrl = getServerSiteUrl();
 
     const organizationId = String(req.body?.organizationId || "").trim();
+    const licensePlan = String(req.body?.licensePlan || "").trim();
+    const contractStatus = String(req.body?.contractStatus || "").trim();
+    const billingStatus = String(req.body?.billingStatus || "").trim();
+    const classroomEligibilityVerified =
+      req.body?.classroomEligibilityVerified === true;
+
     if (!organizationId) {
       return res.status(400).json({ error: "Chybí ID organizace." });
+    }
+    if (!LICENSE_LABELS[licensePlan]) {
+      return res.status(400).json({ error: "Vyberte variantu licence." });
+    }
+    if (contractStatus !== "accepted") {
+      return res.status(400).json({ error: "Před aktivací potvrďte uzavření smlouvy." });
+    }
+    if (!["pending", "paid", "not_applicable"].includes(billingStatus)) {
+      return res.status(400).json({ error: "Vyberte stav fakturace." });
+    }
+    if (licensePlan === "classroom_free_12m" && billingStatus !== "not_applicable") {
+      return res.status(400).json({
+        error: "Bezplatná licence musí mít stav fakturace „Bez úhrady“.",
+      });
+    }
+    if (licensePlan === "classroom_free_12m" && !classroomEligibilityVerified) {
+      return res.status(400).json({
+        error: "Před bezplatnou aktivací potvrďte ověření učebny ARCHIMEDES.",
+      });
+    }
+
+    const licenseStartedAt = parseDate(req.body?.licenseStartedAt) || new Date().toISOString();
+    const needsEndDate = ["paid_annual", "classroom_free_12m"].includes(licensePlan);
+    const licenseValidUntil = parseDate(
+      req.body?.licenseValidUntil,
+      needsEndDate,
+      true
+    );
+
+    if (licenseValidUntil && new Date(licenseValidUntil) <= new Date(licenseStartedAt)) {
+      return res.status(400).json({
+        error: "Datum konce licence musí být později než datum začátku.",
+      });
     }
 
     const { data: customer, error: customerError } = await supabaseAdmin
@@ -79,7 +203,7 @@ export default async function handler(req, res) {
     if (!userId) {
       const { data: invited, error: inviteError } =
         await supabaseAdmin.auth.admin.inviteUserByEmail(contactEmail, {
-          redirectTo: `${SITE_URL}/nastavit-heslo`,
+          redirectTo: `${siteUrl}/nastavit-heslo`,
           data: { full_name: contactName },
         });
 
@@ -96,12 +220,18 @@ export default async function handler(req, res) {
 
     const authenticatedClient = createAuthenticatedClient(token);
     const { data: activationRows, error: activationError } = await authenticatedClient.rpc(
-      "activate_customer_with_admin",
+      "activate_customer_with_admin_v2",
       {
         p_organization_id: customer.id,
         p_user_id: userId,
         p_email: contactEmail,
         p_full_name: contactName,
+        p_license_plan: licensePlan,
+        p_license_started_at: licenseStartedAt,
+        p_license_valid_until: licenseValidUntil,
+        p_contract_status: contractStatus,
+        p_billing_status: billingStatus,
+        p_classroom_eligibility_verified: classroomEligibilityVerified,
         p_must_set_password: invitationSent,
       }
     );
@@ -110,13 +240,35 @@ export default async function handler(req, res) {
     activationCommitted = true;
 
     const activated = activationRows?.[0];
+    let onboardingEmailSent = false;
+
+    try {
+      await sendOnboardingEmail({
+        email: contactEmail,
+        fullName: contactName,
+        organizationName: customer.name,
+        organizationType: customer.org_type,
+        registrationNumber:
+          activated?.registration_number || customer.registration_number,
+        licensePlan,
+        licenseValidUntil,
+        siteUrl,
+      });
+      onboardingEmailSent = true;
+    } catch (emailError) {
+      console.error("customer onboarding email error:", emailError);
+    }
 
     return res.status(200).json({
       ok: true,
       organizationId: customer.id,
-      registrationNumber: activated?.registration_number || customer.registration_number,
+      registrationNumber:
+        activated?.registration_number || customer.registration_number,
       organizationType: customer.org_type,
+      licensePlan,
+      licenseValidUntil,
       invitationSent,
+      onboardingEmailSent,
     });
   } catch (error) {
     if (invitedUserId && !activationCommitted) {
@@ -136,6 +288,8 @@ export default async function handler(req, res) {
       }
     }
     console.error("activate-customer error:", error);
-    return res.status(500).json({ error: "Aktivaci zákazníka se nepodařilo dokončit." });
+    return res.status(500).json({
+      error: error?.message || "Aktivaci zákazníka se nepodařilo dokončit.",
+    });
   }
 }

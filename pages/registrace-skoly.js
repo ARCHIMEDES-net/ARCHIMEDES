@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import Head from "next/head";
 import { supabase } from "../lib/supabaseClient";
 import { Badge } from "../components/ui/badge";
 import { Card } from "../components/ui/card";
@@ -8,8 +10,9 @@ import { Label } from "../components/ui/label";
 import { Alert } from "../components/ui/alert";
 
 export default function RegistraceSkolyPage() {
+  const router = useRouter();
+  const inviteToken = typeof router.query.invite === "string" ? router.query.invite : "";
   const [form, setForm] = useState({
-    registrationNumber: "",
     name: "",
     address: "",
     legalIdentifier: "",
@@ -28,8 +31,8 @@ export default function RegistraceSkolyPage() {
       if (!mounted || !data?.session?.user) return;
       const current = data.session;
       setSession(current);
-      setForm((prev) => ({
-        ...prev,
+      setForm((previous) => ({
+        ...previous,
         email: current.user.email || "",
         contactName:
           current.user.user_metadata?.full_name ||
@@ -43,7 +46,10 @@ export default function RegistraceSkolyPage() {
   }, []);
 
   function updateField(event) {
-    setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
+    setForm((previous) => ({
+      ...previous,
+      [event.target.name]: event.target.value,
+    }));
   }
 
   async function submitForm(event) {
@@ -52,8 +58,15 @@ export default function RegistraceSkolyPage() {
     setError("");
 
     try {
+      if (!inviteToken) {
+        throw new Error("Registraci musí zahájit obec jednorázovou pozvánkou.");
+      }
+
       const cleanAddress = form.address.trim();
-      const cleanLegalIdentifier = form.legalIdentifier.replace(/\s+/g, "").trim();
+      const cleanLegalIdentifier = form.legalIdentifier
+        .replace(/\s+/g, "")
+        .trim();
+
       if (!cleanAddress) throw new Error("Vyplňte adresu školy.");
       if (cleanLegalIdentifier && !/^\d{8}$/.test(cleanLegalIdentifier)) {
         throw new Error("IČO musí obsahovat přesně 8 číslic.");
@@ -69,43 +82,63 @@ export default function RegistraceSkolyPage() {
         },
         body: JSON.stringify({
           ...form,
+          inviteToken,
           address: cleanAddress,
           legalIdentifier: cleanLegalIdentifier,
         }),
       });
       const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(data?.error || "Registraci školy se nepodařilo dokončit.");
+        throw new Error(
+          data?.error || "Registraci školy se nepodařilo dokončit."
+        );
       }
+
       setResult(data);
     } catch (submitError) {
-      setError(submitError.message || "Registraci školy se nepodařilo dokončit.");
+      setError(
+        submitError.message || "Registraci školy se nepodařilo dokončit."
+      );
     } finally {
       setSaving(false);
     }
   }
 
+  const loginNext = encodeURIComponent(
+    `/registrace-skoly?invite=${inviteToken}`
+  );
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <Head>
+        <meta name="referrer" content="no-referrer" />
+      </Head>
       <main className="mx-auto max-w-[760px] px-4 py-10">
         <Card className="p-7">
           <Badge variant="outline">Registrace školy</Badge>
 
-          {!result ? (
+          {router.isReady && !inviteToken ? (
+            <>
+              <h1 className="mt-4 text-[34px] font-[950] tracking-[-0.03em] text-navy-900">
+                Je potřeba pozvánka obce
+              </h1>
+              <Alert variant="neutral" className="mb-5 mt-5">
+                Školu může do programu připojit pouze obec s aktivním
+                ARCHIMEDES Live. Požádejte obecní úřad o jednorázový
+                registrační odkaz.
+              </Alert>
+              <Button href="/kontakt">Kontaktovat podporu</Button>
+            </>
+          ) : !result ? (
             <>
               <h1 className="mt-4 text-[34px] font-[950] tracking-[-0.03em] text-navy-900">
                 Zaregistrovat školu pod obcí
               </h1>
               <p className="mb-5 mt-3 text-[17px] leading-relaxed text-muted">
-                Školu může zaregistrovat ředitel nebo pověřený správce pomocí
-                registračního čísla aktivní obce. Po registraci získá škola
-                vlastní kód pro učitele.
+                Otevíráte bezpečnou jednorázovou pozvánku vytvořenou správcem
+                obce. Po registraci získá škola vlastní kód pro učitele.
               </p>
-              <div className="mb-5">
-                <Button href="/skoly" variant="ghost" size="sm">
-                  Co obsahuje program pro školy
-                </Button>
-              </div>
 
               {session ? (
                 <Alert variant="neutral" className="mb-4">
@@ -115,10 +148,6 @@ export default function RegistraceSkolyPage() {
               {error ? <Alert variant="error" className="mb-4">{error}</Alert> : null}
 
               <form onSubmit={submitForm} className="grid gap-4">
-                <div>
-                  <Label htmlFor="registrationNumber">Registrační číslo obce*</Label>
-                  <Input id="registrationNumber" name="registrationNumber" required value={form.registrationNumber} onChange={updateField} />
-                </div>
                 <div>
                   <Label htmlFor="name">Název školy*</Label>
                   <Input id="name" name="name" required value={form.name} onChange={updateField} />
@@ -150,11 +179,10 @@ export default function RegistraceSkolyPage() {
                     {saving ? "Registruji…" : "Zaregistrovat školu"}
                   </Button>
                   {!session ? (
-                    <Button href="/login?next=/registrace-skoly" variant="secondary">
+                    <Button href={`/login?next=${loginNext}`} variant="secondary">
                       Už mám účet
                     </Button>
                   ) : null}
-                  <Button href="/zadost" variant="secondary">Zpět</Button>
                 </div>
               </form>
             </>
