@@ -2,15 +2,13 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { createClient } from "@supabase/supabase-js";
 import { getBearerToken } from "../../../lib/server/platformAdminApi";
+import { getServerSiteUrl } from "../../../lib/server/siteUrl";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   { auth: { persistSession: false } }
 );
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
 
 function hashToken(token) {
   return crypto.createHash("sha256").update(token).digest("hex");
@@ -218,7 +216,7 @@ export default async function handler(req, res) {
 
   const path =
     organizationType === "school" ? "/registrace-skoly" : "/registrace-spolku";
-  const inviteUrl = `${SITE_URL}${path}?invite=${encodeURIComponent(rawToken)}`;
+  const inviteUrl = `${getServerSiteUrl()}${path}?invite=${encodeURIComponent(rawToken)}`;
   let emailSent = false;
 
   if (invitedEmail) {
