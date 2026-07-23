@@ -34,7 +34,7 @@ jobs:
             children integer;
             deleted_rows integer;
           begin
-            select count(*), min(id) into matches, target_id
+            select count(*), min(id::text)::uuid into matches, target_id
             from public.organizations
             where name = 'E2E TEST ARCHIMEDES 2026-07-23'
               and registration_number = '6786'
