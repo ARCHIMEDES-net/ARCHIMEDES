@@ -1,15 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { requirePlatformAdmin } from "../../../lib/server/platformAdminApi";
+import { getServerSiteUrl } from "../../../lib/server/siteUrl";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   { auth: { persistSession: false } }
 );
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
 
 const LICENSE_LABELS = {
   paid_monthly: "Měsíční licence",
@@ -53,6 +51,7 @@ async function sendOnboardingEmail({
   registrationNumber,
   licensePlan,
   licenseValidUntil,
+  siteUrl,
 }) {
   const port = Number(process.env.SMTP_PORT);
   if (
@@ -77,10 +76,10 @@ async function sendOnboardingEmail({
     : "do ukončení měsíční licence";
   const isMunicipality = ["municipality", "obec"].includes(organizationType);
   const nextStepUrl = isMunicipality
-    ? `${SITE_URL}/portal/organizace-obce`
+    ? `${siteUrl}/portal/organizace-obce`
     : organizationType === "school"
-      ? `${SITE_URL}/portal/uzivatele`
-      : `${SITE_URL}/portal/muj-profil`;
+      ? `${siteUrl}/portal/uzivatele`
+      : `${siteUrl}/portal/muj-profil`;
   const registrationLine = isMunicipality
     ? `Registrační číslo obce: ${registrationNumber || "bude doplněno v portálu"}\n`
     : "";
@@ -99,7 +98,7 @@ přístup pro ${organizationName} byl aktivován.
 Varianta: ${LICENSE_LABELS[licensePlan] || licensePlan}
 Platnost: ${validUntilText}
 ${registrationLine}
-Přihlášení: ${SITE_URL}/login
+Přihlášení: ${siteUrl}/login
 Další nastavení: ${nextStepUrl}
 ${organizationInstruction}
 Tým ARCHIMEDES Live`,
@@ -118,6 +117,7 @@ export default async function handler(req, res) {
   try {
     const admin = await requirePlatformAdmin(req, res, supabaseAdmin);
     if (!admin) return;
+    const siteUrl = getServerSiteUrl();
 
     const organizationId = String(req.body?.organizationId || "").trim();
     const licensePlan = String(req.body?.licensePlan || "").trim();
@@ -203,7 +203,7 @@ export default async function handler(req, res) {
     if (!userId) {
       const { data: invited, error: inviteError } =
         await supabaseAdmin.auth.admin.inviteUserByEmail(contactEmail, {
-          redirectTo: `${SITE_URL}/nastavit-heslo`,
+          redirectTo: `${siteUrl}/nastavit-heslo`,
           data: { full_name: contactName },
         });
 
@@ -252,6 +252,7 @@ export default async function handler(req, res) {
           activated?.registration_number || customer.registration_number,
         licensePlan,
         licenseValidUntil,
+        siteUrl,
       });
       onboardingEmailSent = true;
     } catch (emailError) {
