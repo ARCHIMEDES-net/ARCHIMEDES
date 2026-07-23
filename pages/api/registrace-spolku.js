@@ -11,6 +11,7 @@ import {
   MunicipalityInviteError,
   resolveMunicipalityInvite,
 } from "../../lib/server/municipalityOrganizationInvite";
+import { getServerSiteUrl } from "../../lib/server/siteUrl";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -18,14 +19,18 @@ const supabaseAdmin = createClient(
 );
 
 const MAX_REGISTRATION_NUMBER_RETRIES = 3;
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://www.archimedeslive.com";
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 }
 
-async function sendRegistrationEmail({ email, fullName, organizationName, setupUrl }) {
+async function sendRegistrationEmail({
+  email,
+  fullName,
+  organizationName,
+  setupUrl,
+  siteUrl,
+}) {
   const port = Number(process.env.SMTP_PORT);
   if (
     !process.env.SMTP_HOST ||
@@ -50,7 +55,7 @@ async function sendRegistrationEmail({ email, fullName, organizationName, setupU
     subject: "ARCHIMEDES Live – spolek byl zaregistrován",
     text: `Dobrý den ${fullName},\n\nspolek ${organizationName} byl zaregistrován.\n${
       setupUrl ? `\nNastavte si heslo: ${setupUrl}\n` : ""
-    }\nPřihlášení: ${SITE_URL}/login\n`,
+    }\nPřihlášení: ${siteUrl}/login\n`,
   });
 }
 
@@ -63,6 +68,7 @@ export default async function handler(req, res) {
   let spolekId = null;
 
   try {
+    const siteUrl = getServerSiteUrl();
     const rateLimitAllowed = await consumePublicRateLimit({
       supabaseAdmin,
       req,
@@ -192,7 +198,7 @@ export default async function handler(req, res) {
       req,
       email: cleanEmail,
       fullName: cleanContactName,
-      redirectTo: `${SITE_URL}/nastavit-heslo`,
+      redirectTo: `${siteUrl}/nastavit-heslo`,
     });
 
     const orgInsertPayload = {
@@ -296,6 +302,7 @@ export default async function handler(req, res) {
         fullName: registrant.fullName,
         organizationName: spolek.name,
         setupUrl: registrant.setupUrl,
+        siteUrl,
       });
       emailSent = true;
     } catch (emailError) {
