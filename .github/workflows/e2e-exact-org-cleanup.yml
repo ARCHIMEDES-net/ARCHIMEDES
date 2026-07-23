@@ -59,7 +59,7 @@ jobs:
                 memberships, invites, children;
             end if;
 
-            delete from public.orders_start where organization_id = target_id;
+            delete from public.orders_start where organization_id = target_id;\n            delete from public.access_requests where organization_id = target_id;
 
             delete from public.organizations
             where id = target_id
@@ -78,7 +78,7 @@ jobs:
             end if;
 
             if exists (select 1 from public.organizations where id = target_id)
-               or exists (select 1 from public.orders_start where organization_id = target_id) then
+               or exists (select 1 from public.orders_start where organization_id = target_id)\n               or exists (select 1 from public.access_requests where organization_id = target_id) then
               raise exception 'Cleanup verification failed: designated data remains';
             end if;
 
