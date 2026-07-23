@@ -1,0 +1,367 @@
+name: Temporary PR39 negative onboarding verification
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/pr39-negative-onboarding-tests.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr39-negative-onboarding-verification
+  cancel-in-progress: false
+
+jobs:
+  negative-onboarding-tests:
+    name: Verify rejected municipality onboarding states
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      PREVIEW_BASE_URL: https://archimedes-5ai5-git-agent-munic-34c29e-antonin-kopliks-projects.vercel.app
+      TEST_MUNICIPALITY_NAME: TEST ARCHIMEDES Live – obec 2026-07-22
+      TEST_MUNICIPALITY_REGISTRATION_NUMBER: "2785"
+
+    steps:
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Verify five negative onboarding scenarios
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          umask 077
+
+          if [[ -z "${SUPABASE_DB_URL:-}" ]]; then
+            echo "Missing required GitHub secret: SUPABASE_DB_URL" >&2
+            exit 1
+          fi
+
+          db() {
+            psql "$SUPABASE_DB_URL" --no-psqlrc --set ON_ERROR_STOP=1 "$@"
+          }
+
+          matching_count="$(
+            db -At \
+              --set municipality_name="$TEST_MUNICIPALITY_NAME" \
+              --set registration_number="$TEST_MUNICIPALITY_REGISTRATION_NUMBER" \
+              --command "
+                select count(*)
+                from public.organizations
+                where name = :'municipality_name'
+                  and registration_number = :'registration_number'
+                  and org_type in ('municipality', 'obec');
+              "
+          )"
+
+          if [[ "$matching_count" != "1" ]]; then
+            echo "Safety guard failed: expected exactly one designated TEST municipality, found $matching_count." >&2
+            exit 1
+          fi
+
+          IFS='|' read -r municipality_id original_status original_license_status original_license_valid_until <<< "$(
+            db -AtF '|' \
+              --set municipality_name="$TEST_MUNICIPALITY_NAME" \
+              --set registration_number="$TEST_MUNICIPALITY_REGISTRATION_NUMBER" \
+              --command "
+                select
+                  id,
+                  status,
+                  coalesce(license_status, ''),
+                  coalesce(license_valid_until::text, '')
+                from public.organizations
+                where name = :'municipality_name'
+                  and registration_number = :'registration_number'
+                  and org_type in ('municipality', 'obec');
+              "
+          )"
+
+          if [[ -z "$municipality_id" || "$original_status" != "active" || "$original_license_status" != "active" ]]; then
+            echo "Safety guard failed: designated TEST municipality is not active." >&2
+            exit 1
+          fi
+
+          expired_token="pr39-${GITHUB_RUN_ID}-expired-$(openssl rand -hex 16)"
+          revoked_token="pr39-${GITHUB_RUN_ID}-revoked-$(openssl rand -hex 16)"
+          used_token="pr39-${GITHUB_RUN_ID}-used-$(openssl rand -hex 16)"
+          wrong_email_token="pr39-${GITHUB_RUN_ID}-wrong-email-$(openssl rand -hex 16)"
+          expired_license_token="pr39-${GITHUB_RUN_ID}-expired-license-$(openssl rand -hex 16)"
+
+          hash_token() {
+            printf '%s' "$1" | sha256sum | cut -d' ' -f1
+          }
+
+          expired_hash="$(hash_token "$expired_token")"
+          revoked_hash="$(hash_token "$revoked_token")"
+          used_hash="$(hash_token "$used_token")"
+          wrong_email_hash="$(hash_token "$wrong_email_token")"
+          expired_license_hash="$(hash_token "$expired_license_token")"
+
+          license_changed=0
+          cleanup() {
+            set +e
+
+            if [[ "$license_changed" == "1" ]]; then
+              db \
+                --set municipality_id="$municipality_id" \
+                --set municipality_name="$TEST_MUNICIPALITY_NAME" \
+                --set registration_number="$TEST_MUNICIPALITY_REGISTRATION_NUMBER" \
+                --set original_status="$original_status" \
+                --set original_license_status="$original_license_status" \
+                --set original_license_valid_until="$original_license_valid_until" \
+                --command "
+                  update public.organizations
+                  set
+                    status = :'original_status',
+                    license_status = nullif(:'original_license_status', ''),
+                    license_valid_until = nullif(:'original_license_valid_until', '')::timestamptz
+                  where id = :'municipality_id'::uuid
+                    and name = :'municipality_name'
+                    and registration_number = :'registration_number';
+                "
+            fi
+
+            db \
+              --set municipality_id="$municipality_id" \
+              --set expired_hash="$expired_hash" \
+              --set revoked_hash="$revoked_hash" \
+              --set used_hash="$used_hash" \
+              --set wrong_email_hash="$wrong_email_hash" \
+              --set expired_license_hash="$expired_license_hash" \
+              --command "
+                delete from public.municipality_organization_invites
+                where municipality_id = :'municipality_id'::uuid
+                  and token_hash in (
+                    :'expired_hash',
+                    :'revoked_hash',
+                    :'used_hash',
+                    :'wrong_email_hash',
+                    :'expired_license_hash'
+                  );
+              "
+          }
+          trap cleanup EXIT
+
+          db \
+            --set municipality_id="$municipality_id" \
+            --set expired_hash="$expired_hash" \
+            --set revoked_hash="$revoked_hash" \
+            --set used_hash="$used_hash" \
+            --set wrong_email_hash="$wrong_email_hash" \
+            --set expired_license_hash="$expired_license_hash" \
+            --command "
+              insert into public.municipality_organization_invites (
+                municipality_id,
+                organization_type,
+                invited_email,
+                token_hash,
+                status,
+                expires_at,
+                used_at
+              )
+              values
+                (
+                  :'municipality_id'::uuid,
+                  'school',
+                  'antonin.koplik+pr39-expired@gmail.com',
+                  :'expired_hash',
+                  'pending',
+                  now() - interval '1 day',
+                  null
+                ),
+                (
+                  :'municipality_id'::uuid,
+                  'school',
+                  'antonin.koplik+pr39-revoked@gmail.com',
+                  :'revoked_hash',
+                  'revoked',
+                  now() + interval '1 day',
+                  null
+                ),
+                (
+                  :'municipality_id'::uuid,
+                  'school',
+                  'antonin.koplik+pr39-used@gmail.com',
+                  :'used_hash',
+                  'used',
+                  now() + interval '1 day',
+                  now()
+                ),
+                (
+                  :'municipality_id'::uuid,
+                  'school',
+                  'antonin.koplik+pr39-expected@gmail.com',
+                  :'wrong_email_hash',
+                  'pending',
+                  now() + interval '1 day',
+                  null
+                ),
+                (
+                  :'municipality_id'::uuid,
+                  'school',
+                  'antonin.koplik+pr39-expired-license@gmail.com',
+                  :'expired_license_hash',
+                  'pending',
+                  now() + interval '1 day',
+                  null
+                );
+            "
+
+          call_registration() {
+            local scenario="$1"
+            local token="$2"
+            local email="$3"
+            local expected_status="$4"
+            local expected_message="$5"
+            local response_file
+            local status
+            local message
+
+            response_file="$(mktemp)"
+            status="$(
+              curl --silent --show-error \
+                --output "$response_file" \
+                --write-out '%{http_code}' \
+                --request POST \
+                --header 'Content-Type: application/json' \
+                --data "$(
+                  jq -nc \
+                    --arg inviteToken "$token" \
+                    --arg name "TEST PR39 $scenario ${GITHUB_RUN_ID}" \
+                    --arg email "$email" \
+                    '{
+                      inviteToken: $inviteToken,
+                      name: $name,
+                      address: "Testovací 39, 695 01 Hodonín",
+                      legalIdentifier: "00000039",
+                      contactName: "Test PR39",
+                      email: $email,
+                      phone: "+420700000039"
+                    }'
+                )" \
+                "$PREVIEW_BASE_URL/api/registrace-skoly"
+            )"
+
+            message="$(jq -r '.error // empty' "$response_file")"
+            rm -f "$response_file"
+
+            if [[ "$status" != "$expected_status" ]]; then
+              echo "$scenario failed: expected HTTP $expected_status, received HTTP $status." >&2
+              exit 1
+            fi
+
+            if [[ "$message" != *"$expected_message"* ]]; then
+              echo "$scenario failed: unexpected safe error response: $message" >&2
+              exit 1
+            fi
+
+            echo "$scenario: HTTP $status verified."
+          }
+
+          call_registration \
+            "expired-invite" \
+            "$expired_token" \
+            "antonin.koplik+pr39-expired@gmail.com" \
+            "410" \
+            "vypršela"
+
+          call_registration \
+            "revoked-invite" \
+            "$revoked_token" \
+            "antonin.koplik+pr39-revoked@gmail.com" \
+            "409" \
+            "použita nebo zrušena"
+
+          call_registration \
+            "used-invite" \
+            "$used_token" \
+            "antonin.koplik+pr39-used@gmail.com" \
+            "409" \
+            "použita nebo zrušena"
+
+          call_registration \
+            "wrong-email" \
+            "$wrong_email_token" \
+            "antonin.koplik+pr39-other@gmail.com" \
+            "403" \
+            "jinou e-mailovou"
+
+          db \
+            --set municipality_id="$municipality_id" \
+            --set municipality_name="$TEST_MUNICIPALITY_NAME" \
+            --set registration_number="$TEST_MUNICIPALITY_REGISTRATION_NUMBER" \
+            --command "
+              update public.organizations
+              set license_valid_until = now() - interval '1 day'
+              where id = :'municipality_id'::uuid
+                and name = :'municipality_name'
+                and registration_number = :'registration_number';
+            "
+          license_changed=1
+
+          call_registration \
+            "expired-license" \
+            "$expired_license_token" \
+            "antonin.koplik+pr39-expired-license@gmail.com" \
+            "403" \
+            "Program obce není aktivní"
+
+          cleanup
+          trap - EXIT
+
+          remaining="$(
+            db -At \
+              --set municipality_id="$municipality_id" \
+              --set expired_hash="$expired_hash" \
+              --set revoked_hash="$revoked_hash" \
+              --set used_hash="$used_hash" \
+              --set wrong_email_hash="$wrong_email_hash" \
+              --set expired_license_hash="$expired_license_hash" \
+              --command "
+                select count(*)
+                from public.municipality_organization_invites
+                where municipality_id = :'municipality_id'::uuid
+                  and token_hash in (
+                    :'expired_hash',
+                    :'revoked_hash',
+                    :'used_hash',
+                    :'wrong_email_hash',
+                    :'expired_license_hash'
+                  );
+              "
+          )"
+
+          restored="$(
+            db -At \
+              --set municipality_id="$municipality_id" \
+              --set municipality_name="$TEST_MUNICIPALITY_NAME" \
+              --set registration_number="$TEST_MUNICIPALITY_REGISTRATION_NUMBER" \
+              --set original_status="$original_status" \
+              --set original_license_status="$original_license_status" \
+              --set original_license_valid_until="$original_license_valid_until" \
+              --command "
+                select count(*)
+                from public.organizations
+                where id = :'municipality_id'::uuid
+                  and name = :'municipality_name'
+                  and registration_number = :'registration_number'
+                  and status = :'original_status'
+                  and license_status is not distinct from nullif(:'original_license_status', '')
+                  and license_valid_until is not distinct from
+                    nullif(:'original_license_valid_until', '')::timestamptz;
+              "
+          )"
+
+          if [[ "$remaining" != "0" || "$restored" != "1" ]]; then
+            echo "Cleanup verification failed: remaining=$remaining restored=$restored." >&2
+            exit 1
+          fi
+
+          echo "All five negative scenarios passed and the designated TEST state was restored."
