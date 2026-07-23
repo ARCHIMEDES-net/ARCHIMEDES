@@ -23,7 +23,7 @@ returns table (
 language plpgsql
 security definer
 set search_path = public
-as $
+as $function$
 #variable_conflict use_column
 declare
   customer public.organizations%rowtype;
@@ -128,7 +128,7 @@ begin
     p_license_plan,
     p_license_valid_until;
 end;
-$$;
+$function$;
 
 revoke all on function public.activate_customer_with_admin_v2(
   uuid, uuid, text, text, text, timestamptz, timestamptz, text, text, boolean, boolean
