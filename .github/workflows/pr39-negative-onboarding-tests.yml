@@ -1,6 +1,11 @@
 name: Temporary PR39 negative onboarding verification
 
 on:
+  push:
+    branches:
+      - agent/municipality-onboarding
+    paths:
+      - .github/workflows/pr39-negative-onboarding-tests.yml
   pull_request:
     branches:
       - main
