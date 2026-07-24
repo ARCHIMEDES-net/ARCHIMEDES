@@ -452,7 +452,13 @@ gtag('config', '${GA_MEASUREMENT_ID}', { anonymize_ip: true });`}
           </strong>
           <p style={{ margin: 0, fontSize: "0.92rem", lineHeight: 1.5, color: "#e5e7eb" }}>
             S vaším souhlasem použijeme Google Analytics k anonymizovanému měření
-            návštěvnosti. Bez souhlasu analytické cookies neaktivujeme.
+            návštěvnosti. Bez souhlasu analytické cookies neaktivujeme.{" "}
+            <a
+              href="/ochrana-osobnich-udaju"
+              style={{ color: "#f6c344", textDecoration: "underline" }}
+            >
+              Více informací
+            </a>
           </p>
           <div style={{ display: "flex", gap: "0.65rem", marginTop: "0.9rem", flexWrap: "wrap" }}>
             <button
