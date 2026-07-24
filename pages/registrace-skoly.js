@@ -21,6 +21,9 @@ export default function RegistraceSkolyPage() {
     phone: "",
   });
   const [session, setSession] = useState(null);
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [inviteContext, setInviteContext] = useState(null);
+  const [inviteChecking, setInviteChecking] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
@@ -28,22 +31,102 @@ export default function RegistraceSkolyPage() {
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
-      if (!mounted || !data?.session?.user) return;
-      const current = data.session;
+      if (!mounted) return;
+      const current = data?.session || null;
       setSession(current);
-      setForm((previous) => ({
-        ...previous,
-        email: current.user.email || "",
-        contactName:
-          current.user.user_metadata?.full_name ||
-          current.user.user_metadata?.name ||
-          "",
-      }));
+      setSessionChecked(true);
+      if (current?.user) {
+        setForm((previous) => ({
+          ...previous,
+          contactName:
+            previous.contactName ||
+            current.user.user_metadata?.full_name ||
+            current.user.user_metadata?.name ||
+            "",
+        }));
+      }
     });
     return () => {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!router.isReady || !inviteToken) return;
+    let mounted = true;
+
+    async function loadInviteContext() {
+      setInviteChecking(true);
+      setError("");
+      try {
+        const response = await fetch("/api/municipality/invite-context", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            inviteToken,
+            organizationType: "school",
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || "Pozvánku se nepodařilo ověřit.");
+        }
+        if (!mounted) return;
+        setInviteContext(data);
+        setForm((previous) => ({
+          ...previous,
+          email: data.invitedEmail || previous.email,
+        }));
+      } catch (inviteError) {
+        if (mounted) {
+          setError(inviteError.message || "Pozvánku se nepodařilo ověřit.");
+        }
+      } finally {
+        if (mounted) setInviteChecking(false);
+      }
+    }
+
+    loadInviteContext();
+    return () => {
+      mounted = false;
+    };
+  }, [router.isReady, inviteToken]);
+
+  useEffect(() => {
+    if (!sessionChecked || !session?.user || !inviteContext) return;
+    if (!inviteContext.invitedEmail) {
+      setForm((previous) => ({
+        ...previous,
+        email: session.user.email || previous.email,
+      }));
+    }
+  }, [sessionChecked, session, inviteContext]);
+
+  const sessionEmail = String(session?.user?.email || "").trim().toLowerCase();
+  const invitedEmail = String(inviteContext?.invitedEmail || "")
+    .trim()
+    .toLowerCase();
+  const emailMismatch =
+    !!sessionEmail && !!invitedEmail && sessionEmail !== invitedEmail;
+
+  async function signOutForInvite() {
+    setError("");
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) {
+      setError("Odhlášení se nepodařilo. Zkuste to prosím znovu.");
+      return;
+    }
+    setSession(null);
+    setSessionChecked(true);
+    setForm((previous) => ({
+      ...previous,
+      email: invitedEmail,
+      contactName: "",
+    }));
+    await router.replace(
+      `/registrace-skoly?invite=${encodeURIComponent(inviteToken)}`
+    );
+  }
 
   function updateField(event) {
     setForm((previous) => ({
@@ -140,7 +223,23 @@ export default function RegistraceSkolyPage() {
                 obce. Po registraci získá škola vlastní kód pro učitele.
               </p>
 
-              {session ? (
+              {emailMismatch ? (
+                <Alert variant="error" className="mb-4">
+                  <div className="font-bold">Jste přihlášeni jiným účtem.</div>
+                  <div className="mt-1">
+                    Pozvánka je určena pro <strong>{invitedEmail}</strong>, ale
+                    přihlášeni jste jako <strong>{sessionEmail}</strong>.
+                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="mt-3"
+                    onClick={signOutForInvite}
+                  >
+                    Odhlásit a pokračovat správným účtem
+                  </Button>
+                </Alert>
+              ) : session ? (
                 <Alert variant="neutral" className="mb-4">
                   Použije se váš přihlášený účet. E-mail ani heslo se nezmění.
                 </Alert>
@@ -168,17 +267,33 @@ export default function RegistraceSkolyPage() {
                 </div>
                 <div>
                   <Label htmlFor="email">E-mail*</Label>
-                  <Input id="email" name="email" type="email" required value={form.email} onChange={updateField} disabled={!!session} />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    value={form.email}
+                    onChange={updateField}
+                    disabled={!!invitedEmail || !!session}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="phone">Telefon*</Label>
                   <Input id="phone" name="phone" required value={form.phone} onChange={updateField} />
                 </div>
                 <div className="flex flex-wrap gap-2.5 pt-1">
-                  <Button type="submit" disabled={saving}>
+                  <Button
+                    type="submit"
+                    disabled={
+                      saving ||
+                      inviteChecking ||
+                      !inviteContext ||
+                      emailMismatch
+                    }
+                  >
                     {saving ? "Registruji…" : "Zaregistrovat školu"}
                   </Button>
-                  {!session ? (
+                  {!session && !emailMismatch ? (
                     <Button href={`/login?next=${loginNext}`} variant="secondary">
                       Už mám účet
                     </Button>
