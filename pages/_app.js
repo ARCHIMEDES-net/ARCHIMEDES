@@ -2,9 +2,10 @@
 import "leaflet/dist/leaflet.css";
 import "../styles/globals.css";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import Script from "next/script";
 import PublicHeader from "../components/PublicHeader";
 import FloatingJoinCta from "../components/FloatingJoinCta";
 import { Analytics } from "@vercel/analytics/react";
@@ -35,6 +36,9 @@ const NO_INDEX_PATHS = new Set([
   "/pridat-se-k-organizaci",
   "/guest",
 ]);
+
+const GA_MEASUREMENT_ID = "G-5J0WP0X4DK";
+const ANALYTICS_CONSENT_KEY = "archimedes-analytics-consent";
 
 const DEFAULT_DESCRIPTION =
   "Pravidelný živý program pro školy, spolky, seniory a další místní komunity. Lidé se při něm setkávají, vzdělávají a sbližují.";
@@ -197,6 +201,7 @@ const PAGE_SEO = {
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
+  const [analyticsConsent, setAnalyticsConsent] = useState(null);
   const pathname = router.pathname || "";
 
   const isPortal = pathname.startsWith("/portal");
@@ -210,6 +215,28 @@ export default function App({ Component, pageProps }) {
     !isAccessSetupPage &&
     !isCreateOrganizationPage &&
     !isJoinPage;
+
+  useEffect(() => {
+    const storedConsent = window.localStorage.getItem(ANALYTICS_CONSENT_KEY);
+    if (storedConsent === "granted" || storedConsent === "denied") {
+      setAnalyticsConsent(storedConsent);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (analyticsConsent !== "granted") return undefined;
+
+    const trackPageView = (url) => {
+      if (typeof window.gtag !== "function") return;
+      window.gtag("config", GA_MEASUREMENT_ID, {
+        page_path: url,
+        anonymize_ip: true,
+      });
+    };
+
+    router.events.on("routeChangeComplete", trackPageView);
+    return () => router.events.off("routeChangeComplete", trackPageView);
+  }, [analyticsConsent, router.events]);
 
   useEffect(() => {
     if (!showPublicHeader) return undefined;
@@ -313,6 +340,17 @@ export default function App({ Component, pageProps }) {
     });
   }
 
+  const updateAnalyticsConsent = (value) => {
+    window.localStorage.setItem(ANALYTICS_CONSENT_KEY, value);
+    setAnalyticsConsent(value);
+
+    if (typeof window.gtag === "function") {
+      window.gtag("consent", "update", {
+        analytics_storage: value,
+      });
+    }
+  };
+
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": structuredGraph,
@@ -364,6 +402,91 @@ export default function App({ Component, pageProps }) {
           />
         ) : null}
       </Head>
+
+      <Script id="google-consent-default" strategy="beforeInteractive">
+        {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+window.gtag = gtag;
+gtag('consent', 'default', {
+  analytics_storage: 'denied',
+  ad_storage: 'denied',
+  ad_user_data: 'denied',
+  ad_personalization: 'denied',
+  wait_for_update: 500
+});`}
+      </Script>
+
+      {analyticsConsent === "granted" ? (
+        <>
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+            strategy="afterInteractive"
+          />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`gtag('js', new Date());
+gtag('consent', 'update', { analytics_storage: 'granted' });
+gtag('config', '${GA_MEASUREMENT_ID}', { anonymize_ip: true });`}
+          </Script>
+        </>
+      ) : null}
+
+      {analyticsConsent === null ? (
+        <section
+          role="dialog"
+          aria-label="Nastavení analytických cookies"
+          style={{
+            position: "fixed",
+            zIndex: 10000,
+            right: "1rem",
+            bottom: "1rem",
+            width: "min(420px, calc(100vw - 2rem))",
+            padding: "1rem",
+            borderRadius: "14px",
+            background: "#111827",
+            color: "#fff",
+            boxShadow: "0 18px 50px rgba(0, 0, 0, 0.3)",
+          }}
+        >
+          <strong style={{ display: "block", marginBottom: "0.4rem" }}>
+            Pomozte nám zlepšovat ARCHIMEDES Live
+          </strong>
+          <p style={{ margin: 0, fontSize: "0.92rem", lineHeight: 1.5, color: "#e5e7eb" }}>
+            S vaším souhlasem použijeme Google Analytics k anonymizovanému měření
+            návštěvnosti. Bez souhlasu analytické cookies neaktivujeme.
+          </p>
+          <div style={{ display: "flex", gap: "0.65rem", marginTop: "0.9rem", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={() => updateAnalyticsConsent("denied")}
+              style={{
+                padding: "0.6rem 0.9rem",
+                border: "1px solid #9ca3af",
+                borderRadius: "9px",
+                background: "transparent",
+                color: "#fff",
+                cursor: "pointer",
+              }}
+            >
+              Odmítnout
+            </button>
+            <button
+              type="button"
+              onClick={() => updateAnalyticsConsent("granted")}
+              style={{
+                padding: "0.6rem 0.9rem",
+                border: 0,
+                borderRadius: "9px",
+                background: "#f6c344",
+                color: "#111827",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Povolit analytiku
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       {showPublicHeader && <PublicHeader active={active} />}
 
