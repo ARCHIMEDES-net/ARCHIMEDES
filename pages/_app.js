@@ -37,7 +37,7 @@ const NO_INDEX_PATHS = new Set([
   "/guest",
 ]);
 
-const GA_MEASUREMENT_ID = "G-5J0WP0X4DK";
+const GA_MEASUREMENT_ID = "G-ZVPRHEBVJ4";
 const ANALYTICS_CONSENT_KEY = "archimedes-analytics-consent";
 
 const DEFAULT_DESCRIPTION =
