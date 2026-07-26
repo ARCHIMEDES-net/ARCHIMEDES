@@ -51,7 +51,7 @@ export default function ProOrganizacePage() {
               <div className="max-w-[610px]">
                 <span className="text-xs font-black uppercase tracking-[0.18em] text-[#efbd58]">Pro národní svazy a organizace</span>
                 <h1 className="mt-5 text-[clamp(44px,6vw,70px)] font-[950] leading-[0.96] tracking-[-0.055em]">
-                  Spojte celý svaz. Oslovte novou generaci.
+                  Propojte svůj svaz s místními členy. Oslovte novou generaci.
                 </h1>
                 <p className="mt-6 max-w-[570px] text-lg leading-relaxed text-white/78 sm:text-xl">
                   Pomáháme celorepublikovým svazům dostat odborný obsah k místním
