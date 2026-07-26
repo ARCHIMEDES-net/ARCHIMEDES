@@ -8,26 +8,26 @@ import SectionEyebrow from "../components/home/SectionEyebrow";
 const team = [
   {
     name: "Zuzana Novotná",
-    role: "Manažerka platformy",
+    role: "Manažerka pro obce a svazy",
     email: "zuzana.novotna@archimedeslive.com",
     phone: "+420 737 333 879",
-    note: "Strategie, partnerství, rozvoj",
+    note: "První kontakt pro nové obce a svazy, onboarding a spuštění platformy",
     image: "/team-zuzana.webp",
   },
   {
     name: "Simona Gavlíková",
-    role: "Manažerka komunity a partnerství",
+    role: "Manažerka komunikace a komunity",
     email: "simona.gavlikova@archimedeslive.com",
     phone: "+420 603 467 337",
-    note: "Komunita, spolupráce, partneři",
+    note: "PR, komunikace a péče o aktivní členy a komunitu",
     image: "/team-simona.webp",
   },
   {
     name: "Roman Tuzar",
-    role: "Ředitel pro strategická partnerství",
+    role: "Ředitel rozvoje a partnerství",
     email: "roman.tuzar@eduvision.cz",
     phone: "+420 736 457 835",
-    note: "Spolupráce s institucemi, partnery a organizacemi",
+    note: "Obchodní rozvoj a strategická partnerství",
     image: "/team-roman.webp",
   },
   {
