@@ -46,19 +46,24 @@ export default function PrivacyPage() {
         pokud je to nezbytné pro provoz webu a služby.
       </p>
 
-      <h2>6. Google Analytics a analytické cookies</h2>
+      <h2>6. Google Tag Manager, Google Analytics a analytické cookies</h2>
       <p>
-        Web používá službu Google Analytics 4 poskytovanou společností Google
-        Ireland Limited k měření návštěvnosti a vyhodnocování používání webu.
-        Služba se aktivuje pouze po vašem výslovném souhlasu. Bez souhlasu se
-        značka Google Analytics nenačte a analytické cookies se neuloží.
+        Web používá Google Tag Manager jako technický nástroj pro správu
+        měřicích značek. Samotné vložení Google Tag Manageru neznamená souhlas
+        s analytickým ani marketingovým měřením. Výchozí nastavení analytických
+        a reklamních úložišť je zakázané.
+      </p>
+      <p>
+        Služba Google Analytics 4 poskytovaná společností Google Ireland Limited
+        se aktivuje pouze po vašem výslovném souhlasu s analytickým měřením. Bez
+        souhlasu se značka Google Analytics nenačte a analytické cookies se
+        neuloží.
       </p>
       <p>
         Při aktivním souhlasu mohou být zpracovávány technické údaje o zařízení,
-        navštívených stránkách, zdroji návštěvy a interakcích s webem. Nastavení
-        reklamního úložiště, personalizace reklam a uživatelských dat pro reklamu
-        zůstává zakázané. Souhlas můžete odmítnout bez omezení základních funkcí
-        webu. Další informace o zpracování dat společností Google jsou uvedeny na{" "}
+        navštívených stránkách, zdroji návštěvy a interakcích s webem. Souhlas
+        můžete odmítnout bez omezení základních funkcí webu. Další informace o
+        zpracování dat společností Google jsou uvedeny na{" "}
         <a
           href="https://policies.google.com/technologies/partner-sites?hl=cs"
           target="_blank"
@@ -69,14 +74,22 @@ export default function PrivacyPage() {
         .
       </p>
 
-      <h2>7. Doba uchování</h2>
+      <h2>7. Marketingové technologie</h2>
+      <p>
+        Marketingové a reklamní technologie, včetně případného Meta Pixelu,
+        nejsou bez samostatného marketingového souhlasu aktivovány. Marketingový
+        souhlas je oddělený od analytického souhlasu a jeho odmítnutí neomezuje
+        základní funkce webu.
+      </p>
+
+      <h2>8. Doba uchování</h2>
       <p>
         Údaje jsou uchovávány po dobu nezbytnou pro naplnění příslušného účelu,
         po dobu trvání smluvního vztahu a dále po dobu vyžadovanou právními
         předpisy nebo odpovídající oprávněným zájmům správce.
       </p>
 
-      <h2>8. Vaše práva</h2>
+      <h2>9. Vaše práva</h2>
       <ul>
         <li>právo na přístup k osobním údajům,</li>
         <li>právo na opravu nepřesných údajů,</li>
@@ -86,7 +99,7 @@ export default function PrivacyPage() {
         <li>právo podat stížnost u Úřadu pro ochranu osobních údajů.</li>
       </ul>
 
-      <h2>9. Specifická role u škol a organizací</h2>
+      <h2>10. Specifická role u škol a organizací</h2>
       <p>
         Pokud je ARCHIMEDES Live využíván školou nebo jinou organizací pro práci
         s osobními údaji jejích žáků, zaměstnanců nebo dalších osob, může
@@ -94,10 +107,10 @@ export default function PrivacyPage() {
         organizace jako správce. Podrobnosti pak upravuje samostatná DPA.
       </p>
 
-      <h2>10. Kontaktní údaje</h2>
+      <h2>11. Kontaktní údaje</h2>
       <p>
-        Dotazy k ochraně osobních údajů je možné směřovat na kontaktní e-mail
-        používaný pro provoz služby ARCHIMEDES Live.
+        Dotazy k ochraně osobních údajů je možné směřovat na e-mail{" "}
+        <a href="mailto:zive@archimedeslive.com">zive@archimedeslive.com</a>.
       </p>
     </LegalPageLayout>
   );
