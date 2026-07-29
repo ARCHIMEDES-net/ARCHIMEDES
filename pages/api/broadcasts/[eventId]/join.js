@@ -5,6 +5,7 @@ import {
   requireBroadcastViewer,
   webMeetingParticipant,
 } from "../../../../lib/server/broadcastAccess";
+import { consumeAuthenticatedRateLimit } from "../../../../lib/server/authenticatedRateLimit";
 import { WebMeetingApiError, webMeeting } from "../../../../lib/server/webmeetingClient";
 
 const supabaseAdmin = createClient(
@@ -66,15 +67,34 @@ function providerParticipantId(value) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   const eventId = String(req.query.eventId || "").trim();
+  if (!eventId) return res.status(400).json({ error: "Chybí ID události." });
 
   try {
     const identity = await requireBroadcastViewer(req, supabaseAdmin);
+    const allowed = await consumeAuthenticatedRateLimit({
+      supabaseAdmin,
+      req,
+      route: "webmeeting-viewer-link",
+      userId: identity.user.id,
+      resourceId: eventId,
+      limit: 20,
+      windowSeconds: 10 * 60,
+    });
+
+    if (!allowed) {
+      res.setHeader("Retry-After", "600");
+      return res.status(429).json({
+        error: "Vstupní odkaz byl vyžádán příliš mnohokrát. Zkuste to prosím za několik minut.",
+      });
+    }
 
     const { data: event, error: eventError } = await supabaseAdmin
       .from("events")
@@ -128,21 +148,21 @@ export default async function handler(req, res) {
       }
     }
 
+    const now = new Date().toISOString();
     const { error: auditError } = await supabaseAdmin.from("broadcast_participants").upsert(
       {
         session_id: session.id,
         user_id: identity.user.id,
         organization_id: identity.organizationId,
         provider_participant_id: internalParticipantId || String(participant.number),
-        join_requested_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        join_requested_at: now,
+        updated_at: now,
       },
       { onConflict: "session_id,user_id" }
     );
 
     if (auditError) throw auditError;
 
-    res.setHeader("Cache-Control", "no-store");
     return res.status(200).json({ url });
   } catch (error) {
     console.error("webmeeting viewer join error:", error);

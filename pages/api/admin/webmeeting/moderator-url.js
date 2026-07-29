@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { consumeAuthenticatedRateLimit } from "../../../../lib/server/authenticatedRateLimit";
 import { requirePlatformAdmin } from "../../../../lib/server/platformAdminApi";
 import { WebMeetingApiError, webMeeting } from "../../../../lib/server/webmeetingClient";
 
@@ -9,6 +10,8 @@ const supabaseAdmin = createClient(
 );
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
@@ -20,6 +23,23 @@ export default async function handler(req, res) {
   try {
     const admin = await requirePlatformAdmin(req, res, supabaseAdmin);
     if (!admin) return;
+
+    const allowed = await consumeAuthenticatedRateLimit({
+      supabaseAdmin,
+      req,
+      route: "webmeeting-moderator-link",
+      userId: admin.id,
+      resourceId: eventId,
+      limit: 10,
+      windowSeconds: 10 * 60,
+    });
+
+    if (!allowed) {
+      res.setHeader("Retry-After", "600");
+      return res.status(429).json({
+        error: "Moderátorský odkaz byl vyžádán příliš mnohokrát. Zkuste to prosím za několik minut.",
+      });
+    }
 
     const { data: sessions, error } = await supabaseAdmin
       .from("broadcast_sessions")
@@ -38,7 +58,6 @@ export default async function handler(req, res) {
       String(session.moderator_name || "ARCHIMEDES Live").trim()
     );
 
-    res.setHeader("Cache-Control", "no-store");
     return res.status(200).json({ url });
   } catch (error) {
     console.error("webmeeting moderator url error:", error);
