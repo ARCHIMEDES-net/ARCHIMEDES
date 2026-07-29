@@ -6,6 +6,8 @@ import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
 
 const BUCKET = "marketplace";
+const MAX_IMAGE_BYTES = 7 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 const TYPE_OPTIONS = [
   { value: "nabidka", label: "Nabídka", dbType: "offer" },
@@ -67,9 +69,15 @@ function isValidEmail(email) {
 
 function isImageFile(file) {
   if (!file) return false;
-  if (file.type && file.type.startsWith("image/")) return true;
-  const n = (file.name || "").toLowerCase();
-  return n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg") || n.endsWith(".webp") || n.endsWith(".gif");
+  return ALLOWED_IMAGE_TYPES.has(file.type);
+}
+
+function validateImageFiles(files) {
+  for (const file of files || []) {
+    if (!isImageFile(file)) return "Fotky musí být ve formátu JPG, PNG, WEBP nebo GIF.";
+    if (file.size > MAX_IMAGE_BYTES) return "Každá fotka může mít nejvýše 7 MB.";
+  }
+  return "";
 }
 
 export default function NovyInzerat() {
@@ -116,6 +124,11 @@ export default function NovyInzerat() {
     }
     if (contactPhone.trim().length > 0 && contactPhone.trim().length < 6) {
       setErr("Telefon musí mít alespoň 6 znaků, nebo ho nech prázdný.");
+      return;
+    }
+    const fileError = validateImageFiles(files);
+    if (fileError) {
+      setErr(fileError);
       return;
     }
 
@@ -169,7 +182,7 @@ export default function NovyInzerat() {
     const uploadErrors = [];
     for (const file of files || []) {
       const safeName = (file.name || "soubor").replace(/\s+/g, "_");
-      const path = `${postId}/${Date.now()}-${safeName}`;
+      const path = `${user.id}/${postId}/${Date.now()}-${safeName}`;
 
       const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
         cacheControl: "3600",
@@ -289,7 +302,7 @@ export default function NovyInzerat() {
               <input
                 type="file"
                 multiple
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/gif"
                 onChange={(e) => setFiles(Array.from(e.target.files || []))}
                 className="mt-2 block"
               />
