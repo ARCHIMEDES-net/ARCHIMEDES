@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { consumeAuthenticatedRateLimit } from "../../../../lib/server/authenticatedRateLimit";
 import { requirePlatformAdmin } from "../../../../lib/server/platformAdminApi";
 import {
   getWebMeetingConfiguration,
@@ -13,6 +14,8 @@ const supabaseAdmin = createClient(
 );
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "GET" && req.method !== "POST") {
     res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ error: "Method not allowed" });
@@ -33,6 +36,24 @@ export default async function handler(req, res) {
 
     if (req.method === "GET") {
       return res.status(200).json({ configured: true, connected: null });
+    }
+
+    const allowed = await consumeAuthenticatedRateLimit({
+      supabaseAdmin,
+      req,
+      route: "webmeeting-connection-test",
+      userId: admin.id,
+      limit: 10,
+      windowSeconds: 10 * 60,
+    });
+
+    if (!allowed) {
+      res.setHeader("Retry-After", "600");
+      return res.status(429).json({
+        configured: true,
+        connected: false,
+        error: "Spojení bylo testováno příliš mnohokrát. Zkuste to prosím za několik minut.",
+      });
     }
 
     await webMeeting.getMeetings(null);
