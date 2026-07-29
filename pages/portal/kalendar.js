@@ -4,6 +4,7 @@ import { Check, Plus, Wrench, FolderOpen } from "lucide-react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import JoinBroadcastButton from "../../components/JoinBroadcastButton";
+import { attachPortalBroadcastSessions } from "../../lib/portalBroadcastSessions";
 import { supabase } from "../../lib/supabaseClient";
 
 const BUCKET = "posters";
@@ -297,49 +298,34 @@ export default function Kalendar() {
     setLoading(true);
     setErr("");
 
-    const { data, error } = await supabase
-      .from("events")
-      .select(`
-        id,
-        title,
-        category,
-        audience_groups,
-        starts_at,
-        stream_url,
-        worksheet_url,
-        is_published,
-        poster_path,
-        poster_url,
-        broadcast_sessions (
+    try {
+      const { data, error } = await supabase
+        .from("events")
+        .select(`
           id,
-          event_id,
-          status,
-          viewer_url,
-          recording_url,
-          recording_status,
-          moderator_name,
-          guest_1_name,
-          guest_2_name,
-          guest_3_name,
-          guest_4_name,
-          guest_5_name,
-          notes_internal,
+          title,
+          category,
+          audience_groups,
           starts_at,
-          external_meeting_id
-        )
-      `)
-      .eq("is_published", true)
-      .order("starts_at", { ascending: true });
+          stream_url,
+          worksheet_url,
+          is_published,
+          poster_path,
+          poster_url
+        `)
+        .eq("is_published", true)
+        .order("starts_at", { ascending: true });
 
-    if (error) {
-      setErr(error.message);
+      if (error) throw error;
+
+      const rowsWithSessions = await attachPortalBroadcastSessions(supabase, data || []);
+      setRows(rowsWithSessions);
+    } catch (error) {
+      setErr(error?.message || "Program se nepodařilo načíst.");
       setRows([]);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setRows(data || []);
-    setLoading(false);
   }
 
   async function loadAttendees(eventRows, orgId, adminMode) {
