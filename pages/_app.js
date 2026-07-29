@@ -35,6 +35,8 @@ const NO_INDEX_PATHS = new Set([
   "/registrace-spolku",
   "/pridat-se-k-organizaci",
   "/guest",
+  "/hoste",
+  "/vysilali-jsme",
 ]);
 
 const GA_MEASUREMENT_ID = "G-ZVPRHEBVJ4";

@@ -21,6 +21,8 @@ const HIDDEN_ROUTES = new Set([
   "/registrace-spolku",
   "/pridat-se-k-organizaci",
   "/guest",
+  "/hoste",
+  "/vysilali-jsme",
 ]);
 
 const OPTIONS = [
