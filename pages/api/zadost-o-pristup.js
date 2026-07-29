@@ -5,7 +5,8 @@ import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } }
 );
 
 const SITE_URL =
@@ -317,7 +318,10 @@ ${createdAt}
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -406,31 +410,51 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "IČO musí obsahovat přesně 8 číslic." });
     }
 
-    if (!cleanName || cleanName.length < 2) {
-      return res.status(400).json({ error: "Vyplňte prosím jméno a příjmení." });
+    if (
+      cleanName.length < 2 ||
+      cleanName.length > 120 ||
+      /[\r\n]/.test(cleanName)
+    ) {
+      return res.status(400).json({
+        error: "Jméno a příjmení musí mít 2 až 120 znaků.",
+      });
     }
 
-    if (!isValidEmail(cleanEmail)) {
+    if (cleanEmail.length > 254 || !isValidEmail(cleanEmail)) {
       return res.status(400).json({ error: "Zadejte prosím platný e-mail." });
     }
 
-    if (!cleanOrganization) {
+    if (
+      !cleanOrganization ||
+      cleanOrganization.length > 160 ||
+      /[\r\n]/.test(cleanOrganization)
+    ) {
       return res.status(400).json({
-        error: `Vyplňte prosím název: ${customer.label.toLowerCase()}.`,
+        error: `Název (${customer.label.toLowerCase()}) je povinný a může mít nejvýše 160 znaků.`,
       });
     }
 
-    if (!cleanAddress) {
+    if (!cleanAddress || cleanAddress.length > 300) {
       return res.status(400).json({
-        error: "Vyplňte prosím adresu sídla.",
+        error: "Adresa sídla je povinná a může mít nejvýše 300 znaků.",
       });
     }
 
-    if (!cleanPhone) {
-      return res.status(400).json({ error: "Vyplňte prosím telefon." });
+    if (cleanPhone.length < 6 || cleanPhone.length > 32) {
+      return res.status(400).json({ error: "Telefon musí mít 6 až 32 znaků." });
     }
-    if (cleanPhone.length < 6) {
-      return res.status(400).json({ error: "Telefon je příliš krátký." });
+    if (cleanRole.length > 120) {
+      return res.status(400).json({ error: "Funkce může mít nejvýše 120 znaků." });
+    }
+    if (cleanPopulation.length > 40) {
+      return res.status(400).json({
+        error: "Počet obyvatel může mít nejvýše 40 znaků.",
+      });
+    }
+    if (cleanMessage.length > 4000) {
+      return res.status(400).json({
+        error: "Doplňující zpráva může mít nejvýše 4000 znaků.",
+      });
     }
 
     // Duplicitu ověříme před prvním zápisem. Původní pořadí nejprve
@@ -513,7 +537,7 @@ export default async function handler(req, res) {
 
     if (error) {
       console.error("DB error:", error);
-      return res.status(500).json({ error: "DB error" });
+      return res.status(500).json({ error: "Žádost se nepodařilo uložit." });
     }
 
     const leadId = data?.id || "-";
@@ -625,6 +649,6 @@ export default async function handler(req, res) {
     });
   } catch (e) {
     console.error("API error:", e);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Žádost se nepodařilo dokončit." });
   }
 }
