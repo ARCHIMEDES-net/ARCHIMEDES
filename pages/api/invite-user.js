@@ -1,5 +1,5 @@
-
 import { createClient } from "@supabase/supabase-js";
+import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -16,6 +16,10 @@ function getBearerToken(req) {
 
   const match = authHeader.match(/^Bearer\s+(.+)$/i);
   return match ? match[1] : null;
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 export default async function handler(req, res) {
@@ -49,19 +53,20 @@ export default async function handler(req, res) {
       role === "organization_admin" ? "organization_admin" : "member";
     const cleanInviterUserId = String(user.id || "").trim();
 
-    if (!cleanEmail) {
-      return res.status(400).json({ error: "Vyplňte e-mail." });
+    if (!isValidEmail(cleanEmail) || cleanEmail.length > 254) {
+      return res.status(400).json({ error: "Zadejte platný e-mail." });
     }
 
-    if (!cleanFullName) {
-      return res.status(400).json({ error: "Vyplňte jméno a příjmení." });
+    if (cleanFullName.length < 2 || cleanFullName.length > 120) {
+      return res.status(400).json({
+        error: "Jméno musí mít 2 až 120 znaků.",
+      });
     }
 
     if (!cleanInviterUserId) {
       return res.status(401).json({ error: "Nepodařilo se ověřit uživatele." });
     }
 
-    // 1) Najít organizaci a oprávnění skutečně přihlášeného uživatele
     const { data: inviterProfile, error: inviterProfileError } =
       await supabaseAdmin
         .from("profiles")
@@ -120,7 +125,21 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2) Poslat pozvánku
+    const rateLimitAllowed = await consumePublicRateLimit({
+      supabaseAdmin,
+      req,
+      route: `invite-user:${cleanInviterUserId}:${organizationId}`,
+      limit: 20,
+      windowSeconds: 60 * 60,
+    });
+
+    if (!rateLimitAllowed) {
+      res.setHeader("Retry-After", "3600");
+      return res.status(429).json({
+        error: "Bylo odesláno příliš mnoho pozvánek. Zkuste to prosím později.",
+      });
+    }
+
     const { data: invitedUser, error: inviteError } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(cleanEmail, {
         redirectTo: REDIRECT_TO,
@@ -141,7 +160,6 @@ export default async function handler(req, res) {
         .json({ error: "Nepodařilo se získat ID pozvaného uživatele." });
     }
 
-    // 3) Profil — jiná členství stejného účtu zůstávají zachována.
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .upsert(
@@ -160,7 +178,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: profileError.message });
     }
 
-    // 4) Členství ve škole
     const { error: membershipError } = await supabaseAdmin
       .from("organization_members")
       .upsert(
