@@ -193,6 +193,22 @@ describe("Supabase SECURITY DEFINER and authorization hardening", () => {
 });
 
 describe("retired public database write paths", () => {
+  it("retires only the legacy leads-to-Make trigger", () => {
+    const retired = normalized(
+      "supabase/migrations/20260729184710_retire_legacy_lead_make_webhook.sql"
+    );
+
+    expect(retired).toContain(
+      "drop trigger if exists new_lead_notification on public.leads"
+    );
+    expect(retired).not.toContain(
+      "drop function"
+    );
+    expect(retired).not.toContain(
+      "delete from"
+    );
+  });
+
   it("revokes direct client inserts for active server-side forms", () => {
     const retired = normalized(
       "supabase/migrations/0018_remove_legacy_public_insert_policies.sql"
