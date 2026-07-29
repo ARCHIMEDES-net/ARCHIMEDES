@@ -239,6 +239,9 @@ async function sendRequestEmails({
       user: smtpUser,
       pass: smtpPass,
     },
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
   });
 
   await transporter.sendMail({
