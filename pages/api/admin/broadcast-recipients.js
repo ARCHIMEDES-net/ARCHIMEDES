@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { getEmailGroups } from "../../../lib/server/emailGroups";
+import { consumeAuthenticatedRateLimit } from "../../../lib/server/authenticatedRateLimit";
 import { requirePlatformAdmin } from "../../../lib/server/platformAdminApi";
 
 const supabaseAdmin = createClient(
@@ -9,6 +10,8 @@ const supabaseAdmin = createClient(
 );
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
@@ -24,6 +27,27 @@ export default async function handler(req, res) {
 
     if (requestedGroups.length === 0) {
       return res.status(400).json({ error: "Vyberte alespoň jednu skupinu zájmu." });
+    }
+
+    if (requestedGroups.length > 50 || requestedGroups.some((slug) => slug.length > 100)) {
+      return res.status(400).json({ error: "Výběr skupin je příliš rozsáhlý nebo neplatný." });
+    }
+
+    const allowed = await consumeAuthenticatedRateLimit({
+      supabaseAdmin,
+      req,
+      route: "admin-broadcast-recipients",
+      userId: admin.id,
+      resourceId: requestedGroups.slice().sort().join(","),
+      limit: 30,
+      windowSeconds: 10 * 60,
+    });
+
+    if (!allowed) {
+      res.setHeader("Retry-After", "600");
+      return res.status(429).json({
+        error: "Seznam příjemců byl vytvořen příliš mnohokrát. Zkuste to prosím později.",
+      });
     }
 
     const groups = await getEmailGroups(supabaseAdmin);
