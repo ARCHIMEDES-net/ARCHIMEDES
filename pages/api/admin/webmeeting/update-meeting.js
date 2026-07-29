@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { consumeAuthenticatedRateLimit } from "../../../../lib/server/authenticatedRateLimit";
 import { requirePlatformAdmin } from "../../../../lib/server/platformAdminApi";
 import { WebMeetingApiError, webMeeting } from "../../../../lib/server/webmeetingClient";
 import { canUpdateWebMeeting } from "../../../../lib/broadcastLifecycle";
@@ -21,6 +22,8 @@ function configuredMeetingType() {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
@@ -32,6 +35,23 @@ export default async function handler(req, res) {
   try {
     const admin = await requirePlatformAdmin(req, res, supabaseAdmin);
     if (!admin) return;
+
+    const allowed = await consumeAuthenticatedRateLimit({
+      supabaseAdmin,
+      req,
+      route: "webmeeting-update-meeting",
+      userId: admin.id,
+      resourceId: eventId,
+      limit: 10,
+      windowSeconds: 10 * 60,
+    });
+
+    if (!allowed) {
+      res.setHeader("Retry-After", "600");
+      return res.status(429).json({
+        error: "Změny byly synchronizovány příliš mnohokrát. Zkuste to prosím za několik minut.",
+      });
+    }
 
     const [{ data: event, error: eventError }, { data: sessions, error: sessionError }] =
       await Promise.all([
