@@ -1,9 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } }
 );
 
 const ORGANIZATION_LABELS = {
@@ -28,29 +30,64 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 }
 
+function within(value, max) {
+  return String(value || "").trim().slice(0, max);
+}
+
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  res.setHeader("Cache-Control", "no-store");
+
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
+    const allowed = await consumePublicRateLimit({
+      supabaseAdmin: supabase,
+      req,
+      route: "classroom-inquiry",
+      limit: 10,
+      windowSeconds: 60 * 60,
+    });
+    if (!allowed) {
+      res.setHeader("Retry-After", "3600");
+      return res.status(429).json({
+        error: "Bylo odesláno příliš mnoho poptávek. Zkuste to prosím později.",
+      });
+    }
+
     const body = req.body || {};
     if (body.company) return res.status(200).json({ ok: true });
 
-    const organizationType = String(body.organizationType || "").trim();
-    const organization = String(body.organization || "").trim();
-    const place = String(body.place || "").trim();
-    const name = String(body.name || "").trim();
-    const email = String(body.email || "").trim().toLowerCase();
-    const phone = String(body.phone || "").trim();
-    const variant = String(body.variant || "").trim();
-    const timeframe = String(body.timeframe || "").trim();
-    const message = String(body.message || "").trim();
+    const organizationType = within(body.organizationType, 40);
+    const organization = within(body.organization, 180);
+    const place = within(body.place, 180);
+    const name = within(body.name, 120);
+    const email = within(body.email, 254).toLowerCase();
+    const phone = within(body.phone, 40);
+    const variant = within(body.variant, 40);
+    const timeframe = within(body.timeframe, 40);
+    const message = within(body.message, 4000);
 
-    if (!ORGANIZATION_LABELS[organizationType]) return res.status(400).json({ error: "Vyberte, za koho poptáváte." });
-    if (organization.length < 2) return res.status(400).json({ error: "Vyplňte název školy nebo organizace." });
-    if (place.length < 2) return res.status(400).json({ error: "Vyplňte místo plánované realizace." });
-    if (name.length < 2) return res.status(400).json({ error: "Vyplňte jméno a příjmení." });
-    if (!isValidEmail(email)) return res.status(400).json({ error: "Vyplňte platný e-mail." });
-    if (phone.length < 6) return res.status(400).json({ error: "Vyplňte platný telefon." });
+    if (!ORGANIZATION_LABELS[organizationType]) {
+      return res.status(400).json({ error: "Vyberte, za koho poptáváte." });
+    }
+    if (organization.length < 2) {
+      return res.status(400).json({ error: "Vyplňte název školy nebo organizace." });
+    }
+    if (place.length < 2) {
+      return res.status(400).json({ error: "Vyplňte místo plánované realizace." });
+    }
+    if (name.length < 2) {
+      return res.status(400).json({ error: "Vyplňte jméno a příjmení." });
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: "Vyplňte platný e-mail." });
+    }
+    if (phone.length < 6) {
+      return res.status(400).json({ error: "Vyplňte platný telefon." });
+    }
 
     const createdAt = new Date().toISOString();
     const variantLabel = VARIANT_LABELS[variant] || "Zatím nevybrána";
@@ -70,16 +107,18 @@ export default async function handler(req, res) {
 
     const { data, error } = await supabase
       .from("leads")
-      .insert([{
-        created_at: createdAt,
-        type: "classroom",
-        organization,
-        contact_name: name,
-        email,
-        phone,
-        note,
-        status: "new",
-      }])
+      .insert([
+        {
+          created_at: createdAt,
+          type: "classroom",
+          organization,
+          contact_name: name,
+          email,
+          phone,
+          note,
+          status: "new",
+        },
+      ])
       .select("id")
       .single();
 
@@ -89,15 +128,23 @@ export default async function handler(req, res) {
     }
 
     const smtpPort = Number(process.env.SMTP_PORT);
-    if (!process.env.SMTP_HOST || !smtpPort || !process.env.SMTP_USER || !process.env.SMTP_PASS || !process.env.MAIL_FROM) {
+    if (
+      !process.env.SMTP_HOST ||
+      !smtpPort ||
+      !process.env.SMTP_USER ||
+      !process.env.SMTP_PASS ||
+      !process.env.MAIL_FROM
+    ) {
       console.error("classroom inquiry SMTP config missing");
-      return res.status(500).json({ error: "Poptávka je uložená, ale oznámení se nepodařilo odeslat. Ozveme se vám i tak." });
+      return res.status(500).json({
+        error: "Poptávka je uložená, ale oznámení se nepodařilo odeslat. Ozveme se vám i tak.",
+      });
     }
 
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: smtpPort,
-      secure: true,
+      secure: smtpPort === 465,
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
 
