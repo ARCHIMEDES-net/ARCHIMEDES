@@ -50,9 +50,15 @@ grant select on public.portal_broadcast_sessions to service_role;
 
 commit;
 
+-- Important PostgREST note:
+-- A view does not automatically inherit the base table foreign-key relationship
+-- used by nested `events(..., broadcast_sessions(...))` selects. Attendee pages
+-- must therefore load events first and then attach rows from this view by event_id.
+-- The shared helper for that transition is lib/portalBroadcastSessions.js.
+--
 -- Required rollout order:
 -- 1. Apply this view without changing broadcast_sessions grants or policies.
--- 2. Update attendee-facing portal queries to read this view.
+-- 2. Update attendee-facing portal queries to read this view through the helper.
 -- 3. Verify calendar, event detail, archive and join flow with a normal user.
 -- 4. Verify admin WebMeeting workflows still use the base table via server-side
 --    service-role/admin paths.
