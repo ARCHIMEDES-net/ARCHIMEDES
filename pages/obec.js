@@ -7,6 +7,7 @@ import FaqSection, { createFaqStructuredData } from "../components/FaqSection";
 import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import MunicipalityBroadcastGallery from "../components/MunicipalityBroadcastGallery";
+import { serializeJsonLd } from "../lib/safeJsonLd";
 
 const outcomes = [
   {
@@ -103,7 +104,7 @@ export default function ObecPage() {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(createFaqStructuredData(municipalityFaqs)),
+            __html: serializeJsonLd(createFaqStructuredData(municipalityFaqs)),
           }}
         />
       </Head>

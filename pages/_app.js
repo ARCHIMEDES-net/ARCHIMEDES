@@ -10,6 +10,7 @@ import PublicHeader from "../components/PublicHeader";
 import FloatingJoinCta from "../components/FloatingJoinCta";
 import { Analytics } from "@vercel/analytics/react";
 import { applyCzechNonBreakingSpaces } from "../lib/czechTypography";
+import { serializeJsonLd } from "../lib/safeJsonLd";
 
 function activeKeyFromPath(pathname = "") {
   if (pathname === "/program") return "program";
@@ -400,7 +401,7 @@ export default function App({ Component, pageProps }) {
         {!noIndex ? (
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+            dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }}
           />
         ) : null}
       </Head>
