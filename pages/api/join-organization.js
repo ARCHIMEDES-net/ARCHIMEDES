@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { getBearerToken } from "../../lib/server/platformAdminApi";
+import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 
 const supabaseUrl =
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -14,6 +15,10 @@ if (!supabaseUrl || !serviceRoleKey) {
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
   auth: { persistSession: false },
 });
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 async function safeDeleteAuthUser(userId) {
   if (!userId) return;
@@ -33,6 +38,21 @@ export default async function handler(req, res) {
   let createdUserId = null;
 
   try {
+    const rateLimitAllowed = await consumePublicRateLimit({
+      supabaseAdmin,
+      req,
+      route: "join-organization",
+      limit: 10,
+      windowSeconds: 60 * 60,
+    });
+
+    if (!rateLimitAllowed) {
+      res.setHeader("Retry-After", "3600");
+      return res.status(429).json({
+        error: "Bylo provedeno příliš mnoho pokusů o připojení. Zkuste to prosím později.",
+      });
+    }
+
     const { email, password, fullName, joinCode } = req.body || {};
     const token = getBearerToken(req);
     let authenticatedUser = null;
@@ -59,20 +79,24 @@ export default async function handler(req, res) {
     ).trim();
     const cleanJoinCode = String(joinCode || "").trim().toUpperCase();
 
-    if (!cleanEmail) {
-      return res.status(400).json({ error: "Vyplňte e-mail." });
+    if (!cleanEmail || cleanEmail.length > 254 || !isValidEmail(cleanEmail)) {
+      return res.status(400).json({ error: "Zadejte platný e-mail." });
     }
 
-    if (!authenticatedUser && cleanPassword.length < 8) {
-      return res.status(400).json({ error: "Heslo musí mít alespoň 8 znaků." });
+    if (!authenticatedUser && (cleanPassword.length < 8 || cleanPassword.length > 128)) {
+      return res.status(400).json({
+        error: "Heslo musí mít 8 až 128 znaků.",
+      });
     }
 
-    if (!cleanFullName) {
-      return res.status(400).json({ error: "Vyplňte jméno a příjmení." });
+    if (cleanFullName.length < 2 || cleanFullName.length > 120) {
+      return res.status(400).json({
+        error: "Jméno a příjmení musí mít 2 až 120 znaků.",
+      });
     }
 
-    if (!cleanJoinCode) {
-      return res.status(400).json({ error: "Vyplňte kód školy." });
+    if (!/^[A-Z0-9-]{4,32}$/.test(cleanJoinCode)) {
+      return res.status(400).json({ error: "Kód školy nemá platný formát." });
     }
 
     const { data: organization, error: orgError } = await supabaseAdmin
