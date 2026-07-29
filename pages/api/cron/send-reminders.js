@@ -29,11 +29,17 @@ function pickStart(row) {
 }
 
 export default async function handler(req, res) {
+  if (req.method !== "GET" && req.method !== "POST") {
+    res.setHeader("Allow", "GET, POST");
+    return res.status(405).json({ ok: false, error: "Method not allowed" });
+  }
+
   try {
-    // --- AUTH ---
+    // Tajemství přijímáme pouze v Authorization hlavičce. URL parametry se
+    // mohou ukládat do logů, historie nebo analytiky a pro tajné údaje nejsou vhodné.
     const CRON_SECRET = mustEnv("CRON_SECRET");
-    const token = getBearer(req) || String(req.query?.secret || "");
-    if (token !== CRON_SECRET) {
+    const token = getBearer(req);
+    if (!token || token !== CRON_SECRET) {
       return res.status(401).json({ ok: false, error: "Unauthorized" });
     }
 
@@ -67,9 +73,7 @@ export default async function handler(req, res) {
       .select("id,title,is_published,start_at,starts_at,stream_url,worksheet_url,audience")
       .eq("is_published", true)
       // filtrujeme podle jedné z variant; když DB má jen jednu, druhá se ignoruje
-      .or(
-        `start_at.gte.${from.toISOString()},starts_at.gte.${from.toISOString()}`
-      )
+      .or(`start_at.gte.${from.toISOString()},starts_at.gte.${from.toISOString()}`)
       .order("start_at", { ascending: true });
 
     if (error) {
