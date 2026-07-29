@@ -3,7 +3,14 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 export default [
   {
-    ignores: [".claude/**", ".next/**", "node_modules/**", "out/**", "public/**"],
+    ignores: [
+      ".claude/**",
+      ".next/**",
+      "coverage/**",
+      "node_modules/**",
+      "out/**",
+      "public/**",
+    ],
   },
   {
     files: ["**/*.{js,jsx,mjs,cjs}"],
