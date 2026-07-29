@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { getEmailGroups } from "../../../lib/server/emailGroups";
+import { consumeAuthenticatedRateLimit } from "../../../lib/server/authenticatedRateLimit";
 import { requirePlatformAdmin } from "../../../lib/server/platformAdminApi";
 
 const supabaseAdmin = createClient(
@@ -9,6 +10,8 @@ const supabaseAdmin = createClient(
 );
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
     return res.status(405).json({ error: "Method not allowed" });
@@ -20,8 +23,25 @@ export default async function handler(req, res) {
 
     const { group } = req.query;
 
-    if (!group || Array.isArray(group)) {
-      return res.status(400).json({ error: "Chybí skupina." });
+    if (!group || Array.isArray(group) || String(group).length > 100) {
+      return res.status(400).json({ error: "Chybí nebo je neplatná skupina." });
+    }
+
+    const allowed = await consumeAuthenticatedRateLimit({
+      supabaseAdmin,
+      req,
+      route: "admin-group-users",
+      userId: admin.id,
+      resourceId: String(group),
+      limit: 60,
+      windowSeconds: 10 * 60,
+    });
+
+    if (!allowed) {
+      res.setHeader("Retry-After", "600");
+      return res.status(429).json({
+        error: "Seznam příjemců byl načten příliš mnohokrát. Zkuste to prosím později.",
+      });
     }
 
     const groups = await getEmailGroups(supabaseAdmin);
