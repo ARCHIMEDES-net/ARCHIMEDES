@@ -15,7 +15,8 @@ import { getServerSiteUrl } from "../../lib/server/siteUrl";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } }
 );
 
 const MAX_REGISTRATION_NUMBER_RETRIES = 3;
@@ -60,7 +61,10 @@ async function sendRegistrationEmail({
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -104,37 +108,48 @@ export default async function handler(req, res) {
     const cleanActivityCode = String(activityCode || "").trim();
     const cleanCustomText = String(customText || "").trim();
 
-    if (!cleanName) {
-      return res.status(400).json({ error: "Vyplňte prosím název spolku." });
+    if (!cleanName || cleanName.length > 160) {
+      return res.status(400).json({
+        error: "Název spolku je povinný a může mít nejvýše 160 znaků.",
+      });
     }
 
-    if (!cleanAddress) {
-      return res.status(400).json({ error: "Vyplňte prosím sídlo spolku." });
+    if (!cleanAddress || cleanAddress.length > 300) {
+      return res.status(400).json({
+        error: "Sídlo spolku je povinné a může mít nejvýše 300 znaků.",
+      });
     }
 
     if (cleanLegalIdentifier && !/^\d{8}$/.test(cleanLegalIdentifier)) {
       return res.status(400).json({ error: "IČO musí obsahovat přesně 8 číslic." });
     }
 
-    if (!cleanContactName) {
-      return res.status(400).json({ error: "Vyplňte prosím kontaktní osobu." });
+    if (cleanContactName.length < 2 || cleanContactName.length > 120) {
+      return res.status(400).json({
+        error: "Kontaktní osoba musí mít 2 až 120 znaků.",
+      });
     }
 
-    if (!isValidEmail(cleanEmail)) {
+    if (cleanEmail.length > 254 || !isValidEmail(cleanEmail)) {
       return res.status(400).json({ error: "Zadejte prosím platný e-mail." });
     }
 
-    if (!cleanPhone || cleanPhone.length < 6) {
-      return res.status(400).json({ error: "Vyplňte prosím platný telefon." });
+    if (cleanPhone.length < 6 || cleanPhone.length > 32) {
+      return res.status(400).json({ error: "Telefon musí mít 6 až 32 znaků." });
     }
 
-    if (!cleanActivityCode) {
+    if (!cleanActivityCode || cleanActivityCode.length > 64) {
       return res.status(400).json({ error: "Vyberte prosím činnost spolku." });
     }
 
     if (cleanActivityCode === "jine" && !cleanCustomText) {
       return res.status(400).json({
         error: "U činnosti „Jiné“ prosím vyplňte, o jakou činnost jde.",
+      });
+    }
+    if (cleanCustomText.length > 500) {
+      return res.status(400).json({
+        error: "Popis vlastní činnosti může mít nejvýše 500 znaků.",
       });
     }
 
