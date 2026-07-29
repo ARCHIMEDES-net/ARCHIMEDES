@@ -107,7 +107,7 @@ jobs:
             --exclude storage.buckets_vectors \
             --exclude storage.vector_indexes
 
-          pg17_image="ghcr.io/supabase/postgres:17.6.1.143"
+          pg17_image="ghcr.io/supabase/postgres:17.6.1.143@sha256:80d7b27c3e8d77cfa7226eee9508671796da214781ff15a35b3670d7ad5ee453"
           docker run --rm --user "$(id -u):$(id -g)" --entrypoint pg_dump \
             --volume "$database:/backup" \
             "$pg17_image" "$SUPABASE_DB_URL" \
@@ -224,7 +224,7 @@ jobs:
             cd "$payload"
             sha256sum --check MANIFEST.sha256
           )
-          pg17_image="ghcr.io/supabase/postgres:17.6.1.143"
+          pg17_image="ghcr.io/supabase/postgres:17.6.1.143@sha256:80d7b27c3e8d77cfa7226eee9508671796da214781ff15a35b3670d7ad5ee453"
           docker run --rm --user "$(id -u):$(id -g)" --entrypoint pg_restore \
             --volume "$payload/database:/backup:ro" \
             "$pg17_image" --list /backup/raw-full.dump > /dev/null
