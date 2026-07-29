@@ -1,4 +1,5 @@
 // pages/api/cron/send-reminders.js
+import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 
 function getBearer(req) {
@@ -11,6 +12,13 @@ function mustEnv(name) {
   const v = process.env[name];
   if (!v) throw new Error(`Missing env: ${name}`);
   return v;
+}
+
+function secretsMatch(provided, expected) {
+  if (!provided || !expected) return false;
+  const providedDigest = crypto.createHash("sha256").update(provided).digest();
+  const expectedDigest = crypto.createHash("sha256").update(expected).digest();
+  return crypto.timingSafeEqual(providedDigest, expectedDigest);
 }
 
 function asDate(v) {
@@ -29,6 +37,8 @@ function pickStart(row) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "GET" && req.method !== "POST") {
     res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ ok: false, error: "Method not allowed" });
@@ -39,12 +49,15 @@ export default async function handler(req, res) {
     // mohou ukládat do logů, historie nebo analytiky a pro tajné údaje nejsou vhodné.
     const CRON_SECRET = mustEnv("CRON_SECRET");
     const token = getBearer(req);
-    if (!token || token !== CRON_SECRET) {
+    if (!secretsMatch(token, CRON_SECRET)) {
       return res.status(401).json({ ok: false, error: "Unauthorized" });
     }
 
     // --- MODE ---
     const mode = String(req.query?.mode || "").toLowerCase();
+    if (mode && !["preview", "run"].includes(mode)) {
+      return res.status(400).json({ ok: false, error: "Invalid mode" });
+    }
     const preview = mode === "preview";
 
     // --- SUPABASE ---
@@ -77,7 +90,8 @@ export default async function handler(req, res) {
       .order("start_at", { ascending: true });
 
     if (error) {
-      return res.status(500).json({ ok: false, error: error.message });
+      console.error("send-reminders query error:", error);
+      return res.status(500).json({ ok: false, error: "Reminder query failed" });
     }
 
     const events = Array.isArray(rows) ? rows : [];
@@ -131,6 +145,7 @@ export default async function handler(req, res) {
         : "RUN mode: posílání emailů zatím není implementované (jen plán).",
     });
   } catch (e) {
-    return res.status(500).json({ ok: false, error: e?.message || String(e) });
+    console.error("send-reminders error:", e);
+    return res.status(500).json({ ok: false, error: "Reminder job failed" });
   }
 }
