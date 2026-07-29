@@ -3,7 +3,8 @@ import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } }
 );
 
 const SITE_URL =
@@ -23,7 +24,10 @@ function isValidEmail(value) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -75,7 +79,7 @@ export default async function handler(req, res) {
         .maybeSingle();
 
     if (inviterProfileError) {
-      return res.status(400).json({ error: inviterProfileError.message });
+      throw inviterProfileError;
     }
 
     if (!inviterProfile?.active_organization_id) {
@@ -92,7 +96,7 @@ export default async function handler(req, res) {
         .maybeSingle();
 
     if (inviterMembershipError) {
-      return res.status(400).json({ error: inviterMembershipError.message });
+      throw inviterMembershipError;
     }
 
     if (!inviterMembership) {
@@ -116,7 +120,7 @@ export default async function handler(req, res) {
       .maybeSingle();
 
     if (organizationError) {
-      return res.status(400).json({ error: organizationError.message });
+      throw organizationError;
     }
 
     if (!organization || organization.org_type !== "school" || organization.status !== "active") {
@@ -149,7 +153,12 @@ export default async function handler(req, res) {
       });
 
     if (inviteError) {
-      return res.status(400).json({ error: inviteError.message });
+      if (/already|registered|exists/i.test(inviteError.message || "")) {
+        return res.status(409).json({
+          error: "Účet s tímto e-mailem už existuje.",
+        });
+      }
+      throw inviteError;
     }
 
     const invitedUserId = invitedUser?.user?.id;
@@ -175,7 +184,7 @@ export default async function handler(req, res) {
       );
 
     if (profileError) {
-      return res.status(400).json({ error: profileError.message });
+      throw profileError;
     }
 
     const { error: membershipError } = await supabaseAdmin
@@ -191,7 +200,7 @@ export default async function handler(req, res) {
       );
 
     if (membershipError) {
-      return res.status(400).json({ error: membershipError.message });
+      throw membershipError;
     }
 
     return res.status(200).json({
@@ -199,8 +208,7 @@ export default async function handler(req, res) {
       message: "Pozvánka byla odeslána a uživatel byl přiřazen do organizace.",
     });
   } catch (err) {
-    return res.status(500).json({
-      error: err.message || "Serverová chyba.",
-    });
+    console.error("invite-user error:", err);
+    return res.status(500).json({ error: "Pozvánku se nepodařilo dokončit." });
   }
 }

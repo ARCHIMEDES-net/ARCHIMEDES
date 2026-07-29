@@ -78,6 +78,8 @@ async function sendRegistrationEmail({
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
@@ -110,19 +112,23 @@ export default async function handler(req, res) {
     const cleanEmail = String(email || "").trim().toLowerCase();
     const cleanPhone = String(phone || "").trim();
 
-    if (!cleanName) return res.status(400).json({ error: "Vyplňte název školy." });
-    if (!cleanAddress) return res.status(400).json({ error: "Vyplňte adresu školy." });
+    if (!cleanName || cleanName.length > 160) {
+      return res.status(400).json({ error: "Název školy je povinný a může mít nejvýše 160 znaků." });
+    }
+    if (!cleanAddress || cleanAddress.length > 300) {
+      return res.status(400).json({ error: "Adresa školy je povinná a může mít nejvýše 300 znaků." });
+    }
     if (cleanLegalIdentifier && !/^\d{8}$/.test(cleanLegalIdentifier)) {
       return res.status(400).json({ error: "IČO musí obsahovat přesně 8 číslic." });
     }
-    if (cleanContactName.length < 2) {
-      return res.status(400).json({ error: "Vyplňte kontaktní osobu." });
+    if (cleanContactName.length < 2 || cleanContactName.length > 120) {
+      return res.status(400).json({ error: "Kontaktní osoba musí mít 2 až 120 znaků." });
     }
-    if (!isValidEmail(cleanEmail)) {
+    if (cleanEmail.length > 254 || !isValidEmail(cleanEmail)) {
       return res.status(400).json({ error: "Zadejte platný e-mail." });
     }
-    if (cleanPhone.length < 6) {
-      return res.status(400).json({ error: "Vyplňte platný telefon." });
+    if (cleanPhone.length < 6 || cleanPhone.length > 32) {
+      return res.status(400).json({ error: "Telefon musí mít 6 až 32 znaků." });
     }
 
     const { invite, municipality } = await resolveMunicipalityInvite({
