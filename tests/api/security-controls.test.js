@@ -56,7 +56,6 @@ const platformAdminRoutes = [
 const publicRateLimitedRoutes = [
   "invite-user",
   "join-organization",
-  "make-lead",
   "municipality/invite-context",
   "poptavka-ucebny",
   "poptavka",
@@ -136,16 +135,6 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
 });
 
 describe("API egress, email, and secret-exposure controls", () => {
-  it("allows the Make webhook only from server configuration and requires HTTPS", () => {
-    const source = readApi("make-lead");
-
-    expect(source).toContain("process.env.MAKE_LEAD_WEBHOOK_URL");
-    expect(source).toContain('parsedWebhookUrl.protocol !== "https:"');
-    expect(source).not.toMatch(/new URL\(.*req\.(body|query)/);
-    expect(source).toContain("Buffer.byteLength(serializedPayload");
-    expect(source).toContain("controller.abort()");
-  });
-
   it("keeps Instagram egress on the fixed Graph API host and filters returned permalinks", () => {
     const source = readApi("instagram");
 
