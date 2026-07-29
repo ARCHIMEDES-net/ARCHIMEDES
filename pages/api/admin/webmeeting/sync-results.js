@@ -138,9 +138,12 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("webmeeting sync results error:", error);
-    const status = error instanceof WebMeetingApiError ? error.status : 500;
+    const expectedError = error instanceof WebMeetingApiError;
+    const status = expectedError ? error.status : 500;
     return res.status(status).json({
-      error: error.message || "Výsledky vysílání se nepodařilo synchronizovat.",
+      error: expectedError
+        ? error.message
+        : "Výsledky vysílání se nepodařilo synchronizovat.",
     });
   }
 }

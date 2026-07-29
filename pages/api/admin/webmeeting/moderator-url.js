@@ -61,9 +61,12 @@ export default async function handler(req, res) {
     return res.status(200).json({ url });
   } catch (error) {
     console.error("webmeeting moderator url error:", error);
-    const status = error instanceof WebMeetingApiError ? error.status : 500;
+    const expectedError = error instanceof WebMeetingApiError;
+    const status = expectedError ? error.status : 500;
     return res.status(status).json({
-      error: error.message || "Moderátorský vstup se nepodařilo vytvořit.",
+      error: expectedError
+        ? error.message
+        : "Moderátorský vstup se nepodařilo vytvořit.",
     });
   }
 }
