@@ -26,6 +26,8 @@ export function createSupabaseMock({
       const query = {
         table,
         filters: {},
+        orFilters: [],
+        orderBy: [],
         mutation: null,
       };
       queries.push(query);
@@ -51,6 +53,14 @@ export function createSupabaseMock({
         }),
         in: vi.fn((field, value) => {
           query.filters[field] = value;
+          return builder;
+        }),
+        or: vi.fn((value) => {
+          query.orFilters.push(value);
+          return builder;
+        }),
+        order: vi.fn((field, options) => {
+          query.orderBy.push({ field, options });
           return builder;
         }),
         update: vi.fn((value) => {
