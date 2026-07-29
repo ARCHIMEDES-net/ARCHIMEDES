@@ -5,6 +5,7 @@ import "../styles/globals.css";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import Link from "next/link";
 import Script from "next/script";
 import PublicHeader from "../components/PublicHeader";
 import FloatingJoinCta from "../components/FloatingJoinCta";
@@ -456,12 +457,12 @@ gtag('config', '${GA_MEASUREMENT_ID}', { anonymize_ip: true });`}
           <p style={{ margin: 0, fontSize: "0.92rem", lineHeight: 1.5, color: "#e5e7eb" }}>
             S vaším souhlasem použijeme Google Analytics k anonymizovanému měření
             návštěvnosti. Bez souhlasu analytické cookies neaktivujeme.{" "}
-            <a
+            <Link
               href="/ochrana-osobnich-udaju"
               style={{ color: "#f6c344", textDecoration: "underline" }}
             >
               Více informací
-            </a>
+            </Link>
           </p>
           <div style={{ display: "flex", gap: "0.65rem", marginTop: "0.9rem", flexWrap: "wrap" }}>
             <button
