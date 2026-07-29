@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import { consumeAuthenticatedRateLimit } from "../../../lib/server/authenticatedRateLimit";
 import { requirePlatformAdmin } from "../../../lib/server/platformAdminApi";
 import { getServerSiteUrl } from "../../../lib/server/siteUrl";
 
@@ -14,6 +15,8 @@ const LICENSE_LABELS = {
   paid_annual: "Roční licence",
   classroom_free_12m: "12 měsíců zdarma pro obec s učebnou ARCHIMEDES",
 };
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function createAuthenticatedClient(token) {
   return createClient(
@@ -106,6 +109,8 @@ Tým ARCHIMEDES Live`,
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
@@ -126,8 +131,8 @@ export default async function handler(req, res) {
     const classroomEligibilityVerified =
       req.body?.classroomEligibilityVerified === true;
 
-    if (!organizationId) {
-      return res.status(400).json({ error: "Chybí ID organizace." });
+    if (!UUID_PATTERN.test(organizationId)) {
+      return res.status(400).json({ error: "ID organizace nemá platný formát." });
     }
     if (!LICENSE_LABELS[licensePlan]) {
       return res.status(400).json({ error: "Vyberte variantu licence." });
@@ -149,17 +154,40 @@ export default async function handler(req, res) {
       });
     }
 
-    const licenseStartedAt = parseDate(req.body?.licenseStartedAt) || new Date().toISOString();
-    const needsEndDate = ["paid_annual", "classroom_free_12m"].includes(licensePlan);
-    const licenseValidUntil = parseDate(
-      req.body?.licenseValidUntil,
-      needsEndDate,
-      true
-    );
+    let licenseStartedAt;
+    let licenseValidUntil;
+    try {
+      licenseStartedAt = parseDate(req.body?.licenseStartedAt) || new Date().toISOString();
+      const needsEndDate = ["paid_annual", "classroom_free_12m"].includes(licensePlan);
+      licenseValidUntil = parseDate(
+        req.body?.licenseValidUntil,
+        needsEndDate,
+        true
+      );
+    } catch (validationError) {
+      return res.status(400).json({ error: validationError.message });
+    }
 
     if (licenseValidUntil && new Date(licenseValidUntil) <= new Date(licenseStartedAt)) {
       return res.status(400).json({
         error: "Datum konce licence musí být později než datum začátku.",
+      });
+    }
+
+    const allowed = await consumeAuthenticatedRateLimit({
+      supabaseAdmin,
+      req,
+      route: "admin-activate-customer",
+      userId: admin.id,
+      resourceId: organizationId,
+      limit: 10,
+      windowSeconds: 10 * 60,
+    });
+
+    if (!allowed) {
+      res.setHeader("Retry-After", "600");
+      return res.status(429).json({
+        error: "Aktivace byla spuštěna příliš mnohokrát. Zkuste to prosím později.",
       });
     }
 
@@ -183,7 +211,13 @@ export default async function handler(req, res) {
     const contactEmail = String(customer.contact_email || "").trim().toLowerCase();
     const contactName = String(customer.contact_name || "").trim();
 
-    if (!contactEmail || !contactName) {
+    if (
+      !contactEmail ||
+      contactEmail.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail) ||
+      contactName.length < 2 ||
+      contactName.length > 120
+    ) {
       return res.status(409).json({
         error: "Zákazník nemá kompletní kontaktní osobu a nelze mu bezpečně vytvořit správce.",
       });
@@ -288,8 +322,6 @@ export default async function handler(req, res) {
       }
     }
     console.error("activate-customer error:", error);
-    return res.status(500).json({
-      error: error?.message || "Aktivaci zákazníka se nepodařilo dokončit.",
-    });
+    return res.status(500).json({ error: "Aktivaci zákazníka se nepodařilo dokončit." });
   }
 }
