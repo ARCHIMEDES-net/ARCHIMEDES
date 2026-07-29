@@ -11,6 +11,7 @@ import {
   createPublicEventStructuredData,
   fetchPublicProgramWindow,
 } from "../lib/publicEvents";
+import { serializeJsonLd } from "../lib/safeJsonLd";
 
 const formats = [
   {
@@ -75,7 +76,7 @@ export default function ProgramPage({ initialEvents = [] }) {
         {eventStructuredData ? (
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(eventStructuredData) }}
+            dangerouslySetInnerHTML={{ __html: serializeJsonLd(eventStructuredData) }}
           />
         ) : null}
       </Head>

@@ -15,6 +15,7 @@ import {
   createPublicEventStructuredData,
   fetchPublicProgramWindow,
 } from "../lib/publicEvents";
+import { serializeJsonLd } from "../lib/safeJsonLd";
 import { Button } from "../components/ui/button";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import StatsSection from "../components/home/StatsSection";
@@ -77,7 +78,7 @@ export default function Home({ initialEvents = [] }) {
         {eventStructuredData ? (
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(eventStructuredData) }}
+            dangerouslySetInnerHTML={{ __html: serializeJsonLd(eventStructuredData) }}
           />
         ) : null}
       </Head>

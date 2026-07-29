@@ -23,6 +23,7 @@ import FaqSection, { createFaqStructuredData } from "../components/FaqSection";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import SchoolBroadcastGallery from "../components/SchoolBroadcastGallery";
 import { Button } from "../components/ui/button";
+import { serializeJsonLd } from "../lib/safeJsonLd";
 
 const benefits = [
   {
@@ -132,7 +133,7 @@ export default function SkolyPage() {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(createFaqStructuredData(schoolFaqs)),
+            __html: serializeJsonLd(createFaqStructuredData(schoolFaqs)),
           }}
         />
       </Head>
