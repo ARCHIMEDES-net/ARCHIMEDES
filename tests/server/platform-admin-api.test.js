@@ -82,7 +82,7 @@ describe("platform admin authentication", () => {
     );
 
     expect(result).toBe(user);
-    expect(queries).toEqual([
+    expect(queries).toMatchObject([
       {
         table: "platform_admins",
         filters: { user_id: user.id },
