@@ -166,12 +166,13 @@ export default async function handler(req, res) {
     return res.status(200).json({ url });
   } catch (error) {
     console.error("webmeeting viewer join error:", error);
-    const status =
-      error instanceof BroadcastAccessError || error instanceof WebMeetingApiError
-        ? error.status
-        : 500;
+    const expectedError =
+      error instanceof BroadcastAccessError || error instanceof WebMeetingApiError;
+    const status = expectedError ? error.status : 500;
     return res.status(status).json({
-      error: error.message || "Vstup do vysílání se nepodařilo připravit.",
+      error: expectedError
+        ? error.message
+        : "Vstup do vysílání se nepodařilo připravit.",
     });
   }
 }

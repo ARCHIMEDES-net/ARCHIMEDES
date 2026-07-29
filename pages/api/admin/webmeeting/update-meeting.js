@@ -117,9 +117,12 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("webmeeting update meeting error:", error);
-    const status = error instanceof WebMeetingApiError ? error.status : 500;
+    const expectedError = error instanceof WebMeetingApiError;
+    const status = expectedError ? error.status : 500;
     return res.status(status).json({
-      error: error.message || "Změny se nepodařilo propsat do WebMeetingu.",
+      error: expectedError
+        ? error.message
+        : "Změny se nepodařilo propsat do WebMeetingu.",
     });
   }
 }

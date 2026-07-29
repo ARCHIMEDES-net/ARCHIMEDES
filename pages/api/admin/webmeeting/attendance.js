@@ -102,7 +102,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error("webmeeting attendance error:", error);
     return res.status(500).json({
-      error: error.message || "Seznam účastníků se nepodařilo načíst.",
+      error: "Seznam účastníků se nepodařilo načíst.",
     });
   }
 }

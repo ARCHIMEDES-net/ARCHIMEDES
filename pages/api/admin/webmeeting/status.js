@@ -64,11 +64,14 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("webmeeting status error:", error);
-    const status = error instanceof WebMeetingApiError ? error.status : 500;
+    const expectedError = error instanceof WebMeetingApiError;
+    const status = expectedError ? error.status : 500;
     return res.status(status).json({
       configured: true,
       connected: false,
-      error: error.message || "Spojení s WebMeeting API se nepodařilo ověřit.",
+      error: expectedError
+        ? error.message
+        : "Spojení s WebMeeting API se nepodařilo ověřit.",
     });
   }
 }
