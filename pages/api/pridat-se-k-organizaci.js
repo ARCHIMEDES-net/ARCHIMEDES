@@ -1,4 +1,5 @@
 export default function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store");
   res.setHeader("Allow", "GET");
   return res.status(410).json({
     error:
