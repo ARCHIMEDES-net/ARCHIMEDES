@@ -23,7 +23,6 @@ const dependencies = vi.hoisted(() => {
     builder,
     supabase,
     createClient: vi.fn(() => supabase),
-    consumePublicRateLimit: vi.fn(),
   };
 });
 
@@ -31,20 +30,13 @@ vi.mock("@supabase/supabase-js", () => ({
   createClient: dependencies.createClient,
 }));
 
-vi.mock("../../lib/server/publicRateLimit", () => ({
-  consumePublicRateLimit: dependencies.consumePublicRateLimit,
-}));
-
 import cronHandler from "../../pages/api/cron/send-reminders";
 import instagramHandler from "../../pages/api/instagram";
-import makeLeadHandler from "../../pages/api/make-lead";
 
 const environmentKeys = [
   "CRON_SECRET",
   "SUPABASE_URL",
   "SUPABASE_SERVICE_ROLE_KEY",
-  "MAKE_LEAD_WEBHOOK_URL",
-  "MAKE_WEBHOOK_URL",
   "INSTAGRAM_ACCESS_TOKEN",
   "INSTAGRAM_ACCOUNT_ID",
   "INSTAGRAM_GRAPH_API_VERSION",
@@ -56,8 +48,6 @@ const originalEnvironment = Object.fromEntries(
 beforeEach(() => {
   dependencies.createClient.mockClear();
   dependencies.supabase.from.mockClear();
-  dependencies.consumePublicRateLimit.mockReset();
-  dependencies.consumePublicRateLimit.mockResolvedValue(true);
   dependencies.queryState.result = { data: [], error: null };
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
@@ -73,134 +63,6 @@ afterEach(() => {
       process.env[key] = originalEnvironment[key];
     }
   }
-});
-
-describe("Make lead webhook endpoint", () => {
-  beforeEach(() => {
-    process.env.MAKE_LEAD_WEBHOOK_URL = "https://hooks.example.com/lead";
-  });
-
-  it("returns a retryable denial without contacting the webhook", async () => {
-    dependencies.consumePublicRateLimit.mockResolvedValueOnce(false);
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
-
-    const { res } = await invoke(makeLeadHandler, {
-      method: "POST",
-      body: { email: "person@example.com", name: "Person" },
-    });
-
-    expect(res.statusCode).toBe(429);
-    expect(res.getHeader("retry-after")).toBe("3600");
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    [null, 400, "Invalid payload"],
-    [[], 400, "Invalid payload"],
-    [{ email: "invalid", name: "Person" }, 400, "Invalid email"],
-    [{ email: "person@example.com", name: "x" }, 400, "Invalid name"],
-  ])("validates the webhook payload before egress", async (body, status, error) => {
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
-
-    const { res } = await invoke(makeLeadHandler, { method: "POST", body });
-
-    expect(res.statusCode).toBe(status);
-    expect(res.body).toMatchObject({ ok: false, error });
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("rejects oversized object payloads", async () => {
-    const body = Object.fromEntries(
-      Array.from({ length: 51 }, (_, index) => [`field-${index}`, "value"])
-    );
-
-    const { res } = await invoke(makeLeadHandler, { method: "POST", body });
-
-    expect(res.statusCode).toBe(413);
-  });
-
-  it("silently accepts honeypot submissions without egress", async () => {
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
-
-    const { res } = await invoke(makeLeadHandler, {
-      method: "POST",
-      body: {
-        company: "bot-filled",
-        email: "bot@example.com",
-        name: "Bot",
-      },
-    });
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ ok: true });
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("rejects non-HTTPS webhook configuration before egress", async () => {
-    process.env.MAKE_LEAD_WEBHOOK_URL = "http://internal.example/lead";
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
-
-    const { res } = await invoke(makeLeadHandler, {
-      method: "POST",
-      body: { email: "person@example.com", name: "Person" },
-    });
-
-    expect(res.statusCode).toBe(500);
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("posts only the sanitized payload to the configured HTTPS webhook", async () => {
-    const fetchMock = vi.fn(async () => ({ ok: true, status: 200 }));
-    vi.stubGlobal("fetch", fetchMock);
-
-    const { res } = await invoke(makeLeadHandler, {
-      method: "POST",
-      body: {
-        company: "",
-        email: " person@example.com ",
-        contact_name: " Person Name ",
-        campaign: "summer",
-      },
-    });
-
-    expect(res.statusCode).toBe(200);
-    expect(fetchMock).toHaveBeenCalledWith(
-      new URL("https://hooks.example.com/lead"),
-      expect.objectContaining({
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: expect.any(AbortSignal),
-      })
-    );
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
-      email: "person@example.com",
-      contact_name: "Person Name",
-      campaign: "summer",
-    });
-  });
-
-  it("maps upstream rejection to a gateway error", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => ({
-        ok: false,
-        status: 503,
-        statusText: "Unavailable",
-      }))
-    );
-
-    const { res } = await invoke(makeLeadHandler, {
-      method: "POST",
-      body: { email: "person@example.com", name: "Person" },
-    });
-
-    expect(res.statusCode).toBe(502);
-    expect(res.body).toEqual({ ok: false, error: "Make webhook failed" });
-  });
 });
 
 describe("Instagram feed endpoint", () => {

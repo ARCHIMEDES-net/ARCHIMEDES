@@ -17,7 +17,6 @@ const guardedRoutes = [
   ["instagram", () => import("../../pages/api/instagram"), "POST", "GET"],
   ["invite-user", () => import("../../pages/api/invite-user"), "GET", "POST"],
   ["join-organization", () => import("../../pages/api/join-organization"), "GET", "POST"],
-  ["make-lead", () => import("../../pages/api/make-lead"), "GET", "POST"],
   ["municipality/invite-context", () => import("../../pages/api/municipality/invite-context"), "GET", "POST"],
   [
     "municipality/organization-invites",

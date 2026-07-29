@@ -51,6 +51,12 @@ souborů do tohoto adresáře.
   - před a po aplikaci se shodovaly souhrnné počty organizací, členství,
     profilů a objednávek;
   - testovací obec zůstala neaktivní a připravená k opakování aktivace.
+- `20260729184710_retire_legacy_lead_make_webhook.sql`
+  - v produkci aplikováno 29. 7. 2026 po úspěšném CI a Vercel deploymentu;
+  - odstraněn pouze trigger `public.leads.new_lead_notification`;
+  - tabulka `leads`, RLS, všech 33 existujících záznamů, 13 sloupců,
+    spravovaná funkce `supabase_functions.http_request` i auditní historie
+    webhooku zůstaly beze změny.
 - Aplikační kód používající `0014` zatím nebyl sloučen ani nasazen.
 - Následuje řízený test objednávka → aktivace → pozvánka → registrace
   a ověření negativních scénářů před produkčním nasazením aplikace.
