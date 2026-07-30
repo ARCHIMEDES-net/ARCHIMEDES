@@ -50,7 +50,10 @@ export default function JoinBroadcastButton({
   const session = Array.isArray(event?.broadcast_sessions)
     ? event.broadcast_sessions[0]
     : event?.broadcast_sessions || event?.broadcast_session;
-  const state = forceDynamicJoin && session?.external_meeting_id
+  const hasExternalMeeting = Boolean(
+    session?.external_meeting_id || session?.has_external_meeting
+  );
+  const state = forceDynamicJoin && hasExternalMeeting
     ? {
         state: "join",
         label: "Vstoupit do testovacího vysílání",
