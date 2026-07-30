@@ -5,20 +5,16 @@ import {
 } from "../../lib/portalBroadcastSessions";
 
 function createSupabaseMock(sessionRows = [], error = null) {
-  const inMock = vi.fn().mockResolvedValue({ data: sessionRows, error });
-  const selectMock = vi.fn(() => ({ in: inMock }));
-  const fromMock = vi.fn(() => ({ select: selectMock }));
+  const rpcMock = vi.fn().mockResolvedValue({ data: sessionRows, error });
 
   return {
-    client: { from: fromMock },
-    fromMock,
-    selectMock,
-    inMock,
+    client: { rpc: rpcMock },
+    rpcMock,
   };
 }
 
 describe("attachPortalBroadcastSessions", () => {
-  it("loads only the narrow portal view and attaches sessions by event", async () => {
+  it("loads only the narrow portal RPC and attaches sessions by event", async () => {
     const mock = createSupabaseMock([
       { id: "s2", event_id: "e2", status: "scheduled" },
       { id: "s1", event_id: "e1", status: "finished" },
@@ -30,8 +26,9 @@ describe("attachPortalBroadcastSessions", () => {
       { id: "e3", title: "Bez vysílání" },
     ]);
 
-    expect(mock.fromMock).toHaveBeenCalledWith("portal_broadcast_sessions");
-    expect(mock.inMock).toHaveBeenCalledWith("event_id", ["e1", "e2", "e3"]);
+    expect(mock.rpcMock).toHaveBeenCalledWith("get_portal_broadcast_sessions", {
+      p_event_ids: ["e1", "e2", "e3"],
+    });
     expect(result[0].broadcast_sessions).toEqual([
       { id: "s1", event_id: "e1", status: "finished" },
     ]);
@@ -44,16 +41,16 @@ describe("attachPortalBroadcastSessions", () => {
   it("does not query Supabase for an empty event collection", async () => {
     const mock = createSupabaseMock();
     await expect(attachPortalBroadcastSessions(mock.client, [])).resolves.toEqual([]);
-    expect(mock.fromMock).not.toHaveBeenCalled();
+    expect(mock.rpcMock).not.toHaveBeenCalled();
   });
 
-  it("propagates view query errors instead of silently using the base table", async () => {
-    const error = new Error("view unavailable");
+  it("propagates RPC errors instead of silently using the base table", async () => {
+    const error = new Error("RPC unavailable");
     const mock = createSupabaseMock([], error);
 
     await expect(
       attachPortalBroadcastSessions(mock.client, [{ id: "e1" }])
-    ).rejects.toThrow("view unavailable");
+    ).rejects.toThrow("RPC unavailable");
   });
 });
 
