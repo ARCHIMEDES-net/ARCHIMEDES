@@ -9,6 +9,7 @@ import { getStreamUrl } from "../../../lib/broadcastState";
 import { resolveLicenseMode } from "../../../lib/licenseMode";
 import { supabase } from "../../../lib/supabaseClient";
 import { fetchMyOrganization } from "../../../lib/myOrganizations";
+import { attachPortalBroadcastSession } from "../../../lib/portalBroadcastSessions";
 
 const BUCKET = "posters";
 
@@ -173,32 +174,22 @@ export default function UdalostDetail() {
       setLoading(true);
       setErr("");
 
-      const { data, error } = await supabase
-        .from("events")
-        .select(`
-          *,
-          broadcast_sessions (
-            id,
-            event_id,
-            status,
-            viewer_url,
-            recording_url,
-            recording_status,
-            starts_at,
-            external_meeting_id
-          )
-        `)
-        .eq("id", id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from("events")
+          .select("*")
+          .eq("id", id)
+          .single();
 
-      if (error) {
-        setErr(error.message);
+        if (error) throw error;
+
+        const rowWithSession = await attachPortalBroadcastSession(supabase, data);
+        setRow(rowWithSession);
+      } catch (error) {
+        setErr(error?.message || "Událost se nepodařilo načíst.");
+      } finally {
         setLoading(false);
-        return;
       }
-
-      setRow(data);
-      setLoading(false);
     }
 
     load();
@@ -362,7 +353,7 @@ export default function UdalostDetail() {
   const broadcastSession = Array.isArray(row?.broadcast_sessions)
     ? row.broadcast_sessions[0]
     : row?.broadcast_sessions;
-  const hasWebMeetingRoom = Boolean(broadcastSession?.external_meeting_id);
+  const hasWebMeetingRoom = Boolean(broadcastSession?.has_external_meeting);
   const worksheetUrl = row?.worksheet_url || "";
   const posterUrl = useMemo(() => resolvePosterUrl(row), [row]);
 
