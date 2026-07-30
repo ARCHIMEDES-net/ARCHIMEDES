@@ -1,9 +1,8 @@
--- Pending security change for GitHub issue #73.
+-- Phase 1 of the controlled rollout for GitHub issue #73.
 --
--- This file is intentionally outside supabase/migrations while issue #81
--- (migration-history reconciliation) remains open. Do not apply it blindly.
--- Apply only together with the portal query changes and the verification steps
--- described below.
+-- This migration adds only the narrow attendee RPC. It intentionally leaves
+-- the existing broadcast_sessions grants and RLS policies unchanged until the
+-- separate compatibility window and production smoke tests have succeeded.
 
 begin;
 
