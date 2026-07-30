@@ -30,7 +30,7 @@ souborů zůstává beze změny v
 čisté databázi se již přímo nespouští.
 
 Ručně spuštěný GitHub Actions běh
-[`30542798172`](https://github.com/ARCHIMEDES-net/ARCHIMEDES/actions/runs/30542798172)
+[`30543283033`](https://github.com/ARCHIMEDES-net/ARCHIMEDES/actions/runs/30543283033)
 ověřil následující postup:
 
 1. nový schema-only dump produkčního `public` schématu;

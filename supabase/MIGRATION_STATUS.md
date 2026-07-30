@@ -74,7 +74,7 @@ souborů do tohoto adresáře.
   `supabase/migration_history/pre_baseline_2026-07-30` a není součástí
   aktivního replaye.
 - GitHub Actions run
-  [`30542798172`](https://github.com/ARCHIMEDES-net/ARCHIMEDES/actions/runs/30542798172)
+  [`30543283033`](https://github.com/ARCHIMEDES-net/ARCHIMEDES/actions/runs/30543283033)
   vytvořil čistou lokální Supabase databázi, přehrál celý aktivní řetězec a
   potvrdil nulový byte-for-byte schema diff vůči novému read-only produkčnímu
   exportu.

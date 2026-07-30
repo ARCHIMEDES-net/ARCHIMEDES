@@ -28,7 +28,7 @@ application functions.
 ## Reproducible baseline fingerprint
 
 GitHub Actions run
-[`30542798172`](https://github.com/ARCHIMEDES-net/ARCHIMEDES/actions/runs/30542798172)
+[`30543283033`](https://github.com/ARCHIMEDES-net/ARCHIMEDES/actions/runs/30543283033)
 captured production read-only, replayed the active migration chain in a clean
 local Supabase stack, and dumped the replayed `public` schema with the same
 Supabase CLI version.
