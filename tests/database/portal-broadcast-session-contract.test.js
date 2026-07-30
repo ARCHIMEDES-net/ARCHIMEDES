@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const sqlPath = path.join(
   process.cwd(),
-  "supabase/pending/0073_portal_broadcast_sessions_view.sql"
+  "supabase/pending/0073_get_portal_broadcast_sessions_rpc.sql"
 );
 const sql = fs.readFileSync(sqlPath, "utf8").toLowerCase();
 
