@@ -3008,6 +3008,8 @@ GRANT ALL ON TABLE "public"."announcements" TO "service_role";
 
 
 
+REVOKE ALL ON TABLE "public"."api_rate_limits" FROM "anon";
+REVOKE ALL ON TABLE "public"."api_rate_limits" FROM "authenticated";
 GRANT ALL ON TABLE "public"."api_rate_limits" TO "service_role";
 
 
@@ -3156,6 +3158,8 @@ GRANT ALL ON TABLE "public"."marketplace_posts" TO "service_role";
 
 
 
+REVOKE ALL ON TABLE "public"."municipality_organization_invites" FROM "anon";
+REVOKE ALL ON TABLE "public"."municipality_organization_invites" FROM "authenticated";
 GRANT ALL ON TABLE "public"."municipality_organization_invites" TO "service_role";
 
 
@@ -3292,7 +3296,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
-
 
 
 
