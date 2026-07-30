@@ -18,6 +18,7 @@ import {
   getArchiveVideoUrl,
   getRecordingUrl,
 } from "../../lib/archiveRecording";
+import { attachPortalBroadcastSessions } from "../../lib/portalBroadcastSessions";
 
 function safeDate(value) {
   if (!value) return null;
@@ -248,40 +249,41 @@ export default function Archiv() {
       setLoading(true);
       setErr("");
 
-      const { data, error } = await supabase
-        .from("events")
-        .select(
-          `
-            id,
-            title,
-            starts_at,
-            category,
-            audience_groups,
-            audience,
-            stream_url,
-            worksheet_url,
-            is_published,
-            poster_url,
-            broadcast_sessions (
-              recording_url,
-              recording_status,
-              viewer_url,
-              status
-            )
-          `
-        )
-        .order("starts_at", { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from("events")
+          .select(
+            `
+              id,
+              title,
+              starts_at,
+              category,
+              audience_groups,
+              audience,
+              stream_url,
+              worksheet_url,
+              is_published,
+              poster_url
+            `
+          )
+          .order("starts_at", { ascending: false });
 
-      if (!isMounted) return;
+        if (error) throw error;
 
-      if (error) {
-        setErr(error.message || "Chyba načítání");
+        const rowsWithSessions = await attachPortalBroadcastSessions(
+          supabase,
+          Array.isArray(data) ? data : []
+        );
+
+        if (!isMounted) return;
+        setRows(rowsWithSessions);
+      } catch (error) {
+        if (!isMounted) return;
+        setErr(error?.message || "Chyba načítání");
         setRows([]);
-      } else {
-        setRows(Array.isArray(data) ? data : []);
+      } finally {
+        if (isMounted) setLoading(false);
       }
-
-      setLoading(false);
     }
 
     loadLicense();
