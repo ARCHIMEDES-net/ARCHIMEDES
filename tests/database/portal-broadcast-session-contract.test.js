@@ -8,9 +8,12 @@ const sqlPath = path.join(
 );
 const sql = fs.readFileSync(sqlPath, "utf8").toLowerCase();
 
-describe("portal_broadcast_sessions security contract", () => {
-  it("uses a security-invoker view", () => {
-    expect(sql).toContain("with (security_invoker = true)");
+describe("get_portal_broadcast_sessions security contract", () => {
+  it("uses a narrowly scoped security-definer RPC", () => {
+    expect(sql).toContain("create or replace function public.get_portal_broadcast_sessions");
+    expect(sql).toContain("security definer");
+    expect(sql).toContain("set search_path = ''");
+    expect(sql).toContain("where auth.uid() is not null");
   });
 
   it("does not expose privileged or diagnostic columns", () => {
@@ -41,16 +44,16 @@ describe("portal_broadcast_sessions security contract", () => {
   });
 
   it("requires both the session and event to be published", () => {
-    expect(sql).toContain("where session.is_published = true");
+    expect(sql).toContain("session.is_published = true");
     expect(sql).toContain("event.is_published = true");
   });
 
-  it("grants attendee access only to authenticated users", () => {
+  it("grants execution only to authenticated callers and service role", () => {
     expect(sql).toContain(
-      "grant select on public.portal_broadcast_sessions to authenticated"
+      "grant execute on function public.get_portal_broadcast_sessions(uuid[]) to authenticated"
     );
     expect(sql).toContain(
-      "revoke all on public.portal_broadcast_sessions from anon"
+      "revoke all on function public.get_portal_broadcast_sessions(uuid[]) from anon"
     );
   });
 });
