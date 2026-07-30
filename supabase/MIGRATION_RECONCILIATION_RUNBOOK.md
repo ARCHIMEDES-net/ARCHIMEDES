@@ -23,7 +23,7 @@ Uložit jako auditní přílohy:
 
 ```bash
 supabase migration list --linked
-supabase db dump --linked --schema-only --file production-schema.sql
+supabase db dump --linked --schema public --file production-schema.sql
 find supabase/migrations -maxdepth 1 -type f -name '*.sql' | sort
 npm run check:migrations
 ```

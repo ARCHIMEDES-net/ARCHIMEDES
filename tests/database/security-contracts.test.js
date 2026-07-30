@@ -3,6 +3,8 @@ import path from "path";
 import { describe, expect, it } from "vitest";
 
 const repositoryRoot = process.cwd();
+const migrationArchive =
+  "supabase/migration_history/pre_baseline_2026-07-30";
 
 function read(relativePath) {
   return fs.readFileSync(path.join(repositoryRoot, relativePath), "utf8");
@@ -28,13 +30,13 @@ function bucketUpdate(sql, bucketId) {
 
 describe("Supabase RLS and privileged-table assumptions", () => {
   const onboarding = normalized(
-    "supabase/migrations/0014_municipality_onboarding.sql"
+    `${migrationArchive}/0014_municipality_onboarding.sql`
   );
   const backups = normalized(
-    "supabase/migrations/0004_backup_tables_rls_lockdown.sql"
+    `${migrationArchive}/0004_backup_tables_rls_lockdown.sql`
   );
   const broadcasts = normalized(
-    "supabase/migrations/0013_webmeeting_integration_foundation.sql"
+    `${migrationArchive}/0013_webmeeting_integration_foundation.sql`
   );
 
   it.each([
@@ -86,7 +88,7 @@ describe("Supabase RLS and privileged-table assumptions", () => {
 
   it("removes direct organization reads and exposes the scoped membership RPC", () => {
     const organizations = normalized(
-      "supabase/migrations/0008_protect_organization_registration_codes.sql"
+      `${migrationArchive}/0008_protect_organization_registration_codes.sql`
     );
 
     expect(organizations).toContain(
@@ -109,13 +111,13 @@ describe("Supabase RLS and privileged-table assumptions", () => {
 
 describe("Supabase SECURITY DEFINER and authorization hardening", () => {
   const onboarding = normalized(
-    "supabase/migrations/0014_municipality_onboarding.sql"
+    `${migrationArchive}/0014_municipality_onboarding.sql`
   );
   const functionHardening = normalized(
-    "supabase/migrations/20260729144014_harden_database_function_permissions.sql"
+    `${migrationArchive}/20260729144014_harden_database_function_permissions.sql`
   );
   const profileHardening = normalized(
-    "supabase/migrations/20260729141756_harden_profile_authorization.sql"
+    `${migrationArchive}/20260729141756_harden_profile_authorization.sql`
   );
 
   it("allows only service_role to execute the database rate limiter", () => {
@@ -195,7 +197,7 @@ describe("Supabase SECURITY DEFINER and authorization hardening", () => {
 describe("retired public database write paths", () => {
   it("retires only the legacy leads-to-Make trigger", () => {
     const retired = normalized(
-      "supabase/migrations/20260729184710_retire_legacy_lead_make_webhook.sql"
+      `${migrationArchive}/20260729184710_retire_legacy_lead_make_webhook.sql`
     );
 
     expect(retired).toContain(
@@ -211,7 +213,7 @@ describe("retired public database write paths", () => {
 
   it("revokes direct client inserts for active server-side forms", () => {
     const retired = normalized(
-      "supabase/migrations/0018_remove_legacy_public_insert_policies.sql"
+      `${migrationArchive}/0018_remove_legacy_public_insert_policies.sql`
     );
 
     for (const table of ["access_requests", "orders_start", "leads"]) {
@@ -229,7 +231,7 @@ describe("retired public database write paths", () => {
 
   it("revokes the retired demo onboarding insert path", () => {
     const retired = normalized(
-      "supabase/migrations/20260729142528_retire_demo_request_inserts.sql"
+      `${migrationArchive}/20260729142528_retire_demo_request_inserts.sql`
     );
 
     expect(retired).toContain(
@@ -243,7 +245,7 @@ describe("retired public database write paths", () => {
 
 describe("Supabase Storage and upload boundary assumptions", () => {
   const storage = read(
-    "supabase/migrations/20260729142822_harden_storage_authorization.sql"
+    "supabase/migrations/20260730123543_reapply_storage_authorization.sql"
   );
 
   it.each(["posters", "worksheets", "announcements"])(
