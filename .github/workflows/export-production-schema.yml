@@ -2,6 +2,11 @@ name: Export production schema
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - agent/add-production-schema-baseline-plan
+    paths:
+      - .github/workflows/export-production-schema.yml
 
 permissions:
   contents: read
@@ -43,7 +48,7 @@ jobs:
           version: latest
           github-token: ${{ github.token }}
 
-      - name: Link production project read-only for export
+      - name: Link production project for schema export
         shell: bash
         run: |
           set -euo pipefail
