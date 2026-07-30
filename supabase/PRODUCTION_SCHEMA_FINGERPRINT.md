@@ -2,7 +2,8 @@
 
 Captured read-only from Supabase project `gipikahmjlcynkqexxmz` on 2026-07-30.
 
-This file is a verification aid for the future schema-only baseline export. It is not a migration and must not be treated as sufficient replacement for `supabase db dump --schema-only`.
+This file records both the original catalog inventory and the completed
+schema-only baseline verification. It is not a migration.
 
 ## Current public schema inventory
 
@@ -18,8 +19,34 @@ Additional inventory observed during the same audit:
 - sequences: 1
 - application triggers: 9
 
+The original query that generated the four MD5 values above was not committed,
+so those hashes cannot be independently reproduced. The counts were reproduced.
+The function count includes four functions owned by the `unaccent` extension;
+`pg_dump` correctly excludes those extension-owned objects and exports 23
+application functions.
+
+## Reproducible baseline fingerprint
+
+GitHub Actions run
+[`30542798172`](https://github.com/ARCHIMEDES-net/ARCHIMEDES/actions/runs/30542798172)
+captured production read-only, replayed the active migration chain in a clean
+local Supabase stack, and dumped the replayed `public` schema with the same
+Supabase CLI version.
+
+| Artifact | SHA-256 |
+|---|---|
+| Production `public` schema | `5e9c54c4cf69fd46ccd36a94b4d8846461bb909faffdb5c11c9df3a40ad93da3` |
+| Replayed `public` schema | `5e9c54c4cf69fd46ccd36a94b4d8846461bb909faffdb5c11c9df3a40ad93da3` |
+
+The unified diff is empty (0 bytes). The dump contains 44 tables, 1 view,
+1 sequence, 23 application functions, 94 RLS policies, and 9 application
+triggers. No top-level `COPY` or `INSERT INTO` data statements, connection
+strings, private-key markers, or JWT-like values were found.
+
 ## Acceptance rule
 
-After restoring the generated baseline into a clean Supabase development branch, recalculate the fingerprints using the same catalog query. Counts and fingerprints must match before migration history repair is attempted.
+After any baseline change, repeat the `baseline-verify` workflow operation. The
+production and replayed dumps must have identical SHA-256 values and an empty
+diff before migration history repair is attempted.
 
 A mismatch means the baseline is incomplete or the production schema changed after capture. In that case, regenerate the dump and fingerprint before proceeding.

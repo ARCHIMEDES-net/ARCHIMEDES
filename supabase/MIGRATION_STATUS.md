@@ -63,6 +63,26 @@ souborů do tohoto adresáře.
 
 ## Stav nasazení
 
+### Produkční baseline
+
+- Aktivní řetězec začíná schema-only baseline migrací
+  `20260730080347_production_public_schema_baseline.sql`.
+- Po baseline následuje
+  `20260730123543_reapply_storage_authorization.sql`, která zachovává aplikační
+  Storage politiky a limity bucketů mimo schéma `public`.
+- Dosavadních 22 neúplných historických souborů je zachováno v
+  `supabase/migration_history/pre_baseline_2026-07-30` a není součástí
+  aktivního replaye.
+- GitHub Actions run
+  [`30542798172`](https://github.com/ARCHIMEDES-net/ARCHIMEDES/actions/runs/30542798172)
+  vytvořil čistou lokální Supabase databázi, přehrál celý aktivní řetězec a
+  potvrdil nulový byte-for-byte schema diff vůči novému read-only produkčnímu
+  exportu.
+- Oba schema-only dumpy mají SHA-256
+  `5e9c54c4cf69fd46ccd36a94b4d8846461bb909faffdb5c11c9df3a40ad93da3`.
+- Produkční migration ledger nebyl změněn. Jeho řízené srovnání zůstává
+  samostatným krokem podle issue #81 a vyžaduje výslovné schválení.
+
 1. Předmigrační `supabase/preflight/legacy_migration_readiness.sql` byl
    spuštěn read-only a jeho výstup zkontrolován.
 2. Databázové migrace `0008`, `0009` a `0010` byly aplikovány v tomto

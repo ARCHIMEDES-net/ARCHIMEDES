@@ -394,13 +394,13 @@ jobs:
           mapfile -t migrations < <(
             find supabase/migrations -maxdepth 1 -type f -name '*.sql' | sort
           )
-          if [[ ${#migrations[@]} -ne 1 ]]; then
-            echo "Expected exactly one active baseline migration" >&2
-            printf '%s\n' "${migrations[@]}" >&2
+          if [[ ${#migrations[@]} -lt 1 ]]; then
+            echo "No active migrations found" >&2
             exit 1
           fi
           if [[ ${migrations[0]} != *_production_public_schema_baseline.sql ]]; then
-            echo "The active migration is not the production baseline" >&2
+            echo "The production baseline must be the first active migration" >&2
+            printf '%s\n' "${migrations[@]}" >&2
             exit 1
           fi
 
