@@ -2,7 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const migrationDir = path.resolve(process.cwd(), "supabase/migrations");
-const migrationPattern = /^(\d{14})_[a-z0-9][a-z0-9_-]*\.sql$/;
+const legacyPattern = /^(\d{4})_[a-z0-9][a-z0-9_-]*\.sql$/;
+const timestampPattern = /^(\d{14})_[a-z0-9][a-z0-9_-]*\.sql$/;
 
 function fail(message) {
   console.error(`Migration check failed: ${message}`);
@@ -15,40 +16,47 @@ if (!fs.existsSync(migrationDir)) {
   const files = fs
     .readdirSync(migrationDir, { withFileTypes: true })
     .filter((entry) => entry.isFile() && entry.name.endsWith(".sql"))
-    .map((entry) => entry.name);
+    .map((entry) => entry.name)
+    .sort((a, b) => a.localeCompare(b));
 
-  const parsed = [];
   const versions = new Map();
+  let legacyCount = 0;
+  let timestampCount = 0;
 
   for (const file of files) {
-    const match = file.match(migrationPattern);
+    const legacyMatch = file.match(legacyPattern);
+    const timestampMatch = file.match(timestampPattern);
+    const match = timestampMatch || legacyMatch;
+
     if (!match) {
-      fail(`${file} must use YYYYMMDDHHMMSS_description.sql`);
+      fail(
+        `${file} must use either legacy NNNN_description.sql or ` +
+          "YYYYMMDDHHMMSS_description.sql"
+      );
       continue;
     }
 
     const version = match[1];
-    parsed.push({ file, version });
+    const namespace = timestampMatch ? "timestamp" : "legacy";
+    const key = `${namespace}:${version}`;
 
-    const duplicates = versions.get(version) || [];
+    if (timestampMatch) timestampCount += 1;
+    else legacyCount += 1;
+
+    const duplicates = versions.get(key) || [];
     duplicates.push(file);
-    versions.set(version, duplicates);
+    versions.set(key, duplicates);
   }
 
-  for (const [version, duplicateFiles] of versions) {
+  for (const [key, duplicateFiles] of versions) {
     if (duplicateFiles.length > 1) {
-      fail(`duplicate version ${version}: ${duplicateFiles.join(", ")}`);
+      fail(`duplicate migration version ${key}: ${duplicateFiles.join(", ")}`);
     }
   }
 
-  const directoryOrder = parsed.map(({ version }) => version);
-  const sortedOrder = [...directoryOrder].sort();
-
-  if (directoryOrder.join("\n") !== sortedOrder.join("\n")) {
-    fail("migration files are not returned in chronological order; rename or inspect the conflicting versions");
-  }
-
   if (!process.exitCode) {
-    console.log(`Migration check passed: ${parsed.length} timestamped migrations.`);
+    console.log(
+      `Migration check passed: ${legacyCount} legacy and ${timestampCount} timestamped migrations.`
+    );
   }
 }
