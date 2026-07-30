@@ -4,6 +4,15 @@ on:
   schedule:
     - cron: "17 1 * * *"
   workflow_dispatch:
+    inputs:
+      operation:
+        description: Operation to run
+        required: true
+        default: backup
+        type: choice
+        options:
+          - backup
+          - schema-export
 
 permissions:
   contents: read
@@ -14,6 +23,7 @@ concurrency:
 
 jobs:
   backup:
+    if: github.event_name == 'schedule' || inputs.operation == 'backup'
     name: Encrypted database and Storage backup
     runs-on: ubuntu-24.04
     timeout-minutes: 90
@@ -282,4 +292,72 @@ jobs:
             ${{ runner.temp }}/offsite-verify/${{ steps.snapshot.outputs.archive }}
             ${{ runner.temp }}/offsite-verify/${{ steps.snapshot.outputs.archive }}.sha256
           retention-days: 14
+          if-no-files-found: error
+
+  schema-export:
+    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'schema-export'
+    name: Export public schema without data
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+    steps:
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
+        with:
+          version: 2.110.0
+
+      - name: Validate schema export configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${SUPABASE_DB_URL:-}" ]]; then
+            echo "Missing required GitHub secret: SUPABASE_DB_URL" >&2
+            exit 1
+          fi
+
+      - name: Export and validate public schema
+        id: schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+
+          output_dir="$RUNNER_TEMP/production-schema"
+          dump="$output_dir/production-public-schema.sql"
+          checksum="$dump.sha256"
+          mkdir -p "$output_dir"
+
+          supabase db dump \
+            --db-url "$SUPABASE_DB_URL" \
+            --schema public \
+            --file "$dump"
+
+          test -s "$dump"
+          if grep -Eq '^[[:space:]]*(COPY|INSERT[[:space:]]+INTO)[[:space:]]' "$dump"; then
+            echo "Schema export unexpectedly contains table data statements" >&2
+            exit 1
+          fi
+          if grep -Fq -- "$SUPABASE_DB_URL" "$dump"; then
+            echo "Schema export unexpectedly contains the database connection string" >&2
+            exit 1
+          fi
+
+          (
+            cd "$output_dir"
+            sha256sum "$(basename "$dump")" > "$(basename "$checksum")"
+            sha256sum --check "$(basename "$checksum")"
+          )
+
+          echo "output-dir=$output_dir" >> "$GITHUB_OUTPUT"
+
+      - name: Upload schema-only artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: production-public-schema-${{ github.run_id }}
+          path: |
+            ${{ steps.schema.outputs.output-dir }}/production-public-schema.sql
+            ${{ steps.schema.outputs.output-dir }}/production-public-schema.sql.sha256
+          retention-days: 1
           if-no-files-found: error

@@ -29,7 +29,9 @@ Baseline nesmí obsahovat uživatelská ani provozní data.
 
 1. Zastavit slučování nových databázových migrací.
 2. Ověřit obnovitelný produkční backup.
-3. Exportovat schema-only dump podporovaným nástrojem Supabase CLI / `pg_dump`.
+3. Ručně spustit workflow `Supabase backup and recovery test` na pracovní
+   větvi s volbou `operation=schema-export`. Workflow použije existující
+   chráněný secret `SUPABASE_DB_URL` a vytvoří jednodenní schema-only artefakt.
 4. Exportovat minimálně schémata potřebná pro aplikaci a její vazby; systémová schémata Supabase nereplikovat ručně, pokud je vytváří nový Supabase projekt automaticky.
 5. Odstranit z dumpu vlastníky, session-specific nastavení a nedeterministické příkazy.
 6. Uložit baseline jako první timestamp migraci v samostatné větvi.
@@ -57,6 +59,7 @@ Baseline nesmí obsahovat uživatelská ani provozní data.
 ## Co se nesmí udělat
 
 - nevytvářet baseline ručním opisem pouze části schématu;
+- nepouštět schema export automaticky při `push` události z pracovní větve;
 - nepouštět současné migrace proti čisté produkční kopii bez baseline;
 - neprovádět `db push` proti produkci;
 - neměnit produkční ledger ručními SQL příkazy;
