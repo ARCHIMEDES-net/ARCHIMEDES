@@ -13,6 +13,7 @@ on:
         options:
           - backup
           - schema-export
+          - baseline-verify
 
 permissions:
   contents: read
@@ -361,3 +362,126 @@ jobs:
             ${{ steps.schema.outputs.output-dir }}/production-public-schema.sql.sha256
           retention-days: 1
           if-no-files-found: error
+
+  baseline-verify:
+    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'baseline-verify'
+    name: Replay baseline and compare with production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
+        with:
+          version: 2.110.0
+
+      - name: Validate baseline verification configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${SUPABASE_DB_URL:-}" ]]; then
+            echo "Missing required GitHub secret: SUPABASE_DB_URL" >&2
+            exit 1
+          fi
+
+          mapfile -t migrations < <(
+            find supabase/migrations -maxdepth 1 -type f -name '*.sql' | sort
+          )
+          if [[ ${#migrations[@]} -ne 1 ]]; then
+            echo "Expected exactly one active baseline migration" >&2
+            printf '%s\n' "${migrations[@]}" >&2
+            exit 1
+          fi
+          if [[ ${migrations[0]} != *_production_public_schema_baseline.sql ]]; then
+            echo "The active migration is not the production baseline" >&2
+            exit 1
+          fi
+
+      - name: Export current production public schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+
+          comparison="$RUNNER_TEMP/baseline-comparison"
+          mkdir -p "$comparison"
+
+          supabase db dump \
+            --db-url "$SUPABASE_DB_URL" \
+            --schema public \
+            --file "$comparison/production-public-schema.sql"
+
+          test -s "$comparison/production-public-schema.sql"
+          if grep -Eq '^[[:space:]]*(COPY|INSERT[[:space:]]+INTO)[[:space:]]' \
+              "$comparison/production-public-schema.sql"; then
+            echo "Production schema export unexpectedly contains table data" >&2
+            exit 1
+          fi
+          if grep -Eq \
+              '(postgres(ql)?://|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|eyJ[A-Za-z0-9_-]{10,}\.)' \
+              "$comparison/production-public-schema.sql"; then
+            echo "Production schema export unexpectedly contains a secret-like value" >&2
+            exit 1
+          fi
+
+      - name: Start clean Supabase and replay active migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          replay_project="$RUNNER_TEMP/baseline-replay"
+          mkdir -p "$replay_project"
+          cd "$replay_project"
+          supabase init
+          cp "$GITHUB_WORKSPACE"/supabase/migrations/*.sql \
+            "$replay_project/supabase/migrations/"
+          supabase start
+          supabase db reset
+
+      - name: Compare replayed schema with production
+        shell: bash
+        run: |
+          set -euo pipefail
+          comparison="$RUNNER_TEMP/baseline-comparison"
+          local_db="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+
+          supabase db dump \
+            --db-url "$local_db" \
+            --schema public \
+            --file "$comparison/replayed-public-schema.sql"
+
+          (
+            cd "$comparison"
+            sha256sum production-public-schema.sql \
+              replayed-public-schema.sql > SCHEMA.sha256
+            diff -u production-public-schema.sql replayed-public-schema.sql \
+              > schema.diff
+          )
+
+      - name: Stop clean Supabase
+        if: always()
+        shell: bash
+        run: |
+          replay_project="$RUNNER_TEMP/baseline-replay"
+          if [[ -f "$replay_project/supabase/config.toml" ]]; then
+            supabase stop --workdir "$replay_project" --no-backup
+          fi
+
+      - name: Upload baseline verification evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: baseline-verification-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/baseline-comparison/production-public-schema.sql
+            ${{ runner.temp }}/baseline-comparison/replayed-public-schema.sql
+            ${{ runner.temp }}/baseline-comparison/SCHEMA.sha256
+            ${{ runner.temp }}/baseline-comparison/schema.diff
+          retention-days: 1
+          if-no-files-found: warn
