@@ -439,6 +439,7 @@ jobs:
           mkdir -p "$replay_project"
           cd "$replay_project"
           supabase init
+          mkdir -p "$replay_project/supabase/migrations"
           cp "$GITHUB_WORKSPACE"/supabase/migrations/*.sql \
             "$replay_project/supabase/migrations/"
           supabase start
