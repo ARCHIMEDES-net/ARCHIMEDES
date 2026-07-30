@@ -1,0 +1,35 @@
+name: Migration history
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
+      - "scripts/check-supabase-migrations.mjs"
+      - "package.json"
+      - ".github/workflows/migration-history.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/migrations/**"
+      - "scripts/check-supabase-migrations.mjs"
+      - "package.json"
+      - ".github/workflows/migration-history.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate migration versions
+        run: npm run check:migrations
