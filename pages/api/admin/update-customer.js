@@ -16,14 +16,14 @@ const CONTRACT_STATUSES = ["pending", "accepted"];
 
 function cleanText(value, maxLength) {
   const clean = String(value || "").trim();
-  if (clean.length > maxLength) throw new Error("Zadaný text je příliš dlouhý.");
+  if (clean.length > maxLength) throw new Error("VALIDATION_TEXT_TOO_LONG");
   return clean || null;
 }
 
 function parseDate(value, required = false, endOfDay = false) {
   const clean = String(value || "").trim();
   if (!clean) {
-    if (required) throw new Error("Vyplňte datum konce licence.");
+    if (required) throw new Error("VALIDATION_END_DATE_REQUIRED");
     return null;
   }
 
@@ -32,7 +32,7 @@ function parseDate(value, required = false, endOfDay = false) {
       ? `${clean}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}Z`
       : clean
   );
-  if (Number.isNaN(date.getTime())) throw new Error("Datum licence není platné.");
+  if (Number.isNaN(date.getTime())) throw new Error("VALIDATION_DATE_INVALID");
   return date.toISOString();
 }
 
@@ -79,10 +79,22 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Samostatný zákazník nebyl nalezen." });
     }
 
-    const contactName = cleanText(req.body?.contactName, 120);
-    const contactEmail = cleanText(req.body?.contactEmail, 254)?.toLowerCase() || null;
-    const contactPhone = cleanText(req.body?.contactPhone, 60);
-    const registeredAddress = cleanText(req.body?.registeredAddress, 500);
+    let contactName;
+    let contactEmail;
+    let contactPhone;
+    let registeredAddress;
+    let licenseStartedAt;
+    let licenseValidUntil;
+
+    try {
+      contactName = cleanText(req.body?.contactName, 120);
+      contactEmail = cleanText(req.body?.contactEmail, 254)?.toLowerCase() || null;
+      contactPhone = cleanText(req.body?.contactPhone, 60);
+      registeredAddress = cleanText(req.body?.registeredAddress, 500);
+    } catch (_) {
+      return res.status(400).json({ error: "Některý zadaný text je příliš dlouhý." });
+    }
+
     const licensePlan = String(req.body?.licensePlan || "").trim();
     const billingStatus = String(req.body?.billingStatus || "").trim();
     const contractStatus = String(req.body?.contractStatus || "").trim();
@@ -103,9 +115,17 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Bezplatná licence musí být bez úhrady." });
     }
 
-    const needsEnd = ["paid_annual", "classroom_free_12m"].includes(licensePlan);
-    const licenseStartedAt = parseDate(req.body?.licenseStartedAt) || new Date().toISOString();
-    const licenseValidUntil = parseDate(req.body?.licenseValidUntil, needsEnd, true);
+    try {
+      const needsEnd = ["paid_annual", "classroom_free_12m"].includes(licensePlan);
+      licenseStartedAt = parseDate(req.body?.licenseStartedAt) || new Date().toISOString();
+      licenseValidUntil = parseDate(req.body?.licenseValidUntil, needsEnd, true);
+    } catch (validationError) {
+      const message =
+        validationError?.message === "VALIDATION_END_DATE_REQUIRED"
+          ? "Vyplňte datum konce licence."
+          : "Datum licence není platné.";
+      return res.status(400).json({ error: message });
+    }
 
     if (licenseValidUntil && new Date(licenseValidUntil) <= new Date(licenseStartedAt)) {
       return res.status(400).json({ error: "Konec licence musí být později než začátek." });
@@ -135,6 +155,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, organization: updated });
   } catch (error) {
     console.error("update-customer error:", error);
-    return res.status(500).json({ error: error?.message || "Změny se nepodařilo uložit." });
+    return res.status(500).json({ error: "Změny se nepodařilo uložit." });
   }
 }
