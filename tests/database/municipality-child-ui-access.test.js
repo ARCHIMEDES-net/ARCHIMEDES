@@ -1,0 +1,53 @@
+import fs from "fs";
+import path from "path";
+import { describe, expect, it } from "vitest";
+
+const root = process.cwd();
+const read = (relativePath) =>
+  fs.readFileSync(path.join(root, relativePath), "utf8");
+
+const normalized = (relativePath) =>
+  read(relativePath).replace(/\s+/g, " ").trim().toLowerCase();
+
+describe("municipality child organization UI access", () => {
+  it("allows accessible inherited organizations as active profile context", () => {
+    const migration = normalized(
+      "supabase/migrations/20260731135000_allow_accessible_active_organization.sql"
+    );
+
+    expect(migration).toContain(
+      "not public.can_view_organization(new.active_organization_id)"
+    );
+    expect(migration).not.toContain(
+      "the active organization must be an active membership"
+    );
+  });
+
+  it("loads all accessible organizations in the portal header", () => {
+    const header = read("components/PortalHeader.js");
+
+    expect(header).toContain("await fetchMyOrganizations(supabase)");
+    expect(header).toContain(
+      "nextOrganizations.find((org) => org.id === nextActiveOrganizationId)"
+    );
+    expect(header).not.toContain(
+      "fetchMyOrganizations(supabase, memberships.map"
+    );
+  });
+
+  it("authorizes the active portal context through the scoped organization RPC", () => {
+    const requireAuth = read("components/RequireAuth.js");
+    const dashboard = read("pages/portal/index.js");
+    const users = read("pages/portal/uzivatele.js");
+
+    expect(requireAuth).toContain("fetchMyOrganization");
+    expect(dashboard).toContain("fetchMyOrganization");
+    expect(users).toContain("fetchMyOrganization");
+
+    expect(requireAuth).not.toContain(
+      ".eq(\"organization_id\", profile.active_organization_id)"
+    );
+    expect(dashboard).not.toContain("membershipByActiveOrg");
+    expect(users).not.toContain("activeMembership");
+  });
+});
