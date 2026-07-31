@@ -39,12 +39,11 @@ function normalizeHttp(url) {
   return `https://${s}`;
 }
 
-// jednoduché „živé“ ikonky (bez dalších knihoven)
 function makeDotIcon({ variant = "active", pulse = false }) {
   const bg =
     variant === "planned"
-      ? "rgba(245,158,11,0.95)" // oranžová
-      : "rgba(37,99,235,0.95)"; // modrá
+      ? "rgba(245,158,11,0.95)"
+      : "rgba(37,99,235,0.95)";
 
   const ring =
     variant === "planned"
@@ -90,14 +89,15 @@ export default function SchoolsGrowthMap({
     return out;
   }, [items]);
 
-  const [year, setYear] = useState(() => initialYear || years[years.length - 1] || new Date().getFullYear());
+  const [year, setYear] = useState(
+    () => initialYear || years[years.length - 1] || new Date().getFullYear()
+  );
   const [showPlanned, setShowPlanned] = useState(showPlannedDefault);
 
   useEffect(() => {
     if (!years.length) return;
     if (!years.includes(year)) setYear(years[years.length - 1]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [years.length]);
+  }, [year, years]);
 
   const filtered = useMemo(() => {
     const y = year;
@@ -110,17 +110,18 @@ export default function SchoolsGrowthMap({
       const openedYear = yearFrom(r.archimedes_since) || yearFrom(r.created_at);
       if (!openedYear) return false;
 
-      // active ukazujeme jen do zvoleného roku
       if (status !== "planned") return openedYear <= y;
-
-      // planned ukazujeme vždy (nebo taky podle roku, pokud chceš)
       return true;
     });
   }, [items, year, showPlanned]);
 
   const stats = useMemo(() => {
-    const activeCount = filtered.filter((r) => String(r.status || "active") !== "planned").length;
-    const plannedCount = filtered.filter((r) => String(r.status || "active") === "planned").length;
+    const activeCount = filtered.filter(
+      (r) => String(r.status || "active") !== "planned"
+    ).length;
+    const plannedCount = filtered.filter(
+      (r) => String(r.status || "active") === "planned"
+    ).length;
     return { activeCount, plannedCount };
   }, [filtered]);
 
@@ -129,7 +130,6 @@ export default function SchoolsGrowthMap({
 
   return (
     <div style={{ width: "100%" }}>
-      {/* toolbar */}
       <div
         style={{
           display: "flex",
@@ -176,7 +176,6 @@ export default function SchoolsGrowthMap({
         </div>
       </div>
 
-      {/* map */}
       <div
         style={{
           width: "100%",
@@ -203,12 +202,11 @@ export default function SchoolsGrowthMap({
           {(filtered || []).map((r) => {
             const status = String(r.status || "active");
             const openedYear = yearFrom(r.archimedes_since) || yearFrom(r.created_at);
-
-            // pulse = body v aktuálním roce (wow efekt)
             const pulse = status !== "planned" && openedYear === year;
-
-            const icon = makeDotIcon({ variant: status === "planned" ? "planned" : "active", pulse });
-
+            const icon = makeDotIcon({
+              variant: status === "planned" ? "planned" : "active",
+              pulse,
+            });
             const web = normalizeHttp(r.website);
 
             return (
@@ -219,7 +217,7 @@ export default function SchoolsGrowthMap({
                   </div>
 
                   <div style={{ fontSize: 13, color: "rgba(0,0,0,0.75)" }}>
-                    {(r.city ? r.city : "")}
+                    {r.city ? r.city : ""}
                     {r.region ? `, ${r.region}` : ""}
                     {r.country ? `, ${r.country}` : ""}
                   </div>
@@ -265,7 +263,9 @@ export default function SchoolsGrowthMap({
                   </div>
 
                   <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>
-                    {status === "planned" ? "Stav: připravujeme" : `Otevřeno: ${openedYear || "—"}`}
+                    {status === "planned"
+                      ? "Stav: připravujeme"
+                      : `Otevřeno: ${openedYear || "—"}`}
                   </div>
                 </Popup>
               </Marker>
@@ -274,7 +274,6 @@ export default function SchoolsGrowthMap({
         </MapContainer>
       </div>
 
-      {/* CSS pro pulz */}
       <style jsx global>{`
         .al-dot {
           width: 18px;
