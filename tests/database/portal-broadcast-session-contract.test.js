@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const sqlPath = path.join(
   process.cwd(),
-  "supabase/pending/0073_get_portal_broadcast_sessions_rpc.sql"
+  "supabase/migrations/20260730170600_enforce_program_access_in_portal_broadcast_rpc.sql"
 );
 const sql = fs.readFileSync(sqlPath, "utf8").toLowerCase();
 
@@ -50,10 +50,10 @@ describe("get_portal_broadcast_sessions security contract", () => {
 
   it("grants execution only to authenticated callers and service role", () => {
     expect(sql).toContain(
-      "grant execute on function public.get_portal_broadcast_sessions(uuid[]) to authenticated"
+      "grant execute on function public.get_portal_broadcast_sessions(uuid[]) to authenticated, service_role"
     );
     expect(sql).toContain(
-      "revoke all on function public.get_portal_broadcast_sessions(uuid[]) from anon"
+      "revoke all on function public.get_portal_broadcast_sessions(uuid[]) from public, anon"
     );
   });
 });
