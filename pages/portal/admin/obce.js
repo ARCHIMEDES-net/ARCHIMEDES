@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
@@ -20,9 +21,16 @@ import {
 
 function formatDate(value) {
   if (!value) return "—";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString("cs-CZ");
+
+  const datePart = String(value).slice(0, 10);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart);
+  if (match) {
+    return `${Number(match[3])}. ${Number(match[2])}. ${match[1]}`;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString("cs-CZ");
 }
 
 function inputDate(value = new Date()) {
@@ -111,6 +119,7 @@ export default function AdminObcePage() {
     setError("");
     setMessage("");
     const nextDraft = createDraft();
+
     if (LICENSE_LABELS[row.requested_license_plan]) {
       nextDraft.licensePlan = row.requested_license_plan;
       if (["paid_annual", "classroom_free_12m"].includes(row.requested_license_plan)) {
@@ -120,6 +129,7 @@ export default function AdminObcePage() {
         nextDraft.billingStatus = "not_applicable";
       }
     }
+
     setDraft(nextDraft);
   }
 
@@ -261,8 +271,7 @@ export default function AdminObcePage() {
         <main className="mx-auto max-w-[1320px] px-6 py-10">
           <h1 className="text-2xl font-black text-navy-900">Zákazníci</h1>
           <p className="mt-2.5 max-w-[940px] text-muted">
-            Nový subjekt získá přístup až po kontrole smlouvy, varianty
-            licence, platnosti a fakturace.
+            Přehled hlavních zákazníků, jejich licence a navázaných organizací.
           </p>
 
           {error ? <Alert variant="error" className="mt-4">{error}</Alert> : null}
@@ -339,8 +348,7 @@ export default function AdminObcePage() {
                     className="mt-1 h-4 w-4"
                   />
                   <span className="text-sm font-semibold leading-relaxed text-amber-900">
-                    Ověřil/a jsem, že obec má učebnu ARCHIMEDES a splňuje
-                    podmínku pro prvních 12 měsíců zdarma.
+                    Ověřil/a jsem, že obec má učebnu ARCHIMEDES a splňuje podmínku pro prvních 12 měsíců zdarma.
                   </span>
                 </label>
               ) : null}
@@ -353,8 +361,7 @@ export default function AdminObcePage() {
                   className="mt-1 h-4 w-4"
                 />
                 <span className="text-sm leading-relaxed text-slate-700">
-                  Potvrzuji, že byla ověřena totožnost zákazníka, oprávnění
-                  kontaktní osoby a uzavření příslušné smlouvy.
+                  Potvrzuji, že byla ověřena totožnost zákazníka, oprávnění kontaktní osoby a uzavření příslušné smlouvy.
                 </span>
               </label>
 
@@ -401,7 +408,14 @@ export default function AdminObcePage() {
                   <TableRow key={row.id}>
                     <TableCell>{formatDate(row.created_at)}</TableCell>
                     <TableCell>{ORGANIZATION_LABELS[row.org_type] || row.org_type}</TableCell>
-                    <TableCell><div className="font-bold">{row.name}</div></TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/portal/admin/obce/${row.id}`}
+                        className="font-bold text-navy-900 underline decoration-slate-300 underline-offset-4 hover:decoration-navy-900"
+                      >
+                        {row.name}
+                      </Link>
+                    </TableCell>
                     <TableCell>{row.registration_number || "—"}</TableCell>
                     <TableCell>
                       {row.contact_name ? <div className="font-semibold">{row.contact_name}</div> : null}
@@ -412,7 +426,9 @@ export default function AdminObcePage() {
                       {row.license_plan ? (
                         <>
                           <div className="font-semibold">{LICENSE_LABELS[row.license_plan] || row.license_plan}</div>
-                          <div className="mt-1 text-xs text-slate-500">do {formatDate(row.license_valid_until)}</div>
+                          {row.license_valid_until ? (
+                            <div className="mt-1 text-xs text-slate-500">do {formatDate(row.license_valid_until)}</div>
+                          ) : null}
                         </>
                       ) : "—"}
                     </TableCell>
@@ -427,15 +443,20 @@ export default function AdminObcePage() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        type="button"
-                        onClick={() => openActivation(row)}
-                        disabled={row.license_status === "active"}
-                        variant="secondary"
-                        size="sm"
-                      >
-                        {row.license_status === "active" ? "Aktivní" : "Nastavit a aktivovat"}
-                      </Button>
+                      {row.license_status === "active" ? (
+                        <Button href={`/portal/admin/obce/${row.id}`} variant="secondary" size="sm">
+                          Detail
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          onClick={() => openActivation(row)}
+                          variant="secondary"
+                          size="sm"
+                        >
+                          Nastavit a aktivovat
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
