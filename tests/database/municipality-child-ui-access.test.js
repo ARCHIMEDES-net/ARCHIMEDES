@@ -28,11 +28,27 @@ describe("municipality child organization UI access", () => {
 
     expect(header).toContain("await fetchMyOrganizations(supabase)");
     expect(header).toContain(
-      "nextOrganizations.find((org) => org.id === nextActiveOrganizationId)"
+      "nextOrganizations.find(\n          (org) => org.id === nextActiveOrganizationId"
     );
+    expect(header).toContain(
+      "activeOrganization?.role_in_org === \"organization_admin\""
+    );
+    expect(header).not.toContain("membershipRows");
     expect(header).not.toContain(
       "fetchMyOrganizations(supabase, memberships.map"
     );
+  });
+
+  it("uses the RPC role when switching to an inherited organization", () => {
+    const header = read("components/PortalHeader.js");
+
+    expect(header).toContain(
+      "const selectedOrganization = organizations.find((org) => org.id === organizationId)"
+    );
+    expect(header).toContain(
+      "selectedOrganization.role_in_org === \"organization_admin\""
+    );
+    expect(header).not.toContain("const selectedMembership = await supabase");
   });
 
   it("authorizes the active portal context through the scoped organization RPC", () => {
