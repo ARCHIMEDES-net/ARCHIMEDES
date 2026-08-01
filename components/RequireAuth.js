@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
+import {
+  fetchMyOrganization,
+  fetchMyOrganizations,
+} from "../lib/myOrganizations";
 
 // Reuse a successful check only during the current client-side visit.
 // A full reload always performs the complete authorization check again.
@@ -25,52 +29,44 @@ export default function RequireAuth({ children }) {
       setChecking(false);
     }
 
-    async function resolveActiveMembership(userId, profile) {
-      const { data: membershipRows, error: membershipError } = await supabase
-        .from("organization_members")
-        .select("organization_id, role_in_org, status")
-        .eq("user_id", userId)
-        .eq("status", "active");
+    async function resolveActiveOrganization(userId, profile) {
+      if (profile?.active_organization_id) {
+        const activeOrganization = await fetchMyOrganization(
+          supabase,
+          profile.active_organization_id
+        );
 
-      if (membershipError) {
-        throw membershipError;
+        if (activeOrganization) {
+          return activeOrganization;
+        }
       }
 
-      const memberships = Array.isArray(membershipRows) ? membershipRows : [];
-      if (!memberships.length) {
+      const organizations = await fetchMyOrganizations(supabase);
+      if (!organizations.length) {
         return null;
       }
 
-      let resolved = profile?.active_organization_id
-        ? memberships.find(
-            (m) => m.organization_id === profile.active_organization_id
-          ) || null
-        : null;
+      if (organizations.length > 1) {
+        console.error("RequireAuth: ambiguous organizations", {
+          userId,
+          organizationIds: organizations.map((organization) => organization.id),
+          activeOrganizationId: profile?.active_organization_id || null,
+        });
+        return { ambiguous: true };
+      }
 
-      if (!resolved) {
-        if (memberships.length === 1) {
-          resolved = memberships[0];
-        } else {
-          console.error("RequireAuth: ambiguous memberships", {
-            userId,
-            organizationIds: memberships.map((membership) => membership.organization_id),
-            activeOrganizationId: profile?.active_organization_id || null,
-          });
-          return { ambiguous: true };
-        }
+      const resolved = organizations[0];
+      if (
+        resolved?.id &&
+        profile?.active_organization_id !== resolved.id
+      ) {
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({ active_organization_id: resolved.id })
+          .eq("id", userId);
 
-        if (
-          resolved?.organization_id &&
-          profile?.active_organization_id !== resolved.organization_id
-        ) {
-          try {
-            await supabase
-              .from("profiles")
-              .update({ active_organization_id: resolved.organization_id })
-              .eq("id", userId);
-          } catch (_e) {
-            // no-op
-          }
+        if (updateError) {
+          throw updateError;
         }
       }
 
@@ -109,9 +105,9 @@ export default function RequireAuth({ children }) {
           return;
         }
 
-        const activeMembership = await resolveActiveMembership(user.id, profile);
+        const activeOrganization = await resolveActiveOrganization(user.id, profile);
 
-        if (activeMembership?.ambiguous) {
+        if (activeOrganization?.ambiguous) {
           if (pathname === "/nastaveni-pristupu") {
             await allow();
           } else {
@@ -122,9 +118,9 @@ export default function RequireAuth({ children }) {
 
         const hasFullName = !!profile?.full_name?.trim();
         const profileComplete = hasFullName;
-        const hasOrganization = !!activeMembership?.organization_id;
+        const hasOrganization = !!activeOrganization?.id;
         const isOrgAdmin =
-          activeMembership?.role_in_org === "organization_admin";
+          activeOrganization?.role_in_org === "organization_admin";
         const isIndividual = profile?.user_type === "individual";
 
         const isProfilePage = pathname === "/portal/muj-profil";
@@ -133,7 +129,7 @@ export default function RequireAuth({ children }) {
         const isCreateOrganizationPage = pathname === "/create-organization";
         const isJoinPage = pathname === "/join";
 
-        // 1) Uživatel s aktivní organizací
+        // 1) Uživatel s aktivní přímo nebo zděděně dostupnou organizací
         if (hasOrganization) {
           if (isUsersPage && !isOrgAdmin) {
             await deny("/portal");
