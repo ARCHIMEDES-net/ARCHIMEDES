@@ -66,17 +66,7 @@ export default function PortalHeader({ title = "" }) {
           .maybeSingle();
         if (profileError) throw profileError;
 
-        const { data: membershipRows, error: membershipError } = await supabase
-          .from("organization_members")
-          .select("organization_id, role_in_org, status")
-          .eq("user_id", user.id)
-          .eq("status", "active");
-        if (membershipError) throw membershipError;
-
-        const memberships = Array.isArray(membershipRows) ? membershipRows : [];
-        const organizationRows = memberships.length
-          ? await fetchMyOrganizations(supabase, memberships.map((item) => item.organization_id))
-          : [];
+        const organizationRows = await fetchMyOrganizations(supabase);
         if (!alive) return;
 
         const nextOrganizations = [...organizationRows].sort((a, b) =>
@@ -86,11 +76,17 @@ export default function PortalHeader({ title = "" }) {
         const nextActiveOrganizationId = nextOrganizations.some((org) => org.id === requestedActiveId)
           ? requestedActiveId
           : nextOrganizations[0]?.id || "";
-        const activeMembership = memberships.find((item) => item.organization_id === nextActiveOrganizationId);
-        const nextIsOrgAdmin = activeMembership?.role_in_org === "organization_admin";
+        const activeOrganization = nextOrganizations.find(
+          (org) => org.id === nextActiveOrganizationId
+        );
+        const nextIsOrgAdmin = activeOrganization?.role_in_org === "organization_admin";
 
         if (nextActiveOrganizationId && nextActiveOrganizationId !== requestedActiveId) {
-          await supabase.from("profiles").update({ active_organization_id: nextActiveOrganizationId }).eq("id", user.id);
+          const { error: updateError } = await supabase
+            .from("profiles")
+            .update({ active_organization_id: nextActiveOrganizationId })
+            .eq("id", user.id);
+          if (updateError) throw updateError;
         }
 
         const { data: isAdminResult, error: isAdminError } = await supabase.rpc("is_admin");
@@ -166,7 +162,8 @@ export default function PortalHeader({ title = "" }) {
 
   async function onOrganizationChange(event) {
     const organizationId = event.target.value;
-    if (!organizationId || organizationId === activeOrganizationId || !organizations.some((org) => org.id === organizationId)) return;
+    const selectedOrganization = organizations.find((org) => org.id === organizationId);
+    if (!selectedOrganization || organizationId === activeOrganizationId) return;
 
     setSwitchingOrganization(true);
     setOrganizationSwitchError("");
@@ -180,16 +177,7 @@ export default function PortalHeader({ title = "" }) {
         .eq("id", user.id);
       if (updateError) throw updateError;
 
-      const selectedMembership = await supabase
-        .from("organization_members")
-        .select("role_in_org")
-        .eq("user_id", user.id)
-        .eq("organization_id", organizationId)
-        .eq("status", "active")
-        .maybeSingle();
-      if (selectedMembership.error) throw selectedMembership.error;
-
-      const nextIsOrgAdmin = selectedMembership.data?.role_in_org === "organization_admin";
+      const nextIsOrgAdmin = selectedOrganization.role_in_org === "organization_admin";
       setActiveOrganizationId(organizationId);
       setIsOrgAdmin(nextIsOrgAdmin);
       cachedHeaderAccess = {

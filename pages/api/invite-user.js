@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { resolveOrganizationAccess } from "../../lib/server/organizationAccess";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 
 const supabaseAdmin = createClient(
@@ -82,36 +83,24 @@ export default async function handler(req, res) {
       throw inviterProfileError;
     }
 
-    if (!inviterProfile?.active_organization_id) {
+    const organizationId = inviterProfile?.active_organization_id || null;
+
+    if (!organizationId) {
       return res.status(403).json({ error: "Chybí aktivní škola uživatele." });
     }
 
-    const { data: inviterMembership, error: inviterMembershipError } =
-      await supabaseAdmin
-        .from("organization_members")
-        .select("organization_id, role_in_org, status")
-        .eq("user_id", cleanInviterUserId)
-        .eq("organization_id", inviterProfile.active_organization_id)
-        .eq("status", "active")
-        .maybeSingle();
+    const inviterAccess = await resolveOrganizationAccess({
+      supabaseAdmin,
+      userId: cleanInviterUserId,
+      organizationId,
+      requireAdmin: true,
+    });
 
-    if (inviterMembershipError) {
-      throw inviterMembershipError;
-    }
-
-    if (!inviterMembership) {
-      return res.status(403).json({
-        error: "Zvoucí uživatel není přiřazen k žádné aktivní organizaci.",
-      });
-    }
-
-    if (inviterMembership.role_in_org !== "organization_admin") {
+    if (!inviterAccess) {
       return res.status(403).json({
         error: "Tuto akci může provádět pouze administrátor organizace.",
       });
     }
-
-    const organizationId = inviterMembership.organization_id;
 
     const { data: organization, error: organizationError } = await supabaseAdmin
       .from("organizations")
