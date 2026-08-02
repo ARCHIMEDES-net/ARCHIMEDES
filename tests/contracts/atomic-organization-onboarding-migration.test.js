@@ -11,7 +11,7 @@ const normalized = migration.toLowerCase();
 
 describe("atomic municipality organization onboarding migration", () => {
   it("locks and consumes one pending invite inside the transaction", () => {
-    expect(migration).toContain("for update;");
+    expect(migration).toContain("where invite.id = p_invite_id\n  for update;");
     expect(migration).toContain("invite_row.status <> 'pending'");
     expect(migration).toContain("invite.status = 'pending'");
     expect(migration).toContain("used_organization_id = created_organization.id");
@@ -29,6 +29,7 @@ describe("atomic municipality organization onboarding migration", () => {
 
   it("preserves existing profile identity and credentials", () => {
     const conflictBlock = migration.split("on conflict (id) do update")[1] || "";
+    expect(migration).toContain("Existing profile belongs to another e-mail");
     expect(conflictBlock).toContain("set active_organization_id = excluded.active_organization_id");
     expect(conflictBlock).not.toContain("email =");
     expect(conflictBlock).not.toContain("full_name =");
@@ -50,11 +51,22 @@ describe("atomic municipality organization onboarding migration", () => {
     expect(normalized).not.toContain("update public.profiles");
   });
 
-  it("serializes duplicate checks under one municipality", () => {
+  it("serializes and preserves the existing duplicate rules", () => {
     expect(migration).toContain("pg_advisory_xact_lock");
     expect(migration).toContain("existing.parent_organization_id = municipality_row.id");
-    expect(migration).toContain("lower(existing.name) = lower(normalized_name)");
-    expect(migration).toContain("Organization already exists under this municipality");
+    expect(migration).toContain("unaccent(lower(trim(existing.name))) = unaccent(lower(normalized_name))");
+    expect(migration).toContain("from public.find_conflicting_customer(");
+    expect(migration).toContain("normalized_legal_identifier");
+    expect(migration).toContain("normalized_address");
+    expect(migration).toContain("Organization already exists");
+  });
+
+  it("validates association activities inside the transaction", () => {
+    expect(migration).toContain("from public.activity_categories activity");
+    expect(migration).toContain("activity.is_active = true");
+    expect(migration).toContain("activity.section = 'spolky'");
+    expect(migration).toContain("Association activity is invalid");
+    expect(migration).toContain("Custom association activity is required");
   });
 
   it("is callable only by the service role", () => {
