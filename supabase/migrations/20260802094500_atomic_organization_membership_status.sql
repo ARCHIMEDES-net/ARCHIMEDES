@@ -56,6 +56,16 @@ begin
   if current_membership.role_in_org = 'organization_admin'
      and current_membership.status = 'active'
      and new_status = 'inactive' then
+    -- Lock all active administrators in this organization before counting.
+    -- This prevents two concurrent requests from both believing another
+    -- administrator will remain active and disabling the last two admins.
+    perform 1
+    from public.organization_members administrator
+    where administrator.organization_id = target_organization_id
+      and administrator.role_in_org = 'organization_admin'
+      and administrator.status = 'active'
+    for update;
+
     select count(*)
     into active_admin_count
     from public.organization_members administrator
