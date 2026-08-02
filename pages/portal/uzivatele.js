@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
-import { fetchMyOrganization } from "../../lib/myOrganizations";
+import { resolveUserManagementOrganizationContext } from "../../lib/userManagementOrganizationContext";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -60,67 +60,24 @@ export default function UzivateleSkolyPage() {
 
       if (profileError) throw profileError;
 
-      const activeOrganizationId = profile?.active_organization_id || null;
+      const context = await resolveUserManagementOrganizationContext({
+        supabase,
+        userId: user.id,
+        activeOrganizationId: profile?.active_organization_id || null,
+      });
 
-      let membership = null;
-
-      if (activeOrganizationId) {
-        const { data: activeMembership, error: activeMembershipError } =
-          await supabase
-            .from("organization_members")
-            .select("organization_id, role_in_org, status")
-            .eq("user_id", user.id)
-            .eq("organization_id", activeOrganizationId)
-            .eq("status", "active")
-            .maybeSingle();
-
-        if (activeMembershipError) throw activeMembershipError;
-        membership = activeMembership || null;
-      }
-
-      if (!membership) {
-        const { data: fallbackMembership, error: fallbackMembershipError } =
-          await supabase
-            .from("organization_members")
-            .select("organization_id, role_in_org, status")
-            .eq("user_id", user.id)
-            .eq("status", "active")
-            .limit(1000);
-
-        if (fallbackMembershipError) throw fallbackMembershipError;
-
-        const fallbackRows = Array.isArray(fallbackMembership)
-          ? fallbackMembership
-          : [];
-
-        if (activeOrganizationId) {
-          membership =
-            fallbackRows.find(
-              (row) => row.organization_id === activeOrganizationId
-            ) || null;
-        }
-
-        if (!membership && fallbackRows.length === 1) {
-          membership = fallbackRows[0];
-        }
-      }
-
-      if (!membership) {
+      if (!context?.organization) {
         throw new Error("Uživatel není přiřazen k žádné organizaci.");
       }
 
-      const organization = await fetchMyOrganization(
-        supabase,
-        membership.organization_id
-      );
-      if (!organization) throw new Error("Organizace uživatele nebyla nalezena.");
+      const organization = context.organization;
 
       setOrganizationId(organization.id);
       setOrganizationName(organization.name || "");
       setOrganizationType(organization.org_type || "");
       setOrganizationJoinCode(organization.join_code || "");
 
-      const admin = membership.role_in_org === "organization_admin";
+      const admin = context.isOrganizationAdmin;
       setIsOrgAdmin(admin);
 
       if (!admin) {
