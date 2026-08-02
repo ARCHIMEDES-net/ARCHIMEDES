@@ -14,11 +14,17 @@ function read(filePath) {
 }
 
 describe("event detail inherited license patch", () => {
-  it("targets the current direct-membership license block", () => {
+  it("uses the applied inherited license context", () => {
     const page = read(pagePath);
-    expect(page).toContain('from("organization_members")');
-    expect(page).toContain('import { resolveLicenseMode } from "../../../lib/licenseMode";');
-    expect(page).toContain('import { fetchMyOrganization } from "../../../lib/myOrganizations";');
+    expect(page).toContain(
+      'import { resolveEventDetailLicenseContext } from "../../../lib/eventDetailLicenseContext";'
+    );
+    expect(page).toContain("const licenseContext = await resolveEventDetailLicenseContext({");
+    expect(page).toContain("setActiveOrganizationId(licenseContext.organizationId || \"\")");
+    expect(page).toContain("const mode = licenseContext.licenseMode;");
+    expect(page).not.toContain('from("organization_members")');
+    expect(page).not.toContain('import { resolveLicenseMode } from "../../../lib/licenseMode";');
+    expect(page).not.toContain('import { fetchMyOrganization } from "../../../lib/myOrganizations";');
   });
 
   it("uses only the dedicated event-detail license resolver", () => {
