@@ -6,10 +6,9 @@ import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import JoinBroadcastButton from "../../../components/JoinBroadcastButton";
 import { getStreamUrl } from "../../../lib/broadcastState";
-import { resolveLicenseMode } from "../../../lib/licenseMode";
 import { supabase } from "../../../lib/supabaseClient";
-import { fetchMyOrganization } from "../../../lib/myOrganizations";
 import { attachPortalBroadcastSession } from "../../../lib/portalBroadcastSessions";
+import { resolveEventDetailLicenseContext } from "../../../lib/eventDetailLicenseContext";
 
 const BUCKET = "posters";
 
@@ -227,36 +226,15 @@ export default function UdalostDetail() {
 
         if (profileError) throw profileError;
 
-        if (!mounted) return;
-
-        const orgId = profile?.active_organization_id || "";
-        setActiveOrganizationId(orgId);
-
-        if (!orgId) {
-          setLicenseMode("active");
-          return;
-        }
-
-        const { data: membership, error: membershipError } = await supabase
-          .from("organization_members")
-          .select("organization_id")
-          .eq("user_id", user.id)
-          .eq("organization_id", orgId)
-          .eq("status", "active")
-          .maybeSingle();
-
-        if (membershipError) throw membershipError;
+        const licenseContext = await resolveEventDetailLicenseContext({
+          supabase,
+          activeOrganizationId: profile?.active_organization_id || "",
+        });
 
         if (!mounted) return;
 
-        if (!membership?.organization_id) {
-          setLicenseMode("active");
-          return;
-        }
-
-        const org = await fetchMyOrganization(supabase, orgId);
-
-        const mode = await resolveLicenseMode(supabase, orgId, org);
+        setActiveOrganizationId(licenseContext.organizationId || "");
+        const mode = licenseContext.licenseMode;
         if (mounted) {
           setLicenseMode(mode);
         }

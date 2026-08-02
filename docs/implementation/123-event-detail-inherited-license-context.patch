@@ -1,0 +1,51 @@
+diff --git a/pages/portal/udalost/[id].js b/pages/portal/udalost/[id].js
+--- a/pages/portal/udalost/[id].js
++++ b/pages/portal/udalost/[id].js
+@@
+ import { getStreamUrl } from "../../../lib/broadcastState";
+-import { resolveLicenseMode } from "../../../lib/licenseMode";
+ import { supabase } from "../../../lib/supabaseClient";
+-import { fetchMyOrganization } from "../../../lib/myOrganizations";
+ import { attachPortalBroadcastSession } from "../../../lib/portalBroadcastSessions";
++import { resolveEventDetailLicenseContext } from "../../../lib/eventDetailLicenseContext";
+@@
+-        const orgId = profile?.active_organization_id || "";
+-        setActiveOrganizationId(orgId);
+-
+-        if (!orgId) {
+-          setLicenseMode("active");
+-          return;
+-        }
+-
+-        const { data: membership, error: membershipError } = await supabase
+-          .from("organization_members")
+-          .select("organization_id")
+-          .eq("user_id", user.id)
+-          .eq("organization_id", orgId)
+-          .eq("status", "active")
+-          .maybeSingle();
+-
+-        if (membershipError) throw membershipError;
+-
+-        if (!mounted) return;
+-
+-        if (!membership?.organization_id) {
+-          setLicenseMode("active");
+-          return;
+-        }
+-
+-        const org = await fetchMyOrganization(supabase, orgId);
+-
+-        const mode = await resolveLicenseMode(supabase, orgId, org);
++        const licenseContext = await resolveEventDetailLicenseContext({
++          supabase,
++          activeOrganizationId: profile?.active_organization_id || "",
++        });
++
++        if (!mounted) return;
++
++        setActiveOrganizationId(licenseContext.organizationId || "");
++        const mode = licenseContext.licenseMode;
+         if (mounted) {
+           setLicenseMode(mode);
+         }
