@@ -10,17 +10,25 @@ const patch = read("patches/122-user-management-inherited-context.patch");
 const page = read("pages/portal/uzivatele.js");
 
 describe("user management inherited context patch", () => {
-  it("targets the current direct-membership authorization block", () => {
+  it("keeps the inherited organization context integration applied", () => {
     expect(page).toContain(
+      'import { resolveUserManagementOrganizationContext } from "../../lib/userManagementOrganizationContext";'
+    );
+    expect(page).toContain(
+      "const context = await resolveUserManagementOrganizationContext({"
+    );
+    expect(page).toContain("const organization = context.organization;");
+    expect(page).toContain("const admin = context.isOrganizationAdmin;");
+
+    expect(page).not.toContain(
       'import { fetchMyOrganization } from "../../lib/myOrganizations";'
     );
-    expect(page).toContain("let membership = null;");
-    expect(page).toContain(
+    expect(page).not.toContain("let membership = null;");
+    expect(page).not.toContain(
       'const admin = membership.role_in_org === "organization_admin";'
     );
 
     expect(patch).toContain("resolveUserManagementOrganizationContext");
-    expect(patch).toContain("organizationContext.isOrganizationAdmin");
     expect(patch).not.toContain("toggleActive");
   });
 
