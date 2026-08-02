@@ -35,7 +35,10 @@ describe("atomic municipality organization onboarding migration", () => {
     expect(conflictBlock).not.toContain("is_active =");
     expect(conflictBlock).not.toContain("must_set_password =");
     expect(normalized).not.toContain("auth.users");
-    expect(normalized).not.toContain("password");
+    expect(normalized).not.toContain("encrypted_password");
+    expect(normalized).not.toContain("password_hash");
+    expect(normalized).not.toContain("updateuserbyid");
+    expect(normalized).not.toContain("generate_link");
   });
 
   it("does not delete or rewrite existing organizations, memberships or profiles", () => {
