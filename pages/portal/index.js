@@ -6,9 +6,9 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import JoinBroadcastButton from "../../components/JoinBroadcastButton";
 import { getEventStart, getJoinButtonState } from "../../lib/broadcastState";
+import { resolveDashboardOrganizationContext } from "../../lib/dashboardOrganizationContext";
 import { resolveLicenseMode } from "../../lib/licenseMode";
 import { supabase } from "../../lib/supabaseClient";
-import { fetchMyOrganization } from "../../lib/myOrganizations";
 
 const POSTERS_BUCKET = "posters";
 const FALLBACK_POSTER = "/ucebna-exterier.webp";
@@ -184,53 +184,20 @@ export default function PortalIndex() {
         if (profileError) throw profileError;
         if (!alive) return;
 
-        let membership = null;
-        let resolvedOrganizationId = null;
+        const organizationContext = await resolveDashboardOrganizationContext({
+          supabase,
+          userId: user.id,
+          activeOrganizationId: profile?.active_organization_id || null,
+        });
 
-        if (profile?.active_organization_id) {
-          const { data: membershipByActiveOrg, error: membershipByActiveOrgError } =
-            await supabase
-              .from("organization_members")
-              .select("organization_id, status, role_in_org")
-              .eq("user_id", user.id)
-              .eq("organization_id", profile.active_organization_id)
-              .eq("status", "active")
-              .maybeSingle();
+        if (!alive) return;
 
-          if (membershipByActiveOrgError) throw membershipByActiveOrgError;
+        if (organizationContext?.organizationId && organizationContext.organization) {
+          const org = organizationContext.organization;
+          const resolvedOrganizationId = organizationContext.organizationId;
           if (!alive) return;
 
-          if (membershipByActiveOrg?.organization_id) {
-            membership = membershipByActiveOrg;
-            resolvedOrganizationId = membershipByActiveOrg.organization_id;
-          }
-        }
-
-        if (!membership) {
-          const { data: fallbackMembership, error: fallbackMembershipError } =
-            await supabase
-              .from("organization_members")
-              .select("organization_id, status, role_in_org")
-              .eq("user_id", user.id)
-              .eq("status", "active")
-              .order("organization_id", { ascending: true })
-              .limit(1)
-              .maybeSingle();
-
-          if (fallbackMembershipError) throw fallbackMembershipError;
-          if (!alive) return;
-
-          if (fallbackMembership?.organization_id) {
-            membership = fallbackMembership;
-            resolvedOrganizationId = fallbackMembership.organization_id;
-          }
-        }
-
-        if (membership?.organization_id && resolvedOrganizationId) {
-          const org = await fetchMyOrganization(supabase, resolvedOrganizationId);
-          if (!alive) return;
-
-          const roleInOrg = membership?.role_in_org || "";
+          const roleInOrg = organizationContext.roleInOrg || "";
           setMembershipRole(roleInOrg);
           setOrganizationName(org?.name || "");
           setOrganizationType(org?.org_type || "");
