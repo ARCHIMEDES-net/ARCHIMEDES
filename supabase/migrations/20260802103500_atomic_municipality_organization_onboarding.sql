@@ -34,6 +34,10 @@ declare
   normalized_email text := lower(trim(coalesce(p_email, '')));
   normalized_name text := trim(coalesce(p_name, ''));
   normalized_type text := lower(trim(coalesce(p_org_type, '')));
+  normalized_address text := trim(coalesce(p_address, ''));
+  normalized_legal_identifier text := nullif(regexp_replace(coalesce(p_legal_identifier, ''), '[^0-9]', '', 'g'), '');
+  normalized_activity_code text := nullif(trim(coalesce(p_activity_code, '')), '');
+  existing_profile_email text;
   duplicate_exists boolean;
 begin
   if p_invite_id is null or p_user_id is null then
@@ -44,8 +48,26 @@ begin
     raise exception 'Invalid organization type';
   end if;
 
-  if normalized_email = '' or normalized_name = '' then
-    raise exception 'Organization name and e-mail are required';
+  if normalized_email = '' or normalized_name = '' or normalized_address = '' then
+    raise exception 'Organization name, address and e-mail are required';
+  end if;
+
+  if trim(coalesce(p_full_name, '')) = '' then
+    raise exception 'Contact name is required';
+  end if;
+
+  if normalized_legal_identifier is not null and length(normalized_legal_identifier) <> 8 then
+    raise exception 'Legal identifier must contain eight digits';
+  end if;
+
+  select lower(trim(profile.email))
+  into existing_profile_email
+  from public.profiles profile
+  where profile.id = p_user_id
+  for share;
+
+  if found and existing_profile_email is distinct from normalized_email then
+    raise exception 'Existing profile belongs to another e-mail';
   end if;
 
   select invite.*
@@ -92,29 +114,62 @@ begin
     raise exception 'Municipality program is not active';
   end if;
 
-  -- Serialize duplicate checks for the same municipality, organization type and name.
+  if normalized_type = 'association' then
+    if normalized_activity_code is null then
+      raise exception 'Association activity is required';
+    end if;
+
+    perform 1
+    from public.activity_categories activity
+    where activity.code = normalized_activity_code
+      and activity.is_active = true
+      and activity.section = 'spolky';
+
+    if not found then
+      raise exception 'Association activity is invalid';
+    end if;
+
+    if normalized_activity_code = 'jine'
+       and trim(coalesce(p_activity_custom_text, '')) = '' then
+      raise exception 'Custom association activity is required';
+    end if;
+  end if;
+
+  -- Serialize all competing identity checks for this organization identity.
   perform pg_advisory_xact_lock(
     hashtextextended(
-      municipality_row.id::text || ':' || normalized_type || ':' || lower(normalized_name),
+      normalized_type || ':' || unaccent(lower(normalized_name)),
       0
     )
   );
 
-  select exists (
-    select 1
-    from public.organizations existing
-    where existing.parent_organization_id = municipality_row.id
-      and (
-        (normalized_type = 'school' and existing.org_type = 'school')
-        or
-        (normalized_type = 'association' and existing.org_type in ('association', 'spolek'))
-      )
-      and lower(existing.name) = lower(normalized_name)
+  select (
+    exists (
+      select 1
+      from public.organizations existing
+      where existing.parent_organization_id = municipality_row.id
+        and (
+          (normalized_type = 'school' and existing.org_type = 'school')
+          or
+          (normalized_type = 'association' and existing.org_type in ('association', 'spolek'))
+        )
+        and unaccent(lower(trim(existing.name))) = unaccent(lower(normalized_name))
+    )
+    or exists (
+      select 1
+      from public.find_conflicting_customer(
+        normalized_type,
+        normalized_email,
+        normalized_name,
+        normalized_legal_identifier,
+        normalized_address
+      ) conflict
+    )
   )
   into duplicate_exists;
 
   if duplicate_exists then
-    raise exception 'Organization already exists under this municipality';
+    raise exception using errcode = '23505', message = 'Organization already exists';
   end if;
 
   insert into public.organizations (
@@ -135,21 +190,17 @@ begin
     normalized_type,
     'active',
     municipality_row.id,
-    nullif(trim(coalesce(p_legal_identifier, '')), ''),
-    trim(coalesce(p_address, '')),
-    case when normalized_type = 'association' then nullif(trim(coalesce(p_activity_code, '')), '') else null end,
+    normalized_legal_identifier,
+    normalized_address,
+    case when normalized_type = 'association' then normalized_activity_code else null end,
     case when normalized_type = 'association' then nullif(trim(coalesce(p_activity_custom_text, '')), '') else null end,
-    trim(coalesce(p_full_name, '')),
+    trim(p_full_name),
     normalized_email,
     nullif(trim(coalesce(p_phone, '')), '')
   )
   returning * into created_organization;
 
   if normalized_type = 'association' then
-    if p_activity_code is null or trim(p_activity_code) = '' then
-      raise exception 'Association activity is required';
-    end if;
-
     insert into public.organization_activities (
       organization_id,
       activity_code,
@@ -157,7 +208,7 @@ begin
     )
     values (
       created_organization.id,
-      trim(p_activity_code),
+      normalized_activity_code,
       nullif(trim(coalesce(p_activity_custom_text, '')), '')
     );
   end if;
@@ -186,7 +237,7 @@ begin
   values (
     p_user_id,
     normalized_email,
-    trim(coalesce(p_full_name, '')),
+    trim(p_full_name),
     true,
     p_is_new_account,
     created_organization.id
