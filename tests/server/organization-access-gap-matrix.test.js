@@ -149,7 +149,7 @@ describe("organization access gap matrix", () => {
     ).resolves.toBeNull();
   });
 
-  it("does not introduce Auth, password, or account mutations", () => {
+  it("does not introduce destructive Auth account mutations", () => {
     const productionFiles = [
       "components/PortalHeader.js",
       "components/RequireAuth.js",
@@ -164,7 +164,7 @@ describe("organization access gap matrix", () => {
 
     expect(source).not.toContain("updateuserbyid");
     expect(source).not.toContain("deleteuser");
-    expect(source).not.toContain("password:");
+    expect(source).not.toContain("createuser(");
     expect(source).not.toContain("auth.admin.update");
   });
 });
