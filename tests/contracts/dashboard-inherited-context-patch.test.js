@@ -13,13 +13,20 @@ const dashboard = fs.readFileSync(dashboardPath, "utf8");
 const patch = fs.readFileSync(patchPath, "utf8");
 
 describe("issue 121 dashboard patch contract", () => {
-  it("targets the current direct-membership implementation", () => {
+  it("uses the applied inherited dashboard context", () => {
     expect(dashboard).toContain(
+      'import { resolveDashboardOrganizationContext } from "../../lib/dashboardOrganizationContext";'
+    );
+    expect(dashboard).toContain(
+      "const organizationContext = await resolveDashboardOrganizationContext({"
+    );
+    expect(dashboard).toContain("organizationContext.organizationId");
+    expect(dashboard).toContain("organizationContext.organization");
+    expect(dashboard).toContain("organizationContext.roleInOrg");
+    expect(dashboard).not.toContain(
       'import { fetchMyOrganization } from "../../lib/myOrganizations";'
     );
-    expect(dashboard).toContain(
-      '.from("organization_members")\n              .select("organization_id, status, role_in_org")'
-    );
+    expect(dashboard).not.toContain('.from("organization_members")');
   });
 
   it("uses the tested dashboard context resolver", () => {
