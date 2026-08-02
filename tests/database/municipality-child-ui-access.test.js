@@ -69,6 +69,4 @@ describe("municipality child organization UI access", () => {
 
   it.todo("uses scoped organization access on the portal dashboard");
   it.todo("uses scoped organization access on the user management page");
-  it.todo("authorizes inherited access in invite-user API");
-  it.todo("authorizes inherited access in broadcast access helper");
 });
