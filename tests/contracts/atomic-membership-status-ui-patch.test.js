@@ -28,7 +28,8 @@ describe("atomic membership status UI patch", () => {
     expect(normalizedPatch).not.toContain("auth.users");
     expect(normalizedPatch).not.toContain("password");
     expect(normalizedPatch).not.toContain("email:");
-    expect(normalizedPatch).not.toContain("organizations").not;
+    expect(normalizedPatch).not.toContain("update public.organizations");
+    expect(normalizedPatch).not.toContain("delete from public.organizations");
   });
 
   it("changes only toggleActive and preserves invite and organization-loading flows", () => {
