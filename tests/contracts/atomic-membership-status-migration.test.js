@@ -35,6 +35,18 @@ describe("atomic organization membership status migration", () => {
     expect(migration).toContain("active_admin_count <= 1");
   });
 
+  it("serializes concurrent last-admin checks", () => {
+    expect(migration).toContain("perform 1");
+    expect(migration).toContain(
+      "where administrator.organization_id = target_organization_id"
+    );
+    expect(migration).toContain(
+      "and administrator.role_in_org = 'organization_admin'"
+    );
+    expect(migration).toContain("and administrator.status = 'active'");
+    expect(migration).toContain("for update;");
+  });
+
   it("does not delete or mutate accounts, profiles, organizations, or credentials", () => {
     expect(normalized).not.toContain("delete from");
     expect(normalized).not.toContain("truncate ");
