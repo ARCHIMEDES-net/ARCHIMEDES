@@ -5,7 +5,7 @@ import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { resolveLicenseMode } from "../../lib/licenseMode";
 import { supabase } from "../../lib/supabaseClient";
-import { fetchMyOrganization } from "../../lib/myOrganizations";
+import { resolveActiveOrganizationContext } from "../../lib/activeOrganizationContext";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -204,35 +204,24 @@ export default function Archiv() {
           return;
         }
 
-        const { data: membership, error: membershipError } = await supabase
-          .from("organization_members")
-          .select("organization_id, role_in_org")
-          .eq("user_id", user.id)
-          .eq("organization_id", profile.active_organization_id)
-          .eq("status", "active")
-          .maybeSingle();
-
-        if (membershipError) throw membershipError;
-
-        if (!isMounted) return;
-
-        setIsOrgAdmin(membership?.role_in_org === "organization_admin");
-
-        if (!membership?.organization_id) {
-          setLicenseMode("active");
-          return;
-        }
-
-        const org = await fetchMyOrganization(
+        const context = await resolveActiveOrganizationContext(
           supabase,
           profile.active_organization_id
         );
 
         if (!isMounted) return;
+
+        setIsOrgAdmin(!!context?.isOrganizationAdmin);
+
+        if (!context?.organizationId) {
+          setLicenseMode("active");
+          return;
+        }
+
         const mode = await resolveLicenseMode(
           supabase,
-          profile.active_organization_id,
-          org
+          context.organizationId,
+          context.organization
         );
         if (!isMounted) return;
         setLicenseMode(mode);
