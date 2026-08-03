@@ -1,0 +1,40 @@
+diff --git a/pages/portal/uzivatele.js b/pages/portal/uzivatele.js
+--- a/pages/portal/uzivatele.js
++++ b/pages/portal/uzivatele.js
+@@
+   async function toggleActive(row) {
+     setError("");
+     setMessage("");
+ 
+     try {
+       const nextStatus = row.is_active ? "inactive" : "active";
+ 
+-      const { error: updateMembershipError } = await supabase
+-        .from("organization_members")
+-        .update({ status: nextStatus })
+-        .eq("organization_id", organizationId)
+-        .eq("user_id", row.id);
+-
+-      if (updateMembershipError) throw updateMembershipError;
+-
+-      const { error: updateProfileError } = await supabase
+-        .from("profiles")
+-        .update({ is_active: !row.is_active })
+-        .eq("id", row.id);
+-
+-      if (updateProfileError) throw updateProfileError;
++      const { error: updateMembershipError } = await supabase.rpc(
++        "set_organization_membership_status",
++        {
++          target_organization_id: organizationId,
++          target_user_id: row.id,
++          new_status: nextStatus,
++        }
++      );
++
++      if (updateMembershipError) throw updateMembershipError;
+ 
+       setMessage(
+         row.is_active
+           ? "Uživatel byl deaktivován."
+           : "Uživatel byl znovu aktivován."

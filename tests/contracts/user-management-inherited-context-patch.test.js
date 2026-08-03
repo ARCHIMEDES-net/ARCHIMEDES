@@ -32,12 +32,15 @@ describe("user management inherited context patch", () => {
     expect(patch).not.toContain("toggleActive");
   });
 
-  it("does not alter deactivation behavior owned by issue 116", () => {
+  it("uses the atomic deactivation behavior owned by issue 116", () => {
     expect(page).toContain("async function toggleActive(row)");
-    expect(page).toContain('.from("organization_members")');
-    expect(page).toContain('.update({ status: nextStatus })');
-    expect(page).toContain('.from("profiles")');
-    expect(page).toContain('.update({ is_active: !row.is_active })');
+    expect(page).toContain('supabase.rpc(');
+    expect(page).toContain('"set_organization_membership_status"');
+    expect(page).toContain("target_organization_id: organizationId");
+    expect(page).toContain("target_user_id: row.id");
+    expect(page).toContain("new_status: nextStatus");
+    expect(page).not.toContain('.update({ status: nextStatus })');
+    expect(page).not.toContain('.update({ is_active: !row.is_active })');
 
     expect(patch).not.toContain("is_active: !row.is_active");
     expect(patch).not.toContain("nextStatus");
