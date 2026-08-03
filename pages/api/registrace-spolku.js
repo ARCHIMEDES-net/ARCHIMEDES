@@ -7,7 +7,6 @@ import {
   resolveOrganizationRegistrant,
 } from "../../lib/server/organizationRegistrant";
 import {
-  consumeMunicipalityInvite,
   MunicipalityInviteError,
   resolveMunicipalityInvite,
 } from "../../lib/server/municipalityOrganizationInvite";
@@ -19,10 +18,25 @@ const supabaseAdmin = createClient(
   { auth: { persistSession: false } }
 );
 
-const MAX_REGISTRATION_NUMBER_RETRIES = 3;
-
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
+
+function mapAtomicOnboardingError(error) {
+  const message = String(error?.message || "");
+  if (error?.code === "23505" || message.includes("already exists")) {
+    return new MunicipalityInviteError(
+      "Tento spolek už evidujeme. Kvůli zachování účtů a historie ho neregistrujte podruhé; kontaktujte nás a existující spolek bezpečně propojíme s obcí.",
+      409
+    );
+  }
+  if (message.includes("not pending") || message.includes("used concurrently")) {
+    return new MunicipalityInviteError(
+      "Pozvánku mezitím použil někdo jiný. Organizace nebyla připojena.",
+      409
+    );
+  }
+  return error;
 }
 
 async function sendRegistrationEmail({
@@ -72,8 +86,7 @@ export default async function handler(req, res) {
   }
 
   let registrant = null;
-  let spolekId = null;
-
+  let onboardingCommitted = false;
   try {
     const siteUrl = getServerSiteUrl();
     const rateLimitAllowed = await consumePublicRateLimit({
@@ -175,41 +188,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Neplatná činnost spolku." });
     }
 
-    const { invite, municipality: obec } = await resolveMunicipalityInvite({
+    const { invite } = await resolveMunicipalityInvite({
       supabaseAdmin,
       rawToken: inviteToken,
       organizationType: "association",
       email: cleanEmail,
     });
-
-    const { data: duplicateUnderMunicipality, error: duplicateUnderMunicipalityError } =
-      await supabaseAdmin
-        .from("organizations")
-        .select("id")
-        .eq("parent_organization_id", obec.id)
-        .in("org_type", ["association", "spolek"])
-        .ilike("name", cleanName)
-        .limit(1);
-
-    if (duplicateUnderMunicipalityError) throw duplicateUnderMunicipalityError;
-
-    const { data: duplicate, error: duplicateError } = await supabaseAdmin.rpc(
-      "find_conflicting_customer",
-      {
-        p_org_type: "association",
-        p_email: cleanEmail,
-        p_name: cleanName,
-        p_legal_identifier: cleanLegalIdentifier || null,
-        p_address: cleanAddress,
-      }
-    );
-
-    if (duplicateError) throw duplicateError;
-    if (duplicateUnderMunicipality?.length || duplicate?.length) {
-      return res.status(409).json({
-        error: "Tento spolek už evidujeme. Kvůli zachování účtů a historie ho neregistrujte podruhé; kontaktujte nás a existující spolek bezpečně propojíme s obcí.",
-      });
-    }
 
     registrant = await resolveOrganizationRegistrant({
       supabaseAdmin,
@@ -219,99 +203,35 @@ export default async function handler(req, res) {
       redirectTo: `${siteUrl}/nastavit-heslo`,
     });
 
-    const orgInsertPayload = {
-      name: cleanName,
-      org_type: "association",
-      status: "active",
-      parent_organization_id: obec.id,
-      legal_identifier: cleanLegalIdentifier || null,
-      registered_address: cleanAddress,
-      primary_activity_code: cleanActivityCode,
-      primary_activity_custom_text: cleanActivityCode === "jine" ? cleanCustomText : null,
-      contact_name: registrant.fullName,
-      contact_email: registrant.email,
-      contact_phone: cleanPhone,
+    const { data: onboardingRows, error: onboardingError } =
+      await supabaseAdmin.rpc("complete_municipality_organization_onboarding", {
+        p_invite_id: invite.id,
+        p_user_id: registrant.userId,
+        p_is_new_account: registrant.isNewAccount,
+        p_email: registrant.email,
+        p_full_name: registrant.fullName,
+        p_name: cleanName,
+        p_org_type: "association",
+        p_address: cleanAddress,
+        p_legal_identifier: cleanLegalIdentifier || null,
+        p_phone: cleanPhone,
+        p_activity_code: cleanActivityCode,
+        p_activity_custom_text:
+          cleanActivityCode === "jine" ? cleanCustomText : null,
+      });
+
+    if (onboardingError) throw mapAtomicOnboardingError(onboardingError);
+    onboardingCommitted = true;
+    const onboarding = onboardingRows?.[0];
+    if (!onboarding?.organization_id) {
+      throw new Error("Atomický onboarding spolku nevrátil organizaci.");
+    }
+
+    const spolek = {
+      id: onboarding.organization_id,
+      name: onboarding.organization_name,
+      registration_number: onboarding.registration_number,
     };
-
-    let spolek = null;
-    let lastInsertError = null;
-
-    for (let attempt = 0; attempt < MAX_REGISTRATION_NUMBER_RETRIES; attempt += 1) {
-      const { data: insertedOrg, error: insertError } = await supabaseAdmin
-        .from("organizations")
-        .insert([orgInsertPayload])
-        .select("id, name, registration_number")
-        .single();
-
-      if (!insertError) {
-        spolek = insertedOrg;
-        lastInsertError = null;
-        break;
-      }
-
-      lastInsertError = insertError;
-
-      // Souběžná registrace ve stejné obci+činnosti může kolidovat na
-      // UNIQUE(registration_number) — zkusíme insert zopakovat, trigger
-      // dopočítá pořadí znovu s aktuálním stavem.
-      if (insertError.code !== "23505") {
-        break;
-      }
-    }
-
-    if (!spolek) {
-      console.error("Spolek creation error:", lastInsertError);
-      return res.status(500).json({ error: "Nepodařilo se zaregistrovat spolek." });
-    }
-    spolekId = spolek.id;
-
-    const { error: activityLinkError } = await supabaseAdmin
-      .from("organization_activities")
-      .insert([
-        {
-          organization_id: spolek.id,
-          activity_code: cleanActivityCode,
-          custom_text: cleanActivityCode === "jine" ? cleanCustomText : null,
-        },
-      ]);
-
-    if (activityLinkError) {
-      throw activityLinkError;
-    }
-
-    const { error: membershipError } = await supabaseAdmin
-      .from("organization_members")
-      .upsert(
-        {
-          organization_id: spolek.id,
-          user_id: registrant.userId,
-          role_in_org: "organization_admin",
-          status: "active",
-        },
-        { onConflict: "user_id,organization_id" }
-      );
-
-    if (membershipError) throw membershipError;
-
-    const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
-      {
-        id: registrant.userId,
-        email: registrant.email,
-        full_name: registrant.fullName,
-        is_active: true,
-        must_set_password: registrant.isNewAccount,
-        active_organization_id: spolek.id,
-      },
-      { onConflict: "id" }
-    );
-
-    if (profileError) throw profileError;
-
-    await consumeMunicipalityInvite({
-      supabaseAdmin,
-      inviteId: invite.id,
-      organizationId: spolek.id,
-    });
 
     let emailSent = false;
     try {
@@ -334,10 +254,12 @@ export default async function handler(req, res) {
       emailSent,
     });
   } catch (err) {
-    if (spolekId) {
-      await supabaseAdmin.from("organizations").delete().eq("id", spolekId);
+    if (!onboardingCommitted) {
+      await cleanupNewRegistrant(supabaseAdmin, registrant, {
+        route: "association-registration",
+        reason: err?.message || "unknown",
+      });
     }
-    await cleanupNewRegistrant(supabaseAdmin, registrant);
     console.error("registrace-spolku API error:", err);
     const expectedError =
       err instanceof RegistrantError ||

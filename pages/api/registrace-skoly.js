@@ -7,7 +7,6 @@ import {
   resolveOrganizationRegistrant,
 } from "../../lib/server/organizationRegistrant";
 import {
-  consumeMunicipalityInvite,
   MunicipalityInviteError,
   resolveMunicipalityInvite,
 } from "../../lib/server/municipalityOrganizationInvite";
@@ -30,6 +29,23 @@ function escapeHtml(value = "") {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function mapAtomicOnboardingError(error) {
+  const message = String(error?.message || "");
+  if (error?.code === "23505" || message.includes("already exists")) {
+    return new MunicipalityInviteError(
+      "Tuto školu už evidujeme. Kvůli zachování účtů a historie ji nepřipojujte podruhé; kontaktujte nás a existující školu bezpečně propojíme s obcí.",
+      409
+    );
+  }
+  if (message.includes("not pending") || message.includes("used concurrently")) {
+    return new MunicipalityInviteError(
+      "Pozvánku mezitím použil někdo jiný. Organizace nebyla připojena.",
+      409
+    );
+  }
+  return error;
 }
 
 async function sendRegistrationEmail({
@@ -89,8 +105,7 @@ export default async function handler(req, res) {
   }
 
   let registrant = null;
-  let schoolId = null;
-
+  let onboardingCommitted = false;
   try {
     const siteUrl = getServerSiteUrl();
     const rateLimitAllowed = await consumePublicRateLimit({
@@ -134,41 +149,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Telefon musí mít 6 až 32 znaků." });
     }
 
-    const { invite, municipality } = await resolveMunicipalityInvite({
+    const { invite } = await resolveMunicipalityInvite({
       supabaseAdmin,
       rawToken: inviteToken,
       organizationType: "school",
       email: cleanEmail,
     });
-
-    const { data: duplicateUnderMunicipality, error: duplicateUnderMunicipalityError } =
-      await supabaseAdmin
-        .from("organizations")
-        .select("id")
-        .eq("parent_organization_id", municipality.id)
-        .eq("org_type", "school")
-        .ilike("name", cleanName)
-        .limit(1);
-
-    if (duplicateUnderMunicipalityError) throw duplicateUnderMunicipalityError;
-
-    const { data: duplicate, error: duplicateError } = await supabaseAdmin.rpc(
-      "find_conflicting_customer",
-      {
-        p_org_type: "school",
-        p_email: cleanEmail,
-        p_name: cleanName,
-        p_legal_identifier: cleanLegalIdentifier || null,
-        p_address: cleanAddress,
-      }
-    );
-
-    if (duplicateError) throw duplicateError;
-    if (duplicateUnderMunicipality?.length || duplicate?.length) {
-      return res.status(409).json({
-        error: "Tuto školu už evidujeme. Kvůli zachování účtů a historie ji nepřipojujte podruhé; kontaktujte nás a existující školu bezpečně propojíme s obcí.",
-      });
-    }
 
     registrant = await resolveOrganizationRegistrant({
       supabaseAdmin,
@@ -178,58 +164,34 @@ export default async function handler(req, res) {
       redirectTo: `${siteUrl}/nastavit-heslo`,
     });
 
-    const { data: school, error: schoolError } = await supabaseAdmin
-      .from("organizations")
-      .insert({
-        name: cleanName,
-        org_type: "school",
-        status: "active",
-        parent_organization_id: municipality.id,
-        legal_identifier: cleanLegalIdentifier || null,
-        registered_address: cleanAddress,
-        contact_name: registrant.fullName,
-        contact_email: registrant.email,
-        contact_phone: cleanPhone,
-      })
-      .select("id, name, join_code")
-      .single();
+    const { data: onboardingRows, error: onboardingError } =
+      await supabaseAdmin.rpc("complete_municipality_organization_onboarding", {
+        p_invite_id: invite.id,
+        p_user_id: registrant.userId,
+        p_is_new_account: registrant.isNewAccount,
+        p_email: registrant.email,
+        p_full_name: registrant.fullName,
+        p_name: cleanName,
+        p_org_type: "school",
+        p_address: cleanAddress,
+        p_legal_identifier: cleanLegalIdentifier || null,
+        p_phone: cleanPhone,
+        p_activity_code: null,
+        p_activity_custom_text: null,
+      });
 
-    if (schoolError) throw schoolError;
-    schoolId = school.id;
+    if (onboardingError) throw mapAtomicOnboardingError(onboardingError);
+    onboardingCommitted = true;
+    const onboarding = onboardingRows?.[0];
+    if (!onboarding?.organization_id) {
+      throw new Error("Atomický onboarding školy nevrátil organizaci.");
+    }
 
-    const { error: membershipError } = await supabaseAdmin
-      .from("organization_members")
-      .upsert(
-        {
-          organization_id: school.id,
-          user_id: registrant.userId,
-          role_in_org: "organization_admin",
-          status: "active",
-        },
-        { onConflict: "user_id,organization_id" }
-      );
-
-    if (membershipError) throw membershipError;
-
-    const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
-      {
-        id: registrant.userId,
-        email: registrant.email,
-        full_name: registrant.fullName,
-        is_active: true,
-        must_set_password: registrant.isNewAccount,
-        active_organization_id: school.id,
-      },
-      { onConflict: "id" }
-    );
-
-    if (profileError) throw profileError;
-
-    await consumeMunicipalityInvite({
-      supabaseAdmin,
-      inviteId: invite.id,
-      organizationId: school.id,
-    });
+    const school = {
+      id: onboarding.organization_id,
+      name: onboarding.organization_name,
+      join_code: onboarding.join_code,
+    };
 
     let emailSent = false;
     try {
@@ -252,10 +214,12 @@ export default async function handler(req, res) {
       emailSent,
     });
   } catch (error) {
-    if (schoolId) {
-      await supabaseAdmin.from("organizations").delete().eq("id", schoolId);
+    if (!onboardingCommitted) {
+      await cleanupNewRegistrant(supabaseAdmin, registrant, {
+        route: "school-registration",
+        reason: error?.message || "unknown",
+      });
     }
-    await cleanupNewRegistrant(supabaseAdmin, registrant);
 
     console.error("registrace-skoly error:", error);
     const expectedError =

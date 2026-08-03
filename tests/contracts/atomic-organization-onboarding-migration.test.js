@@ -52,9 +52,14 @@ describe("atomic municipality organization onboarding migration", () => {
   });
 
   it("serializes and preserves the existing duplicate rules", () => {
-    expect(migration).toContain("pg_advisory_xact_lock");
+    expect(migration).toContain(
+      "pg_catalog.hashtextextended('archimedes:municipality-organization-onboarding', 0)"
+    );
+    expect(migration).toContain("pg_catalog.pg_advisory_xact_lock");
     expect(migration).toContain("existing.parent_organization_id = municipality_row.id");
-    expect(migration).toContain("unaccent(lower(trim(existing.name))) = unaccent(lower(normalized_name))");
+    expect(migration).toContain(
+      "public.unaccent(lower(trim(existing.name))) = public.unaccent(lower(normalized_name))"
+    );
     expect(migration).toContain("from public.find_conflicting_customer(");
     expect(migration).toContain("normalized_legal_identifier");
     expect(migration).toContain("normalized_address");
@@ -70,7 +75,14 @@ describe("atomic municipality organization onboarding migration", () => {
   });
 
   it("is callable only by the service role", () => {
+    expect(migration).toContain("set search_path = ''");
     expect(migration).toContain("from public, anon, authenticated");
     expect(migration).toContain("to service_role");
+  });
+
+  it("returns the previous profile context for audit without rewriting identity", () => {
+    expect(migration).toContain("previous_active_organization_id uuid");
+    expect(migration).toContain("profile.active_organization_id");
+    expect(migration).toContain("previous_active_organization;");
   });
 });

@@ -21,11 +21,12 @@ returns table (
   organization_name text,
   organization_type text,
   registration_number text,
-  join_code text
+  join_code text,
+  previous_active_organization_id uuid
 )
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   invite_row public.municipality_organization_invites%rowtype;
@@ -38,6 +39,7 @@ declare
   normalized_legal_identifier text := nullif(regexp_replace(coalesce(p_legal_identifier, ''), '[^0-9]', '', 'g'), '');
   normalized_activity_code text := nullif(trim(coalesce(p_activity_code, '')), '');
   existing_profile_email text;
+  previous_active_organization uuid;
   duplicate_exists boolean;
 begin
   if p_invite_id is null or p_user_id is null then
@@ -60,8 +62,15 @@ begin
     raise exception 'Legal identifier must contain eight digits';
   end if;
 
-  select lower(trim(profile.email))
-  into existing_profile_email
+  -- Onboarding is a low-volume administrative operation. Serializing the
+  -- transaction closes races across every duplicate identity (name, address,
+  -- legal identifier) and the count-based association registration trigger.
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended('archimedes:municipality-organization-onboarding', 0)
+  );
+
+  select lower(trim(profile.email)), profile.active_organization_id
+  into existing_profile_email, previous_active_organization
   from public.profiles profile
   where profile.id = p_user_id
   for share;
@@ -136,9 +145,9 @@ begin
   end if;
 
   -- Serialize all competing identity checks for this organization identity.
-  perform pg_advisory_xact_lock(
-    hashtextextended(
-      normalized_type || ':' || unaccent(lower(normalized_name)),
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(
+      normalized_type || ':' || public.unaccent(lower(normalized_name)),
       0
     )
   );
@@ -153,7 +162,7 @@ begin
           or
           (normalized_type = 'association' and existing.org_type in ('association', 'spolek'))
         )
-        and unaccent(lower(trim(existing.name))) = unaccent(lower(normalized_name))
+        and public.unaccent(lower(trim(existing.name))) = public.unaccent(lower(normalized_name))
     )
     or exists (
       select 1
@@ -263,7 +272,8 @@ begin
     created_organization.name,
     created_organization.org_type,
     created_organization.registration_number,
-    created_organization.join_code;
+    created_organization.join_code,
+    previous_active_organization;
 end;
 $$;
 

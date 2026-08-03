@@ -41,6 +41,11 @@ RPC musí v jedné PostgreSQL transakci:
 10. atomicky označit pozvánku jako `used` a uložit `used_organization_id`;
 11. vrátit novou organizaci a původní hodnotu `active_organization_id` pro audit.
 
+Onboardingové transakce se vzhledem k nízké četnosti globálně serializují
+transakčním advisory lockem. Tím se uzavírá souběh nejen podle názvu, ale i
+podle IČO a adresy a současně se chrání trigger registračních čísel spolků,
+který číslo odvozuje z aktuálního počtu organizací.
+
 Při jakékoli chybě se celá databázová transakce vrátí zpět.
 
 ### Fáze C – bezpečné dokončení mimo transakci
@@ -50,6 +55,8 @@ Při jakékoli chybě se celá databázová transakce vrátí zpět.
 3. Pokud databázová RPC selže a Auth účet byl právě vytvořen, provést explicitní smazání pouze tohoto nového Auth účtu.
 4. Výsledek cleanupu nesmí být potlačen bez evidence; musí být zalogován s ID účtu a důvodem.
 5. Existující Auth účet se při chybě nikdy nemaže ani neupravuje.
+6. Po potvrzeném databázovém commitu se Auth cleanup již nikdy nespouští, ani
+   když následné sestavení HTTP odpovědi neočekávaně selže.
 
 ## Povinné ochrany
 
