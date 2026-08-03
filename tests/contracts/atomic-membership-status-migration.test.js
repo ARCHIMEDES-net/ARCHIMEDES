@@ -17,12 +17,16 @@ describe("atomic organization membership status migration", () => {
     expect(migration).toContain(
       "public.can_administer_organization(target_organization_id)"
     );
+    expect(migration).toContain("set search_path = ''");
     expect(migration).toContain("new_status not in ('active', 'inactive')");
     expect(migration).toContain("for update");
     expect(migration).toContain(
       "where membership.organization_id = target_organization_id"
     );
     expect(migration).toContain("and membership.user_id = target_user_id");
+    expect(migration).toContain(
+      "revoke update on table public.organization_members from authenticated"
+    );
   });
 
   it("protects the last active administrator and self-deactivation", () => {

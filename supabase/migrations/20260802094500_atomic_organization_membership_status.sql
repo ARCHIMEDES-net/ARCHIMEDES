@@ -15,7 +15,7 @@ returns table (
 )
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
   current_membership public.organization_members%rowtype;
@@ -101,3 +101,7 @@ revoke execute on function public.set_organization_membership_status(uuid, uuid,
   from authenticated;
 grant execute on function public.set_organization_membership_status(uuid, uuid, text)
   to authenticated, service_role;
+
+-- Membership changes from authenticated clients must pass through the
+-- guarded RPC. Server-side service-role onboarding keeps its table access.
+revoke update on table public.organization_members from authenticated;

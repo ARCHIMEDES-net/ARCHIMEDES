@@ -25,6 +25,14 @@ Připravit jednu serverovou/RPC operaci, která:
 8. při jakékoli chybě neprovede žádnou částečnou změnu;
 9. vrátí aktualizovaný stav členství.
 
+Přímé `UPDATE` právo role `authenticated` nad `organization_members` se odebere,
+aby nebylo možné obejít autorizaci, ochranu posledního administrátora ani zákaz
+vlastní deaktivace. Serverové onboardingové operace používající `service_role`
+zůstávají beze změny.
+
+RPC používá `SECURITY DEFINER` pouze kvůli atomické autorizované operaci, má
+prázdný `search_path` a všechny databázové objekty uvádí s explicitním schématem.
+
 ## Povinné ochrany
 
 - Nelze deaktivovat posledního aktivního `organization_admin` v organizaci.
