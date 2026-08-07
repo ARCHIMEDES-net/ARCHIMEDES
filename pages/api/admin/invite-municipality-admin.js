@@ -181,7 +181,7 @@ export default async function handler(req, res) {
       .single();
 
     if (membershipError) {
-      if (membershipError.code === "23505") {
+      if (membershipError.code === "23505" && !invitedUserId) {
         return res.status(409).json({
           error: "Členství už mezitím vzniklo. Obnovte detail obce.",
         });
