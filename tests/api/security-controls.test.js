@@ -96,6 +96,8 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
     expect(source).toContain("supabaseAdmin.auth.admin.inviteUserByEmail");
     expect(source).toContain('role_in_org: "organization_admin"');
     expect(source).toContain('user_type: "organization"');
+    expect(source).toContain('.upsert(');
+    expect(source).toContain('{ onConflict: "id" }');
     expect(source).not.toContain("license_plan");
     expect(source).not.toContain("license_started_at");
     expect(source).not.toContain("license_valid_until");

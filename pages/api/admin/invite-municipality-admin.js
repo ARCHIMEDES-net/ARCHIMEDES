@@ -153,20 +153,23 @@ export default async function handler(req, res) {
         throw new Error("Pozvánka nevrátila ID uživatele.");
       }
 
+      profileCreated = true;
       const { error: profileError } = await supabaseAdmin
         .from("profiles")
-        .insert({
-          id: userId,
-          email: cleanEmail,
-          full_name: cleanFullName,
-          is_active: true,
-          must_set_password: true,
-          user_type: "organization",
-          active_organization_id: organizationId,
-        });
+        .upsert(
+          {
+            id: userId,
+            email: cleanEmail,
+            full_name: cleanFullName,
+            is_active: true,
+            must_set_password: true,
+            user_type: "organization",
+            active_organization_id: organizationId,
+          },
+          { onConflict: "id" }
+        );
 
       if (profileError) throw profileError;
-      profileCreated = true;
     }
 
     const { data: membership, error: membershipError } = await supabaseAdmin
