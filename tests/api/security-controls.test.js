@@ -39,6 +39,7 @@ const retiredRoutes = [
 
 const platformAdminRoutes = [
   "admin/activate-municipality",
+  "admin/invite-municipality-admin",
   "admin/broadcast-recipients",
   "admin/group-counts",
   "admin/group-users",
@@ -88,6 +89,21 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
       expect(source).toContain("Retry-After");
     }
   );
+
+  it("keeps municipality admin invitations separate from licence and activation writes", () => {
+    const source = readApi("admin/invite-municipality-admin");
+
+    expect(source).toContain("supabaseAdmin.auth.admin.inviteUserByEmail");
+    expect(source).toContain('role_in_org: "organization_admin"');
+    expect(source).toContain('user_type: "organization"');
+    expect(source).not.toContain("license_plan");
+    expect(source).not.toContain("license_started_at");
+    expect(source).not.toContain("license_valid_until");
+    expect(source).not.toContain("contract_status");
+    expect(source).not.toContain("billing_status");
+    expect(source).not.toContain("activated_at");
+    expect(source).not.toContain("activate_customer_with_admin");
+  });
 
   it("binds municipality invitation management to a verified bearer user and resource-scoped limit", () => {
     const source = readApi("municipality/organization-invites");
