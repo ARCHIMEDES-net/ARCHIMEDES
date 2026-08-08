@@ -196,40 +196,35 @@ describe("organization registrant compensation", () => {
   it("deletes a newly created account", async () => {
     const { supabase } = createSupabaseMock();
 
-    await cleanupNewRegistrant(supabase, {
+    const result = await cleanupNewRegistrant(supabase, {
       userId: "new-user",
       isNewAccount: true,
     });
 
     expect(supabase.auth.admin.deleteUser).toHaveBeenCalledWith("new-user");
+    expect(result).toEqual({ attempted: true, succeeded: true });
   });
 
-  it("restores an existing account's previous active organization", async () => {
-    const { supabase, queries } = createSupabaseMock({
-      tableResults: {
-        profiles: { data: null, error: null },
-      },
-    });
+  it("never compensates by rewriting an existing account", async () => {
+    const { supabase } = createSupabaseMock();
 
-    await cleanupNewRegistrant(supabase, {
+    const result = await cleanupNewRegistrant(supabase, {
       userId: "existing-user",
       isNewAccount: false,
       previousActiveOrganizationId: "previous-org",
     });
 
-    expect(queries[0]).toMatchObject({
-      table: "profiles",
-      filters: { id: "existing-user" },
-      mutation: {
-        type: "update",
-        value: { active_organization_id: "previous-org" },
-      },
-    });
+    expect(result).toEqual({ attempted: false, succeeded: true });
+    expect(supabase.from).not.toHaveBeenCalled();
+    expect(supabase.auth.admin.deleteUser).not.toHaveBeenCalled();
   });
 
-  it("does nothing without a user and never masks the original failure", async () => {
+  it("does nothing without a user and reports cleanup failure", async () => {
     const { supabase } = createSupabaseMock();
-    await cleanupNewRegistrant(supabase, null);
+    await expect(cleanupNewRegistrant(supabase, null)).resolves.toEqual({
+      attempted: false,
+      succeeded: true,
+    });
     expect(supabase.from).not.toHaveBeenCalled();
 
     supabase.auth.admin.deleteUser.mockRejectedValueOnce(new Error("cleanup failed"));
@@ -238,6 +233,29 @@ describe("organization registrant compensation", () => {
         userId: "new-user",
         isNewAccount: true,
       })
-    ).resolves.toBeUndefined();
+    ).resolves.toEqual({
+      attempted: true,
+      succeeded: false,
+      error: "cleanup failed",
+    });
+  });
+
+  it("reports an Auth API cleanup error returned without throwing", async () => {
+    const { supabase } = createSupabaseMock();
+    supabase.auth.admin.deleteUser.mockResolvedValueOnce({
+      error: new Error("delete rejected"),
+    });
+
+    await expect(
+      cleanupNewRegistrant(
+        supabase,
+        { userId: "new-user", isNewAccount: true },
+        { route: "school-registration" }
+      )
+    ).resolves.toEqual({
+      attempted: true,
+      succeeded: false,
+      error: "delete rejected",
+    });
   });
 });
