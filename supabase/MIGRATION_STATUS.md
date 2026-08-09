@@ -130,3 +130,20 @@ Před ručním převodem starých archivů se spustí pouze read-only report
 `supabase/preflight/archive_recording_classification.sql`. Report nic
 nepřepisuje; rozděluje odkazy na skutečné YouTube záznamy, Meet odkazy,
 jiné odkazy k posouzení a chybějící záznamy.
+
+## Produkční izolace organizací 2026-08-09
+
+- PR #138 byl sloučen do `main` jako commit
+  `e3fb8c52a7f22f91ca97ca249160fac5280c004f`.
+- Migrace obnovující přímou tenant izolaci byla aplikována do projektu
+  `gipikahmjlcynkqexxmz` přes Supabase migration API jako verze
+  `20260809102826` a název
+  `restore_direct_organization_isolation_20260809100250`.
+- Soubor v aktivním migračním řetězci používá stejnou produkční verzi a název;
+  původní timestamp `20260809100250` zůstává v názvu jako auditní vazba na
+  testovaný SQL soubor z PR #138.
+- Před a po aplikaci zůstaly beze změny souhrnné počty: 14 organizací,
+  59 členství a 85 profilů. Migrace neprovedla žádný přepis aplikačních dat.
+- Read-only kontrola potvrdila přímá oprávnění bez děděného přístupu správce
+  obce do dítěte, prázdný `search_path` a odebrané `EXECUTE` pro `PUBLIC`
+  a `anon` u všech tří nahrazených funkcí.
