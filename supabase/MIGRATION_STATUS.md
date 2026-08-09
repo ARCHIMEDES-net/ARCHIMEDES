@@ -198,3 +198,24 @@ jiné odkazy k posouzení a chybějící záznamy.
 - Produkční kontrola potvrdila `SECURITY INVOKER`, prázdný `search_path`,
   `EXECUTE` pouze pro `authenticated` a nulová nová zjištění Security i
   Performance Advisoru pro novou RPC.
+
+## Expirace zděděné licence dítěte 2026-08-09
+
+- PR #148 byl sloučen do `main` jako commit
+  `1a5526aa6e0cf69dde1f4dfb58060e81fa910738` a uzavřel issue #120.
+- Migrace byla aplikována do projektu `gipikahmjlcynkqexxmz` přes Supabase
+  migration API jako verze `20260809120503` a název
+  `require_explicit_child_license_plan_20260809115500`.
+- Soubor v aktivním migračním řetězci používá stejnou produkční verzi a název;
+  původní timestamp `20260809115500` zůstává v názvu jako auditní vazba na
+  SQL otestované v datově prázdné vývojové větvi.
+- Dítě bez vlastního `license_plan` používá pouze platnou licenci nadřazené
+  obce. Dítě s explicitním plánem zůstává samostatně licencované a organizace
+  bez rodiče zachovávají dosavadní licenční chování.
+- Před a po aplikaci zůstaly beze změny souhrnné počty: 14 organizací,
+  2 organizace s rodičem, 59 členství a 85 profilů. V okamžiku nasazení měly
+  obě rodičovské obce platnou licenci, takže žádné dítě neztratilo přístup.
+- Produkční kontrola potvrdila stejnou podmínku v seznamu organizací, účasti,
+  vysílání, archivu i členském přístupu, prázdný `search_path` všech čtyř RPC
+  a odebrané `EXECUTE` pro `anon`. Celkové počty Advisor nálezů zůstaly beze
+  změny: 31 bezpečnostních a 110 výkonových historických zjištění.
