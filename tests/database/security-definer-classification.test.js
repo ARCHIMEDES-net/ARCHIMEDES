@@ -6,7 +6,7 @@ const migration = fs
   .readFileSync(
     path.join(
       process.cwd(),
-      "supabase/migrations/20260809130000_harden_security_definer_functions.sql"
+      "supabase/migrations/20260809133946_harden_security_definer_functions.sql"
     ),
     "utf8"
   )
