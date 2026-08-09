@@ -127,13 +127,13 @@ export default function SpolkyPage() {
               </div>
               <p className="mt-4 text-[15px] leading-relaxed text-slate-600">
                 Pokud je vaše obec už zapojená, spolek může program využít bez
-                samostatného předplatného. Správce obce mu vytvoří jednorázovou
-                pozvánku.
+                samostatného předplatného. Po ověření ho s licencí obce propojí
+                centrální tým ARCHIMEDES.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button href="/zadost?type=spolek">Chci samostatné zapojení</Button>
                 <span className="self-center text-sm leading-relaxed text-slate-500">
-                  Registrační odkaz obdrží kontaktní osoba přímo od obce.
+                  Spolek zůstává samostatnou organizací s vlastními uživateli a daty.
                 </span>
               </div>
             </div>

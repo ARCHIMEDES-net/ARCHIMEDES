@@ -358,8 +358,8 @@ export default function SkolyPage() {
               </h3>
               <p className="mt-3 text-[15px] leading-relaxed text-slate-600">
                 Celý program stojí 1 990 Kč měsíčně. Pokud už je vaše obec
-                v ARCHIMEDES Live aktivní, můžete školu připojit jejím
-                registračním číslem bez samostatného předplatného.
+                v ARCHIMEDES Live aktivní, centrální tým může školu po ověření
+                propojit s její licencí bez samostatného předplatného.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button href="/zadost?type=skola">
@@ -367,7 +367,7 @@ export default function SkolyPage() {
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Button>
                 <span className="self-center text-sm leading-relaxed text-slate-500">
-                  Pokud je zapojená obec, správce obce pošle škole jednorázovou pozvánku.
+                  Škola zůstává samostatnou organizací s vlastními uživateli a daty.
                 </span>
               </div>
             </div>

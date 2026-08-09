@@ -5,7 +5,7 @@ export default function RetiredCreateSchoolPage() {
 export function getServerSideProps() {
   return {
     redirect: {
-      destination: "/registrace-skoly",
+      destination: "/zadost?type=skola",
       permanent: false,
     },
   };

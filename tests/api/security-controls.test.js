@@ -33,7 +33,10 @@ const retiredRoutes = [
   "create-organization",
   "demo-approve-from-email",
   "demo-request",
+  "municipality/invite-context",
   "pridat-se-k-organizaci",
+  "registrace-skoly",
+  "registrace-spolku",
   "start-demo",
 ];
 
@@ -57,11 +60,8 @@ const platformAdminRoutes = [
 const publicRateLimitedRoutes = [
   "invite-user",
   "join-organization",
-  "municipality/invite-context",
   "poptavka-ucebny",
   "poptavka",
-  "registrace-skoly",
-  "registrace-spolku",
   "zadost-o-pristup",
 ];
 
@@ -116,6 +116,11 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
     expect(source).toContain("supabaseAdmin.auth.getUser(token)");
     expect(source).toContain('membership?.role_in_org !== "organization_admin"');
     expect(source).toContain("resourceId: municipalityId");
+    expect(source).toContain('req.method === "POST"');
+    expect(source).toContain("res.status(410)");
+    expect(source).not.toContain("randomBytes");
+    expect(source).not.toContain("sendMail");
+    expect(source).not.toContain(".insert(");
   });
 
   it("authorizes broadcast viewers before issuing provider entry links", () => {
@@ -165,11 +170,8 @@ describe("API egress, email, and secret-exposure controls", () => {
 
   it.each([
     "admin/activate-municipality",
-    "municipality/organization-invites",
     "poptavka-ucebny",
     "poptavka",
-    "registrace-skoly",
-    "registrace-spolku",
     "zadost-o-pristup",
   ])("%s validates SMTP server configuration rather than accepting it from input", (route) => {
     const source = readApi(route);

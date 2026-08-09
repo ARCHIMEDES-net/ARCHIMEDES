@@ -18,20 +18,17 @@ const guardedRoutes = [
   ["instagram", () => import("../../pages/api/instagram"), "POST", "GET"],
   ["invite-user", () => import("../../pages/api/invite-user"), "GET", "POST"],
   ["join-organization", () => import("../../pages/api/join-organization"), "GET", "POST"],
-  ["municipality/invite-context", () => import("../../pages/api/municipality/invite-context"), "GET", "POST"],
   [
     "municipality/organization-invites",
     () => import("../../pages/api/municipality/organization-invites"),
     "DELETE",
-    "GET, POST, PATCH",
+    "GET, PATCH",
   ],
   ["poptavka-ucebny", () => import("../../pages/api/poptavka-ucebny"), "GET", "POST"],
   ["poptavka", () => import("../../pages/api/poptavka"), "GET", "POST"],
   ["portal-posts-create", () => import("../../pages/api/portal-posts-create"), "GET", "POST"],
   ["portal-posts-delete", () => import("../../pages/api/portal-posts-delete"), "GET", "POST"],
   ["portal-posts-update", () => import("../../pages/api/portal-posts-update"), "GET", "POST"],
-  ["registrace-skoly", () => import("../../pages/api/registrace-skoly"), "GET", "POST"],
-  ["registrace-spolku", () => import("../../pages/api/registrace-spolku"), "GET", "POST"],
   ["zadost-o-pristup", () => import("../../pages/api/zadost-o-pristup"), "GET", "POST"],
 ];
 
@@ -44,7 +41,10 @@ const retiredRoutes = [
   ["create-organization", () => import("../../pages/api/create-organization")],
   ["demo-approve-from-email", () => import("../../pages/api/demo-approve-from-email")],
   ["demo-request", () => import("../../pages/api/demo-request")],
+  ["municipality/invite-context", () => import("../../pages/api/municipality/invite-context")],
   ["pridat-se-k-organizaci", () => import("../../pages/api/pridat-se-k-organizaci")],
+  ["registrace-skoly", () => import("../../pages/api/registrace-skoly")],
+  ["registrace-spolku", () => import("../../pages/api/registrace-spolku")],
   ["start-demo", () => import("../../pages/api/start-demo")],
 ];
 
@@ -65,6 +65,19 @@ describe("API route security contracts", () => {
   it.each(retiredRoutes)("%s remains unavailable and non-cacheable", async (_name, load) => {
     const { default: handler } = await load();
     const { res } = await invoke(handler, { method: "POST" });
+
+    expect(res.statusCode).toBe(410);
+    expect(res.getHeader("cache-control")).toBe("no-store");
+  });
+
+  it("does not create new municipality registration invitations", async () => {
+    const { default: handler } = await import(
+      "../../pages/api/municipality/organization-invites"
+    );
+    const { res } = await invoke(handler, {
+      method: "POST",
+      body: { municipalityId: "00000000-0000-4000-8000-000000000000" },
+    });
 
     expect(res.statusCode).toBe(410);
     expect(res.getHeader("cache-control")).toBe("no-store");
