@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const migration = fs.readFileSync(
   path.join(
     process.cwd(),
-    "supabase/migrations/20260809105645_protect_public_event_urls.sql"
+    "supabase/migrations/20260809110727_protect_public_event_urls_20260809105645.sql"
   ),
   "utf8"
 );
