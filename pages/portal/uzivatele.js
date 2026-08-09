@@ -245,20 +245,16 @@ export default function UzivateleSkolyPage() {
     try {
       const nextStatus = row.is_active ? "inactive" : "active";
 
-      const { error: updateMembershipError } = await supabase
-        .from("organization_members")
-        .update({ status: nextStatus })
-        .eq("organization_id", organizationId)
-        .eq("user_id", row.id);
+      const { error: updateMembershipError } = await supabase.rpc(
+        "set_organization_membership_status",
+        {
+          target_organization_id: organizationId,
+          target_user_id: row.id,
+          new_status: nextStatus,
+        }
+      );
 
       if (updateMembershipError) throw updateMembershipError;
-
-      const { error: updateProfileError } = await supabase
-        .from("profiles")
-        .update({ is_active: !row.is_active })
-        .eq("id", row.id);
-
-      if (updateProfileError) throw updateProfileError;
 
       setMessage(
         row.is_active
