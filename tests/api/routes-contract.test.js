@@ -3,6 +3,7 @@ import { invoke } from "../helpers/http";
 
 const guardedRoutes = [
   ["admin/activate-municipality", () => import("../../pages/api/admin/activate-municipality"), "GET", "POST"],
+  ["admin/create-municipality-organization", () => import("../../pages/api/admin/create-municipality-organization"), "GET", "POST"],
   ["admin/invite-municipality-admin", () => import("../../pages/api/admin/invite-municipality-admin"), "GET", "POST"],
   ["admin/broadcast-recipients", () => import("../../pages/api/admin/broadcast-recipients"), "GET", "POST"],
   ["admin/group-counts", () => import("../../pages/api/admin/group-counts"), "POST", "GET"],
