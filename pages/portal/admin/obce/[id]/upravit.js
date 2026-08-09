@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import RequirePlatformAdmin from "../../../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../../../components/PortalHeader";
 import { supabase } from "../../../../../lib/supabaseClient";
@@ -25,12 +25,7 @@ export default function AdminCustomerEditPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    if (!router.isReady || !organizationId) return;
-    loadCustomer();
-  }, [router.isReady, organizationId]);
-
-  async function loadCustomer() {
+  const loadCustomer = useCallback(async () => {
     setLoading(true);
     setError("");
     const { data, error: loadError } = await supabase
@@ -58,7 +53,12 @@ export default function AdminCustomerEditPage() {
       billingStatus: data.billing_status || "pending",
     });
     setLoading(false);
-  }
+  }, [organizationId]);
+
+  useEffect(() => {
+    if (!router.isReady || !organizationId) return;
+    loadCustomer();
+  }, [router.isReady, organizationId, loadCustomer]);
 
   function update(field, value) {
     setForm((current) => ({ ...current, [field]: value }));

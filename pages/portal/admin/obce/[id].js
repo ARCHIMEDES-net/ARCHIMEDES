@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import RequirePlatformAdmin from "../../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../../components/PortalHeader";
 import { supabase } from "../../../../lib/supabaseClient";
@@ -34,9 +34,7 @@ export default function AdminMunicipalityDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => { if (router.isReady && organizationId) loadDetail(); }, [router.isReady, organizationId]);
-
-  async function loadDetail() {
+  const loadDetail = useCallback(async () => {
     setLoading(true); setError("");
     try {
       const { data: org, error: orgError } = await supabase.from("organizations").select("id, name, org_type, registration_number, ico, legal_identifier, registered_address, contact_name, contact_email, contact_phone, license_status, license_plan, license_started_at, license_valid_until, contract_status, billing_status, status, created_at, activated_at").eq("id", organizationId).maybeSingle();
@@ -56,7 +54,9 @@ export default function AdminMunicipalityDetailPage() {
       setOrganization(org); setChildren(childRows || []); setAdmins((memberships || []).map((m) => ({ ...m, profile: profileMap.get(m.user_id) })));
     } catch (e) { setError(e?.message || "Detail se nepodařilo načíst."); }
     finally { setLoading(false); }
-  }
+  }, [organizationId]);
+
+  useEffect(() => { if (router.isReady && organizationId) loadDetail(); }, [router.isReady, organizationId, loadDetail]);
 
   return <RequirePlatformAdmin><div className="min-h-screen bg-slate-50"><PortalHeader title="Admin • detail zákazníka" /><main className="mx-auto max-w-[1180px] px-4 py-8 sm:px-6">
     <div className="flex flex-wrap items-center justify-between gap-3"><div><Link href="/portal/admin/obce" className="text-sm font-bold text-slate-600 underline underline-offset-4">← Zpět na zákazníky</Link><h1 className="mt-2 text-3xl font-black text-navy-900">{organization?.name || "Detail zákazníka"}</h1>{organization ? <p className="mt-1 text-sm text-slate-600">{ORGANIZATION_LABELS[organization.org_type] || organization.org_type} • registrační číslo {organization.registration_number || "—"}</p> : null}</div>

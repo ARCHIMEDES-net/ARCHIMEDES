@@ -70,6 +70,11 @@ function isPasswordSetupFlow(type = "") {
   return normalized === "recovery" || normalized === "invite";
 }
 
+function requestedInternalPath(nextValue) {
+  const next = typeof nextValue === "string" ? nextValue : "";
+  return next.startsWith("/") && !next.startsWith("//") ? next : "";
+}
+
 async function resolvePostLoginPath() {
   const {
     data: { user },
@@ -152,11 +157,6 @@ async function resolvePostLoginPath() {
 export default function LoginPage() {
   const router = useRouter();
 
-  function requestedInternalPath() {
-    const next = typeof router.query.next === "string" ? router.query.next : "";
-    return next.startsWith("/") && !next.startsWith("//") ? next : "";
-  }
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -172,7 +172,9 @@ export default function LoginPage() {
     let cancelled = false;
 
     async function safeRedirectAfterAuth() {
-      const target = requestedInternalPath() || (await resolvePostLoginPath());
+      const target =
+        requestedInternalPath(router.query.next) ||
+        (await resolvePostLoginPath());
       if (!cancelled) {
         router.replace(target);
       }
@@ -352,7 +354,9 @@ export default function LoginPage() {
         return;
       }
 
-      const target = requestedInternalPath() || (await resolvePostLoginPath());
+      const target =
+        requestedInternalPath(router.query.next) ||
+        (await resolvePostLoginPath());
       router.push(target);
     } catch (e) {
       setError(e?.message || "Přihlášení se nepodařilo.");

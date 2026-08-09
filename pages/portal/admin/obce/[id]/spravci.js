@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import RequirePlatformAdmin from "../../../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../../../components/PortalHeader";
 import { supabase } from "../../../../../lib/supabaseClient";
@@ -21,12 +21,7 @@ export default function AdminMunicipalityAdminsPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    if (!router.isReady || !organizationId) return;
-    loadMunicipality();
-  }, [router.isReady, organizationId]);
-
-  async function loadMunicipality() {
+  const loadMunicipality = useCallback(async () => {
     setLoading(true);
     setError("");
 
@@ -52,7 +47,12 @@ export default function AdminMunicipalityAdminsPage() {
       email: data.contact_email || "",
     });
     setLoading(false);
-  }
+  }, [organizationId]);
+
+  useEffect(() => {
+    if (!router.isReady || !organizationId) return;
+    loadMunicipality();
+  }, [router.isReady, organizationId, loadMunicipality]);
 
   async function submit(event) {
     event.preventDefault();
