@@ -8,6 +8,13 @@ import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import { Button } from "../../../components/ui/button";
 import { Alert } from "../../../components/ui/alert";
+import {
+  appendCleanupError,
+  getPosterPublicUrl,
+  insertEventWithPosterCleanup,
+  removeEventOwnedPosterIfUnreferenced,
+  removePosterObject,
+} from "../../../lib/posterStorage";
 
 /* =========================
    RUBRIKY
@@ -136,12 +143,11 @@ function safeFileExt(fileName) {
   return ext.replace(/[^a-z0-9]/g, "");
 }
 
-function makePosterPath(file) {
+function makePosterPath(file, eventId) {
   const ext = safeFileExt(file?.name) || "jpg";
-  const now = new Date();
-  const ym = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;
   const rand = Math.random().toString(36).slice(2, 8);
-  return `${ym}/${Date.now()}-${rand}.${ext}`;
+  const owner = eventId || `draft-${Date.now()}-${rand}`;
+  return `events/${owner}/${Date.now()}-${rand}.${ext}`;
 }
 
 function makeWorksheetPath(file) {
@@ -264,6 +270,9 @@ export default function AdminUdalosti() {
   const [streamUrl, setStreamUrl] = useState("");
   const [worksheetUrl, setWorksheetUrl] = useState("");
   const [posterUrl, setPosterUrl] = useState("");
+  const [savedPosterUrl, setSavedPosterUrl] = useState("");
+  const [savedPosterPath, setSavedPosterPath] = useState("");
+  const [pendingPoster, setPendingPoster] = useState(null);
   const [isPublished, setIsPublished] = useState(true);
 
   useEffect(() => {
@@ -290,6 +299,7 @@ export default function AdminUdalosti() {
           stream_url,
           worksheet_url,
           poster_url,
+          poster_path,
           is_published,
           created_at,
           broadcast_sessions (
@@ -313,9 +323,14 @@ export default function AdminUdalosti() {
             const groups = Array.isArray(row.audience_groups)
               ? normalizeAudienceGroups(row.audience_groups)
               : normalizeAudienceGroups(splitAudience(normalizeText(row.audience)));
+            const posterPath = normalizeText(row.poster_path);
+            const posterUrl =
+              normalizeText(row.poster_url) || getPosterPublicUrl(supabase, posterPath);
 
             return {
               ...row,
+              poster_path: posterPath,
+              poster_url: posterUrl,
               audience_groups: groups,
               audience: groups.length ? joinAudience(groups) : normalizeText(row.audience),
               broadcast_status: session?.status || "",
@@ -360,7 +375,19 @@ export default function AdminUdalosti() {
     return filtered;
   }, [rows, filterKey]);
 
-  function resetForm() {
+  async function resetForm({ discardPending = true } = {}) {
+    if (discardPending && pendingPoster?.path) {
+      const cleanup = await removePosterObject(supabase, pendingPoster.path);
+      if (cleanup.error) {
+        setError(
+          `Neuložený plakát se nepodařilo uklidit: ${
+            cleanup.error.message || String(cleanup.error)
+          }`
+        );
+        return false;
+      }
+    }
+
     setEditingId(null);
     setLastSavedEventId("");
     setRubricKey("");
@@ -372,12 +399,28 @@ export default function AdminUdalosti() {
     setStreamUrl("");
     setWorksheetUrl("");
     setPosterUrl("");
+    setSavedPosterUrl("");
+    setSavedPosterPath("");
+    setPendingPoster(null);
     setIsPublished(true);
     setError("");
     setInfo("");
+    return true;
   }
 
-  function fillFormFromRow(r) {
+  async function fillFormFromRow(r) {
+    if (pendingPoster?.path) {
+      const cleanup = await removePosterObject(supabase, pendingPoster.path);
+      if (cleanup.error) {
+        setError(
+          `Neuložený plakát se nepodařilo uklidit: ${
+            cleanup.error.message || String(cleanup.error)
+          }`
+        );
+        return;
+      }
+    }
+
     setEditingId(r.id);
     setLastSavedEventId(r.id);
     setRubricKey("");
@@ -397,6 +440,9 @@ export default function AdminUdalosti() {
     setStreamUrl(normalizeText(r.stream_url));
     setWorksheetUrl(normalizeText(r.worksheet_url));
     setPosterUrl(normalizeText(r.poster_url));
+    setSavedPosterUrl(normalizeText(r.poster_url));
+    setSavedPosterPath(normalizeText(r.poster_path));
+    setPendingPoster(null);
     setIsPublished(r.is_published !== false);
     setError("");
     setInfo("");
@@ -450,7 +496,7 @@ export default function AdminUdalosti() {
 
     setUploadingPoster(true);
     try {
-      const path = makePosterPath(file);
+      const path = makePosterPath(file, editingId);
 
       const { error: upErr } = await supabase.storage.from("posters").upload(path, file, {
         cacheControl: "3600",
@@ -464,11 +510,34 @@ export default function AdminUdalosti() {
       const url = data?.publicUrl ? String(data.publicUrl) : "";
 
       if (!url) {
-        setError("Upload proběhl, ale nepodařilo se získat veřejnou URL.");
+        const cleanup = await removePosterObject(supabase, path);
+        setError(
+          appendCleanupError(
+            "Upload proběhl, ale nepodařilo se získat veřejnou URL.",
+            cleanup.error
+          )
+        );
         return;
       }
 
+      if (pendingPoster?.path) {
+        const previousCleanup = await removePosterObject(supabase, pendingPoster.path);
+        if (previousCleanup.error) {
+          const currentCleanup = await removePosterObject(supabase, path);
+          setError(
+            appendCleanupError(
+              `Předchozí neuložený plakát se nepodařilo uklidit: ${
+                previousCleanup.error.message || String(previousCleanup.error)
+              }`,
+              currentCleanup.error
+            )
+          );
+          return;
+        }
+      }
+
       setPosterUrl(url);
+      setPendingPoster({ path, url });
       setInfo("Plakát nahrán. URL se vyplnila automaticky.");
     } catch (err) {
       setError(err?.message || "Chyba při nahrávání plakátu.");
@@ -554,6 +623,15 @@ export default function AdminUdalosti() {
 
     const groups = normalizeAudienceGroups((audienceSelected || []).map(String).filter(Boolean));
 
+    const normalizedPosterUrl = normalizeUrl(posterUrl);
+    const pendingIsLinked =
+      !!pendingPoster && normalizeUrl(pendingPoster.url) === normalizedPosterUrl;
+    const posterPathForPayload = pendingIsLinked
+      ? pendingPoster.path
+      : normalizedPosterUrl === normalizeUrl(savedPosterUrl)
+        ? savedPosterPath || null
+        : null;
+
     const payload = {
       title: title.trim(),
       starts_at: startsAt.toISOString(),
@@ -562,7 +640,8 @@ export default function AdminUdalosti() {
       full_description: (fullDescription || "").trim(),
       stream_url: normalizeUrl(streamUrl),
       worksheet_url: normalizeUrl(worksheetUrl),
-      poster_url: normalizeUrl(posterUrl),
+      poster_url: normalizedPosterUrl,
+      poster_path: posterPathForPayload,
       is_published: !!isPublished,
     };
 
@@ -570,10 +649,48 @@ export default function AdminUdalosti() {
 
     try {
       let savedId = editingId || "";
+      let saveMessage = "";
+      let cleanupWarning = "";
+      const pendingAtSave = pendingPoster;
+      const pendingIsLinked =
+        !!pendingAtSave && normalizeUrl(pendingAtSave.url) === payload.poster_url;
 
       if (editingId) {
         const { error } = await supabase.from("events").update(payload).eq("id", editingId);
-        if (error) throw error;
+        if (error) {
+          const cleanup = await removePosterObject(supabase, pendingAtSave?.path);
+          setPendingPoster(null);
+          setPosterUrl(savedPosterUrl);
+          throw new Error(appendCleanupError(error.message, cleanup.error));
+        }
+
+        if (pendingAtSave && !pendingIsLinked) {
+          const cleanup = await removePosterObject(supabase, pendingAtSave.path);
+          if (cleanup.error) {
+            cleanupWarning = ` Nepropojený nový plakát zůstal ve Storage: ${
+              cleanup.error.message || String(cleanup.error)
+            }`;
+          }
+        }
+        setPendingPoster(null);
+
+        if (
+          (savedPosterPath && savedPosterPath !== payload.poster_path) ||
+          (savedPosterUrl && normalizeUrl(savedPosterUrl) !== payload.poster_url)
+        ) {
+          const cleanup = await removeEventOwnedPosterIfUnreferenced(supabase, {
+            eventId: editingId,
+            path: savedPosterPath,
+            publicUrl: savedPosterUrl,
+          });
+          if (cleanup.error) {
+            cleanupWarning += ` Starý plakát zůstal ve Storage: ${
+              cleanup.error.message || String(cleanup.error)
+            }`;
+          }
+        }
+        setSavedPosterUrl(payload.poster_url);
+        setSavedPosterPath(payload.poster_path || "");
 
         const { data: authData } = await supabase.auth.getSession();
         const token = authData?.session?.access_token;
@@ -595,20 +712,34 @@ export default function AdminUdalosti() {
             }`
           );
         }
-        setInfo(
-          result.synced
-            ? "Událost byla upravena a změna se propsala do WebMeetingu."
-            : "Událost byla upravena. Místnost ve WebMeetingu ještě není založena."
-        );
+        saveMessage = result.synced
+          ? "Událost byla upravena a změna se propsala do WebMeetingu."
+          : "Událost byla upravena. Místnost ve WebMeetingu ještě není založena.";
       } else {
-        const { data, error } = await supabase
-          .from("events")
-          .insert(payload)
-          .select("id")
-          .single();
-        if (error) throw error;
+        const { data, error, cleanupError } = await insertEventWithPosterCleanup(
+          supabase,
+          payload,
+          pendingAtSave?.path
+        );
+        if (error) {
+          setPendingPoster(null);
+          setPosterUrl("");
+          throw new Error(appendCleanupError(error.message, cleanupError));
+        }
+
+        if (pendingAtSave && !pendingIsLinked) {
+          const cleanup = await removePosterObject(supabase, pendingAtSave.path);
+          if (cleanup.error) {
+            cleanupWarning = ` Nepropojený nový plakát zůstal ve Storage: ${
+              cleanup.error.message || String(cleanup.error)
+            }`;
+          }
+        }
+        setPendingPoster(null);
+        setSavedPosterUrl(payload.poster_url);
+        setSavedPosterPath(payload.poster_path || "");
         savedId = data?.id || "";
-        setInfo("Událost byla vytvořena.");
+        saveMessage = "Událost byla vytvořena.";
       }
 
       if (savedId) {
@@ -630,8 +761,12 @@ export default function AdminUdalosti() {
         setStreamUrl("");
         setWorksheetUrl("");
         setPosterUrl("");
+        setSavedPosterUrl("");
+        setSavedPosterPath("");
+        setPendingPoster(null);
         setIsPublished(true);
       }
+      setInfo(`${saveMessage}${cleanupWarning}`);
     } catch (err) {
       setError(err?.message || "Chyba při ukládání.");
     } finally {
@@ -647,13 +782,33 @@ export default function AdminUdalosti() {
     if (!ok) return;
 
     try {
+      const deletedRow = rows.find((row) => row.id === id);
       const { error } = await supabase.from("events").delete().eq("id", id);
       if (error) throw error;
-      setInfo("Událost byla smazána.");
+
+      let cleanupWarning = "";
+      if (editingId === id && pendingPoster?.path) {
+        const pendingCleanup = await removePosterObject(supabase, pendingPoster.path);
+        if (pendingCleanup.error) {
+          cleanupWarning = " Neuložený plakát zůstal ve Storage pro ruční kontrolu.";
+        }
+        setPendingPoster(null);
+      }
+
+      const savedCleanup = await removeEventOwnedPosterIfUnreferenced(supabase, {
+        eventId: id,
+        path: normalizeText(deletedRow?.poster_path),
+        publicUrl: normalizeText(deletedRow?.poster_url),
+      });
+      if (savedCleanup.error) {
+        cleanupWarning += " Uložený plakát zůstal ve Storage pro ruční kontrolu.";
+      }
+
       await loadEvents();
       if (editingId === id || lastSavedEventId === id) {
-        resetForm();
+        await resetForm({ discardPending: false });
       }
+      setInfo(`Událost byla smazána.${cleanupWarning}`);
     } catch (err) {
       setError(err?.message || "Chyba při mazání.");
     }

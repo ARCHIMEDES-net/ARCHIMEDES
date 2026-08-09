@@ -4,6 +4,10 @@ import { useRouter } from "next/router";
 import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
+import {
+  appendCleanupError,
+  insertEventWithPosterCleanup,
+} from "../../../lib/posterStorage";
 
 const BUCKET = "posters";
 
@@ -122,7 +126,7 @@ export default function NovaUdalost() {
       .from(BUCKET)
       .upload(path, posterFile, {
         cacheControl: "3600",
-        upsert: true,
+        upsert: false,
         contentType: posterFile.type || undefined,
       });
 
@@ -174,14 +178,14 @@ export default function NovaUdalost() {
       poster_path: poster_path,
     };
 
-    const { data, error } = await supabase
-      .from("events")
-      .insert(payload)
-      .select("id")
-      .single();
+    const { data, error, cleanupError } = await insertEventWithPosterCleanup(
+      supabase,
+      payload,
+      poster_path
+    );
 
     if (error) {
-      setErr(error.message);
+      setErr(appendCleanupError(error.message, cleanupError));
       setSaving(false);
       return;
     }

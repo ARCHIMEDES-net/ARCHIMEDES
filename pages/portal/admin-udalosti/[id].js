@@ -4,6 +4,11 @@ import Link from "next/link";
 import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
+import {
+  appendCleanupError,
+  removeEventOwnedPosterIfUnreferenced,
+  removePosterObject,
+} from "../../../lib/posterStorage";
 
 const BUCKET = "posters";
 
@@ -67,6 +72,8 @@ export default function AdminUdalostEdit() {
   const [isPublished, setIsPublished] = useState(false);
 
   const [posterPath, setPosterPath] = useState("");
+  const [savedPosterPath, setSavedPosterPath] = useState("");
+  const [pendingPosterPath, setPendingPosterPath] = useState("");
   const posterUrl = useMemo(() => publicUrlFromPath(posterPath), [posterPath]);
 
   const [catOptions, setCatOptions] = useState([]);
@@ -129,6 +136,8 @@ export default function AdminUdalostEdit() {
     setStartsAtLocal(toDateTimeLocalValue(data.starts_at || new Date()));
     setIsPublished(!!data.is_published);
     setPosterPath(data.poster_path || "");
+    setSavedPosterPath(data.poster_path || "");
+    setPendingPosterPath("");
 
     setLoading(false);
   }
@@ -178,27 +187,63 @@ export default function AdminUdalostEdit() {
       poster_path: posterPath || null,
     };
 
+    const previousPosterPath = savedPosterPath;
+    const uploadedPosterPath = pendingPosterPath;
     const { error } = await supabase.from("events").update(payload).eq("id", id);
 
     if (error) {
-      setErr(error.message);
+      const cleanup = await removePosterObject(supabase, uploadedPosterPath);
+      setPendingPosterPath("");
+      setPosterPath(previousPosterPath);
+      setErr(appendCleanupError(error.message, cleanup.error));
       setSaving(false);
       return;
     }
 
-    setInfo("Uloženo.");
+    setPendingPosterPath("");
+    setSavedPosterPath(posterPath || "");
+
+    let cleanupWarning = "";
+    if (previousPosterPath && previousPosterPath !== posterPath) {
+      const cleanup = await removeEventOwnedPosterIfUnreferenced(supabase, {
+        eventId: id,
+        path: previousPosterPath,
+        publicUrl: publicUrlFromPath(previousPosterPath),
+      });
+      if (cleanup.error) {
+        cleanupWarning = ` Starý plakát zůstal ve Storage: ${
+          cleanup.error.message || String(cleanup.error)
+        }`;
+      }
+    }
+
     setSaving(false);
-    loadRow();
+    await loadRow();
+    setInfo(`Uloženo.${cleanupWarning}`);
   }
 
   async function deleteEvent() {
     if (!id) return;
     if (!confirm("Opravdu smazat událost?")) return;
 
+    const posterToRemove = savedPosterPath || posterPath;
+    const pendingToRemove = pendingPosterPath;
     const { error } = await supabase.from("events").delete().eq("id", id);
     if (error) {
       alert(error.message);
       return;
+    }
+
+    const pendingCleanup = await removePosterObject(supabase, pendingToRemove);
+    const savedCleanup = await removeEventOwnedPosterIfUnreferenced(supabase, {
+      eventId: id,
+      path: posterToRemove,
+      publicUrl: publicUrlFromPath(posterToRemove),
+    });
+    if (pendingCleanup.error || savedCleanup.error) {
+      alert(
+        "Událost byla smazána, ale některý plakát zůstal ve Storage pro ruční kontrolu."
+      );
     }
 
     router.push("/portal/admin/udalosti");
@@ -215,7 +260,7 @@ export default function AdminUdalostEdit() {
 
     const up = await supabase.storage.from(BUCKET).upload(path, file, {
       cacheControl: "3600",
-      upsert: true,
+      upsert: false,
       contentType: file.type || `image/${ext}`,
     });
 
@@ -224,12 +269,43 @@ export default function AdminUdalostEdit() {
       return;
     }
 
+    if (pendingPosterPath) {
+      const previousCleanup = await removePosterObject(supabase, pendingPosterPath);
+      if (previousCleanup.error) {
+        const currentCleanup = await removePosterObject(supabase, path);
+        setErr(
+          appendCleanupError(
+            `Předchozí neuložený plakát se nepodařilo uklidit: ${
+              previousCleanup.error.message || String(previousCleanup.error)
+            }`,
+            currentCleanup.error
+          )
+        );
+        return;
+      }
+    }
+
     setPosterPath(path);
+    setPendingPosterPath(path);
     setInfo("Plakát nahrán. Nezapomeň uložit událost.");
   }
 
   async function clearPoster() {
-    if (!confirm("Odebrat plakát z události? (soubor zůstane ve storage)")) return;
+    if (!confirm("Odebrat plakát z události? Změna se provede po uložení.")) return;
+
+    if (pendingPosterPath) {
+      const cleanup = await removePosterObject(supabase, pendingPosterPath);
+      if (cleanup.error) {
+        setErr(
+          `Neuložený plakát se nepodařilo uklidit: ${
+            cleanup.error.message || String(cleanup.error)
+          }`
+        );
+        return;
+      }
+      setPendingPosterPath("");
+    }
+
     setPosterPath("");
     setInfo("Plakát odebrán z formuláře. Nezapomeň uložit událost.");
   }
