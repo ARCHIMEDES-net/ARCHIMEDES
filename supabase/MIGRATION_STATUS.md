@@ -163,3 +163,20 @@ jiné odkazy k posouzení a chybějící záznamy.
 - Read-only kontrola potvrdila prázdný `search_path`, `EXECUTE` pouze pro
   `authenticated`, odebrané přímé `UPDATE` pro `authenticated` a zachované
   přímé `UPDATE` pro důvěryhodný `service_role`.
+
+## Ochrana neveřejných URL událostí 2026-08-09
+
+- PR #142 byl sloučen do `main` jako commit
+  `0f33b70bfaeceb95c70f41cc145e35bd19cef4a2` a uzavřel issue #118.
+- Migrace byla aplikována do projektu `gipikahmjlcynkqexxmz` přes Supabase
+  migration API jako verze `20260809110727` a název
+  `protect_public_event_urls_20260809105645`.
+- Soubor v aktivním migračním řetězci používá stejnou produkční verzi a název;
+  původní timestamp `20260809105645` zůstává v názvu jako auditní vazba na
+  testovaný SQL soubor z PR #142.
+- Před a po aplikaci zůstalo beze změny 31 událostí, z toho 28 publikovaných,
+  i agregované počty všech URL polí. Migrace nepřepisovala aplikační data.
+- Veřejný program používá úzké `SECURITY INVOKER` RPC a anonymní role má na
+  tabulce `events` pouze sloupcový `SELECT` osmi veřejných polí. Produkční
+  negativní test potvrdil odmítnutí `stream_url`, `SELECT *` i všech zápisů;
+  Security a Performance Advisor nemají pro novou funkci žádné zjištění.
