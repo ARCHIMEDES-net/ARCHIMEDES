@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
@@ -260,7 +261,7 @@ export default function PortalHeader({ title = "" }) {
         <div className="flex items-start justify-between gap-4">
           <div className="relative z-40 flex shrink-0 items-center gap-3">
             <Link href="/portal" className="flex shrink-0 items-center">
-              <img src={LOGO_SRC} alt="ARCHIMEDES Live" className={cn("-mt-0.5 block w-auto", isMobile ? "h-7" : "h-[34px]")} />
+              <Image src={LOGO_SRC} alt="ARCHIMEDES Live" width={842} height={130} priority className={cn("-mt-0.5 block w-auto", isMobile ? "h-7" : "h-[34px]")} />
             </Link>
             {!isMobile && title ? <div className="max-w-[130px] truncate text-sm font-extrabold text-slate-500">{title}</div> : null}
             {!isMobile ? organizationSwitcher : null}

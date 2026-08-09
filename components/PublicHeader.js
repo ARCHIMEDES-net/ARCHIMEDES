@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
@@ -19,9 +20,12 @@ const NAV_ITEMS = [
 function LogoMark({ inverse = false }) {
   return (
     <span className="logoMark">
-      <img
+      <Image
         src={inverse ? "/logo-archimedes-live-negative.png" : "/logo-archimedes-live.png"}
         alt=""
+        width={inverse ? 1618 : 842}
+        height={inverse ? 195 : 130}
+        priority
         className="logoImg"
       />
 

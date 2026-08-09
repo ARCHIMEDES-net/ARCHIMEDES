@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import Image from "next/image";
 import { supabase } from "../lib/supabaseClient";
 import { cn } from "../lib/utils";
 import { Card } from "../components/ui/card";
@@ -142,7 +143,7 @@ export default function JoinPage() {
     <div className="min-h-screen bg-slate-50">
       <main className="mx-auto max-w-[760px] px-4 py-12">
         <Card className="p-7">
-          <img src="/logo-archimedes-live.png" alt="ARCHIMEDES Live" className="mb-4 block h-[42px] w-auto" />
+          <Image src="/logo-archimedes-live.png" alt="ARCHIMEDES Live" width={842} height={130} priority className="mb-4 block h-[42px] w-auto" />
 
           <h1 className="mb-2.5 text-[34px] font-[950] tracking-[-0.03em] text-navy-900">
             Připojit se do organizace
