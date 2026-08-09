@@ -6,9 +6,6 @@ import { fetchMyOrganization } from "../../lib/myOrganizations";
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Alert } from "../../components/ui/alert";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Select } from "../../components/ui/select";
 import { Badge } from "../../components/ui/badge";
 
 function formatDate(value) {
@@ -45,11 +42,7 @@ export default function MunicipalityOrganizationsPage() {
   const [membershipRole, setMembershipRole] = useState("");
   const [organizations, setOrganizations] = useState([]);
   const [invites, setInvites] = useState([]);
-  const [organizationType, setOrganizationType] = useState("school");
-  const [email, setEmail] = useState("");
-  const [latestInviteUrl, setLatestInviteUrl] = useState("");
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -137,58 +130,6 @@ export default function MunicipalityOrganizationsPage() {
     setLoading(false);
   }
 
-  async function createInvite(event) {
-    event.preventDefault();
-    setSaving(true);
-    setError("");
-    setMessage("");
-    setLatestInviteUrl("");
-
-    try {
-      const response = await fetch("/api/municipality/organization-invites", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          municipalityId: organizationId,
-          organizationType,
-          email: email.trim(),
-        }),
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.error || "Pozvánku se nepodařilo vytvořit.");
-      }
-
-      setLatestInviteUrl(data.inviteUrl || "");
-      setMessage(
-        email.trim()
-          ? data.emailSent
-            ? "Pozvánka byla vytvořena a odeslána e-mailem."
-            : "Pozvánka byla vytvořena, ale e-mail se nepodařilo odeslat. Zkopírujte odkaz ručně."
-          : "Pozvánka byla vytvořena. Zkopírujte odkaz a předejte ho organizaci."
-      );
-      setEmail("");
-      await loadOverview();
-    } catch (inviteError) {
-      setError(inviteError?.message || "Pozvánku se nepodařilo vytvořit.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function copyInviteUrl() {
-    try {
-      await navigator.clipboard.writeText(latestInviteUrl);
-      setMessage("Jednorázový odkaz byl zkopírován.");
-    } catch (_) {
-      setMessage("Odkaz zkopírujte ručně.");
-    }
-  }
-
   async function revokeInvite(inviteId) {
     if (!window.confirm("Opravdu zrušit tuto pozvánku?")) return;
 
@@ -225,14 +166,14 @@ export default function MunicipalityOrganizationsPage() {
             Školy a spolky obce
           </h1>
           <p className="mt-2 max-w-[850px] text-muted">
-            Organizace se zapojují pouze jednorázovou pozvánkou správce obce.
-            Registrační číslo identifikuje program obce, ale samo nezakládá přístup.
+            Každou školu a spolek zakládá po ověření centrální tým ARCHIMEDES.
+            Organizace zůstávají samostatnými subjekty s vlastními uživateli a daty.
           </p>
 
           {error ? <Alert variant="error" className="mt-4">{error}</Alert> : null}
           {message ? <Alert variant="success" className="mt-4">{message}</Alert> : null}
 
-          {loading ? <Card className="mt-5 p-6">Načítám onboarding obce…</Card> : null}
+          {loading ? <Card className="mt-5 p-6">Načítám organizace obce…</Card> : null}
 
           {!loading && !isMunicipalityAdmin ? (
             <Card className="mt-5 p-6">
@@ -265,38 +206,12 @@ export default function MunicipalityOrganizationsPage() {
               </div>
 
               <Card className="mt-5 p-6">
-                <h2 className="text-2xl font-black text-navy-900">Vytvořit pozvánku</h2>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                  Odkaz je platný 14 dní a lze ho použít pouze jednou. Pokud
-                  zadáte e-mail, pozvánka bude svázána s touto adresou.
+                <h2 className="text-2xl font-black text-navy-900">Zapojení další organizace</h2>
+                <p className="mt-2 max-w-[850px] text-sm leading-relaxed text-slate-600">
+                  Požadavek na přidání školy nebo spolku předejte týmu ARCHIMEDES.
+                  Centrální tým organizaci ověří, samostatně založí a propojí s licencí obce.
+                  Správce obce tím nezískává přístup k jejím uživatelům ani datům.
                 </p>
-
-                <form onSubmit={createInvite} className="mt-5 grid items-end gap-4 md:grid-cols-[220px_1fr_auto]">
-                  <div>
-                    <Label>Typ organizace</Label>
-                    <Select value={organizationType} onChange={(event) => setOrganizationType(event.target.value)}>
-                      <option value="school">Škola</option>
-                      <option value="association">Spolek</option>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>E-mail kontaktní osoby (doporučeno)</Label>
-                    <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="kontakt@organizace.cz" />
-                  </div>
-                  <Button type="submit" disabled={saving}>
-                    {saving ? "Vytvářím…" : "Vytvořit pozvánku"}
-                  </Button>
-                </form>
-
-                {latestInviteUrl ? (
-                  <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                    <div className="text-sm font-bold text-emerald-800">Jednorázový registrační odkaz</div>
-                    <div className="mt-2 break-all font-mono text-sm text-emerald-950">{latestInviteUrl}</div>
-                    <Button type="button" variant="secondary" size="sm" className="mt-3" onClick={copyInviteUrl}>
-                      Zkopírovat odkaz
-                    </Button>
-                  </div>
-                ) : null}
               </Card>
 
               <Card className="mt-5 p-6">
@@ -321,8 +236,12 @@ export default function MunicipalityOrganizationsPage() {
 
               <Card className="mt-5 p-6">
                 <h2 className="text-2xl font-black text-navy-900">
-                  Historie pozvánek
+                  Starší registrační pozvánky
                 </h2>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                  Nové registrační pozvánky už nelze vytvářet. Zbývající aktivní
+                  pozvánku můžete preventivně zrušit.
+                </p>
                 <div className="mt-4 grid gap-3">
                   {invites.map((invite) => (
                     <div key={invite.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 p-4">

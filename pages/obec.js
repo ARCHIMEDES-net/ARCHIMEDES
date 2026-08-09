@@ -83,7 +83,7 @@ const municipalityFaqs = [
   {
     question: "Jak probíhá zapojení školy a spolků?",
     answer:
-      "Po uzavření spolupráce získá obec registrační číslo. Škola a spolky se pod tímto číslem zaregistrují, nastaví si oblasti zájmu a následně dostávají pozvánky na vhodná živá vysílání.",
+      "Po ověření založí centrální tým ARCHIMEDES každou školu nebo spolek jako samostatnou organizaci a propojí ji s licencí obce. Organizace má vlastní uživatele a data; může si také objednat samostatnou licenci.",
   },
   {
     question: "Jsou po vysílání dostupné záznamy?",

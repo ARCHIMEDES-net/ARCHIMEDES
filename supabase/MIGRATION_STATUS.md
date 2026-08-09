@@ -57,9 +57,10 @@ souborů do tohoto adresáře.
   - tabulka `leads`, RLS, všech 33 existujících záznamů, 13 sloupců,
     spravovaná funkce `supabase_functions.http_request` i auditní historie
     webhooku zůstaly beze změny.
-- Aplikační kód používající `0014` zatím nebyl sloučen ani nasazen.
-- Následuje řízený test objednávka → aktivace → pozvánka → registrace
-  a ověření negativních scénářů před produkčním nasazením aplikace.
+- Databázové objekty pozvánek z `0014` zůstávají kvůli auditní historii,
+  ale aplikační vytváření a spotřebování pozvánek je od srpna 2026 vyřazeno.
+  Nové školy a spolky zakládá pouze centrální tým ARCHIMEDES; obecní správce
+  může už jen zobrazit a zrušit zbývající starší pozvánky.
 
 ## Stav nasazení
 

@@ -313,8 +313,9 @@ export default function ZadostPage() {
               </form>
 
               <p className="mt-5 text-sm leading-relaxed text-slate-500">
-                Pokud už má vaše obec ARCHIMEDES Live aktivovaný, požádejte
-                správce obce o jednorázovou pozvánku školy nebo spolku.
+                Pokud už má vaše obec ARCHIMEDES Live aktivovaný, uveďte ji v
+                žádosti. Centrální tým organizaci ověří, samostatně založí a
+                bezpečně propojí s licencí obce.
               </p>
             </>
           ) : (

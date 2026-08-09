@@ -352,8 +352,8 @@ export default function MujProfilPage() {
                       {registrationNumber || "—"}
                     </div>
                     <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                      Číslo identifikuje program obce. Školy a spolky zapojujte
-                      jednorázovou pozvánkou v sekci Organizace obce.
+                      Číslo identifikuje program obce. Školy a spolky zakládá a
+                      s licencí obce propojuje centrální tým ARCHIMEDES.
                     </p>
                   </div>
                 ) : null}

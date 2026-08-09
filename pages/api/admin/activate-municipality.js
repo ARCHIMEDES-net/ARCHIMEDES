@@ -90,7 +90,7 @@ async function sendOnboardingEmail({
     ? `Registrační číslo obce: ${registrationNumber || "bude doplněno v portálu"}\n`
     : "";
   const organizationInstruction = isMunicipality
-    ? "\nRegistrační číslo identifikuje program obce. Pro bezpečné zapojení školy nebo spolku vytvořte v portálu jednorázovou pozvánku.\n"
+    ? "\nŠkoly a spolky zakládá a s obecní licencí propojuje centrální tým ARCHIMEDES. Každá organizace zůstává samostatným subjektem s vlastními uživateli a daty.\n"
     : "";
 
   await transporter.sendMail({
