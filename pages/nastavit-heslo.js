@@ -6,6 +6,10 @@ import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Alert } from "../components/ui/alert";
+import {
+  getWeakPasswordMessage,
+  PASSWORD_MIN_LENGTH,
+} from "../lib/authPasswordErrors";
 
 function parseAuthStateFromUrl() {
   if (typeof window === "undefined") {
@@ -87,6 +91,7 @@ export default function NastavitHeslo() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("loading"); // loading | ready | success | error
   const [message, setMessage] = useState("Ověřuji odkaz...");
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -182,14 +187,17 @@ export default function NastavitHeslo() {
 
   async function handleSetPassword(e) {
     e.preventDefault();
+    setFormError("");
 
-    if (!password || password.length < 6) {
-      alert("Heslo musí mít alespoň 6 znaků.");
+    if (!password || password.length < PASSWORD_MIN_LENGTH) {
+      setFormError(
+        `Heslo musí mít alespoň ${PASSWORD_MIN_LENGTH} znaků.`
+      );
       return;
     }
 
     if (password !== password2) {
-      alert("Zadaná hesla se neshodují.");
+      setFormError("Zadaná hesla se neshodují.");
       return;
     }
 
@@ -233,7 +241,9 @@ export default function NastavitHeslo() {
         router.push("/portal");
       }, 1200);
     } catch (err) {
-      alert(err?.message || "Heslo se nepodařilo nastavit.");
+      setFormError(
+        getWeakPasswordMessage(err) || "Heslo se nepodařilo nastavit. Zkuste to znovu."
+      );
     } finally {
       setLoading(false);
     }
@@ -265,24 +275,41 @@ export default function NastavitHeslo() {
         {status === "ready" && (
           <>
             <p className="mb-4.5 mb-4 text-muted">
-              Zadejte nové heslo pro dokončení přístupu do ARCHIMEDES Live.
+              Zadejte nové heslo o délce alespoň {PASSWORD_MIN_LENGTH} znaků
+              pro dokončení přístupu do ARCHIMEDES Live.
             </p>
+
+            {formError ? (
+              <Alert variant="error" className="mb-4">
+                {formError}
+              </Alert>
+            ) : null}
 
             <form onSubmit={handleSetPassword} className="grid gap-3">
               <Input
                 type="password"
                 placeholder="Nové heslo"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setFormError("");
+                }}
                 autoComplete="new-password"
+                minLength={PASSWORD_MIN_LENGTH}
+                required
               />
 
               <Input
                 type="password"
                 placeholder="Potvrzení nového hesla"
                 value={password2}
-                onChange={(e) => setPassword2(e.target.value)}
+                onChange={(e) => {
+                  setPassword2(e.target.value);
+                  setFormError("");
+                }}
                 autoComplete="new-password"
+                minLength={PASSWORD_MIN_LENGTH}
+                required
               />
 
               <Button type="submit" disabled={loading}>

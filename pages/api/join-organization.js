@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { getBearerToken } from "../../lib/server/platformAdminApi";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
+import { getWeakPasswordMessage } from "../../lib/authPasswordErrors";
 
 const supabaseUrl =
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -157,6 +158,12 @@ export default async function handler(req, res) {
             accountExists: true,
           });
         }
+
+        const weakPasswordMessage = getWeakPasswordMessage(createUserError);
+        if (weakPasswordMessage) {
+          return res.status(400).json({ error: weakPasswordMessage });
+        }
+
         throw createUserError;
       }
 
