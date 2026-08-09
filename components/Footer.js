@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { footerContent } from "../content/homepage";
 
 function SocialIcon({ name }) {
@@ -27,9 +28,11 @@ export default function Footer() {
       <div className="footer-main">
         <div className="footer-brand">
           <div className="footer-logo">
-            <img
+            <Image
               src="/logo-archimedes-live-negative.png"
               alt="ARCHIMEDES Live"
+              width={1618}
+              height={195}
               className="footer-logo-img"
             />
           </div>
