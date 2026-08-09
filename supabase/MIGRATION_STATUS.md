@@ -181,3 +181,20 @@ jiné odkazy k posouzení a chybějící záznamy.
   tabulce `events` pouze sloupcový `SELECT` osmi veřejných polí. Produkční
   negativní test potvrdil odmítnutí `stream_url`, `SELECT *` i všech zápisů;
   Security a Performance Advisor nemají pro novou funkci žádné zjištění.
+
+## Centrální zakládání organizací pod obcí 2026-08-09
+
+- PR #146 byl sloučen do `main` jako commit
+  `99db328e4e5b5344ffd185a65b23d1d700455aa1` a uzavřel issue #145.
+- Migrace byla aplikována do projektu `gipikahmjlcynkqexxmz` přes Supabase
+  migration API jako verze `20260809114658` a název
+  `create_municipality_child_organization_20260809114000`.
+- Soubor v aktivním migračním řetězci používá stejnou produkční verzi a název;
+  původní timestamp `20260809114000` zůstává v názvu jako auditní vazba na
+  SQL otestované v datově prázdné vývojové větvi.
+- Před a po aplikaci zůstaly beze změny souhrnné počty: 14 organizací,
+  2 organizace s rodičem, 59 členství, 85 profilů a 0 vazeb činností.
+  Migrace nepřepisovala aplikační data.
+- Produkční kontrola potvrdila `SECURITY INVOKER`, prázdný `search_path`,
+  `EXECUTE` pouze pro `authenticated` a nulová nová zjištění Security i
+  Performance Advisoru pro novou RPC.
