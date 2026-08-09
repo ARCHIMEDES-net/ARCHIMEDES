@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const migrationPath = path.join(
   process.cwd(),
-  "supabase/migrations/20260809103704_fix_116_atomic_membership_status.sql"
+  "supabase/migrations/20260809104931_fix_116_atomic_membership_status_20260809103704.sql"
 );
 const pagePath = path.join(process.cwd(), "pages/portal/uzivatele.js");
 

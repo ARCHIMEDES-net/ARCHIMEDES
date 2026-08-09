@@ -147,3 +147,19 @@ jiné odkazy k posouzení a chybějící záznamy.
 - Read-only kontrola potvrdila přímá oprávnění bez děděného přístupu správce
   obce do dítěte, prázdný `search_path` a odebrané `EXECUTE` pro `PUBLIC`
   a `anon` u všech tří nahrazených funkcí.
+
+## Atomická změna stavu členství 2026-08-09
+
+- PR #140 byl sloučen do `main` jako commit
+  `5d6a902aa1f5a4ba1fc35a372422044a87793dbd` a uzavřel issue #116.
+- Migrace byla aplikována do projektu `gipikahmjlcynkqexxmz` přes Supabase
+  migration API jako verze `20260809104931` a název
+  `fix_116_atomic_membership_status_20260809103704`.
+- Soubor v aktivním migračním řetězci používá stejnou produkční verzi a název;
+  původní timestamp `20260809103704` zůstává v názvu jako auditní vazba na
+  testovaný SQL soubor z PR #140.
+- Před a po aplikaci zůstaly beze změny souhrnné počty: 14 organizací,
+  59 členství a 85 profilů. Migrace neprovedla žádný přepis aplikačních dat.
+- Read-only kontrola potvrdila prázdný `search_path`, `EXECUTE` pouze pro
+  `authenticated`, odebrané přímé `UPDATE` pro `authenticated` a zachované
+  přímé `UPDATE` pro důvěryhodný `service_role`.
