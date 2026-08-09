@@ -6,7 +6,7 @@ const repositoryRoot = process.cwd();
 const migration = fs.readFileSync(
   path.join(
     repositoryRoot,
-    "supabase/migrations/20260809114000_create_municipality_child_organization.sql"
+    "supabase/migrations/20260809114658_create_municipality_child_organization_20260809114000.sql"
   ),
   "utf8"
 );
