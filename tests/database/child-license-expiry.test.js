@@ -6,7 +6,7 @@ const repositoryRoot = process.cwd();
 const migration = fs.readFileSync(
   path.join(
     repositoryRoot,
-    "supabase/migrations/20260809115500_require_explicit_child_license_plan.sql"
+    "supabase/migrations/20260809120503_require_explicit_child_license_plan_20260809115500.sql"
   ),
   "utf8"
 );
