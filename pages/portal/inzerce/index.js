@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import RequireAuth from "../../../components/RequireAuth";
@@ -38,24 +38,7 @@ export default function Inzerce() {
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [pinBusyId, setPinBusyId] = useState(null);
 
-  useEffect(() => {
-    async function init() {
-      const { data: userData } = await supabase.auth.getUser();
-      const user = userData?.user || null;
-      if (user?.id) {
-        const { data: adminRow, error: adminError } = await supabase
-          .from("platform_admins")
-          .select("user_id")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        setIsPlatformAdmin(!adminError && !!adminRow?.user_id);
-      }
-      load();
-    }
-    init();
-  }, [filterStatus]);
-
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setErr("");
 
@@ -82,7 +65,24 @@ export default function Inzerce() {
 
     setRows(data || []);
     setLoading(false);
-  }
+  }, [filterStatus]);
+
+  useEffect(() => {
+    async function init() {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user || null;
+      if (user?.id) {
+        const { data: adminRow, error: adminError } = await supabase
+          .from("platform_admins")
+          .select("user_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        setIsPlatformAdmin(!adminError && !!adminRow?.user_id);
+      }
+      load();
+    }
+    init();
+  }, [load]);
 
   function getImage(row) {
     const img = row.marketplace_attachments?.find((a) => a.is_image);

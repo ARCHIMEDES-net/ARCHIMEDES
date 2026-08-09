@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
 import { supabase } from "../../lib/supabaseClient";
@@ -45,6 +45,25 @@ export default function MunicipalityOrganizationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+
+  const loadOverview = useCallback(async (currentSession, municipalityId) => {
+    if (!currentSession?.access_token || !municipalityId) return;
+
+    const response = await fetch(
+      `/api/municipality/organization-invites?municipalityId=${encodeURIComponent(municipalityId)}`,
+      { headers: { Authorization: `Bearer ${currentSession.access_token}` } }
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data?.error || "Přehled se nepodařilo načíst.");
+    }
+
+    setMunicipality((current) => ({ ...(current || {}), ...(data.municipality || {}) }));
+    setOrganizations(data.organizations || []);
+    setInvites(data.invites || []);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,26 +128,7 @@ export default function MunicipalityOrganizationsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
-
-  async function loadOverview(currentSession = session, municipalityId = organizationId) {
-    if (!currentSession?.access_token || !municipalityId) return;
-
-    const response = await fetch(
-      `/api/municipality/organization-invites?municipalityId=${encodeURIComponent(municipalityId)}`,
-      { headers: { Authorization: `Bearer ${currentSession.access_token}` } }
-    );
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data?.error || "Přehled se nepodařilo načíst.");
-    }
-
-    setMunicipality((current) => ({ ...(current || {}), ...(data.municipality || {}) }));
-    setOrganizations(data.organizations || []);
-    setInvites(data.invites || []);
-    setLoading(false);
-  }
+  }, [loadOverview]);
 
   async function revokeInvite(inviteId) {
     if (!window.confirm("Opravdu zrušit tuto pozvánku?")) return;
@@ -149,7 +149,7 @@ export default function MunicipalityOrganizationsPage() {
     }
 
     setMessage("Pozvánka byla zrušena.");
-    await loadOverview();
+    await loadOverview(session, organizationId);
   }
 
   const isMunicipalityAdmin =

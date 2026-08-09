@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import PortalHeader from "../../components/PortalHeader";
 import RequirePlatformAdmin from "../../components/RequirePlatformAdmin";
@@ -45,7 +45,38 @@ export default function EmailSkupinyPage() {
     );
   }, [groups, selectedGroup]);
 
-  async function loadGroups() {
+  const loadUsers = useCallback(async (groupSlug) => {
+    setUsersLoading(true);
+    setError("");
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        throw new Error("Přihlášení vypršelo. Přihlaste se znovu.");
+      }
+
+      const res = await fetch(`/api/admin/group-users?group=${encodeURIComponent(groupSlug)}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json?.error || "Nepodařilo se načíst příjemce.");
+      }
+
+      const safeUsers = Array.isArray(json?.users) ? json.users : [];
+      setUsers(safeUsers);
+    } catch (err) {
+      setUsers([]);
+      setError(err.message || "Nepodařilo se načíst příjemce.");
+    } finally {
+      setUsersLoading(false);
+    }
+  }, []);
+
+  const loadGroups = useCallback(async () => {
     setCountsLoading(true);
     setError("");
     try {
@@ -81,38 +112,7 @@ export default function EmailSkupinyPage() {
     } finally {
       setCountsLoading(false);
     }
-  }
-
-  async function loadUsers(groupSlug) {
-    setUsersLoading(true);
-    setError("");
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session?.access_token) {
-        throw new Error("Přihlášení vypršelo. Přihlaste se znovu.");
-      }
-
-      const res = await fetch(`/api/admin/group-users?group=${encodeURIComponent(groupSlug)}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json?.error || "Nepodařilo se načíst příjemce.");
-      }
-
-      const safeUsers = Array.isArray(json?.users) ? json.users : [];
-      setUsers(safeUsers);
-    } catch (err) {
-      setUsers([]);
-      setError(err.message || "Nepodařilo se načíst příjemce.");
-    } finally {
-      setUsersLoading(false);
-    }
-  }
+  }, [loadUsers]);
 
   async function handleSelectGroup(groupSlug) {
     setSelectedGroup(groupSlug);
@@ -140,7 +140,7 @@ export default function EmailSkupinyPage() {
 
   useEffect(() => {
     loadGroups();
-  }, []);
+  }, [loadGroups]);
 
   return (
     <RequirePlatformAdmin>
