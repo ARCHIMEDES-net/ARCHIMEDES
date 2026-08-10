@@ -29,7 +29,7 @@ function LogoMark({ inverse = false }) {
         className="logoImg"
       />
 
-      <style jsx>{`
+      <style jsx global>{`
         .logoMark {
           display: inline-flex;
           align-items: center;
