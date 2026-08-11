@@ -5,8 +5,15 @@ import { describe, expect, it } from "vitest";
 const repositoryRoot = process.cwd();
 const migrationPath =
   "supabase/migrations/20260731132500_secure_archive_member_access.sql";
+const hardeningMigrationPath =
+  "supabase/migrations/20260811145057_restrict_anonymous_archive_function.sql";
 const sql = fs
   .readFileSync(path.join(repositoryRoot, migrationPath), "utf8")
+  .replace(/\s+/g, " ")
+  .trim()
+  .toLowerCase();
+const hardeningSql = fs
+  .readFileSync(path.join(repositoryRoot, hardeningMigrationPath), "utf8")
   .replace(/\s+/g, " ")
   .trim()
   .toLowerCase();
@@ -43,4 +50,29 @@ describe("archive access authorization", () => {
     expect(sql).toContain("using (public.is_platform_admin())");
     expect(sql).toContain("with check (public.is_platform_admin())");
   });
+
+  it("keeps public archive reads without exposing the privileged helper to anon", () => {
+    expect(hardeningSql).toContain(
+      "revoke execute on function public.can_view_archive_item(uuid) from public, anon"
+    );
+    expect(hardeningSql).toContain("create policy archive_select_public");
+    expect(hardeningSql).toContain("to anon, authenticated using (visibility = 'public')");
+  });
+
+  it("preserves licensed archive access for authenticated users", () => {
+    expect(hardeningSql).toContain(
+      "grant execute on function public.can_view_archive_item(uuid) to authenticated, service_role"
+    );
+    expect(hardeningSql).toContain("create policy archive_select_licensed");
+    expect(hardeningSql).toContain(
+      "to authenticated using (public.can_view_archive_item(id))"
+    );
+  });
+
+  it("uses an empty search path for the privileged archive helper", () => {
+    expect(hardeningSql).toContain(
+      "alter function public.can_view_archive_item(uuid) set search_path = ''"
+    );
+  });
+
 });

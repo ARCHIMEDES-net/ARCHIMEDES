@@ -27,7 +27,7 @@ export default function PrivacyPage() {
       </p>
       <p>
         Dotazy a žádosti lze zaslat na{" "}
-        <a href="mailto:zive@archimedeslive.com">zive@archimedeslive.com</a>
+        <a href="mailto:zive@archimedeslive.com">zive@archimedeslive.com</a>{" "}
         nebo na adresu sídla. Kontaktní údaje jsou určeny také pro uplatnění
         práv subjektů údajů.
       </p>
