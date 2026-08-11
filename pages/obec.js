@@ -68,7 +68,7 @@ const municipalityFaqs = [
   {
     question: "Kolik stojí program pro obec?",
     answer:
-      "Program stojí 1 990 Kč měsíčně pro celou obec. Za školu, spolky ani seniorské skupiny zapojené pod registračním číslem obce se nepřiplácí.",
+      "Program stojí 1 990 Kč bez DPH měsíčně při objednávce na 12 měsíců. Za školu, spolky ani seniorské skupiny zapojené pod registračním číslem obce se nepřiplácí.",
   },
   {
     question: "Musí obec připravovat a organizovat vlastní pořady?",
@@ -220,14 +220,15 @@ export default function ObecPage() {
               <span className="text-xs font-black uppercase tracking-[0.16em] text-brand">Cena pro obec</span>
               <div className="mt-4 text-[46px] font-[950] tracking-[-0.05em] text-navy-900">
                 1 990 Kč
-                <span className="ml-2 text-base font-bold tracking-normal text-slate-500">/ měsíc</span>
+                <span className="ml-2 text-base font-bold tracking-normal text-slate-500">bez DPH / měsíc</span>
               </div>
               <p className="mt-4 text-[15px] leading-relaxed text-slate-600">
                 Jeden celý program pro obec, bez příplatku za školu a jednotlivé
-                spolky zapojené pod jejím registračním číslem.
+                spolky zapojené pod jejím registračním číslem. Objednávka je na
+                12 měsíců bez automatického prodloužení.
               </p>
               <Button href="/zadost" className="mt-7 w-full sm:w-auto">
-                Nezávazně probrat zapojení
+                Objednat program
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>

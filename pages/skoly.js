@@ -357,9 +357,10 @@ export default function SkolyPage() {
                 Chcete zapojit svou školu?
               </h3>
               <p className="mt-3 text-[15px] leading-relaxed text-slate-600">
-                Celý program stojí 1 990 Kč měsíčně. Pokud už je vaše obec
-                v ARCHIMEDES Live aktivní, centrální tým může školu po ověření
-                propojit s její licencí bez samostatného předplatného.
+                Celý program stojí 1 990 Kč bez DPH měsíčně při objednávce na 12
+                měsíců. Pokud už je vaše obec v ARCHIMEDES Live aktivní,
+                centrální tým může školu po ověření propojit s její licencí bez
+                samostatného předplatného.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button href="/zadost?type=skola">

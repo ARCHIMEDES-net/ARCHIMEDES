@@ -174,7 +174,7 @@ const PAGE_SEO = {
   "/zadost": {
     title: "Zapojit obec, školu nebo spolek | ARCHIMEDES Live",
     description:
-      "Objednejte jednotný program ARCHIMEDES Live pro obec, školu nebo spolek za 1 990 Kč měsíčně.",
+      "Objednejte program ARCHIMEDES Live pro obec, školu nebo spolek za 1 990 Kč bez DPH měsíčně na 12 měsíců.",
     image: "/ucebna-komunita.webp",
     imageWidth: 700,
     imageHeight: 467,

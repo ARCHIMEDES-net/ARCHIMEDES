@@ -192,7 +192,7 @@ describe("authoritative lead processing", () => {
       table: "organizations",
       values: expect.objectContaining({
         requested_license_plan: "paid_annual",
-        terms_version: "2026-07-22",
+        terms_version: "2026-08-11",
       }),
     });
 
@@ -216,7 +216,19 @@ describe("authoritative lead processing", () => {
     );
     expect(dependencies.sendMail).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ to: "jan.novak@example.test" })
+      expect.objectContaining({
+        to: "jan.novak@example.test",
+        subject: "ARCHIMEDES Live – potvrzení o doručení objednávky",
+        text: expect.stringContaining("Smlouva zatím nevznikla"),
+        html: expect.stringContaining("23 880 Kč bez DPH za 12 měsíců"),
+      })
+    );
+
+    expect(leadInsert?.rows[0].note).toContain(
+      "DPA přijata: ano (verze 2026-08-11"
+    );
+    expect(leadInsert?.rows[0].note).toContain(
+      "Smlouva vzniká až písemným přijetím objednávky poskytovatelem."
     );
   });
 

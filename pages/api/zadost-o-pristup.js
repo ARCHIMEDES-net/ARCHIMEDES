@@ -1,6 +1,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
+import { LEGAL_DOCUMENT_VERSION } from "../../lib/legalDocuments";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 
 const supabase = createClient(
@@ -17,12 +18,10 @@ function isValidEmail(value) {
 }
 
 const LICENSE_PLANS = {
-  paid_monthly: "1 990 Kč měsíčně",
-  paid_annual: "12 měsíců placených najednou",
+  paid_monthly: "Měsíční fakturace – 1 990 Kč bez DPH měsíčně (12 měsíců)",
+  paid_annual: "Roční fakturace – 23 880 Kč bez DPH za 12 měsíců",
   classroom_free_12m: "12 měsíců zdarma pro obec s učebnou ARCHIMEDES",
 };
-
-const TERMS_VERSION = "2026-07-22";
 
 const CUSTOMER_TYPES = {
   obec: {
@@ -134,7 +133,7 @@ function buildEmailLayout({
 
                 <tr>
                   <td style="padding:14px 6px 0;font-size:12px;line-height:1.6;color:#94a3b8;text-align:center;">
-                    Tento e-mail byl odeslán v souvislosti s žádostí o přístup do ARCHIMEDES Live.
+                    Tento e-mail byl odeslán v souvislosti s objednávkou programu ARCHIMEDES Live.
                   </td>
                 </tr>
               </table>
@@ -146,8 +145,18 @@ function buildEmailLayout({
   `;
 }
 
-function buildApplicantEmail({ name, customer }) {
+function buildApplicantEmail({
+  name,
+  customer,
+  organization,
+  licensePlan,
+  createdAt,
+}) {
   const safeName = escapeHtml(name || "");
+  const termLabel =
+    licensePlan === "classroom_free_12m"
+      ? "12 měsíců zdarma; bez automatického přechodu na placenou variantu"
+      : "12 měsíců; bez automatického prodloužení na další placené období";
 
   const intro = `
     <p style="margin:0 0 12px;">Dobrý den${safeName ? ` ${safeName}` : ""},</p>
@@ -156,32 +165,45 @@ function buildApplicantEmail({ name, customer }) {
 
   const bodyHtml = `
       <div style="padding:18px 20px;border-radius:18px;background:#eefaf0;border:1px solid #cfe8d3;color:#166534;">
-        <strong>Vaši žádost o přístup jsme v pořádku přijali.</strong>
+        <strong>Vaši objednávku jsme v pořádku přijali ke kontrole.</strong>
       </div>
 
       <div style="margin-top:20px;">
-        <p style="margin:0 0 12px;">
-          Žádost ověříme a poté ${escapeHtml(customer.accusative)} zaregistrujeme.
-        </p>
+        <p style="margin:0 0 8px;"><strong>Objednatel:</strong> ${escapeHtml(organization)} (${escapeHtml(customer.label)})</p>
+        <p style="margin:0 0 8px;"><strong>Varianta:</strong> ${escapeHtml(LICENSE_PLANS[licensePlan])}</p>
+        <p style="margin:0 0 8px;"><strong>Doba:</strong> ${escapeHtml(termLabel)}</p>
+        <p style="margin:0 0 8px;"><strong>VOP:</strong> verze ${LEGAL_DOCUMENT_VERSION}</p>
+        <p style="margin:0 0 8px;"><strong>DPA:</strong> verze ${LEGAL_DOCUMENT_VERSION}</p>
+        <p style="margin:0;"><strong>Čas přijetí:</strong> ${escapeHtml(createdAt)}</p>
       </div>
     `;
 
   const noteHtml = `
-      Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
+      <strong>Toto je pouze potvrzení o doručení objednávky, nikoli její přijetí poskytovatelem.</strong>
+      Smlouva zatím nevznikla. Objednávku a oprávnění objednatele ověříme a poté Vám
+      zašleme samostatné písemné přijetí s potvrzením ceny, fakturace a data zahájení.
+      VOP: <a href="${escapeHtml(`${SITE_URL}/vop`)}">${escapeHtml(`${SITE_URL}/vop`)}</a> ·
+      DPA: <a href="${escapeHtml(`${SITE_URL}/dpa`)}">${escapeHtml(`${SITE_URL}/dpa`)}</a>
     `;
 
   return {
-    subject: "ARCHIMEDES Live – přijali jsme Vaši žádost",
+    subject: "ARCHIMEDES Live – potvrzení o doručení objednávky",
     text: `
 Dobrý den${name ? ` ${name}` : ""},
 
 děkujeme za Váš zájem o ARCHIMEDES Live.
 
-Vaši žádost o přístup jsme v pořádku přijali.
+Vaši objednávku jsme v pořádku přijali ke kontrole.
 
-Žádost ověříme a poté ${customer.accusative} zaregistrujeme.
+Objednatel: ${organization} (${customer.label})
+Varianta: ${LICENSE_PLANS[licensePlan]}
+Doba: ${termLabel}
+VOP: verze ${LEGAL_DOCUMENT_VERSION} (${SITE_URL}/vop)
+DPA: verze ${LEGAL_DOCUMENT_VERSION} (${SITE_URL}/dpa)
+Čas přijetí: ${createdAt}
 
-Pokud budete mít jakýkoliv dotaz, můžete na tento e-mail přímo odpovědět.
+Toto je pouze potvrzení o doručení objednávky, nikoli její přijetí poskytovatelem. Smlouva zatím nevznikla.
+Objednávku a oprávnění objednatele ověříme a poté Vám zašleme samostatné písemné přijetí s potvrzením ceny, fakturace a data zahájení.
 
 S pozdravem,
 
@@ -189,9 +211,9 @@ Tým ARCHIMEDES Live
 ${SITE_URL}
       `.trim(),
     html: buildEmailLayout({
-      preheader: "Vaši žádost o přístup jsme přijali.",
-      eyebrow: `Žádost • ${customer.label}`,
-      title: "Žádost jsme přijali",
+      preheader: "Potvrzujeme doručení objednávky; smlouva zatím nevznikla.",
+      eyebrow: `Objednávka • ${customer.label}`,
+      title: "Objednávku jsme přijali ke kontrole",
       intro,
       bodyHtml,
       noteHtml,
@@ -217,6 +239,7 @@ async function sendRequestEmails({
   cleanLegalIdentifier,
   cleanMessage,
   cleanPhone,
+  cleanLicensePlan,
   createdAt,
   leadId,
 }) {
@@ -258,6 +281,12 @@ ID: ${leadId}
 Typ zákazníka:
 ${customer.label}
 
+Varianta:
+${LICENSE_PLANS[cleanLicensePlan]}
+
+VOP / DPA:
+verze ${LEGAL_DOCUMENT_VERSION}
+
 Jméno:
 ${cleanName}
 Funkce:
@@ -291,6 +320,8 @@ ${createdAt}
 
           <p><strong>ID:</strong> ${escapeHtml(String(leadId))}</p>
           <p><strong>Typ zákazníka:</strong> ${escapeHtml(customer.label)}</p>
+          <p><strong>Varianta:</strong> ${escapeHtml(LICENSE_PLANS[cleanLicensePlan])}</p>
+          <p><strong>VOP / DPA:</strong> verze ${LEGAL_DOCUMENT_VERSION}</p>
           <p><strong>Jméno:</strong> ${escapeHtml(cleanName)}</p>
           <p><strong>Funkce:</strong> ${escapeHtml(cleanRole || "-")}</p>
           <p><strong>Organizace:</strong> ${escapeHtml(cleanOrganization)}</p>
@@ -309,6 +340,9 @@ ${createdAt}
   const applicantMail = buildApplicantEmail({
     name: cleanName,
     customer,
+    organization: cleanOrganization,
+    licensePlan: cleanLicensePlan,
+    createdAt,
   });
 
   await transporter.sendMail({
@@ -349,7 +383,7 @@ export default async function handler(req, res) {
     if (company) {
       return res.status(200).json({
         ok: true,
-        message: "Žádost byla odeslána.",
+        message: "Objednávka byla zaznamenána.",
       });
     }
 
@@ -405,7 +439,7 @@ export default async function handler(req, res) {
 
     if (!acceptedTerms) {
       return res.status(400).json({
-        error: "Pro odeslání objednávky potvrďte VOP a zpracování údajů.",
+        error: "Pro odeslání objednávky přijměte VOP a DPA.",
       });
     }
 
@@ -493,7 +527,10 @@ export default async function handler(req, res) {
     const requestHeader = "Typ žádosti: standardní přístup";
     const organizationTypeLine = `Typ zákazníka: ${customer.label}`;
     const licensePlanLine = `Požadovaná varianta: ${LICENSE_PLANS[cleanLicensePlan]}`;
-    const termsLine = `VOP přijaty: ano (verze ${TERMS_VERSION}, ${createdAt})`;
+    const termsLine = `VOP přijaty: ano (verze ${LEGAL_DOCUMENT_VERSION}, ${createdAt})`;
+    const dpaLine = `DPA přijata: ano (verze ${LEGAL_DOCUMENT_VERSION}, ${createdAt})`;
+    const contractFormationLine =
+      "Smlouva vzniká až písemným přijetím objednávky poskytovatelem.";
     const roleLine = cleanRole ? `Funkce: ${cleanRole}` : "";
     const sourceLine = `Zdroj: web archimedeslive.com/zadost?type=${customer.key}`;
     const addressLine = `Adresa: ${cleanAddress}`;
@@ -510,6 +547,8 @@ export default async function handler(req, res) {
       organizationTypeLine,
       licensePlanLine,
       termsLine,
+      dpaLine,
+      contractFormationLine,
       addressLine,
       legalIdentifierLine,
       populationLine,
@@ -587,7 +626,7 @@ export default async function handler(req, res) {
       .update({
         requested_license_plan: cleanLicensePlan,
         terms_accepted_at: createdAt,
-        terms_version: TERMS_VERSION,
+        terms_version: LEGAL_DOCUMENT_VERSION,
       })
       .eq("id", orgData.id);
 
@@ -632,6 +671,7 @@ export default async function handler(req, res) {
         cleanLegalIdentifier,
         cleanMessage,
         cleanPhone,
+        cleanLicensePlan,
         createdAt,
         leadId,
       });
@@ -646,8 +686,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       message: emailSent
-        ? "Žádost byla odeslána."
-        : "Žádost byla zaznamenána, potvrzovací e-mail dorazí později.",
+        ? "Objednávka byla zaznamenána."
+        : "Objednávka byla zaznamenána, potvrzovací e-mail dorazí později.",
       emailSent,
     });
   } catch (e) {

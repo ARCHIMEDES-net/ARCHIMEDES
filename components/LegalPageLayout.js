@@ -8,7 +8,7 @@ export default function LegalPageLayout({
   title,
   description,
   eyebrow = "Právní informace",
-  updatedAt = "Aktualizováno: březen 2026",
+  updatedAt = "Aktualizováno: srpen 2026",
   children,
 }) {
   return (
