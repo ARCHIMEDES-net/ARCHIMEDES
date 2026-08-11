@@ -13,7 +13,7 @@ const documents = [
   {
     href: "/dpa",
     title: "Smlouva o zpracování osobních údajů (DPA)",
-    text: "Základní rámec zpracování osobních údajů mezi školou nebo organizací a společností EduVision s.r.o.",
+    text: "Závazná smlouva mezi zákazníkem a EduVision včetně pokynů, zabezpečení, subzpracovatelů, incidentů a ukončení zpracování.",
   },
   {
     href: "/pravidla-zaznamu",
@@ -23,7 +23,7 @@ const documents = [
   {
     href: "/ochrana-osobnich-udaju",
     title: "Informace o zpracování osobních údajů",
-    text: "Základní informace o tom, jak EduVision s.r.o. zpracovává osobní údaje v souvislosti s webem a službou ARCHIMEDES Live.",
+    text: "Podrobné informace o účelech, právních základech, příjemcích, době uchování a právech fyzických osob.",
   },
 ];
 
@@ -44,9 +44,9 @@ export default function PravniPage() {
               Právní informace
             </h1>
             <p className="mt-3 max-w-[860px] text-lg leading-relaxed text-muted">
-              Na této stránce najdete přehled základních právních dokumentů
-              souvisejících se službou ARCHIMEDES Live, objednávkovým procesem,
-              ochranou osobních údajů a prací se záznamy.
+              Na této stránce najdete závazný smluvní a informační balíček pro
+              ARCHIMEDES Live: VOP, DPA, pravidla záznamů a informace o
+              zpracování osobních údajů.
             </p>
           </Card>
 
@@ -118,20 +118,29 @@ export default function PravniPage() {
               relace a zabezpečení přístupu k jednotlivým částem systému.
             </p>
             <p className="mb-3.5 text-[17px] leading-relaxed text-slate-700">
-              Bez těchto cookies by nebylo možné portál řádně používat. Pokud budou
-              do budoucna na web doplněny analytické nebo marketingové nástroje,
-              bude tato část rozšířena o odpovídající správu souhlasů.
+              Základní návštěvnost měříme také pomocí Vercel Web Analytics bez
+              cookies a s anonymizovanými údaji. Google Analytics se aktivuje až
+              po výslovném analytickém souhlasu. Souhlas lze kdykoli změnit na
+              stránce s informacemi o zpracování osobních údajů.
             </p>
             <div className="mb-3.5 mt-2 rounded-2xl border border-slate-900/[0.08] bg-slate-50 p-4 text-[15px] leading-relaxed text-slate-700">
               V případě dotazů k provozu portálu, ochraně osobních údajů nebo práci
               se záznamy můžete využít kontaktní stránku na hlavním webu.
             </div>
-            <Link
-              href="/kontakt"
-              className="inline-flex items-center gap-1.5 text-[15px] font-black text-brand hover:text-navy-900"
-            >
-              Přejít na kontaktní stránku <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="/ochrana-osobnich-udaju"
+                className="inline-flex items-center gap-1.5 text-[15px] font-black text-brand hover:text-navy-900"
+              >
+                Nastavení analytiky <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <Link
+                href="/kontakt"
+                className="inline-flex items-center gap-1.5 text-[15px] font-black text-brand hover:text-navy-900"
+              >
+                Kontaktní stránka <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
           </Card>
         </div>
       </main>

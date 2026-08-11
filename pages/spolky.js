@@ -123,12 +123,13 @@ export default function SpolkyPage() {
               <span className="text-xs font-black uppercase tracking-[0.16em] text-brand">Samostatné zapojení</span>
               <div className="mt-4 text-[46px] font-[950] tracking-[-0.05em] text-navy-900">
                 1 990 Kč
-                <span className="ml-2 text-base font-bold tracking-normal text-slate-500">/ měsíc</span>
+                <span className="ml-2 text-base font-bold tracking-normal text-slate-500">bez DPH / měsíc</span>
               </div>
               <p className="mt-4 text-[15px] leading-relaxed text-slate-600">
-                Pokud je vaše obec už zapojená, spolek může program využít bez
-                samostatného předplatného. Po ověření ho s licencí obce propojí
-                centrální tým ARCHIMEDES.
+                Samostatná objednávka je na 12 měsíců bez automatického
+                prodloužení. Pokud je vaše obec už zapojená, spolek může program
+                využít bez samostatného předplatného. Po ověření ho s licencí
+                obce propojí centrální tým ARCHIMEDES.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button href="/zadost?type=spolek">Chci samostatné zapojení</Button>

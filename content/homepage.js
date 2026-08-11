@@ -217,6 +217,7 @@ export const footerContent = {
     },
   ],
   legalLinks: [
+    { label: "Právní informace", href: "/pravni" },
     { label: "Ochrana osobních údajů", href: "/ochrana-osobnich-udaju" },
     { label: "Obchodní podmínky", href: "/vop" },
   ],

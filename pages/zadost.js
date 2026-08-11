@@ -11,6 +11,7 @@ import { Textarea } from "../components/ui/textarea";
 import { Select } from "../components/ui/select";
 import { Label } from "../components/ui/label";
 import { Alert } from "../components/ui/alert";
+import { LEGAL_DOCUMENT_VERSION } from "../lib/legalDocuments";
 
 const EMPTY_FORM = {
   type: "",
@@ -113,7 +114,7 @@ export default function ZadostPage() {
         throw new Error("Bezplatný první rok je určen pouze obcím s učebnou ARCHIMEDES.");
       }
       if (!payload.termsAccepted) {
-        throw new Error("Pro odeslání objednávky potvrďte VOP a zpracování údajů.");
+        throw new Error("Pro odeslání objednávky přijměte VOP a DPA.");
       }
       if (!payload.name) throw new Error("Vyplňte prosím jméno a příjmení.");
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
@@ -135,8 +136,8 @@ export default function ZadostPage() {
 
       setMessage(
         result.emailSent === false
-          ? `Děkujeme. Žádost byla úspěšně odeslána.\n\nPo ověření ${CUSTOMER_TYPES[payload.type].successLabel} zaregistrujeme.\n\nPotvrzovací e-mail se teď nepodařilo odeslat, ale vaše žádost je v pořádku zaznamenaná — ozveme se vám i tak.`
-          : `Děkujeme. Žádost byla úspěšně odeslána.\n\nPo ověření ${CUSTOMER_TYPES[payload.type].successLabel} zaregistrujeme.`
+          ? `Děkujeme. Objednávku jsme zaznamenali. Smlouva zatím nevznikla.\n\nPo ověření objednávky Vám zašleme její písemné přijetí. Potvrzovací e-mail se nyní nepodařilo odeslat, ale objednávka je bezpečně uložená — ozveme se Vám i tak.`
+          : `Děkujeme. Objednávku jsme zaznamenali. Smlouva zatím nevznikla.\n\nPo ověření ${CUSTOMER_TYPES[payload.type].successLabel} a oprávnění objednatele Vám zašleme písemné přijetí objednávky.`
       );
       setSubmitted(true);
       setForm(EMPTY_FORM);
@@ -153,7 +154,7 @@ export default function ZadostPage() {
         <title>Zapojit obec, školu nebo spolek | ARCHIMEDES Live</title>
         <meta
           name="description"
-          content="Objednejte jednotný program ARCHIMEDES Live pro obec, školu nebo spolek za 1 990 Kč měsíčně."
+          content="Objednejte program ARCHIMEDES Live pro obec, školu nebo spolek za 1 990 Kč bez DPH měsíčně na 12 měsíců."
         />
       </Head>
       <main className="mx-auto max-w-[760px] px-4 py-10">
@@ -166,8 +167,10 @@ export default function ZadostPage() {
                 Chci zapojit obec, školu nebo spolek
               </h1>
               <p className="mb-5 mt-3 text-[17px] leading-relaxed text-muted">
-                Jeden společný program stojí 1 990 Kč měsíčně (objednávka 12 měsíců min.). Objednávku
-                ověříme a před aktivací potvrdíme variantu, platnost a fakturaci.
+                Jeden společný program stojí 1 990 Kč bez DPH měsíčně (objednávka
+                na 12 měsíců). Platbu lze fakturovat měsíčně nebo za všech 12
+                měsíců najednou. Smlouva vznikne až písemným přijetím objednávky
+                společností EduVision po jejím ověření.
               </p>
 
               {error ? <Alert variant="error" className="mb-4">Chyba: {error}</Alert> : null}
@@ -197,8 +200,12 @@ export default function ZadostPage() {
                 <div>
                   <Label htmlFor="licensePlan">Varianta licence*</Label>
                   <Select id="licensePlan" name="licensePlan" required value={form.licensePlan} onChange={updateField}>
-                    <option value="paid_monthly">1 990 Kč měsíčně</option>
-                    <option value="paid_annual">12 měsíců placených najednou</option>
+                    <option value="paid_monthly">
+                      Měsíční fakturace – 1 990 Kč bez DPH/měsíc
+                    </option>
+                    <option value="paid_annual">
+                      Roční fakturace – 23 880 Kč bez DPH za 12 měsíců
+                    </option>
                     {form.type === "obec" ? (
                       <option value="classroom_free_12m">
                         12 měsíců zdarma pro obec s učebnou ARCHIMEDES
@@ -290,19 +297,30 @@ export default function ZadostPage() {
                     className="mt-1 h-4 w-4"
                   />
                   <span className="text-sm leading-relaxed text-slate-700">
-                    Souhlasím s{" "}
+                    Přijímám{" "}
                     <Link href="/vop" className="font-bold underline underline-offset-2">
-                      všeobecnými obchodními podmínkami
+                      VOP
                     </Link>{" "}
-                    a potvrzuji seznámení se{" "}
+                    (verze {LEGAL_DOCUMENT_VERSION}) a{" "}
+                    <Link href="/dpa" className="font-bold underline underline-offset-2">
+                      DPA
+                    </Link>{" "}
+                    (verze {LEGAL_DOCUMENT_VERSION}) a potvrzuji, že jsem se
+                    seznámil/a s{" "}
                     <Link href="/ochrana-osobnich-udaju" className="font-bold underline underline-offset-2">
-                      zásadami ochrany osobních údajů
+                      informacemi o zpracování osobních údajů
                     </Link>.
                   </span>
                 </label>
 
+                <p className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm leading-relaxed text-slate-700">
+                  Odesláním činíte závaznou objednávku. Automatické potvrzení o
+                  jejím doručení není přijetím objednávky a samo o sobě smlouvu
+                  neuzavírá.
+                </p>
+
                 <div className="mt-1 flex flex-wrap gap-2.5">
-                  <Button type="submit" disabled={saving} className="w-full sm:w-auto">{saving ? "Odesílám..." : "Odeslat objednávku programu"}</Button>
+                  <Button type="submit" disabled={saving} className="w-full sm:w-auto">{saving ? "Odesílám..." : "Odeslat závaznou objednávku"}</Button>
                   <Button href="/" variant="secondary" className="w-full sm:w-auto">Zpět na hlavní stránku</Button>
                 </div>
 
@@ -324,9 +342,9 @@ export default function ZadostPage() {
               <Alert variant="success" className="mb-6 mt-5 whitespace-pre-line text-base">{message}</Alert>
               <div className="mb-7 grid gap-3 text-base leading-relaxed text-muted">
                 <div><strong className="text-navy-900">Co bude následovat:</strong></div>
-                <div>1. Vaši žádost zaevidujeme a zkontrolujeme.</div>
-                <div>2. Po ověření aktivujeme vybraný subjekt v ARCHIMEDES Live.</div>
-                <div>3. Kontaktní osoba obdrží přístup pod svým stávajícím nebo nově založeným účtem.</div>
+                <div>1. Objednávku a oprávnění objednatele zkontrolujeme.</div>
+                <div>2. Písemně Vám potvrdíme její přijetí, cenu, fakturaci a datum zahájení; tím vznikne smlouva.</div>
+                <div>3. Poté aktivujeme subjekt a kontaktní osoba obdrží přístup.</div>
               </div>
               <div className="flex flex-wrap gap-2.5">
                 <Button href="/">Zpět na hlavní stránku</Button>
