@@ -11,7 +11,7 @@ import { supabase } from "../../lib/supabaseClient";
 import { fetchMyOrganization } from "../../lib/myOrganizations";
 
 const POSTERS_BUCKET = "posters";
-const FALLBACK_POSTER = "/ucebna-exterier.webp";
+const FALLBACK_POSTER = "/logo-archimedes-live.png";
 
 function safeDate(value) {
   if (!value) return null;
@@ -67,6 +67,13 @@ function getPosterUrl(event) {
 
   const { data } = supabase.storage.from(POSTERS_BUCKET).getPublicUrl(path);
   return data?.publicUrl || FALLBACK_POSTER;
+}
+
+function hasPoster(event) {
+  return Boolean(
+    String(event?.poster_url || "").trim() ||
+      String(event?.poster_path || "").trim()
+  );
 }
 
 function createCalendarHref(event) {
@@ -857,6 +864,7 @@ function TeacherJoinHero({ event }) {
       : desc
     : "Přehled nejbližšího vysílání. Tady má učitel nejrychlejší cestu k připojení.";
   const posterUrl = getPosterUrl(event);
+  const usesFallbackPoster = !hasPoster(event);
   const calendarHref = createCalendarHref(event);
 
   return (
@@ -868,7 +876,10 @@ function TeacherJoinHero({ event }) {
       </div>
 
       <div className="hero-grid">
-        <Link href={`/portal/udalost/${event?.id}`} className="hero-poster">
+        <Link
+          href={`/portal/udalost/${event?.id}`}
+          className={`hero-poster${usesFallbackPoster ? " hero-poster-fallback" : ""}`}
+        >
           <img src={posterUrl} alt={title} />
         </Link>
 
@@ -958,6 +969,16 @@ function TeacherJoinHero({ event }) {
           width: 100%;
           height: 100%;
           object-fit: cover;
+        }
+
+        .hero-poster-fallback {
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          padding: 48px;
+        }
+
+        .hero-poster-fallback img {
+          object-fit: contain;
         }
 
         .hero-content {
@@ -1157,10 +1178,11 @@ function EventRow({ e }) {
   const dt = formatDateTimeCS(e?.starts_at);
   const cat = e?.category ? String(e.category) : "";
   const posterUrl = getPosterUrl(e);
+  const usesFallbackPoster = !hasPoster(e);
 
   return (
     <Link href={`/portal/udalost/${e?.id}`} className="event-row">
-      <div className="event-thumb">
+      <div className={`event-thumb${usesFallbackPoster ? " event-thumb-fallback" : ""}`}>
         <img src={posterUrl} alt={title} />
       </div>
 
@@ -1210,6 +1232,15 @@ function EventRow({ e }) {
           height: 100%;
           object-fit: cover;
           display: block;
+        }
+
+        .event-thumb-fallback {
+          background: #ffffff;
+          padding: 8px;
+        }
+
+        .event-thumb-fallback img {
+          object-fit: contain;
         }
 
         .event-info {
