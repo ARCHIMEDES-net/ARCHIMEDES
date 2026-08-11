@@ -69,8 +69,23 @@ export default async function handler(req, res) {
     if (!event.starts_at) return res.status(400).json({ error: "Událost nemá nastavený začátek." });
 
     const session = sessions?.[0] || null;
-    if (!session?.external_meeting_id) {
+    if (!session) {
       return res.status(200).json({ synced: false, reason: "meeting_not_created" });
+    }
+
+    if (!session.external_meeting_id) {
+      const { error: updateError } = await supabaseAdmin
+        .from("broadcast_sessions")
+        .update({ starts_at: event.starts_at })
+        .eq("id", session.id);
+      if (updateError) throw updateError;
+
+      return res.status(200).json({
+        synced: false,
+        sessionSynced: true,
+        reason: "meeting_not_created",
+        startsAt: event.starts_at,
+      });
     }
 
     if (
