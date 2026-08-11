@@ -6,7 +6,7 @@ const repositoryRoot = process.cwd();
 const migrationPath =
   "supabase/migrations/20260731132500_secure_archive_member_access.sql";
 const hardeningMigrationPath =
-  "supabase/migrations/20260811145057_restrict_anonymous_archive_function.sql";
+  "supabase/migrations/20260811145828_restrict_anonymous_archive_function.sql";
 const sql = fs
   .readFileSync(path.join(repositoryRoot, migrationPath), "utf8")
   .replace(/\s+/g, " ")
