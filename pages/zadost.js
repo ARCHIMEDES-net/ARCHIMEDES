@@ -166,7 +166,7 @@ export default function ZadostPage() {
                 Chci zapojit obec, školu nebo spolek
               </h1>
               <p className="mb-5 mt-3 text-[17px] leading-relaxed text-muted">
-                Jeden společný program stojí 1 990 Kč měsíčně. Objednávku
+                Jeden společný program stojí 1 990 Kč měsíčně (objednávka 12 měsíců min.). Objednávku
                 ověříme a před aktivací potvrdíme variantu, platnost a fakturaci.
               </p>
 
