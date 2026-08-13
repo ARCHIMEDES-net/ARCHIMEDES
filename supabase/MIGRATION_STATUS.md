@@ -127,6 +127,38 @@ souborů do tohoto adresáře.
 Ruční přiřazení škol pod obce přijde až po schválení konkrétní mapy
 `škola -> obec`. Bez této mapy se `parent_organization_id` hromadně nemění.
 
+## Lokálně připraveno, zatím neaplikováno
+
+- `20260813154650_harden_municipality_onboarding.sql` je návrh jednotného,
+  auditovaného a idempotentního onboardingu hlavních zákazníků. Odděluje
+  kontakt od lokálního správce, přidává nakonfigurované centrální správce a
+  zapisuje profil, členství, licenci i audit v jedné transakci.
+- Migrace nebyla aplikována do produkce ani jiné vzdálené databáze. Před
+  schválením vyžaduje read-only preflight
+  `supabase/preflight/municipality_onboarding_v3_readiness.sql`, ověření v
+  izolované databázi a nastavení `MUNICIPALITY_CENTRAL_ADMIN_USER_IDS`.
+- Lokální embedded PostgreSQL integrační test migraci úspěšně provedl a ověřil
+  commit, audit vykonavatele, idempotentní replay, konflikt změněného replaye,
+  duplicitní IČO, odmítnutí osiřelého stale-JWT správce, atomické e-mailové
+  pokusy, dvojklik, uvízlé `sending`, obě ruční volby `delivery_unknown` a
+  transakční rollback po vynucené chybě auditního zápisu.
+  Ověření proti úplnému cílovému Supabase schématu a advisories zůstává krokem
+  izolované databázové větve před produkcí.
+- Produkční read-only preflight 13. 8. 2026 potvrdil 0 skupin duplicitních
+  profilových e-mailů, členství, obecních IČO i názvů s adresou. Oba
+  nakonfigurovaní centrální správci mají konzistentní Auth účet, aktivní profil
+  a roli `super_admin`; jejich identity ani UUID se do repozitáře nezapisují.
+  Mimo tuto dvojici zůstávají 2 starší osiřelé řádky `platform_admins`; jejich
+  přesné identifikátory patří pouze do schváleného provozního záznamu, nikoli do
+  repozitáře. Aktuální Auth audit ani prověřené veřejné business reference už
+  neobsahují jejich e-mail nebo jméno, takže původní osoby nelze z produkčních
+  dat spolehlivě určit. Vznik umožnila
+  chybějící vazba `platform_admins.user_id -> auth.users.id`: Auth účet a jeho
+  kaskádově vázaný profil mohly zmizet, zatímco oprávnění zůstalo. Migrace je
+  nemaže ani kvůli nim neselže;
+  přidává budoucí FK jako `NOT VALID`. Nespouštěný kontrolní návrh odstranění je
+  v `supabase/manual/PROPOSAL_remove_orphaned_platform_admins.sql`.
+
 Před ručním převodem starých archivů se spustí pouze read-only report
 `supabase/preflight/archive_recording_classification.sql`. Report nic
 nepřepisuje; rozděluje odkazy na skutečné YouTube záznamy, Meet odkazy,

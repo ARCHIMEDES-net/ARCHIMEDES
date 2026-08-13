@@ -33,6 +33,13 @@ function formatDate(value) {
   return date.toLocaleDateString("cs-CZ");
 }
 
+function formatDateTime(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString("cs-CZ");
+}
+
 function inputDate(value = new Date()) {
   const date = new Date(value);
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -60,14 +67,30 @@ const LICENSE_LABELS = {
   classroom_free_12m: "12 měsíců zdarma – učebna",
 };
 
+const EMAIL_STATUS_LABELS = {
+  pending: "Čeká na první pokus",
+  sending: "Odesílání probíhá",
+  sent: "Odesláno",
+  failed: "Bezpečná chyba před odesláním",
+  delivery_unknown: "Výsledek doručení není známý",
+};
+
+function createIdempotencyKey() {
+  return globalThis.crypto?.randomUUID?.() || "";
+}
+
 function createDraft() {
   return {
+    idempotencyKey: createIdempotencyKey(),
     licensePlan: "paid_monthly",
     licenseStartedAt: inputDate(),
     licenseValidUntil: "",
     contractAccepted: false,
     classroomEligibilityVerified: false,
     billingStatus: "pending",
+    contactIsLocalAdmin: false,
+    localAdminFullName: "",
+    localAdminEmail: "",
   };
 }
 
@@ -76,6 +99,11 @@ export default function AdminObcePage() {
   const [loading, setLoading] = useState(true);
   const [activatingId, setActivatingId] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [emailCustomer, setEmailCustomer] = useState(null);
+  const [emailState, setEmailState] = useState(null);
+  const [emailReason, setEmailReason] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailSubmitting, setEmailSubmitting] = useState(false);
   const [draft, setDraft] = useState(createDraft);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -115,6 +143,8 @@ export default function AdminObcePage() {
   }
 
   function openActivation(row) {
+    setEmailCustomer(null);
+    setEmailState(null);
     setSelectedCustomer(row);
     setError("");
     setMessage("");
@@ -131,6 +161,94 @@ export default function AdminObcePage() {
     }
 
     setDraft(nextDraft);
+  }
+
+  async function authenticatedRequest(url, options = {}) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error("Přihlášení vypršelo. Přihlaste se znovu.");
+    }
+
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        Authorization: `Bearer ${session.access_token}`,
+        ...options.headers,
+      },
+    });
+  }
+
+  async function loadEmailState(row, preserveError = false) {
+    setEmailLoading(true);
+    if (!preserveError) setError("");
+    try {
+      const response = await authenticatedRequest(
+        `/api/admin/activate-municipality?organizationId=${encodeURIComponent(row.id)}`
+      );
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.error || "Audit e-mailu se nepodařilo načíst.");
+      setEmailState(result.emailState);
+    } catch (loadError) {
+      setEmailState(null);
+      setError(loadError?.message || "Audit e-mailu se nepodařilo načíst.");
+    } finally {
+      setEmailLoading(false);
+    }
+  }
+
+  async function openEmailManagement(row, preserveMessages = false) {
+    setSelectedCustomer(null);
+    setEmailCustomer(row);
+    setEmailReason("");
+    if (!preserveMessages) setMessage("");
+    await loadEmailState(row, preserveMessages);
+  }
+
+  async function performEmailAction(action) {
+    if (!emailCustomer || emailReason.trim().length < 3) {
+      setError("Uveďte auditní důvod alespoň třemi znaky.");
+      return;
+    }
+
+    const confirmationText =
+      action === "resolve_without_resend"
+        ? "Uzavřít neznámé doručení bez dalšího e-mailu?"
+        : action === "confirm_not_delivered_and_retry"
+          ? "Potvrdit, že zpráva nebyla doručena, a vytvořit nový pokus?"
+          : action === "retry_failed"
+            ? "Vytvořit nový pokus po bezpečné chybě před odesláním?"
+            : "Spustit první auditovaný e-mailový pokus?";
+    if (!window.confirm(confirmationText)) return;
+
+    setEmailSubmitting(true);
+    setError("");
+    setMessage("");
+    try {
+      const response = await authenticatedRequest(
+        "/api/admin/activate-municipality",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            organizationId: emailCustomer.id,
+            action,
+            reason: emailReason.trim(),
+          }),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) throw new Error(result?.error || "Akci se nepodařilo dokončit.");
+      setEmailState(result.emailState);
+      setEmailReason("");
+      setMessage("E-mailový stav a audit byly bezpečně aktualizovány.");
+    } catch (actionError) {
+      setError(actionError?.message || "Akci se nepodařilo dokončit.");
+      await loadEmailState(emailCustomer);
+    } finally {
+      setEmailSubmitting(false);
+    }
   }
 
   function updatePlan(licensePlan) {
@@ -174,6 +292,19 @@ export default function AdminObcePage() {
       return;
     }
 
+    if (!draft.idempotencyKey) {
+      setError("Prohlížeč nedokázal vytvořit bezpečný identifikátor onboardingu. Obnovte stránku.");
+      return;
+    }
+
+    if (
+      draft.localAdminFullName.trim().length < 2 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.localAdminEmail.trim())
+    ) {
+      setError("Vyplňte jméno a e-mail lokálního správce platformy.");
+      return;
+    }
+
     if (
       ["paid_annual", "classroom_free_12m"].includes(draft.licensePlan) &&
       !draft.licenseValidUntil
@@ -192,7 +323,7 @@ export default function AdminObcePage() {
 
     const typeLabel = ORGANIZATION_LABELS[row.org_type] || "Organizace";
     const confirmed = window.confirm(
-      `Aktivovat: ${typeLabel.toLowerCase()} „${row.name}“ s variantou ${LICENSE_LABELS[draft.licensePlan]}?`
+      `Dokončit onboarding: ${typeLabel.toLowerCase()} „${row.name}“ s variantou ${LICENSE_LABELS[draft.licensePlan]} a lokálním správcem ${draft.localAdminEmail.trim().toLowerCase()}?`
     );
     if (!confirmed) return;
 
@@ -218,6 +349,7 @@ export default function AdminObcePage() {
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
+          idempotencyKey: draft.idempotencyKey,
           organizationId: row.id,
           licensePlan: draft.licensePlan,
           licenseStartedAt: draft.licenseStartedAt,
@@ -225,6 +357,8 @@ export default function AdminObcePage() {
           contractStatus: "accepted",
           billingStatus: draft.billingStatus,
           classroomEligibilityVerified: draft.classroomEligibilityVerified,
+          localAdminFullName: draft.localAdminFullName,
+          localAdminEmail: draft.localAdminEmail,
         }),
       });
       const result = await response.json();
@@ -250,10 +384,34 @@ export default function AdminObcePage() {
         )
       );
 
+      const accountMessage = result.localAdminAccountCreated
+        ? "Nový účet lokálního správce byl připraven."
+        : "Existující účet lokálního správce byl zachován.";
+      const centralMessage = ["municipality", "obec"].includes(row.org_type)
+        ? ` Přidáno centrálních správců: ${result.centralAdminCount}.`
+        : "";
+
       setMessage(
-        `${typeLabel} „${row.name}“ byla aktivována. ${result.invitationSent ? "Kontaktní osobě byla odeslána pozvánka k účtu." : "Stávající účet kontaktní osoby byl zachován."} ${result.onboardingEmailSent ? "Onboardingový e-mail byl odeslán." : "Onboardingový e-mail se nepodařilo odeslat; aktivace je přesto platná."}`
+        `${typeLabel} „${row.name}“ byla atomicky aktivována. ${accountMessage}${centralMessage}`
       );
-      setSelectedCustomer(null);
+      if (result.emailManualReviewRequired) {
+        setError(
+          "Doručení onboardingového e-mailu má nejednoznačný výsledek. Obec je aktivní, ale před případným ručním opakováním ověřte doručenou poštu a audit, aby nevznikla duplicitní zpráva."
+        );
+        await openEmailManagement({ ...row, license_status: "active" }, true);
+      } else if (result.onboardingEmailSent) {
+        setSelectedCustomer(null);
+      } else if (result.emailDeliveryInProgress) {
+        setMessage(
+          `${typeLabel} „${row.name}“ byla aktivována a onboardingový e-mail právě zpracovává jiný identický požadavek.`
+        );
+        await openEmailManagement({ ...row, license_status: "active" }, true);
+      } else {
+        setError(
+          "E-mail nebyl odeslán. Databázový onboarding zůstal platný; bezpečné opakování je dostupné v auditovaném panelu e-mailu."
+        );
+        await openEmailManagement({ ...row, license_status: "active" }, true);
+      }
     } catch (activationError) {
       setError(
         activationError?.message || "Aktivaci se nepodařilo dokončit."
@@ -277,18 +435,133 @@ export default function AdminObcePage() {
           {error ? <Alert variant="error" className="mt-4">{error}</Alert> : null}
           {message ? <Alert variant="success" className="mt-4">{message}</Alert> : null}
 
+          {emailCustomer ? (
+            <Card className="mt-5 p-6">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <div className="text-sm font-bold uppercase tracking-wide text-slate-500">
+                    Audit onboardingového e-mailu
+                  </div>
+                  <h2 className="mt-1 text-2xl font-black text-navy-900">
+                    {emailCustomer.name}
+                  </h2>
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setEmailCustomer(null);
+                    setEmailState(null);
+                  }}
+                >
+                  Zavřít
+                </Button>
+              </div>
+
+              {emailLoading ? <p className="mt-5 text-sm text-slate-600">Načítám audit…</p> : null}
+              {!emailLoading && emailState ? (
+                <>
+                  <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="font-bold text-navy-900">
+                      {EMAIL_STATUS_LABELS[emailState.email_status] || emailState.email_status}
+                    </div>
+                    <div className="mt-1 text-sm text-slate-600">
+                      Lokální správce: {emailState.local_admin_full_name} • {emailState.local_admin_email}
+                    </div>
+                    <div className="mt-1 text-sm text-slate-600">
+                      Počet pokusů: {emailState.email_attempt_count || 0}
+                    </div>
+                    {emailState.email_attempted_at ? (
+                      <div className="mt-1 text-sm text-slate-600">
+                        Poslední změna doručení: {formatDateTime(emailState.email_attempted_at)}
+                      </div>
+                    ) : null}
+                    {emailState.email_resolution_action === "resolved_without_resend" ? (
+                      <div className="mt-2 text-sm font-semibold text-emerald-700">
+                        Ručně uzavřeno bez dalšího odeslání
+                        {emailState.email_resolved_at
+                          ? ` (${formatDateTime(emailState.email_resolved_at)})`
+                          : ""}
+                        : {emailState.email_resolution_reason}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {emailState.attempts?.length ? (
+                    <div className="mt-5 space-y-2">
+                      {emailState.attempts.map((attempt) => (
+                        <div key={attempt.attempt_number} className="rounded-xl border border-slate-200 p-3 text-sm text-slate-700">
+                          <div className="font-bold">
+                            Pokus {attempt.attempt_number}: {EMAIL_STATUS_LABELS[attempt.status] || attempt.status}
+                          </div>
+                          <div className="mt-1">Důvod: {attempt.initiation_reason}</div>
+                          <div className="mt-1 text-xs text-slate-500">
+                            Převzato: {formatDateTime(attempt.claimed_at)}
+                            {attempt.completed_at
+                              ? ` • dokončeno: ${formatDateTime(attempt.completed_at)}`
+                              : ""}
+                          </div>
+                          {attempt.previous_attempt_number ? (
+                            <div className="mt-1 text-xs text-slate-500">
+                              Navazuje na pokus {attempt.previous_attempt_number}
+                            </div>
+                          ) : null}
+                          {attempt.resolution_reason ? (
+                            <div className="mt-1 font-semibold">
+                              Rozhodnutí{attempt.resolved_at ? ` (${formatDateTime(attempt.resolved_at)})` : ""}: {attempt.resolution_reason}
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {["pending", "failed", "delivery_unknown"].includes(emailState.email_status) &&
+                  emailState.email_resolution_action !== "resolved_without_resend" ? (
+                    <div className="mt-5">
+                      <Label>Auditní důvod rozhodnutí nebo nového pokusu</Label>
+                      <Input
+                        value={emailReason}
+                        maxLength={500}
+                        onChange={(event) => setEmailReason(event.target.value)}
+                        placeholder="Např. potvrzeno telefonicky s příjemcem"
+                      />
+                    </div>
+                  ) : null}
+
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    {emailState.email_status === "pending" ? (
+                      <Button type="button" disabled={emailSubmitting} onClick={() => performEmailAction("send_pending")}>Odeslat první pokus</Button>
+                    ) : null}
+                    {emailState.email_status === "failed" ? (
+                      <Button type="button" disabled={emailSubmitting} onClick={() => performEmailAction("retry_failed")}>Bezpečně opakovat</Button>
+                    ) : null}
+                    {emailState.email_status === "delivery_unknown" &&
+                    emailState.email_resolution_action !== "resolved_without_resend" ? (
+                      <>
+                        <Button type="button" disabled={emailSubmitting} onClick={() => performEmailAction("resolve_without_resend")}>Vyřešit bez odeslání</Button>
+                        <Button type="button" variant="secondary" disabled={emailSubmitting} onClick={() => performEmailAction("confirm_not_delivered_and_retry")}>Potvrdit nedoručení a opakovat</Button>
+                      </>
+                    ) : null}
+                    <Button type="button" variant="secondary" disabled={emailLoading || emailSubmitting} onClick={() => loadEmailState(emailCustomer)}>Obnovit stav</Button>
+                  </div>
+                </>
+              ) : null}
+            </Card>
+          ) : null}
+
           {selectedCustomer ? (
             <Card className="mt-5 p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="text-sm font-bold uppercase tracking-wide text-slate-500">
-                    Aktivace zákazníka
+                    Jednotný onboarding zákazníka
                   </div>
                   <h2 className="mt-1 text-2xl font-black text-navy-900">
                     {selectedCustomer.name}
                   </h2>
                   <p className="mt-1 text-sm text-slate-600">
-                    {selectedCustomer.contact_name} • {selectedCustomer.contact_email}
+                    Kontakt obce: {selectedCustomer.contact_name || "—"} • {selectedCustomer.contact_email || "—"}
                   </p>
                 </div>
                 <Button type="button" variant="secondary" onClick={() => setSelectedCustomer(null)}>
@@ -334,6 +607,82 @@ export default function AdminObcePage() {
                 </div>
               </div>
 
+              <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+                <h3 className="text-lg font-black text-navy-900">
+                  Lokální správce platformy
+                </h3>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Kontaktní osoba obce není automaticky uživatelem ani správcem. Účet a
+                  onboardingový e-mail vzniknou výhradně pro osobu uvedenou níže.
+                </p>
+
+                <label className="mt-4 flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <input
+                    type="checkbox"
+                    checked={draft.contactIsLocalAdmin}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setDraft((current) => ({
+                        ...current,
+                        contactIsLocalAdmin: checked,
+                        localAdminFullName: checked
+                          ? selectedCustomer.contact_name || ""
+                          : "",
+                        localAdminEmail: checked
+                          ? selectedCustomer.contact_email || ""
+                          : "",
+                      }));
+                    }}
+                    className="mt-1 h-4 w-4"
+                  />
+                  <span className="text-sm font-semibold text-slate-700">
+                    Kontaktní osoba je zároveň lokálním správcem platformy
+                  </span>
+                </label>
+
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label>Jméno lokálního správce</Label>
+                    <Input
+                      value={draft.localAdminFullName}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          contactIsLocalAdmin: false,
+                          localAdminFullName: event.target.value,
+                        }))
+                      }
+                      autoComplete="name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Pracovní e-mail lokálního správce</Label>
+                    <Input
+                      type="email"
+                      value={draft.localAdminEmail}
+                      onChange={(event) =>
+                        setDraft((current) => ({
+                          ...current,
+                          contactIsLocalAdmin: false,
+                          localAdminEmail: event.target.value,
+                        }))
+                      }
+                      autoComplete="email"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {["municipality", "obec"].includes(selectedCustomer.org_type) ? (
+                  <p className="mt-4 text-sm leading-6 text-slate-600">
+                    Současně budou přidáni centrální správci uvedení v bezpečné
+                    serverové konfiguraci. Jejich jména ani účty nejsou v aplikaci
+                    zapsány napevno.
+                  </p>
+                ) : null}
+              </div>
+
               {draft.licensePlan === "classroom_free_12m" ? (
                 <label className="mt-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
                   <input
@@ -371,7 +720,9 @@ export default function AdminObcePage() {
                   disabled={activatingId === selectedCustomer.id}
                   onClick={activateCustomer}
                 >
-                  {activatingId === selectedCustomer.id ? "Aktivuji…" : "Aktivovat zákazníka"}
+                  {activatingId === selectedCustomer.id
+                    ? "Dokončuji onboarding…"
+                    : "Zkontrolovat a dokončit onboarding"}
                 </Button>
               </div>
             </Card>
@@ -444,9 +795,19 @@ export default function AdminObcePage() {
                     </TableCell>
                     <TableCell>
                       {row.license_status === "active" ? (
-                        <Button href={`/portal/admin/obce/${row.id}`} variant="secondary" size="sm">
-                          Detail
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button href={`/portal/admin/obce/${row.id}`} variant="secondary" size="sm">
+                            Detail
+                          </Button>
+                          <Button
+                            type="button"
+                            onClick={() => openEmailManagement(row)}
+                            variant="secondary"
+                            size="sm"
+                          >
+                            Onboardingový e-mail
+                          </Button>
+                        </div>
                       ) : (
                         <Button
                           type="button"

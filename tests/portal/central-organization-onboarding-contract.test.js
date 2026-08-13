@@ -9,6 +9,42 @@ function read(relativePath) {
 }
 
 describe("central organization onboarding contract", () => {
+  it("keeps the municipality contact separate from an explicitly confirmed local administrator", () => {
+    const source = read("pages/portal/admin/obce.js");
+    const additionalAdminSource = read(
+      "pages/portal/admin/obce/[id]/spravci.js"
+    );
+
+    expect(source).toContain("contactIsLocalAdmin");
+    expect(source).toContain("localAdminFullName");
+    expect(source).toContain("localAdminEmail");
+    expect(source).toContain("Kontaktní osoba obce není automaticky uživatelem ani správcem");
+    expect(additionalAdminSource).toContain(
+      'setForm({ fullName: "", email: "" })'
+    );
+    expect(additionalAdminSource).not.toContain(
+      "fullName: data.contact_name"
+    );
+  });
+
+  it("loads central administrators from server configuration without hardcoded people", () => {
+    const route = read("pages/api/admin/activate-municipality.js");
+
+    expect(route).toContain("MUNICIPALITY_CENTRAL_ADMIN_USER_IDS");
+  });
+
+  it("keeps email recovery available after reload with both audited unknown-delivery decisions", () => {
+    const source = read("pages/portal/admin/obce.js");
+
+    expect(source).toContain("openEmailManagement");
+    expect(source).toContain("Onboardingový e-mail");
+    expect(source).toContain("retry_failed");
+    expect(source).toContain("resolve_without_resend");
+    expect(source).toContain("confirm_not_delivered_and_retry");
+    expect(source).toContain("email_attempt_count");
+    expect(source).toContain("previous_attempt_number");
+  });
+
   it.each([
     ["pages/registrace-skoly.js", "/zadost?type=skola"],
     ["pages/registrace-spolku.js", "/zadost?type=spolek"],

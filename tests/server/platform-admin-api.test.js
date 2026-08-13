@@ -66,11 +66,22 @@ describe("platform admin authentication", () => {
   });
 
   it("returns the authenticated platform admin", async () => {
-    const user = { id: "admin-1", email: "admin@example.com" };
+    const user = { id: "admin-1", email: "admin@example.test" };
     const { supabase, queries } = createSupabaseMock({
       user,
       tableResults: {
-        platform_admins: { data: { user_id: user.id }, error: null },
+        platform_admins: {
+          data: { user_id: user.id, role: "super_admin" },
+          error: null,
+        },
+        profiles: {
+          data: {
+            id: user.id,
+            email: user.email,
+            is_active: true,
+          },
+          error: null,
+        },
       },
     });
     const res = createResponse();
@@ -87,7 +98,40 @@ describe("platform admin authentication", () => {
         table: "platform_admins",
         filters: { user_id: user.id },
       },
+      {
+        table: "profiles",
+        filters: { id: user.id },
+      },
     ]);
+  });
+
+  it("rejects an admin row without a live active matching profile", async () => {
+    const user = { id: "admin-1", email: "admin@example.test" };
+    const { supabase } = createSupabaseMock({
+      user,
+      tableResults: {
+        platform_admins: {
+          data: { user_id: user.id, role: "admin" },
+          error: null,
+        },
+        profiles: {
+          data: {
+            id: user.id,
+            email: user.email,
+            is_active: false,
+          },
+          error: null,
+        },
+      },
+    });
+
+    const result = await requirePlatformAdmin(
+      { headers: { authorization: "Bearer valid" } },
+      createResponse(),
+      supabase
+    );
+
+    expect(result).toBeNull();
   });
 
   it("fails closed when the admin lookup fails", async () => {
