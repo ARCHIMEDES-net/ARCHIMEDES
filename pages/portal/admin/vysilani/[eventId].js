@@ -11,7 +11,10 @@ import { Select } from "../../../../components/ui/select";
 import { Button } from "../../../../components/ui/button";
 import { Alert } from "../../../../components/ui/alert";
 import { isGoogleMeetUrl } from "../../../../lib/archiveRecording";
-import { getBroadcastLifecycle } from "../../../../lib/broadcastLifecycle";
+import {
+  canSyncBroadcastResults,
+  getBroadcastLifecycle,
+} from "../../../../lib/broadcastLifecycle";
 import {
   MAX_MANUAL_RECIPIENT_EMAILS,
   normalizeManualRecipientEmails,
@@ -629,6 +632,7 @@ export default function AdminVysilaniDetailPage() {
     [eventRow?.starts_at, status, recordingStatus, recordingUrl, providerStatus]
   );
   const operationalLocked = lifecycle !== "planned";
+  const resultsSyncAvailable = canSyncBroadcastResults({ startsAt: eventRow?.starts_at });
 
   const statusBadge = useMemo(() => {
     if (lifecycle === "planned" && status === "scheduled") {
@@ -728,7 +732,16 @@ export default function AdminVysilaniDetailPage() {
                   <Button
                     type="button"
                     onClick={syncWebMeetingResults}
-                    disabled={!externalMeetingId || webMeetingSyncing}
+                    disabled={
+                      !externalMeetingId ||
+                      webMeetingSyncing ||
+                      !resultsSyncAvailable
+                    }
+                    title={
+                      resultsSyncAvailable
+                        ? undefined
+                        : "Záznam a docházku lze načíst až po plánovaném začátku vysílání."
+                    }
                     variant="secondary"
                   >
                     {webMeetingSyncing ? "Synchronizuji…" : "Načíst záznam a docházku"}
