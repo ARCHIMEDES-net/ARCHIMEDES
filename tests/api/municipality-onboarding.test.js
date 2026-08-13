@@ -12,6 +12,7 @@ const PREPARATION_ID = "88888888-8888-4888-8888-888888888888";
 
 const dependencies = vi.hoisted(() => {
   const state = {
+    organization: null,
     localProfiles: [],
     rpcResult: null,
     rpcCalls: [],
@@ -69,7 +70,7 @@ const dependencies = vi.hoisted(() => {
     const resolve = () => {
       if (table === "organizations") {
         return {
-          data: {
+          data: state.organization || {
             id: "33333333-3333-4333-8333-333333333333",
             name: "Obec Testov",
             org_type: "municipality",
@@ -289,6 +290,12 @@ const originalEnvironment = {
   smtpUser: process.env.SMTP_USER,
   smtpPass: process.env.SMTP_PASS,
   mailFrom: process.env.MAIL_FROM,
+  nodeEnvironment: process.env.NODE_ENV,
+  vercelEnvironment: process.env.VERCEL_ENV,
+  vercelTargetEnvironment: process.env.VERCEL_TARGET_ENV,
+  vercelBranchUrl: process.env.VERCEL_BRANCH_URL,
+  vercelUrl: process.env.VERCEL_URL,
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
 };
 
 beforeEach(() => {
@@ -303,6 +310,7 @@ beforeEach(() => {
   });
   dependencies.authenticatedClient.rpc.mockClear();
   dependencies.state.localProfiles = [];
+  dependencies.state.organization = null;
   dependencies.state.rpcCalls = [];
   dependencies.state.authPreparation = null;
   dependencies.state.authPreparationUpdates = [];
@@ -331,6 +339,11 @@ beforeEach(() => {
   process.env.SMTP_USER = "smtp-user";
   process.env.SMTP_PASS = "smtp-password";
   process.env.MAIL_FROM = "ARCHIMEDES Live <noreply@example.test>";
+  process.env.VERCEL_ENV = "development";
+  delete process.env.VERCEL_TARGET_ENV;
+  delete process.env.VERCEL_BRANCH_URL;
+  delete process.env.VERCEL_URL;
+  process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
 });
 
 afterEach(() => {
@@ -341,6 +354,12 @@ afterEach(() => {
     SMTP_USER: originalEnvironment.smtpUser,
     SMTP_PASS: originalEnvironment.smtpPass,
     MAIL_FROM: originalEnvironment.mailFrom,
+    NODE_ENV: originalEnvironment.nodeEnvironment,
+    VERCEL_ENV: originalEnvironment.vercelEnvironment,
+    VERCEL_TARGET_ENV: originalEnvironment.vercelTargetEnvironment,
+    VERCEL_BRANCH_URL: originalEnvironment.vercelBranchUrl,
+    VERCEL_URL: originalEnvironment.vercelUrl,
+    NEXT_PUBLIC_SITE_URL: originalEnvironment.siteUrl,
   })) {
     if (value === undefined) delete process.env[key];
     else process.env[key] = value;
@@ -389,6 +408,9 @@ describe("audited municipality onboarding API", () => {
         to: "local@example.test",
         subject: "ARCHIMEDES Live – přístup správce pro Obec Testov",
         text: expect.stringContaining("https://example.test/setup"),
+        html: expect.stringContaining(
+          'href="https://example.test/setup"'
+        ),
       })
     );
     expect(dependencies.state.rpcCalls).toContainEqual(
@@ -397,6 +419,69 @@ describe("audited municipality onboarding API", () => {
         args: expect.objectContaining({ p_outcome: "sent" }),
       })
     );
+  });
+
+  it("escapes every dynamic HTML value while preserving the text alternative", async () => {
+    const dangerousName = `Anna <script>alert("x")</script> & 'Správce'`;
+    const dangerousOrganization = `Obec <img src=x onerror='x'> & "Test"`;
+    dependencies.state.organization = {
+      id: ORGANIZATION_ID,
+      name: dangerousOrganization,
+      org_type: "municipality",
+      parent_organization_id: null,
+      contact_name: "Kontaktní Osoba",
+      contact_email: "kontakt@example.test",
+      registration_number: `10<01>&"'`,
+    };
+    dependencies.state.rpcResult = {
+      data: [
+        {
+          onboarding_run_id: RUN_ID,
+          organization_id: ORGANIZATION_ID,
+          registration_number: `10<01>&"'`,
+          replayed: false,
+          email_status: "pending",
+        },
+      ],
+      error: null,
+    };
+
+    const { res } = await invoke(handler, {
+      method: "POST",
+      headers: { authorization: "Bearer admin-token" },
+      body: { ...validBody, localAdminFullName: dangerousName },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const message = dependencies.sendMail.mock.calls[0][0];
+    expect(message.text).toContain(dangerousName);
+    expect(message.text).toContain(dangerousOrganization);
+    expect(message.html).toContain(
+      `Anna &lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt; &amp; &#39;Správce&#39;`
+    );
+    expect(message.html).toContain(
+      `Obec &lt;img src=x onerror=&#39;x&#39;&gt; &amp; &quot;Test&quot;`
+    );
+    expect(message.html).toContain(`10&lt;01&gt;&amp;&quot;&#39;`);
+    expect(message.html).not.toContain("<script>");
+    expect(message.html).not.toContain("<img");
+    expect(message.html).not.toMatch(/<(?:img|script|link|iframe)\b/i);
+  });
+
+  it("rejects an unsafe application origin before generating an Auth link", async () => {
+    process.env.VERCEL_ENV = "production";
+    process.env.NEXT_PUBLIC_SITE_URL = "javascript:alert(1)";
+
+    const { res } = await invoke(handler, {
+      method: "POST",
+      headers: { authorization: "Bearer admin-token" },
+      body: validBody,
+    });
+
+    expect(res.statusCode).toBe(500);
+    expect(dependencies.authAdmin.generateLink).not.toHaveBeenCalled();
+    expect(dependencies.authenticatedClient.rpc).not.toHaveBeenCalled();
+    expect(dependencies.sendMail).not.toHaveBeenCalled();
   });
 
   it("preserves and reuses a consistent existing user", async () => {
