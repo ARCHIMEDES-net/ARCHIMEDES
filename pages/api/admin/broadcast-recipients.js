@@ -2,6 +2,10 @@ import { createClient } from "@supabase/supabase-js";
 import { getEmailGroups } from "../../../lib/server/emailGroups";
 import { consumeAuthenticatedRateLimit } from "../../../lib/server/authenticatedRateLimit";
 import { requirePlatformAdmin } from "../../../lib/server/platformAdminApi";
+import {
+  MAX_MANUAL_RECIPIENT_EMAILS,
+  normalizeManualRecipientEmails,
+} from "../../../lib/broadcastRecipients";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -31,6 +35,23 @@ export default async function handler(req, res) {
 
     if (requestedGroups.length > 50 || requestedGroups.some((slug) => slug.length > 100)) {
       return res.status(400).json({ error: "Výběr skupin je příliš rozsáhlý nebo neplatný." });
+    }
+
+    const manualRecipients = normalizeManualRecipientEmails(req.body?.manualEmails || []);
+
+    if (manualRecipients.invalid.length > 0) {
+      return res.status(400).json({
+        error: `Opravte neplatné e-mailové adresy: ${manualRecipients.invalid.join(", ")}`,
+      });
+    }
+
+    if (
+      manualRecipients.inputCount > MAX_MANUAL_RECIPIENT_EMAILS ||
+      manualRecipients.emails.length > MAX_MANUAL_RECIPIENT_EMAILS
+    ) {
+      return res.status(400).json({
+        error: `Ručně lze přidat nejvýše ${MAX_MANUAL_RECIPIENT_EMAILS} e-mailových adres.`,
+      });
     }
 
     const allowed = await consumeAuthenticatedRateLimit({
@@ -65,6 +86,12 @@ export default async function handler(req, res) {
         const normalizedEmail = String(user.email || "").trim().toLowerCase();
         if (!normalizedEmail || recipientsByEmail.has(normalizedEmail)) continue;
         recipientsByEmail.set(normalizedEmail, { email: user.email.trim() });
+      }
+    }
+
+    for (const email of manualRecipients.emails) {
+      if (!recipientsByEmail.has(email)) {
+        recipientsByEmail.set(email, { email });
       }
     }
 

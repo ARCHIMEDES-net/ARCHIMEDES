@@ -12,6 +12,10 @@ import { Button } from "../../../../components/ui/button";
 import { Alert } from "../../../../components/ui/alert";
 import { isGoogleMeetUrl } from "../../../../lib/archiveRecording";
 import { getBroadcastLifecycle } from "../../../../lib/broadcastLifecycle";
+import {
+  MAX_MANUAL_RECIPIENT_EMAILS,
+  normalizeManualRecipientEmails,
+} from "../../../../lib/broadcastRecipients";
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Rozpracováno" },
@@ -97,6 +101,7 @@ export default function AdminVysilaniDetailPage() {
   const [copyInfo, setCopyInfo] = useState("");
   const [recipientGroups, setRecipientGroups] = useState([]);
   const [selectedRecipientGroups, setSelectedRecipientGroups] = useState([]);
+  const [manualRecipientEmails, setManualRecipientEmails] = useState("");
   const [recipients, setRecipients] = useState([]);
   const [recipientsLoading, setRecipientsLoading] = useState(false);
   const [webMeetingConfigured, setWebMeetingConfigured] = useState(null);
@@ -197,6 +202,11 @@ export default function AdminVysilaniDetailPage() {
       setRecordingStatus(session.recording_status || "none");
       setNotesInternal(session.notes_internal || "");
       setStartsAt(toDateTimeLocalValue(eventData.starts_at || session.starts_at));
+      setManualRecipientEmails(
+        Array.isArray(session.manual_recipient_emails)
+          ? session.manual_recipient_emails.join("\n")
+          : ""
+      );
       const groups = await loadRecipientGroups();
       setSelectedRecipientGroups(suggestRecipientGroups(eventData, groups));
       await Promise.all([loadWebMeetingStatus(), loadAttendance()]);
@@ -366,6 +376,27 @@ export default function AdminVysilaniDetailPage() {
     setError("");
     setCopyInfo("");
     try {
+      const manualRecipients = normalizeManualRecipientEmails(manualRecipientEmails);
+      if (manualRecipients.invalid.length > 0) {
+        throw new Error(
+          `Opravte neplatné e-mailové adresy: ${manualRecipients.invalid.join(", ")}`
+        );
+      }
+      if (
+        manualRecipients.inputCount > MAX_MANUAL_RECIPIENT_EMAILS ||
+        manualRecipients.emails.length > MAX_MANUAL_RECIPIENT_EMAILS
+      ) {
+        throw new Error(
+          `Ručně lze přidat nejvýše ${MAX_MANUAL_RECIPIENT_EMAILS} e-mailových adres.`
+        );
+      }
+
+      const { error: recipientSaveError } = await supabase
+        .from("broadcast_sessions")
+        .update({ manual_recipient_emails: manualRecipients.emails })
+        .eq("id", sessionId);
+      if (recipientSaveError) throw recipientSaveError;
+
       const token = await getAccessToken();
       const response = await fetch("/api/admin/broadcast-recipients", {
         method: "POST",
@@ -373,7 +404,10 @@ export default function AdminVysilaniDetailPage() {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ groups: selectedRecipientGroups }),
+        body: JSON.stringify({
+          groups: selectedRecipientGroups,
+          manualEmails: manualRecipients.emails,
+        }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Nepodařilo se vytvořit seznam příjemců.");
@@ -410,6 +444,21 @@ export default function AdminVysilaniDetailPage() {
     try {
       if (!sessionId) {
         throw new Error("Chybí session pro tuto událost.");
+      }
+
+      const manualRecipients = normalizeManualRecipientEmails(manualRecipientEmails);
+      if (manualRecipients.invalid.length > 0) {
+        throw new Error(
+          `Opravte neplatné e-mailové adresy: ${manualRecipients.invalid.join(", ")}`
+        );
+      }
+      if (
+        manualRecipients.inputCount > MAX_MANUAL_RECIPIENT_EMAILS ||
+        manualRecipients.emails.length > MAX_MANUAL_RECIPIENT_EMAILS
+      ) {
+        throw new Error(
+          `Ručně lze přidat nejvýše ${MAX_MANUAL_RECIPIENT_EMAILS} e-mailových adres.`
+        );
       }
 
       const normalizedViewerUrl = normalizeUrl(viewerUrl);
@@ -450,6 +499,7 @@ export default function AdminVysilaniDetailPage() {
             viewer_url: normalizedViewerUrl || null,
             starts_at: startsAt ? new Date(startsAt).toISOString() : null,
             is_published: status !== "draft",
+            manual_recipient_emails: manualRecipients.emails,
           };
 
       const { error: updateError } = await supabase
@@ -943,6 +993,7 @@ export default function AdminVysilaniDetailPage() {
                           <input
                             type="checkbox"
                             checked={selectedRecipientGroups.includes(group.slug)}
+                            disabled={operationalLocked}
                             onChange={() => {
                               setRecipients([]);
                               setSelectedRecipientGroups((current) =>
@@ -959,9 +1010,27 @@ export default function AdminVysilaniDetailPage() {
                     ))}
                   </div>
 
+                  <div className="mt-5">
+                    <FieldLabel>Další ručně pozvané e-mailové adresy</FieldLabel>
+                    <Textarea
+                      value={manualRecipientEmails}
+                      onChange={(event) => {
+                        setManualRecipientEmails(event.target.value);
+                        setRecipients([]);
+                        setCopyInfo("");
+                      }}
+                      rows={4}
+                      disabled={operationalLocked}
+                      placeholder={"host@example.cz\npartner@example.cz"}
+                    />
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                      Adresy oddělte čárkou, středníkem, mezerou nebo novým řádkem. Přidají se k vybraným cílovým skupinám a duplicity se automaticky odstraní. Maximálně {MAX_MANUAL_RECIPIENT_EMAILS} adres.
+                    </p>
+                  </div>
+
                   <div className="mt-4 flex flex-wrap gap-3">
-                    <Button type="button" onClick={generateRecipients} disabled={recipientsLoading || !selectedRecipientGroups.length} variant="primary">
-                      {recipientsLoading ? "Vytvářím…" : "Vytvořit seznam"}
+                    <Button type="button" onClick={generateRecipients} disabled={recipientsLoading || !selectedRecipientGroups.length || operationalLocked} variant="primary">
+                      {recipientsLoading ? "Ukládám a vytvářím…" : "Uložit a vytvořit seznam"}
                     </Button>
                     <Button type="button" onClick={copyRecipients} disabled={!recipients.length} variant="secondary">
                       Zkopírovat {recipients.length ? `${recipients.length} e-mailů` : "e-maily"}
