@@ -27,6 +27,7 @@
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.5",
     "@next/eslint-plugin-next": "15.5.22",
     "@vitest/coverage-v8": "4.1.10",
     "autoprefixer": "^10.4.19",

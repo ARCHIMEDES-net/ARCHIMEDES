@@ -42,10 +42,7 @@ export default function AdminMunicipalityAdminsPage() {
     }
 
     setMunicipality(data);
-    setForm({
-      fullName: data.contact_name || "",
-      email: data.contact_email || "",
-    });
+    setForm({ fullName: "", email: "" });
     setLoading(false);
   }, [organizationId]);
 
@@ -112,7 +109,8 @@ export default function AdminMunicipalityAdminsPage() {
           </h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             Tento krok přidá pouze přístup správce. Nemění licenci, smlouvu,
-            fakturaci ani aktivaci obce.
+            fakturaci ani aktivaci obce. Kontaktní osoba obce je samostatný
+            údaj a zde se nepředvyplňuje.
           </p>
 
           {error ? (

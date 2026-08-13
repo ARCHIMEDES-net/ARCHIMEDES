@@ -169,19 +169,32 @@ describe("API egress, email, and secret-exposure controls", () => {
     expect(source).toContain("controller.abort()");
   });
 
-  it.each([
-    "admin/activate-municipality",
-    "poptavka-ucebny",
-    "poptavka",
-    "zadost-o-pristup",
-  ])("%s validates SMTP server configuration rather than accepting it from input", (route) => {
-    const source = readApi(route);
+  it.each(["poptavka-ucebny", "poptavka", "zadost-o-pristup"])(
+    "%s validates SMTP server configuration rather than accepting it from input",
+    (route) => {
+      const source = readApi(route);
 
-    expect(source).toContain("process.env.SMTP_HOST");
+      expect(source).toContain("process.env.SMTP_HOST");
     expect(source).toContain("process.env.SMTP_USER");
     expect(source).toContain("process.env.SMTP_PASS");
     expect(source).toContain("process.env.MAIL_FROM");
-    expect(source).not.toMatch(/host:\s*req\.(body|query)/);
+      expect(source).not.toMatch(/host:\s*req\.(body|query)/);
+    }
+  );
+
+  it("keeps onboarding SMTP configuration in a server-only helper", () => {
+    const route = readApi("admin/activate-municipality");
+    const helper = fs.readFileSync(
+      path.join(repositoryRoot, "lib/server/customerOnboarding.js"),
+      "utf8"
+    );
+
+    expect(route).toContain("sendCustomerOnboardingEmail");
+    expect(helper).toContain("process.env.SMTP_HOST");
+    expect(helper).toContain("process.env.SMTP_USER");
+    expect(helper).toContain("process.env.SMTP_PASS");
+    expect(helper).toContain("process.env.MAIL_FROM");
+    expect(helper).not.toMatch(/host:\s*req\.(body|query)/);
   });
 
   it("never references the Supabase service-role key from browser-delivered modules", () => {

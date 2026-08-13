@@ -48,9 +48,14 @@ přístup bez ohledu na zdroj předplatného.
    požadovanou variantu, čas a verzi přijatých VOP.
 2. Platformní správce ověří subjekt, kontaktní osobu, smlouvu a fakturaci.
 3. U bezplatného roku samostatně potvrdí existenci učebny ARCHIMEDES.
-4. Aktivace atomicky vytvoří nebo zachová účet správce, členství a přesnou
-   platnost licence.
-5. Kontaktní osoba obdrží onboardingový e-mail odpovídající typu zákazníka.
+4. Kontaktní osoba zůstává obchodním/provozním kontaktem a automaticky
+   nezískává účet. Platformní správce samostatně potvrdí lokálního správce;
+   pouze pokud jde o stejnou osobu, údaje výslovně zkopíruje.
+5. Aktivace atomicky vytvoří nebo zachová účet lokálního správce, přidá
+   nakonfigurované centrální správce, vytvoří členství, nastaví přesnou
+   platnost licence a zapíše audit provádějícího platformního správce.
+6. Lokální správce obdrží jediný e-mail, který pro nový účet spojuje pozvánku
+   s onboardingem; existující účet a jeho přihlašovací údaje se zachovají.
 
 ## Zapojení organizace pod obec
 
@@ -117,6 +122,10 @@ organizace.
 - Aktivace zákazníka a přiřazení správce probíhají atomicky.
 - Souběžné odeslání stejné žádosti je serializované databázovým advisory
   lockem a nesmí vytvořit dvě organizace.
+- Dokončení onboardingu používá samostatný idempotency key a transakční RPC;
+  duplicita uživatele, obce, IČO nebo konfliktního členství proces zastaví.
+- Identita centrálních správců pochází výhradně ze serverové konfigurace a je
+  při každém onboardingu ověřena proti Auth, profilu a `platform_admins`.
 - RLS a členství zůstávají zdrojem administrátorských oprávnění. Dědění
   předplatného nesmí rozšiřovat právo číst nebo měnit data dítěte.
 - Veřejná objednávka a registrace organizace používají sdílený databázový

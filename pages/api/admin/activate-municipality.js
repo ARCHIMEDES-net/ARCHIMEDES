@@ -1,7 +1,19 @@
 import { createClient } from "@supabase/supabase-js";
-import nodemailer from "nodemailer";
 import { consumeAuthenticatedRateLimit } from "../../../lib/server/authenticatedRateLimit";
-import { requirePlatformAdmin } from "../../../lib/server/platformAdminApi";
+import {
+  cleanupNewAuthUser,
+  CustomerOnboardingError,
+  parseCentralAdminUserIds,
+  resolveConfiguredCentralAdmins,
+  resolveLocalAdministrator,
+  sendCustomerOnboardingEmail,
+  updateAuthPreparationStatus,
+  validateCustomerOnboardingEmailConfiguration,
+} from "../../../lib/server/customerOnboarding";
+import {
+  getBearerToken,
+  requirePlatformAdmin,
+} from "../../../lib/server/platformAdminApi";
 import { getServerSiteUrl } from "../../../lib/server/siteUrl";
 
 const supabaseAdmin = createClient(
@@ -32,7 +44,9 @@ function createAuthenticatedClient(token) {
 function parseDate(value, required = false, endOfDay = false) {
   const clean = String(value || "").trim();
   if (!clean) {
-    if (required) throw new Error("Vyplňte datum konce licence.");
+    if (required) {
+      throw new CustomerOnboardingError("Vyplňte datum konce licence.");
+    }
     return null;
   }
 
@@ -42,100 +56,405 @@ function parseDate(value, required = false, endOfDay = false) {
       ? `${clean}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}Z`
       : clean
   );
-  if (Number.isNaN(date.getTime())) throw new Error("Datum licence není platné.");
+  if (Number.isNaN(date.getTime())) {
+    throw new CustomerOnboardingError("Datum licence není platné.");
+  }
   return date.toISOString();
 }
 
-async function sendOnboardingEmail({
-  email,
-  fullName,
-  organizationName,
-  organizationType,
-  registrationNumber,
+function safeRpcError(error) {
+  const message = String(error?.message || "");
+
+  if (error?.code === "23505" || /duplicate|already|existuje|onboarded/i.test(message)) {
+    return {
+      status: 409,
+      message:
+        "Onboarding koliduje s existujícím uživatelem, organizací, IČO nebo členstvím. Zkontrolujte existující záznamy.",
+    };
+  }
+  if (/platformov/i.test(message)) {
+    return { status: 403, message: "Tuto akci může provést pouze správce platformy." };
+  }
+  if (/nebyl nalezen/i.test(message)) {
+    return { status: 404, message: "Zákazník nebyl nalezen." };
+  }
+  if (/licenc|smlouv|faktur|datum|učebn|správc|e-mail/i.test(message)) {
+    return { status: 400, message: "Zkontrolujte onboardingové údaje zákazníka." };
+  }
+
+  return { status: 500, message: "Onboarding zákazníka se nepodařilo dokončit." };
+}
+
+function firstRpcRow(data) {
+  return Array.isArray(data) ? data[0] : data;
+}
+
+async function completeEmailAttempt(
+  authenticatedClient,
+  attemptId,
+  outcome,
+  errorCode = null
+) {
+  const { data, error } = await authenticatedClient.rpc(
+    "complete_onboarding_email_attempt",
+    {
+      p_attempt_id: attemptId,
+      p_outcome: outcome,
+      p_error_code: errorCode,
+    }
+  );
+  if (error) {
+    console.error("customer onboarding email attempt completion failed", {
+      attemptId,
+      outcome,
+    });
+    return { recorded: false, row: null };
+  }
+  return { recorded: true, row: firstRpcRow(data) };
+}
+
+async function deliverOnboardingEmail({
+  authenticatedClient,
+  onboardingRunId,
+  claimAction,
+  claimReason,
+  customer,
+  localAdministrator,
+  prepareLocalAdministrator,
   licensePlan,
   licenseValidUntil,
   siteUrl,
 }) {
-  const port = Number(process.env.SMTP_PORT);
-  if (
-    !process.env.SMTP_HOST ||
-    !port ||
-    !process.env.SMTP_USER ||
-    !process.env.SMTP_PASS ||
-    !process.env.MAIL_FROM
-  ) {
-    throw new Error("SMTP config missing");
+  const { data: claimRows, error: claimError } = await authenticatedClient.rpc(
+    "claim_onboarding_email_attempt",
+    {
+      p_onboarding_run_id: onboardingRunId,
+      p_action: claimAction,
+      p_reason: claimReason,
+    }
+  );
+  if (claimError) throw claimError;
+
+  const claim = firstRpcRow(claimRows);
+  if (!claim?.claimed) {
+    return {
+      onboardingEmailSent: claim?.email_status === "sent",
+      emailDeliveryInProgress: claim?.email_status === "sending",
+      emailManualReviewRequired:
+        claim?.email_status === "delivery_unknown",
+      emailRetryRequired: claim?.email_status === "failed",
+      emailAttemptNumber: claim?.attempt_number || 0,
+    };
   }
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port,
-    secure: port === 465,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 20_000,
-  });
+  let deliveryAdministrator = localAdministrator;
+  if (!deliveryAdministrator && prepareLocalAdministrator) {
+    try {
+      deliveryAdministrator = await prepareLocalAdministrator();
+    } catch {
+      console.error("customer onboarding setup link preparation failed", {
+        onboardingRunId,
+        attemptId: claim.attempt_id,
+      });
+      const completion = await completeEmailAttempt(
+        authenticatedClient,
+        claim.attempt_id,
+        "failed",
+        "setup_link_generation_failed"
+      );
+      return {
+        onboardingEmailSent: false,
+        emailDeliveryInProgress: false,
+        emailManualReviewRequired: !completion.recorded,
+        emailRetryRequired: completion.recorded,
+        emailAttemptNumber: claim.attempt_number,
+      };
+    }
+  }
 
-  const validUntilText = licenseValidUntil
-    ? new Date(licenseValidUntil).toLocaleDateString("cs-CZ")
-    : "do ukončení měsíční licence";
-  const isMunicipality = ["municipality", "obec"].includes(organizationType);
-  const nextStepUrl = isMunicipality
-    ? `${siteUrl}/portal/organizace-obce`
-    : organizationType === "school"
-      ? `${siteUrl}/portal/uzivatele`
-      : `${siteUrl}/portal/muj-profil`;
-  const registrationLine = isMunicipality
-    ? `Registrační číslo obce: ${registrationNumber || "bude doplněno v portálu"}\n`
-    : "";
-  const organizationInstruction = isMunicipality
-    ? "\nŠkoly a spolky zakládá a s obecní licencí propojuje centrální tým ARCHIMEDES. Každá organizace zůstává samostatným subjektem s vlastními uživateli a daty.\n"
-    : "";
+  try {
+    validateCustomerOnboardingEmailConfiguration();
+  } catch {
+    const completion = await completeEmailAttempt(
+      authenticatedClient,
+      claim.attempt_id,
+      "failed",
+      "smtp_configuration_missing"
+    );
+    return {
+      onboardingEmailSent: false,
+      emailDeliveryInProgress: false,
+      emailManualReviewRequired: !completion.recorded,
+      emailRetryRequired: completion.recorded,
+      emailAttemptNumber: claim.attempt_number,
+    };
+  }
 
-  await transporter.sendMail({
-    from: process.env.MAIL_FROM,
-    to: email,
-    subject: "ARCHIMEDES Live – přístup byl aktivován",
-    text: `Dobrý den ${fullName},
+  try {
+    await sendCustomerOnboardingEmail({
+      email: deliveryAdministrator.email,
+      fullName: deliveryAdministrator.fullName,
+      organizationName: customer.name,
+      organizationType: customer.org_type,
+      registrationNumber: customer.registration_number,
+      licensePlanLabel: LICENSE_LABELS[licensePlan],
+      licenseValidUntil,
+      siteUrl,
+      setupUrl: deliveryAdministrator.setupUrl,
+    });
+    const completion = await completeEmailAttempt(
+      authenticatedClient,
+      claim.attempt_id,
+      "sent"
+    );
+    return {
+      onboardingEmailSent: true,
+      emailDeliveryInProgress: false,
+      emailManualReviewRequired: !completion.recorded,
+      emailRetryRequired: false,
+      emailAttemptNumber: claim.attempt_number,
+    };
+  } catch (emailError) {
+    console.error("customer onboarding email error", {
+      onboardingRunId,
+      attemptId: claim.attempt_id,
+    });
+    const completion = await completeEmailAttempt(
+      authenticatedClient,
+      claim.attempt_id,
+      "delivery_unknown",
+      "smtp_delivery_unknown"
+    );
+    return {
+      onboardingEmailSent: false,
+      emailDeliveryInProgress: !completion.recorded,
+      emailManualReviewRequired: true,
+      emailRetryRequired: false,
+      emailAttemptNumber: claim.attempt_number,
+    };
+  }
+}
 
-přístup pro ${organizationName} byl aktivován.
+async function loadEmailState(organizationId) {
+  const { data: run, error: runError } = await supabaseAdmin
+    .from("organization_onboarding_runs")
+    .select(
+      "id, organization_id, local_admin_user_id, local_admin_email, local_admin_full_name, license_plan, license_valid_until, email_status, email_attempted_at, email_error_code, email_attempt_count, email_resolution_action, email_resolution_reason, email_resolved_at, email_resolved_by"
+    )
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+  if (runError) throw runError;
+  if (!run) return null;
 
-Varianta: ${LICENSE_LABELS[licensePlan] || licensePlan}
-Platnost: ${validUntilText}
-${registrationLine}
-Přihlášení: ${siteUrl}/login
-Další nastavení: ${nextStepUrl}
-${organizationInstruction}
-Tým ARCHIMEDES Live`,
-  });
+  const { data: attempts, error: attemptsError } = await supabaseAdmin
+    .from("organization_onboarding_email_attempts")
+    .select(
+      "id, attempt_number, previous_attempt_id, status, initiation_reason, initiated_by, claimed_at, completed_at, completed_by, error_code, resolution_action, resolution_reason, resolved_by, resolved_at"
+    )
+    .eq("onboarding_run_id", run.id)
+    .order("attempt_number", { ascending: false });
+  if (attemptsError) throw attemptsError;
+  return { ...run, attempts: attempts || [] };
+}
+
+function serializeEmailStateForClient(emailState) {
+  if (!emailState) return null;
+
+  const attemptNumberById = new Map(
+    (emailState.attempts || []).map((attempt) => [
+      attempt.id,
+      attempt.attempt_number,
+    ])
+  );
+
+  return {
+    local_admin_email: emailState.local_admin_email,
+    local_admin_full_name: emailState.local_admin_full_name,
+    email_status: emailState.email_status,
+    email_attempted_at: emailState.email_attempted_at,
+    email_attempt_count: emailState.email_attempt_count,
+    email_resolution_action: emailState.email_resolution_action,
+    email_resolution_reason: emailState.email_resolution_reason,
+    email_resolved_at: emailState.email_resolved_at,
+    attempts: (emailState.attempts || []).map((attempt) => ({
+      attempt_number: attempt.attempt_number,
+      previous_attempt_number:
+        attemptNumberById.get(attempt.previous_attempt_id) || null,
+      status: attempt.status,
+      initiation_reason: attempt.initiation_reason,
+      claimed_at: attempt.claimed_at,
+      completed_at: attempt.completed_at,
+      resolution_action: attempt.resolution_action,
+      resolution_reason: attempt.resolution_reason,
+      resolved_at: attempt.resolved_at,
+    })),
+  };
 }
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
+  if (!["GET", "POST"].includes(req.method)) {
+    res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  let invitedUserId = null;
-  let activationCommitted = false;
+  let localAdministrator = null;
+  let databaseCommitted = false;
 
   try {
-    const admin = await requirePlatformAdmin(req, res, supabaseAdmin);
-    if (!admin) return;
-    const siteUrl = getServerSiteUrl();
+    const performedBy = await requirePlatformAdmin(req, res, supabaseAdmin);
+    if (!performedBy) return;
 
-    const organizationId = String(req.body?.organizationId || "").trim();
-    const licensePlan = String(req.body?.licensePlan || "").trim();
-    const contractStatus = String(req.body?.contractStatus || "").trim();
-    const billingStatus = String(req.body?.billingStatus || "").trim();
-    const classroomEligibilityVerified =
-      req.body?.classroomEligibilityVerified === true;
+    const token = getBearerToken(req);
+    const siteUrl = getServerSiteUrl();
+    const organizationId = String(
+      req.method === "GET"
+        ? req.query?.organizationId || ""
+        : req.body?.organizationId || ""
+    ).trim();
 
     if (!UUID_PATTERN.test(organizationId)) {
       return res.status(400).json({ error: "ID organizace nemá platný formát." });
+    }
+
+    const authenticatedClient = createAuthenticatedClient(token);
+
+    if (req.method === "GET") {
+      const emailStateBeforeReconciliation = await loadEmailState(organizationId);
+      if (!emailStateBeforeReconciliation) {
+        return res.status(404).json({
+          error: "Pro tuto organizaci neexistuje audit jednotného onboardingu.",
+        });
+      }
+
+      const { error: staleError } = await authenticatedClient.rpc(
+        "mark_stale_onboarding_email_attempt",
+        { p_onboarding_run_id: emailStateBeforeReconciliation.id }
+      );
+      if (staleError) throw staleError;
+
+      const emailState = await loadEmailState(organizationId);
+      return res.status(200).json({
+        ok: true,
+        emailState: serializeEmailStateForClient(emailState),
+      });
+    }
+
+    const emailAction = String(req.body?.action || "").trim();
+    if (emailAction) {
+      if (
+        ![
+          "send_pending",
+          "retry_failed",
+          "confirm_not_delivered_and_retry",
+          "resolve_without_resend",
+        ].includes(emailAction)
+      ) {
+        return res.status(400).json({ error: "Neplatná akce e-mailového auditu." });
+      }
+
+      const reason = String(req.body?.reason || "").trim();
+      if (reason.length < 3 || reason.length > 500) {
+        return res.status(400).json({
+          error: "Uveďte auditní důvod v délce 3 až 500 znaků.",
+        });
+      }
+
+      const allowed = await consumeAuthenticatedRateLimit({
+        supabaseAdmin,
+        req,
+        route: "admin-onboarding-email-resolution",
+        userId: performedBy.id,
+        resourceId: organizationId,
+        limit: 10,
+        windowSeconds: 10 * 60,
+      });
+      if (!allowed) {
+        res.setHeader("Retry-After", "600");
+        return res.status(429).json({
+          error: "E-mailový audit byl měněn příliš často. Zkuste to později.",
+        });
+      }
+
+      const emailState = await loadEmailState(organizationId);
+      if (!emailState) {
+        return res.status(404).json({
+          error: "Pro tuto organizaci neexistuje audit jednotného onboardingu.",
+        });
+      }
+
+      if (emailAction === "resolve_without_resend") {
+        const { error: resolutionError } = await authenticatedClient.rpc(
+          "resolve_onboarding_email_without_resend",
+          {
+            p_onboarding_run_id: emailState.id,
+            p_reason: reason,
+          }
+        );
+        if (resolutionError) {
+          const safeError = safeRpcError(resolutionError);
+          return res.status(safeError.status).json({ error: safeError.message });
+        }
+        return res.status(200).json({
+          ok: true,
+          emailState: serializeEmailStateForClient(
+            await loadEmailState(organizationId)
+          ),
+        });
+      }
+
+      const { data: customer, error: customerError } = await supabaseAdmin
+        .from("organizations")
+        .select("id, name, org_type, registration_number")
+        .eq("id", organizationId)
+        .maybeSingle();
+      if (customerError) throw customerError;
+      if (!customer) {
+        return res.status(404).json({ error: "Zákazník nebyl nalezen." });
+      }
+
+      const delivery = await deliverOnboardingEmail({
+        authenticatedClient,
+        onboardingRunId: emailState.id,
+        claimAction:
+          emailAction === "send_pending" ? "initial_delivery" : emailAction,
+        claimReason: reason,
+        customer,
+        prepareLocalAdministrator: () =>
+          resolveLocalAdministrator({
+            supabaseAdmin,
+            email: emailState.local_admin_email,
+            fullName: emailState.local_admin_full_name,
+            redirectTo: `${siteUrl}/nastavit-heslo`,
+            prepareSetupLink: true,
+          }),
+        licensePlan: emailState.license_plan,
+        licenseValidUntil: emailState.license_valid_until,
+        siteUrl,
+      });
+      return res.status(200).json({
+        ok: true,
+        ...delivery,
+        emailState: serializeEmailStateForClient(
+          await loadEmailState(organizationId)
+        ),
+      });
+    }
+
+    const idempotencyKey = String(req.body?.idempotencyKey || "").trim();
+    const licensePlan = String(req.body?.licensePlan || "").trim();
+    const contractStatus = String(req.body?.contractStatus || "").trim();
+    const billingStatus = String(req.body?.billingStatus || "").trim();
+    const localAdminEmail = String(req.body?.localAdminEmail || "")
+      .trim()
+      .toLowerCase();
+    const localAdminFullName = String(req.body?.localAdminFullName || "").trim();
+    const classroomEligibilityVerified =
+      req.body?.classroomEligibilityVerified === true;
+
+    if (!UUID_PATTERN.test(idempotencyKey)) {
+      return res.status(400).json({ error: "Chybí platný identifikátor onboardingu." });
     }
     if (!LICENSE_LABELS[licensePlan]) {
       return res.status(400).json({ error: "Vyberte variantu licence." });
@@ -143,8 +462,18 @@ export default async function handler(req, res) {
     if (contractStatus !== "accepted") {
       return res.status(400).json({ error: "Před aktivací potvrďte uzavření smlouvy." });
     }
-    if (!["pending", "paid", "not_applicable"].includes(billingStatus)) {
+    if (!['pending', 'paid', 'not_applicable'].includes(billingStatus)) {
       return res.status(400).json({ error: "Vyberte stav fakturace." });
+    }
+    if (
+      localAdminFullName.length < 2 ||
+      localAdminFullName.length > 120 ||
+      localAdminEmail.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(localAdminEmail)
+    ) {
+      return res.status(400).json({
+        error: "Vyplňte samostatně platné jméno a e-mail lokálního správce.",
+      });
     }
     if (licensePlan === "classroom_free_12m" && billingStatus !== "not_applicable") {
       return res.status(400).json({
@@ -157,21 +486,21 @@ export default async function handler(req, res) {
       });
     }
 
-    let licenseStartedAt;
-    let licenseValidUntil;
-    try {
-      licenseStartedAt = parseDate(req.body?.licenseStartedAt) || new Date().toISOString();
-      const needsEndDate = ["paid_annual", "classroom_free_12m"].includes(licensePlan);
-      licenseValidUntil = parseDate(
-        req.body?.licenseValidUntil,
-        needsEndDate,
-        true
-      );
-    } catch (validationError) {
-      return res.status(400).json({ error: validationError.message });
-    }
+    const licenseStartedAt =
+      parseDate(req.body?.licenseStartedAt) || new Date().toISOString();
+    const needsEndDate = ["paid_annual", "classroom_free_12m"].includes(
+      licensePlan
+    );
+    const licenseValidUntil = parseDate(
+      req.body?.licenseValidUntil,
+      needsEndDate,
+      true
+    );
 
-    if (licenseValidUntil && new Date(licenseValidUntil) <= new Date(licenseStartedAt)) {
+    if (
+      licenseValidUntil &&
+      new Date(licenseValidUntil) <= new Date(licenseStartedAt)
+    ) {
       return res.status(400).json({
         error: "Datum konce licence musí být později než datum začátku.",
       });
@@ -180,8 +509,8 @@ export default async function handler(req, res) {
     const allowed = await consumeAuthenticatedRateLimit({
       supabaseAdmin,
       req,
-      route: "admin-activate-customer",
-      userId: admin.id,
+      route: "admin-onboard-customer",
+      userId: performedBy.id,
       resourceId: organizationId,
       limit: 10,
       windowSeconds: 10 * 60,
@@ -190,14 +519,14 @@ export default async function handler(req, res) {
     if (!allowed) {
       res.setHeader("Retry-After", "600");
       return res.status(429).json({
-        error: "Aktivace byla spuštěna příliš mnohokrát. Zkuste to prosím později.",
+        error: "Onboarding byl spuštěn příliš mnohokrát. Zkuste to prosím později.",
       });
     }
 
     const { data: customer, error: customerError } = await supabaseAdmin
       .from("organizations")
       .select(
-        "id, name, org_type, status, license_status, parent_organization_id, contact_name, contact_email, registration_number"
+        "id, name, org_type, parent_organization_id, contact_name, contact_email, registration_number"
       )
       .eq("id", organizationId)
       .maybeSingle();
@@ -205,126 +534,193 @@ export default async function handler(req, res) {
     if (customerError) throw customerError;
     if (
       !customer ||
-      !["municipality", "obec", "school", "association", "spolek"].includes(customer.org_type) ||
+      !["municipality", "obec", "school", "association", "spolek"].includes(
+        customer.org_type
+      ) ||
       customer.parent_organization_id
     ) {
       return res.status(404).json({ error: "Samostatný zákazník nebyl nalezen." });
     }
 
-    const contactEmail = String(customer.contact_email || "").trim().toLowerCase();
-    const contactName = String(customer.contact_name || "").trim();
+    const isMunicipality = ["municipality", "obec"].includes(customer.org_type);
+    const centralAdminUserIds = isMunicipality
+      ? await resolveConfiguredCentralAdmins({
+          supabaseAdmin,
+          configuredUserIds: parseCentralAdminUserIds(
+            process.env.MUNICIPALITY_CENTRAL_ADMIN_USER_IDS
+          ),
+        })
+      : [];
 
+    const { data: previousOnboarding, error: previousOnboardingError } =
+      await supabaseAdmin
+        .from("organization_onboarding_runs")
+        .select("id, local_admin_user_id, local_admin_email, email_status")
+        .eq("organization_id", customer.id)
+        .maybeSingle();
+
+    if (previousOnboardingError) throw previousOnboardingError;
     if (
-      !contactEmail ||
-      contactEmail.length > 254 ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail) ||
-      contactName.length < 2 ||
-      contactName.length > 120
+      previousOnboarding &&
+      String(previousOnboarding.local_admin_email || "").trim().toLowerCase() !==
+        localAdminEmail
     ) {
       return res.status(409).json({
-        error: "Zákazník nemá kompletní kontaktní osobu a nelze mu bezpečně vytvořit správce.",
+        error:
+          "Zákazník už byl onboardován s jiným lokálním správcem. Změnu proveďte samostatným řízeným postupem.",
       });
     }
 
-    const { data: profiles, error: profileLookupError } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .ilike("email", contactEmail)
-      .limit(1);
+    localAdministrator = await resolveLocalAdministrator({
+      supabaseAdmin,
+      email: localAdminEmail,
+      fullName: localAdminFullName,
+      redirectTo: `${siteUrl}/nastavit-heslo`,
+      prepareSetupLink:
+        !previousOnboarding ||
+        ["pending", "failed"].includes(previousOnboarding.email_status),
+      idempotencyKey,
+      organizationId: customer.id,
+      performedBy: performedBy.id,
+    });
 
-    if (profileLookupError) throw profileLookupError;
-
-    let userId = profiles?.[0]?.id || null;
-    let invitationSent = false;
-
-    if (!userId) {
-      const { data: invited, error: inviteError } =
-        await supabaseAdmin.auth.admin.inviteUserByEmail(contactEmail, {
-          redirectTo: `${siteUrl}/nastavit-heslo`,
-          data: { full_name: contactName },
-        });
-
-      if (inviteError) throw inviteError;
-      userId = invited?.user?.id || null;
-      invitedUserId = userId;
-      invitationSent = true;
-    }
-
-    if (!userId) throw new Error("Nepodařilo se určit účet správce organizace.");
-
-    const token = String(req.headers.authorization || "").match(/^Bearer\s+(.+)$/i)?.[1];
-    if (!token) return res.status(401).json({ error: "Chybí autorizace uživatele." });
-
-    const authenticatedClient = createAuthenticatedClient(token);
-    const { data: activationRows, error: activationError } = await authenticatedClient.rpc(
-      "activate_customer_with_admin_v2",
-      {
+    const { data: onboardingRows, error: onboardingError } =
+      await authenticatedClient.rpc("onboard_customer_v3", {
+        p_idempotency_key: idempotencyKey,
         p_organization_id: customer.id,
-        p_user_id: userId,
-        p_email: contactEmail,
-        p_full_name: contactName,
+        p_local_admin_user_id: localAdministrator.userId,
+        p_local_admin_email: localAdministrator.email,
+        p_local_admin_full_name: localAdministrator.fullName,
+        p_central_admin_user_ids: centralAdminUserIds,
         p_license_plan: licensePlan,
         p_license_started_at: licenseStartedAt,
         p_license_valid_until: licenseValidUntil,
         p_contract_status: contractStatus,
         p_billing_status: billingStatus,
         p_classroom_eligibility_verified: classroomEligibilityVerified,
-        p_must_set_password: invitationSent,
+        p_local_admin_must_set_password: localAdministrator.mustSetPassword,
+      });
+
+    if (onboardingError) {
+      const safeError = safeRpcError(onboardingError);
+      if (localAdministrator.cleanupEligible) {
+        const rollbackSucceeded = await cleanupNewAuthUser(
+          supabaseAdmin,
+          localAdministrator.userId,
+          { idempotencyKey, organizationId: customer.id }
+        );
+        await updateAuthPreparationStatus(
+          supabaseAdmin,
+          localAdministrator.authPreparationId,
+          rollbackSucceeded ? "rolled_back" : "cleanup_required",
+          { auth_user_id: localAdministrator.userId }
+        );
+        if (!rollbackSucceeded) {
+          return res.status(500).json({
+            error:
+              "Databázový onboarding byl vrácen zpět, ale dočasný Auth účet vyžaduje ruční odstranění. Událost je v serverovém auditu.",
+          });
+        }
       }
+      return res.status(safeError.status).json({ error: safeError.message });
+    }
+
+    databaseCommitted = true;
+    const onboarding = onboardingRows?.[0];
+    if (!onboarding?.onboarding_run_id) {
+      throw new Error("Onboarding RPC nevrátilo auditní identifikátor.");
+    }
+
+    const authPreparationRecorded = await updateAuthPreparationStatus(
+      supabaseAdmin,
+      localAdministrator.authPreparationId,
+      "committed",
+      { auth_user_id: localAdministrator.userId }
     );
 
-    if (activationError) throw activationError;
-    activationCommitted = true;
-
-    const activated = activationRows?.[0];
-    let onboardingEmailSent = false;
-
-    try {
-      await sendOnboardingEmail({
-        email: contactEmail,
-        fullName: contactName,
-        organizationName: customer.name,
-        organizationType: customer.org_type,
-        registrationNumber:
-          activated?.registration_number || customer.registration_number,
-        licensePlan,
-        licenseValidUntil,
-        siteUrl,
+    if (onboarding.replayed === true && onboarding.email_status === "sent") {
+      return res.status(200).json({
+        ok: true,
+        localAdminAccountCreated: false,
+        centralAdminCount: centralAdminUserIds.length,
+        onboardingEmailSent: true,
+        emailRetryRequired: false,
+        authPreparationManualReviewRequired: !authPreparationRecorded,
       });
-      onboardingEmailSent = true;
-    } catch (emailError) {
-      console.error("customer onboarding email error:", emailError);
     }
+
+    if (
+      onboarding.replayed === true &&
+      ["sending", "delivery_unknown"].includes(onboarding.email_status)
+    ) {
+      return res.status(200).json({
+        ok: true,
+        localAdminAccountCreated: false,
+        centralAdminCount: centralAdminUserIds.length,
+        onboardingEmailSent: false,
+        emailDeliveryInProgress: onboarding.email_status === "sending",
+        emailManualReviewRequired:
+          onboarding.email_status === "delivery_unknown",
+        emailRetryRequired: false,
+        authPreparationManualReviewRequired: !authPreparationRecorded,
+      });
+    }
+
+    const delivery = await deliverOnboardingEmail({
+      authenticatedClient,
+      onboardingRunId: onboarding.onboarding_run_id,
+      claimAction:
+        onboarding.email_status === "failed"
+          ? "retry_failed"
+          : "initial_delivery",
+      claimReason:
+        onboarding.email_status === "failed"
+          ? "Opakování bezpečné chyby před odesláním v rámci stejného požadavku."
+          : "První onboardingový e-mail po úspěšném databázovém onboardingu.",
+      customer: {
+        ...customer,
+        registration_number:
+          onboarding.registration_number || customer.registration_number,
+      },
+      localAdministrator,
+      licensePlan,
+      licenseValidUntil,
+      siteUrl,
+    });
 
     return res.status(200).json({
       ok: true,
-      organizationId: customer.id,
-      registrationNumber:
-        activated?.registration_number || customer.registration_number,
-      organizationType: customer.org_type,
-      licensePlan,
-      licenseValidUntil,
-      invitationSent,
-      onboardingEmailSent,
+      localAdminAccountCreated: localAdministrator.isNewAccount,
+      centralAdminCount: centralAdminUserIds.length,
+      ...delivery,
+      authPreparationManualReviewRequired: !authPreparationRecorded,
     });
   } catch (error) {
-    if (invitedUserId && !activationCommitted) {
-      try {
-        await supabaseAdmin
-          .from("organization_members")
-          .delete()
-          .eq("user_id", invitedUserId);
-        await supabaseAdmin.from("profiles").delete().eq("id", invitedUserId);
-      } catch (_) {
-        // Zachováme původní chybu aktivace.
-      }
-      try {
-        await supabaseAdmin.auth.admin.deleteUser(invitedUserId);
-      } catch (_) {
-        // Zachováme původní chybu aktivace.
-      }
+    if (localAdministrator?.cleanupEligible && !databaseCommitted) {
+      const rollbackSucceeded = await cleanupNewAuthUser(
+        supabaseAdmin,
+        localAdministrator.userId,
+        {
+          idempotencyKey: String(req.body?.idempotencyKey || "").trim(),
+          organizationId: String(req.body?.organizationId || "").trim(),
+        }
+      );
+      await updateAuthPreparationStatus(
+        supabaseAdmin,
+        localAdministrator.authPreparationId,
+        rollbackSucceeded ? "rolled_back" : "cleanup_required",
+        { auth_user_id: localAdministrator.userId }
+      );
     }
-    console.error("activate-customer error:", error);
-    return res.status(500).json({ error: "Aktivaci zákazníka se nepodařilo dokončit." });
+
+    if (error instanceof CustomerOnboardingError) {
+      const safeMessage = error.message;
+      return res.status(error.status).json({ error: safeMessage });
+    }
+
+    console.error("customer onboarding error", error);
+    return res.status(500).json({
+      error: "Onboarding zákazníka se nepodařilo bezpečně dokončit.",
+    });
   }
 }

@@ -22,8 +22,9 @@ describe("customer activation RPC security contracts", () => {
     "supabase/migrations/20260730080347_production_public_schema_baseline.sql"
   );
 
-  it("uses only the v2 activation RPC from the production admin API", () => {
-    expect(activationApi).toContain('"activate_customer_with_admin_v2"');
+  it("uses only the audited v3 onboarding RPC from the production admin API", () => {
+    expect(activationApi).toContain('"onboard_customer_v3"');
+    expect(activationApi).not.toMatch(/rpc\(\s*["']activate_customer_with_admin_v2["']/);
     expect(activationApi).not.toMatch(/rpc\(\s*["']activate_customer_with_admin["']/);
     expect(activationApi).not.toMatch(/rpc\(\s*["']activate_municipality_with_admin["']/);
   });
@@ -32,9 +33,7 @@ describe("customer activation RPC security contracts", () => {
     const adminCheckIndex = activationApiNormalized.indexOf(
       "await requireplatformadmin(req, res, supabaseadmin)"
     );
-    const rpcIndex = activationApiNormalized.indexOf(
-      'rpc( "activate_customer_with_admin_v2"'
-    );
+    const rpcIndex = activationApiNormalized.indexOf('rpc("onboard_customer_v3"');
 
     expect(adminCheckIndex).toBeGreaterThanOrEqual(0);
     expect(rpcIndex).toBeGreaterThan(adminCheckIndex);
