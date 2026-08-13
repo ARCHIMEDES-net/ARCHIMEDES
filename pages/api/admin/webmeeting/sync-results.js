@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { consumeAuthenticatedRateLimit } from "../../../../lib/server/authenticatedRateLimit";
 import { requirePlatformAdmin } from "../../../../lib/server/platformAdminApi";
+import { canSyncBroadcastResults } from "../../../../lib/broadcastLifecycle";
 import { WebMeetingApiError, webMeeting } from "../../../../lib/server/webmeetingClient";
 
 const supabaseAdmin = createClient(
@@ -66,14 +67,31 @@ export default async function handler(req, res) {
       });
     }
 
-    const { data: sessions, error: sessionError } = await supabaseAdmin
-      .from("broadcast_sessions")
-      .select("id, external_meeting_id, recording_status")
-      .eq("event_id", eventId)
-      .limit(1);
+    const [eventResult, sessionResult] = await Promise.all([
+      supabaseAdmin
+        .from("events")
+        .select("id, starts_at")
+        .eq("id", eventId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("broadcast_sessions")
+        .select("id, external_meeting_id, recording_status")
+        .eq("event_id", eventId)
+        .limit(1),
+    ]);
 
-    if (sessionError) throw sessionError;
-    const session = sessions?.[0];
+    if (eventResult.error) throw eventResult.error;
+    if (sessionResult.error) throw sessionResult.error;
+    if (!eventResult.data) {
+      return res.status(404).json({ error: "Událost nebyla nalezena." });
+    }
+    if (!canSyncBroadcastResults({ startsAt: eventResult.data.starts_at })) {
+      return res.status(409).json({
+        error: "Záznam a docházku lze načíst až po plánovaném začátku vysílání.",
+      });
+    }
+
+    const session = sessionResult.data?.[0];
     if (!session?.external_meeting_id) {
       return res.status(409).json({ error: "Místnost ve WebMeetingu zatím není vytvořena." });
     }
