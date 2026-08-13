@@ -176,4 +176,36 @@ describe("admin email-group handlers", () => {
       })
     );
   });
+
+  it("adds manual recipients and deduplicates them against selected groups", async () => {
+    const { res } = await invoke(broadcastRecipients, {
+      method: "POST",
+      body: {
+        groups: ["teachers"],
+        manualEmails: [" manual@example.com ", "alpha@EXAMPLE.com", "manual@example.com"],
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
+      groups: ["teachers"],
+      count: 3,
+      users: [
+        { email: "Alpha@example.com" },
+        { email: "manual@example.com" },
+        { email: "shared@example.com" },
+      ],
+    });
+  });
+
+  it("rejects invalid manual recipient addresses before loading groups", async () => {
+    const { res } = await invoke(broadcastRecipients, {
+      method: "POST",
+      body: { groups: ["teachers"], manualEmails: ["not-an-email"] },
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain("not-an-email");
+    expect(dependencies.getEmailGroups).not.toHaveBeenCalled();
+  });
 });
