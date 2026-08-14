@@ -1,5 +1,9 @@
 # Production schema fingerprint
 
+> Historical baseline evidence captured on 2026-07-30. This is not a current
+> fingerprint of the live schema. See `MIGRATION_STATUS.md` and the production
+> migration ledger for the current migration state.
+
 Captured read-only from Supabase project `gipikahmjlcynkqexxmz` on 2026-07-30.
 
 This file records both the original catalog inventory and the completed

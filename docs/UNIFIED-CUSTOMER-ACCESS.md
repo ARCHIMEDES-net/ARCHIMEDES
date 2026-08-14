@@ -59,14 +59,16 @@ přístup bez ohledu na zdroj předplatného.
 
 ## Zapojení organizace pod obec
 
-- Čtyřmístné registrační číslo identifikuje program obce, ale není
-  autentizační tajemství a samo nesmí založit školu ani spolek.
-- Správce aktivní obce vytvoří jednorázovou pozvánku pro školu nebo spolek.
-- Token má 256 bitů náhodnosti, v databázi se ukládá pouze jeho SHA-256 hash,
-  platí 14 dní a po použití nebo zrušení už není platný.
-- Pozvánku lze volitelně svázat s konkrétní e-mailovou adresou.
-- Škola nebo spolek se po kontrole duplicity připojí k obci a čerpá její
-  aktivní licenci.
+- Čtyřmístné registrační číslo pouze identifikuje program obce. Není
+  autentizační tajemství a samo nesmí založit školu, spolek ani členství.
+- Novou školu nebo spolek po kontrole identity a duplicit zakládá či připojuje
+  pouze centrální tým ARCHIMEDES.
+- Správce obce předává požadavek centrálnímu týmu; sám nevytváří registrační
+  pozvánku ani nepřebírá existující organizaci.
+- Historické hashované pozvánky zůstávají jen kvůli auditní historii. Nové se
+  nevytvářejí; zbývající aktivní pozvánku lze pouze zobrazit nebo zrušit.
+- Centrální připojení znovu používá existující organizaci, zachová účty,
+  členství a historii a teprve poté jí nastaví obec jako zdroj licence.
 - Správce obce vidí název, typ a stav připojených organizací, nikoli jejich
   uživatelské profily ani osobní nastavení.
 
@@ -148,7 +150,9 @@ organizace.
 9. Stejný uživatel může bezpečně přepínat mezi školou a spolkem.
 10. Správce obce nevidí osobní data školy nebo spolku bez vlastního členství.
 11. Registrační číslo obce samo nezaloží organizaci.
-12. Neplatný, expirovaný, zrušený nebo již použitý token je odmítnut.
-13. Pozvánka svázaná s e-mailem odmítne jinou adresu.
+12. Pokus vytvořit novou registrační pozvánku vrátí ukončený stav a nic
+    nezapíše; starší aktivní pozvánku lze zrušit.
+13. Centrální připojení existující organizace nevytvoří duplicitu ani nezmění
+    její uživatele a historii.
 14. Roční a bezplatná licence nejde aktivovat bez data konce.
 15. Bezplatná licence nejde aktivovat bez potvrzení učebny ARCHIMEDES.

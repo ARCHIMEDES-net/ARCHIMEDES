@@ -1,6 +1,12 @@
 # ARCHIMEDES Live — ověřený stav k 31. 7. 2026
 
-Tento dokument je referenčním zdrojem pravdy pro další vývoj. Vychází z kontroly GitHub `main`, produkčního Vercelu, produkčního Supabase schématu, dat, Security Advisors, otevřených issues a runtime chyb.
+> **Historický audit.** Dokument zachycuje stav k 31. 7. 2026 a není aktuálním
+> zdrojem pravdy. Pro živá pravidla použijte `docs/README.md`; nejnovější úplný
+> produkční snímek je `docs/PRODUCTION-AUDIT-2026-08-14.md`.
+
+Audit vychází z tehdejší kontroly GitHub `main`, produkčního Vercelu,
+produkčního Supabase schématu, dat, Security Advisors, otevřených issues a
+runtime chyb.
 
 ## Celkový stav
 

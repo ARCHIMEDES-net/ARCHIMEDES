@@ -1,5 +1,8 @@
 # Read-only audit produkce – 14. srpna 2026
 
+> **Datovaný důkaz, nikoli trvale živá instrukce.** Aktuální provozní zdroje a
+> jejich pořadí určuje `docs/README.md`.
+
 Audit byl proveden bez zápisu, mazání, odesílání e-mailů nebo deploymentu.
 Přesná osobní data a interní UUID nejsou v repozitáři uvedena.
 
@@ -18,6 +21,13 @@ Přesná osobní data a interní UUID nejsou v repozitáři uvedena.
   licenční údaje a oba centrální správce.
 - Čtyři onboardingové běhy měly audit e-mailu `sent`; tři přípravy Auth účtu
   byly uzavřené a konzistentní.
+- Produkční migration ledger obsahoval 28 položek a přesně odpovídal souboru
+  `supabase/production-migration-ledger.json` i aktivním lokálním migracím.
+- PR #168 byl následně sloučen do `main` jako
+  `23cebb54913e1bcbc28ebfe2945f60ad88340e0a`; produkční deployment byl `READY`.
+  Po nasazení byly read-only ověřeny `/program`, `/kalendar`, programové karty,
+  časové pásmo `Europe/Prague`, obrázky a absence relevantní hydration chyby.
+  Nasazení neprovedlo databázovou změnu ani neodeslalo e-mail.
 
 ## Otevřené datové nálezy – bez automatické opravy
 

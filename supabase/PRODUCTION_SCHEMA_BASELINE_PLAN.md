@@ -1,6 +1,12 @@
 # Plán vytvoření baseline produkčního schématu
 
-Tento dokument navazuje na issue #81. Produkční databáze je zdrojem pravdy pro aktuální schéma, ale repozitář neobsahuje úplnou počáteční migraci.
+> **Dokončený historický plán.** Baseline byla vytvořena a ověřena 30. 7. 2026.
+> Aktuální stav migrací je v `supabase/MIGRATION_STATUS.md`; tento soubor se
+> nemá používat jako pokyn k opakování ledger repairu nebo baseline.
+
+Dokument navazoval na issue #81. Před jeho realizací produkční databáze byla
+zdrojem pravdy pro aktuální schéma a repozitář neobsahoval úplnou počáteční
+migraci.
 
 ## Ověřený stav
 

@@ -1,5 +1,8 @@
 # Dobrá praxe – návrat funkce na aktuální architekturu
 
+> **Backlog, nikoli schválená implementační instrukce.** Před zahájením je
+> nutné nové produktové rozhodnutí a ověření proti aktuálnímu `main`.
+
 Původní PR #2 vznikl proti zastaralé větvi a nelze jej bezpečně sloučit do současného `main`.
 
 ## Co zachovat
