@@ -1,5 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { safeDate, normalizeAudience } from "../lib/publicEvents";
+import {
+  formatPublicEventTime,
+  getPublicEventPragueCalendarDate,
+  getPublicEventPragueDateKey,
+} from "../lib/publicEventPresentation";
 
 const CZ_MONTHS = [
   "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
@@ -8,8 +13,8 @@ const CZ_MONTHS = [
 
 const CZ_WEEKDAYS = ["PO", "ÚT", "ST", "ČT", "PÁ", "SO", "NE"];
 
-function dateKey(date) {
-  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+function gridDateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
 function buildMonthGrid(year, month) {
@@ -30,16 +35,28 @@ function buildMonthGrid(year, month) {
  * category and audience for that day's events.
  */
 export default function PublicMonthCalendar({ events, lockedNote, onNavigate }) {
-  const today = useMemo(() => new Date(), []);
-  const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
-  const [selectedKey, setSelectedKey] = useState(dateKey(today));
+  const [calendarState, setCalendarState] = useState(null);
+
+  useEffect(() => {
+    const today = getPublicEventPragueCalendarDate();
+    if (!today) return;
+
+    setCalendarState({
+      todayKey: today.key,
+      cursor: new Date(today.year, today.month, 1),
+      selectedKey: today.key,
+    });
+  }, []);
+
+  const cursor = calendarState?.cursor || null;
+  const selectedKey = calendarState?.selectedKey || "";
 
   const eventsByDay = useMemo(() => {
     const map = new Map();
     (events || []).forEach((event) => {
       const start = safeDate(event.starts_at);
       if (!start) return;
-      const key = dateKey(start);
+      const key = getPublicEventPragueDateKey(start);
       if (!map.has(key)) map.set(key, []);
       map.get(key).push(event);
     });
@@ -47,14 +64,24 @@ export default function PublicMonthCalendar({ events, lockedNote, onNavigate }) 
   }, [events]);
 
   const grid = useMemo(
-    () => buildMonthGrid(cursor.getFullYear(), cursor.getMonth()),
+    () => (cursor ? buildMonthGrid(cursor.getFullYear(), cursor.getMonth()) : []),
     [cursor]
   );
 
   const selectedEvents = eventsByDay.get(selectedKey) || [];
 
   function changeMonth(delta) {
-    setCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
+    setCalendarState((previous) => {
+      if (!previous) return previous;
+      return {
+        ...previous,
+        cursor: new Date(
+          previous.cursor.getFullYear(),
+          previous.cursor.getMonth() + delta,
+          1
+        ),
+      };
+    });
   }
 
   return (
@@ -74,7 +101,7 @@ export default function PublicMonthCalendar({ events, lockedNote, onNavigate }) 
 
       <div className="pmc-monthbar">
         <span className="pmc-month">
-          {CZ_MONTHS[cursor.getMonth()]} {cursor.getFullYear()}
+          {cursor ? `${CZ_MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}` : "Načítám…"}
         </span>
         <div className="pmc-nav">
           <button type="button" aria-label="Předchozí měsíc" onClick={() => changeMonth(-1)}>
@@ -94,9 +121,9 @@ export default function PublicMonthCalendar({ events, lockedNote, onNavigate }) 
 
       <div className="pmc-grid">
         {grid.map((date) => {
-          const key = dateKey(date);
+          const key = gridDateKey(date);
           const inMonth = date.getMonth() === cursor.getMonth();
-          const isToday = key === dateKey(today);
+          const isToday = key === calendarState.todayKey;
           const isSelected = key === selectedKey;
           const hasEvents = eventsByDay.has(key);
 
@@ -110,7 +137,11 @@ export default function PublicMonthCalendar({ events, lockedNote, onNavigate }) 
                 isSelected ? "pmc-day-selected" : "",
                 isToday && !isSelected ? "pmc-day-today" : "",
               ].join(" ").trim()}
-              onClick={() => setSelectedKey(key)}
+              onClick={() => {
+                setCalendarState((previous) =>
+                  previous ? { ...previous, selectedKey: key } : previous
+                );
+              }}
             >
               {date.getDate()}
               {hasEvents ? <span className="pmc-day-dot" /> : null}
@@ -120,16 +151,16 @@ export default function PublicMonthCalendar({ events, lockedNote, onNavigate }) 
       </div>
 
       <div className="pmc-selected">
-        {selectedEvents.length ? (
+        {!calendarState ? (
+          <div className="pmc-empty">Načítám kalendář…</div>
+        ) : selectedEvents.length ? (
           selectedEvents.map((event) => {
             const start = safeDate(event.starts_at);
             const audience = normalizeAudience(event.audience_groups);
             return (
               <div key={event.id} className="pmc-event">
                 <div className="pmc-event-time">
-                  {start
-                    ? start.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })
-                    : ""}
+                  {start ? formatPublicEventTime(start) : ""}
                 </div>
                 <div className="pmc-event-body">
                   <div className="pmc-event-title">{event.title}</div>
