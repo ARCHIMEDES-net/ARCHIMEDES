@@ -52,6 +52,7 @@ const team = [
     email: "dominik.sevcik@eduvision.cz",
     phone: "+420 735 104 449",
     note: "Realizace učeben, technické řešení",
+    image: "/team-dominik.webp",
   },
   {
     name: "Martina Lačňáková",
@@ -59,6 +60,7 @@ const team = [
     email: "martina.lacnakova@eduvision.cz",
     phone: "+420 732 827 210",
     note: "Obchodní komunikace, poptávky, zakázky",
+    image: "/team-martina.webp",
   },
 ];
 
