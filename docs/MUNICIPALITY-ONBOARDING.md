@@ -34,6 +34,18 @@ každém onboardingu server ověří, že každý UUID:
 Chybějící, neplatná nebo osiřelá konfigurace onboarding zastaví před
 databázovou transakcí.
 
+Pro serverovou automatizaci bez ovládání prohlížeče jsou navíc povinné dvě
+citlivé produkční proměnné:
+
+```text
+ONBOARDING_AUTOMATION_SECRET=<náhodné tajemství, nejméně 32 znaků>
+ONBOARDING_AUTOMATION_ADMIN_USER_ID=<Auth UUID živého platformového správce>
+```
+
+Tajemství se nesmí zapisovat do repozitáře, URL, JSON požadavku ani chatu. UUID
+aktéra se při každém požadavku znovu ověřuje proti živému Auth účtu, aktivnímu
+profilu a roli `admin` nebo `super_admin` v `platform_admins`.
+
 Před nastavením proměnné se oba identifikátory ověří read-only dotazem, do
 kterého operátor vloží stejné dvě hodnoty jako do konfigurace:
 
@@ -76,6 +88,35 @@ Výsledek musí mít právě dva řádky, shodné neprázdné e-maily, aktivní 
    `organization_onboarding_email_attempts` s číslem, vykonavatelem, důvodem a
    vazbou na předchozí pokus. Souhrnný stav je `pending`, `sending`, `sent`,
    bezpečně opakovatelný `failed` nebo ručně ověřovaný `delivery_unknown`.
+
+## Serverová automatizace bez prohlížeče
+
+Endpoint `POST /api/admin/automation/activate-municipality` provádí stejný
+auditovaný proces jako administrační formulář. Nepřijímá uživatelskou session;
+vyžaduje samostatné silné tajemství výhradně v hlavičce `Authorization: Bearer`
+a nakonfigurovaného živého platformového správce jako auditního aktéra.
+
+Požadavek má stejné onboardingové parametry jako formulář a navíc povinné pole
+`approvalReference` v délce 10–200 znaků. Toto pole odkazuje na konkrétní
+finální schválení a zapisuje se do důvodu prvního e-mailového pokusu. Endpoint
+neumožňuje ruční uzavírání ani opakování nejednoznačného e-mailového auditu.
+
+Serverová cesta používá tři úzké wrappery s příponou `_service_v1`. Ty jsou
+spustitelné pouze rolí `service_role`, ověří živého auditního správce a teprve
+potom delegují na existující `onboard_customer_v3` a e-mailové RPC. Běžná cesta
+pro přihlášeného platformového správce a její granty se nemění.
+
+Důvěryhodný operátor může schválený JSON provést bez prohlížeče:
+
+```text
+node scripts/onboard-municipality.mjs approved-request.json
+```
+
+Spouštěcí prostředí musí mít tajemství v
+`ONBOARDING_AUTOMATION_SECRET` a buď přesnou
+`ONBOARDING_AUTOMATION_URL`, nebo bezpečné `NEXT_PUBLIC_SITE_URL`. Skript
+nepřijímá tajemství v souboru ani argumentu, vyžaduje HTTPS, používá časový limit
+a vrací strojově čitelný auditní výsledek.
 
 ## Schválená struktura zprávy
 
@@ -142,6 +183,9 @@ session, tedy jako `authenticated`.
 | `complete_onboarding_email_attempt(...)` | `EXECUTE` | `completeEmailAttempt()` ve stejném API souboru; výsledky `sent`, `failed`, `delivery_unknown` | `authenticatedClient` | pouze `authenticated` |
 | `mark_stale_onboarding_email_attempt(...)` | `EXECUTE` | `handler()` při `GET` auditu ve stejném API souboru; převzetí starého `sending` | `authenticatedClient` | pouze `authenticated` |
 | `resolve_onboarding_email_without_resend(...)` | `EXECUTE` | `handler()` pro akci `resolve_without_resend` ve stejném API souboru | `authenticatedClient` | pouze `authenticated` |
+| `onboard_customer_service_v1(...)` | `EXECUTE` | serverová automatizační cesta po ověření silného Bearer tajemství a živého auditního správce | `supabaseAdmin` | pouze `service_role`; deleguje na `onboard_customer_v3(...)` |
+| `claim_onboarding_email_attempt_service_v1(...)` | `EXECUTE` | první e-mailový pokus serverové automatizace | `supabaseAdmin` | pouze `service_role`; deleguje na auditované e-mailové RPC |
+| `complete_onboarding_email_attempt_service_v1(...)` | `EXECUTE` | dokončení prvního e-mailového pokusu serverové automatizace | `supabaseAdmin` | pouze `service_role`; deleguje na auditované e-mailové RPC |
 
 Žádná z auditních tabulek nemá policy ani tabulkový grant pro `PUBLIC`, `anon`
 nebo `authenticated`. `service_role` nemá na těchto tabulkách `DELETE`,
@@ -182,6 +226,9 @@ interní chybové kódy ani licenční snapshot používaný jen serverem.
    opakování stejného klíče, selhání SMTP a kompenzační odstranění nového Auth
    účtu.
 6. Teprve poté samostatně schválit migraci, aplikaci a produkční konfiguraci.
+7. Automatizační tajemství nastavit pouze v cílovém serverovém a důvěryhodném
+   spouštěcím prostředí. Ověřit, že chybějící nebo chybné tajemství vrací
+   `401/503` a nevytváří Auth účet, databázový běh ani e-mailový pokus.
 
 Pořadí budoucího nasazení je: read-only preflight a schválení orphanů;
 izolovaný test migrace; databázová migrace; ověření nových tabulek/RPC a grantů;
