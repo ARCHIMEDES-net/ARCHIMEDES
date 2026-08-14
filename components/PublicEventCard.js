@@ -1,32 +1,32 @@
+import { useEffect, useState } from "react";
 import { safeDate, normalizeAudience, resolvePosterUrl } from "../lib/publicEvents";
-
-const CZ_MONTHS_GENITIVE = [
-  "ledna", "února", "března", "dubna", "května", "června",
-  "července", "srpna", "září", "října", "listopadu", "prosince",
-];
-
-function formatDateCS(date) {
-  return `${date.getDate()}. ${CZ_MONTHS_GENITIVE[date.getMonth()]} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-}
-
-function getLiveState(start, now = new Date()) {
-  if (!start) return null;
-  const liveUntil = new Date(start.getTime() + 2 * 60 * 60 * 1000);
-  if (now >= start && now <= liveUntil) return "live";
-  if (start.toDateString() === now.toDateString()) return "today";
-  return null;
-}
+import {
+  formatPublicEventDate,
+  getPublicEventLiveState,
+} from "../lib/publicEventPresentation";
 
 export default function PublicEventCard({ event, compact = false }) {
   const start = safeDate(event?.starts_at);
   const posterUrl = resolvePosterUrl(event);
   const audience = normalizeAudience(event?.audience_groups);
-  const liveState = getLiveState(start);
+  const [liveState, setLiveState] = useState(null);
+
+  useEffect(() => {
+    const updateLiveState = () => {
+      setLiveState(getPublicEventLiveState(event?.starts_at));
+    };
+
+    updateLiveState();
+    const timer = window.setInterval(updateLiveState, 60 * 1000);
+    return () => window.clearInterval(timer);
+  }, [event?.starts_at]);
 
   return (
     <article className="pec-card">
       <div className="pec-meta">
-        <span className="pec-date">{start ? formatDateCS(start) : "Termín upřesníme"}</span>
+        <span className="pec-date">
+          {start ? formatPublicEventDate(start) : "Termín upřesníme"}
+        </span>
         {liveState === "live" ? (
           <span className="pec-badge pec-badge-live">
             <span className="pec-dot" /> ŽIVĚ

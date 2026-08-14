@@ -89,6 +89,33 @@ Výsledek musí mít právě dva řádky, shodné neprázdné e-maily, aktivní 
    vazbou na předchozí pokus. Souhrnný stav je `pending`, `sending`, `sent`,
    bezpečně opakovatelný `failed` nebo ručně ověřovaný `delivery_unknown`.
 
+## Provozní rychlá cesta pro každou kartu
+
+Jedna kompletní karta se zpracovává jako jediný celek. Operátor nemá znovu
+studovat architekturu ani provádět ruční zakládání po jednotlivých obrazovkách.
+
+1. Z karty připravit normalizovaný návrh: název obce, IČO, registrační číslo,
+   kontakt, samostatný lokální správce, jeho pracovní e-mail, licence a seznam
+   organizací.
+2. Jedním read-only preflightem zkontrolovat shodu podle názvu, IČO, e-mailu,
+   Auth účtu, profilu, členství a organizací. U škol kontrolovat i možnou
+   existenci bez vazby na obec. Městskou část nezaměnit za samostatné statutární
+   město.
+3. Výsledek rozdělit na `nové`, `existující beze změny`, `konflikt` a
+   `chybějící údaj`. Při konfliktu se nezapisuje nic.
+4. Předložit jediný souhrn k finálnímu potvrzení: cílová obec, kontaktní osoba,
+   lokální správce, přesný pracovní e-mail, licence a plán změn existujících
+   organizací.
+5. Po výslovném potvrzení poslat jeden idempotentní požadavek přes serverovou
+   automatizaci. Nepoužívat ovládání administrace v prohlížeči jako hlavní
+   transport.
+6. Za dokončené považovat až stav databázového auditu a e-mailu `sent`.
+   `delivery_unknown` se nikdy automaticky neopakuje.
+
+Pro více karet lze preflight provést dávkově, zápis však zůstává samostatně
+idempotentní pro každou obec. Finální schválení může být dávkové jen tehdy,
+obsahuje-li jednoznačný seznam obcí, správců a cílových e-mailů.
+
 ## Serverová automatizace bez prohlížeče
 
 Endpoint `POST /api/admin/automation/activate-municipality` provádí stejný
@@ -241,3 +268,16 @@ regresní sadou a kontrolou advisories.
 
 Žádný krok v tomto dokumentu neopravňuje k zápisu do produkční databáze,
 odeslání skutečného e-mailu ani deploymentu.
+
+## Ověřený provozní stav 14. srpna 2026
+
+- Produkční onboarding v3 a serverová automatizační cesta jsou nasazené.
+- V auditu jsou čtyři dokončené onboardingy se stavem e-mailu `sent`:
+  Albrechtičky, Bučovice, Louny a Ostrava – Radvanice a Bartovice.
+- Všech osm obecních organizací bylo při read-only kontrole aktivních, mělo
+  vyplněné registrační, kontaktní a licenční údaje a oba centrální správce.
+- Nebyly nalezeny duplicitní názvy organizací, IČO, profilové e-maily, členství
+  ani dvojice název školy + město.
+- Otevřené historické datové nálezy nejsou oprávněním k automatické změně;
+  souhrn a rozhodovací body jsou v
+  `docs/PRODUCTION-AUDIT-2026-08-14.md`.

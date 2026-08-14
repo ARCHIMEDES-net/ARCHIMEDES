@@ -6,7 +6,7 @@ const migration = fs
   .readFileSync(
     path.join(
       process.cwd(),
-      "supabase/migrations/20260814050346_add_service_onboarding_entrypoint.sql"
+      "supabase/migrations/20260814053249_add_service_onboarding_entrypoint.sql"
     ),
     "utf8"
   )

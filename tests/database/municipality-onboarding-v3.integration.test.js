@@ -21,14 +21,14 @@ const SESSION_ID = "16161616-1616-4161-8161-161616161616";
 const migration = fs.readFileSync(
   path.join(
     process.cwd(),
-    "supabase/migrations/20260813154650_harden_municipality_onboarding.sql"
+    "supabase/migrations/20260813204547_harden_municipality_onboarding.sql"
   ),
   "utf8"
 );
 const serviceMigration = fs.readFileSync(
   path.join(
     process.cwd(),
-    "supabase/migrations/20260814050346_add_service_onboarding_entrypoint.sql"
+    "supabase/migrations/20260814053249_add_service_onboarding_entrypoint.sql"
   ),
   "utf8"
 );

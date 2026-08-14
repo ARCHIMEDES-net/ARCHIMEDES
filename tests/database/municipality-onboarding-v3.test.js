@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const migrationPath = path.join(
   process.cwd(),
-  "supabase/migrations/20260813154650_harden_municipality_onboarding.sql"
+  "supabase/migrations/20260813204547_harden_municipality_onboarding.sql"
 );
 const source = fs.readFileSync(migrationPath, "utf8");
 const normalized = source.replace(/\s+/g, " ").trim().toLowerCase();

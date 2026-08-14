@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const repositoryRoot = process.cwd();
 const migrationPath =
-  "supabase/migrations/20260731132500_secure_archive_member_access.sql";
+  "supabase/migrations/20260731132626_secure_archive_member_access.sql";
 const hardeningMigrationPath =
   "supabase/migrations/20260811145828_restrict_anonymous_archive_function.sql";
 const sql = fs
