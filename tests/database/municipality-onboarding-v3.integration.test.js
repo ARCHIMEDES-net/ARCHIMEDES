@@ -25,6 +25,13 @@ const migration = fs.readFileSync(
   ),
   "utf8"
 );
+const serviceMigration = fs.readFileSync(
+  path.join(
+    process.cwd(),
+    "supabase/migrations/20260814050346_add_service_onboarding_entrypoint.sql"
+  ),
+  "utf8"
+);
 
 const database = new PGlite();
 let legacyFunctionCatalogBefore;
@@ -71,6 +78,41 @@ async function callOnboarding({
   }
 }
 
+async function callServiceOnboarding({
+  idempotencyKey = IDEMPOTENCY_KEY,
+  organizationId = ORGANIZATION_ID,
+  localAdminId = LOCAL_ADMIN_ID,
+  localAdminEmail = "local@example.test",
+  validUntil = "2027-08-12T23:59:59.999Z",
+} = {}) {
+  await database.exec(
+    "select set_config('request.jwt.claim.role', 'service_role', false)"
+  );
+  await database.exec("set role service_role");
+  try {
+    return await database.query(
+      `select * from public.onboard_customer_service_v1(
+        $1::uuid, $2::uuid, $3::uuid, $4::uuid, $5::text,
+        'Lokální Správce'::text, array[$6::uuid], 'paid_annual'::text,
+        '2026-08-13T00:00:00.000Z'::timestamptz, $7::timestamptz,
+        'accepted'::text, 'paid'::text, false, true
+      )`,
+      [
+        PERFORMER_ID,
+        idempotencyKey,
+        organizationId,
+        localAdminId,
+        localAdminEmail,
+        CENTRAL_ADMIN_ID,
+        validUntil,
+      ]
+    );
+  } finally {
+    await database.exec("reset role");
+    await database.exec("select set_config('request.jwt.claim.role', '', false)");
+  }
+}
+
 beforeAll(async () => {
   await database.exec(`
     create role public_privilege_probe nologin;
@@ -89,6 +131,15 @@ beforeAll(async () => {
     stable
     as $$
       select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
+    $$;
+    create function auth.jwt()
+    returns jsonb
+    language sql
+    stable
+    as $$
+      select jsonb_build_object(
+        'role', nullif(current_setting('request.jwt.claim.role', true), '')
+      )
     $$;
 
     create table public.organizations (
@@ -516,6 +567,7 @@ beforeAll(async () => {
   };
 
   await database.exec(migration);
+  await database.exec(serviceMigration);
 });
 
 afterAll(async () => {
@@ -666,6 +718,9 @@ describe("municipality onboarding v3 PostgreSQL integration", () => {
       "public.complete_onboarding_email_attempt(uuid,text,text)",
       "public.mark_stale_onboarding_email_attempt(uuid)",
       "public.resolve_onboarding_email_without_resend(uuid,text)",
+      "public.onboard_customer_service_v1(uuid,uuid,uuid,uuid,text,text,uuid[],text,timestamptz,timestamptz,text,text,boolean,boolean)",
+      "public.claim_onboarding_email_attempt_service_v1(uuid,uuid,text,text)",
+      "public.complete_onboarding_email_attempt_service_v1(uuid,uuid,text,text)",
     ];
     const authenticatedFunctions = new Set([
       "public.is_platform_admin()",
@@ -681,6 +736,9 @@ describe("municipality onboarding v3 PostgreSQL integration", () => {
       "public.is_platform_admin()",
       "public.get_portal_broadcast_sessions(uuid[])",
       "public.get_portal_archive_events()",
+      "public.onboard_customer_service_v1(uuid,uuid,uuid,uuid,text,text,uuid[],text,timestamptz,timestamptz,text,text,boolean,boolean)",
+      "public.claim_onboarding_email_attempt_service_v1(uuid,uuid,text,text)",
+      "public.complete_onboarding_email_attempt_service_v1(uuid,uuid,text,text)",
     ]);
 
     for (const role of [
@@ -779,7 +837,7 @@ describe("municipality onboarding v3 PostgreSQL integration", () => {
   });
 
   it("executes the migration, commits once, rejects changed replay and rolls back partial writes", async () => {
-    const first = await callOnboarding();
+    const first = await callServiceOnboarding();
     expect(first.rows[0]).toMatchObject({
       organization_id: ORGANIZATION_ID,
       replayed: false,

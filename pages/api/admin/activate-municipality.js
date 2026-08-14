@@ -30,6 +30,18 @@ const LICENSE_LABELS = {
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+const AUTHENTICATED_ONBOARDING_RPCS = Object.freeze({
+  onboard: "onboard_customer_v3",
+  claimEmail: "claim_onboarding_email_attempt",
+  completeEmail: "complete_onboarding_email_attempt",
+});
+
+export const SERVICE_ONBOARDING_RPCS = Object.freeze({
+  onboard: "onboard_customer_service_v1",
+  claimEmail: "claim_onboarding_email_attempt_service_v1",
+  completeEmail: "complete_onboarding_email_attempt_service_v1",
+});
+
 function createAuthenticatedClient(token) {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -93,11 +105,14 @@ async function completeEmailAttempt(
   authenticatedClient,
   attemptId,
   outcome,
-  errorCode = null
+  errorCode = null,
+  rpcNames = AUTHENTICATED_ONBOARDING_RPCS,
+  performedBy = null
 ) {
   const { data, error } = await authenticatedClient.rpc(
-    "complete_onboarding_email_attempt",
+    rpcNames.completeEmail,
     {
+      ...(performedBy ? { p_performed_by: performedBy.id } : {}),
       p_attempt_id: attemptId,
       p_outcome: outcome,
       p_error_code: errorCode,
@@ -124,10 +139,13 @@ async function deliverOnboardingEmail({
   licensePlan,
   licenseValidUntil,
   siteUrl,
+  rpcNames = AUTHENTICATED_ONBOARDING_RPCS,
+  performedBy = null,
 }) {
   const { data: claimRows, error: claimError } = await authenticatedClient.rpc(
-    "claim_onboarding_email_attempt",
+    rpcNames.claimEmail,
     {
+      ...(performedBy ? { p_performed_by: performedBy.id } : {}),
       p_onboarding_run_id: onboardingRunId,
       p_action: claimAction,
       p_reason: claimReason,
@@ -160,7 +178,9 @@ async function deliverOnboardingEmail({
         authenticatedClient,
         claim.attempt_id,
         "failed",
-        "setup_link_generation_failed"
+        "setup_link_generation_failed",
+        rpcNames,
+        performedBy
       );
       return {
         onboardingEmailSent: false,
@@ -179,7 +199,9 @@ async function deliverOnboardingEmail({
       authenticatedClient,
       claim.attempt_id,
       "failed",
-      "smtp_configuration_missing"
+      "smtp_configuration_missing",
+      rpcNames,
+      performedBy
     );
     return {
       onboardingEmailSent: false,
@@ -205,7 +227,10 @@ async function deliverOnboardingEmail({
     const completion = await completeEmailAttempt(
       authenticatedClient,
       claim.attempt_id,
-      "sent"
+      "sent",
+      null,
+      rpcNames,
+      performedBy
     );
     return {
       onboardingEmailSent: true,
@@ -223,7 +248,9 @@ async function deliverOnboardingEmail({
       authenticatedClient,
       claim.attempt_id,
       "delivery_unknown",
-      "smtp_delivery_unknown"
+      "smtp_delivery_unknown",
+      rpcNames,
+      performedBy
     );
     return {
       onboardingEmailSent: false,
@@ -291,7 +318,7 @@ function serializeEmailStateForClient(emailState) {
   };
 }
 
-export default async function handler(req, res) {
+export async function handleMunicipalityOnboarding(req, res, serverContext = null) {
   res.setHeader("Cache-Control", "no-store");
 
   if (!["GET", "POST"].includes(req.method)) {
@@ -303,10 +330,12 @@ export default async function handler(req, res) {
   let databaseCommitted = false;
 
   try {
-    const performedBy = await requirePlatformAdmin(req, res, supabaseAdmin);
+    const performedBy =
+      serverContext?.performedBy ||
+      (await requirePlatformAdmin(req, res, supabaseAdmin));
     if (!performedBy) return;
 
-    const token = getBearerToken(req);
+    const token = serverContext ? null : getBearerToken(req);
     const siteUrl = getServerSiteUrl();
     const organizationId = String(
       req.method === "GET"
@@ -318,7 +347,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "ID organizace nemá platný formát." });
     }
 
-    const authenticatedClient = createAuthenticatedClient(token);
+    const authenticatedClient =
+      serverContext?.rpcClient || createAuthenticatedClient(token);
+    const onboardingRpcNames =
+      serverContext?.rpcNames || AUTHENTICATED_ONBOARDING_RPCS;
+    const servicePerformedBy = serverContext ? performedBy : null;
+    const approvalAuditSuffix = serverContext?.approvalReference
+      ? ` Schválení: ${serverContext.approvalReference}`
+      : "";
 
     if (req.method === "GET") {
       const emailStateBeforeReconciliation = await loadEmailState(organizationId);
@@ -585,7 +621,10 @@ export default async function handler(req, res) {
     });
 
     const { data: onboardingRows, error: onboardingError } =
-      await authenticatedClient.rpc("onboard_customer_v3", {
+      await authenticatedClient.rpc(onboardingRpcNames.onboard, {
+        ...(servicePerformedBy
+          ? { p_performed_by: servicePerformedBy.id }
+          : {}),
         p_idempotency_key: idempotencyKey,
         p_organization_id: customer.id,
         p_local_admin_user_id: localAdministrator.userId,
@@ -645,6 +684,7 @@ export default async function handler(req, res) {
         centralAdminCount: centralAdminUserIds.length,
         onboardingEmailSent: true,
         emailRetryRequired: false,
+        executionSource: serverContext ? "automation" : "admin_ui",
         authPreparationManualReviewRequired: !authPreparationRecorded,
       });
     }
@@ -662,6 +702,7 @@ export default async function handler(req, res) {
         emailManualReviewRequired:
           onboarding.email_status === "delivery_unknown",
         emailRetryRequired: false,
+        executionSource: serverContext ? "automation" : "admin_ui",
         authPreparationManualReviewRequired: !authPreparationRecorded,
       });
     }
@@ -675,8 +716,8 @@ export default async function handler(req, res) {
           : "initial_delivery",
       claimReason:
         onboarding.email_status === "failed"
-          ? "Opakování bezpečné chyby před odesláním v rámci stejného požadavku."
-          : "První onboardingový e-mail po úspěšném databázovém onboardingu.",
+          ? `Opakování bezpečné chyby před odesláním v rámci stejného požadavku.${approvalAuditSuffix}`
+          : `První onboardingový e-mail po úspěšném databázovém onboardingu.${approvalAuditSuffix}`,
       customer: {
         ...customer,
         registration_number:
@@ -686,6 +727,8 @@ export default async function handler(req, res) {
       licensePlan,
       licenseValidUntil,
       siteUrl,
+      rpcNames: onboardingRpcNames,
+      performedBy: servicePerformedBy,
     });
 
     return res.status(200).json({
@@ -693,6 +736,7 @@ export default async function handler(req, res) {
       localAdminAccountCreated: localAdministrator.isNewAccount,
       centralAdminCount: centralAdminUserIds.length,
       ...delivery,
+      executionSource: serverContext ? "automation" : "admin_ui",
       authPreparationManualReviewRequired: !authPreparationRecorded,
     });
   } catch (error) {
@@ -723,4 +767,8 @@ export default async function handler(req, res) {
       error: "Onboarding zákazníka se nepodařilo bezpečně dokončit.",
     });
   }
+}
+
+export default async function handler(req, res) {
+  return handleMunicipalityOnboarding(req, res);
 }
