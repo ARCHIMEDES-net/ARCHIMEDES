@@ -1,8 +1,10 @@
 # Stav migrací ARCHIMEDES Live
 
-Zdroj pravdy: živý projekt `ARCHIMEDESLive` (`gipikahmjlcynkqexxmz`) a
-aktuální pracovní větev. Produkční databáze se nemění pouhým přidáním
-souborů do tohoto adresáře.
+Zdroj pravdy: živý projekt `ARCHIMEDESLive` (`gipikahmjlcynkqexxmz`),
+produkční ledger `supabase/production-migration-ledger.json` a aktuální
+`main`. Produkční databáze se nemění pouhým přidáním souborů do tohoto
+adresáře. Po read-only kontrole 14. 8. 2026 obsahoval ledger 28 položek a
+všechny přesně odpovídaly aktivním lokálním migracím.
 
 ## V produkci potvrzeno
 
@@ -87,16 +89,11 @@ souborů do tohoto adresáře.
   dosud nenasazené migrace jsou povolené pouze s verzí pozdější než poslední
   produkční záznam.
 
-1. Předmigrační `supabase/preflight/legacy_migration_readiness.sql` byl
-   spuštěn read-only a jeho výstup zkontrolován.
-2. Databázové migrace `0008`, `0009` a `0010` byly aplikovány v tomto
-   pořadí a po každé byly ověřeny vzniklé objekty.
-3. Preflight byl po migracích zopakován; počty organizací, členství a
-   příjemců zůstaly beze změny.
-4. Migrace `0014` byla po potvrzení bodu obnovy aplikována v jediné
-   transakci a následně samostatně ověřena read-only kontrolou.
-5. Aplikační PR č. 39 zůstává nesloučený; před jeho nasazením následuje
-   řízený test onboardingu a negativních scénářů.
+Historické kroky před baseline (`0008`, `0009`, `0010`, `0014` a související
+preflighty) jsou doloženy výše a v archivu migrací. Nejsou návodem k jejich
+opakovanému spuštění. Aktuální stav se ověřuje porovnáním živého ledgeru,
+uloženého JSON a aktivního řetězce; produkční identitu nelze přepisovat podle
+starého čísla PR nebo historického plánu.
 
 ## Neměnné migrační podmínky
 

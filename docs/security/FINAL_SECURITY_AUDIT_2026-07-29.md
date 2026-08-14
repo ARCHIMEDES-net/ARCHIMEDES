@@ -1,5 +1,8 @@
 # ARCHIMEDES Live – Final Security Audit Report
 
+> **Historický audit k 29. 7. 2026.** Nejde o dnešní úplný bezpečnostní stav
+> ani o živý runbook. Aktuální hierarchii dokumentace určuje `docs/README.md`.
+
 - **Datum:** 29. 7. 2026
 - **Auditovaný commit:** `1a949be`
 - **Stav:** dokončeno
