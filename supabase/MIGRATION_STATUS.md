@@ -81,8 +81,11 @@ souborů do tohoto adresáře.
   exportu.
 - Oba schema-only dumpy mají SHA-256
   `5e9c54c4cf69fd46ccd36a94b4d8846461bb909faffdb5c11c9df3a40ad93da3`.
-- Produkční migration ledger nebyl změněn. Jeho řízené srovnání zůstává
-  samostatným krokem podle issue #81 a vyžaduje výslovné schválení.
+- Produkční migration ledger zůstává beze změny. Jeho read-only otisk ověřený
+  14. 8. 2026 je v `supabase/production-migration-ledger.json`; CI vyžaduje,
+  aby každá produkční identita měla přesně odpovídající lokální soubor. Nové,
+  dosud nenasazené migrace jsou povolené pouze s verzí pozdější než poslední
+  produkční záznam.
 
 1. Předmigrační `supabase/preflight/legacy_migration_readiness.sql` byl
    spuštěn read-only a jeho výstup zkontrolován.
@@ -127,23 +130,22 @@ souborů do tohoto adresáře.
 Ruční přiřazení škol pod obce přijde až po schválení konkrétní mapy
 `škola -> obec`. Bez této mapy se `parent_organization_id` hromadně nemění.
 
-## Lokálně připraveno, zatím neaplikováno
+## Produkční onboarding v3 – ověřeno 14. srpna 2026
 
-- `20260813154650_harden_municipality_onboarding.sql` je návrh jednotného,
-  auditovaného a idempotentního onboardingu hlavních zákazníků. Odděluje
+- `20260813204547_harden_municipality_onboarding.sql` zavádí jednotný,
+  auditovaný a idempotentní onboarding hlavních zákazníků. Odděluje
   kontakt od lokálního správce, přidává nakonfigurované centrální správce a
   zapisuje profil, členství, licenci i audit v jedné transakci.
-- Migrace nebyla aplikována do produkce ani jiné vzdálené databáze. Před
-  schválením vyžaduje read-only preflight
-  `supabase/preflight/municipality_onboarding_v3_readiness.sql`, ověření v
-  izolované databázi a nastavení `MUNICIPALITY_CENTRAL_ADMIN_USER_IDS`.
+- Migrace je aplikovaná v produkci jako verze `20260813204547`. Serverová
+  automatizační cesta je aplikovaná jako verze `20260814053249`. Produkční
+  preflight, konfigurace centrálních správců, RPC granty a service-role-only
+  wrappery byly ověřeny read-only.
 - Lokální embedded PostgreSQL integrační test migraci úspěšně provedl a ověřil
   commit, audit vykonavatele, idempotentní replay, konflikt změněného replaye,
   duplicitní IČO, odmítnutí osiřelého stale-JWT správce, atomické e-mailové
   pokusy, dvojklik, uvízlé `sending`, obě ruční volby `delivery_unknown` a
   transakční rollback po vynucené chybě auditního zápisu.
-  Ověření proti úplnému cílovému Supabase schématu a advisories zůstává krokem
-  izolované databázové větve před produkcí.
+  Stejná sada zůstává regresní ochranou pro budoucí změny.
 - Produkční read-only preflight 13. 8. 2026 potvrdil 0 skupin duplicitních
   profilových e-mailů, členství, obecních IČO i názvů s adresou. Oba
   nakonfigurovaní centrální správci mají konzistentní Auth účet, aktivní profil

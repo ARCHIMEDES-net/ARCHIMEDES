@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const migrationPath = path.join(
   process.cwd(),
-  "supabase/migrations/20260731123000_harden_profiles_select_active_memberships.sql"
+  "supabase/migrations/20260731123028_harden_profiles_select_active_memberships.sql"
 );
 
 const sql = fs.readFileSync(migrationPath, "utf8").replace(/\s+/g, " ").toLowerCase();
