@@ -19,7 +19,7 @@ describe("customer activation RPC security contracts", () => {
     "supabase/migrations/20260731061347_revoke_obsolete_activation_rpc_grants.sql"
   );
   const retiredV2RpcGrants = normalized(
-    "supabase/migrations/20260815091706_retire_legacy_activation_rpc_client_access.sql"
+    "supabase/migrations/20260815092557_retire_legacy_activation_rpc_client_access.sql"
   );
   const baseline = normalized(
     "supabase/migrations/20260730080347_production_public_schema_baseline.sql"

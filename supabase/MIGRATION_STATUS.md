@@ -252,9 +252,9 @@ jiné odkazy k posouzení a chybějící záznamy.
   změny: 31 bezpečnostních a 110 výkonových historických zjištění.
 
 
-## Vyřazení klientského přístupu ke starému aktivačnímu RPC – návrh 15. 8. 2026
+## Vyřazení klientského přístupu ke starému aktivačnímu RPC – produkce 15. 8. 2026
 
-- Migrace `20260815091706_retire_legacy_activation_rpc_client_access.sql`
+- Migrace `20260815092557_retire_legacy_activation_rpc_client_access.sql`
   odebírá `EXECUTE` na `activate_customer_with_admin_v2(...)` rolím
   `PUBLIC`, `anon` a `authenticated`; zachovává jej pouze
   důvěryhodnému serverovému `service_role`.
@@ -266,5 +266,5 @@ jiné odkazy k posouzení a chybějící záznamy.
   objednávky zavedeného v PR #173.
 - Regresní test ověřuje, že staré RPC není klientskou vstupní cestou a že nová
   migrace explicitně ponechává `EXECUTE` pouze roli `service_role`.
-- Tento odstavec popisuje návrhovou migraci; produkční stav se aktualizuje až po
-  samostatně schválené aplikaci a následné read-only kontrole.
+- Migrace byla aplikována do produkce jako verze `20260815092557`; změnila
+  pouze oprávnění funkce a nepřepisovala žádná zákaznická data.
