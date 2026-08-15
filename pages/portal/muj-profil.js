@@ -509,9 +509,9 @@ export default function MujProfilPage() {
               </p>
               <h1 className="text-[34px] font-[950] leading-[1.1] text-navy-900">Zajímá mě</h1>
               <p className="mt-2.5 max-w-[760px] text-base leading-relaxed text-muted">
-                Vyberte, o jaká vysílání máte zájem. Budeme vám posílat jen to,
-                co si zvolíte. Pokud nic nevyberete, tematické pozvánky vám
-                posílat nebudeme.
+                Vyberte, o jaká vysílání máte zájem. V centru novinek uvidíte
+                jen zvolené okruhy; e-mailové pozvánky můžete vypnout samostatně.
+                Pokud nic nevyberete, do žádné tematické skupiny vás nezařadíme.
               </p>
             </div>
 
@@ -592,7 +592,8 @@ export default function MujProfilPage() {
                 <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
                   <Label>Jaká upozornění chcete dostávat</Label>
                   <p className="mb-4 text-sm leading-relaxed text-slate-500">
-                    Volby se použijí pro e-mail a později také pro oznámení nainstalované PWA.
+                    Tyto volby řídí centrum „Co je nového“. E-mail a budoucí push
+                    se zapínají samostatně, takže vypnutí e-mailu interní novinky nezablokuje.
                   </p>
 
                   <div className="grid gap-3">
@@ -614,7 +615,6 @@ export default function MujProfilPage() {
                         </div>
                         <Switch
                           checked={channelPreferences[key]}
-                          disabled={!emailNotificationsEnabled}
                           onChange={(event) =>
                             setChannelPreferences((current) => ({
                               ...current,
@@ -680,7 +680,8 @@ export default function MujProfilPage() {
                   <Label>Zajímá mě</Label>
                   <p className="mb-3 text-sm leading-relaxed text-slate-500">
                     Vyberte okruhy, o jaké vysílání a program ARCHIMEDES chcete
-                    dostávat upozornění e-mailem.
+                    vídat v centru novinek. E-mailové pozvánky se použijí pouze,
+                    pokud je máte zapnuté výše.
                   </p>
 
                   {selectedCount === 0 ? (

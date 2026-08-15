@@ -29,4 +29,10 @@ describe("notification UI contract", () => {
     expect(profilePage).toContain("!VAPID_PUBLIC_KEY");
     expect(profilePage).toContain("Notification.requestPermission()");
   });
+
+  it("keeps in-app notification choices independent from e-mail opt-out", () => {
+    const profilePage = source("pages/portal/muj-profil.js");
+    expect(profilePage).toContain("vypnutí e-mailu interní novinky nezablokuje");
+    expect(profilePage).not.toContain("disabled={!emailNotificationsEnabled}");
+  });
 });
