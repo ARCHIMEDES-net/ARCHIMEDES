@@ -1,0 +1,43 @@
+{
+  "id": "/portal",
+  "name": "ARCHIMEDES Live",
+  "short_name": "A Live",
+  "description": "Živý program, novinky a připomenutí vysílání ARCHIMEDES Live.",
+  "lang": "cs",
+  "dir": "ltr",
+  "start_url": "/portal",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#111827",
+  "categories": ["education", "social"],
+  "icons": [
+    {
+      "src": "/pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Program",
+      "short_name": "Program",
+      "url": "/portal/kalendar",
+      "icons": [{ "src": "/pwa-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Co je nového",
+      "short_name": "Novinky",
+      "url": "/portal/novinky",
+      "icons": [{ "src": "/pwa-icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

@@ -8,7 +8,7 @@ Uživatel má na jednom místě vidět, co je nového, a může si zapnout přip
 
 1. **Datový základ (tato změna):** preference kanálů, odběr připomenutí události, push subscription, interní schránka, fronta doručení a trvalý výběr cílových skupin.
 2. **Uživatelské rozhraní (součást návrhu):** tlačítko „Připomenout“, centrum novinek a nastavení typů e-mailových upozornění. Push je viditelně označen jako dosud neaktivní.
-3. **Instalovatelná PWA:** manifest, ikony, service worker a řízené vyžádání oprávnění k oznámením.
+3. **Instalovatelná PWA (součást návrhu):** manifest, značkové ikony, service worker bez cache uživatelských dat a registrace zařízení pouze po kliknutí uživatele. Push zůstává vypnutý bez VAPID konfigurace.
 4. **Generování oznámení:** idempotentní plánovač připraví novinky a připomínky; stále bez aktivního externího odesílání.
 5. **Kontrolovaný pilot:** testovací adresy a zařízení, metriky doručení, odhlášení a zpracování chyb.
 6. **Postupná aktivace:** nejprve interní schránka, poté e-mail a nakonec push. Každý kanál má samostatný vypínač.
@@ -24,10 +24,17 @@ Uživatel má na jednom místě vidět, co je nového, a může si zapnout přip
 
 ## Co zatím záměrně chybí
 
-- service worker, manifest a ikony PWA,
+- produkční VAPID klíč a serverové podepisování push zpráv,
 - poskytovatel push zpráv a e-mailové šablony,
 - cron nebo jiný plánovač,
 - zapnutí odesílání v produkci,
 - automatické odeslání příjemců do WebMeetingu.
 
 Tyto části patří do samostatných, snadno vratných kroků po kontrole datového základu.
+
+## Konfigurace připravená pro další etapu
+
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY` – veřejná část VAPID klíče, kterou může obdržet prohlížeč. Bez ní zůstává tlačítko push vypnuté.
+- Soukromý VAPID klíč se do klientského kódu ani repozitáře nesmí vložit. Bude uložen pouze jako serverové tajemství při zavedení odesílací služby.
+
+Samotné doplnění veřejného klíče ještě nesmí zapnout plánovač ani hromadné odesílání. To patří až do kontrolovaného pilotu.

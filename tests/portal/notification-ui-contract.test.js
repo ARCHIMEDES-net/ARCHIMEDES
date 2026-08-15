@@ -22,10 +22,11 @@ describe("notification UI contract", () => {
     expect(newsPage).toContain("Označit vše jako přečtené");
   });
 
-  it("keeps push visibly unavailable until the PWA stage", () => {
+  it("keeps push fail-closed until server configuration is available", () => {
     const profilePage = source("pages/portal/muj-profil.js");
     expect(profilePage).toContain("Push oznámení do telefonu");
     expect(profilePage).toContain("Zatím se nic do telefonu neposílá");
-    expect(profilePage).toContain("push_enabled: false");
+    expect(profilePage).toContain("!VAPID_PUBLIC_KEY");
+    expect(profilePage).toContain("Notification.requestPermission()");
   });
 });

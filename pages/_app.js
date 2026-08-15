@@ -12,6 +12,7 @@ import FloatingJoinCta from "../components/FloatingJoinCta";
 import { Analytics } from "@vercel/analytics/react";
 import { applyCzechNonBreakingSpaces } from "../lib/czechTypography";
 import { serializeJsonLd } from "../lib/safeJsonLd";
+import PwaRegistration from "../components/PwaRegistration";
 
 function activeKeyFromPath(pathname = "") {
   if (pathname === "/program") return "program";
@@ -374,7 +375,12 @@ export default function App({ Component, pageProps }) {
 
         <link rel="icon" href="/logo-archimedes-live-mark.png" />
         <link rel="shortcut icon" href="/logo-archimedes-live-mark.png" />
-        <link rel="apple-touch-icon" href="/logo-archimedes-live-mark-512.png" />
+        <link rel="apple-touch-icon" href="/pwa-icon-180.png" />
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="application-name" content="ARCHIMEDES Live" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="ARCHIMEDES Live" />
 
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="cs_CZ" />
@@ -499,6 +505,8 @@ gtag('config', '${GA_MEASUREMENT_ID}', { anonymize_ip: true });`}
       ) : null}
 
       {showPublicHeader && <PublicHeader active={active} />}
+
+      <PwaRegistration />
 
       <Component {...pageProps} />
 
