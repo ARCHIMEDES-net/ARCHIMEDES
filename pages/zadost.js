@@ -104,6 +104,9 @@ export default function ZadostPage() {
         legalIdentifier: form.legalIdentifier.trim(),
         message: form.message.trim(),
         company: form.company,
+        testRunId: router.query.testRun
+          ? String(router.query.testRun).trim()
+          : null,
       };
 
       if (!CUSTOMER_TYPES[payload.type]) throw new Error("Vyberte prosím, koho chcete zapojit.");

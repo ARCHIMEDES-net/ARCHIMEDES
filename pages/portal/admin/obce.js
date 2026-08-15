@@ -105,6 +105,7 @@ export default function AdminObcePage() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailSubmitting, setEmailSubmitting] = useState(false);
   const [draft, setDraft] = useState(createDraft);
+  const [activationReviewOpen, setActivationReviewOpen] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -146,6 +147,7 @@ export default function AdminObcePage() {
     setEmailCustomer(null);
     setEmailState(null);
     setSelectedCustomer(row);
+    setActivationReviewOpen(false);
     setError("");
     setMessage("");
     const nextDraft = createDraft();
@@ -283,7 +285,7 @@ export default function AdminObcePage() {
     }));
   }
 
-  async function activateCustomer() {
+  async function activateCustomer({ confirmed = false } = {}) {
     const row = selectedCustomer;
     if (!row) return;
 
@@ -322,10 +324,12 @@ export default function AdminObcePage() {
     }
 
     const typeLabel = ORGANIZATION_LABELS[row.org_type] || "Organizace";
-    const confirmed = window.confirm(
-      `Dokončit onboarding: ${typeLabel.toLowerCase()} „${row.name}“ s variantou ${LICENSE_LABELS[draft.licensePlan]} a lokálním správcem ${draft.localAdminEmail.trim().toLowerCase()}?`
-    );
-    if (!confirmed) return;
+    if (!confirmed) {
+      setActivationReviewOpen(true);
+      return;
+    }
+
+    setActivationReviewOpen(false);
 
     setActivatingId(row.id);
     setError("");
@@ -401,6 +405,7 @@ export default function AdminObcePage() {
         await openEmailManagement({ ...row, license_status: "active" }, true);
       } else if (result.onboardingEmailSent) {
         setSelectedCustomer(null);
+        setActivationReviewOpen(false);
       } else if (result.emailDeliveryInProgress) {
         setMessage(
           `${typeLabel} „${row.name}“ byla aktivována a onboardingový e-mail právě zpracovává jiný identický požadavek.`
@@ -564,7 +569,10 @@ export default function AdminObcePage() {
                     Kontakt obce: {selectedCustomer.contact_name || "—"} • {selectedCustomer.contact_email || "—"}
                   </p>
                 </div>
-                <Button type="button" variant="secondary" onClick={() => setSelectedCustomer(null)}>
+                <Button type="button" variant="secondary" onClick={() => {
+                  setActivationReviewOpen(false);
+                  setSelectedCustomer(null);
+                }}>
                   Zavřít
                 </Button>
               </div>
@@ -720,13 +728,91 @@ export default function AdminObcePage() {
                 <Button
                   type="button"
                   disabled={activatingId === selectedCustomer.id}
-                  onClick={activateCustomer}
+                  onClick={() => activateCustomer()}
                 >
                   {activatingId === selectedCustomer.id
                     ? "Dokončuji onboarding…"
                     : "Zkontrolovat a dokončit onboarding"}
                 </Button>
               </div>
+
+              {activationReviewOpen ? (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4"
+                  role="presentation"
+                >
+                  <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="activation-review-title"
+                    className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl"
+                  >
+                    <div className="text-sm font-bold uppercase tracking-wide text-slate-500">
+                      Finální kontrola
+                    </div>
+                    <h3 id="activation-review-title" className="mt-1 text-2xl font-black text-navy-900">
+                      Potvrdit a dokončit onboarding?
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      Nejdříve se odešle auditované písemné přijetí objednávky. Zákazník
+                      se aktivuje až po jeho úspěšném odeslání.
+                    </p>
+
+                    <dl className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm md:grid-cols-2">
+                      <div>
+                        <dt className="font-semibold text-slate-500">Zákazník</dt>
+                        <dd className="mt-1 font-bold text-navy-900">{selectedCustomer.name}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold text-slate-500">Varianta</dt>
+                        <dd className="mt-1 font-bold text-navy-900">{LICENSE_LABELS[draft.licensePlan]}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold text-slate-500">Platnost</dt>
+                        <dd className="mt-1 font-bold text-navy-900">
+                          {draft.licenseStartedAt}
+                          {draft.licenseValidUntil ? ` – ${draft.licenseValidUntil}` : ""}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-semibold text-slate-500">Fakturace</dt>
+                        <dd className="mt-1 font-bold text-navy-900">
+                          {draft.billingStatus === "paid"
+                            ? "Uhrazeno"
+                            : draft.billingStatus === "not_applicable"
+                              ? "Bez úhrady"
+                              : "Čeká na úhradu"}
+                        </dd>
+                      </div>
+                      <div className="md:col-span-2">
+                        <dt className="font-semibold text-slate-500">Lokální správce</dt>
+                        <dd className="mt-1 font-bold text-navy-900">
+                          {draft.localAdminFullName} • {draft.localAdminEmail.trim().toLowerCase()}
+                        </dd>
+                      </div>
+                    </dl>
+
+                    <div className="mt-6 flex flex-wrap justify-end gap-3">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setActivationReviewOpen(false)}
+                      >
+                        Zpět k úpravám
+                      </Button>
+                      <Button
+                        type="button"
+                        disabled={activatingId === selectedCustomer.id}
+                        onClick={() => activateCustomer({ confirmed: true })}
+                      >
+                        {activatingId === selectedCustomer.id
+                          ? "Dokončuji onboarding…"
+                          : "Potvrdit a aktivovat"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </Card>
           ) : null}
 

@@ -3,6 +3,10 @@ import { createClient } from "@supabase/supabase-js";
 import nodemailer from "nodemailer";
 import { LEGAL_DOCUMENT_VERSION } from "../../lib/legalDocuments";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
+import {
+  isOnboardingTestEmailAllowed,
+  isUuid,
+} from "../../lib/server/onboardingTestRuns";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -242,6 +246,7 @@ async function sendRequestEmails({
   cleanLicensePlan,
   createdAt,
   leadId,
+  testRecipientEmail = null,
 }) {
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = Number(process.env.SMTP_PORT);
@@ -269,7 +274,7 @@ async function sendRequestEmails({
 
   await transporter.sendMail({
     from: mailFrom,
-    to: mailTo,
+    to: testRecipientEmail || mailTo,
     replyTo: cleanEmail,
     subject: `ARCHIMEDES Live – ŽÁDOST ${customer.label.toUpperCase()} | ${cleanOrganization} | ${cleanName}`,
     priority: "high",
@@ -378,6 +383,7 @@ export default async function handler(req, res) {
       message,
       isDemoRequest,
       company,
+      testRunId,
     } = req.body || {};
 
     if (company) {
@@ -416,6 +422,8 @@ export default async function handler(req, res) {
     const cleanPopulation = customer?.key === "obec" ? requestedPopulation : "";
     const cleanMessage = String(message || "").trim();
     const demoMode = !!isDemoRequest;
+    const cleanTestRunId = String(testRunId || "").trim();
+    let onboardingTestRun = null;
 
     if (demoMode) {
       return res.status(410).json({
@@ -492,6 +500,30 @@ export default async function handler(req, res) {
       return res.status(400).json({
         error: "Doplňující zpráva může mít nejvýše 4000 znaků.",
       });
+    }
+
+    if (cleanTestRunId) {
+      if (!isUuid(cleanTestRunId) || !isOnboardingTestEmailAllowed(cleanEmail)) {
+        return res.status(400).json({ error: "Neplatný produkční testovací běh." });
+      }
+      const { data: testRun, error: testRunError } = await supabase
+        .from("onboarding_test_runs")
+        .select("id, allowed_email, expected_organization_name, status, expires_at")
+        .eq("id", cleanTestRunId)
+        .maybeSingle();
+      if (testRunError) throw testRunError;
+      if (
+        !testRun ||
+        testRun.status !== "prepared" ||
+        new Date(testRun.expires_at) <= new Date() ||
+        testRun.allowed_email !== cleanEmail ||
+        testRun.expected_organization_name !== cleanOrganization
+      ) {
+        return res.status(409).json({
+          error: "Testovací běh expiroval nebo údaje neodpovídají připravenému testu.",
+        });
+      }
+      onboardingTestRun = testRun;
     }
 
     // Duplicitu ověříme před prvním zápisem. Původní pořadí nejprve
@@ -627,6 +659,9 @@ export default async function handler(req, res) {
         requested_license_plan: cleanLicensePlan,
         terms_accepted_at: createdAt,
         terms_version: LEGAL_DOCUMENT_VERSION,
+        ...(onboardingTestRun
+          ? { is_test: true, test_run_id: onboardingTestRun.id }
+          : {}),
       })
       .eq("id", orgData.id);
 
@@ -658,6 +693,29 @@ export default async function handler(req, res) {
       console.error("access_requests archive error:", archiveError);
     }
 
+    if (onboardingTestRun) {
+      const { error: testRunUpdateError } = await supabase
+        .from("onboarding_test_runs")
+        .update({
+          status: "submitted",
+          organization_id: orgData.id,
+          lead_id: leadId,
+          submitted_at: createdAt,
+          updated_at: createdAt,
+        })
+        .eq("id", onboardingTestRun.id)
+        .eq("status", "prepared");
+      if (testRunUpdateError) {
+        console.error("test run association error:", testRunUpdateError);
+        await supabase.from("access_requests").delete().eq("organization_id", orgData.id);
+        await supabase.from("organizations").delete().eq("id", orgData.id);
+        await supabase.from("leads").delete().eq("id", leadId);
+        return res.status(500).json({
+          error: "Testovací objednávku se nepodařilo bezpečně přiřadit k běhu.",
+        });
+      }
+    }
+
     let emailSent = false;
     try {
       await sendRequestEmails({
@@ -674,6 +732,7 @@ export default async function handler(req, res) {
         cleanLicensePlan,
         createdAt,
         leadId,
+        testRecipientEmail: onboardingTestRun ? cleanEmail : null,
       });
       emailSent = true;
     } catch (emailError) {
