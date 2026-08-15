@@ -599,7 +599,11 @@ export default function MujProfilPage() {
                     {[
                       ["new_event_enabled", "Nová vysílání", "Upozornění, když přibude relevantní vysílání."],
                       ["day_before_enabled", "Den před vysíláním", "Připomenutí vybraného vysílání jeden den předem."],
-                      ["thirty_minutes_before_enabled", "30 minut před vysíláním", "Krátké připomenutí těsně před začátkem."],
+                      [
+                        "thirty_minutes_before_enabled",
+                        "30 minut před vysíláním",
+                        "Zobrazí se v centru novinek; přístupový e-mail v tomto čase posílá WebMeeting.",
+                      ],
                       ["schedule_changes_enabled", "Změny a zrušení termínu", "Důležité změny u vybraného vysílání."],
                       ["recording_available_enabled", "Nový záznam", "Informace, že je dostupný záznam vysílání."],
                     ].map(([key, label, description]) => (

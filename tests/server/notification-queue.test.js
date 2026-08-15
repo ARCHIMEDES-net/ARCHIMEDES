@@ -80,6 +80,21 @@ describe("notification queue candidate planning", () => {
     expect(candidates[0].email_enabled).toBe(true);
   });
 
+  it("never duplicates the WebMeeting 30-minute e-mail with an external delivery", () => {
+    const input = baseInput();
+    input.sessions[0].starts_at = "2026-08-15T10:30:00.000Z";
+    input.sessions[0].notification_delivery_policy = "archimedes_all";
+
+    const candidates = buildNotificationCandidates(input);
+
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0]).toMatchObject({
+      kind: "event_reminder",
+      email_enabled: false,
+      push_enabled: false,
+    });
+  });
+
   it("respects an explicit disabled reminder preference", () => {
     const input = baseInput();
     input.channelPreferences[0].day_before_enabled = false;

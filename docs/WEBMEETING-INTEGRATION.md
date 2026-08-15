@@ -68,11 +68,18 @@ kapacitu 201 účastníků. Oficiální dokumentace API přiřazuje místnosti p
 
 ## Vlastnictví upozornění
 
-WebMeeting podporuje automatické pozvánky několik hodin či dní před setkáním,
-30minutové potvrzení přístupu a další follow-up zprávy. Konkrétní nastavení
-účtu není součástí veřejného API, které používá ARCHIMEDES, a musí se ověřit
-přímo v administraci WebMeetingu.
+Nastavení produkčního účtu bylo 15. 8. 2026 ověřeno přímo v administraci
+WebMeetingu. WebMeeting automaticky odesílá systémový přístupový e-mail
+30 minut před setkáním a používá systémové potvrzení pro návštěvníka, který se
+sám přihlásí k on-line setkání nebo k záznamu. U kontrolovaného setkání se
+30minutová zpráva skutečně odeslala.
 
-Dokud tato kontrola neproběhne, připravuje ARCHIMEDES pouze interní oznámení.
-E-mailové a push doručení se pro každé vysílání aktivuje samostatnou politikou;
-výchozí hodnota `in_app_only` brání dvojímu obeslání účastníků.
+Účet nemá vlastní výchozí šablonu pro připomenutí, pozvánku před setkáním,
+follow-up ani zprávu po zpracování záznamu; bez vlastní šablony ale WebMeeting
+u systémových potvrzení a 30minutové připomínky použije svou systémovou verzi.
+Import účastníků pouze vytváří jejich záznamy a nenabízí volbu rozeslání.
+
+ARCHIMEDES proto 30minutové upozornění ukládá jen do interní schránky a v tomto
+čase nevytváří e-mail ani push. Nové pořady se zobrazují pouze v centru novinek.
+Volitelné externí upozornění může později vlastnit ARCHIMEDES v odlišném čase,
+například 24 hodin předem. Výchozí hodnota `in_app_only` zůstává fail-closed.

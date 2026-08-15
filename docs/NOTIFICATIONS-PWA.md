@@ -19,9 +19,17 @@ Uživatel má na jednom místě vidět, co je nového, a může si zapnout přip
 - Výchozí politika doručení je pouze interní schránka (`in_app_only`). WebMeeting
   může rozesílat vlastní pozvánky a připomenutí, proto ARCHIMEDES nesmí vytvářet
   e-mailové ani push doručení, dokud správce výslovně nepotvrdí vlastnictví kanálu.
-- Pro vysílání ve WebMeetingu má 30minutový e-mail ve výchozím stavu na starosti
-  WebMeeting. Zapnutí `archimedes_all` vyžaduje předchozí kontrolu šablon a
-  automatických zpráv v administraci poskytovatele.
+- Produkční účet WebMeetingu byl 15. 8. 2026 ověřen přímo v administraci:
+  systémový přístupový e-mail se automaticky rozesílá 30 minut před setkáním.
+  Vlastní šablona není nutná; při její absenci se použije systémová šablona.
+  ARCHIMEDES proto drží 30minutové upozornění pouze v interním centru a nikdy
+  pro něj nevytvoří e-mail ani push, a to ani při politice `archimedes_all`.
+- WebMeeting rovněž používá systémovou šablonu pro potvrzení návštěvníkovi,
+  který se sám zapíše k on-line setkání nebo k záznamu. ARCHIMEDES tento
+  potvrzovací e-mail neduplikuje.
+- Pro účet nejsou nastavené vlastní šablony pozvánek před setkáním, follow-upů
+  ani automatické zprávy po zpracování záznamu. Případné budoucí změny těchto
+  šablon vyžadují novou kontrolu vlastnictví kanálů.
 - Jednotlivé nově publikované pořady se zobrazují pouze v centru novinek.
   Externí kanály se pro ně nepoužijí, dokud nevznikne souhrnný digest. Pokud
   současně připadne připomínka stejného pořadu, má přednost jediná připomínka.
