@@ -13,6 +13,11 @@ import { Label } from "../../components/ui/label";
 import { Alert } from "../../components/ui/alert";
 import { Switch } from "../../components/ui/switch";
 import { LEGACY_INTEREST_MAP } from "../../lib/interestMappings";
+import {
+  DEFAULT_NOTIFICATION_CHANNEL_PREFERENCES,
+  isNotificationFoundationMissing,
+  normalizeNotificationChannelPreferences,
+} from "../../lib/notifications";
 
 // Krok 3 (11.7.2026): sekce/položky odpovídají 1:1 activity_categories
 // (migrace 0006) — code tady musí sedět s DB, protože se ukládá do
@@ -106,6 +111,9 @@ export default function MujProfilPage() {
 
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
+  const [channelPreferences, setChannelPreferences] = useState(
+    DEFAULT_NOTIFICATION_CHANNEL_PREFERENCES
+  );
 
   const selectedCount = useMemo(() => selectedInterests.length, [selectedInterests]);
 
@@ -181,7 +189,7 @@ export default function MujProfilPage() {
         setRegistrationNumber("");
       }
 
-      const [preferencesResult, legacyResult] = await Promise.all([
+      const [preferencesResult, legacyResult, channelPreferencesResult] = await Promise.all([
         supabase
           .from("notification_preferences")
           .select("activity_code, enabled")
@@ -190,10 +198,28 @@ export default function MujProfilPage() {
           .from("user_interests")
           .select("interest_slug")
           .eq("user_id", user.id),
+        supabase
+          .from("notification_channel_preferences")
+          .select("email_enabled, push_enabled, new_event_enabled, day_before_enabled, thirty_minutes_before_enabled, schedule_changes_enabled, recording_available_enabled")
+          .eq("profile_id", user.id)
+          .maybeSingle(),
       ]);
 
       if (preferencesResult.error) throw preferencesResult.error;
       if (legacyResult.error) throw legacyResult.error;
+      if (
+        channelPreferencesResult.error &&
+        !isNotificationFoundationMissing(channelPreferencesResult.error)
+      ) {
+        throw channelPreferencesResult.error;
+      }
+
+      const nextChannelPreferences = normalizeNotificationChannelPreferences(
+        channelPreferencesResult.data,
+        profile?.email_notifications_enabled !== false
+      );
+      setChannelPreferences(nextChannelPreferences);
+      setEmailNotificationsEnabled(nextChannelPreferences.email_enabled);
 
       const explicitPreferences = new Map(
         (preferencesResult.data || []).map((row) => [row.activity_code, row.enabled === true])
@@ -272,6 +298,19 @@ export default function MujProfilPage() {
         .upsert(rows, { onConflict: "profile_id,activity_code" });
 
       if (preferencesSaveError) throw preferencesSaveError;
+
+      const { error: channelPreferencesSaveError } = await supabase
+        .from("notification_channel_preferences")
+        .upsert(
+          {
+            profile_id: userId,
+            ...channelPreferences,
+            email_enabled: emailNotificationsEnabled,
+            push_enabled: false,
+          },
+          { onConflict: "profile_id" }
+        );
+      if (channelPreferencesSaveError) throw channelPreferencesSaveError;
 
       setSuccess("Profil byl uložen.");
     } catch (err) {
@@ -380,6 +419,50 @@ export default function MujProfilPage() {
                       checked={emailNotificationsEnabled}
                       onChange={(e) => setEmailNotificationsEnabled(e.target.checked)}
                     />
+                  </div>
+                </div>
+
+                <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+                  <Label>Jaká upozornění chcete dostávat</Label>
+                  <p className="mb-4 text-sm leading-relaxed text-slate-500">
+                    Volby se použijí pro e-mail a později také pro oznámení nainstalované PWA.
+                  </p>
+
+                  <div className="grid gap-3">
+                    {[
+                      ["new_event_enabled", "Nová vysílání", "Upozornění, když přibude relevantní vysílání."],
+                      ["day_before_enabled", "Den před vysíláním", "Připomenutí vybraného vysílání jeden den předem."],
+                      ["thirty_minutes_before_enabled", "30 minut před vysíláním", "Krátké připomenutí těsně před začátkem."],
+                      ["schedule_changes_enabled", "Změny a zrušení termínu", "Důležité změny u vybraného vysílání."],
+                      ["recording_available_enabled", "Nový záznam", "Informace, že je dostupný záznam vysílání."],
+                    ].map(([key, label, description]) => (
+                      <div key={key} className="flex items-center justify-between gap-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <div>
+                          <div className="font-bold text-navy-900">{label}</div>
+                          <p className="mt-1 text-sm leading-relaxed text-slate-500">{description}</p>
+                        </div>
+                        <Switch
+                          checked={channelPreferences[key]}
+                          disabled={!emailNotificationsEnabled}
+                          onChange={(event) =>
+                            setChannelPreferences((current) => ({
+                              ...current,
+                              [key]: event.target.checked,
+                            }))
+                          }
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between gap-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 opacity-75">
+                    <div>
+                      <div className="font-bold text-navy-900">Push oznámení do telefonu</div>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                        Zpřístupníme v další etapě po instalaci PWA. Zatím se nic do telefonu neposílá.
+                      </p>
+                    </div>
+                    <Switch checked={false} disabled aria-label="Push oznámení zatím nejsou dostupná" />
                   </div>
                 </div>
 

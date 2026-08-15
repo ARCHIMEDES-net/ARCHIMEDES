@@ -42,6 +42,7 @@ export default function PortalHeader({ title = "" }) {
   const [organizationSwitchError, setOrganizationSwitchError] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -57,7 +58,17 @@ export default function PortalHeader({ title = "" }) {
           setIsPlatformAdmin(false);
           setActiveOrganizationId("");
           setOrganizations([]);
+          setUnreadNotificationCount(0);
           return;
+        }
+
+        const { count: notificationCount, error: notificationError } = await supabase
+          .from("user_notifications")
+          .select("id", { count: "exact", head: true })
+          .is("read_at", null)
+          .lte("available_at", new Date().toISOString());
+        if (!notificationError && alive) {
+          setUnreadNotificationCount(notificationCount || 0);
         }
 
         const { data: profile, error: profileError } = await supabase
@@ -145,6 +156,7 @@ export default function PortalHeader({ title = "" }) {
     if (key === "komunita") return path.startsWith("/portal/komunita");
     if (key === "souteze") return path.startsWith("/portal/souteze");
     if (key === "profil") return path.startsWith("/portal/muj-profil");
+    if (key === "novinky") return path.startsWith("/portal/novinky");
     if (key === "organizace-obce") return path.startsWith("/portal/organizace-obce");
     if (key === "uzivatele") return path.startsWith("/portal/uzivatele");
     if (key === "sprava-vysilani") return path.startsWith("/portal/admin-udalosti") || path.startsWith("/portal/admin/udalosti");
@@ -236,6 +248,12 @@ export default function PortalHeader({ title = "" }) {
 
   const mainLinks = [
     { key: "portal", href: "/portal", label: "Portál" },
+    {
+      key: "novinky",
+      href: "/portal/novinky",
+      label: "Co je nového",
+      badge: unreadNotificationCount,
+    },
     { key: "program", href: "/portal/kalendar", label: "Program" },
     { key: "archiv", href: "/portal/archiv", label: "Archiv" },
     { key: "komunita", href: "/portal/komunita", label: "Komunita" },
@@ -273,7 +291,7 @@ export default function PortalHeader({ title = "" }) {
             </button>
           ) : (
             <nav className="relative z-10 flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2.5">
-              {mainLinks.map((item) => <Link key={item.key} href={item.href} className={navItemClass(item.key)}>{item.label}</Link>)}
+              {mainLinks.map((item) => <Link key={item.key} href={item.href} className={navItemClass(item.key)}><span>{item.label}</span>{item.badge ? <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[11px] leading-none text-white">{item.badge > 99 ? "99+" : item.badge}</span> : null}</Link>)}
               {adminLinks.map((item) => <Link key={item.key} href={item.href} className={navItemClass(item.key)}>{item.label}</Link>)}
               <Link href="/" className={cn(NAV_ITEM_BASE, NAV_ITEM_INACTIVE, "bg-slate-50")}>Veřejný web</Link>
               <button type="button" onClick={onLogout} className="min-h-[42px] rounded-2xl border border-slate-200 bg-white px-3.5 text-sm font-extrabold text-navy-900">Odhlásit</button>
@@ -285,7 +303,7 @@ export default function PortalHeader({ title = "" }) {
           <div className="mt-3 rounded-2xl border border-slate-900/[0.08] bg-slate-50 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
             <nav className="grid gap-2.5">
               {organizationSwitcher ? <div className="rounded-2xl border border-slate-200 bg-white p-3 [&_select]:w-full">{organizationSwitcher}</div> : null}
-              {mainLinks.map((item) => <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}>{item.label}</Link>)}
+              {mainLinks.map((item) => <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}><span>{item.label}</span>{item.badge ? <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[11px] leading-none text-white">{item.badge > 99 ? "99+" : item.badge}</span> : null}</Link>)}
               {adminLinks.length > 0 ? <><div className="mb-1 mt-0.5 text-xs font-extrabold uppercase tracking-[0.04em] text-slate-500">Správa a nastavení</div>{adminLinks.map((item) => <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}>{item.label}</Link>)}</> : null}
               <div className="mb-1 mt-0.5 text-xs font-extrabold uppercase tracking-[0.04em] text-slate-500">Další</div>
               <Link href="/" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE)}>Veřejný web</Link>

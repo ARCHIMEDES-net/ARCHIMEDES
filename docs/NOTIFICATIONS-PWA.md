@@ -7,7 +7,7 @@ Uživatel má na jednom místě vidět, co je nového, a může si zapnout přip
 ## Bezpečné pořadí zavádění
 
 1. **Datový základ (tato změna):** preference kanálů, odběr připomenutí události, push subscription, interní schránka, fronta doručení a trvalý výběr cílových skupin.
-2. **Uživatelské rozhraní:** tlačítko „Připomenout“, centrum novinek a nastavení e-mail/push.
+2. **Uživatelské rozhraní (součást návrhu):** tlačítko „Připomenout“, centrum novinek a nastavení typů e-mailových upozornění. Push je viditelně označen jako dosud neaktivní.
 3. **Instalovatelná PWA:** manifest, ikony, service worker a řízené vyžádání oprávnění k oznámením.
 4. **Generování oznámení:** idempotentní plánovač připraví novinky a připomínky; stále bez aktivního externího odesílání.
 5. **Kontrolovaný pilot:** testovací adresy a zařízení, metriky doručení, odhlášení a zpracování chyb.
