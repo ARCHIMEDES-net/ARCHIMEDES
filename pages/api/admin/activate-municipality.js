@@ -7,9 +7,11 @@ import {
   resolveConfiguredCentralAdmins,
   resolveLocalAdministrator,
   sendCustomerOnboardingEmail,
+  sendWrittenOrderAcceptanceEmail,
   updateAuthPreparationStatus,
   validateCustomerOnboardingEmailConfiguration,
 } from "../../../lib/server/customerOnboarding";
+import { LEGAL_DOCUMENT_VERSION } from "../../../lib/legalDocuments";
 import {
   getBearerToken,
   requirePlatformAdmin,
@@ -29,6 +31,138 @@ const LICENSE_LABELS = {
 };
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function acceptanceSnapshotMatches(row, expected) {
+  return (
+    row.recipient_email === expected.recipientEmail &&
+    row.license_plan === expected.licensePlan &&
+    new Date(row.license_started_at).toISOString() === expected.licenseStartedAt &&
+    (row.license_valid_until
+      ? new Date(row.license_valid_until).toISOString()
+      : null) === expected.licenseValidUntil &&
+    row.billing_status === expected.billingStatus &&
+    row.legal_document_version === LEGAL_DOCUMENT_VERSION
+  );
+}
+
+async function ensureWrittenOrderAcceptance({
+  customer,
+  performedBy,
+  idempotencyKey,
+  licensePlan,
+  licenseStartedAt,
+  licenseValidUntil,
+  billingStatus,
+  siteUrl,
+}) {
+  if (!customer.terms_accepted_at) return { required: false };
+  const recipientEmail = String(customer.contact_email || "").trim().toLowerCase();
+  const recipientName = String(customer.contact_name || "").trim();
+  if (!recipientName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
+    throw new CustomerOnboardingError(
+      "Písemné přijetí nelze odeslat: objednatel nemá platné jméno a e-mail."
+    );
+  }
+  const expected = {
+    recipientEmail,
+    licensePlan,
+    licenseStartedAt,
+    licenseValidUntil,
+    billingStatus,
+  };
+  const { data: existing, error: loadError } = await supabaseAdmin
+    .from("customer_order_acceptances")
+    .select("*")
+    .eq("organization_id", customer.id)
+    .maybeSingle();
+  if (loadError) throw loadError;
+  if (existing) {
+    if (!acceptanceSnapshotMatches(existing, expected)) {
+      throw new CustomerOnboardingError(
+        "Objednávka už byla písemně přijata nebo připravena s jinými parametry. Změnu řešte samostatným řízeným postupem."
+      );
+    }
+    if (existing.status === "sent") return { required: true, sent: true };
+    if (["sending", "delivery_unknown"].includes(existing.status)) {
+      throw new CustomerOnboardingError(
+        "Výsledek doručení písemného přijetí není bezpečně známý. Neopakujte odeslání; nejprve zkontrolujte poštu a audit."
+      );
+    }
+  }
+
+  validateCustomerOnboardingEmailConfiguration();
+
+  const acceptanceReference = existing?.acceptance_reference || idempotencyKey;
+  const now = new Date().toISOString();
+  const payload = {
+    organization_id: customer.id,
+    performed_by: performedBy.id,
+    recipient_name: recipientName,
+    recipient_email: recipientEmail,
+    license_plan: licensePlan,
+    license_started_at: licenseStartedAt,
+    license_valid_until: licenseValidUntil,
+    billing_status: billingStatus,
+    legal_document_version: LEGAL_DOCUMENT_VERSION,
+    acceptance_reference: acceptanceReference,
+    status: "sending",
+    attempt_count: (existing?.attempt_count || 0) + 1,
+    attempted_at: now,
+    sent_at: null,
+    error_code: null,
+  };
+  const write = existing
+    ? supabaseAdmin
+        .from("customer_order_acceptances")
+        .update(payload)
+        .eq("id", existing.id)
+        .in("status", ["pending", "failed"])
+    : supabaseAdmin.from("customer_order_acceptances").insert(payload);
+  const { data: claimedRows, error: claimError } = await write.select("id");
+  if (claimError) throw claimError;
+  const claimed = claimedRows?.[0];
+  if (!claimed?.id) {
+    throw new CustomerOnboardingError(
+      "Písemné přijetí právě zpracovává jiný požadavek. Obnovte stránku."
+    );
+  }
+
+  try {
+    await sendWrittenOrderAcceptanceEmail({
+      email: recipientEmail,
+      fullName: recipientName,
+      organizationName: customer.name,
+      organizationType: customer.org_type,
+      licensePlanLabel: LICENSE_LABELS[licensePlan],
+      licenseStartedAt,
+      licenseValidUntil,
+      billingStatus,
+      legalDocumentVersion: LEGAL_DOCUMENT_VERSION,
+      acceptanceReference,
+      siteUrl,
+    });
+  } catch (error) {
+    await supabaseAdmin
+      .from("customer_order_acceptances")
+      .update({ status: "delivery_unknown", error_code: "smtp_delivery_unknown" })
+      .eq("id", claimed.id)
+      .eq("status", "sending");
+    throw new CustomerOnboardingError(
+      "Výsledek doručení písemného přijetí není známý. Obec nebyla aktivována; e-mail automaticky neopakujte."
+    );
+  }
+  const { error: completeError } = await supabaseAdmin
+    .from("customer_order_acceptances")
+    .update({ status: "sent", sent_at: new Date().toISOString() })
+    .eq("id", claimed.id)
+    .eq("status", "sending");
+  if (completeError) {
+    throw new CustomerOnboardingError(
+      "Přijetí bylo odesláno, ale audit se nepodařilo dokončit. Obec nebyla aktivována; e-mail neopakujte."
+    );
+  }
+  return { required: true, sent: true };
+}
 
 const AUTHENTICATED_ONBOARDING_RPCS = Object.freeze({
   onboard: "onboard_customer_v3",
@@ -562,7 +696,7 @@ export async function handleMunicipalityOnboarding(req, res, serverContext = nul
     const { data: customer, error: customerError } = await supabaseAdmin
       .from("organizations")
       .select(
-        "id, name, org_type, parent_organization_id, contact_name, contact_email, registration_number"
+        "id, name, org_type, parent_organization_id, contact_name, contact_email, registration_number, terms_accepted_at"
       )
       .eq("id", organizationId)
       .maybeSingle();
@@ -579,6 +713,18 @@ export async function handleMunicipalityOnboarding(req, res, serverContext = nul
     }
 
     const isMunicipality = ["municipality", "obec"].includes(customer.org_type);
+
+    await ensureWrittenOrderAcceptance({
+      customer,
+      performedBy,
+      idempotencyKey,
+      licensePlan,
+      licenseStartedAt,
+      licenseValidUntil,
+      billingStatus,
+      siteUrl,
+    });
+
     const centralAdminUserIds = isMunicipality
       ? await resolveConfiguredCentralAdmins({
           supabaseAdmin,
