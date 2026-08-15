@@ -696,7 +696,7 @@ export async function handleMunicipalityOnboarding(req, res, serverContext = nul
     const { data: customer, error: customerError } = await supabaseAdmin
       .from("organizations")
       .select(
-        "id, name, org_type, parent_organization_id, contact_name, contact_email, registration_number, terms_accepted_at"
+        "id, name, org_type, parent_organization_id, contact_name, contact_email, registration_number, terms_accepted_at, is_test, test_run_id"
       )
       .eq("id", organizationId)
       .maybeSingle();
@@ -713,6 +713,27 @@ export async function handleMunicipalityOnboarding(req, res, serverContext = nul
     }
 
     const isMunicipality = ["municipality", "obec"].includes(customer.org_type);
+
+    if (customer.is_test) {
+      const { data: testRun, error: testRunError } = await supabaseAdmin
+        .from("onboarding_test_runs")
+        .select("id, allowed_email, expected_organization_name, status, expires_at")
+        .eq("id", customer.test_run_id)
+        .maybeSingle();
+      if (testRunError) throw testRunError;
+      if (
+        !testRun ||
+        testRun.status !== "submitted" ||
+        new Date(testRun.expires_at) <= new Date() ||
+        testRun.expected_organization_name !== customer.name ||
+        testRun.allowed_email !== String(customer.contact_email || "").trim().toLowerCase() ||
+        testRun.allowed_email !== localAdminEmail
+      ) {
+        return res.status(409).json({
+          error: "Produkční testovací onboarding neodpovídá připravenému běhu.",
+        });
+      }
+    }
 
     await ensureWrittenOrderAcceptance({
       customer,
@@ -814,6 +835,24 @@ export async function handleMunicipalityOnboarding(req, res, serverContext = nul
     const onboarding = onboardingRows?.[0];
     if (!onboarding?.onboarding_run_id) {
       throw new Error("Onboarding RPC nevrátilo auditní identifikátor.");
+    }
+
+    if (customer.is_test) {
+      const { error: testActivationError } = await supabaseAdmin
+        .from("onboarding_test_runs")
+        .update({
+          status: "activated",
+          activated_at: new Date().toISOString(),
+          local_admin_user_id: localAdministrator.userId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", customer.test_run_id)
+        .eq("status", "submitted");
+      if (testActivationError) {
+        console.error("onboarding test run activation audit failed", {
+          testRunId: customer.test_run_id,
+        });
+      }
     }
 
     const authPreparationRecorded = await updateAuthPreparationStatus(

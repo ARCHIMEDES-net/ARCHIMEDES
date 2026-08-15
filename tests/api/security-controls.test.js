@@ -42,6 +42,7 @@ const retiredRoutes = [
 
 const platformAdminRoutes = [
   "admin/activate-municipality",
+  "admin/onboarding-test-runs",
   "admin/create-municipality-organization",
   "admin/invite-municipality-admin",
   "admin/broadcast-recipients",

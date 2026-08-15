@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "check:migrations": "node scripts/check-supabase-migrations.mjs"
+    "check:migrations": "node scripts/check-supabase-migrations.mjs",
+    "test:onboarding:production": "node scripts/run-production-onboarding-e2e.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.7",

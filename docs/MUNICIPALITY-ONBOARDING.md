@@ -145,6 +145,42 @@ Spouštěcí prostředí musí mít tajemství v
 nepřijímá tajemství v souboru ani argumentu, vyžaduje HTTPS, používá časový limit
 a vrací strojově čitelný auditní výsledek.
 
+## Izolovaný produkční E2E test
+
+Automatický test používá stejné veřejné objednávkové API, stejné písemné
+přijetí a stejný onboarding jako skutečný zákazník. Testovací režim lze
+připravit jen platformovým správcem nebo stávající serverovou automatizací a
+vyžaduje serverovou proměnnou:
+
+```text
+ONBOARDING_E2E_EMAIL_ALLOWLIST=<vyhrazená testovací adresa>
+```
+
+Adresa nesmí patřit existujícímu Auth účtu, profilu ani zákazníkovi. Každý běh
+má UUID, přesný název `TEST – E2E onboarding <uuid>`, dvouhodinovou expiraci a
+stavový audit. Veřejná objednávka se jako test označí pouze tehdy, když UUID,
+název, e-mail, stav a expirace přesně odpovídají serverovému záznamu. Parametr
+v URL sám testovací oprávnění nevytváří.
+
+Produkční běh se spouští jen z důvěryhodného prostředí:
+
+```text
+ONBOARDING_E2E_SITE_URL=https://www.archimedeslive.com \
+ONBOARDING_E2E_EMAIL=<vyhrazená testovací adresa> \
+npm run test:onboarding:production
+```
+
+`ONBOARDING_AUTOMATION_SECRET` se předává pouze proměnnou prostředí. Skript
+ověří potvrzení o doručení, stav písemného přijetí `sent`, jediný pokus,
+aktivaci a onboardingový e-mail `sent`. V bloku `finally` vždy spustí cleanup.
+
+Cleanup nejprve ověří `is_test`, `test_run_id`, přesný název a allowlistovaný
+e-mail. Pokud testovací správce patří do jiné organizace, úklid se zastaví.
+Databázová část odstraní pouze ID navázaná na běh a Auth účet maže samostatně
+přes Supabase Admin API. Při chybě Auth mazání zůstane stav `cleanup_pending`,
+takže lze bezpečně zopakovat pouze nedokončenou část. Skutečný zákazník bez
+`is_test = true` nemůže být tímto postupem odstraněn.
+
 ## Schválená struktura zprávy
 
 Zpráva má předmět „ARCHIMEDES Live – přístup správce pro [organizace]“ a
