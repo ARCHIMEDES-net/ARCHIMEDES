@@ -120,7 +120,7 @@ export default function AdminObcePage() {
     const { data, error: loadError } = await supabase
       .from("organizations")
       .select(
-        "id, name, org_type, parent_organization_id, registration_number, license_status, requested_license_plan, license_plan, license_started_at, license_valid_until, contract_status, billing_status, status, contact_name, contact_email, contact_phone, created_at"
+        "id, name, org_type, parent_organization_id, registration_number, license_status, requested_license_plan, license_plan, license_started_at, license_valid_until, contract_status, billing_status, status, contact_name, contact_email, contact_phone, terms_accepted_at, created_at"
       )
       .in("org_type", [
         "municipality",
@@ -710,7 +710,9 @@ export default function AdminObcePage() {
                   className="mt-1 h-4 w-4"
                 />
                 <span className="text-sm leading-relaxed text-slate-700">
-                  Potvrzuji, že byla ověřena totožnost zákazníka, oprávnění kontaktní osoby a uzavření příslušné smlouvy.
+                  {selectedCustomer.terms_accepted_at
+                    ? "Potvrzuji, že byla ověřena totožnost zákazníka a oprávnění objednatele. Při dokončení onboardingu systém nejprve odešle objednateli auditované písemné přijetí se zvolenou licencí, fakturací a datem zahájení; teprve po úspěšném odeslání aktivuje zákazníka."
+                    : "Potvrzuji, že byla ověřena totožnost zákazníka, oprávnění kontaktní osoby a uzavření příslušné smlouvy."}
                 </span>
               </label>
 
