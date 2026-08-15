@@ -44,6 +44,7 @@ describe("auditované písemné přijetí objednávky", () => {
     }
     expect(migration).toContain("organization_id uuid not null unique");
     expect(migration).toContain("acceptance_reference uuid not null unique");
+    expect(migration).toContain("customer_order_acceptances_performed_by_idx");
   });
 
   it("v administraci vysvětluje automatické pořadí Zuzaně", () => {

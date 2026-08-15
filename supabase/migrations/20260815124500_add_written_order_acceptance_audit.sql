@@ -30,6 +30,9 @@ create table public.customer_order_acceptances (
     check (attempt_count >= 0)
 );
 
+create index customer_order_acceptances_performed_by_idx
+  on public.customer_order_acceptances (performed_by);
+
 comment on table public.customer_order_acceptances is
   'Audit písemného přijetí webové objednávky oddělený od onboardingového e-mailu lokálnímu správci.';
 comment on column public.customer_order_acceptances.acceptance_reference is
