@@ -16,6 +16,15 @@ Uživatel má na jednom místě vidět, co je nového, a může si zapnout přip
 ## Pravidla této etapy
 
 - Automatické notifikace jsou ve výchozím stavu vypnuté (`notifications_enabled = false`).
+- Výchozí politika doručení je pouze interní schránka (`in_app_only`). WebMeeting
+  může rozesílat vlastní pozvánky a připomenutí, proto ARCHIMEDES nesmí vytvářet
+  e-mailové ani push doručení, dokud správce výslovně nepotvrdí vlastnictví kanálu.
+- Pro vysílání ve WebMeetingu má 30minutový e-mail ve výchozím stavu na starosti
+  WebMeeting. Zapnutí `archimedes_all` vyžaduje předchozí kontrolu šablon a
+  automatických zpráv v administraci poskytovatele.
+- Jednotlivé nově publikované pořady se zobrazují pouze v centru novinek.
+  Externí kanály se pro ně nepoužijí, dokud nevznikne souhrnný digest. Pokud
+  současně připadne připomínka stejného pořadu, má přednost jediná připomínka.
 - Migrace nic neplánuje, neposílá a nezavádí cron.
 - Každé budoucí doručení má jedinečný `dedupe_key`, aby se stejná zpráva neposlala dvakrát.
 - Fronta a audit doručení jsou dostupné pouze serverové roli.

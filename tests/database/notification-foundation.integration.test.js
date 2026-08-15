@@ -10,6 +10,13 @@ const migration = fs.readFileSync(
   ),
   "utf8"
 );
+const queueMigration = fs.readFileSync(
+  path.join(
+    process.cwd(),
+    "supabase/migrations/20260815203000_add_notification_enqueue_rpc.sql"
+  ),
+  "utf8"
+);
 
 const database = new PGlite();
 
@@ -34,9 +41,22 @@ beforeAll(async () => {
     create table public.events (
       id uuid primary key
     );
+    create table public.notification_preferences (
+      profile_id uuid not null,
+      activity_code text not null,
+      enabled boolean not null default true,
+      unique (profile_id, activity_code)
+    );
+    create table public.user_interests (
+      user_id uuid not null,
+      interest_slug text not null,
+      primary key (user_id, interest_slug)
+    );
     create table public.broadcast_sessions (
       id uuid primary key,
-      event_id uuid references public.events(id)
+      event_id uuid references public.events(id),
+      starts_at timestamptz,
+      is_published boolean not null default false
     );
     create function public.set_updated_at()
     returns trigger
@@ -50,6 +70,7 @@ beforeAll(async () => {
   `);
 
   await database.exec(migration);
+  await database.exec(queueMigration);
 });
 
 afterAll(async () => {
@@ -68,7 +89,7 @@ describe("notification foundation database integration", () => {
 
     const result = await database.query(
       `select recipient_group_codes, recipient_groups_configured,
-              notifications_enabled, reminder_minutes
+              notifications_enabled, notification_delivery_policy, reminder_minutes
        from public.broadcast_sessions where id = $1`,
       [sessionId]
     );
@@ -77,6 +98,7 @@ describe("notification foundation database integration", () => {
       recipient_group_codes: [],
       recipient_groups_configured: false,
       notifications_enabled: false,
+      notification_delivery_policy: "in_app_only",
       reminder_minutes: [1440, 30],
     });
   });
@@ -109,5 +131,45 @@ describe("notification foundation database integration", () => {
          values ('other@example.test', 'email', now(), 'same-delivery')`
       )
     ).rejects.toThrow();
+  });
+
+  it("atomically enqueues each notification and delivery only once", async () => {
+    const profileId = "44444444-4444-4444-8444-444444444444";
+    const eventId = "55555555-5555-4555-8555-555555555555";
+    await database.query("insert into public.profiles (id) values ($1)", [profileId]);
+    await database.query("insert into public.events (id) values ($1)", [eventId]);
+
+    const candidates = JSON.stringify([
+      {
+        profile_id: profileId,
+        event_id: eventId,
+        kind: "event_reminder",
+        title: "Za 30 minut vysíláme",
+        body: "Připomenutí",
+        target_path: `/portal/udalost/${eventId}`,
+        available_at: "2026-08-15T10:00:00.000Z",
+        dedupe_key: `event-reminder:${eventId}:${profileId}:30`,
+        email_enabled: true,
+        push_enabled: false,
+      },
+    ]);
+
+    const first = await database.query(
+      "select * from public.enqueue_notification_candidates($1::jsonb)",
+      [candidates]
+    );
+    const replay = await database.query(
+      "select * from public.enqueue_notification_candidates($1::jsonb)",
+      [candidates]
+    );
+
+    expect(first.rows[0]).toMatchObject({
+      notifications_inserted: 1,
+      deliveries_inserted: 1,
+    });
+    expect(replay.rows[0]).toMatchObject({
+      notifications_inserted: 0,
+      deliveries_inserted: 0,
+    });
   });
 });

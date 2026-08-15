@@ -65,3 +65,14 @@ kapacitu 201 účastníků. Oficiální dokumentace API přiřazuje místnosti p
 - aktualizace a rušení již vytvořené místnosti při změně události;
 - webhooky (ve veřejném API nejsou doloženy);
 - zátěžové testy, SLA a garantovaný souběh místností.
+
+## Vlastnictví upozornění
+
+WebMeeting podporuje automatické pozvánky několik hodin či dní před setkáním,
+30minutové potvrzení přístupu a další follow-up zprávy. Konkrétní nastavení
+účtu není součástí veřejného API, které používá ARCHIMEDES, a musí se ověřit
+přímo v administraci WebMeetingu.
+
+Dokud tato kontrola neproběhne, připravuje ARCHIMEDES pouze interní oznámení.
+E-mailové a push doručení se pro každé vysílání aktivuje samostatnou politikou;
+výchozí hodnota `in_app_only` brání dvojímu obeslání účastníků.

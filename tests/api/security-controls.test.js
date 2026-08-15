@@ -145,8 +145,8 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
     expect(source).not.toMatch(/req\.(query|body).*CRON_SECRET/i);
     expect(source).toContain('createHash("sha256")');
     expect(source).toContain("crypto.timingSafeEqual");
-    expect(source.indexOf("secretsMatch(token, CRON_SECRET)")).toBeLessThan(
-      source.indexOf('createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY')
+    expect(source.indexOf("secretsMatch(bearerToken(req), cronSecret)")).toBeLessThan(
+      source.indexOf("createClient(supabaseUrl, serviceRoleKey")
     );
   });
 
