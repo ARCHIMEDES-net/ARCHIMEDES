@@ -17,7 +17,9 @@ import {
 } from "../../../../lib/broadcastLifecycle";
 import {
   MAX_MANUAL_RECIPIENT_EMAILS,
+  getInitialRecipientGroups,
   normalizeManualRecipientEmails,
+  normalizeRecipientGroupCodes,
 } from "../../../../lib/broadcastRecipients";
 
 const STATUS_OPTIONS = [
@@ -34,32 +36,6 @@ const RECORDING_STATUS_OPTIONS = [
   { value: "published", label: "Publikováno" },
   { value: "failed", label: "Chyba" },
 ];
-
-const AUDIENCE_TO_INTEREST = {
-  "i. stupeň": "skola_1_stupen",
-  "1. stupeň": "skola_1_stupen",
-  "ii. stupeň": "skola_2_stupen",
-  "2. stupeň": "skola_2_stupen",
-  učitelé: "ucitele",
-  senioři: "seniori",
-  komunita: "komunita",
-};
-
-function suggestRecipientGroups(event, availableGroups) {
-  const availableCodes = new Set(availableGroups.map((group) => group.slug));
-  const audience = Array.isArray(event?.audience_groups)
-    ? event.audience_groups
-    : String(event?.audience || "").split(",");
-
-  return [
-    ...new Set(
-      audience
-        .map((value) => String(value || "").trim().toLocaleLowerCase("cs"))
-        .map((value) => (availableCodes.has(value) ? value : AUDIENCE_TO_INTEREST[value]))
-        .filter((value) => value && availableCodes.has(value))
-    ),
-  ];
-}
 
 function toDateTimeLocalValue(date) {
   if (!date) return "";
@@ -211,7 +187,14 @@ export default function AdminVysilaniDetailPage() {
           : ""
       );
       const groups = await loadRecipientGroups();
-      setSelectedRecipientGroups(suggestRecipientGroups(eventData, groups));
+      setSelectedRecipientGroups(
+        getInitialRecipientGroups({
+          event: eventData,
+          availableGroups: groups,
+          persistedCodes: session.recipient_group_codes,
+          configured: session.recipient_groups_configured,
+        })
+      );
       await Promise.all([loadWebMeetingStatus(), loadAttendance()]);
     } catch (e) {
       setError(e.message || "Nepodařilo se načíst detail vysílání.");
@@ -396,7 +379,14 @@ export default function AdminVysilaniDetailPage() {
 
       const { error: recipientSaveError } = await supabase
         .from("broadcast_sessions")
-        .update({ manual_recipient_emails: manualRecipients.emails })
+        .update({
+          manual_recipient_emails: manualRecipients.emails,
+          recipient_group_codes: normalizeRecipientGroupCodes(
+            selectedRecipientGroups,
+            recipientGroups
+          ),
+          recipient_groups_configured: true,
+        })
         .eq("id", sessionId);
       if (recipientSaveError) throw recipientSaveError;
 
@@ -503,6 +493,11 @@ export default function AdminVysilaniDetailPage() {
             starts_at: startsAt ? new Date(startsAt).toISOString() : null,
             is_published: status !== "draft",
             manual_recipient_emails: manualRecipients.emails,
+            recipient_group_codes: normalizeRecipientGroupCodes(
+              selectedRecipientGroups,
+              recipientGroups
+            ),
+            recipient_groups_configured: true,
           };
 
       const { error: updateError } = await supabase

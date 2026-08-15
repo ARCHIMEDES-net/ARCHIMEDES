@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { normalizeManualRecipientEmails } from "../../lib/broadcastRecipients";
+import {
+  getInitialRecipientGroups,
+  normalizeManualRecipientEmails,
+  normalizeRecipientGroupCodes,
+} from "../../lib/broadcastRecipients";
 
 describe("manual broadcast recipients", () => {
   it("accepts common separators, normalizes case and removes duplicates", () => {
@@ -20,5 +24,37 @@ describe("manual broadcast recipients", () => {
       invalid: ["broken-address"],
       inputCount: 2,
     });
+  });
+});
+
+describe("broadcast recipient groups", () => {
+  const groups = [{ slug: "seniori" }, { slug: "ucitele" }, { slug: "komunita" }];
+
+  it("keeps a persisted admin selection and removes stale or duplicate codes", () => {
+    expect(normalizeRecipientGroupCodes(["seniori", "missing", "seniori"], groups)).toEqual([
+      "seniori",
+    ]);
+  });
+
+  it("uses persisted groups once the selection was configured", () => {
+    expect(
+      getInitialRecipientGroups({
+        event: { audience_groups: ["Senioři"] },
+        availableGroups: groups,
+        persistedCodes: ["ucitele"],
+        configured: true,
+      })
+    ).toEqual(["ucitele"]);
+  });
+
+  it("suggests groups from the event only for legacy unconfigured sessions", () => {
+    expect(
+      getInitialRecipientGroups({
+        event: { audience_groups: ["Senioři", "Komunita"] },
+        availableGroups: groups,
+        persistedCodes: [],
+        configured: false,
+      })
+    ).toEqual(["seniori", "komunita"]);
   });
 });
