@@ -1,3 +1,4 @@
+-- Preview integration trigger for PR #176; no runtime effect.
 -- Atomically create in-app notifications and future channel deliveries.
 -- The RPC is server-only and does not send anything to an external provider.
 
