@@ -250,3 +250,21 @@ jiné odkazy k posouzení a chybějící záznamy.
   vysílání, archivu i členském přístupu, prázdný `search_path` všech čtyř RPC
   a odebrané `EXECUTE` pro `anon`. Celkové počty Advisor nálezů zůstaly beze
   změny: 31 bezpečnostních a 110 výkonových historických zjištění.
+
+
+## Vyřazení klientského přístupu ke starému aktivačnímu RPC – produkce 15. 8. 2026
+
+- Migrace `20260815092557_retire_legacy_activation_rpc_client_access.sql`
+  odebírá `EXECUTE` na `activate_customer_with_admin_v2(...)` rolím
+  `PUBLIC`, `anon` a `authenticated`; zachovává jej pouze
+  důvěryhodnému serverovému `service_role`.
+- Funkce se nemaže ani nepřepisuje, takže zůstává možnost řízeného serverového
+  rollbacku. Běžný onboarding není dotčen: aplikační cesta používá
+  `onboard_customer_v3(...)` a `onboard_customer_service_v1(...)`.
+- Důvodem je odstranění staré alternativní cesty, která uměla nastavit
+  `contract_status = 'accepted'` bez kontroly auditovaného písemného přijetí
+  objednávky zavedeného v PR #173.
+- Regresní test ověřuje, že staré RPC není klientskou vstupní cestou a že nová
+  migrace explicitně ponechává `EXECUTE` pouze roli `service_role`.
+- Migrace byla aplikována do produkce jako verze `20260815092557`; změnila
+  pouze oprávnění funkce a nepřepisovala žádná zákaznická data.

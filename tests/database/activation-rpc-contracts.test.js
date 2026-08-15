@@ -18,6 +18,9 @@ describe("customer activation RPC security contracts", () => {
   const retiredRpcGrants = normalized(
     "supabase/migrations/20260731061347_revoke_obsolete_activation_rpc_grants.sql"
   );
+  const retiredV2RpcGrants = normalized(
+    "supabase/migrations/20260815092557_retire_legacy_activation_rpc_client_access.sql"
+  );
   const baseline = normalized(
     "supabase/migrations/20260730080347_production_public_schema_baseline.sql"
   );
@@ -61,5 +64,18 @@ describe("customer activation RPC security contracts", () => {
     expect(baseline).toMatch(
       /activate_customer_with_admin_v2[\s\S]*?if not public\.is_admin\(\) then[\s\S]*?raise exception/
     );
+  });
+
+  it("retires authenticated client access to the legacy v2 activation RPC", () => {
+    expect(retiredV2RpcGrants).toContain(
+      "revoke execute on function public.activate_customer_with_admin_v2("
+    );
+    expect(retiredV2RpcGrants).toContain(
+      ") from public, anon, authenticated"
+    );
+    expect(retiredV2RpcGrants).toContain(
+      "grant execute on function public.activate_customer_with_admin_v2("
+    );
+    expect(retiredV2RpcGrants).toContain(") to service_role");
   });
 });

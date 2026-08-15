@@ -5,7 +5,7 @@ Stav po issue #106. `EXECUTE` pro `anon` a `PUBLIC` zůstává odebrané u všec
 
 | Funkce | Klasifikace | Rozhodnutí |
 | --- | --- | --- |
-| `activate_customer_with_admin_v2(...)` | nutné administrační RPC | Zachovat `SECURITY DEFINER`; volá se s JWT platformového admina, uvnitř ověřuje `is_admin()`, prázdný `search_path`. |
+| `activate_customer_with_admin_v2(...)` | zastaralé servisní RPC | Klientský přístup vyřadit; `EXECUTE` ponechat pouze `service_role`. Současná aplikace používá výhradně auditované `onboard_customer_v3(...)` / `onboard_customer_service_v1(...)`, které vyžadují písemné přijetí objednávky. |
 | `onboard_customer_v3(...)` | nutné administrační RPC | Nový jednotný onboarding: ověřuje `auth.uid()` a `is_platform_admin()`, používá prázdný `search_path`, transakčně zapisuje profil, členství, licenci a audit; podle skutečného serverového volajícího má `EXECUTE` pouze `authenticated`. |
 | `claim_onboarding_email_attempt(...)` | nutné administrační RPC | Pod řádkovým zámkem vytváří jediný `sending` pokus a audit návaznosti; vyžaduje aktuální `is_platform_admin()`. |
 | `complete_onboarding_email_attempt(...)` | nutné administrační RPC | Atomicky uzavírá právě claimnutý pokus jako `sent`, `failed` nebo `delivery_unknown`; vyžaduje aktuální `is_platform_admin()`. |
