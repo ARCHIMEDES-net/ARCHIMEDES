@@ -12,6 +12,7 @@ import {
   safeNotificationTargetPath,
 } from "../../lib/notifications";
 import { supabase } from "../../lib/supabaseClient";
+import { publishUnreadNotificationCount } from "../../lib/appBadge";
 
 function formatDate(value) {
   const date = new Date(value);
@@ -110,6 +111,10 @@ export default function NovinkyPage() {
   }
 
   const unreadCount = notifications.filter((item) => !item.read_at).length;
+
+  useEffect(() => {
+    if (!loading) publishUnreadNotificationCount(unreadCount);
+  }, [loading, unreadCount]);
 
   return (
     <RequireAuth>
