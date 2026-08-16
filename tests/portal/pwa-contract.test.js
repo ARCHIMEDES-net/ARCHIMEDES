@@ -13,9 +13,29 @@ describe("PWA contract", () => {
     expect(manifest.short_name).toBe("ARCHIMEDES Live");
     expect(manifest.start_url).toBe("/portal/novinky");
     expect(manifest.display).toBe("standalone");
-    expect(manifest.icons.map((icon) => icon.sizes)).toEqual(["192x192", "512x512"]);
+    expect(manifest.icons).toEqual([
+      {
+        src: "/pwa-icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/pwa-icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/pwa-icon-maskable-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+    ]);
     expect(fs.existsSync(path.join(process.cwd(), "public/pwa-icon-192.png"))).toBe(true);
     expect(fs.existsSync(path.join(process.cwd(), "public/pwa-icon-512.png"))).toBe(true);
+    expect(fs.existsSync(path.join(process.cwd(), "public/pwa-icon-maskable-512.png"))).toBe(true);
   });
 
   it("corrects a standalone launch restored at the portal dashboard", () => {
