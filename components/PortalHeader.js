@@ -9,6 +9,7 @@ import {
   UNREAD_NOTIFICATION_COUNT_EVENT,
   publishUnreadNotificationCount,
 } from "../lib/appBadge";
+import PwaInstallDiscovery from "./PwaInstallDiscovery";
 
 const LOGO_SRC = "/logo-archimedes-live.png";
 let cachedHeaderAccess = null;
@@ -287,9 +288,10 @@ export default function PortalHeader({ title = "" }) {
   ].filter(Boolean);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-900/[0.08] bg-white/96 backdrop-blur-md">
-      <div className={cn("mx-auto max-w-[1160px]", isMobile ? "px-3.5 py-3" : "px-4 py-3")}>
-        <div className="flex items-start justify-between gap-4">
+    <>
+      <header className="sticky top-0 z-30 border-b border-slate-900/[0.08] bg-white/96 backdrop-blur-md">
+        <div className={cn("mx-auto max-w-[1160px]", isMobile ? "px-3.5 py-3" : "px-4 py-3")}>
+          <div className="flex items-start justify-between gap-4">
           <div className="relative z-40 flex shrink-0 items-center gap-3">
             <Link href="/portal" className="flex shrink-0 items-center">
               <Image src={LOGO_SRC} alt="ARCHIMEDES Live" width={842} height={130} priority className={cn("-mt-0.5 block w-auto", isMobile ? "h-7" : "h-[34px]")} />
@@ -310,22 +312,24 @@ export default function PortalHeader({ title = "" }) {
               <button type="button" onClick={onLogout} className="min-h-[42px] rounded-2xl border border-slate-200 bg-white px-3.5 text-sm font-extrabold text-navy-900">Odhlásit</button>
             </nav>
           )}
-        </div>
-
-        {isMobile && menuOpen ? (
-          <div className="mt-3 rounded-2xl border border-slate-900/[0.08] bg-slate-50 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
-            <nav className="grid gap-2.5">
-              {organizationSwitcher ? <div className="rounded-2xl border border-slate-200 bg-white p-3 [&_select]:w-full">{organizationSwitcher}</div> : null}
-              {mainLinks.map((item) => <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}><span>{item.label}</span>{item.badge ? <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[11px] leading-none text-white">{item.badge > 99 ? "99+" : item.badge}</span> : null}</Link>)}
-              {adminLinks.length > 0 ? <><div className="mb-1 mt-0.5 text-xs font-extrabold uppercase tracking-[0.04em] text-slate-500">Správa a nastavení</div>{adminLinks.map((item) => <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}>{item.label}</Link>)}</> : null}
-              <div className="mb-1 mt-0.5 text-xs font-extrabold uppercase tracking-[0.04em] text-slate-500">Další</div>
-              <Link href="/instalace" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE)}>Přidat A Live do telefonu</Link>
-              <Link href="/" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE)}>Veřejný web</Link>
-              <button type="button" onClick={onLogout} className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE, "cursor-pointer text-left")}>Odhlásit</button>
-            </nav>
           </div>
-        ) : null}
-      </div>
-    </header>
+
+          {isMobile && menuOpen ? (
+            <div className="mt-3 rounded-2xl border border-slate-900/[0.08] bg-slate-50 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
+              <nav className="grid gap-2.5">
+                {organizationSwitcher ? <div className="rounded-2xl border border-slate-200 bg-white p-3 [&_select]:w-full">{organizationSwitcher}</div> : null}
+                {mainLinks.map((item) => <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}><span>{item.label}</span>{item.badge ? <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[11px] leading-none text-white">{item.badge > 99 ? "99+" : item.badge}</span> : null}</Link>)}
+                {adminLinks.length > 0 ? <><div className="mb-1 mt-0.5 text-xs font-extrabold uppercase tracking-[0.04em] text-slate-500">Správa a nastavení</div>{adminLinks.map((item) => <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}>{item.label}</Link>)}</> : null}
+                <div className="mb-1 mt-0.5 text-xs font-extrabold uppercase tracking-[0.04em] text-slate-500">Další</div>
+                <Link href="/instalace" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE)}>Přidat A Live do telefonu</Link>
+                <Link href="/" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE)}>Veřejný web</Link>
+                <button type="button" onClick={onLogout} className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE, "cursor-pointer text-left")}>Odhlásit</button>
+              </nav>
+            </div>
+          ) : null}
+        </div>
+      </header>
+      <PwaInstallDiscovery />
+    </>
   );
 }

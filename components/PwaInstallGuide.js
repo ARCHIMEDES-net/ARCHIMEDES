@@ -54,7 +54,7 @@ function SafariSteps({ startAt = 1 }) {
       </Step>
       <Step number={startAt + 2} title="Potvrďte Přidat">
         Nechte zapnutou volbu „Otevřít jako webovou aplikaci“. Na ploše se objeví
-        červenobílá ikona A Live.
+        ikona A Live se znakem „a + live“.
       </Step>
     </ol>
   );
@@ -232,7 +232,7 @@ export default function PwaInstallGuide() {
               Položka se může jmenovat také „Nainstalovat aplikaci“.
             </Step>
             <Step number="3" title="Potvrďte Instalovat">
-              Na ploše telefonu se objeví červenobílá ikona A Live.
+              Na ploše telefonu se objeví ikona A Live se znakem „a + live“.
             </Step>
           </ol>
         )}
