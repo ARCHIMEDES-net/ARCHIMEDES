@@ -23,11 +23,16 @@ const dependencies = vi.hoisted(() => {
     builder,
     supabase,
     createClient: vi.fn(() => supabase),
+    prepareNotificationQueue: vi.fn(),
   };
 });
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient: dependencies.createClient,
+}));
+
+vi.mock("../../lib/server/notificationQueue", () => ({
+  prepareNotificationQueue: dependencies.prepareNotificationQueue,
 }));
 
 import cronHandler from "../../pages/api/cron/send-reminders";
@@ -37,6 +42,7 @@ const environmentKeys = [
   "CRON_SECRET",
   "SUPABASE_URL",
   "SUPABASE_SERVICE_ROLE_KEY",
+  "NOTIFICATION_GENERATION_ENABLED",
   "INSTAGRAM_ACCESS_TOKEN",
   "INSTAGRAM_ACCOUNT_ID",
   "INSTAGRAM_GRAPH_API_VERSION",
@@ -49,6 +55,14 @@ beforeEach(() => {
   dependencies.createClient.mockClear();
   dependencies.supabase.from.mockClear();
   dependencies.queryState.result = { data: [], error: null };
+  dependencies.prepareNotificationQueue.mockReset();
+  dependencies.prepareNotificationQueue.mockResolvedValue({
+    preview: true,
+    sessions: 0,
+    candidates: 0,
+    notificationsInserted: 0,
+    deliveriesInserted: 0,
+  });
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
@@ -199,29 +213,14 @@ describe("reminder cron endpoint", () => {
     expect(dependencies.createClient).not.toHaveBeenCalled();
   });
 
-  it("builds a side-effect-free preview plan for events in the reminder window", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-07-29T12:00:00.000Z"));
-    dependencies.queryState.result = {
-      data: [
-        {
-          id: "event-1",
-          title: "Live event",
-          is_published: true,
-          starts_at: "2026-07-29T13:00:00.000Z",
-          stream_url: "https://stream.example/watch",
-          worksheet_url: null,
-          audience: ["teachers"],
-        },
-        {
-          id: "invalid-event",
-          title: "Invalid",
-          is_published: true,
-          starts_at: "invalid",
-        },
-      ],
-      error: null,
-    };
+  it("builds a side-effect-free authenticated preview", async () => {
+    dependencies.prepareNotificationQueue.mockResolvedValue({
+      preview: true,
+      sessions: 2,
+      candidates: 1,
+      notificationsInserted: 0,
+      deliveriesInserted: 0,
+    });
 
     const { res } = await invoke(cronHandler, {
       method: "GET",
@@ -233,21 +232,33 @@ describe("reminder cron endpoint", () => {
     expect(res.body).toMatchObject({
       ok: true,
       preview: true,
-      found_events: 2,
-      reminders_in_window: 1,
+      sessions: 2,
+      candidates: 1,
+      notificationsInserted: 0,
+      deliveriesInserted: 0,
     });
-    expect(res.body.plan).toEqual([
-      expect.objectContaining({
-        event_id: "event-1",
-        reminder_minutes_before: 60,
-        target_at: "2026-07-29T12:00:00.000Z",
-      }),
-    ]);
-    expect(res.body.note).toContain("nic se neposílá");
+    expect(dependencies.prepareNotificationQueue).toHaveBeenCalledWith(
+      dependencies.supabase,
+      { preview: true }
+    );
     expect(dependencies.createClient).toHaveBeenCalledWith(
       "https://example.supabase.co",
       "service-role-key",
-      { auth: { persistSession: false } }
+      { auth: { persistSession: false, autoRefreshToken: false } }
     );
+  });
+
+  it("does not access the database while generation is globally disabled", async () => {
+    delete process.env.NOTIFICATION_GENERATION_ENABLED;
+
+    const { res } = await invoke(cronHandler, {
+      method: "GET",
+      headers: { authorization: "Bearer cron-secret" },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({ ok: true, enabled: false });
+    expect(dependencies.createClient).not.toHaveBeenCalled();
+    expect(dependencies.prepareNotificationQueue).not.toHaveBeenCalled();
   });
 });

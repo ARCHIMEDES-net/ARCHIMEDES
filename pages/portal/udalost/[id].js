@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, Lock, CalendarPlus, CalendarDays, FileText, X } from "lucide-react";
+import { BellOff, BellRing, Check, Lock, CalendarPlus, CalendarDays, FileText, X } from "lucide-react";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import JoinBroadcastButton from "../../../components/JoinBroadcastButton";
@@ -166,6 +166,10 @@ export default function UdalostDetail() {
   const [isAttending, setIsAttending] = useState(false);
   const [attendeeCount, setAttendeeCount] = useState(0);
   const [attendeeError, setAttendeeError] = useState("");
+  const [reminderLoading, setReminderLoading] = useState(false);
+  const [reminderSaving, setReminderSaving] = useState(false);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderError, setReminderError] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -326,6 +330,36 @@ export default function UdalostDetail() {
   }, [id, activeOrganizationId, isPlatformAdmin]);
 
   useEffect(() => {
+    let mounted = true;
+
+    async function loadReminder() {
+      if (!id || !currentUserId) return;
+      setReminderLoading(true);
+      setReminderError("");
+
+      try {
+        const { data, error } = await supabase
+          .from("event_reminder_subscriptions")
+          .select("enabled")
+          .eq("event_id", id)
+          .eq("profile_id", currentUserId)
+          .maybeSingle();
+        if (error) throw error;
+        if (mounted) setReminderEnabled(data?.enabled === true);
+      } catch (error) {
+        if (mounted) {
+          setReminderError(error?.message || "Připomenutí se nepodařilo načíst.");
+        }
+      } finally {
+        if (mounted) setReminderLoading(false);
+      }
+    }
+
+    loadReminder();
+    return () => { mounted = false; };
+  }, [id, currentUserId]);
+
+  useEffect(() => {
     if (!isPosterOpen) return;
 
     function handleKeyDown(e) {
@@ -432,6 +466,29 @@ export default function UdalostDetail() {
       setAttendeeError(e?.message || "Přihlášení účasti se nepodařilo.");
     } finally {
       setAttendeeSaving(false);
+    }
+  }
+
+  async function handleReminderToggle() {
+    if (!id || !currentUserId || reminderSaving) return;
+
+    const nextEnabled = !reminderEnabled;
+    setReminderSaving(true);
+    setReminderError("");
+
+    try {
+      const { error } = await supabase
+        .from("event_reminder_subscriptions")
+        .upsert(
+          { event_id: id, profile_id: currentUserId, enabled: nextEnabled },
+          { onConflict: "event_id,profile_id" }
+        );
+      if (error) throw error;
+      setReminderEnabled(nextEnabled);
+    } catch (error) {
+      setReminderError(error?.message || "Nastavení připomenutí se nepodařilo uložit.");
+    } finally {
+      setReminderSaving(false);
     }
   }
 
@@ -604,6 +661,27 @@ export default function UdalostDetail() {
           ) : null}
 
           <div className="mt-6 flex flex-wrap gap-2">
+            {calendarStart && calendarStart.getTime() > Date.now() ? (
+              <button
+                type="button"
+                onClick={handleReminderToggle}
+                disabled={reminderLoading || reminderSaving || !currentUserId}
+                className={
+                  reminderEnabled
+                    ? "px-4 py-2 rounded-xl bg-navy-900 text-white font-bold hover:bg-navy-800 disabled:opacity-60"
+                    : "px-4 py-2 rounded-xl border border-navy-900 bg-white text-navy-900 font-bold hover:bg-slate-50 disabled:opacity-60"
+                }
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  {reminderEnabled ? <BellOff className="h-4 w-4" aria-hidden="true" /> : <BellRing className="h-4 w-4" aria-hidden="true" />}
+                  {reminderSaving
+                    ? "Ukládám…"
+                    : reminderEnabled
+                      ? "Připomenutí zapnuto"
+                      : "Připomenout vysílání"}
+                </span>
+              </button>
+            ) : null}
             {canAccessStream ? (
               <JoinBroadcastButton
                 event={row}
@@ -671,6 +749,13 @@ export default function UdalostDetail() {
               Zpět na Program
             </Link>
           </div>
+
+          {reminderEnabled ? (
+            <div className="mt-3 text-sm text-slate-600">
+              Vysílání máte uložené mezi připomenutími. Způsob upozornění nastavíte v Mém profilu.
+            </div>
+          ) : null}
+          {reminderError ? <div className="mt-3 text-sm text-red-700">{reminderError}</div> : null}
         </div>
       </div>
 
