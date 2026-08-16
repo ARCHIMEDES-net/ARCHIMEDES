@@ -24,6 +24,13 @@ describe("notification UI contract", () => {
     expect(newsPage).toContain("publishUnreadNotificationCount(unreadCount)");
   });
 
+  it("offers an explicit iOS badge permission action in the notification center", () => {
+    const newsPage = source("pages/portal/novinky.js");
+    expect(newsPage).toContain("requestAppBadgePermission");
+    expect(newsPage).toContain("Zapnout číslo na ikoně");
+    expect(newsPage).toContain("nezapnou žádné další e-maily ani automatické push zprávy");
+  });
+
   it("keeps broadcast notifications explicit and in-app only in administration", () => {
     const adminPage = source("pages/portal/admin/vysilani/[eventId].js");
     expect(adminPage).toContain("Aktivovat oznámení v aplikaci");

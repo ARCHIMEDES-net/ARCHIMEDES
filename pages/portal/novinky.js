@@ -12,7 +12,11 @@ import {
   safeNotificationTargetPath,
 } from "../../lib/notifications";
 import { supabase } from "../../lib/supabaseClient";
-import { publishUnreadNotificationCount } from "../../lib/appBadge";
+import {
+  appBadgePermissionState,
+  publishUnreadNotificationCount,
+  requestAppBadgePermission,
+} from "../../lib/appBadge";
 
 function formatDate(value) {
   const date = new Date(value);
@@ -46,6 +50,8 @@ export default function NovinkyPage() {
   const [saving, setSaving] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [nextEvent, setNextEvent] = useState(null);
+  const [badgePermission, setBadgePermission] = useState("unsupported");
+  const [requestingBadgePermission, setRequestingBadgePermission] = useState(false);
   const [error, setError] = useState("");
 
   async function loadNotifications() {
@@ -86,6 +92,7 @@ export default function NovinkyPage() {
 
   useEffect(() => {
     loadNotifications();
+    setBadgePermission(appBadgePermissionState());
   }, []);
 
   async function markAllRead() {
@@ -112,6 +119,14 @@ export default function NovinkyPage() {
 
   const unreadCount = notifications.filter((item) => !item.read_at).length;
 
+  async function enableIconBadge() {
+    setRequestingBadgePermission(true);
+    const permission = await requestAppBadgePermission();
+    setBadgePermission(permission);
+    if (permission === "granted") publishUnreadNotificationCount(unreadCount);
+    setRequestingBadgePermission(false);
+  }
+
   useEffect(() => {
     if (!loading) publishUnreadNotificationCount(unreadCount);
   }, [loading, unreadCount]);
@@ -137,6 +152,29 @@ export default function NovinkyPage() {
 
           {error ? <Alert variant="error" className="mb-4">{error}</Alert> : null}
           {loading ? <Alert variant="info">Načítám novinky…</Alert> : null}
+
+          {!loading && unreadCount > 0 && badgePermission === "default" ? (
+            <Card className="mb-5 border-blue-200 bg-blue-50 p-5">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="max-w-xl">
+                  <h2 className="font-black text-navy-900">Zobrazovat počet novinek na ikoně</h2>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                    iPhone vyžaduje jednorázové povolení oznámení. Tímto krokem se nezapnou žádné další e-maily ani automatické push zprávy.
+                  </p>
+                </div>
+                <Button type="button" onClick={enableIconBadge} disabled={requestingBadgePermission}>
+                  <Bell className="mr-2 h-4 w-4" aria-hidden="true" />
+                  {requestingBadgePermission ? "Čekám na potvrzení…" : "Zapnout číslo na ikoně"}
+                </Button>
+              </div>
+            </Card>
+          ) : null}
+
+          {!loading && unreadCount > 0 && badgePermission === "denied" ? (
+            <Alert variant="info" className="mb-5">
+              Číslo na ikoně je v iPhonu zakázané. Zapnete ho v Nastavení → Oznámení → A Live → Odznaky.
+            </Alert>
+          ) : null}
 
           {!loading && nextEvent ? (
             <Card className="mb-5 overflow-hidden border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 sm:p-6">
