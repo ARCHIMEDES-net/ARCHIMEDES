@@ -18,6 +18,15 @@ describe("PWA contract", () => {
     expect(fs.existsSync(path.join(process.cwd(), "public/pwa-icon-512.png"))).toBe(true);
   });
 
+  it("corrects a standalone launch restored at the portal dashboard", () => {
+    const registration = source("components/PwaRegistration.js");
+    expect(registration).toContain('PWA_START_PATH = "/portal/novinky"');
+    expect(registration).toContain("window.navigator.standalone === true");
+    expect(registration).toContain('matchMedia?.("(display-mode: standalone)")');
+    expect(registration).toContain('pathname === "/portal"');
+    expect(registration).toContain("router.replace(PWA_START_PATH)");
+  });
+
   it("returns unauthenticated PWA users to the requested portal page", () => {
     const requireAuth = source("components/RequireAuth.js");
     expect(requireAuth).toContain("function loginPathFor(router)");
