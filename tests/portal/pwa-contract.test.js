@@ -10,7 +10,8 @@ describe("PWA contract", () => {
   it("provides an installable manifest with required icons", () => {
     const manifest = JSON.parse(source("public/manifest.webmanifest"));
     expect(manifest.name).toBe("ARCHIMEDES Live");
-    expect(manifest.start_url).toBe("/portal");
+    expect(manifest.short_name).toBe("ARCHIMEDES Live");
+    expect(manifest.start_url).toBe("/portal/novinky");
     expect(manifest.display).toBe("standalone");
     expect(manifest.icons.map((icon) => icon.sizes)).toEqual(["192x192", "512x512"]);
     expect(fs.existsSync(path.join(process.cwd(), "public/pwa-icon-192.png"))).toBe(true);
