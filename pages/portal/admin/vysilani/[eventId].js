@@ -107,6 +107,7 @@ export default function AdminVysilaniDetailPage() {
   const [recordingStatus, setRecordingStatus] = useState("none");
   const [notesInternal, setNotesInternal] = useState("");
   const [startsAt, setStartsAt] = useState("");
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -181,6 +182,7 @@ export default function AdminVysilaniDetailPage() {
       setRecordingStatus(session.recording_status || "none");
       setNotesInternal(session.notes_internal || "");
       setStartsAt(toDateTimeLocalValue(eventData.starts_at || session.starts_at));
+      setNotificationsEnabled(session.notifications_enabled === true);
       setManualRecipientEmails(
         Array.isArray(session.manual_recipient_emails)
           ? session.manual_recipient_emails.join("\n")
@@ -471,6 +473,10 @@ export default function AdminVysilaniDetailPage() {
         throw new Error("Publikovaný záznam musí mít vyplněný odkaz.");
       }
 
+      if (notificationsEnabled && selectedRecipientGroups.length === 0) {
+        throw new Error("Pro oznámení vyberte alespoň jednu skupinu příjemců.");
+      }
+
       const postProductionPayload = {
         recording_url: normalizedRecordingUrl || null,
         recording_status: recordingStatus,
@@ -492,6 +498,8 @@ export default function AdminVysilaniDetailPage() {
             viewer_url: normalizedViewerUrl || null,
             starts_at: startsAt ? new Date(startsAt).toISOString() : null,
             is_published: status !== "draft",
+            notifications_enabled: notificationsEnabled,
+            notification_delivery_policy: "in_app_only",
             manual_recipient_emails: manualRecipients.emails,
             recipient_group_codes: normalizeRecipientGroupCodes(
               selectedRecipientGroups,
@@ -864,7 +872,15 @@ export default function AdminVysilaniDetailPage() {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <FieldLabel>Stav vysílání</FieldLabel>
-                      <Select value={status} onChange={(e) => setStatus(e.target.value)} disabled={operationalLocked}>
+                      <Select
+                        value={status}
+                        onChange={(e) => {
+                          const nextStatus = e.target.value;
+                          setStatus(nextStatus);
+                          if (nextStatus === "draft") setNotificationsEnabled(false);
+                        }}
+                        disabled={operationalLocked}
+                      >
                         {STATUS_OPTIONS.map((item) => (
                           <option key={item.value} value={item.value}>
                             {item.label}
@@ -881,6 +897,31 @@ export default function AdminVysilaniDetailPage() {
                         onChange={(e) => setStartsAt(e.target.value)}
                         disabled={operationalLocked}
                       />
+                    </div>
+
+                    <div className="sm:col-span-2 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                      <label className="flex items-start gap-3 font-bold text-navy-900">
+                        <input
+                          type="checkbox"
+                          className="mt-1 h-5 w-5"
+                          checked={notificationsEnabled}
+                          onChange={(event) => setNotificationsEnabled(event.target.checked)}
+                          disabled={operationalLocked || status === "draft"}
+                        />
+                        <span>
+                          Aktivovat oznámení v aplikaci
+                          <span className="mt-1 block text-sm font-normal leading-relaxed text-slate-600">
+                            Nové vysílání a zvolená připomenutí se zobrazí v „Co je nového“.
+                            E-mail ani push se tímto nastavením neposílá; přístupový e-mail 30 minut
+                            před začátkem nadále zajišťuje WebMeeting.
+                          </span>
+                          {status === "draft" ? (
+                            <span className="mt-1 block text-xs font-semibold text-amber-700">
+                              Nejprve změňte stav vysílání na Připraveno.
+                            </span>
+                          ) : null}
+                        </span>
+                      </label>
                     </div>
 
                     <div>

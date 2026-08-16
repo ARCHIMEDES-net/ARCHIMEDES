@@ -33,7 +33,11 @@ Uživatel má na jednom místě vidět, co je nového, a může si zapnout přip
 - Jednotlivé nově publikované pořady se zobrazují pouze v centru novinek.
   Externí kanály se pro ně nepoužijí, dokud nevznikne souhrnný digest. Pokud
   současně připadne připomínka stejného pořadu, má přednost jediná připomínka.
-- Migrace nic neplánuje, neposílá a nezavádí cron.
+- Vercel spouští idempotentní plánovač každých 10 minut. Zápis proběhne jen při
+  `NOTIFICATION_GENERATION_ENABLED=true`; trasa je chráněná `CRON_SECRET`.
+- Správce navíc musí u konkrétního připraveného vysílání výslovně zapnout
+  „Aktivovat oznámení v aplikaci“. Aktuální politika se při uložení vždy nastaví
+  na `in_app_only`, takže tato volba neodešle e-mail ani push.
 - Každé budoucí doručení má jedinečný `dedupe_key`, aby se stejná zpráva neposlala dvakrát.
 - Fronta a audit doručení jsou dostupné pouze serverové roli.
 - Uživatel vidí a upravuje pouze vlastní preference, odběry a push zařízení.
@@ -43,8 +47,7 @@ Uživatel má na jednom místě vidět, co je nového, a může si zapnout přip
 
 - produkční VAPID klíč a serverové podepisování push zpráv,
 - poskytovatel push zpráv a e-mailové šablony,
-- cron nebo jiný plánovač,
-- zapnutí odesílání v produkci,
+- zapnutí externího e-mailového nebo push odesílání v produkci,
 - automatické odeslání příjemců do WebMeetingu.
 
 Tyto části patří do samostatných, snadno vratných kroků po kontrole datového základu.

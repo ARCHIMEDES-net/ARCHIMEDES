@@ -5,6 +5,10 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { cn } from "../lib/utils";
 import { fetchMyOrganizations } from "../lib/myOrganizations";
+import {
+  UNREAD_NOTIFICATION_COUNT_EVENT,
+  publishUnreadNotificationCount,
+} from "../lib/appBadge";
 
 const LOGO_SRC = "/logo-archimedes-live.png";
 let cachedHeaderAccess = null;
@@ -68,7 +72,8 @@ export default function PortalHeader({ title = "" }) {
           .is("read_at", null)
           .lte("available_at", new Date().toISOString());
         if (!notificationError && alive) {
-          setUnreadNotificationCount(notificationCount || 0);
+          const unreadCount = publishUnreadNotificationCount(notificationCount || 0);
+          setUnreadNotificationCount(unreadCount);
         }
 
         const { data: profile, error: profileError } = await supabase
@@ -148,6 +153,14 @@ export default function PortalHeader({ title = "" }) {
   }, []);
 
   useEffect(() => { setMenuOpen(false); }, [path]);
+
+  useEffect(() => {
+    function handleUnreadCount(event) {
+      setUnreadNotificationCount(Number(event?.detail?.count) || 0);
+    }
+    window.addEventListener(UNREAD_NOTIFICATION_COUNT_EVENT, handleUnreadCount);
+    return () => window.removeEventListener(UNREAD_NOTIFICATION_COUNT_EVENT, handleUnreadCount);
+  }, []);
 
   const isActive = (key) => {
     if (key === "portal") return path === "/portal" || path === "/portal/";
