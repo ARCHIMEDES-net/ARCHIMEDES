@@ -28,7 +28,7 @@ describe("safe production onboarding E2E contracts", () => {
 
   it("keeps cleanup service-only and guarded against cross-customer deletion", () => {
     const migration = read(
-      "supabase/migrations/20260815073958_add_safe_onboarding_e2e_runs.sql"
+      "supabase/migrations/20260815080027_add_safe_onboarding_e2e_runs.sql"
     );
     expect(migration).toContain("is_test = true");
     expect(migration).toContain("test_run_id = test_run.id");

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const migration = fs.readFileSync(
   path.join(
     process.cwd(),
-    "supabase/migrations/20260815203000_add_notification_enqueue_rpc.sql"
+    "supabase/migrations/20260816055153_add_notification_enqueue_rpc.sql"
   ),
   "utf8"
 ).toLowerCase();

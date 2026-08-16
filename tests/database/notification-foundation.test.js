@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const migrationPath = path.join(
   process.cwd(),
-  "supabase/migrations/20260815174036_add_notification_foundation.sql"
+  "supabase/migrations/20260816055119_add_notification_foundation.sql"
 );
 const sql = fs.readFileSync(migrationPath, "utf8").toLowerCase();
 

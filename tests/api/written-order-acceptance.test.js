@@ -10,7 +10,7 @@ describe("auditované písemné přijetí objednávky", () => {
   const mail = read("lib/server/customerOnboarding.js");
   const portal = read("pages/portal/admin/obce.js");
   const migration = read(
-    "supabase/migrations/20260815124500_add_written_order_acceptance_audit.sql"
+    "supabase/migrations/20260815071338_add_written_order_acceptance_audit.sql"
   );
 
   it("odděluje právní potvrzení objednateli od přístupu lokálního správce", () => {
