@@ -152,6 +152,10 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
 
   it("protects profile completion reminders with the same server-only cron contract", () => {
     const source = readApi("cron/profile-completion-reminders");
+    const helper = fs.readFileSync(
+      path.join(repositoryRoot, "lib/server/profileCompletionReminders.js"),
+      "utf8"
+    );
 
     expect(source).toContain("req.headers?.authorization");
     expect(source).not.toMatch(/req\.(query|body).*CRON_SECRET/i);
@@ -161,6 +165,10 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
       source.indexOf("createClient(")
     );
     expect(source).toContain("PROFILE_COMPLETION_REMINDERS_ENABLED");
+    expect(helper).toContain('.from("platform_admins")');
+    expect(helper).toContain('.from("organization_members")');
+    expect(helper).toContain('.or("is_test.eq.false,is_test.is.null")');
+    expect(helper).toContain('.eq("status", "active")');
   });
 
   it.each(retiredRoutes)("%s remains an unconditional gone endpoint", (route) => {
