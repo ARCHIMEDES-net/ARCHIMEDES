@@ -150,6 +150,19 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
     );
   });
 
+  it("protects profile completion reminders with the same server-only cron contract", () => {
+    const source = readApi("cron/profile-completion-reminders");
+
+    expect(source).toContain("req.headers?.authorization");
+    expect(source).not.toMatch(/req\.(query|body).*CRON_SECRET/i);
+    expect(source).toContain('createHash("sha256")');
+    expect(source).toContain("crypto.timingSafeEqual");
+    expect(source.indexOf("secretsMatch(bearerToken(req), cronSecret)")).toBeLessThan(
+      source.indexOf("createClient(")
+    );
+    expect(source).toContain("PROFILE_COMPLETION_REMINDERS_ENABLED");
+  });
+
   it.each(retiredRoutes)("%s remains an unconditional gone endpoint", (route) => {
     const source = readApi(route);
 
