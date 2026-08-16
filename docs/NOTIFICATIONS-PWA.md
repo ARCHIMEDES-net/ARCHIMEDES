@@ -35,6 +35,10 @@ Uživatel má na jednom místě vidět, co je nového, a může si zapnout přip
   současně připadne připomínka stejného pořadu, má přednost jediná připomínka.
 - Vercel spouští idempotentní plánovač každých 10 minut. Zápis proběhne jen při
   `NOTIFICATION_GENERATION_ENABLED=true`; trasa je chráněná `CRON_SECRET`.
+- iOS zobrazí počet nepřečtených novinek na ikoně PWA až po jednorázovém
+  systémovém povolení oznámení. Centrum „Co je nového“ proto nabízí samostatné
+  tlačítko pro toto povolení. Samotné povolení nevytvoří push subscription,
+  nezapne e-mail ani nezačne odesílat push zprávy.
 - Správce navíc musí u konkrétního připraveného vysílání výslovně zapnout
   „Aktivovat oznámení v aplikaci“. Aktuální politika se při uložení vždy nastaví
   na `in_app_only`, takže tato volba neodešle e-mail ani push.
