@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Link from "next/link";
-import { Bell, CheckCheck } from "lucide-react";
+import { Bell, CalendarClock, CheckCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import PortalHeader from "../../components/PortalHeader";
 import RequireAuth from "../../components/RequireAuth";
@@ -26,24 +26,56 @@ function formatDate(value) {
       });
 }
 
+function formatBroadcastDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleString("cs-CZ", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function NovinkyPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [nextEvent, setNextEvent] = useState(null);
   const [error, setError] = useState("");
 
   async function loadNotifications() {
     setLoading(true);
     setError("");
     try {
-      const { data, error: loadError } = await supabase
-        .from("user_notifications")
-        .select("id, kind, title, body, target_path, available_at, read_at")
-        .lte("available_at", new Date().toISOString())
-        .order("available_at", { ascending: false })
-        .limit(100);
-      if (loadError) throw loadError;
-      setNotifications(Array.isArray(data) ? data : []);
+      const nowIso = new Date().toISOString();
+      const [
+        { data: notificationData, error: notificationError },
+        { data: eventData, error: eventError },
+      ] = await Promise.all([
+        supabase
+          .from("user_notifications")
+          .select("id, kind, title, body, target_path, available_at, read_at")
+          .lte("available_at", nowIso)
+          .order("available_at", { ascending: false })
+          .limit(100),
+        supabase
+          .from("events")
+          .select("id, title, starts_at, category")
+          .eq("is_published", true)
+          .gt("starts_at", nowIso)
+          .order("starts_at", { ascending: true })
+          .limit(1),
+      ]);
+
+      if (notificationError) throw notificationError;
+      if (eventError) throw eventError;
+
+      setNotifications(Array.isArray(notificationData) ? notificationData : []);
+      setNextEvent(Array.isArray(eventData) ? eventData[0] || null : null);
     } catch (loadError) {
       setError(loadError?.message || "Novinky se nepodařilo načíst.");
     } finally {
@@ -101,12 +133,51 @@ export default function NovinkyPage() {
           {error ? <Alert variant="error" className="mb-4">{error}</Alert> : null}
           {loading ? <Alert variant="info">Načítám novinky…</Alert> : null}
 
+          {!loading && nextEvent ? (
+            <Card className="mb-5 overflow-hidden border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 sm:p-6">
+              <div className="flex items-start gap-4">
+                <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-700">
+                  <CalendarClock className="h-6 w-6" aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-black uppercase tracking-[0.08em] text-emerald-700">
+                    Nejbližší vysílání
+                  </p>
+                  <h2 className="mt-2 text-xl font-black leading-tight text-navy-900 sm:text-2xl">
+                    {nextEvent.title}
+                  </h2>
+                  <p className="mt-2 font-semibold text-slate-600">
+                    {formatBroadcastDate(nextEvent.starts_at)}
+                    {nextEvent.category ? ` · ${nextEvent.category}` : ""}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Link
+                      href={`/portal/udalost/${nextEvent.id}`}
+                      className="inline-flex min-h-11 items-center rounded-xl bg-navy-900 px-4 py-2 font-bold text-white hover:bg-navy-800"
+                    >
+                      Nastavit připomenutí
+                    </Link>
+                    <Link
+                      href="/portal/kalendar"
+                      className="inline-flex min-h-11 items-center rounded-xl border border-slate-200 bg-white px-4 py-2 font-bold text-navy-900 hover:border-slate-300"
+                    >
+                      Celý program
+                    </Link>
+                  </div>
+                  <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                    Samotné zobrazení této karty žádné upozornění ani e-mail neodesílá.
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ) : null}
+
           {!loading && !notifications.length ? (
             <Card className="p-8 text-center">
               <Bell className="mx-auto h-10 w-10 text-slate-400" aria-hidden="true" />
-              <h2 className="mt-4 text-xl font-black text-navy-900">Zatím tu nejsou žádná oznámení</h2>
+              <h2 className="mt-4 text-xl font-black text-navy-900">Zatím tu nejsou žádná další oznámení</h2>
               <p className="mx-auto mt-2 max-w-xl leading-relaxed text-slate-600">
-                U připravovaného vysílání můžete zapnout připomenutí. Jakmile bude systém odesílání aktivován, důležité novinky se zobrazí také zde.
+                Změny termínů a vámi zvolená připomenutí se zobrazí zde. Připomenutí nejbližšího vysílání nastavíte na jeho detailu.
               </p>
               <Link href="/portal/kalendar" className="mt-5 inline-flex rounded-xl bg-navy-900 px-4 py-2 font-bold text-white hover:bg-navy-800">
                 Prohlédnout program
