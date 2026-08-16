@@ -6,14 +6,14 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 const migration = fs.readFileSync(
   path.join(
     process.cwd(),
-    "supabase/migrations/20260815174036_add_notification_foundation.sql"
+    "supabase/migrations/20260816055119_add_notification_foundation.sql"
   ),
   "utf8"
 );
 const queueMigration = fs.readFileSync(
   path.join(
     process.cwd(),
-    "supabase/migrations/20260815203000_add_notification_enqueue_rpc.sql"
+    "supabase/migrations/20260816055153_add_notification_enqueue_rpc.sql"
   ),
   "utf8"
 );
