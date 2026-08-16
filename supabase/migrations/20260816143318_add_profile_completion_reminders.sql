@@ -5,7 +5,7 @@ comment on column public.profiles.profile_completed_at is
   'Time when the user explicitly saved the complete My profile form.';
 
 update public.profiles profile
-set profile_completed_at = coalesce(profile.updated_at, profile.created_at, now())
+set profile_completed_at = profile.created_at
 where profile.profile_completed_at is null
   and nullif(btrim(profile.full_name), '') is not null
   and exists (
