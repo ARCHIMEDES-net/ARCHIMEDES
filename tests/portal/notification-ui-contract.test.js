@@ -20,6 +20,16 @@ describe("notification UI contract", () => {
     expect(header).toContain('href: "/portal/novinky"');
     expect(newsPage).toContain('from("user_notifications")');
     expect(newsPage).toContain("Označit vše jako přečtené");
+    expect(header).toContain("publishUnreadNotificationCount");
+    expect(newsPage).toContain("publishUnreadNotificationCount(unreadCount)");
+  });
+
+  it("keeps broadcast notifications explicit and in-app only in administration", () => {
+    const adminPage = source("pages/portal/admin/vysilani/[eventId].js");
+    expect(adminPage).toContain("Aktivovat oznámení v aplikaci");
+    expect(adminPage).toContain('notification_delivery_policy: "in_app_only"');
+    expect(adminPage).toContain("přístupový e-mail 30 minut");
+    expect(adminPage).toContain("notifications_enabled: notificationsEnabled");
   });
 
   it("shows the nearest broadcast without creating another reminder channel", () => {
