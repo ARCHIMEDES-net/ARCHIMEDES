@@ -1,11 +1,11 @@
 {
   "id": "/portal",
   "name": "ARCHIMEDES Live",
-  "short_name": "A Live",
+  "short_name": "ARCHIMEDES Live",
   "description": "Živý program, novinky a připomenutí vysílání ARCHIMEDES Live.",
   "lang": "cs",
   "dir": "ltr",
-  "start_url": "/portal",
+  "start_url": "/portal/novinky",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
