@@ -325,6 +325,12 @@ export default function MujProfilPage() {
         );
       if (channelPreferencesSaveError) throw channelPreferencesSaveError;
 
+      const { error: completionError } = await supabase
+        .from("profiles")
+        .update({ profile_completed_at: new Date().toISOString() })
+        .eq("id", userId);
+      if (completionError) throw completionError;
+
       setSuccess("Profil byl uložen.");
     } catch (err) {
       console.error("muj-profil handleSave error:", err);
