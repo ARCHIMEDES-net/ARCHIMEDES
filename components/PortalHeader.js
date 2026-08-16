@@ -319,6 +319,7 @@ export default function PortalHeader({ title = "" }) {
               {mainLinks.map((item) => <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}><span>{item.label}</span>{item.badge ? <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[11px] leading-none text-white">{item.badge > 99 ? "99+" : item.badge}</span> : null}</Link>)}
               {adminLinks.length > 0 ? <><div className="mb-1 mt-0.5 text-xs font-extrabold uppercase tracking-[0.04em] text-slate-500">Správa a nastavení</div>{adminLinks.map((item) => <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}>{item.label}</Link>)}</> : null}
               <div className="mb-1 mt-0.5 text-xs font-extrabold uppercase tracking-[0.04em] text-slate-500">Další</div>
+              <Link href="/instalace" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE)}>Přidat A Live do telefonu</Link>
               <Link href="/" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE)}>Veřejný web</Link>
               <button type="button" onClick={onLogout} className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE, "cursor-pointer text-left")}>Odhlásit</button>
             </nav>

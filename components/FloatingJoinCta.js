@@ -23,6 +23,7 @@ const HIDDEN_ROUTES = new Set([
   "/guest",
   "/hoste",
   "/vysilali-jsme",
+  "/instalace",
 ]);
 
 const OPTIONS = [

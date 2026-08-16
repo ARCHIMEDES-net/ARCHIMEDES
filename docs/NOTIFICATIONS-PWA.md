@@ -62,3 +62,18 @@ Tyto části patří do samostatných, snadno vratných kroků po kontrole datov
 - Soukromý VAPID klíč se do klientského kódu ani repozitáře nesmí vložit. Bude uložen pouze jako serverové tajemství při zavedení odesílací služby.
 
 Samotné doplnění veřejného klíče ještě nesmí zapnout plánovač ani hromadné odesílání. To patří až do kontrolovaného pilotu.
+
+## Instalace pro běžného uživatele
+
+- Veřejná adresa `/instalace` funguje bez přihlášení a nepoužívá technický pojem PWA.
+- Průvodce rozpozná Android, Safari na iPhonu/iPadu, jiný prohlížeč na iOS a počítač.
+- Android dostane vlastní instalační tlačítko, pokud prohlížeč nabídne nativní
+  `beforeinstallprompt`; jinak uvidí krátký ruční postup.
+- Safari na iOS ukáže tři kroky: Sdílet, Přidat na plochu, Přidat. Uživatel v
+  Chrome či jiném iOS prohlížeči nejprve zkopíruje adresu a otevře ji v Safari.
+- Nainstalovaná aplikace zobrazí potvrzení a přímý vstup do „Co je nového“.
+- Odkaz na průvodce je trvale dostupný v mobilním menu portálu a v „Můj profil“.
+- Instalační stránka je bez marketingového menu, plovoucí nabídky a žádosti o
+  analytické cookies, aby uživatele nerušila od jediného úkolu.
+- Instalace sama nezapíná e-mail ani push. O povolení čísla na ikoně rozhoduje
+  uživatel samostatně v centru „Co je nového“.
