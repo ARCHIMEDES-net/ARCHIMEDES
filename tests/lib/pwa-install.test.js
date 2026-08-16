@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { detectInstallPlatform } from "../../lib/pwaInstall";
+import {
+  PWA_DISCOVERY_REMINDER_DELAY_MS,
+  pwaDiscoveryDismissalValue,
+  pwaDiscoveryInstalledValue,
+  shouldShowPwaDiscovery,
+} from "../../lib/pwaDiscovery";
 
 describe("PWA installation platform detection", () => {
   it("recognizes Safari on iPhone", () => {
@@ -49,5 +55,30 @@ describe("PWA installation platform detection", () => {
         platform: "Linux armv8l",
       })
     ).toBe("android");
+  });
+
+  it("shows discovery until the user installs or postpones it", () => {
+    const now = Date.UTC(2026, 7, 16, 12, 0, 0);
+
+    expect(shouldShowPwaDiscovery({ now })).toBe(true);
+    expect(
+      shouldShowPwaDiscovery({
+        now,
+        storedValue: pwaDiscoveryDismissalValue(now),
+      })
+    ).toBe(false);
+    expect(
+      shouldShowPwaDiscovery({
+        now: now + PWA_DISCOVERY_REMINDER_DELAY_MS,
+        storedValue: pwaDiscoveryDismissalValue(now),
+      })
+    ).toBe(true);
+    expect(
+      shouldShowPwaDiscovery({
+        now,
+        storedValue: pwaDiscoveryInstalledValue(),
+      })
+    ).toBe(false);
+    expect(shouldShowPwaDiscovery({ now, standalone: true })).toBe(false);
   });
 });
