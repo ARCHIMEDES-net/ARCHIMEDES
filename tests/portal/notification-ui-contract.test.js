@@ -22,6 +22,17 @@ describe("notification UI contract", () => {
     expect(newsPage).toContain("Označit vše jako přečtené");
   });
 
+  it("shows the nearest broadcast without creating another reminder channel", () => {
+    const newsPage = source("pages/portal/novinky.js");
+    expect(newsPage).toContain('from("events")');
+    expect(newsPage).toContain('.eq("is_published", true)');
+    expect(newsPage).toContain('.order("starts_at", { ascending: true })');
+    expect(newsPage).toContain("Nejbližší vysílání");
+    expect(newsPage).toContain(`href={\`/portal/udalost/\${nextEvent.id}\`}`);
+    expect(newsPage).toContain("Samotné zobrazení této karty žádné upozornění ani e-mail neodesílá.");
+    expect(newsPage).not.toContain('from("event_reminder_subscriptions")');
+  });
+
   it("keeps push fail-closed until server configuration is available", () => {
     const profilePage = source("pages/portal/muj-profil.js");
     expect(profilePage).toContain("Push oznámení do telefonu");
