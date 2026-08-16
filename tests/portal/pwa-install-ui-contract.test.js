@@ -25,6 +25,17 @@ describe("senior-friendly PWA installation UI", () => {
     expect(source("pages/portal/muj-profil.js")).toContain('href="/instalace"');
   });
 
+  it("offers the guide automatically after login without blocking the portal", () => {
+    const header = source("components/PortalHeader.js");
+    const discovery = source("components/PwaInstallDiscovery.js");
+
+    expect(header).toContain("<PwaInstallDiscovery />");
+    expect(discovery).toContain("Přidejte si A Live do telefonu");
+    expect(discovery).toContain('href="/instalace"');
+    expect(discovery).toContain('src="/qr-instalace.svg"');
+    expect(discovery).toContain("pwaDiscoveryDismissalValue");
+  });
+
   it("keeps the installation page free of unrelated calls to action", () => {
     const app = source("pages/_app.js");
     const floatingCta = source("components/FloatingJoinCta.js");
