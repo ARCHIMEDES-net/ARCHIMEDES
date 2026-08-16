@@ -18,6 +18,15 @@ describe("PWA contract", () => {
     expect(fs.existsSync(path.join(process.cwd(), "public/pwa-icon-512.png"))).toBe(true);
   });
 
+  it("returns unauthenticated PWA users to the requested portal page", () => {
+    const requireAuth = source("components/RequireAuth.js");
+    expect(requireAuth).toContain("function loginPathFor(router)");
+    expect(requireAuth).toContain("encodeURIComponent(returnPath)");
+    expect(requireAuth).toContain("router.replace(loginPath)");
+    expect(requireAuth).not.toContain('await deny("/login");');
+    expect(requireAuth).not.toContain('router.replace("/login");');
+  });
+
   it("does not cache authenticated pages or API responses", () => {
     const serviceWorker = source("public/sw.js");
     expect(serviceWorker).not.toContain('addEventListener("fetch"');

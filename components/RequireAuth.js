@@ -6,12 +6,23 @@ import { supabase } from "../lib/supabaseClient";
 // A full reload always performs the complete authorization check again.
 let portalSessionVerified = false;
 
+function loginPathFor(router) {
+  const candidate = router.asPath || router.pathname || "/portal";
+  const returnPath =
+    candidate.startsWith("/") && !candidate.startsWith("//")
+      ? candidate
+      : "/portal";
+
+  return `/login?next=${encodeURIComponent(returnPath)}`;
+}
+
 export default function RequireAuth({ children }) {
   const router = useRouter();
   const [checking, setChecking] = useState(() => !portalSessionVerified);
 
   useEffect(() => {
     let mounted = true;
+    const loginPath = loginPathFor(router);
 
     async function deny(path = "/login") {
       if (!mounted) return;
@@ -85,7 +96,7 @@ export default function RequireAuth({ children }) {
         } = await supabase.auth.getUser();
 
         if (userError || !user) {
-          await deny("/login");
+          await deny(loginPath);
           return;
         }
 
@@ -100,7 +111,7 @@ export default function RequireAuth({ children }) {
           .maybeSingle();
 
         if (profileError || !profile) {
-          await deny("/login");
+          await deny(loginPath);
           return;
         }
 
@@ -189,7 +200,7 @@ export default function RequireAuth({ children }) {
 
         await allow();
       } catch (_e) {
-        await deny("/login");
+        await deny(loginPath);
       }
     }
 
@@ -200,7 +211,7 @@ export default function RequireAuth({ children }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         portalSessionVerified = false;
-        router.replace("/login");
+        router.replace(loginPath);
       }
     });
 
