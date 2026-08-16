@@ -214,12 +214,14 @@ export default function App({ Component, pageProps }) {
     pathname === "/nastaveni-pristupu" || pathname === "/welcome";
   const isCreateOrganizationPage = pathname === "/create-organization";
   const isJoinPage = pathname === "/join";
+  const isInstallPage = pathname === "/instalace";
 
   const showPublicHeader =
     !isPortal &&
     !isAccessSetupPage &&
     !isCreateOrganizationPage &&
-    !isJoinPage;
+    !isJoinPage &&
+    !isInstallPage;
 
   useEffect(() => {
     const storedConsent = window.localStorage.getItem(ANALYTICS_CONSENT_KEY);
@@ -440,7 +442,7 @@ gtag('config', '${GA_MEASUREMENT_ID}', { anonymize_ip: true });`}
         </>
       ) : null}
 
-      {analyticsConsent === null ? (
+      {analyticsConsent === null && !isInstallPage ? (
         <section
           role="dialog"
           aria-label="Nastavení analytických cookies"

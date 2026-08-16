@@ -1,12 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
-import { BellRing, Download, GraduationCap, Globe2, Landmark, Smartphone, Users } from "lucide-react";
+import Link from "next/link";
+import { BellRing, GraduationCap, Globe2, Landmark, Smartphone, Users } from "lucide-react";
 import PortalHeader from "../../components/PortalHeader";
 import RequireAuth from "../../components/RequireAuth";
-import {
-  PWA_INSTALLABLE_EVENT,
-  PWA_INSTALLED_EVENT,
-} from "../../components/PwaRegistration";
 import { supabase } from "../../lib/supabaseClient";
 import { fetchMyOrganization } from "../../lib/myOrganizations";
 import { cn } from "../../lib/utils";
@@ -24,7 +21,6 @@ import {
 } from "../../lib/notifications";
 import {
   canUsePushNotifications,
-  isStandalonePwa,
   pushSubscriptionRow,
   urlBase64ToUint8Array,
 } from "../../lib/pwa";
@@ -126,8 +122,6 @@ export default function MujProfilPage() {
   const [channelPreferences, setChannelPreferences] = useState(
     DEFAULT_NOTIFICATION_CHANNEL_PREFERENCES
   );
-  const [pwaInstalled, setPwaInstalled] = useState(false);
-  const [installPrompt, setInstallPrompt] = useState(null);
   const [pushSupported, setPushSupported] = useState(false);
   const [pushSubscribed, setPushSubscribed] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
@@ -347,12 +341,6 @@ export default function MujProfilPage() {
   useEffect(() => {
     let mounted = true;
 
-    function refreshInstallState() {
-      if (!mounted) return;
-      setPwaInstalled(isStandalonePwa());
-      setInstallPrompt(window.__archimedesPwaInstallPrompt || null);
-    }
-
     async function refreshPushState() {
       const supported = canUsePushNotifications();
       if (mounted) setPushSupported(supported);
@@ -367,28 +355,12 @@ export default function MujProfilPage() {
       }
     }
 
-    refreshInstallState();
     refreshPushState();
-    window.addEventListener(PWA_INSTALLABLE_EVENT, refreshInstallState);
-    window.addEventListener(PWA_INSTALLED_EVENT, refreshInstallState);
 
     return () => {
       mounted = false;
-      window.removeEventListener(PWA_INSTALLABLE_EVENT, refreshInstallState);
-      window.removeEventListener(PWA_INSTALLED_EVENT, refreshInstallState);
     };
   }, []);
-
-  async function handleInstallPwa() {
-    const prompt = installPrompt || window.__archimedesPwaInstallPrompt;
-    if (!prompt) return;
-
-    await prompt.prompt();
-    const choice = await prompt.userChoice;
-    window.__archimedesPwaInstallPrompt = null;
-    setInstallPrompt(null);
-    if (choice?.outcome === "accepted") setPwaInstalled(true);
-  }
 
   async function setStoredPushPreference(profileId, enabled) {
     const { error: preferenceError } = await supabase
@@ -633,19 +605,13 @@ export default function MujProfilPage() {
                         <div>
                           <div className="font-bold text-navy-900">Aplikace v telefonu nebo počítači</div>
                           <p className="mt-1 text-sm leading-relaxed text-slate-500">
-                            {pwaInstalled
-                              ? "ARCHIMEDES Live je otevřený jako nainstalovaná aplikace."
-                              : installPrompt
-                                ? "Nainstalujte si ARCHIMEDES Live přímo z tohoto prohlížeče."
-                                : "Instalaci najdete také v nabídce prohlížeče jako Přidat na plochu nebo Nainstalovat aplikaci."}
+                            Jednoduchý průvodce pozná váš telefon a ukáže správný postup krok za krokem.
                           </p>
                         </div>
                       </div>
-                      {installPrompt && !pwaInstalled ? (
-                        <Button type="button" variant="secondary" size="sm" onClick={handleInstallPwa}>
-                          <Download className="h-4 w-4" aria-hidden="true" /> Nainstalovat
-                        </Button>
-                      ) : null}
+                      <Link href="/instalace" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-extrabold text-navy-900">
+                        Přidat A Live do telefonu
+                      </Link>
                     </div>
                   </div>
 
