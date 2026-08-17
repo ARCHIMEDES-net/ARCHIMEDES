@@ -21,6 +21,21 @@ import {
   normalizeManualRecipientEmails,
   normalizeRecipientGroupCodes,
 } from "../../../../lib/broadcastRecipients";
+import {
+  appendCleanupError,
+  getPosterPublicUrl,
+  removeEventOwnedPosterIfUnreferenced,
+  removePosterObject,
+} from "../../../../lib/posterStorage";
+
+const AUDIENCE_OPTIONS = [
+  "I. stupeň",
+  "II. stupeň",
+  "Učitelé",
+  "Senioři",
+  "Komunita",
+  "Dospělí",
+];
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "Rozpracováno" },
@@ -67,6 +82,24 @@ function normalizeUrl(url) {
   return `https://${v}`;
 }
 
+function normalizeAudienceGroups(groups) {
+  const allowed = new Set(AUDIENCE_OPTIONS);
+  return (groups || []).map(String).filter((group) => allowed.has(group));
+}
+
+function getEventAudienceGroups(event) {
+  const persisted = Array.isArray(event?.audience_groups) ? event.audience_groups : [];
+  if (persisted.length) return normalizeAudienceGroups(persisted);
+  return normalizeAudienceGroups(String(event?.audience || "").split(",").map((item) => item.trim()));
+}
+
+function makePosterPath(file, eventId) {
+  const parts = String(file?.name || "").split(".");
+  const ext = (parts.length > 1 ? parts.pop() : "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const random = Math.random().toString(36).slice(2, 8);
+  return `events/${eventId}/${Date.now()}-${random}.${ext}`;
+}
+
 function FieldLabel({ children }) {
   return <label className="mb-2 block font-bold text-navy-900">{children}</label>;
 }
@@ -91,6 +124,15 @@ export default function AdminVysilaniDetailPage() {
   const [attendanceLoading, setAttendanceLoading] = useState(false);
 
   const [eventRow, setEventRow] = useState(null);
+  const [eventTitle, setEventTitle] = useState("");
+  const [eventDescription, setEventDescription] = useState("");
+  const [eventAudienceGroups, setEventAudienceGroups] = useState([]);
+  const [eventIsPublished, setEventIsPublished] = useState(true);
+  const [eventPosterUrl, setEventPosterUrl] = useState("");
+  const [savedEventPosterUrl, setSavedEventPosterUrl] = useState("");
+  const [savedEventPosterPath, setSavedEventPosterPath] = useState("");
+  const [pendingPoster, setPendingPoster] = useState(null);
+  const [uploadingPoster, setUploadingPoster] = useState(false);
   const [sessionId, setSessionId] = useState("");
   const [externalMeetingId, setExternalMeetingId] = useState("");
   const [providerStatus, setProviderStatus] = useState("");
@@ -164,6 +206,15 @@ export default function AdminVysilaniDetailPage() {
       if (eventError) throw eventError;
 
       setEventRow(eventData);
+      const posterUrl = eventData.poster_url || getPosterPublicUrl(supabase, eventData.poster_path);
+      setEventTitle(eventData.title || "");
+      setEventDescription(eventData.full_description || "");
+      setEventAudienceGroups(getEventAudienceGroups(eventData));
+      setEventIsPublished(eventData.is_published !== false);
+      setEventPosterUrl(posterUrl || "");
+      setSavedEventPosterUrl(posterUrl || "");
+      setSavedEventPosterPath(eventData.poster_path || "");
+      setPendingPoster(null);
 
       const session = await ensureSessionExists();
 
@@ -429,6 +480,56 @@ export default function AdminVysilaniDetailPage() {
     }
   }
 
+  async function handlePosterUpload(file) {
+    setError("");
+    setMessage("");
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("Plakát musí být JPG, PNG nebo WEBP.");
+      return;
+    }
+    if (file.size > 7 * 1024 * 1024) {
+      setError("Plakát je moc velký (max 7 MB).");
+      return;
+    }
+
+    setUploadingPoster(true);
+    try {
+      const path = makePosterPath(file, eventId);
+      const { error: uploadError } = await supabase.storage.from("posters").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      });
+      if (uploadError) throw uploadError;
+
+      const url = getPosterPublicUrl(supabase, path);
+      if (!url) {
+        const cleanup = await removePosterObject(supabase, path);
+        throw new Error(
+          appendCleanupError("Upload proběhl, ale nepodařilo se získat veřejnou URL.", cleanup.error)
+        );
+      }
+
+      if (pendingPoster?.path) {
+        const cleanup = await removePosterObject(supabase, pendingPoster.path);
+        if (cleanup.error) {
+          await removePosterObject(supabase, path);
+          throw new Error(`Předchozí neuložený plakát se nepodařilo uklidit: ${cleanup.error.message}`);
+        }
+      }
+
+      setEventPosterUrl(url);
+      setPendingPoster({ path, url });
+      setMessage("Plakát byl nahrán. Změnu potvrďte tlačítkem Uložit.");
+    } catch (uploadError) {
+      setError(uploadError?.message || "Plakát se nepodařilo nahrát.");
+    } finally {
+      setUploadingPoster(false);
+    }
+  }
+
   async function handleSave(e) {
     e.preventDefault();
     setSaving(true);
@@ -439,6 +540,16 @@ export default function AdminVysilaniDetailPage() {
     try {
       if (!sessionId) {
         throw new Error("Chybí session pro tuto událost.");
+      }
+
+      if (!operationalLocked && !eventTitle.trim()) {
+        throw new Error("Vyplňte název události.");
+      }
+      if (!operationalLocked && eventAudienceGroups.length === 0) {
+        throw new Error("Vyberte alespoň jednu cílovku události.");
+      }
+      if (!operationalLocked && (!startsAt || Number.isNaN(new Date(startsAt).getTime()))) {
+        throw new Error("Vyplňte platné datum a čas vysílání.");
       }
 
       const manualRecipients = normalizeManualRecipientEmails(manualRecipientEmails);
@@ -515,15 +626,31 @@ export default function AdminVysilaniDetailPage() {
 
       if (updateError) throw updateError;
 
-      const eventPatch = {};
+      const normalizedPosterUrl = normalizeUrl(eventPosterUrl);
+      const pendingPosterIsLinked =
+        Boolean(pendingPoster) && normalizeUrl(pendingPoster.url) === normalizedPosterUrl;
+      const posterPath = pendingPosterIsLinked
+        ? pendingPoster.path
+        : normalizedPosterUrl === normalizeUrl(savedEventPosterUrl)
+          ? savedEventPosterPath || null
+          : null;
+
+      const eventPatch = operationalLocked
+        ? {}
+        : {
+            title: eventTitle.trim(),
+            full_description: eventDescription.trim(),
+            audience_groups: normalizeAudienceGroups(eventAudienceGroups),
+            audience: normalizeAudienceGroups(eventAudienceGroups).join(", "),
+            is_published: eventIsPublished,
+            poster_url: normalizedPosterUrl,
+            poster_path: posterPath,
+            starts_at: new Date(startsAt).toISOString(),
+          };
 
       // Starší události mohou mít odkaz používaný portálem. Pokud správce
       // nový odkaz nevyplní, existující hodnotu nemažeme.
       if (!operationalLocked && normalizedViewerUrl) eventPatch.stream_url = normalizedViewerUrl;
-
-      if (!operationalLocked && startsAt) {
-        eventPatch.starts_at = new Date(startsAt).toISOString();
-      }
 
       if (Object.keys(eventPatch).length > 0) {
         const { error: eventUpdateError } = await supabase
@@ -531,7 +658,34 @@ export default function AdminVysilaniDetailPage() {
           .update(eventPatch)
           .eq("id", eventId);
 
-        if (eventUpdateError) throw eventUpdateError;
+        if (eventUpdateError) {
+          const cleanup = await removePosterObject(supabase, pendingPoster?.path);
+          setPendingPoster(null);
+          setEventPosterUrl(savedEventPosterUrl);
+          throw new Error(appendCleanupError(eventUpdateError.message, cleanup.error));
+        }
+
+        let posterCleanupWarning = "";
+        if (pendingPoster && !pendingPosterIsLinked) {
+          const cleanup = await removePosterObject(supabase, pendingPoster.path);
+          if (cleanup.error) posterCleanupWarning = " Nový nepropojený plakát zůstal ve Storage.";
+        }
+        if (
+          (savedEventPosterPath && savedEventPosterPath !== eventPatch.poster_path) ||
+          (savedEventPosterUrl && normalizeUrl(savedEventPosterUrl) !== eventPatch.poster_url)
+        ) {
+          const cleanup = await removeEventOwnedPosterIfUnreferenced(supabase, {
+            eventId,
+            path: savedEventPosterPath,
+            publicUrl: savedEventPosterUrl,
+          });
+          if (cleanup.error) posterCleanupWarning += " Starý plakát zůstal ve Storage.";
+        }
+        setPendingPoster(null);
+        setSavedEventPosterUrl(eventPatch.poster_url);
+        setSavedEventPosterPath(eventPatch.poster_path || "");
+        setEventRow((current) => ({ ...current, ...eventPatch }));
+        if (posterCleanupWarning) setCopyInfo(posterCleanupWarning.trim());
       }
 
       let providerSynced = false;
@@ -562,10 +716,10 @@ export default function AdminVysilaniDetailPage() {
         operationalLocked
           ? "Záznam a interní poznámka byly uloženy. Technické údaje vysílání zůstaly uzamčené."
           : providerSynced
-          ? "Změny byly uloženy v ARCHIMEDES a propsány do WebMeetingu."
+          ? "Obsah i nastavení byly uloženy v ARCHIMEDES a propsány do WebMeetingu."
           : normalizedViewerUrl
-            ? "Vysílání bylo uloženo; volitelný odkaz se propsal do události."
-            : "Vysílání bylo uloženo. Pozvánky a přístupový odkaz rozešle WebMeeting."
+            ? "Obsah i nastavení byly uloženy; volitelný odkaz se propsal do události."
+            : "Obsah i nastavení byly uloženy. Pozvánky a přístupový odkaz rozešle WebMeeting."
       );
     } catch (e) {
       setError(e.message || "Vysílání se nepodařilo uložit.");
@@ -667,7 +821,7 @@ export default function AdminVysilaniDetailPage() {
             <h1 className="text-[34px] font-black text-navy-900">Správa vysílání</h1>
 
             <p className="mt-1 leading-relaxed text-muted">
-              Produkční karta WebMeetingu, moderátora, hostů a seznamu pozvaných podle osobních zájmů.
+              Na jednom místě upravíte obsah události, plakát, cílovky i produkční nastavení WebMeetingu.
             </p>
           </div>
 
@@ -863,12 +1017,110 @@ export default function AdminVysilaniDetailPage() {
                 {operationalLocked ? (
                   <Alert variant="info" className="mb-5">
                     {lifecycle === "live"
-                      ? "Vysílání už začalo. Čas, stav, moderátor, hosté a vstupní odkaz jsou uzamčené; uložit lze pouze záznam a interní poznámku."
-                      : "Vysílání je dokončeno. Technické nastavení je uzamčené; upravit lze pouze záznam pro archiv a interní poznámku."}
+                      ? "Vysílání už začalo. Obsah události i produkční nastavení jsou uzamčené; uložit lze pouze záznam a interní poznámku."
+                      : "Vysílání je dokončeno. Obsah události i produkční nastavení jsou uzamčené; upravit lze pouze záznam pro archiv a interní poznámku."}
                   </Alert>
                 ) : null}
 
                 <form onSubmit={handleSave}>
+                  <section className="mb-6 rounded-xl border border-slate-200 bg-white p-4">
+                    <h2 className="text-xl font-black text-navy-900">Obsah události</h2>
+                    <p className="mt-1 text-sm text-muted">
+                      Tyto údaje se zobrazí návštěvníkům. Název, popis a čas se při uložení synchronizují také do WebMeetingu.
+                    </p>
+
+                    <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="sm:col-span-2">
+                        <FieldLabel>Název události *</FieldLabel>
+                        <Input
+                          type="text"
+                          value={eventTitle}
+                          onChange={(event) => setEventTitle(event.target.value)}
+                          disabled={operationalLocked}
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <FieldLabel>Cílovka *</FieldLabel>
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                          {AUDIENCE_OPTIONS.map((audience) => (
+                            <label
+                              key={audience}
+                              className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={eventAudienceGroups.includes(audience)}
+                                disabled={operationalLocked}
+                                onChange={(event) =>
+                                  setEventAudienceGroups((current) =>
+                                    event.target.checked
+                                      ? Array.from(new Set([...current, audience]))
+                                      : current.filter((item) => item !== audience)
+                                  )
+                                }
+                              />
+                              <span>{audience}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <FieldLabel>Popis události</FieldLabel>
+                        <Textarea
+                          value={eventDescription}
+                          onChange={(event) => setEventDescription(event.target.value)}
+                          rows={5}
+                          className="min-h-[130px]"
+                          disabled={operationalLocked}
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <FieldLabel>Plakát / cover</FieldLabel>
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
+                          <Input
+                            type="text"
+                            value={eventPosterUrl}
+                            onChange={(event) => setEventPosterUrl(event.target.value)}
+                            placeholder="URL obrázku nebo nahrajte soubor z počítače"
+                            disabled={operationalLocked}
+                          />
+                          <label className="inline-flex cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-[15px] font-black text-navy-900">
+                            {uploadingPoster ? "Nahrávám…" : "Nahrát z PC"}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              className="hidden"
+                              onChange={(event) => handlePosterUpload(event.target.files?.[0])}
+                              disabled={operationalLocked || uploadingPoster}
+                            />
+                          </label>
+                        </div>
+                        {eventPosterUrl ? (
+                          <img
+                            src={normalizeUrl(eventPosterUrl)}
+                            alt="Náhled plakátu"
+                            className="mt-3 h-[160px] w-[280px] rounded-xl border border-slate-200 bg-slate-50 object-cover"
+                            onError={(event) => (event.currentTarget.style.display = "none")}
+                          />
+                        ) : null}
+                      </div>
+
+                      <label className="sm:col-span-2 flex items-center gap-2.5 font-bold text-navy-900">
+                        <input
+                          type="checkbox"
+                          checked={eventIsPublished}
+                          onChange={(event) => setEventIsPublished(event.target.checked)}
+                          disabled={operationalLocked}
+                        />
+                        {eventIsPublished ? "Publikováno v kalendáři" : "Skryto před návštěvníky"}
+                      </label>
+                    </div>
+                  </section>
+
+                  <h2 className="mb-4 text-xl font-black text-navy-900">Nastavení vysílání</h2>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                       <FieldLabel>Stav vysílání</FieldLabel>
@@ -1017,7 +1269,7 @@ export default function AdminVysilaniDetailPage() {
                         ? "Ukládám..."
                         : operationalLocked
                           ? "Uložit záznam a poznámku"
-                          : "Uložit nastavení vysílání"}
+                          : "Uložit obsah a nastavení"}
                     </Button>
 
                     <Button type="button" onClick={loadData} disabled={loading} variant="secondary">
