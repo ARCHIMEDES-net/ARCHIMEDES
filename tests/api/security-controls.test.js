@@ -102,6 +102,8 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
     expect(source).not.toContain("inviteUserByEmail");
     expect(source).toContain('role_in_org: "organization_admin"');
     expect(source).toContain('user_type: "organization"');
+    expect(source).toContain(".upsert(");
+    expect(source).toContain('{ onConflict: "id" }');
     expect(source).toContain("idempotencyKey");
     expect(source).not.toContain("license_started_at");
     expect(source).not.toContain("contract_status");
