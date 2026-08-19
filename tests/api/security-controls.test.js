@@ -215,8 +215,10 @@ describe("API egress, email, and secret-exposure controls", () => {
     );
 
     expect(route).toContain("sendCustomerOnboardingEmail");
-    expect(helper).toContain("process.env.RESEND_API_KEY");
-    expect(helper).toContain("process.env.REGISTRATION_EMAIL_FROM");
+    expect(helper).toContain('requiredEnvironment("RESEND_API_KEY")');
+    expect(helper).toContain(
+      'requiredEnvironment("REGISTRATION_EMAIL_FROM")'
+    );
     expect(helper).toContain('"https://api.resend.com/emails"');
     expect(helper).toContain('"Idempotency-Key"');
     expect(helper).not.toMatch(/apiKey:\s*req\.(body|query)/);
