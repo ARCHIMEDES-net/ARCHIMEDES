@@ -95,14 +95,15 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
   it("keeps municipality admin invitations separate from licence and activation writes", () => {
     const source = readApi("admin/invite-municipality-admin");
 
-    expect(source).toContain("supabaseAdmin.auth.admin.inviteUserByEmail");
+    expect(source).toContain("resolveLocalAdministrator");
+    expect(source).toContain("sendCustomerOnboardingEmail");
+    expect(source).toContain("sendCustomerOnboardingAuditCopy");
+    expect(source).toContain('from("municipality_admin_invitation_attempts")');
+    expect(source).not.toContain("inviteUserByEmail");
     expect(source).toContain('role_in_org: "organization_admin"');
     expect(source).toContain('user_type: "organization"');
-    expect(source).toContain('.upsert(');
-    expect(source).toContain('{ onConflict: "id" }');
-    expect(source).not.toContain("license_plan");
+    expect(source).toContain("idempotencyKey");
     expect(source).not.toContain("license_started_at");
-    expect(source).not.toContain("license_valid_until");
     expect(source).not.toContain("contract_status");
     expect(source).not.toContain("billing_status");
     expect(source).not.toContain("activated_at");

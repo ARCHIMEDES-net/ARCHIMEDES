@@ -20,6 +20,7 @@ export default function AdminMunicipalityAdminsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [idempotencyKey, setIdempotencyKey] = useState("");
 
   const loadMunicipality = useCallback(async () => {
     setLoading(true);
@@ -43,6 +44,7 @@ export default function AdminMunicipalityAdminsPage() {
 
     setMunicipality(data);
     setForm({ fullName: "", email: "" });
+    setIdempotencyKey("");
     setLoading(false);
   }, [organizationId]);
 
@@ -68,13 +70,19 @@ export default function AdminMunicipalityAdminsPage() {
     }
 
     try {
+      const requestId = idempotencyKey || crypto.randomUUID();
+      if (!idempotencyKey) setIdempotencyKey(requestId);
       const response = await fetch("/api/admin/invite-municipality-admin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ organizationId, ...form }),
+        body: JSON.stringify({
+          organizationId,
+          idempotencyKey: requestId,
+          ...form,
+        }),
       });
       const result = await response.json();
 
@@ -83,6 +91,7 @@ export default function AdminMunicipalityAdminsPage() {
       }
 
       setMessage(result.message);
+      setIdempotencyKey("");
     } catch (submitError) {
       setError(
         submitError?.message || "Správce se nepodařilo bezpečně přidat."
