@@ -99,7 +99,7 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
     expect(source).toContain("sendCustomerOnboardingEmail");
     expect(source).toContain("sendCustomerOnboardingAuditCopy");
     expect(source.indexOf("verifyCustomerOnboardingEmailTransport()"))
-      .toBeLessThan(source.indexOf("claimAttempt({"));
+      .toBeLessThan(source.indexOf("await claimAttempt({"));
     expect(source).toContain('from("municipality_admin_invitation_attempts")');
     expect(source).not.toContain("inviteUserByEmail");
     expect(source).toContain('role_in_org: "organization_admin"');
