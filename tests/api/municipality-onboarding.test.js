@@ -24,7 +24,12 @@ const dependencies = vi.hoisted(() => {
     auditUpdateError: false,
     staleTransitioned: false,
   };
-  const sendMail = vi.fn(async () => ({ messageId: "message-1" }));
+  const sendMail = vi.fn(async (message) => ({
+    messageId: "message-1",
+    accepted: [message.to],
+    rejected: [],
+  }));
+  const verifyMail = vi.fn(async () => true);
   const authAdmin = {
     getUserById: vi.fn(async (userId) => ({
       data: {
@@ -234,6 +239,7 @@ const dependencies = vi.hoisted(() => {
   return {
     state,
     sendMail,
+    verifyMail,
     authAdmin,
     supabaseAdmin,
     authenticatedClient,
@@ -251,7 +257,10 @@ vi.mock("@supabase/supabase-js", () => ({
 
 vi.mock("nodemailer", () => ({
   default: {
-    createTransport: vi.fn(() => ({ sendMail: dependencies.sendMail })),
+    createTransport: vi.fn(() => ({
+      sendMail: dependencies.sendMail,
+      verify: dependencies.verifyMail,
+    })),
   },
 }));
 
@@ -300,7 +309,13 @@ const originalEnvironment = {
 
 beforeEach(() => {
   dependencies.sendMail.mockReset();
-  dependencies.sendMail.mockResolvedValue({ messageId: "message-1" });
+  dependencies.sendMail.mockImplementation(async (message) => ({
+    messageId: "message-1",
+    accepted: [message.to],
+    rejected: [],
+  }));
+  dependencies.verifyMail.mockReset();
+  dependencies.verifyMail.mockResolvedValue(true);
   dependencies.authAdmin.deleteUser.mockClear();
   dependencies.authAdmin.generateLink.mockClear();
   dependencies.authAdmin.listUsers.mockReset();
@@ -402,7 +417,7 @@ describe("audited municipality onboarding API", () => {
         p_central_admin_user_ids: [CENTRAL_ADMIN_ID],
       })
     );
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
     expect(dependencies.sendMail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "local@example.test",
@@ -411,6 +426,13 @@ describe("audited municipality onboarding API", () => {
         html: expect.stringContaining(
           'href="https://example.test/setup"'
         ),
+      })
+    );
+    expect(dependencies.sendMail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "zuzana.novotna@archimedeslive.com",
+        subject: expect.stringContaining("kopie registrace správce"),
+        text: expect.not.stringContaining("https://example.test/setup"),
       })
     );
     expect(dependencies.state.rpcCalls).toContainEqual(
@@ -529,6 +551,24 @@ describe("audited municipality onboarding API", () => {
     expect(dependencies.sendMail).not.toHaveBeenCalled();
   });
 
+  it("stops before Auth and database onboarding when SMTP preflight fails", async () => {
+    const smtpError = new Error("SMTP credentials rejected");
+    smtpError.code = "EAUTH";
+    smtpError.responseCode = 535;
+    dependencies.verifyMail.mockRejectedValueOnce(smtpError);
+
+    const { res } = await invoke(handler, {
+      method: "POST",
+      headers: { authorization: "Bearer admin-token" },
+      body: validBody,
+    });
+
+    expect(res.statusCode).toBe(503);
+    expect(dependencies.authAdmin.generateLink).not.toHaveBeenCalled();
+    expect(dependencies.authenticatedClient.rpc).not.toHaveBeenCalled();
+    expect(dependencies.sendMail).not.toHaveBeenCalled();
+  });
+
   it("keeps the committed transaction and marks SMTP uncertainty for manual review", async () => {
     dependencies.sendMail.mockRejectedValueOnce(new Error("SMTP unavailable"));
 
@@ -552,6 +592,41 @@ describe("audited municipality onboarding API", () => {
         args: expect.objectContaining({
           p_outcome: "delivery_unknown",
           p_error_code: "smtp_delivery_unknown",
+        }),
+      })
+    );
+  });
+
+  it("keeps confirmed client delivery sent when only Zuzana's safe copy fails", async () => {
+    dependencies.sendMail
+      .mockImplementationOnce(async (message) => ({
+        messageId: "client-message",
+        accepted: [message.to],
+        rejected: [],
+      }))
+      .mockRejectedValueOnce(Object.assign(new Error("copy unavailable"), {
+        code: "ETIMEDOUT",
+      }));
+
+    const { res } = await invoke(handler, {
+      method: "POST",
+      headers: { authorization: "Bearer admin-token" },
+      body: validBody,
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({
+      onboardingEmailSent: true,
+      auditCopySent: false,
+      emailManualReviewRequired: true,
+      emailRetryRequired: false,
+    });
+    expect(dependencies.state.rpcCalls).toContainEqual(
+      expect.objectContaining({
+        name: "complete_onboarding_email_attempt",
+        args: expect.objectContaining({
+          p_outcome: "sent",
+          p_error_code: "audit_copy_smtp_failed",
         }),
       })
     );
@@ -594,7 +669,7 @@ describe("audited municipality onboarding API", () => {
     expect(retryResponse.statusCode).toBe(200);
     expect(dependencies.authAdmin.generateLink).toHaveBeenCalledTimes(2);
     expect(dependencies.authAdmin.deleteUser).toHaveBeenCalledTimes(1);
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
     expect(dependencies.state.authPreparationUpdates).toContainEqual(
       expect.objectContaining({
         status: "preparing",
@@ -662,7 +737,7 @@ describe("audited municipality onboarding API", () => {
     expect(dependencies.sendMail).not.toHaveBeenCalled();
   });
 
-  it("records a retryable pre-send failure when SMTP configuration is missing", async () => {
+  it("stops before Auth and database onboarding when SMTP configuration is missing", async () => {
     delete process.env.SMTP_HOST;
 
     const { res } = await invoke(handler, {
@@ -671,22 +746,10 @@ describe("audited municipality onboarding API", () => {
       body: validBody,
     });
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toMatchObject({
-      onboardingEmailSent: false,
-      emailRetryRequired: true,
-      emailManualReviewRequired: false,
-    });
+    expect(res.statusCode).toBe(500);
+    expect(dependencies.authAdmin.generateLink).not.toHaveBeenCalled();
+    expect(dependencies.authenticatedClient.rpc).not.toHaveBeenCalled();
     expect(dependencies.sendMail).not.toHaveBeenCalled();
-    expect(dependencies.state.rpcCalls).toContainEqual(
-      expect.objectContaining({
-        name: "complete_onboarding_email_attempt",
-        args: expect.objectContaining({
-          p_outcome: "failed",
-          p_error_code: "smtp_configuration_missing",
-        }),
-      })
-    );
   });
 
   it("does not automatically retry a delivery with an unknown outcome", async () => {
@@ -748,7 +811,7 @@ describe("audited municipality onboarding API", () => {
       emailRetryRequired: false,
       emailManualReviewRequired: true,
     });
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
   });
 
   it("loads a failed email state after a page reload without sending", async () => {
@@ -866,7 +929,7 @@ describe("audited municipality onboarding API", () => {
         args: expect.objectContaining({ p_action: "retry_failed" }),
       })
     );
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
   });
 
   it("does not send on a manual retry double click that loses the DB claim", async () => {

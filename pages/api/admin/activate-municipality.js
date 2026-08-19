@@ -6,11 +6,14 @@ import {
   parseCentralAdminUserIds,
   resolveConfiguredCentralAdmins,
   resolveLocalAdministrator,
+  sendCustomerOnboardingAuditCopy,
   sendCustomerOnboardingEmail,
   sendWrittenOrderAcceptanceEmail,
   updateAuthPreparationStatus,
   validateCustomerOnboardingEmailConfiguration,
+  verifyCustomerOnboardingEmailTransport,
 } from "../../../lib/server/customerOnboarding";
+import { logSafeSmtpFailure } from "../../../lib/server/smtpDelivery";
 import { LEGAL_DOCUMENT_VERSION } from "../../../lib/legalDocuments";
 import {
   getBearerToken,
@@ -31,6 +34,24 @@ const LICENSE_LABELS = {
 };
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+async function requireVerifiedCustomerOnboardingSmtp(context = {}) {
+  validateCustomerOnboardingEmailConfiguration();
+  try {
+    await verifyCustomerOnboardingEmailTransport();
+  } catch (smtpError) {
+    logSafeSmtpFailure(
+      "customer onboarding SMTP preflight failed",
+      smtpError,
+      context
+    );
+    throw new CustomerOnboardingError(
+      "SMTP se nepodařilo ověřit. Nebyl vytvořen žádný nový e-mailový pokus ani účet.",
+      503,
+      "SMTP_PREFLIGHT_FAILED"
+    );
+  }
+}
 
 function acceptanceSnapshotMatches(row, expected) {
   return (
@@ -90,7 +111,10 @@ async function ensureWrittenOrderAcceptance({
     }
   }
 
-  validateCustomerOnboardingEmailConfiguration();
+  await requireVerifiedCustomerOnboardingSmtp({
+    operation: "written_order_acceptance",
+    organizationId: customer.id,
+  });
 
   const acceptanceReference = existing?.acceptance_reference || idempotencyKey;
   const now = new Date().toISOString();
@@ -142,6 +166,11 @@ async function ensureWrittenOrderAcceptance({
       siteUrl,
     });
   } catch (error) {
+    logSafeSmtpFailure(
+      "written order acceptance delivery unconfirmed",
+      error,
+      { organizationId: customer.id, acceptanceId: claimed.id }
+    );
     await supabaseAdmin
       .from("customer_order_acceptances")
       .update({ status: "delivery_unknown", error_code: "smtp_delivery_unknown" })
@@ -275,7 +304,15 @@ async function deliverOnboardingEmail({
   siteUrl,
   rpcNames = AUTHENTICATED_ONBOARDING_RPCS,
   performedBy = null,
+  smtpPreflightVerified = false,
 }) {
+  if (!smtpPreflightVerified) {
+    await requireVerifiedCustomerOnboardingSmtp({
+      operation: "onboarding_email",
+      onboardingRunId,
+    });
+  }
+
   const { data: claimRows, error: claimError } = await authenticatedClient.rpc(
     rpcNames.claimEmail,
     {
@@ -327,27 +364,7 @@ async function deliverOnboardingEmail({
   }
 
   try {
-    validateCustomerOnboardingEmailConfiguration();
-  } catch {
-    const completion = await completeEmailAttempt(
-      authenticatedClient,
-      claim.attempt_id,
-      "failed",
-      "smtp_configuration_missing",
-      rpcNames,
-      performedBy
-    );
-    return {
-      onboardingEmailSent: false,
-      emailDeliveryInProgress: false,
-      emailManualReviewRequired: !completion.recorded,
-      emailRetryRequired: completion.recorded,
-      emailAttemptNumber: claim.attempt_number,
-    };
-  }
-
-  try {
-    await sendCustomerOnboardingEmail({
+    const emailValues = {
       email: deliveryAdministrator.email,
       fullName: deliveryAdministrator.fullName,
       organizationName: customer.name,
@@ -357,27 +374,45 @@ async function deliverOnboardingEmail({
       licenseValidUntil,
       siteUrl,
       setupUrl: deliveryAdministrator.setupUrl,
-    });
+    };
+    await sendCustomerOnboardingEmail(emailValues);
+
+    let auditCopySent = true;
+    let completionErrorCode = null;
+    try {
+      await sendCustomerOnboardingAuditCopy(emailValues);
+    } catch (copyError) {
+      auditCopySent = false;
+      completionErrorCode = "audit_copy_smtp_failed";
+      logSafeSmtpFailure(
+        "customer onboarding audit copy failed",
+        copyError,
+        { onboardingRunId, attemptId: claim.attempt_id }
+      );
+    }
+
     const completion = await completeEmailAttempt(
       authenticatedClient,
       claim.attempt_id,
       "sent",
-      null,
+      completionErrorCode,
       rpcNames,
       performedBy
     );
     return {
       onboardingEmailSent: true,
+      auditCopySent,
       emailDeliveryInProgress: false,
-      emailManualReviewRequired: !completion.recorded,
+      emailManualReviewRequired: !completion.recorded || !auditCopySent,
       emailRetryRequired: false,
       emailAttemptNumber: claim.attempt_number,
     };
   } catch (emailError) {
-    console.error("customer onboarding email error", {
-      onboardingRunId,
-      attemptId: claim.attempt_id,
-    });
+    logSafeSmtpFailure(
+      "customer onboarding client delivery unconfirmed",
+      emailError,
+      { onboardingRunId, attemptId: claim.attempt_id }
+    );
     const completion = await completeEmailAttempt(
       authenticatedClient,
       claim.attempt_id,
@@ -774,6 +809,16 @@ export async function handleMunicipalityOnboarding(req, res, serverContext = nul
       });
     }
 
+    const onboardingMaySend =
+      !previousOnboarding ||
+      ["pending", "failed"].includes(previousOnboarding.email_status);
+    if (onboardingMaySend) {
+      await requireVerifiedCustomerOnboardingSmtp({
+        operation: "onboarding_preparation",
+        organizationId: customer.id,
+      });
+    }
+
     localAdministrator = await resolveLocalAdministrator({
       supabaseAdmin,
       email: localAdminEmail,
@@ -914,6 +959,7 @@ export async function handleMunicipalityOnboarding(req, res, serverContext = nul
       siteUrl,
       rpcNames: onboardingRpcNames,
       performedBy: servicePerformedBy,
+      smtpPreflightVerified: onboardingMaySend,
     });
 
     return res.status(200).json({

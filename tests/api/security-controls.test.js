@@ -98,6 +98,8 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
     expect(source).toContain("resolveLocalAdministrator");
     expect(source).toContain("sendCustomerOnboardingEmail");
     expect(source).toContain("sendCustomerOnboardingAuditCopy");
+    expect(source.indexOf("verifyCustomerOnboardingEmailTransport()"))
+      .toBeLessThan(source.indexOf("claimAttempt({"));
     expect(source).toContain('from("municipality_admin_invitation_attempts")');
     expect(source).not.toContain("inviteUserByEmail");
     expect(source).toContain('role_in_org: "organization_admin"');
@@ -172,6 +174,8 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
     expect(helper).toContain('.from("organization_members")');
     expect(helper).toContain('.or("is_test.eq.false,is_test.is.null")');
     expect(helper).toContain('.eq("status", "active")');
+    expect(helper.indexOf("verifySmtpTransport(mailer)"))
+      .toBeLessThan(helper.indexOf("for (const candidate of candidates)"));
   });
 
   it.each(retiredRoutes)("%s remains an unconditional gone endpoint", (route) => {
@@ -215,11 +219,13 @@ describe("API egress, email, and secret-exposure controls", () => {
     );
 
     expect(route).toContain("sendCustomerOnboardingEmail");
+    expect(route).toContain("sendCustomerOnboardingAuditCopy");
     expect(helper).toContain("process.env.SMTP_HOST");
     expect(helper).toContain("process.env.SMTP_USER");
     expect(helper).toContain("process.env.SMTP_PASS");
     expect(helper).toContain("process.env.MAIL_FROM");
     expect(helper).not.toMatch(/host:\s*req\.(body|query)/);
+    expect(helper).toContain("sendSmtpMessage");
   });
 
   it("never references the Supabase service-role key from browser-delivered modules", () => {
