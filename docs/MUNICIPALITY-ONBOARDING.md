@@ -89,6 +89,16 @@ Výsledek musí mít právě dva řádky, shodné neprázdné e-maily, aktivní 
    vazbou na předchozí pokus. Souhrnný stav je `pending`, `sending`, `sent`,
    bezpečně opakovatelný `failed` nebo ručně ověřovaný `delivery_unknown`.
 
+### Doplnění správce starší aktivní obce
+
+Samostatná obrazovka pro přidání správce k již aktivní obci používá stejnou
+přípravu Auth účtu a stejnou aplikační SMTP šablonu. Nepoužívá Supabase
+`inviteUserByEmail`. Každý požadavek má UUID idempotency key a vlastní záznam v
+`municipality_admin_invitation_attempts`; při nejasném výsledku SMTP se zpráva
+automaticky neposílá podruhé. Po klientské zprávě se Zuzaně odešle samostatná
+bezpečná kopie s identitou klienta, licencí a platností, ale bez aktivačního
+odkazu a tokenu. Tato cesta nemění licenci, smlouvu, fakturaci ani stav obce.
+
 ## Provozní rychlá cesta pro každou kartu
 
 Jedna kompletní karta se zpracovává jako jediný celek. Operátor nemá znovu
@@ -241,6 +251,8 @@ session, tedy jako `authenticated`.
 | `organization_onboarding_auth_preparations` | `INSERT` | `claimAuthPreparation()` a obnova účtu podle Auth metadata v `resolveLocalAdministrator()` | `supabaseAdmin` | `service_role`: povoleno |
 | `organization_onboarding_auth_preparations` | `UPDATE` | `claimAuthPreparation()`, `updateAuthPreparationStatus()` a auditovaná obnova v `resolveLocalAdministrator()` | `supabaseAdmin` | `service_role`: povoleno |
 | `organization_onboarding_auth_preparations` | `DELETE` | žádný | žádný | nikomu z `PUBLIC`, `anon`, `authenticated`, `service_role` |
+| `municipality_admin_invitation_attempts` | `SELECT`, `INSERT`, `UPDATE` | `pages/api/admin/invite-municipality-admin.js` | `supabaseAdmin` | pouze `service_role` |
+| `municipality_admin_invitation_attempts` | `DELETE` | žádný | žádný | nikomu z `PUBLIC`, `anon`, `authenticated`, `service_role` |
 | `onboard_customer_v3(...)` | `EXECUTE` | `handler()` v `pages/api/admin/activate-municipality.js` | `authenticatedClient` | pouze `authenticated` |
 | `claim_onboarding_email_attempt(...)` | `EXECUTE` | `deliverOnboardingEmail()` ve stejném API souboru; první pokus, `failed` retry i potvrzené nedoručení | `authenticatedClient` | pouze `authenticated` |
 | `complete_onboarding_email_attempt(...)` | `EXECUTE` | `completeEmailAttempt()` ve stejném API souboru; výsledky `sent`, `failed`, `delivery_unknown` | `authenticatedClient` | pouze `authenticated` |
