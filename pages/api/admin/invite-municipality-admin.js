@@ -8,7 +8,9 @@ import {
   sendCustomerOnboardingEmail,
   updateAuthPreparationStatus,
   validateCustomerOnboardingEmailConfiguration,
+  verifyCustomerOnboardingEmailTransport,
 } from "../../../lib/server/customerOnboarding";
+import { logSafeSmtpFailure } from "../../../lib/server/smtpDelivery";
 import { requirePlatformAdmin } from "../../../lib/server/platformAdminApi";
 import { getServerSiteUrl } from "../../../lib/server/siteUrl";
 
@@ -197,6 +199,20 @@ export default async function handler(req, res) {
     }
 
     validateCustomerOnboardingEmailConfiguration();
+    try {
+      await verifyCustomerOnboardingEmailTransport();
+    } catch (smtpError) {
+      logSafeSmtpFailure(
+        "invite-municipality-admin SMTP preflight failed",
+        smtpError,
+        { organizationId }
+      );
+      throw new CustomerOnboardingError(
+        "SMTP se nepodařilo ověřit. Správce ani e-mailový pokus nebyly vytvořeny.",
+        503,
+        "SMTP_PREFLIGHT_FAILED"
+      );
+    }
     const claim = await claimAttempt({
       idempotencyKey,
       organizationId,
@@ -312,6 +328,11 @@ export default async function handler(req, res) {
     try {
       await sendCustomerOnboardingEmail(emailValues);
     } catch (emailError) {
+      logSafeSmtpFailure(
+        "invite-municipality-admin client delivery unconfirmed",
+        emailError,
+        { organizationId, attemptId: attempt.id }
+      );
       await updateAttempt(attempt.id, "delivery_unknown", {
         error_code: "client_smtp_delivery_unknown",
       });
@@ -326,6 +347,11 @@ export default async function handler(req, res) {
     try {
       await sendCustomerOnboardingAuditCopy(emailValues);
     } catch (copyError) {
+      logSafeSmtpFailure(
+        "invite-municipality-admin audit copy failed",
+        copyError,
+        { organizationId, attemptId: attempt.id }
+      );
       await updateAttempt(attempt.id, "sent_copy_failed", {
         client_sent_at: clientSentAt,
         error_code: "audit_copy_smtp_failed",
