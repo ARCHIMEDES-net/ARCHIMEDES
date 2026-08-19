@@ -6,6 +6,8 @@ const EXPECTED_REPOSITORY = "ARCHIMEDES-net/ARCHIMEDES";
 const EXPECTED_WORKFLOW_PATH =
   "ARCHIMEDES-net/ARCHIMEDES/.github/workflows/onboarding-e2e-pr198-oidc.yml@";
 const EXPECTED_EMAIL = "antonin.koplik+archimedes-e2e@gmail.com";
+const EXPECTED_AUTOMATION_ADMIN_USER_ID =
+  "13b78fbc-46c5-4994-9789-0bc289f42a70";
 
 export const config = {
   maxDuration: 120,
@@ -121,10 +123,14 @@ async function runApprovedE2E() {
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
   const deploymentHost = String(process.env.VERCEL_URL || "").toLowerCase();
+  const automationAdminUserId = String(
+    process.env.ONBOARDING_AUTOMATION_ADMIN_USER_ID || ""
+  ).trim();
   if (
     secret.length < 32 ||
     allowlist.length !== 1 ||
     allowlist[0] !== EXPECTED_EMAIL ||
+    automationAdminUserId !== EXPECTED_AUTOMATION_ADMIN_USER_ID ||
     !/^[a-z0-9.-]+\.vercel\.app$/.test(deploymentHost)
   ) {
     throw new Error("Preview E2E environment is not safely constrained.");
