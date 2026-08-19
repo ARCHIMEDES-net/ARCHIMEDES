@@ -207,19 +207,19 @@ describe("API egress, email, and secret-exposure controls", () => {
     }
   );
 
-  it("keeps onboarding SMTP configuration in a server-only helper", () => {
+  it("keeps the registration email provider and credentials server-only", () => {
     const route = readApi("admin/activate-municipality");
     const helper = fs.readFileSync(
-      path.join(repositoryRoot, "lib/server/customerOnboarding.js"),
+      path.join(repositoryRoot, "lib/server/registrationEmailProvider.js"),
       "utf8"
     );
 
     expect(route).toContain("sendCustomerOnboardingEmail");
-    expect(helper).toContain("process.env.SMTP_HOST");
-    expect(helper).toContain("process.env.SMTP_USER");
-    expect(helper).toContain("process.env.SMTP_PASS");
-    expect(helper).toContain("process.env.MAIL_FROM");
-    expect(helper).not.toMatch(/host:\s*req\.(body|query)/);
+    expect(helper).toContain("process.env.RESEND_API_KEY");
+    expect(helper).toContain("process.env.REGISTRATION_EMAIL_FROM");
+    expect(helper).toContain('"https://api.resend.com/emails"');
+    expect(helper).toContain('"Idempotency-Key"');
+    expect(helper).not.toMatch(/apiKey:\s*req\.(body|query)/);
   });
 
   it("never references the Supabase service-role key from browser-delivered modules", () => {

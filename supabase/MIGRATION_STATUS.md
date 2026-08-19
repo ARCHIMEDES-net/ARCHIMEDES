@@ -129,6 +129,11 @@ Ruční přiřazení škol pod obce přijde až po schválení konkrétní mapy
 
 ## Produkční onboarding v3 – ověřeno 14. srpna 2026
 
+> Migrace `20260819230000_add_registration_email_provider_receipts.sql` je
+> připravená pro jednotný provider registračních e-mailů. Před produkčním
+> nasazením vyžaduje ověřenou odesílací doménu a serverové proměnné
+> `RESEND_API_KEY` a `REGISTRATION_EMAIL_FROM`.
+
 - `20260813204547_harden_municipality_onboarding.sql` zavádí jednotný,
   auditovaný a idempotentní onboarding hlavních zákazníků. Odděluje
   kontakt od lokálního správce, přidává nakonfigurované centrální správce a

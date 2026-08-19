@@ -310,10 +310,17 @@ export default async function handler(req, res) {
     };
 
     try {
-      await sendCustomerOnboardingEmail(emailValues);
+      const clientReceipt = await sendCustomerOnboardingEmail({
+        ...emailValues,
+        idempotencyKey: `municipality-admin-invitation:${attempt.id}:client`,
+      });
+      await updateAttempt(attempt.id, "sending", {
+        email_provider: clientReceipt.provider,
+        client_provider_message_id: clientReceipt.messageId,
+      });
     } catch (emailError) {
       await updateAttempt(attempt.id, "delivery_unknown", {
-        error_code: "client_smtp_delivery_unknown",
+        error_code: "client_registration_email_delivery_unknown",
       });
       throw new CustomerOnboardingError(
         "Přístup byl připraven, ale výsledek doručení klientovi není známý. E-mail automaticky neopakujte; zkontrolujte audit.",
@@ -324,11 +331,17 @@ export default async function handler(req, res) {
 
     const clientSentAt = new Date().toISOString();
     try {
-      await sendCustomerOnboardingAuditCopy(emailValues);
+      const auditCopyReceipt = await sendCustomerOnboardingAuditCopy(
+        emailValues,
+        `municipality-admin-invitation:${attempt.id}:audit`
+      );
+      await updateAttempt(attempt.id, "sending", {
+        audit_copy_provider_message_id: auditCopyReceipt.messageId,
+      });
     } catch (copyError) {
       await updateAttempt(attempt.id, "sent_copy_failed", {
         client_sent_at: clientSentAt,
-        error_code: "audit_copy_smtp_failed",
+        error_code: "audit_copy_provider_failed",
       });
       return res.status(200).json({
         ok: true,
