@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  auditCopyMessage,
   nextReminderStep,
   reminderReason,
 } from "../../lib/server/profileCompletionReminders";
@@ -67,5 +68,20 @@ describe("profile completion reminder eligibility", () => {
       })
     ).toBeNull();
     expect(nextReminderStep({ profile: profile({ is_active: false }), now })).toBeNull();
+  });
+  it("creates a safe audit copy without password or profile links", () => {
+    const copy = auditCopyMessage({
+      recipientEmail: "user@example.com",
+      fullName: "Test User",
+      reason: "password_and_profile",
+      step: 1,
+    });
+
+    expect(copy.subject).toContain("Kopie upozornění");
+    expect(copy.text).toContain("user@example.com");
+    expect(copy.text).toContain("nastavení vlastního hesla a dokončení profilu");
+    expect(copy.text).not.toContain("http");
+    expect(copy.text).not.toContain("token");
+    expect(copy.text).not.toContain("Nastavit heslo:");
   });
 });
