@@ -248,15 +248,20 @@ export default async function handler(req, res) {
     }
 
     if (localAdministrator.isNewAccount) {
-      const { error: profileError } = await supabaseAdmin.from("profiles").insert({
-        id: localAdministrator.userId,
-        email: cleanEmail,
-        full_name: cleanFullName,
-        is_active: true,
-        must_set_password: true,
-        user_type: "organization",
-        active_organization_id: organizationId,
-      });
+      const { error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .upsert(
+          {
+            id: localAdministrator.userId,
+            email: cleanEmail,
+            full_name: cleanFullName,
+            is_active: true,
+            must_set_password: true,
+            user_type: "organization",
+            active_organization_id: organizationId,
+          },
+          { onConflict: "id" }
+        );
       if (profileError) throw profileError;
       profileCreated = true;
     }
