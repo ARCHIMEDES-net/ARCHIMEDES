@@ -9,6 +9,10 @@ const dependencies = vi.hoisted(() => {
   };
   const sendMail = vi.fn(async () => ({ messageId: "message-1" }));
   const createTransport = vi.fn(() => ({ sendMail }));
+  const sendRegistrationEmail = vi.fn(async ({ to }) => ({
+    provider: "resend",
+    messageId: `resend-${to}`,
+  }));
 
   const supabase = {
     rpc: vi.fn(async (name) => {
@@ -71,6 +75,7 @@ const dependencies = vi.hoisted(() => {
     state,
     sendMail,
     createTransport,
+    sendRegistrationEmail,
     supabase,
     createClient: vi.fn(() => supabase),
     consumePublicRateLimit: vi.fn(async () => true),
@@ -85,6 +90,10 @@ vi.mock("nodemailer", () => ({
   default: {
     createTransport: dependencies.createTransport,
   },
+}));
+
+vi.mock("../../lib/server/registrationEmailProvider", () => ({
+  sendRegistrationEmail: dependencies.sendRegistrationEmail,
 }));
 
 vi.mock("../../lib/server/publicRateLimit", () => ({
@@ -114,6 +123,11 @@ beforeEach(() => {
   dependencies.supabase.from.mockClear();
   dependencies.sendMail.mockClear();
   dependencies.createTransport.mockClear();
+  dependencies.sendRegistrationEmail.mockReset();
+  dependencies.sendRegistrationEmail.mockImplementation(async ({ to }) => ({
+    provider: "resend",
+    messageId: `resend-${to}`,
+  }));
   dependencies.consumePublicRateLimit.mockClear();
 
   process.env.SMTP_HOST = "smtp.example.test";
@@ -138,7 +152,7 @@ afterEach(() => {
 });
 
 describe("authoritative lead processing", () => {
-  it("stores /zadost, creates the pending customer and archive, and sends both emails", async () => {
+  it("stores /zadost, creates the pending customer and archive, and sends both emails through Resend", async () => {
     const { res } = await invoke(accessRequestHandler, {
       method: "POST",
       body: {
@@ -206,23 +220,27 @@ describe("authoritative lead processing", () => {
       status: "new",
     });
 
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
-    expect(dependencies.sendMail).toHaveBeenNthCalledWith(
+    expect(dependencies.sendRegistrationEmail).toHaveBeenCalledTimes(2);
+    expect(dependencies.sendRegistrationEmail).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
         to: "team@example.test",
         replyTo: "jan.novak@example.test",
+        idempotencyKey: "order-request:lead-1:team",
       })
     );
-    expect(dependencies.sendMail).toHaveBeenNthCalledWith(
+    expect(dependencies.sendRegistrationEmail).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
         to: "jan.novak@example.test",
+        replyTo: "team@example.test",
+        idempotencyKey: "order-request:lead-1:applicant",
         subject: "ARCHIMEDES Live – potvrzení o doručení objednávky",
         text: expect.stringContaining("Smlouva zatím nevznikla"),
         html: expect.stringContaining("23 880 Kč bez DPH za 12 měsíců"),
       })
     );
+    expect(dependencies.createTransport).not.toHaveBeenCalled();
 
     expect(leadInsert?.rows[0].note).toContain(
       "DPA přijata: ano (verze 2026-08-11"
@@ -230,6 +248,45 @@ describe("authoritative lead processing", () => {
     expect(leadInsert?.rows[0].note).toContain(
       "Smlouva vzniká až písemným přijetím objednávky poskytovatelem."
     );
+  });
+
+  it("keeps the saved request and returns 200 when the Resend provider fails", async () => {
+    dependencies.sendRegistrationEmail.mockRejectedValueOnce(
+      new Error("provider unavailable")
+    );
+
+    const { res } = await invoke(accessRequestHandler, {
+      method: "POST",
+      body: {
+        name: "Jan Novák",
+        role: "starosta",
+        licensePlan: "paid_annual",
+        termsAccepted: true,
+        email: "jan.novak@example.test",
+        phone: "+420 777 123 456",
+        organization: "Obec Testov",
+        address: "Náměstí 1, Testov",
+        population: "1250",
+        legalIdentifier: "12345678",
+        type: "obec",
+        message: "Prosím o založení přístupu.",
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({ ok: true, emailSent: false });
+    expect(res.body.message).toContain("potvrzovací e-mail dorazí později");
+    expect(
+      dependencies.state.inserts.find((entry) => entry.table === "leads")
+    ).toBeTruthy();
+    expect(
+      dependencies.state.inserts.find((entry) => entry.table === "access_requests")
+    ).toBeTruthy();
+    expect(dependencies.state.updates).toContainEqual({
+      table: "organizations",
+      values: expect.objectContaining({ requested_license_plan: "paid_annual" }),
+    });
+    expect(dependencies.sendRegistrationEmail).toHaveBeenCalledTimes(1);
   });
 
   it("stores a classroom inquiry and sends internal and applicant SMTP messages", async () => {
