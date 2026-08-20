@@ -9,6 +9,13 @@ const migration = fs.readFileSync(
   ),
   "utf8"
 );
+const reminderFailureMigration = fs.readFileSync(
+  path.join(
+    process.cwd(),
+    "supabase/migrations/20260820090000_allow_retryable_profile_reminder_failures.sql"
+  ),
+  "utf8"
+);
 
 describe("registration email provider audit", () => {
   it("stores client and safe-copy provider receipts for every registration flow", () => {
@@ -31,5 +38,14 @@ describe("registration email provider audit", () => {
       ") on public.organization_onboarding_email_attempts to service_role"
     );
     expect(migration).not.toContain("grant delete");
+  });
+
+  it("allows retry only after a confirmed pre-delivery reminder failure", () => {
+    expect(reminderFailureMigration).toContain(
+      "check (status in ('sending', 'sent', 'failed', 'delivery_unknown'))"
+    );
+    expect(reminderFailureMigration).toContain(
+      "delivery_unknown always requires manual review"
+    );
   });
 });

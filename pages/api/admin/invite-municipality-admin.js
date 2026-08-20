@@ -11,6 +11,7 @@ import {
 } from "../../../lib/server/customerOnboarding";
 import { requirePlatformAdmin } from "../../../lib/server/platformAdminApi";
 import { getServerSiteUrl } from "../../../lib/server/siteUrl";
+import { registrationEmailWasDefinitelyNotSent } from "../../../lib/server/registrationEmailProvider";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -319,6 +320,14 @@ export default async function handler(req, res) {
         client_provider_message_id: clientReceipt.messageId,
       });
     } catch (emailError) {
+      if (registrationEmailWasDefinitelyNotSent(emailError)) {
+        emailSendingStarted = false;
+        throw new CustomerOnboardingError(
+          "Provider pozvánku prokazatelně odmítl před odesláním. Připravené změny budou vráceny zpět a po opravě lze pokus bezpečně zopakovat.",
+          502,
+          emailError.code
+        );
+      }
       await updateAttempt(attempt.id, "delivery_unknown", {
         error_code: "client_registration_email_delivery_unknown",
       });

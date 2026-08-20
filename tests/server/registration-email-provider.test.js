@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   RegistrationEmailProviderError,
+  registrationEmailWasDefinitelyNotSent,
   sendRegistrationEmail,
 } from "../../lib/server/registrationEmailProvider";
 
@@ -56,6 +57,7 @@ describe("registration email provider", () => {
         headers: expect.objectContaining({
           Authorization: "Bearer re_private_test_key",
           "Idempotency-Key": "municipality-onboarding:attempt-1:client",
+          "User-Agent": "ARCHIMEDES-Live/1.0",
         }),
       })
     );
@@ -92,5 +94,45 @@ describe("registration email provider", () => {
       })
     ).rejects.toBeInstanceOf(RegistrationEmailProviderError);
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("distinguishes a definitive API rejection from an ambiguous provider outcome", async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 422,
+      json: vi.fn(async () => ({ name: "validation_error" })),
+    });
+
+    const rejected = await sendRegistrationEmail({
+      to: "client@example.test",
+      subject: "Registrace",
+      text: "Text",
+      html: "<p>Text</p>",
+      idempotencyKey: "municipality-onboarding:attempt-2:client",
+    }).catch((error) => error);
+    expect(registrationEmailWasDefinitelyNotSent(rejected)).toBe(true);
+    expect(rejected).toMatchObject({
+      code: "REGISTRATION_EMAIL_PROVIDER_REJECTED",
+      deliveryOutcome: "not_sent",
+      httpStatus: 422,
+    });
+
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 409,
+      json: vi.fn(async () => ({ name: "concurrent_idempotent_requests" })),
+    });
+    const ambiguous = await sendRegistrationEmail({
+      to: "client@example.test",
+      subject: "Registrace",
+      text: "Text",
+      html: "<p>Text</p>",
+      idempotencyKey: "municipality-onboarding:attempt-2:client",
+    }).catch((error) => error);
+    expect(registrationEmailWasDefinitelyNotSent(ambiguous)).toBe(false);
+    expect(ambiguous).toMatchObject({
+      deliveryOutcome: "unknown",
+      httpStatus: 409,
+    });
   });
 });

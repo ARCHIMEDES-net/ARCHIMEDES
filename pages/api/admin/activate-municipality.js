@@ -19,6 +19,7 @@ import {
   requirePlatformAdmin,
 } from "../../../lib/server/platformAdminApi";
 import { getServerSiteUrl } from "../../../lib/server/siteUrl";
+import { registrationEmailWasDefinitelyNotSent } from "../../../lib/server/registrationEmailProvider";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -173,16 +174,21 @@ async function ensureWrittenOrderAcceptance({
       .eq("status", "sending");
     if (completeError) throw completeError;
   } catch (error) {
+    const definitelyNotSent = registrationEmailWasDefinitelyNotSent(error);
     await supabaseAdmin
       .from("customer_order_acceptances")
       .update({
-        status: "delivery_unknown",
-        error_code: "registration_email_delivery_unknown",
+        status: definitelyNotSent ? "failed" : "delivery_unknown",
+        error_code: definitelyNotSent
+          ? error.code
+          : "registration_email_delivery_unknown",
       })
       .eq("id", claimed.id)
       .eq("status", "sending");
     throw new CustomerOnboardingError(
-      "Výsledek doručení písemného přijetí není známý. Obec nebyla aktivována; e-mail automaticky neopakujte."
+      definitelyNotSent
+        ? "Provider písemné přijetí prokazatelně odmítl před odesláním. Obec nebyla aktivována a pokus lze po opravě bezpečně zopakovat."
+        : "Výsledek doručení písemného přijetí není známý. Obec nebyla aktivována; e-mail automaticky neopakujte."
     );
   }
   return { required: true, sent: true };
@@ -431,6 +437,8 @@ async function deliverOnboardingEmail({
       emailAttemptNumber: claim.attempt_number,
     };
   } catch (emailError) {
+    const definitelyNotSent =
+      registrationEmailWasDefinitelyNotSent(emailError);
     console.error("customer onboarding email error", {
       onboardingRunId,
       attemptId: claim.attempt_id,
@@ -438,16 +446,18 @@ async function deliverOnboardingEmail({
     const completion = await completeEmailAttempt(
       authenticatedClient,
       claim.attempt_id,
-      "delivery_unknown",
-      "registration_email_delivery_unknown",
+      definitelyNotSent ? "failed" : "delivery_unknown",
+      definitelyNotSent
+        ? emailError.code
+        : "registration_email_delivery_unknown",
       rpcNames,
       performedBy
     );
     return {
       onboardingEmailSent: false,
       emailDeliveryInProgress: !completion.recorded,
-      emailManualReviewRequired: true,
-      emailRetryRequired: false,
+      emailManualReviewRequired: !definitelyNotSent,
+      emailRetryRequired: definitelyNotSent && completion.recorded,
       emailAttemptNumber: claim.attempt_number,
     };
   }

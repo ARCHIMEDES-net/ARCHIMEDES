@@ -221,6 +221,7 @@ describe("API egress, email, and secret-exposure controls", () => {
     );
     expect(helper).toContain('"https://api.resend.com/emails"');
     expect(helper).toContain('"Idempotency-Key"');
+    expect(helper).toContain('"User-Agent": "ARCHIMEDES-Live/1.0"');
     expect(helper).not.toMatch(/apiKey:\s*req\.(body|query)/);
   });
 
