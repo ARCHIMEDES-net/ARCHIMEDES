@@ -194,18 +194,33 @@ describe("API egress, email, and secret-exposure controls", () => {
     expect(source).toContain("controller.abort()");
   });
 
-  it.each(["poptavka-ucebny", "poptavka", "zadost-o-pristup"])(
+  it.each(["poptavka-ucebny", "poptavka"])(
     "%s validates SMTP server configuration rather than accepting it from input",
     (route) => {
       const source = readApi(route);
 
       expect(source).toContain("process.env.SMTP_HOST");
-    expect(source).toContain("process.env.SMTP_USER");
-    expect(source).toContain("process.env.SMTP_PASS");
-    expect(source).toContain("process.env.MAIL_FROM");
+      expect(source).toContain("process.env.SMTP_USER");
+      expect(source).toContain("process.env.SMTP_PASS");
+      expect(source).toContain("process.env.MAIL_FROM");
       expect(source).not.toMatch(/host:\s*req\.(body|query)/);
     }
   );
+
+  it("routes public access-request email through the server-only registration provider", () => {
+    const source = readApi("zadost-o-pristup");
+
+    expect(source).toContain(
+      'import { sendRegistrationEmail } from "../../lib/server/registrationEmailProvider"'
+    );
+    expect(source).toContain("sendRegistrationEmail({");
+    expect(source).toContain("process.env.MAIL_TO");
+    expect(source).not.toContain("process.env.SMTP_HOST");
+    expect(source).not.toContain("process.env.SMTP_USER");
+    expect(source).not.toContain("process.env.SMTP_PASS");
+    expect(source).not.toContain("nodemailer");
+    expect(source).not.toMatch(/apiKey:\s*req\.(body|query)/);
+  });
 
   it("keeps the registration email provider and credentials server-only", () => {
     const route = readApi("admin/activate-municipality");
