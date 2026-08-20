@@ -25,7 +25,10 @@ describe("auditované písemné přijetí objednávky", () => {
   });
 
   it("neaktivuje webovou objednávku při neznámém doručení", () => {
-    expect(api).toContain('status: "delivery_unknown"');
+    expect(api).toContain(
+      'status: definitelyNotSent ? "failed" : "delivery_unknown"'
+    );
+    expect(api).toContain("registrationEmailWasDefinitelyNotSent");
     expect(api).toContain("Obec nebyla aktivována; e-mail automaticky neopakujte");
     expect(api).toContain('["sending", "delivery_unknown"]');
   });

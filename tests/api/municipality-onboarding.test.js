@@ -254,6 +254,9 @@ vi.mock("@supabase/supabase-js", () => ({
 
 vi.mock("../../lib/server/registrationEmailProvider", () => ({
   sendRegistrationEmail: dependencies.sendMail,
+  registrationEmailWasDefinitelyNotSent: vi.fn(
+    (error) => error?.deliveryOutcome === "not_sent"
+  ),
   validateRegistrationEmailConfiguration: vi.fn(() => {
     if (!process.env.RESEND_API_KEY || !process.env.REGISTRATION_EMAIL_FROM) {
       throw new Error("registration email configuration missing");
@@ -553,6 +556,38 @@ describe("audited municipality onboarding API", () => {
         args: expect.objectContaining({
           p_outcome: "delivery_unknown",
           p_error_code: "registration_email_delivery_unknown",
+        }),
+      })
+    );
+  });
+
+  it("records a retryable failure when the provider definitively rejected the email", async () => {
+    dependencies.sendMail.mockRejectedValueOnce(
+      Object.assign(new Error("Provider rejected"), {
+        code: "REGISTRATION_EMAIL_PROVIDER_REJECTED",
+        deliveryOutcome: "not_sent",
+      })
+    );
+
+    const { res } = await invoke(handler, {
+      method: "POST",
+      headers: { authorization: "Bearer admin-token" },
+      body: validBody,
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({
+      ok: true,
+      onboardingEmailSent: false,
+      emailRetryRequired: true,
+      emailManualReviewRequired: false,
+    });
+    expect(dependencies.state.rpcCalls).toContainEqual(
+      expect.objectContaining({
+        name: "complete_onboarding_email_attempt",
+        args: expect.objectContaining({
+          p_outcome: "failed",
+          p_error_code: "REGISTRATION_EMAIL_PROVIDER_REJECTED",
         }),
       })
     );
