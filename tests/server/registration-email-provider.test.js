@@ -131,9 +131,10 @@ describe("registration email provider", () => {
     }).catch((error) => error);
     expect(registrationEmailWasDefinitelyNotSent(rejected)).toBe(true);
     expect(rejected).toMatchObject({
-      code: "REGISTRATION_EMAIL_PROVIDER_REJECTED",
+      code: "REGISTRATION_EMAIL_PROVIDER_VALIDATION_ERROR",
       deliveryOutcome: "not_sent",
       httpStatus: 422,
+      providerErrorName: "validation_error",
     });
 
     fetch.mockResolvedValueOnce({
@@ -152,6 +153,7 @@ describe("registration email provider", () => {
     expect(ambiguous).toMatchObject({
       deliveryOutcome: "unknown",
       httpStatus: 409,
+      providerErrorName: "concurrent_idempotent_requests",
     });
   });
 });
