@@ -1,4 +1,5 @@
 import { createPublicKey, verify as verifySignature } from "crypto";
+import { sendRegistrationEmail } from "../../../lib/server/registrationEmailProvider";
 
 const OIDC_ISSUER = "https://token.actions.githubusercontent.com";
 const OIDC_AUDIENCE = "archimedes-onboarding-e2e-pr197";
@@ -6,11 +7,9 @@ const EXPECTED_REPOSITORY = "ARCHIMEDES-net/ARCHIMEDES";
 const EXPECTED_WORKFLOW_PATH =
   "ARCHIMEDES-net/ARCHIMEDES/.github/workflows/onboarding-e2e-pr197-oidc.yml@";
 const EXPECTED_EMAIL = "antonin.koplik+archimedes-e2e@gmail.com";
-const EXPECTED_AUTOMATION_ADMIN_USER_ID =
-  "13b78fbc-46c5-4994-9789-0bc289f42a70";
 
 export const config = {
-  maxDuration: 120,
+  maxDuration: 60,
 };
 
 function decodeJsonSegment(segment) {
@@ -107,142 +106,52 @@ async function verifyGitHubOidcToken(token) {
   return payload;
 }
 
-async function jsonRequest(siteUrl, path, options = {}) {
-  const response = await fetch(`${siteUrl}${path}`, options);
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(`${path} failed (${response.status}): ${body.error || "unknown error"}`);
-  }
-  return body;
-}
-
-async function runApprovedE2E() {
-  const secret = String(process.env.ONBOARDING_AUTOMATION_SECRET || "");
+function verifyPreviewSmokeEnvironment() {
   const allowlist = String(process.env.ONBOARDING_E2E_EMAIL_ALLOWLIST || "")
     .split(",")
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
   const deploymentHost = String(process.env.VERCEL_URL || "").toLowerCase();
-  const automationAdminUserId = String(
-    process.env.ONBOARDING_AUTOMATION_ADMIN_USER_ID || ""
-  ).trim();
+  const environment = String(process.env.VERCEL_ENV || "").toLowerCase();
+
   if (
-    secret.length < 32 ||
     allowlist.length !== 1 ||
     allowlist[0] !== EXPECTED_EMAIL ||
-    automationAdminUserId !== EXPECTED_AUTOMATION_ADMIN_USER_ID ||
+    environment !== "preview" ||
     !/^[a-z0-9.-]+\.vercel\.app$/.test(deploymentHost)
   ) {
-    throw new Error("Preview E2E environment is not safely constrained.");
+    throw new Error("Preview email smoke environment is not safely constrained.");
+  }
+}
+
+async function runApprovedEmailSmoke(payload) {
+  verifyPreviewSmokeEnvironment();
+  const runId = String(payload.run_id || "").replace(/[^0-9]/g, "");
+  if (!runId) throw new Error("OIDC run ID is missing.");
+
+  const receipt = await sendRegistrationEmail({
+    to: EXPECTED_EMAIL,
+    subject: "ARCHIMEDES Live – interní test Resend PR #197",
+    text: [
+      "Toto je jednorázový interní test e-mailového provideru ARCHIMEDES Live.",
+      "Nevznikla žádná obec, organizace, registrace ani uživatelský účet.",
+      `GitHub run: ${runId}`,
+    ].join("\n\n"),
+    html: `<p>Toto je jednorázový interní test e-mailového provideru ARCHIMEDES Live.</p><p><strong>Nevznikla žádná obec, organizace, registrace ani uživatelský účet.</strong></p><p>GitHub run: ${runId}</p>`,
+    idempotencyKey: `pr197-email-smoke:${runId}:1`,
+    headers: { "X-ARCHIMEDES-Message-Type": "pr197-email-smoke" },
+  });
+
+  if (receipt.provider !== "resend" || !receipt.messageId) {
+    throw new Error("Resend did not return a provider receipt.");
   }
 
-  const siteUrl = `https://${deploymentHost}`;
-  const automationHeaders = {
-    Authorization: `Bearer ${secret}`,
-    "Content-Type": "application/json",
-    "X-Onboarding-E2E-Automation": "1",
+  return {
+    ok: true,
+    mode: "email-smoke",
+    provider: receipt.provider,
+    messageId: receipt.messageId,
   };
-  let runId = "";
-  let cleanupCompleted = false;
-
-  try {
-    const started = await jsonRequest(siteUrl, "/api/admin/onboarding-test-runs", {
-      method: "POST",
-      headers: automationHeaders,
-      body: JSON.stringify({ email: EXPECTED_EMAIL }),
-    });
-    runId = started.run.id;
-
-    await jsonRequest(siteUrl, "/api/zadost-o-pristup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "obec",
-        licensePlan: "paid_monthly",
-        termsAccepted: true,
-        name: "ARCHIMEDES E2E test",
-        role: "starosta",
-        email: EXPECTED_EMAIL,
-        phone: "+420 000 000 000",
-        organization: started.run.expected_organization_name,
-        address: "Testovací 1, Testov 000 00",
-        population: "0",
-        legalIdentifier: "",
-        message: `Automatický produkční E2E test ${runId}.`,
-        testRunId: runId,
-      }),
-    });
-
-    const submitted = await jsonRequest(
-      siteUrl,
-      `/api/admin/onboarding-test-runs?runId=${encodeURIComponent(runId)}`,
-      { headers: automationHeaders }
-    );
-    if (submitted.run.status !== "submitted" || !submitted.run.organization_id) {
-      throw new Error("The public order was not associated with the prepared test run.");
-    }
-
-    const today = new Date().toISOString().slice(0, 10);
-    await jsonRequest(siteUrl, "/api/admin/automation/activate-municipality", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        approvalReference: `production-e2e:${runId}`,
-        idempotencyKey: runId,
-        organizationId: submitted.run.organization_id,
-        licensePlan: "paid_monthly",
-        licenseStartedAt: today,
-        licenseValidUntil: null,
-        contractStatus: "accepted",
-        billingStatus: "pending",
-        classroomEligibilityVerified: false,
-        localAdminFullName: "ARCHIMEDES E2E test",
-        localAdminEmail: EXPECTED_EMAIL,
-      }),
-    });
-
-    const verified = await jsonRequest(
-      siteUrl,
-      `/api/admin/onboarding-test-runs?runId=${encodeURIComponent(runId)}`,
-      { headers: automationHeaders }
-    );
-    if (
-      verified.run.status !== "activated" ||
-      verified.organization?.status !== "active" ||
-      verified.organization?.license_status !== "active" ||
-      verified.acceptance?.status !== "sent" ||
-      verified.acceptance?.attempt_count !== 1 ||
-      verified.onboarding?.email_status !== "sent" ||
-      verified.onboarding?.email_attempt_count !== 1
-    ) {
-      throw new Error("E2E verification did not reach the approved sent state.");
-    }
-
-    const cleaned = await jsonRequest(
-      siteUrl,
-      `/api/admin/onboarding-test-runs?runId=${encodeURIComponent(runId)}`,
-      { method: "DELETE", headers: automationHeaders }
-    );
-    cleanupCompleted = cleaned.status === "cleaned";
-    if (!cleanupCompleted) throw new Error("Cleanup did not finish.");
-
-    return { ok: true, runId, status: "cleaned" };
-  } finally {
-    if (runId && !cleanupCompleted) {
-      try {
-        await jsonRequest(
-          siteUrl,
-          `/api/admin/onboarding-test-runs?runId=${encodeURIComponent(runId)}`,
-          { method: "DELETE", headers: automationHeaders }
-        );
-      } catch (cleanupError) {
-        console.error("OIDC E2E emergency cleanup failed", {
-          runId,
-          message: cleanupError.message,
-        });
-      }
-    }
-  }
 }
 
 export default async function handler(req, res) {
@@ -257,13 +166,15 @@ export default async function handler(req, res) {
     if (!authorization.startsWith("Bearer ")) {
       return res.status(401).json({ error: "Missing GitHub OIDC token." });
     }
-    await verifyGitHubOidcToken(authorization.slice("Bearer ".length));
-    const result = await runApprovedE2E();
+    const payload = await verifyGitHubOidcToken(
+      authorization.slice("Bearer ".length)
+    );
+    const result = await runApprovedEmailSmoke(payload);
     return res.status(200).json(result);
   } catch (error) {
-    console.error("OIDC onboarding E2E failed", { message: error.message });
+    console.error("OIDC Resend smoke failed", { message: error.message });
     return res.status(500).json({
-      error: "The approved OIDC onboarding E2E did not complete safely.",
+      error: "The approved OIDC Resend smoke did not complete safely.",
     });
   }
 }
