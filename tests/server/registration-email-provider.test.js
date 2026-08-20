@@ -70,6 +70,25 @@ describe("registration email provider", () => {
     expect(body).not.toHaveProperty("apiKey");
   });
 
+  it("allows a validated caller to override Reply-To for a specific message", async () => {
+    fetch.mockResolvedValue({
+      ok: true,
+      json: vi.fn(async () => ({ id: "resend-message-override" })),
+    });
+
+    await sendRegistrationEmail({
+      to: "team@example.test",
+      replyTo: "applicant@example.test",
+      subject: "Nová žádost",
+      text: "Text",
+      html: "<p>Text</p>",
+      idempotencyKey: "order-request:lead-1:team",
+    });
+
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.reply_to).toBe("applicant@example.test");
+  });
+
   it("rejects missing configuration and invalid idempotency keys before delivery", async () => {
     delete process.env.RESEND_API_KEY;
     await expect(
