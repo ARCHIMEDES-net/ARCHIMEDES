@@ -172,9 +172,20 @@ export default async function handler(req, res) {
     const result = await runApprovedEmailSmoke(payload);
     return res.status(200).json(result);
   } catch (error) {
-    console.error("OIDC Resend smoke failed", { message: error.message });
+    const diagnostic = {
+      message: error?.message || "unknown",
+      code: error?.code || null,
+      httpStatus: Number.isInteger(error?.httpStatus) ? error.httpStatus : null,
+      deliveryOutcome: error?.deliveryOutcome || null,
+    };
+    console.error("OIDC Resend smoke failed", diagnostic);
     return res.status(500).json({
       error: "The approved OIDC Resend smoke did not complete safely.",
+      diagnostic: {
+        code: diagnostic.code,
+        httpStatus: diagnostic.httpStatus,
+        deliveryOutcome: diagnostic.deliveryOutcome,
+      },
     });
   }
 }
