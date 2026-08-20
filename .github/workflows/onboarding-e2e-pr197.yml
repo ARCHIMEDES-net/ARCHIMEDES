@@ -1,0 +1,32 @@
+name: Controlled onboarding E2E for PR 197
+
+on:
+  pull_request:
+    types: [synchronize]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: controlled-onboarding-e2e-pr197
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.event.pull_request.number == 197 && github.event.pull_request.head.ref == 'agent/unified-registration-email-provider'
+    name: Allowlisted internal onboarding email
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      ONBOARDING_E2E_SITE_URL: https://archimedes-5ai5-3yvul4duy-antonin-kopliks-projects.vercel.app
+      ONBOARDING_AUTOMATION_SECRET: ${{ secrets.ONBOARDING_AUTOMATION_SECRET }}
+      ONBOARDING_E2E_EMAIL: antonin.koplik+archimedes-e2e@gmail.com
+
+    steps:
+      - name: Check out the exact PR commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Run controlled E2E and mandatory cleanup
+        run: node scripts/run-production-onboarding-e2e.mjs
