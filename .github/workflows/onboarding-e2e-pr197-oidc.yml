@@ -20,7 +20,7 @@ jobs:
       github.event.pull_request.head.ref == 'agent/unified-registration-email-provider' &&
       github.event.pull_request.base.ref == 'main' &&
       github.run_attempt == 1
-    name: Allowlisted internal onboarding email
+    name: Allowlisted internal Resend smoke
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -69,7 +69,7 @@ jobs:
           echo "The matching Preview endpoint did not become ready." >&2
           exit 1
 
-      - name: Run the single approved OIDC E2E
+      - name: Run the single approved Resend smoke
         shell: bash
         run: |
           set -euo pipefail
@@ -88,4 +88,4 @@ jobs:
           unset oidc_token
           printf '%s\n' "${result}"
           printf '%s' "${result}" | node -e \
-            'let data="";process.stdin.on("data",c=>data+=c);process.stdin.on("end",()=>{const r=JSON.parse(data);if(r.ok!==true||r.status!=="cleaned"||typeof r.runId!=="string")process.exit(1)})'
+            'let data="";process.stdin.on("data",c=>data+=c);process.stdin.on("end",()=>{const r=JSON.parse(data);if(r.ok!==true||r.mode!=="email-smoke"||r.provider!=="resend"||typeof r.messageId!=="string"||!r.messageId)process.exit(1)})'
