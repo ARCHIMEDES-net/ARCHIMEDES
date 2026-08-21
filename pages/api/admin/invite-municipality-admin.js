@@ -11,6 +11,7 @@ import {
 } from "../../../lib/server/customerOnboarding";
 import { requirePlatformAdmin } from "../../../lib/server/platformAdminApi";
 import { getServerSiteUrl } from "../../../lib/server/siteUrl";
+import { registrationEmailWasDefinitelyNotSent } from "../../../lib/server/registrationEmailProvider";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -310,10 +311,25 @@ export default async function handler(req, res) {
     };
 
     try {
-      await sendCustomerOnboardingEmail(emailValues);
+      const clientReceipt = await sendCustomerOnboardingEmail({
+        ...emailValues,
+        idempotencyKey: `municipality-admin-invitation:${attempt.id}:client`,
+      });
+      await updateAttempt(attempt.id, "sending", {
+        email_provider: clientReceipt.provider,
+        client_provider_message_id: clientReceipt.messageId,
+      });
     } catch (emailError) {
+      if (registrationEmailWasDefinitelyNotSent(emailError)) {
+        emailSendingStarted = false;
+        throw new CustomerOnboardingError(
+          "Provider pozvánku prokazatelně odmítl před odesláním. Připravené změny budou vráceny zpět a po opravě lze pokus bezpečně zopakovat.",
+          502,
+          emailError.code
+        );
+      }
       await updateAttempt(attempt.id, "delivery_unknown", {
-        error_code: "client_smtp_delivery_unknown",
+        error_code: "client_registration_email_delivery_unknown",
       });
       throw new CustomerOnboardingError(
         "Přístup byl připraven, ale výsledek doručení klientovi není známý. E-mail automaticky neopakujte; zkontrolujte audit.",
@@ -324,11 +340,17 @@ export default async function handler(req, res) {
 
     const clientSentAt = new Date().toISOString();
     try {
-      await sendCustomerOnboardingAuditCopy(emailValues);
+      const auditCopyReceipt = await sendCustomerOnboardingAuditCopy(
+        emailValues,
+        `municipality-admin-invitation:${attempt.id}:audit`
+      );
+      await updateAttempt(attempt.id, "sending", {
+        audit_copy_provider_message_id: auditCopyReceipt.messageId,
+      });
     } catch (copyError) {
       await updateAttempt(attempt.id, "sent_copy_failed", {
         client_sent_at: clientSentAt,
-        error_code: "audit_copy_smtp_failed",
+        error_code: "audit_copy_provider_failed",
       });
       return res.status(200).json({
         ok: true,

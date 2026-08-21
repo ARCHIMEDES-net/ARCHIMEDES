@@ -1,8 +1,8 @@
 
 import { createClient } from "@supabase/supabase-js";
-import nodemailer from "nodemailer";
 import { LEGAL_DOCUMENT_VERSION } from "../../lib/legalDocuments";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
+import { sendRegistrationEmail } from "../../lib/server/registrationEmailProvider";
 import {
   isOnboardingTestEmailAllowed,
   isUuid,
@@ -225,13 +225,10 @@ ${SITE_URL}
   };
 }
 
-// E-mailové oznámení (týmu + potvrzení žadateli) je odděleno od DB zápisu
-// tak, aby selhání SMTP (chybějící konfigurace i chyba při odeslání)
-// nezpůsobilo chybovou odpověď žadateli poté, co lead/organizace v DB už
-// úspěšně vznikly — viz volání v handleru níže. Dřív se stejná chyba
-// (config missing i sendMail throw) vracela jako 500 PO úspěšném insertu,
-// takže žadatel klidně mohl zkusit formulář odeslat znovu a omylem
-// založit duplicitní obec (smoke test 11.7.2026).
+// E-mailové oznámení týmu a potvrzení žadateli je odděleno od DB zápisu.
+// Selhání e-mailového provideru proto nesmí způsobit chybovou odpověď poté,
+// co lead a čekající organizace už úspěšně vznikly. Zachováváme tím ochranu
+// proti opakovanému odeslání formuláře a vzniku duplicit.
 async function sendRequestEmails({
   customer,
   cleanEmail,
@@ -248,36 +245,20 @@ async function sendRequestEmails({
   leadId,
   testRecipientEmail = null,
 }) {
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = Number(process.env.SMTP_PORT);
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
-  const mailFrom = process.env.MAIL_FROM;
-  const mailTo = process.env.MAIL_TO;
-
-  if (!smtpHost || !smtpPort || !smtpUser || !smtpPass || !mailFrom || !mailTo) {
-    throw new Error("SMTP config missing");
+  const teamRecipient = String(process.env.MAIL_TO || "").trim();
+  if (!teamRecipient) {
+    throw new Error("MAIL_TO config missing");
   }
 
-  const transporter = nodemailer.createTransport({
-    host: smtpHost,
-    port: smtpPort,
-    secure: smtpPort === 465,
-    auth: {
-      user: smtpUser,
-      pass: smtpPass,
-    },
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 20_000,
-  });
+  const requestKeyBase = String(leadId || "request")
+    .replace(/[^A-Za-z0-9:_-]/g, "-")
+    .slice(0, 180);
+  const internalRecipient = testRecipientEmail || teamRecipient;
 
-  await transporter.sendMail({
-    from: mailFrom,
-    to: testRecipientEmail || mailTo,
+  await sendRegistrationEmail({
+    to: internalRecipient,
     replyTo: cleanEmail,
     subject: `ARCHIMEDES Live – ŽÁDOST ${customer.label.toUpperCase()} | ${cleanOrganization} | ${cleanName}`,
-    priority: "high",
     text: `
 Přišla nová žádost z webu ARCHIMEDES Live
 
@@ -340,6 +321,8 @@ ${createdAt}
 
         </div>
       `,
+    idempotencyKey: `order-request:${requestKeyBase}:team`,
+    headers: { "X-ARCHIMEDES-Message-Type": "order-request-team" },
   });
 
   const applicantMail = buildApplicantEmail({
@@ -350,12 +333,14 @@ ${createdAt}
     createdAt,
   });
 
-  await transporter.sendMail({
-    from: mailFrom,
+  await sendRegistrationEmail({
     to: cleanEmail,
+    replyTo: teamRecipient,
     subject: applicantMail.subject,
     text: applicantMail.text,
     html: applicantMail.html,
+    idempotencyKey: `order-request:${requestKeyBase}:applicant`,
+    headers: { "X-ARCHIMEDES-Message-Type": "order-request-applicant" },
   });
 }
 

@@ -24,7 +24,10 @@ const dependencies = vi.hoisted(() => {
     auditUpdateError: false,
     staleTransitioned: false,
   };
-  const sendMail = vi.fn(async () => ({ messageId: "message-1" }));
+  const sendMail = vi.fn(async () => ({
+    provider: "resend",
+    messageId: "message-1",
+  }));
   const authAdmin = {
     getUserById: vi.fn(async (userId) => ({
       data: {
@@ -249,10 +252,16 @@ vi.mock("@supabase/supabase-js", () => ({
   createClient: dependencies.createClient,
 }));
 
-vi.mock("nodemailer", () => ({
-  default: {
-    createTransport: vi.fn(() => ({ sendMail: dependencies.sendMail })),
-  },
+vi.mock("../../lib/server/registrationEmailProvider", () => ({
+  sendRegistrationEmail: dependencies.sendMail,
+  registrationEmailWasDefinitelyNotSent: vi.fn(
+    (error) => error?.deliveryOutcome === "not_sent"
+  ),
+  validateRegistrationEmailConfiguration: vi.fn(() => {
+    if (!process.env.RESEND_API_KEY || !process.env.REGISTRATION_EMAIL_FROM) {
+      throw new Error("registration email configuration missing");
+    }
+  }),
 }));
 
 vi.mock("../../lib/server/platformAdminApi", async (importOriginal) => {
@@ -285,11 +294,8 @@ const validBody = {
 
 const originalEnvironment = {
   centralAdmins: process.env.MUNICIPALITY_CENTRAL_ADMIN_USER_IDS,
-  smtpHost: process.env.SMTP_HOST,
-  smtpPort: process.env.SMTP_PORT,
-  smtpUser: process.env.SMTP_USER,
-  smtpPass: process.env.SMTP_PASS,
-  mailFrom: process.env.MAIL_FROM,
+  resendApiKey: process.env.RESEND_API_KEY,
+  registrationEmailFrom: process.env.REGISTRATION_EMAIL_FROM,
   nodeEnvironment: process.env.NODE_ENV,
   vercelEnvironment: process.env.VERCEL_ENV,
   vercelTargetEnvironment: process.env.VERCEL_TARGET_ENV,
@@ -300,7 +306,10 @@ const originalEnvironment = {
 
 beforeEach(() => {
   dependencies.sendMail.mockReset();
-  dependencies.sendMail.mockResolvedValue({ messageId: "message-1" });
+  dependencies.sendMail.mockResolvedValue({
+    provider: "resend",
+    messageId: "message-1",
+  });
   dependencies.authAdmin.deleteUser.mockClear();
   dependencies.authAdmin.generateLink.mockClear();
   dependencies.authAdmin.listUsers.mockReset();
@@ -334,11 +343,9 @@ beforeEach(() => {
   dependencies.requirePlatformAdmin.mockResolvedValue({ id: "platform-admin-1" });
   dependencies.consumeAuthenticatedRateLimit.mockResolvedValue(true);
   process.env.MUNICIPALITY_CENTRAL_ADMIN_USER_IDS = CENTRAL_ADMIN_ID;
-  process.env.SMTP_HOST = "smtp.example.test";
-  process.env.SMTP_PORT = "465";
-  process.env.SMTP_USER = "smtp-user";
-  process.env.SMTP_PASS = "smtp-password";
-  process.env.MAIL_FROM = "ARCHIMEDES Live <noreply@example.test>";
+  process.env.RESEND_API_KEY = "re_test_key";
+  process.env.REGISTRATION_EMAIL_FROM =
+    "ARCHIMEDES Live <registrace@example.test>";
   process.env.VERCEL_ENV = "development";
   delete process.env.VERCEL_TARGET_ENV;
   delete process.env.VERCEL_BRANCH_URL;
@@ -349,11 +356,8 @@ beforeEach(() => {
 afterEach(() => {
   for (const [key, value] of Object.entries({
     MUNICIPALITY_CENTRAL_ADMIN_USER_IDS: originalEnvironment.centralAdmins,
-    SMTP_HOST: originalEnvironment.smtpHost,
-    SMTP_PORT: originalEnvironment.smtpPort,
-    SMTP_USER: originalEnvironment.smtpUser,
-    SMTP_PASS: originalEnvironment.smtpPass,
-    MAIL_FROM: originalEnvironment.mailFrom,
+    RESEND_API_KEY: originalEnvironment.resendApiKey,
+    REGISTRATION_EMAIL_FROM: originalEnvironment.registrationEmailFrom,
     NODE_ENV: originalEnvironment.nodeEnvironment,
     VERCEL_ENV: originalEnvironment.vercelEnvironment,
     VERCEL_TARGET_ENV: originalEnvironment.vercelTargetEnvironment,
@@ -402,7 +406,7 @@ describe("audited municipality onboarding API", () => {
         p_central_admin_user_ids: [CENTRAL_ADMIN_ID],
       })
     );
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
     expect(dependencies.sendMail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "local@example.test",
@@ -529,8 +533,8 @@ describe("audited municipality onboarding API", () => {
     expect(dependencies.sendMail).not.toHaveBeenCalled();
   });
 
-  it("keeps the committed transaction and marks SMTP uncertainty for manual review", async () => {
-    dependencies.sendMail.mockRejectedValueOnce(new Error("SMTP unavailable"));
+  it("keeps the committed transaction and marks provider uncertainty for manual review", async () => {
+    dependencies.sendMail.mockRejectedValueOnce(new Error("Provider unavailable"));
 
     const { res } = await invoke(handler, {
       method: "POST",
@@ -551,7 +555,67 @@ describe("audited municipality onboarding API", () => {
         name: "complete_onboarding_email_attempt",
         args: expect.objectContaining({
           p_outcome: "delivery_unknown",
-          p_error_code: "smtp_delivery_unknown",
+          p_error_code: "registration_email_delivery_unknown",
+        }),
+      })
+    );
+  });
+
+  it("records a retryable failure when the provider definitively rejected the email", async () => {
+    dependencies.sendMail.mockRejectedValueOnce(
+      Object.assign(new Error("Provider rejected"), {
+        code: "REGISTRATION_EMAIL_PROVIDER_REJECTED",
+        deliveryOutcome: "not_sent",
+      })
+    );
+
+    const { res } = await invoke(handler, {
+      method: "POST",
+      headers: { authorization: "Bearer admin-token" },
+      body: validBody,
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({
+      ok: true,
+      onboardingEmailSent: false,
+      emailRetryRequired: true,
+      emailManualReviewRequired: false,
+    });
+    expect(dependencies.state.rpcCalls).toContainEqual(
+      expect.objectContaining({
+        name: "complete_onboarding_email_attempt",
+        args: expect.objectContaining({
+          p_outcome: "failed",
+          p_error_code: "REGISTRATION_EMAIL_PROVIDER_REJECTED",
+        }),
+      })
+    );
+  });
+
+  it("keeps the client delivery sent when only Zuzana's safe copy fails", async () => {
+    dependencies.sendMail
+      .mockResolvedValueOnce({ provider: "resend", messageId: "client-1" })
+      .mockRejectedValueOnce(new Error("Audit copy unavailable"));
+
+    const { res } = await invoke(handler, {
+      method: "POST",
+      headers: { authorization: "Bearer admin-token" },
+      body: validBody,
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({
+      onboardingEmailSent: true,
+      emailRetryRequired: false,
+      emailManualReviewRequired: true,
+    });
+    expect(dependencies.state.rpcCalls).toContainEqual(
+      expect.objectContaining({
+        name: "complete_onboarding_email_attempt",
+        args: expect.objectContaining({
+          p_outcome: "sent",
+          p_error_code: "audit_copy_provider_failed",
         }),
       })
     );
@@ -594,7 +658,7 @@ describe("audited municipality onboarding API", () => {
     expect(retryResponse.statusCode).toBe(200);
     expect(dependencies.authAdmin.generateLink).toHaveBeenCalledTimes(2);
     expect(dependencies.authAdmin.deleteUser).toHaveBeenCalledTimes(1);
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
     expect(dependencies.state.authPreparationUpdates).toContainEqual(
       expect.objectContaining({
         status: "preparing",
@@ -662,8 +726,8 @@ describe("audited municipality onboarding API", () => {
     expect(dependencies.sendMail).not.toHaveBeenCalled();
   });
 
-  it("records a retryable pre-send failure when SMTP configuration is missing", async () => {
-    delete process.env.SMTP_HOST;
+  it("records a retryable pre-send failure when provider configuration is missing", async () => {
+    delete process.env.RESEND_API_KEY;
 
     const { res } = await invoke(handler, {
       method: "POST",
@@ -683,7 +747,7 @@ describe("audited municipality onboarding API", () => {
         name: "complete_onboarding_email_attempt",
         args: expect.objectContaining({
           p_outcome: "failed",
-          p_error_code: "smtp_configuration_missing",
+          p_error_code: "registration_email_configuration_missing",
         }),
       })
     );
@@ -748,7 +812,7 @@ describe("audited municipality onboarding API", () => {
       emailRetryRequired: false,
       emailManualReviewRequired: true,
     });
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
   });
 
   it("loads a failed email state after a page reload without sending", async () => {
@@ -866,7 +930,7 @@ describe("audited municipality onboarding API", () => {
         args: expect.objectContaining({ p_action: "retry_failed" }),
       })
     );
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
   });
 
   it("does not send on a manual retry double click that loses the DB claim", async () => {

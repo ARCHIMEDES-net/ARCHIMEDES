@@ -34,6 +34,19 @@ každém onboardingu server ověří, že každý UUID:
 Chybějící, neplatná nebo osiřelá konfigurace onboarding zastaví před
 databázovou transakcí.
 
+Registrační, aktivační a profilové dokončovací e-maily používají jednotný
+serverový provider. Pro každé produkční prostředí jsou povinné:
+
+```text
+RESEND_API_KEY=<server-only API klíč>
+REGISTRATION_EMAIL_FROM=ARCHIMEDES Live <registrace@ověřená-odesílací-doména>
+REGISTRATION_EMAIL_REPLY_TO=<volitelný kontaktní e-mail podpory>
+```
+
+Odesílací doména musí být u providera ověřená. Klíč se nikdy neposílá do
+prohlížeče. Zbylé SMTP proměnné mohou dočasně zůstat pouze pro nesouvisející
+formuláře poptávek; onboarding je nepoužívá.
+
 Pro serverovou automatizaci bez ovládání prohlížeče jsou navíc povinné dvě
 citlivé produkční proměnné:
 
@@ -214,14 +227,18 @@ pozvánku. Při neočekávaném přijetí vyzývá příjemce, aby odkaz nepouž
   serverová metadata s onboardingovým klíčem a organizací. Po pádu mezi
   `generateLink` a databázovým RPC lze převzít jen účet se shodným klíčem a
   organizací; cizí osiřelý účet zůstane blokující a nikdy se automaticky nemaže.
-- SMTP nelze zahrnout do PostgreSQL transakce. E-mail se proto posílá až po
-  commitu. Chyba ještě před pokusem o odeslání (například chybějící konfigurace)
-  se uloží jako `failed` a lze ji bezpečně zopakovat. Chyba nebo timeout během
-  SMTP se uloží jako `delivery_unknown`; před případným ručním opakováním se
-  musí ověřit pošta a audit, protože poskytovatel už mohl zprávu přijmout.
-- Před SMTP databázové RPC pod řádkovým zámkem vytvoří právě jeden pokus
+- E-mail nelze zahrnout do PostgreSQL transakce. Posílá se proto až po commitu.
+  Každé odeslání má stabilní providerový `Idempotency-Key`; přijatá zpráva se
+  uloží s providerovým `messageId`. Chyba před odesláním se uloží jako `failed`.
+  Timeout nebo nejasný výsledek se konzervativně uloží jako `delivery_unknown`
+  a automaticky se neopakuje.
+- Před odesláním databázové RPC pod řádkovým zámkem vytvoří právě jeden pokus
   `sending`; unikátní částečný index a zámek brání dvojkliku a souběžnému
   odeslání.
+- Klientská zpráva a bezpečná kopie Zuzaně jsou dvě oddělená providerová
+  odeslání s různými idempotentními klíči. Kopie nikdy neobsahuje aktivační,
+  recovery ani osobní profilový odkaz. Selhání kopie nezmění úspěšně přijatou
+  klientskou zprávu na nedoručenou a vede k ruční kontrole kopie.
 - `sending` starší než 15 minut se při načtení auditu převede na
   `delivery_unknown`, nikdy se automaticky znovu neodešle.
 - `failed` lze po reloadu bezpečně opakovat z auditního panelu. U
@@ -245,7 +262,8 @@ session, tedy jako `authenticated`.
 | `organization_onboarding_runs` | `INSERT`, `UPDATE` | `onboard_customer_v3()` a e-mailová RPC uvnitř PostgreSQL | žádný Data API klient; tělo `SECURITY DEFINER` | volající je `authenticated`, zápis probíhá jako vlastník funkce; tabulkový grant volajícímu není udělen |
 | `organization_onboarding_runs` | `DELETE` | žádný | žádný | nikomu z `PUBLIC`, `anon`, `authenticated`, `service_role` |
 | `organization_onboarding_email_attempts` | `SELECT` | `loadEmailState()` v `pages/api/admin/activate-municipality.js` | `supabaseAdmin` | `service_role`: povoleno |
-| `organization_onboarding_email_attempts` | `INSERT`, `UPDATE` | `claim_onboarding_email_attempt()`, `complete_onboarding_email_attempt()`, `mark_stale_onboarding_email_attempt()`, `resolve_onboarding_email_without_resend()` | žádný Data API klient; tělo `SECURITY DEFINER` | volající je `authenticated`, zápis probíhá jako vlastník funkce; tabulkový grant volajícímu není udělen |
+| `organization_onboarding_email_attempts` | `INSERT`, stavové `UPDATE` | `claim_onboarding_email_attempt()`, `complete_onboarding_email_attempt()`, `mark_stale_onboarding_email_attempt()`, `resolve_onboarding_email_without_resend()` | žádný Data API klient; tělo `SECURITY DEFINER` | volající je `authenticated`, zápis probíhá jako vlastník funkce; tabulkový grant volajícímu není udělen |
+| `organization_onboarding_email_attempts` | `UPDATE` pouze providerových potvrzení | `deliverOnboardingEmail()` po přijetí zprávy providerem | `supabaseAdmin` | `service_role`: sloupcově omezeno na `email_provider`, obě providerová ID a čas bezpečné kopie |
 | `organization_onboarding_email_attempts` | `DELETE` | žádný | žádný | nikomu z `PUBLIC`, `anon`, `authenticated`, `service_role` |
 | `organization_onboarding_auth_preparations` | `SELECT` | `loadAuthPreparation()` a návratové `.select()` v `lib/server/customerOnboarding.js` | `supabaseAdmin` | `service_role`: povoleno |
 | `organization_onboarding_auth_preparations` | `INSERT` | `claimAuthPreparation()` a obnova účtu podle Auth metadata v `resolveLocalAdministrator()` | `supabaseAdmin` | `service_role`: povoleno |

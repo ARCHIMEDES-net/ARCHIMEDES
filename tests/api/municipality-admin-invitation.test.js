@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   CUSTOMER_ONBOARDING_AUDIT_EMAIL,
   customerOnboardingAuditCopyMessage,
+  writtenOrderAcceptanceAuditCopyMessage,
 } from "../../lib/server/customerOnboarding";
 
 const repositoryRoot = process.cwd();
@@ -32,11 +33,26 @@ describe("legacy municipality administrator invitation", () => {
     expect(message.html).not.toContain("secret-token");
   });
 
+  it("keeps Zuzana's written-order copy free of access links", () => {
+    const message = writtenOrderAcceptanceAuditCopyMessage({
+      email: "objednatel@example.test",
+      fullName: "Objednatel",
+      organizationName: "Obec Testov",
+      licensePlanLabel: "Roční licence",
+      acceptanceReference: "44444444-4444-4444-8444-444444444444",
+      setupUrl: "https://example.test/secret-token",
+    });
+
+    expect(message.text).toContain("objednatel@example.test");
+    expect(message.text).not.toContain("secret-token");
+    expect(message.html).not.toContain("https://");
+  });
+
   it("locks the delivery audit to the service role and forbids deletion", () => {
     const migration = fs.readFileSync(
       path.join(
         repositoryRoot,
-        "supabase/migrations/20260819213000_add_municipality_admin_invitation_audit.sql"
+        "supabase/migrations/20260819193522_add_municipality_admin_invitation_audit.sql"
       ),
       "utf8"
     );

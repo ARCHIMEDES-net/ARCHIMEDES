@@ -6,7 +6,9 @@ import {
   parseCentralAdminUserIds,
   resolveConfiguredCentralAdmins,
   resolveLocalAdministrator,
+  sendCustomerOnboardingAuditCopy,
   sendCustomerOnboardingEmail,
+  sendWrittenOrderAcceptanceAuditCopy,
   sendWrittenOrderAcceptanceEmail,
   updateAuthPreparationStatus,
   validateCustomerOnboardingEmailConfiguration,
@@ -17,6 +19,7 @@ import {
   requirePlatformAdmin,
 } from "../../../lib/server/platformAdminApi";
 import { getServerSiteUrl } from "../../../lib/server/siteUrl";
+import { registrationEmailWasDefinitelyNotSent } from "../../../lib/server/registrationEmailProvider";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -128,7 +131,7 @@ async function ensureWrittenOrderAcceptance({
   }
 
   try {
-    await sendWrittenOrderAcceptanceEmail({
+    const emailValues = {
       email: recipientEmail,
       fullName: recipientName,
       organizationName: customer.name,
@@ -140,25 +143,52 @@ async function ensureWrittenOrderAcceptance({
       legalDocumentVersion: LEGAL_DOCUMENT_VERSION,
       acceptanceReference,
       siteUrl,
+    };
+    const clientReceipt = await sendWrittenOrderAcceptanceEmail({
+      ...emailValues,
+      idempotencyKey: `written-order-acceptance:${claimed.id}:client`,
     });
+    let auditCopyReceipt = null;
+    let auditCopyErrorCode = null;
+    try {
+      auditCopyReceipt = await sendWrittenOrderAcceptanceAuditCopy(
+        emailValues,
+        `written-order-acceptance:${claimed.id}:audit`
+      );
+    } catch {
+      auditCopyErrorCode = "audit_copy_provider_failed";
+    }
+
+    const { error: completeError } = await supabaseAdmin
+      .from("customer_order_acceptances")
+      .update({
+        status: "sent",
+        sent_at: new Date().toISOString(),
+        email_provider: clientReceipt.provider,
+        client_provider_message_id: clientReceipt.messageId,
+        audit_copy_provider_message_id: auditCopyReceipt?.messageId || null,
+        audit_copy_sent_at: auditCopyReceipt ? new Date().toISOString() : null,
+        error_code: auditCopyErrorCode,
+      })
+      .eq("id", claimed.id)
+      .eq("status", "sending");
+    if (completeError) throw completeError;
   } catch (error) {
+    const definitelyNotSent = registrationEmailWasDefinitelyNotSent(error);
     await supabaseAdmin
       .from("customer_order_acceptances")
-      .update({ status: "delivery_unknown", error_code: "smtp_delivery_unknown" })
+      .update({
+        status: definitelyNotSent ? "failed" : "delivery_unknown",
+        error_code: definitelyNotSent
+          ? error.code
+          : "registration_email_delivery_unknown",
+      })
       .eq("id", claimed.id)
       .eq("status", "sending");
     throw new CustomerOnboardingError(
-      "Výsledek doručení písemného přijetí není známý. Obec nebyla aktivována; e-mail automaticky neopakujte."
-    );
-  }
-  const { error: completeError } = await supabaseAdmin
-    .from("customer_order_acceptances")
-    .update({ status: "sent", sent_at: new Date().toISOString() })
-    .eq("id", claimed.id)
-    .eq("status", "sending");
-  if (completeError) {
-    throw new CustomerOnboardingError(
-      "Přijetí bylo odesláno, ale audit se nepodařilo dokončit. Obec nebyla aktivována; e-mail neopakujte."
+      definitelyNotSent
+        ? "Provider písemné přijetí prokazatelně odmítl před odesláním. Obec nebyla aktivována a pokus lze po opravě bezpečně zopakovat."
+        : "Výsledek doručení písemného přijetí není známý. Obec nebyla aktivována; e-mail automaticky neopakujte."
     );
   }
   return { required: true, sent: true };
@@ -333,7 +363,7 @@ async function deliverOnboardingEmail({
       authenticatedClient,
       claim.attempt_id,
       "failed",
-      "smtp_configuration_missing",
+      "registration_email_configuration_missing",
       rpcNames,
       performedBy
     );
@@ -347,7 +377,7 @@ async function deliverOnboardingEmail({
   }
 
   try {
-    await sendCustomerOnboardingEmail({
+    const emailValues = {
       email: deliveryAdministrator.email,
       fullName: deliveryAdministrator.fullName,
       organizationName: customer.name,
@@ -357,23 +387,58 @@ async function deliverOnboardingEmail({
       licenseValidUntil,
       siteUrl,
       setupUrl: deliveryAdministrator.setupUrl,
+    };
+    const clientReceipt = await sendCustomerOnboardingEmail({
+      ...emailValues,
+      idempotencyKey: `municipality-onboarding:${claim.attempt_id}:client`,
     });
+    const { error: clientReceiptError } = await supabaseAdmin
+      .from("organization_onboarding_email_attempts")
+      .update({
+        email_provider: clientReceipt.provider,
+        client_provider_message_id: clientReceipt.messageId,
+      })
+      .eq("id", claim.attempt_id)
+      .eq("status", "sending");
+    if (clientReceiptError) throw clientReceiptError;
+
+    let auditCopyReceipt = null;
+    let auditCopyFailed = false;
+    try {
+      auditCopyReceipt = await sendCustomerOnboardingAuditCopy(
+        emailValues,
+        `municipality-onboarding:${claim.attempt_id}:audit`
+      );
+      const { error: auditReceiptError } = await supabaseAdmin
+        .from("organization_onboarding_email_attempts")
+        .update({
+          audit_copy_provider_message_id: auditCopyReceipt.messageId,
+          audit_copy_sent_at: new Date().toISOString(),
+        })
+        .eq("id", claim.attempt_id)
+        .eq("status", "sending");
+      if (auditReceiptError) throw auditReceiptError;
+    } catch {
+      auditCopyFailed = true;
+    }
     const completion = await completeEmailAttempt(
       authenticatedClient,
       claim.attempt_id,
       "sent",
-      null,
+      auditCopyFailed ? "audit_copy_provider_failed" : null,
       rpcNames,
       performedBy
     );
     return {
       onboardingEmailSent: true,
       emailDeliveryInProgress: false,
-      emailManualReviewRequired: !completion.recorded,
+      emailManualReviewRequired: !completion.recorded || auditCopyFailed,
       emailRetryRequired: false,
       emailAttemptNumber: claim.attempt_number,
     };
   } catch (emailError) {
+    const definitelyNotSent =
+      registrationEmailWasDefinitelyNotSent(emailError);
     console.error("customer onboarding email error", {
       onboardingRunId,
       attemptId: claim.attempt_id,
@@ -381,16 +446,18 @@ async function deliverOnboardingEmail({
     const completion = await completeEmailAttempt(
       authenticatedClient,
       claim.attempt_id,
-      "delivery_unknown",
-      "smtp_delivery_unknown",
+      definitelyNotSent ? "failed" : "delivery_unknown",
+      definitelyNotSent
+        ? emailError.code
+        : "registration_email_delivery_unknown",
       rpcNames,
       performedBy
     );
     return {
       onboardingEmailSent: false,
       emailDeliveryInProgress: !completion.recorded,
-      emailManualReviewRequired: true,
-      emailRetryRequired: false,
+      emailManualReviewRequired: !definitelyNotSent,
+      emailRetryRequired: definitelyNotSent && completion.recorded,
       emailAttemptNumber: claim.attempt_number,
     };
   }

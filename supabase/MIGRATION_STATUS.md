@@ -3,8 +3,8 @@
 Zdroj pravdy: živý projekt `ARCHIMEDESLive` (`gipikahmjlcynkqexxmz`),
 produkční ledger `supabase/production-migration-ledger.json` a aktuální
 `main`. Produkční databáze se nemění pouhým přidáním souborů do tohoto
-adresáře. Po read-only kontrole 14. 8. 2026 obsahoval ledger 28 položek a
-všechny přesně odpovídaly aktivním lokálním migracím.
+adresáře. Po read-only kontrole 21. 8. 2026 obsahuje aktivní produkční ledger 37 položek a
+všechny přesně odpovídají aktivním lokálním migracím.
 
 ## V produkci potvrzeno
 
@@ -83,9 +83,9 @@ všechny přesně odpovídaly aktivním lokálním migracím.
   exportu.
 - Oba schema-only dumpy mají SHA-256
   `5e9c54c4cf69fd46ccd36a94b4d8846461bb909faffdb5c11c9df3a40ad93da3`.
-- Produkční migration ledger zůstává beze změny. Jeho read-only otisk ověřený
-  14. 8. 2026 je v `supabase/production-migration-ledger.json`; CI vyžaduje,
-  aby každá produkční identita měla přesně odpovídající lokální soubor. Nové,
+- Produkční migration ledger byl read-only ověřen 21. 8. 2026 a jeho přesný
+  otisk je v `supabase/production-migration-ledger.json`; CI vyžaduje, aby
+  každá produkční identita měla přesně odpovídající lokální soubor. Nové,
   dosud nenasazené migrace jsou povolené pouze s verzí pozdější než poslední
   produkční záznam.
 
@@ -128,6 +128,14 @@ Ruční přiřazení škol pod obce přijde až po schválení konkrétní mapy
 `škola -> obec`. Bez této mapy se `parent_organization_id` hromadně nemění.
 
 ## Produkční onboarding v3 – ověřeno 14. srpna 2026
+
+> Migrace `20260819230000_add_registration_email_provider_receipts.sql` a
+> `20260820090000_allow_retryable_profile_reminder_failures.sql` byly
+> aplikovány do produkce 21. 8. 2026. Read-only kontrola potvrdila přesné
+> identity v ledgeru, nové providerové sloupce, omezení stavů a sloupcová
+> oprávnění `service_role`. Odesílací doména i produkční serverové proměnné
+> `RESEND_API_KEY`, `REGISTRATION_EMAIL_FROM` a
+> `REGISTRATION_EMAIL_REPLY_TO` jsou nakonfigurované.
 
 - `20260813204547_harden_municipality_onboarding.sql` zavádí jednotný,
   auditovaný a idempotentní onboarding hlavních zákazníků. Odděluje
