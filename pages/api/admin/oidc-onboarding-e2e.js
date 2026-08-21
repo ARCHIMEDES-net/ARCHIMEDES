@@ -126,6 +126,22 @@ async function runApprovedE2E() {
   const automationAdminUserId = String(
     process.env.ONBOARDING_AUTOMATION_ADMIN_USER_ID || ""
   ).trim();
+  const configuredSupabaseUrl = String(process.env.NEXT_PUBLIC_SUPABASE_URL || "");
+  const configuredServiceKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || "");
+  let supabaseUrlRef = "invalid";
+  let serviceKeyRef = configuredServiceKey.startsWith("sb_secret_") ? "modern-secret" : "invalid";
+  try {
+    supabaseUrlRef = new URL(configuredSupabaseUrl).hostname.split(".")[0] || "invalid";
+  } catch {}
+  try {
+    if (configuredServiceKey.split(".").length === 3) {
+      serviceKeyRef =
+        JSON.parse(
+          Buffer.from(configuredServiceKey.split(".")[1], "base64url").toString("utf8")
+        ).ref || "legacy-without-ref";
+    }
+  } catch {}
+  console.info("OIDC E2E Supabase binding", { supabaseUrlRef, serviceKeyRef });
   const environmentChecks = {
     secretConfigured: secret.length >= 32,
     allowlistConfigured:
