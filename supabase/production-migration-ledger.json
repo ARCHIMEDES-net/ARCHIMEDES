@@ -1,6 +1,6 @@
 {
   "projectRef": "gipikahmjlcynkqexxmz",
-  "verifiedAt": "2026-08-14",
+  "verifiedAt": "2026-08-21",
   "migrations": [
     "20260730080347_production_public_schema_baseline",
     "20260730123543_reapply_storage_authorization",
@@ -29,6 +29,13 @@
     "20260811145828_restrict_anonymous_archive_function",
     "20260813105516_add_manual_broadcast_recipients",
     "20260813204547_harden_municipality_onboarding",
-    "20260814053249_add_service_onboarding_entrypoint"
+    "20260814053249_add_service_onboarding_entrypoint",
+    "20260815071338_add_written_order_acceptance_audit",
+    "20260815080027_add_safe_onboarding_e2e_runs",
+    "20260815092557_retire_legacy_activation_rpc_client_access",
+    "20260816055119_add_notification_foundation",
+    "20260816055153_add_notification_enqueue_rpc",
+    "20260816145020_add_profile_completion_reminders",
+    "20260819193522_add_municipality_admin_invitation_audit"
   ]
 }
