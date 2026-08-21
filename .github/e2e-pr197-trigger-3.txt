@@ -1,2 +1,2 @@
 One-time trigger for the controlled PR 197 onboarding E2E.
-Preview Auth audit record normalized; remove after the run.
+Preview Auth audit record normalized with non-null GoTrue token fields; remove after the run.
