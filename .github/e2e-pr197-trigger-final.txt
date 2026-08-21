@@ -1,2 +1,2 @@
-Final controlled PR 197 onboarding E2E after verified Resend configuration.
+Final controlled PR 197 onboarding E2E after verified Resend and isolated central-admin configuration.
 Remove after the run.
