@@ -143,6 +143,31 @@ async function runApprovedE2E() {
     }
   } catch {}
   console.info("OIDC E2E Supabase binding", { supabaseUrlRef, serviceKeyRef });
+  try {
+    const authProbeResponse = await fetch(
+      `${configuredSupabaseUrl}/auth/v1/admin/users/${EXPECTED_AUTOMATION_ADMIN_USER_ID}`,
+      {
+        cache: "no-store",
+        headers: {
+          apikey: configuredServiceKey,
+          Authorization: `Bearer ${configuredServiceKey}`,
+        },
+      }
+    );
+    const authProbeBody = await authProbeResponse.json().catch(() => ({}));
+    console.info("OIDC E2E Auth probe", {
+      status: authProbeResponse.status,
+      code: authProbeBody.code || authProbeBody.error_code || null,
+      message: authProbeBody.msg || authProbeBody.message || null,
+      userIdMatches: authProbeBody.id === EXPECTED_AUTOMATION_ADMIN_USER_ID,
+      emailPresent: typeof authProbeBody.email === "string",
+    });
+  } catch (authProbeError) {
+    console.info("OIDC E2E Auth probe", {
+      status: "request_failed",
+      message: authProbeError.message,
+    });
+  }
   const environmentChecks = {
     secretConfigured: secret.length >= 32,
     allowlistConfigured:
