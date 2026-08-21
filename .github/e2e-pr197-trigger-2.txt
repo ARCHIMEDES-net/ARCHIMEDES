@@ -1,2 +1,0 @@
-Temporary trigger for the single approved PR #197 OIDC email smoke retry on 2026-08-21 after Resend domain verification.
-Remove after the run completes.
