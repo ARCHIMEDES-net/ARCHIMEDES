@@ -267,11 +267,11 @@ async function runApprovedE2E() {
         Boolean(String(verified.acceptance?.audit_copy_provider_message_id || "").trim()),
       onboardingSent: verified.onboarding?.email_status === "sent",
       onboardingOnce: verified.onboarding?.email_attempt_count === 1,
-      onboardingProvider: verified.onboarding?.email_provider === "resend",
+      onboardingProvider: verified.onboarding?.latest_attempt?.email_provider === "resend",
       onboardingClientReceipt:
-        Boolean(String(verified.onboarding?.client_provider_message_id || "").trim()),
+        Boolean(String(verified.onboarding?.latest_attempt?.client_provider_message_id || "").trim()),
       onboardingAuditReceipt:
-        Boolean(String(verified.onboarding?.audit_copy_provider_message_id || "").trim()),
+        Boolean(String(verified.onboarding?.latest_attempt?.audit_copy_provider_message_id || "").trim()),
     };
     if (Object.values(verificationChecks).some((value) => !value)) {
       console.info("OIDC E2E verification checks", verificationChecks);
