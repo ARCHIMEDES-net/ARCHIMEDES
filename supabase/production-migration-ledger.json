@@ -36,6 +36,8 @@
     "20260816055119_add_notification_foundation",
     "20260816055153_add_notification_enqueue_rpc",
     "20260816145020_add_profile_completion_reminders",
-    "20260819193522_add_municipality_admin_invitation_audit"
+    "20260819193522_add_municipality_admin_invitation_audit",
+    "20260819230000_add_registration_email_provider_receipts",
+    "20260820090000_allow_retryable_profile_reminder_failures"
   ]
 }
