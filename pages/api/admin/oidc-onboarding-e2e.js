@@ -127,6 +127,7 @@ async function runApprovedE2E() {
     process.env.ONBOARDING_AUTOMATION_ADMIN_USER_ID || ""
   ).trim();
   const configuredSupabaseUrl = String(process.env.NEXT_PUBLIC_SUPABASE_URL || "");
+  // This diagnostic never creates a Supabase client; all application clients use persistSession: false.
   const configuredServiceKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || "");
   let supabaseUrlRef = "invalid";
   let serviceKeyRef = configuredServiceKey.startsWith("sb_secret_") ? "modern-secret" : "invalid";
