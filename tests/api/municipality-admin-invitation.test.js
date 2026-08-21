@@ -52,7 +52,7 @@ describe("legacy municipality administrator invitation", () => {
     const migration = fs.readFileSync(
       path.join(
         repositoryRoot,
-        "supabase/migrations/20260819213000_add_municipality_admin_invitation_audit.sql"
+        "supabase/migrations/20260819193522_add_municipality_admin_invitation_audit.sql"
       ),
       "utf8"
     );
