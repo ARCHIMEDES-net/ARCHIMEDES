@@ -254,21 +254,27 @@ async function runApprovedE2E() {
       `/api/admin/onboarding-test-runs?runId=${encodeURIComponent(runId)}`,
       { headers: automationHeaders }
     );
-    if (
-      verified.run.status !== "activated" ||
-      verified.organization?.status !== "active" ||
-      verified.organization?.license_status !== "active" ||
-      verified.acceptance?.status !== "sent" ||
-      verified.acceptance?.attempt_count !== 1 ||
-      verified.acceptance?.email_provider !== "resend" ||
-      !String(verified.acceptance?.client_provider_message_id || "").trim() ||
-      !String(verified.acceptance?.audit_copy_provider_message_id || "").trim() ||
-      verified.onboarding?.email_status !== "sent" ||
-      verified.onboarding?.email_attempt_count !== 1 ||
-      verified.onboarding?.email_provider !== "resend" ||
-      !String(verified.onboarding?.client_provider_message_id || "").trim() ||
-      !String(verified.onboarding?.audit_copy_provider_message_id || "").trim()
-    ) {
+    const verificationChecks = {
+      runActivated: verified.run.status === "activated",
+      organizationActive: verified.organization?.status === "active",
+      licenseActive: verified.organization?.license_status === "active",
+      acceptanceSent: verified.acceptance?.status === "sent",
+      acceptanceOnce: verified.acceptance?.attempt_count === 1,
+      acceptanceProvider: verified.acceptance?.email_provider === "resend",
+      acceptanceClientReceipt:
+        Boolean(String(verified.acceptance?.client_provider_message_id || "").trim()),
+      acceptanceAuditReceipt:
+        Boolean(String(verified.acceptance?.audit_copy_provider_message_id || "").trim()),
+      onboardingSent: verified.onboarding?.email_status === "sent",
+      onboardingOnce: verified.onboarding?.email_attempt_count === 1,
+      onboardingProvider: verified.onboarding?.email_provider === "resend",
+      onboardingClientReceipt:
+        Boolean(String(verified.onboarding?.client_provider_message_id || "").trim()),
+      onboardingAuditReceipt:
+        Boolean(String(verified.onboarding?.audit_copy_provider_message_id || "").trim()),
+    };
+    if (Object.values(verificationChecks).some((value) => !value)) {
+      console.info("OIDC E2E verification checks", verificationChecks);
       throw new Error("E2E verification did not reach the approved sent state.");
     }
 
