@@ -126,14 +126,20 @@ async function runApprovedE2E() {
   const automationAdminUserId = String(
     process.env.ONBOARDING_AUTOMATION_ADMIN_USER_ID || ""
   ).trim();
-  if (
-    secret.length < 32 ||
-    allowlist.length !== 1 ||
-    allowlist[0] !== EXPECTED_EMAIL ||
-    automationAdminUserId !== EXPECTED_AUTOMATION_ADMIN_USER_ID ||
-    !/^[a-z0-9.-]+\.vercel\.app$/.test(deploymentHost)
-  ) {
-    throw new Error("Preview E2E environment is not safely constrained.");
+  const environmentChecks = {
+    secretConfigured: secret.length >= 32,
+    allowlistConfigured:
+      allowlist.length === 1 && allowlist[0] === EXPECTED_EMAIL,
+    automationAdminConfigured:
+      automationAdminUserId === EXPECTED_AUTOMATION_ADMIN_USER_ID,
+    previewHostValid: /^[a-z0-9.-]+\.vercel\.app$/.test(deploymentHost),
+  };
+  if (Object.values(environmentChecks).some((value) => !value)) {
+    throw new Error(
+      `Preview E2E environment is not safely constrained: ${JSON.stringify(
+        environmentChecks
+      )}`
+    );
   }
 
   const siteUrl = `https://${deploymentHost}`;
