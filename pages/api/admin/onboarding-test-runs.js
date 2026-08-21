@@ -144,12 +144,12 @@ export default async function handler(req, res) {
                 .maybeSingle(),
               supabaseAdmin
                 .from("customer_order_acceptances")
-                .select("status, attempt_count, error_code, sent_at")
+                .select("status, attempt_count, error_code, sent_at, email_provider, client_provider_message_id, audit_copy_provider_message_id")
                 .eq("organization_id", organizationId)
                 .maybeSingle(),
               supabaseAdmin
                 .from("organization_onboarding_runs")
-                .select("email_status, email_attempt_count, email_error_code, local_admin_user_id")
+                .select("email_status, email_attempt_count, email_error_code, local_admin_user_id, email_provider, client_provider_message_id, audit_copy_provider_message_id")
                 .eq("organization_id", organizationId)
                 .maybeSingle(),
             ])
