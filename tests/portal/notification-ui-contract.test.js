@@ -38,6 +38,21 @@ describe("notification UI contract", () => {
     expect(header).not.toContain("upcomingBroadcastCount");
   });
 
+  it("offers the badge permission once after opening the installed PWA", () => {
+    const header = source("components/PortalHeader.js");
+    const prompt = source("components/PwaBadgePrompt.js");
+
+    expect(header).toContain("PwaBadgePrompt");
+    expect(header).toContain("unreadCount={unreadNotificationCount}");
+    expect(prompt).toContain("isStandalonePwa()");
+    expect(prompt).toContain('appBadgePermissionState() !== "default"');
+    expect(prompt).toContain("PWA_BADGE_PROMPT_STORAGE_KEY");
+    expect(prompt).toContain("Zapnout počet novinek na ikoně?");
+    expect(prompt).toContain("requestAppBadgePermission");
+    expect(prompt).toContain("publishUnreadNotificationCount(unreadCount)");
+    expect(prompt).toContain("Nezapne to e-maily ani automatické zprávy.");
+  });
+
   it("keeps broadcast notifications explicit and in-app only in administration", () => {
     const adminPage = source("pages/portal/admin/vysilani/[eventId].js");
     expect(adminPage).toContain("Aktivovat oznámení v aplikaci");
