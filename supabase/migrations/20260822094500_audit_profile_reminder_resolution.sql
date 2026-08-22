@@ -167,6 +167,7 @@ declare
   source_attempt public.profile_completion_reminder_attempts%rowtype;
   existing_attempt_id uuid;
   new_attempt_id uuid;
+  current_reminder_reason text;
 begin
   if p_reason is null or length(btrim(p_reason)) not between 20 and 1000 then
     raise exception 'A specific resolution reason of 20 to 1000 characters is required.';
@@ -197,6 +198,10 @@ begin
     return;
   end if;
 
+  if source_attempt.resolution_action is not null then
+    raise exception 'The source reminder attempt has already been resolved.';
+  end if;
+
   if source_attempt.status not in ('failed', 'delivery_unknown', 'sending') then
     raise exception 'Only failed or unresolved attempts can be followed up.';
   end if;
@@ -204,6 +209,22 @@ begin
   if source_attempt.status = 'sending'
      and source_attempt.claimed_at > now() - interval '15 minutes' then
     raise exception 'The source attempt is still inside the sending safety window.';
+  end if;
+
+  select case
+    when p.must_set_password is true and p.profile_completed_at is null
+      then 'password_and_profile'
+    when p.must_set_password is true then 'password'
+    when p.profile_completed_at is null then 'profile'
+    else null
+  end into current_reminder_reason
+  from public.profiles p
+  where p.id = source_attempt.profile_id
+    and p.is_active is true
+    and lower(btrim(coalesce(p.email, ''))) = lower(btrim(source_attempt.recipient_email));
+
+  if current_reminder_reason is null then
+    raise exception 'The profile no longer has a consistent reminder requirement.';
   end if;
 
   update public.profile_completion_reminder_attempts
@@ -219,7 +240,7 @@ begin
     profile_id, reminder_step, reason, recipient_email, status,
     claimed_at, updated_at, previous_attempt_id
   ) values (
-    source_attempt.profile_id, source_attempt.reminder_step, source_attempt.reason,
+    source_attempt.profile_id, source_attempt.reminder_step, current_reminder_reason,
     source_attempt.recipient_email, 'sending', now(), now(), p_source_attempt_id
   ) returning id into new_attempt_id;
 

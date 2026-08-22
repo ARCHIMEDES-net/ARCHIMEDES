@@ -14,7 +14,13 @@ beforeAll(async () => {
     create role anon;
     create role authenticated;
     create role service_role;
-    create table public.profiles(id uuid primary key, email text);
+    create table public.profiles(
+      id uuid primary key,
+      email text,
+      must_set_password boolean not null default false,
+      profile_completed_at timestamptz,
+      is_active boolean not null default true
+    );
     create table public.platform_admins(
       user_id uuid primary key references public.profiles(id),
       role text not null
@@ -48,8 +54,18 @@ beforeAll(async () => {
       "utf8"
     )
   );
+  await database.exec(
+    fs.readFileSync(
+      path.join(
+        process.cwd(),
+        "supabase/migrations/20260822103500_harden_profile_reminder_followup.sql"
+      ),
+      "utf8"
+    )
+  );
   await database.query(
-    `insert into public.profiles(id, email) values ($1, 'user@example.com'), ($2, 'admin@example.com')`,
+    `insert into public.profiles(id, email, must_set_password, profile_completed_at)
+     values ($1, 'user@example.com', true, null), ($2, 'admin@example.com', false, now())`,
     [profileId, adminId]
   );
   await database.query(
@@ -68,6 +84,10 @@ afterAll(async () => database?.close());
 
 describe("audited profile reminder resolution", () => {
   it("claims exactly one linked follow-up and preserves the source row", async () => {
+    await database.query(
+      `update public.profiles set must_set_password = false where id = $1`,
+      [profileId]
+    );
     const first = await database.query(
       `select * from public.claim_profile_reminder_followup($1, $2, $3)`,
       [sourceId, adminId, "Příjemce potvrdil, že původní zprávu nedostal."]
@@ -82,7 +102,7 @@ describe("audited profile reminder resolution", () => {
     expect(replay.rows[0]).toEqual({ attempt_id: followupId, claimed: false });
 
     const rows = await database.query(
-      `select id, previous_attempt_id, resolution_action
+      `select id, previous_attempt_id, resolution_action, reason
        from public.profile_completion_reminder_attempts order by created_at, id`
     );
     expect(rows.rows).toHaveLength(2);
@@ -90,6 +110,7 @@ describe("audited profile reminder resolution", () => {
       "confirmed_not_delivered_retry"
     );
     expect(rows.rows.find((row) => row.id === followupId).previous_attempt_id).toBe(sourceId);
+    expect(rows.rows.find((row) => row.id === followupId).reason).toBe("profile");
   });
 
   it("reconciles a webhook that arrives before the provider receipt is stored", async () => {
@@ -112,5 +133,28 @@ describe("audited profile reminder resolution", () => {
       [followup.rows[0].id]
     );
     expect(state.rows[0].client_delivery_status).toBe("delivered");
+  });
+
+  it("does not reopen an attempt resolved without another email", async () => {
+    const resolvedSourceId = "00000000-0000-4000-8000-000000000004";
+    await database.query(
+      `insert into public.profile_completion_reminder_attempts
+       (id, profile_id, reminder_step, reason, recipient_email, status)
+       values ($1, $2, 2, 'profile', 'user@example.com', 'delivery_unknown')`,
+      [resolvedSourceId, profileId]
+    );
+    const resolved = await database.query(
+      `select public.resolve_profile_reminder_without_resend($1, $2, $3) as resolved`,
+      [resolvedSourceId, adminId, "Správce případ ověřil a uzavřel bez dalšího e-mailu."]
+    );
+    expect(resolved.rows[0].resolved).toBe(true);
+
+    await expect(
+      database.query(`select * from public.claim_profile_reminder_followup($1, $2, $3)`, [
+        resolvedSourceId,
+        adminId,
+        "Uzavřený případ se už nesmí znovu otevřít k odeslání.",
+      ])
+    ).rejects.toThrow("already been resolved");
   });
 });

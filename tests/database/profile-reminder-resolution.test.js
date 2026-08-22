@@ -18,6 +18,24 @@ const followupMigration = fs.readFileSync(
   "utf8"
 );
 
+const hardeningMigration = fs.readFileSync(
+  path.join(
+    process.cwd(),
+    "supabase/migrations/20260822103500_harden_profile_reminder_followup.sql"
+  ),
+  "utf8"
+);
+
+const retryRoute = fs.readFileSync(
+  path.join(process.cwd(), "pages/api/admin/retry-profile-reminder.js"),
+  "utf8"
+);
+
+const reminderSender = fs.readFileSync(
+  path.join(process.cwd(), "lib/server/profileCompletionReminders.js"),
+  "utf8"
+);
+
 describe("audited profile reminder resolution migration", () => {
   it("preserves old attempts and links at most one explicit follow-up", () => {
     expect(migration).toContain("previous_attempt_id uuid");
@@ -47,5 +65,22 @@ describe("audited profile reminder resolution migration", () => {
       "create index if not exists profile_completion_reminder_resolved_by_idx"
     );
     expect(followupMigration).toContain("on public.profile_completion_reminder_attempts (resolved_by)");
+  });
+
+  it("cannot reopen a closed case and records the current reminder requirement", () => {
+    expect(hardeningMigration).toContain("source_attempt.resolution_action is not null");
+    expect(hardeningMigration).toContain("current_reminder_reason");
+    expect(hardeningMigration).toContain("profile no longer has a consistent reminder requirement");
+  });
+
+  it("sends the atomically audited reason and lets webhook time order delivery", () => {
+    expect(retryRoute).toContain('.select("reason")');
+    expect(retryRoute).toContain("reason: claimedAttempt.reason");
+    expect(reminderSender).not.toMatch(
+      /client_delivery_status: "accepted",\s*client_delivery_updated_at:/
+    );
+    expect(reminderSender).not.toMatch(
+      /audit_copy_delivery_status: "accepted",\s*audit_copy_delivery_updated_at:/
+    );
   });
 });

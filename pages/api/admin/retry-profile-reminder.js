@@ -19,6 +19,7 @@ function normalized(value) {
   return String(value || "").trim().toLocaleLowerCase("cs-CZ");
 }
 
+
 async function assertUnambiguousRealMembership(profile) {
   const { data: memberships, error: membershipError } = await supabaseAdmin
     .from("organization_members")
@@ -152,11 +153,21 @@ export default async function handler(req, res) {
       });
     }
 
+    const { data: claimedAttempt, error: claimedAttemptError } = await supabaseAdmin
+      .from("profile_completion_reminder_attempts")
+      .select("reason")
+      .eq("id", claim.attempt_id)
+      .maybeSingle();
+    if (claimedAttemptError) throw claimedAttemptError;
+    if (!claimedAttempt?.reason) {
+      throw new Error("Claimed reminder attempt is missing its audited reason");
+    }
+
     const outcome = await sendClaimedProfileReminder(supabaseAdmin, {
       attemptId: claim.attempt_id,
       profile,
       step: source.reminder_step,
-      reason: currentReason,
+      reason: claimedAttempt.reason,
     });
     return res.status(outcome.sent ? 200 : 502).json({
       ok: outcome.sent,
@@ -173,4 +184,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Navazující pokus se nepodařilo bezpečně dokončit." });
   }
 }
-
