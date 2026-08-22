@@ -10,6 +10,14 @@ const migration = fs.readFileSync(
   "utf8"
 );
 
+const followupMigration = fs.readFileSync(
+  path.join(
+    process.cwd(),
+    "supabase/migrations/20260822101500_index_profile_reminder_resolved_by.sql"
+  ),
+  "utf8"
+);
+
 describe("audited profile reminder resolution migration", () => {
   it("preserves old attempts and links at most one explicit follow-up", () => {
     expect(migration).toContain("previous_attempt_id uuid");
@@ -32,5 +40,12 @@ describe("audited profile reminder resolution migration", () => {
     expect(migration).toContain("grant execute on function public.claim_profile_reminder_followup");
     expect(migration).toContain("to service_role");
     expect(migration).toContain("from public, anon, authenticated");
+  });
+
+  it("indexes the resolution actor foreign key", () => {
+    expect(followupMigration).toContain(
+      "create index if not exists profile_completion_reminder_resolved_by_idx"
+    );
+    expect(followupMigration).toContain("on public.profile_completion_reminder_attempts (resolved_by)");
   });
 });
