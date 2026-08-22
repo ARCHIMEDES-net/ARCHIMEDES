@@ -68,28 +68,14 @@ export default function PortalHeader({ title = "" }) {
           return;
         }
 
-        const nowIso = new Date().toISOString();
-        const [
-          { count: notificationCount, error: notificationError },
-          { count: upcomingBroadcastCount, error: upcomingBroadcastError },
-        ] = await Promise.all([
-          supabase
-            .from("user_notifications")
-            .select("id", { count: "exact", head: true })
-            .is("read_at", null)
-            .lte("available_at", nowIso),
-          supabase
-            .from("events")
-            .select("id", { count: "exact", head: true })
-            .eq("is_published", true)
-            .gt("starts_at", nowIso),
-        ]);
+        const { count: notificationCount, error: notificationError } = await supabase
+          .from("user_notifications")
+          .select("id", { count: "exact", head: true })
+          .is("read_at", null)
+          .lte("available_at", new Date().toISOString());
         if (!notificationError && alive) {
           const unreadCount = publishUnreadNotificationCount(notificationCount || 0);
           setUnreadNotificationCount(unreadCount);
-        }
-        if (!upcomingBroadcastError && alive) {
-          void syncAppBadge(upcomingBroadcastCount || 0);
         }
 
         const { data: profile, error: profileError } = await supabase

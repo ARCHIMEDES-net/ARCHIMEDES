@@ -20,6 +20,7 @@ function baseInput(overrides = {}) {
         events: { id: EVENT_ID, title: "Bezpečný internet" },
       },
     ],
+    standaloneEvents: [],
     subscriptions: [{ event_id: EVENT_ID, profile_id: PROFILE_ID, enabled: true }],
     activityPreferences: [
       { profile_id: PROFILE_ID, activity_code: "ucitele", enabled: true },
@@ -113,6 +114,31 @@ describe("notification queue candidate planning", () => {
       Object.assign(input.sessions[0], sessionPatch);
       expect(buildNotificationCandidates(input)).toEqual([]);
     }
+  });
+
+  it("creates an in-app unread item for a published legacy event without a session", () => {
+    const input = baseInput({
+      sessions: [],
+      standaloneEvents: [
+        {
+          id: EVENT_ID,
+          title: "Nový pořad",
+          starts_at: "2026-08-20T10:00:00.000Z",
+          is_published: true,
+          recipient_group_codes: ["ucitele"],
+        },
+      ],
+      subscriptions: [],
+    });
+
+    expect(buildNotificationCandidates(input)).toEqual([
+      expect.objectContaining({
+        kind: "new_event",
+        event_id: EVENT_ID,
+        email_enabled: false,
+        push_enabled: false,
+      }),
+    ]);
   });
 
   it("lets an explicit modern opt-out override a legacy interest", () => {
