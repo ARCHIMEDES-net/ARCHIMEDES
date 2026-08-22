@@ -9,7 +9,7 @@
 
 export const hero = {
   eyebrow: "ARCHIMEDES Live",
-  titleLine1: "Jeden živý program",
+  titleLine1: "Živý komunitní program",
   titleLine2: "pro obce, školy a spolky",
   subtitle: "Živě. Společně. Přímo u vás.",
   lead:
