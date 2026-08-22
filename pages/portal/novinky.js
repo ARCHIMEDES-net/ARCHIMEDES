@@ -16,6 +16,7 @@ import {
   appBadgePermissionState,
   publishUnreadNotificationCount,
   requestAppBadgePermission,
+  syncAppBadge,
 } from "../../lib/appBadge";
 
 function formatDate(value) {
@@ -50,6 +51,7 @@ export default function NovinkyPage() {
   const [saving, setSaving] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [nextEvent, setNextEvent] = useState(null);
+  const [upcomingBroadcastCount, setUpcomingBroadcastCount] = useState(0);
   const [badgePermission, setBadgePermission] = useState("unsupported");
   const [requestingBadgePermission, setRequestingBadgePermission] = useState(false);
   const [error, setError] = useState("");
@@ -61,7 +63,7 @@ export default function NovinkyPage() {
       const nowIso = new Date().toISOString();
       const [
         { data: notificationData, error: notificationError },
-        { data: eventData, error: eventError },
+        { data: eventData, count: eventCount, error: eventError },
       ] = await Promise.all([
         supabase
           .from("user_notifications")
@@ -71,7 +73,7 @@ export default function NovinkyPage() {
           .limit(100),
         supabase
           .from("events")
-          .select("id, title, starts_at, category")
+          .select("id, title, starts_at, category", { count: "exact" })
           .eq("is_published", true)
           .gt("starts_at", nowIso)
           .order("starts_at", { ascending: true })
@@ -83,6 +85,7 @@ export default function NovinkyPage() {
 
       setNotifications(Array.isArray(notificationData) ? notificationData : []);
       setNextEvent(Array.isArray(eventData) ? eventData[0] || null : null);
+      setUpcomingBroadcastCount(Number(eventCount) || 0);
     } catch (loadError) {
       setError(loadError?.message || "Novinky se nepodařilo načíst.");
     } finally {
@@ -123,13 +126,16 @@ export default function NovinkyPage() {
     setRequestingBadgePermission(true);
     const permission = await requestAppBadgePermission();
     setBadgePermission(permission);
-    if (permission === "granted") publishUnreadNotificationCount(unreadCount);
+    if (permission === "granted") void syncAppBadge(upcomingBroadcastCount);
     setRequestingBadgePermission(false);
   }
 
   useEffect(() => {
-    if (!loading) publishUnreadNotificationCount(unreadCount);
-  }, [loading, unreadCount]);
+    if (!loading) {
+      publishUnreadNotificationCount(unreadCount);
+      void syncAppBadge(upcomingBroadcastCount);
+    }
+  }, [loading, unreadCount, upcomingBroadcastCount]);
 
   return (
     <RequireAuth>
@@ -153,13 +159,13 @@ export default function NovinkyPage() {
           {error ? <Alert variant="error" className="mb-4">{error}</Alert> : null}
           {loading ? <Alert variant="info">Načítám novinky…</Alert> : null}
 
-          {!loading && unreadCount > 0 && badgePermission === "default" ? (
+          {!loading && upcomingBroadcastCount > 0 && badgePermission === "default" ? (
             <Card className="mb-5 border-blue-200 bg-blue-50 p-5">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="max-w-xl">
-                  <h2 className="font-black text-navy-900">Zobrazovat počet novinek na ikoně</h2>
+                  <h2 className="font-black text-navy-900">Zobrazovat počet vysílání na ikoně</h2>
                   <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                    iPhone vyžaduje jednorázové povolení oznámení. Tímto krokem se nezapnou žádné další e-maily ani automatické push zprávy.
+                    Na ikoně uvidíte počet zveřejněných budoucích vysílání. iPhone vyžaduje jednorázové povolení oznámení; tímto krokem se nezapnou žádné e-maily ani automatické push zprávy.
                   </p>
                 </div>
                 <Button type="button" onClick={enableIconBadge} disabled={requestingBadgePermission}>
@@ -170,7 +176,7 @@ export default function NovinkyPage() {
             </Card>
           ) : null}
 
-          {!loading && unreadCount > 0 && badgePermission === "denied" ? (
+          {!loading && upcomingBroadcastCount > 0 && badgePermission === "denied" ? (
             <Alert variant="info" className="mb-5">
               Číslo na ikoně je v iPhonu zakázané. Zapnete ho v Nastavení → Oznámení → A Live → Odznaky.
             </Alert>

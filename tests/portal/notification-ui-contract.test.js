@@ -28,7 +28,14 @@ describe("notification UI contract", () => {
     const newsPage = source("pages/portal/novinky.js");
     expect(newsPage).toContain("requestAppBadgePermission");
     expect(newsPage).toContain("Zapnout číslo na ikoně");
-    expect(newsPage).toContain("nezapnou žádné další e-maily ani automatické push zprávy");
+    expect(newsPage).toContain("nezapnou žádné e-maily ani automatické push zprávy");
+    expect(newsPage).toContain('select("id, title, starts_at, category", { count: "exact" })');
+    expect(newsPage).toContain("syncAppBadge(upcomingBroadcastCount)");
+    expect(newsPage).toContain("Zobrazovat počet vysílání na ikoně");
+
+    const header = source("components/PortalHeader.js");
+    expect(header).toContain(".gt(\"starts_at\", nowIso)");
+    expect(header).toContain("syncAppBadge(upcomingBroadcastCount || 0)");
   });
 
   it("keeps broadcast notifications explicit and in-app only in administration", () => {

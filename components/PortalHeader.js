@@ -8,6 +8,7 @@ import { fetchMyOrganizations } from "../lib/myOrganizations";
 import {
   UNREAD_NOTIFICATION_COUNT_EVENT,
   publishUnreadNotificationCount,
+  syncAppBadge,
 } from "../lib/appBadge";
 import PwaInstallDiscovery from "./PwaInstallDiscovery";
 
@@ -67,14 +68,28 @@ export default function PortalHeader({ title = "" }) {
           return;
         }
 
-        const { count: notificationCount, error: notificationError } = await supabase
-          .from("user_notifications")
-          .select("id", { count: "exact", head: true })
-          .is("read_at", null)
-          .lte("available_at", new Date().toISOString());
+        const nowIso = new Date().toISOString();
+        const [
+          { count: notificationCount, error: notificationError },
+          { count: upcomingBroadcastCount, error: upcomingBroadcastError },
+        ] = await Promise.all([
+          supabase
+            .from("user_notifications")
+            .select("id", { count: "exact", head: true })
+            .is("read_at", null)
+            .lte("available_at", nowIso),
+          supabase
+            .from("events")
+            .select("id", { count: "exact", head: true })
+            .eq("is_published", true)
+            .gt("starts_at", nowIso),
+        ]);
         if (!notificationError && alive) {
           const unreadCount = publishUnreadNotificationCount(notificationCount || 0);
           setUnreadNotificationCount(unreadCount);
+        }
+        if (!upcomingBroadcastError && alive) {
+          void syncAppBadge(upcomingBroadcastCount || 0);
         }
 
         const { data: profile, error: profileError } = await supabase
@@ -185,6 +200,7 @@ export default function PortalHeader({ title = "" }) {
   async function onLogout() {
     try {
       cachedHeaderAccess = null;
+      void syncAppBadge(0);
       await supabase.auth.signOut();
     } finally {
       router.push("/login");
