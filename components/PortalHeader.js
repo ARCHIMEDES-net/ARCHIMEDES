@@ -11,6 +11,7 @@ import {
   syncAppBadge,
 } from "../lib/appBadge";
 import PwaInstallDiscovery from "./PwaInstallDiscovery";
+import PwaBadgePrompt from "./PwaBadgePrompt";
 
 const LOGO_SRC = "/logo-archimedes-live.png";
 let cachedHeaderAccess = null;
@@ -332,6 +333,7 @@ export default function PortalHeader({ title = "" }) {
         </div>
       </header>
       <PwaInstallDiscovery />
+      <PwaBadgePrompt unreadCount={unreadNotificationCount} />
     </>
   );
 }
