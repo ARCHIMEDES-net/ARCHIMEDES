@@ -62,6 +62,12 @@ export default function AdminHome() {
               Otevřít zákazníky
             </Link>
           </AdminCard>
+
+          <AdminCard title="Profilové případy" desc="Ruční kontrola starších nejasných pokusů bez hromadného odesílání.">
+            <Link href="/portal/admin/upominky-profilu" className="font-bold text-brand hover:underline">
+              Otevřít kontrolní frontu
+            </Link>
+          </AdminCard>
         </section>
       </main>
     </RequirePlatformAdmin>

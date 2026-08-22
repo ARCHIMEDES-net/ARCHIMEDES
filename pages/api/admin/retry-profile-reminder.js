@@ -19,8 +19,19 @@ function normalized(value) {
   return String(value || "").trim().toLocaleLowerCase("cs-CZ");
 }
 
+function looksInternalOrganization(name) {
+  return /(^|\s)test(ovací)?(\s|$)|archimedes|zuzana novotná/i.test(String(name || ""));
+}
 
 async function assertUnambiguousRealMembership(profile) {
+  const { data: platformAdmin, error: platformAdminError } = await supabaseAdmin
+    .from("platform_admins")
+    .select("user_id")
+    .eq("user_id", profile.id)
+    .maybeSingle();
+  if (platformAdminError) throw platformAdminError;
+  if (platformAdmin?.user_id) return false;
+
   const { data: memberships, error: membershipError } = await supabaseAdmin
     .from("organization_members")
     .select("organization_id")
@@ -32,12 +43,15 @@ async function assertUnambiguousRealMembership(profile) {
 
   const { data: organizations, error: organizationError } = await supabaseAdmin
     .from("organizations")
-    .select("id")
+    .select("id, name")
     .in("id", organizationIds)
     .eq("status", "active")
-    .or("is_test.eq.false,is_test.is.null");
+    .or("is_test.eq.false,is_test.is.null")
+    .eq("profile_reminders_enabled", true);
   if (organizationError) throw organizationError;
-  const realIds = (organizations || []).map((row) => row.id);
+  const realIds = (organizations || [])
+    .filter((row) => !looksInternalOrganization(row.name))
+    .map((row) => row.id);
   if (!realIds.length) return false;
 
   const { data: peerMemberships, error: peerMembershipError } = await supabaseAdmin
@@ -75,12 +89,18 @@ export default async function handler(req, res) {
 
     const sourceAttemptId = String(req.body?.sourceAttemptId || "").trim();
     const resolutionReason = String(req.body?.resolutionReason || "").trim();
+    const action = String(req.body?.action || "").trim();
+    const confirmations = {
+      approved_fresh_access: "SEND_ONE_FRESH_ACCESS_EMAIL",
+      approved_profile_reminder: "SEND_ONE_PROFILE_EMAIL",
+      confirmed_not_delivered_retry: "CONFIRMED_NOT_DELIVERED",
+    };
     if (!UUID_PATTERN.test(sourceAttemptId)) {
       return res.status(400).json({ error: "Neplatné ID původního pokusu." });
     }
-    if (req.body?.confirmation !== "CONFIRMED_NOT_DELIVERED") {
+    if (!confirmations[action] || req.body?.confirmation !== confirmations[action]) {
       return res.status(400).json({
-        error: "Chybí výslovné potvrzení, že původní e-mail nebyl doručen.",
+        error: "Chybí přesné potvrzení účelu jednoho navazujícího e-mailu.",
       });
     }
     if (resolutionReason.length < 20 || resolutionReason.length > 1000) {
@@ -130,18 +150,37 @@ export default async function handler(req, res) {
         error: "Uživatel se již přihlásil, ale profil stále požaduje heslo. Nejprve opravte nekonzistentní příznak.",
       });
     }
+    if (action === "approved_fresh_access" && authData.user.last_sign_in_at) {
+      return res.status(409).json({
+        error: "Uživatel se již přihlásil. Nový přístupový e-mail není správný krok.",
+      });
+    }
+    if (action === "approved_profile_reminder" && currentReason !== "profile") {
+      return res.status(409).json({
+        error: "Profil nemá pouze nedokončený profil. Nejprve opravte data účtu.",
+      });
+    }
+    if (action === "approved_fresh_access" && !currentReason.includes("password")) {
+      return res.status(409).json({
+        error: "Účet už nevyžaduje nastavení hesla. Nový přístupový e-mail se neposlal.",
+      });
+    }
     if (!(await assertUnambiguousRealMembership(profile))) {
       return res.status(409).json({
         error: "Účet nemá jednoznačnou vazbu na reálnou organizaci nebo má možnou duplicitu.",
       });
     }
 
+    const approvedAction = action !== "confirmed_not_delivered_retry";
     const { data: claimRows, error: claimError } = await supabaseAdmin.rpc(
-      "claim_profile_reminder_followup",
+      approvedAction
+        ? "claim_approved_profile_reminder_followup"
+        : "claim_profile_reminder_followup",
       {
         p_source_attempt_id: sourceAttemptId,
         p_initiated_by: platformAdmin.id,
         p_reason: resolutionReason,
+        ...(approvedAction ? { p_action: action } : {}),
       }
     );
     if (claimError) throw claimError;
@@ -168,6 +207,7 @@ export default async function handler(req, res) {
       profile,
       step: source.reminder_step,
       reason: claimedAttempt.reason,
+      purpose: action,
     });
     return res.status(outcome.sent ? 200 : 502).json({
       ok: outcome.sent,

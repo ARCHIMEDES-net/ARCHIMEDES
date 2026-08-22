@@ -6,6 +6,8 @@ import { PGlite } from "@electric-sql/pglite";
 const profileId = "00000000-0000-4000-8000-000000000001";
 const adminId = "00000000-0000-4000-8000-000000000002";
 const sourceId = "00000000-0000-4000-8000-000000000003";
+const organizationId = "00000000-0000-4000-8000-000000000010";
+const blockedProfileId = "00000000-0000-4000-8000-000000000011";
 let database;
 
 beforeAll(async () => {
@@ -24,6 +26,18 @@ beforeAll(async () => {
     create table public.platform_admins(
       user_id uuid primary key references public.profiles(id),
       role text not null
+    );
+    create table public.organizations(
+      id uuid primary key,
+      name text not null,
+      status text,
+      is_test boolean not null default false
+    );
+    create table public.organization_members(
+      organization_id uuid not null references public.organizations(id),
+      user_id uuid not null references public.profiles(id),
+      status text not null,
+      unique (organization_id, user_id)
     );
     create table public.profile_completion_reminder_attempts(
       id uuid primary key default gen_random_uuid(),
@@ -58,6 +72,15 @@ beforeAll(async () => {
     fs.readFileSync(
       path.join(
         process.cwd(),
+        "supabase/migrations/20260822105235_fail_closed_profile_reminder_review.sql"
+      ),
+      "utf8"
+    )
+  );
+  await database.exec(
+    fs.readFileSync(
+      path.join(
+        process.cwd(),
         "supabase/migrations/20260822103500_harden_profile_reminder_followup.sql"
       ),
       "utf8"
@@ -71,6 +94,16 @@ beforeAll(async () => {
   await database.query(
     `insert into public.platform_admins(user_id, role) values ($1, 'super_admin')`,
     [adminId]
+  );
+  await database.query(
+    `insert into public.organizations(id, name, status, profile_reminders_enabled)
+     values ($1, 'Ověřená obec', 'active', true)`,
+    [organizationId]
+  );
+  await database.query(
+    `insert into public.organization_members(organization_id, user_id, status)
+     values ($1, $2, 'active')`,
+    [organizationId, profileId]
   );
   await database.query(
     `insert into public.profile_completion_reminder_attempts
@@ -89,15 +122,15 @@ describe("audited profile reminder resolution", () => {
       [profileId]
     );
     const first = await database.query(
-      `select * from public.claim_profile_reminder_followup($1, $2, $3)`,
-      [sourceId, adminId, "Příjemce potvrdil, že původní zprávu nedostal."]
+      `select * from public.claim_approved_profile_reminder_followup($1, $2, $3, $4)`,
+      [sourceId, adminId, "Účet byl jednotlivě ověřen pro dokončení profilu.", "approved_profile_reminder"]
     );
     expect(first.rows[0].claimed).toBe(true);
     const followupId = first.rows[0].attempt_id;
 
     const replay = await database.query(
-      `select * from public.claim_profile_reminder_followup($1, $2, $3)`,
-      [sourceId, adminId, "Opakované volání stejného schváleného případu."]
+      `select * from public.claim_approved_profile_reminder_followup($1, $2, $3, $4)`,
+      [sourceId, adminId, "Opakované volání stejného schváleného případu.", "approved_profile_reminder"]
     );
     expect(replay.rows[0]).toEqual({ attempt_id: followupId, claimed: false });
 
@@ -107,7 +140,7 @@ describe("audited profile reminder resolution", () => {
     );
     expect(rows.rows).toHaveLength(2);
     expect(rows.rows.find((row) => row.id === sourceId).resolution_action).toBe(
-      "confirmed_not_delivered_retry"
+      "approved_profile_reminder"
     );
     expect(rows.rows.find((row) => row.id === followupId).previous_attempt_id).toBe(sourceId);
     expect(rows.rows.find((row) => row.id === followupId).reason).toBe("profile");
@@ -150,11 +183,44 @@ describe("audited profile reminder resolution", () => {
     expect(resolved.rows[0].resolved).toBe(true);
 
     await expect(
-      database.query(`select * from public.claim_profile_reminder_followup($1, $2, $3)`, [
+      database.query(`select * from public.claim_approved_profile_reminder_followup($1, $2, $3, $4)`, [
         resolvedSourceId,
         adminId,
         "Uzavřený případ se už nesmí znovu otevřít k odeslání.",
+        "approved_profile_reminder",
       ])
     ).rejects.toThrow("already been resolved");
+  });
+
+  it("fails closed when the organization is not explicitly enabled", async () => {
+    const blockedSourceId = "00000000-0000-4000-8000-000000000005";
+    await database.query(
+      `insert into public.profiles(id, email, must_set_password, profile_completed_at)
+       values ($1, 'blocked@example.com', false, null)`,
+      [blockedProfileId]
+    );
+    await database.query(
+      `insert into public.organization_members(organization_id, user_id, status)
+       values ($2, $1, 'active')`,
+      [blockedProfileId, organizationId]
+    );
+    await database.query(
+      `insert into public.profile_completion_reminder_attempts
+       (id, profile_id, reminder_step, reason, recipient_email, status)
+       values ($2, $1, 1, 'profile', 'blocked@example.com', 'delivery_unknown')`,
+      [blockedProfileId, blockedSourceId]
+    );
+    await database.query(
+      `update public.organizations set profile_reminders_enabled = false where id = $1`,
+      [organizationId]
+    );
+    await expect(
+      database.query(`select * from public.claim_approved_profile_reminder_followup($1, $2, $3, $4)`, [
+        blockedSourceId,
+        adminId,
+        "Organizace zatím nemá dokončené individuální schválení.",
+        "approved_profile_reminder",
+      ])
+    ).rejects.toThrow("not been explicitly approved");
   });
 });
