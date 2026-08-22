@@ -45,6 +45,8 @@ const platformAdminRoutes = [
   "admin/onboarding-test-runs",
   "admin/create-municipality-organization",
   "admin/invite-municipality-admin",
+  "admin/retry-profile-reminder",
+  "admin/resolve-profile-reminder",
   "admin/broadcast-recipients",
   "admin/group-counts",
   "admin/group-users",
