@@ -45,6 +45,10 @@ const platformAdminRoutes = [
   "admin/onboarding-test-runs",
   "admin/create-municipality-organization",
   "admin/invite-municipality-admin",
+  "admin/retry-profile-reminder",
+  "admin/resolve-profile-reminder",
+  "admin/profile-reminder-cases",
+  "admin/profile-reminder-organization",
   "admin/broadcast-recipients",
   "admin/group-counts",
   "admin/group-users",
@@ -171,6 +175,7 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
     expect(helper).toContain('.from("platform_admins")');
     expect(helper).toContain('.from("organization_members")');
     expect(helper).toContain('.or("is_test.eq.false,is_test.is.null")');
+    expect(helper).toContain('.eq("profile_reminders_enabled", true)');
     expect(helper).toContain('.eq("status", "active")');
   });
 
