@@ -10,4 +10,12 @@ describe("notification cron", () => {
       schedule: "*/10 * * * *",
     });
   });
+
+  it("runs profile completion reminders on working days only", () => {
+    const config = JSON.parse(fs.readFileSync(path.join(process.cwd(), "vercel.json"), "utf8"));
+    expect(config.crons).toContainEqual({
+      path: "/api/cron/profile-completion-reminders",
+      schedule: "0 7 * * 1-5",
+    });
+  });
 });

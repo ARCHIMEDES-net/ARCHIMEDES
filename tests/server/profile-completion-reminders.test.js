@@ -37,7 +37,7 @@ describe("profile completion reminder eligibility", () => {
     expect(
       nextReminderStep({
         profile: profile(),
-        attempts: [{ reminder_step: 1, status: "sent" }],
+        attempts: [{ reminder_step: 1, status: "sent", client_delivery_status: "delivered" }],
         now,
       })
     ).toBe(2);
@@ -45,8 +45,8 @@ describe("profile completion reminder eligibility", () => {
       nextReminderStep({
         profile: profile(),
         attempts: [
-          { reminder_step: 1, status: "sent" },
-          { reminder_step: 2, status: "sent" },
+          { reminder_step: 1, status: "sent", client_delivery_status: "delivered" },
+          { reminder_step: 2, status: "sent", client_delivery_status: "delivered" },
         ],
         now,
       })
@@ -68,6 +68,25 @@ describe("profile completion reminder eligibility", () => {
       })
     ).toBeNull();
     expect(nextReminderStep({ profile: profile({ is_active: false }), now })).toBeNull();
+  });
+
+  it("does not schedule another email until the recipient mail server confirms delivery", () => {
+    expect(
+      nextReminderStep({
+        profile: profile(),
+        attempts: [
+          { reminder_step: 1, status: "sent", client_delivery_status: "accepted" },
+        ],
+        now,
+      })
+    ).toBeNull();
+    expect(
+      nextReminderStep({
+        profile: profile(),
+        attempts: [{ reminder_step: 1, status: "failed" }],
+        now,
+      })
+    ).toBeNull();
   });
   it("creates a safe audit copy without password or profile links", () => {
     const copy = auditCopyMessage({
