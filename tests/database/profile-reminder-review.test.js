@@ -13,6 +13,13 @@ const adminPage = fs.readFileSync(
   path.join(process.cwd(), "pages/portal/admin/upominky-profilu.js"),
   "utf8"
 );
+const repairMigration = fs.readFileSync(
+  path.join(
+    process.cwd(),
+    "supabase/migrations/20260823084000_audit_signed_in_password_flag_repair.sql"
+  ),
+  "utf8"
+);
 
 describe("fail-closed profile reminder review", () => {
   it("defaults every organization to no profile reminder email", () => {
@@ -37,5 +44,16 @@ describe("fail-closed profile reminder review", () => {
     expect(adminPage).toContain("SEND_ONE_FRESH_ACCESS_EMAIL");
     expect(adminPage).toContain("SEND_ONE_PROFILE_EMAIL");
     expect(adminPage).not.toMatch(/hromadně odeslat|send all|bulk send/i);
+  });
+
+  it("repairs only a verified signed-in password flag without sending email", () => {
+    expect(repairMigration).toContain("repair_signed_in_profile_password_flag");
+    expect(repairMigration).toContain("auth_user.last_sign_in_at is not null");
+    expect(repairMigration).toContain("set must_set_password = false");
+    expect(repairMigration).toContain("resolution_action = 'repaired_password_flag'");
+    expect(repairMigration).toContain("revoke all on function public.repair_signed_in_profile_password_flag");
+    expect(repairMigration).toContain("to service_role");
+    expect(adminPage).toContain("REPAIR_SIGNED_IN_PASSWORD_FLAG");
+    expect(adminPage).toContain("Žádný e-mail se neposlal");
   });
 });

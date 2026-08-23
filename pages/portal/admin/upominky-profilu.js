@@ -96,6 +96,16 @@ export default function ProfileReminderCasesPage() {
           }),
         });
         setMessage("Případ byl uzavřen bez odeslání e-mailu.");
+      } else if (selected.action === "repair_password_flag") {
+        await authenticatedRequest("/api/admin/repair-profile-password-flag", {
+          method: "POST",
+          body: JSON.stringify({
+            sourceAttemptId: selected.item.id,
+            resolutionReason: reason,
+            confirmation,
+          }),
+        });
+        setMessage("Chybný příznak hesla byl auditovaně opraven. Žádný e-mail se neposlal.");
       } else if (selected.action === "enable") {
         await authenticatedRequest("/api/admin/profile-reminder-organization", {
           method: "POST",
@@ -130,6 +140,8 @@ export default function ProfileReminderCasesPage() {
 
   const requiredConfirmation = selected?.action === "close"
     ? "RESOLVE_WITHOUT_RESEND"
+    : selected?.action === "repair_password_flag"
+      ? "REPAIR_SIGNED_IN_PASSWORD_FLAG"
     : selected?.action === "enable"
       ? "ENABLE_PROFILE_EMAILS"
       : selected?.action === "approved_fresh_access"
@@ -168,6 +180,11 @@ export default function ProfileReminderCasesPage() {
               {selected.action === "enable" ? (
                 <Alert variant="info" className="mt-3">
                   Tímto schvalujete pravidlo pro celou organizaci, ne pouze tento účet. Teď se žádný e-mail neodešle.
+                </Alert>
+              ) : null}
+              {selected.action === "repair_password_flag" ? (
+                <Alert variant="info" className="mt-3">
+                  Opraví se pouze chybný příznak hesla u ověřeného již přihlášeného účtu. Jméno, e-mail, role ani členství se nezmění a žádný e-mail se neodešle.
                 </Alert>
               ) : null}
               <div className="mt-4">
@@ -215,6 +232,9 @@ export default function ProfileReminderCasesPage() {
                   </dl>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Button type="button" size="sm" variant="secondary" onClick={() => startAction(item, "close")}>Uzavřít bez e-mailu</Button>
+                    {item.category === "repair_password_flag" ? (
+                      <Button type="button" size="sm" onClick={() => startAction(item, "repair_password_flag")}>Opravit příznak hesla</Button>
+                    ) : null}
                     {!item.organizationApproved && availableOrganization && ["fresh_access_candidate", "profile_reminder_candidate"].includes(item.category) ? (
                       <Button type="button" size="sm" variant="secondary" onClick={() => startAction(item, "enable", availableOrganization.id)}>Povolit organizaci</Button>
                     ) : null}

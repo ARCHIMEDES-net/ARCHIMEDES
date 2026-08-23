@@ -23,6 +23,7 @@ vi.mock("../../lib/server/authenticatedRateLimit", () => ({
 
 import profileReminderCases from "../../pages/api/admin/profile-reminder-cases";
 import profileReminderOrganization from "../../pages/api/admin/profile-reminder-organization";
+import repairProfilePasswordFlag from "../../pages/api/admin/repair-profile-password-flag";
 
 function queryResult(result) {
   const query = {};
@@ -114,6 +115,44 @@ describe("profile reminder admin review", () => {
         organizationId: "00000000-0000-4000-8000-000000000003",
         enabled: true,
         reason: "Celá organizace byla jednotlivě ověřena správcem.",
+        confirmation: "ANO",
+      },
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(dependencies.supabaseAdmin.rpc).not.toHaveBeenCalled();
+  });
+
+  it("repairs one signed-in password flag through the audited RPC without email", async () => {
+    dependencies.supabaseAdmin.rpc.mockResolvedValue({ data: true, error: null });
+
+    const { res } = await invoke(repairProfilePasswordFlag, {
+      method: "POST",
+      body: {
+        sourceAttemptId: "00000000-0000-4000-8000-000000000001",
+        resolutionReason: "Ověřený starosta se již přihlásil; chybný je pouze technický příznak hesla.",
+        confirmation: "REPAIR_SIGNED_IN_PASSWORD_FLAG",
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
+      ok: true,
+      passwordFlagRepaired: true,
+      emailSent: false,
+    });
+    expect(dependencies.supabaseAdmin.rpc).toHaveBeenCalledWith(
+      "repair_signed_in_profile_password_flag",
+      expect.objectContaining({ p_initiated_by: "admin-1" })
+    );
+  });
+
+  it("does not repair a password flag without the exact confirmation", async () => {
+    const { res } = await invoke(repairProfilePasswordFlag, {
+      method: "POST",
+      body: {
+        sourceAttemptId: "00000000-0000-4000-8000-000000000001",
+        resolutionReason: "Ověřený starosta se již přihlásil; chybný je pouze technický příznak hesla.",
         confirmation: "ANO",
       },
     });
