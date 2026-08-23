@@ -67,9 +67,26 @@ async function assertUnambiguousRealMembership(profile) {
     .in("id", peerIds);
   if (peersError) throw peersError;
 
+  const { data: accountPolicies, error: accountPoliciesError } = await supabaseAdmin
+    .from("profile_reminder_account_policies")
+    .select("profile_id, primary_profile_id, policy_kind")
+    .in("profile_id", peerIds)
+    .eq("policy_kind", "secondary_no_email");
+  if (accountPoliciesError) throw accountPoliciesError;
+
+  if ((accountPolicies || []).some((policy) => policy.profile_id === profile.id)) {
+    return false;
+  }
+  const reviewedSecondaryIds = new Set(
+    (accountPolicies || [])
+      .filter((policy) => policy.primary_profile_id === profile.id)
+      .map((policy) => policy.profile_id)
+  );
+
   return !(peers || []).some(
     (peer) =>
       peer.id !== profile.id &&
+      !reviewedSecondaryIds.has(peer.id) &&
       (normalized(peer.email) === normalized(profile.email) ||
         (normalized(profile.full_name) &&
           normalized(peer.full_name) === normalized(profile.full_name)))
