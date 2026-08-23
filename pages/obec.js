@@ -140,14 +140,15 @@ export default function ObecPage() {
 
             <div className="relative min-h-[420px] lg:min-h-full">
               <Image
-                src="/ucebna-komunita.webp"
-                alt="Společné komunitní setkání u učebny ARCHIMEDES"
+                src="/ucebna-komunita-ratiskovice.webp"
+                alt="Venkovní učebna ARCHIMEDES v Ratíškovicích"
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 54vw"
-                className="object-cover"
+                quality={80}
+                className="object-cover object-[52%_center]"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#edf5fb]/35 via-transparent to-transparent lg:from-[#edf5fb]/55" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#edf5fb]/20 to-transparent lg:w-24 lg:from-[#edf5fb]/30" />
             </div>
           </div>
         </section>
