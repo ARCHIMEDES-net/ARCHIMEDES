@@ -27,6 +27,13 @@ const identityRepairMigration = fs.readFileSync(
   ),
   "utf8"
 );
+const identityGuardMigration = fs.readFileSync(
+  path.join(
+    process.cwd(),
+    "supabase/migrations/20260823090553_guard_ambiguous_profile_reminder_followups.sql"
+  ),
+  "utf8"
+);
 
 describe("fail-closed profile reminder review", () => {
   it("defaults every organization to no profile reminder email", () => {
@@ -73,5 +80,13 @@ describe("fail-closed profile reminder review", () => {
     expect(identityRepairMigration).toContain("revoke update, delete, truncate");
     expect(identityRepairMigration).toContain("to service_role");
     expect(adminPage).toContain("REPAIR_ONE_PROFILE_NAME");
+  });
+
+  it("blocks linked follow-ups at the database boundary while identity is ambiguous", () => {
+    expect(identityGuardMigration).toContain("before insert on public.profile_completion_reminder_attempts");
+    expect(identityGuardMigration).toContain("new.previous_attempt_id is not null");
+    expect(identityGuardMigration).toContain("peer_profile.is_active is true");
+    expect(identityGuardMigration).toContain("same email or full name");
+    expect(identityGuardMigration).toContain("revoke all on function public.guard_ambiguous_profile_reminder_followup");
   });
 });

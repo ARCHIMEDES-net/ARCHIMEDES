@@ -19,6 +19,7 @@ beforeAll(async () => {
     create table public.profiles(
       id uuid primary key,
       email text,
+      full_name text,
       must_set_password boolean not null default false,
       profile_completed_at timestamptz,
       is_active boolean not null default true
@@ -72,6 +73,15 @@ beforeAll(async () => {
     fs.readFileSync(
       path.join(
         process.cwd(),
+        "supabase/migrations/20260823090553_guard_ambiguous_profile_reminder_followups.sql"
+      ),
+      "utf8"
+    )
+  );
+  await database.exec(
+    fs.readFileSync(
+      path.join(
+        process.cwd(),
         "supabase/migrations/20260822105235_fail_closed_profile_reminder_review.sql"
       ),
       "utf8"
@@ -87,8 +97,9 @@ beforeAll(async () => {
     )
   );
   await database.query(
-    `insert into public.profiles(id, email, must_set_password, profile_completed_at)
-     values ($1, 'user@example.com', true, null), ($2, 'admin@example.com', false, now())`,
+    `insert into public.profiles(id, email, full_name, must_set_password, profile_completed_at)
+     values ($1, 'user@example.com', 'Ověřený uživatel', true, null),
+            ($2, 'admin@example.com', 'Správce platformy', false, now())`,
     [profileId, adminId]
   );
   await database.query(
@@ -190,6 +201,49 @@ describe("audited profile reminder resolution", () => {
         "approved_profile_reminder",
       ])
     ).rejects.toThrow("already been resolved");
+  });
+
+  it("rolls back the whole claim when an active peer still has the same identity", async () => {
+    const ambiguousProfileId = "00000000-0000-4000-8000-000000000020";
+    const ambiguousPeerId = "00000000-0000-4000-8000-000000000021";
+    const ambiguousSourceId = "00000000-0000-4000-8000-000000000022";
+    await database.query(
+      `insert into public.profiles(id, email, full_name, must_set_password, profile_completed_at)
+       values ($1, 'work@example.com', 'Stejná osoba', false, null),
+              ($2, 'personal@example.com', 'Stejná osoba', false, null)`,
+      [ambiguousProfileId, ambiguousPeerId]
+    );
+    await database.query(
+      `insert into public.organization_members(organization_id, user_id, status)
+       values ($1, $2, 'active'), ($1, $3, 'active')`,
+      [organizationId, ambiguousProfileId, ambiguousPeerId]
+    );
+    await database.query(
+      `insert into public.profile_completion_reminder_attempts
+       (id, profile_id, reminder_step, reason, recipient_email, status)
+       values ($1, $2, 1, 'profile', 'work@example.com', 'delivery_unknown')`,
+      [ambiguousSourceId, ambiguousProfileId]
+    );
+
+    await expect(
+      database.query(`select * from public.claim_approved_profile_reminder_followup($1, $2, $3, $4)`, [
+        ambiguousSourceId,
+        adminId,
+        "Dvojice účtů zatím nemá bezpečně rozlišenou identitu.",
+        "approved_profile_reminder",
+      ])
+    ).rejects.toThrow("ambiguous peer identity");
+
+    const source = await database.query(
+      `select resolution_action from public.profile_completion_reminder_attempts where id = $1`,
+      [ambiguousSourceId]
+    );
+    expect(source.rows[0].resolution_action).toBeNull();
+    const linked = await database.query(
+      `select count(*)::int as count from public.profile_completion_reminder_attempts where previous_attempt_id = $1`,
+      [ambiguousSourceId]
+    );
+    expect(linked.rows[0].count).toBe(0);
   });
 
   it("fails closed when the organization is not explicitly enabled", async () => {
