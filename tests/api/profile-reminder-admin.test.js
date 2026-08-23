@@ -25,6 +25,8 @@ import profileReminderCases from "../../pages/api/admin/profile-reminder-cases";
 import profileReminderOrganization from "../../pages/api/admin/profile-reminder-organization";
 import repairProfilePasswordFlag from "../../pages/api/admin/repair-profile-password-flag";
 import repairProfileFullName from "../../pages/api/admin/repair-profile-full-name";
+import classifySharedClassroomProfile from "../../pages/api/admin/classify-shared-classroom-profile";
+import markSecondaryProfileNoEmail from "../../pages/api/admin/mark-secondary-profile-no-email";
 
 function queryResult(result) {
   const query = {};
@@ -68,6 +70,7 @@ describe("profile reminder admin review", () => {
       { data: [{ id: organizationId, name: "Ověřená obec", status: "active", is_test: false, profile_reminders_enabled: false }], error: null },
       { data: [{ user_id: profileId, organization_id: organizationId }, { user_id: peerId, organization_id: organizationId }], error: null },
       { data: [{ id: profileId, email: "user@example.com", full_name: "Ověřený uživatel" }, { id: peerId, email: "peer@example.com", full_name: "Jiný uživatel" }], error: null },
+      { data: [], error: null },
     ];
     for (const response of responses) {
       dependencies.supabaseAdmin.from.mockReturnValueOnce(queryResult(response));
@@ -100,6 +103,7 @@ describe("profile reminder admin review", () => {
       { data: [{ id: organizationId, name: "Ověřená škola", status: "active", is_test: false, profile_reminders_enabled: false }], error: null },
       { data: [{ user_id: profileId, organization_id: organizationId }, { user_id: peerId, organization_id: organizationId }], error: null },
       { data: [{ id: profileId, email: "it@example.com", full_name: "Ředitel školy" }, { id: peerId, email: "director@example.com", full_name: "Ředitel školy" }], error: null },
+      { data: [], error: null },
     ];
     for (const response of responses) {
       dependencies.supabaseAdmin.from.mockReturnValueOnce(queryResult(response));
@@ -237,5 +241,57 @@ describe("profile reminder admin review", () => {
 
     expect(res.statusCode).toBe(400);
     expect(dependencies.supabaseAdmin.rpc).not.toHaveBeenCalled();
+  });
+
+  it("classifies one reviewed classroom account without sending email", async () => {
+    dependencies.supabaseAdmin.rpc.mockResolvedValue({ data: true, error: null });
+
+    const { res } = await invoke(classifySharedClassroomProfile, {
+      method: "POST",
+      body: {
+        sourceAttemptId: "00000000-0000-4000-8000-000000000001",
+        correctedFullName: "Učebna   ARCHIMEDES – ZŠ Luže",
+        resolutionReason: "Ověřeno vedením projektu: jde o sdílený účet přímo v učebně školy.",
+        confirmation: "CLASSIFY_SHARED_CLASSROOM",
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
+      ok: true,
+      correctedFullName: "Učebna ARCHIMEDES – ZŠ Luže",
+      accountPolicy: "shared_classroom",
+      emailSent: false,
+    });
+    expect(dependencies.supabaseAdmin.rpc).toHaveBeenCalledWith(
+      "classify_shared_classroom_profile",
+      expect.objectContaining({ p_initiated_by: "admin-1" })
+    );
+  });
+
+  it("marks one reviewed secondary profile as no-email", async () => {
+    dependencies.supabaseAdmin.rpc.mockResolvedValue({ data: true, error: null });
+
+    const { res } = await invoke(markSecondaryProfileNoEmail, {
+      method: "POST",
+      body: {
+        sourceAttemptId: "00000000-0000-4000-8000-000000000001",
+        primaryProfileId: "00000000-0000-4000-8000-000000000002",
+        resolutionReason: "Ověřeno vedením projektu: primární je školní a osobní adresa zůstává bez upomínek.",
+        confirmation: "MARK_SECONDARY_NO_EMAIL",
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
+      ok: true,
+      primaryProfileId: "00000000-0000-4000-8000-000000000002",
+      accountPolicy: "secondary_no_email",
+      emailSent: false,
+    });
+    expect(dependencies.supabaseAdmin.rpc).toHaveBeenCalledWith(
+      "mark_secondary_profile_no_email",
+      expect.objectContaining({ p_initiated_by: "admin-1" })
+    );
   });
 });

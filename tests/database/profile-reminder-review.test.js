@@ -34,6 +34,13 @@ const identityGuardMigration = fs.readFileSync(
   ),
   "utf8"
 );
+const accountClassificationMigration = fs.readFileSync(
+  path.join(
+    process.cwd(),
+    "supabase/migrations/20260823091925_audit_profile_account_classification.sql"
+  ),
+  "utf8"
+);
 
 describe("fail-closed profile reminder review", () => {
   it("defaults every organization to no profile reminder email", () => {
@@ -88,5 +95,18 @@ describe("fail-closed profile reminder review", () => {
     expect(identityGuardMigration).toContain("peer_profile.is_active is true");
     expect(identityGuardMigration).toContain("same email or full name");
     expect(identityGuardMigration).toContain("revoke all on function public.guard_ambiguous_profile_reminder_followup");
+  });
+
+  it("keeps reviewed shared and secondary accounts out of personal reminder automation", () => {
+    expect(accountClassificationMigration).toContain("profile_reminder_account_policies");
+    expect(accountClassificationMigration).toContain("shared_classroom");
+    expect(accountClassificationMigration).toContain("secondary_no_email");
+    expect(accountClassificationMigration).toContain("classify_shared_classroom_profile");
+    expect(accountClassificationMigration).toContain("mark_secondary_profile_no_email");
+    expect(accountClassificationMigration).toContain("approved_fresh_access");
+    expect(accountClassificationMigration).toContain("revoke update, delete, truncate");
+    expect(accountClassificationMigration).toContain("to service_role");
+    expect(adminPage).toContain("CLASSIFY_SHARED_CLASSROOM");
+    expect(adminPage).toContain("MARK_SECONDARY_NO_EMAIL");
   });
 });

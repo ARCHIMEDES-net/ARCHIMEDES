@@ -89,18 +89,33 @@ export default async function handler(req, res) {
     }
     const peerIds = [...new Set(peerMemberships.map((row) => row.user_id))];
     let peers = [];
+    let accountPolicies = [];
     if (peerIds.length) {
-      const peerRows = await supabaseAdmin
-        .from("profiles")
-        .select("id, email, full_name")
-        .in("id", peerIds);
+      const [peerRows, policyRows] = await Promise.all([
+        supabaseAdmin
+          .from("profiles")
+          .select("id, email, full_name")
+          .in("id", peerIds),
+        supabaseAdmin
+          .from("profile_reminder_account_policies")
+          .select("profile_id, policy_kind, primary_profile_id")
+          .in("profile_id", peerIds),
+      ]);
       if (peerRows.error) throw peerRows.error;
+      if (policyRows.error) throw policyRows.error;
       peers = peerRows.data || [];
+      accountPolicies = policyRows.data || [];
     }
 
     const profilesById = new Map((profileRows.data || []).map((row) => [row.id, row]));
     const organizationsById = new Map(organizations.map((row) => [row.id, row]));
     const peersById = new Map(peers.map((row) => [row.id, row]));
+    const policiesByProfileId = new Map(
+      accountPolicies.map((row) => [row.profile_id, row])
+    );
+    const attemptsByProfileId = new Map(
+      (attempts || []).map((row) => [row.profile_id, row])
+    );
     const platformAdminIds = new Set((platformAdminRows.data || []).map((row) => row.user_id));
     const authStates = new Map(
       await Promise.all(
@@ -124,17 +139,22 @@ export default async function handler(req, res) {
           .filter((row) => memberships.some((item) => item.organization_id === row.organization_id))
           .map((row) => row.user_id)
       );
+      const peerIsReviewedSecondary = (peerId) => {
+        const policy = policiesByProfileId.get(peerId);
+        return policy?.policy_kind === "secondary_no_email" &&
+          policy.primary_profile_id === attempt.profile_id;
+      };
       const duplicateEmail = profile
         ? [...peerProfileIds].some((peerId) => {
             const peer = peersById.get(peerId);
-            return peer && peer.id !== profile.id &&
+            return peer && peer.id !== profile.id && !peerIsReviewedSecondary(peerId) &&
               normalized(peer.email) === normalized(profile.email);
           })
         : true;
       const duplicateName = profile
         ? [...peerProfileIds].some((peerId) => {
             const peer = peersById.get(peerId);
-            return peer && peer.id !== profile.id && normalized(profile.full_name) &&
+            return peer && peer.id !== profile.id && !peerIsReviewedSecondary(peerId) && normalized(profile.full_name) &&
               normalized(peer.full_name) === normalized(profile.full_name);
           })
         : true;
@@ -149,6 +169,28 @@ export default async function handler(req, res) {
         (organization) => organization.profile_reminders_enabled === true
       );
       const currentReason = profile ? reminderReason(profile) : null;
+      const accountPolicy = policiesByProfileId.get(attempt.profile_id) || null;
+      const sameNamePeers = profile
+        ? [...peerProfileIds]
+            .map((peerId) => peersById.get(peerId))
+            .filter((peer) => peer && peer.id !== profile.id && normalized(profile.full_name) &&
+              normalized(peer.full_name) === normalized(profile.full_name))
+        : [];
+      const secondaryPrimaryCandidates = sameNamePeers
+        .map((peer) => {
+          const peerAttempt = attemptsByProfileId.get(peer.id);
+          const peerAuth = authStates.get(peer.id);
+          return peerAttempt && peerAuth?.lastSignInAt && normalized(peer.email) !== normalized(profile?.email)
+            ? {
+                profileId: peer.id,
+                sourceAttemptId: peerAttempt.id,
+                email: peer.email,
+                fullName: peer.full_name,
+                lastSignInAt: peerAuth.lastSignInAt,
+              }
+            : null;
+        })
+        .filter(Boolean);
       let category = "close_without_email";
       if (internal) category = "internal_no_email";
       else if (!profile || auth.missing || !activeRealOrganizations.length || duplicate) category = "identity_review";
@@ -165,6 +207,25 @@ export default async function handler(req, res) {
         duplicateIdentity: duplicate,
         duplicateEmail,
         duplicateName,
+        accountPolicy: accountPolicy?.policy_kind || null,
+        sharedClassroomClassificationAllowed:
+          Boolean(profile) &&
+          !auth.missing &&
+          !auth.lastSignInAt &&
+          currentReason?.includes("password") &&
+          activeRealOrganizations.length > 0 &&
+          duplicateName &&
+          !duplicateEmail &&
+          !accountPolicy,
+        secondaryPrimaryCandidate:
+          Boolean(profile) &&
+          Boolean(auth.lastSignInAt) &&
+          currentReason === "profile" &&
+          !duplicateEmail &&
+          !accountPolicy &&
+          secondaryPrimaryCandidates.length === 1
+            ? secondaryPrimaryCandidates[0]
+            : null,
         identityNameRepairAllowed:
           Boolean(profile) &&
           !auth.missing &&

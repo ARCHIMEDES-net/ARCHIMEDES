@@ -73,8 +73,8 @@ export default function ProfileReminderCasesPage() {
     return result;
   }, {}), [cases]);
 
-  function startAction(item, action, organizationId = "") {
-    setSelected({ item, action, organizationId });
+  function startAction(item, action, organizationId = "", primaryProfile = null) {
+    setSelected({ item, action, organizationId, primaryProfile });
     setReason("");
     setConfirmation("");
     setCorrectedFullName("");
@@ -119,6 +119,28 @@ export default function ProfileReminderCasesPage() {
           }),
         });
         setMessage("Jméno bylo auditovaně opraveno. Žádný e-mail se neposlal.");
+      } else if (selected.action === "classify_shared_classroom") {
+        await authenticatedRequest("/api/admin/classify-shared-classroom-profile", {
+          method: "POST",
+          body: JSON.stringify({
+            sourceAttemptId: selected.item.id,
+            correctedFullName,
+            resolutionReason: reason,
+            confirmation,
+          }),
+        });
+        setMessage("Účet byl auditovaně označen jako sdílená učebna. Automatické osobní upomínky jsou vypnuté a žádný e-mail se neposlal.");
+      } else if (selected.action === "mark_secondary_no_email") {
+        await authenticatedRequest("/api/admin/mark-secondary-profile-no-email", {
+          method: "POST",
+          body: JSON.stringify({
+            sourceAttemptId: selected.item.id,
+            primaryProfileId: selected.primaryProfile?.profileId,
+            resolutionReason: reason,
+            confirmation,
+          }),
+        });
+        setMessage("Sekundární účet byl auditovaně propojen s primárním a vyřazen z upomínek. Žádný e-mail se neposlal.");
       } else if (selected.action === "enable") {
         await authenticatedRequest("/api/admin/profile-reminder-organization", {
           method: "POST",
@@ -157,6 +179,10 @@ export default function ProfileReminderCasesPage() {
       ? "REPAIR_SIGNED_IN_PASSWORD_FLAG"
     : selected?.action === "repair_profile_name"
       ? "REPAIR_ONE_PROFILE_NAME"
+    : selected?.action === "classify_shared_classroom"
+      ? "CLASSIFY_SHARED_CLASSROOM"
+    : selected?.action === "mark_secondary_no_email"
+      ? "MARK_SECONDARY_NO_EMAIL"
     : selected?.action === "enable"
       ? "ENABLE_PROFILE_EMAILS"
       : selected?.action === "approved_fresh_access"
@@ -207,9 +233,21 @@ export default function ProfileReminderCasesPage() {
                   Opraví se pouze celé jméno u jednoho ověřeného účtu. E-mail, role, členství a stav hesla se nezmění a žádný e-mail se neodešle.
                 </Alert>
               ) : null}
-              {selected.action === "repair_profile_name" ? (
+              {selected.action === "classify_shared_classroom" ? (
+                <Alert variant="info" className="mt-3">
+                  Účet dostane ověřené funkční označení učebny a bude vyřazen z automatických osobních profilových upomínek. Případný nový přístup lze později poslat jen jednotlivě a výslovně. Teď se žádný e-mail neposílá.
+                </Alert>
+              ) : null}
+              {selected.action === "mark_secondary_no_email" ? (
+                <Alert variant="info" className="mt-3">
+                  Tento účet zůstane aktivní, ale bude auditovaně označen jako sekundární bez upomínek. Primární účet: {selected.primaryProfile?.fullName} ({selected.primaryProfile?.email}). Teď se žádný e-mail neposílá.
+                </Alert>
+              ) : null}
+              {["repair_profile_name", "classify_shared_classroom"].includes(selected.action) ? (
                 <div className="mt-4">
-                  <Label htmlFor="corrected-full-name">Ověřené celé jméno</Label>
+                  <Label htmlFor="corrected-full-name">
+                    {selected.action === "classify_shared_classroom" ? "Ověřené označení učebny" : "Ověřené celé jméno"}
+                  </Label>
                   <Input id="corrected-full-name" value={correctedFullName} onChange={(event) => setCorrectedFullName(event.target.value)} autoComplete="off" />
                 </div>
               ) : null}
@@ -222,7 +260,7 @@ export default function ProfileReminderCasesPage() {
                 <Input id="review-confirmation" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="off" />
               </div>
               <div className="mt-4 flex gap-2">
-                <Button type="button" disabled={submitting || reason.trim().length < 20 || confirmation !== requiredConfirmation || (selected.action === "repair_profile_name" && correctedFullName.trim().length < 2)} onClick={submitAction}>
+                <Button type="button" disabled={submitting || reason.trim().length < 20 || confirmation !== requiredConfirmation || (["repair_profile_name", "classify_shared_classroom"].includes(selected.action) && correctedFullName.trim().length < 2)} onClick={submitAction}>
                   {submitting ? "Provádím…" : "Potvrdit jednu operaci"}
                 </Button>
                 <Button type="button" variant="secondary" disabled={submitting} onClick={() => setSelected(null)}>Zrušit</Button>
@@ -263,6 +301,12 @@ export default function ProfileReminderCasesPage() {
                     ) : null}
                     {item.identityNameRepairAllowed ? (
                       <Button type="button" size="sm" onClick={() => startAction(item, "repair_profile_name")}>Opravit celé jméno</Button>
+                    ) : null}
+                    {item.sharedClassroomClassificationAllowed ? (
+                      <Button type="button" size="sm" onClick={() => startAction(item, "classify_shared_classroom")}>Označit jako učebnu</Button>
+                    ) : null}
+                    {item.secondaryPrimaryCandidate ? (
+                      <Button type="button" size="sm" variant="secondary" onClick={() => startAction(item, "mark_secondary_no_email", "", item.secondaryPrimaryCandidate)}>Sekundární účet bez upomínek</Button>
                     ) : null}
                     {!item.organizationApproved && availableOrganization && ["fresh_access_candidate", "profile_reminder_candidate"].includes(item.category) ? (
                       <Button type="button" size="sm" variant="secondary" onClick={() => startAction(item, "enable", availableOrganization.id)}>Povolit organizaci</Button>
