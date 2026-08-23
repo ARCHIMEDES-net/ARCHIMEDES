@@ -124,15 +124,21 @@ export default async function handler(req, res) {
           .filter((row) => memberships.some((item) => item.organization_id === row.organization_id))
           .map((row) => row.user_id)
       );
-      const duplicate = profile
+      const duplicateEmail = profile
         ? [...peerProfileIds].some((peerId) => {
             const peer = peersById.get(peerId);
-            return peer && peer.id !== profile.id && (
-              normalized(peer.email) === normalized(profile.email) ||
-              (normalized(profile.full_name) && normalized(peer.full_name) === normalized(profile.full_name))
-            );
+            return peer && peer.id !== profile.id &&
+              normalized(peer.email) === normalized(profile.email);
           })
         : true;
+      const duplicateName = profile
+        ? [...peerProfileIds].some((peerId) => {
+            const peer = peersById.get(peerId);
+            return peer && peer.id !== profile.id && normalized(profile.full_name) &&
+              normalized(peer.full_name) === normalized(profile.full_name);
+          })
+        : true;
+      const duplicate = duplicateEmail || duplicateName;
       const internal = platformAdminIds.has(attempt.profile_id) || caseOrganizations.some(
         (organization) => organization.is_test === true || looksInternalOrganization(organization.name)
       );
@@ -157,6 +163,15 @@ export default async function handler(req, res) {
         authUserMissing: auth.missing,
         organizations: caseOrganizations,
         duplicateIdentity: duplicate,
+        duplicateEmail,
+        duplicateName,
+        identityNameRepairAllowed:
+          Boolean(profile) &&
+          !auth.missing &&
+          Boolean(auth.lastSignInAt) &&
+          activeRealOrganizations.length > 0 &&
+          duplicateName &&
+          !duplicateEmail,
         organizationApproved,
         currentReason,
         category,

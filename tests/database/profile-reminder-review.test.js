@@ -20,6 +20,13 @@ const repairMigration = fs.readFileSync(
   ),
   "utf8"
 );
+const identityRepairMigration = fs.readFileSync(
+  path.join(
+    process.cwd(),
+    "supabase/migrations/20260823085501_audit_profile_full_name_repair.sql"
+  ),
+  "utf8"
+);
 
 describe("fail-closed profile reminder review", () => {
   it("defaults every organization to no profile reminder email", () => {
@@ -55,5 +62,16 @@ describe("fail-closed profile reminder review", () => {
     expect(repairMigration).toContain("to service_role");
     expect(adminPage).toContain("REPAIR_SIGNED_IN_PASSWORD_FLAG");
     expect(adminPage).toContain("Žádný e-mail se neposlal");
+  });
+
+  it("repairs one duplicate full name with an immutable server-only audit", () => {
+    expect(identityRepairMigration).toContain("profile_identity_corrections_audit");
+    expect(identityRepairMigration).toContain("repair_profile_full_name");
+    expect(identityRepairMigration).toContain("auth_user.last_sign_in_at is not null");
+    expect(identityRepairMigration).toContain("update public.profiles");
+    expect(identityRepairMigration).toContain("update auth.users");
+    expect(identityRepairMigration).toContain("revoke update, delete, truncate");
+    expect(identityRepairMigration).toContain("to service_role");
+    expect(adminPage).toContain("REPAIR_ONE_PROFILE_NAME");
   });
 });
