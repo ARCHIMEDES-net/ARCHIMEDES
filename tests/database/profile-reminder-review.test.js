@@ -16,7 +16,7 @@ const adminPage = fs.readFileSync(
 const repairMigration = fs.readFileSync(
   path.join(
     process.cwd(),
-    "supabase/migrations/20260823084000_audit_signed_in_password_flag_repair.sql"
+    "supabase/migrations/20260823084402_audit_signed_in_password_flag_repair.sql"
   ),
   "utf8"
 );
