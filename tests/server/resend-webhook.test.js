@@ -45,6 +45,36 @@ describe("Resend registration webhook", () => {
       event_type: "email.delivered",
       delivery_status: "delivered",
       occurred_at: "2026-08-22T08:00:00.000Z",
+      recipient_email: null,
+      email_subject: null,
+      failure_reason: null,
+    });
+  });
+
+  it("captures bounded diagnostic context for failed delivery alerts", () => {
+    const rawBody = JSON.stringify({
+      type: "email.bounced",
+      created_at: "2026-08-22T08:00:00.000Z",
+      data: {
+        email_id: "email_bounced_1",
+        to: ["person@example.com"],
+        subject: "Pozvánka do ARCHIMEDES Live",
+        bounce: { message: "Recipient address does not exist." },
+      },
+    });
+    const verified = verifyResendWebhook({
+      rawBody,
+      headers: signed(rawBody, { eventId: "evt_bounced_1" }),
+      secret,
+      now,
+    });
+
+    expect(normalizeResendWebhook(JSON.parse(rawBody), verified)).toMatchObject({
+      event_id: "evt_bounced_1",
+      delivery_status: "bounced",
+      recipient_email: "person@example.com",
+      email_subject: "Pozvánka do ARCHIMEDES Live",
+      failure_reason: "Recipient address does not exist.",
     });
   });
 
