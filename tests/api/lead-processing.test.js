@@ -315,6 +315,36 @@ describe("authoritative lead processing", () => {
     );
   });
 
+  it("keeps a saved classroom inquiry when one Resend message fails", async () => {
+    dependencies.sendRegistrationEmail.mockRejectedValueOnce(
+      new Error("provider unavailable")
+    );
+
+    const { res } = await invoke(classroomInquiryHandler, {
+      method: "POST",
+      body: {
+        organizationType: "school",
+        organization: "ZŠ Testov",
+        place: "Testov",
+        name: "Eva Nováková",
+        email: "eva@example.test",
+        phone: "+420 777 555 444",
+        variant: "optimal",
+        timeframe: "next-year",
+        message: "Máme zájem o učebnu.",
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({
+      ok: true,
+      emailSent: false,
+      confirmationSent: true,
+    });
+    expect(dependencies.state.inserts[0]?.table).toBe("leads");
+    expect(dependencies.sendRegistrationEmail).toHaveBeenCalledTimes(2);
+  });
+
   it("preserves the legacy inquiry endpoint and sends its internal notification through Resend", async () => {
     const { res } = await invoke(legacyInquiryHandler, {
       method: "POST",
