@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import nodemailer from "nodemailer";
+import { sendRegistrationEmail } from "../../lib/server/registrationEmailProvider";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 
 const supabase = createClient(
@@ -51,7 +51,13 @@ export default async function handler(req, res) {
     } = req.body || {};
 
     if (company) {
-      return res.status(200).json({ ok: true, message: "Poptávka byla odeslána." });
+      return res.status(200).json({
+      ok: true,
+      emailSent,
+      message: emailSent
+        ? "Poptávka byla odeslána."
+        : "Poptávka byla uložena. Ozveme se vám i bez e-mailového oznámení.",
+    });
     }
 
     const cleanSelectedOption = within(selectedOption, 80);
@@ -104,50 +110,48 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Chyba při ukládání poptávky." });
     }
 
-    const smtpPort = Number(process.env.SMTP_PORT);
-    if (
-      !process.env.SMTP_HOST ||
-      !smtpPort ||
-      !process.env.SMTP_USER ||
-      !process.env.SMTP_PASS ||
-      !process.env.MAIL_FROM ||
-      !process.env.MAIL_TO
-    ) {
-      console.error("SMTP config missing");
-      return res.status(500).json({ error: "E-mailová služba není správně nastavena." });
+    const inquiryRecipient = String(process.env.MAIL_TO || "").trim();
+    let emailSent = false;
+
+    if (!inquiryRecipient) {
+      console.error("public inquiry recipient missing");
+    } else {
+      try {
+        const receipt = await sendRegistrationEmail({
+          to: inquiryRecipient,
+          replyTo: cleanEmail,
+          subject: "Nová poptávka ARCHIMEDES Live",
+          text: [
+            "Přišla nová poptávka z webu ARCHIMEDES Live",
+            "",
+            `ID: ${data?.id || "-"}`,
+            `Typ zájmu: ${cleanSelectedLabel || cleanSelectedOption}`,
+            `Jméno: ${cleanName}`,
+            `Město / obec / škola: ${cleanPlace || "-"}`,
+            `Email: ${cleanEmail}`,
+            `Telefon: ${cleanPhone || "-"}`,
+            "",
+            "Zpráva:",
+            cleanMessage || "-",
+            "",
+            `Datum: ${createdAt}`,
+          ].join("\n"),
+          idempotencyKey: `public-inquiry:${data.id}:team`,
+        });
+        emailSent = true;
+        console.info("public inquiry delivered to provider", {
+          leadId: data.id,
+          provider: receipt.provider,
+          messageId: receipt.messageId,
+        });
+      } catch (emailError) {
+        console.error("public inquiry email failed", {
+          leadId: data.id,
+          code: emailError?.code || "unknown",
+          deliveryOutcome: emailError?.deliveryOutcome || "unknown",
+        });
+      }
     }
-
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 20_000,
-    });
-
-    await transporter.sendMail({
-      from: process.env.MAIL_FROM,
-      to: process.env.MAIL_TO,
-      replyTo: cleanEmail,
-      subject: "Nová poptávka ARCHIMEDES Live",
-      text: [
-        "Přišla nová poptávka z webu ARCHIMEDES Live",
-        "",
-        `ID: ${data?.id || "-"}`,
-        `Typ zájmu: ${cleanSelectedLabel || cleanSelectedOption}`,
-        `Jméno: ${cleanName}`,
-        `Město / obec / škola: ${cleanPlace || "-"}`,
-        `Email: ${cleanEmail}`,
-        `Telefon: ${cleanPhone || "-"}`,
-        "",
-        "Zpráva:",
-        cleanMessage || "-",
-        "",
-        `Datum: ${createdAt}`,
-      ].join("\n"),
-    });
 
     return res.status(200).json({ ok: true, message: "Poptávka byla odeslána." });
   } catch (err) {
