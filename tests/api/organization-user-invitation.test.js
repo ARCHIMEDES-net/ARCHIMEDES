@@ -13,7 +13,7 @@ describe("organization user invitation", () => {
   it("builds a client message with the one-time setup link", () => {
     const setupUrl = "https://example.supabase.co/auth/v1/verify?token=secret-token&type=invite";
     const message = organizationUserInvitationMessage({
-      fullName: "Natálie Štěpančíková",
+      fullName: "Jana Nováková",
       organizationName: "Testovací škola ARCHIMEDES",
       roleLabel: "Člen organizace",
       setupUrl,
@@ -27,8 +27,8 @@ describe("organization user invitation", () => {
   it("keeps Zuzana's audit copy free of the setup secret", () => {
     const setupUrl = "https://example.supabase.co/auth/v1/verify?token=secret-token&type=invite";
     const message = organizationUserInvitationAuditCopyMessage({
-      recipientEmail: "n.stepancikova@email.cz",
-      fullName: "Natálie Štěpančíková",
+      recipientEmail: "jana.novakova@example.test",
+      fullName: "Jana Nováková",
       organizationName: "Testovací škola ARCHIMEDES",
       roleLabel: "Člen organizace",
       setupUrl,
@@ -37,7 +37,7 @@ describe("organization user invitation", () => {
     expect(ORGANIZATION_USER_INVITATION_AUDIT_EMAIL).toBe(
       "zuzana.novotna@archimedeslive.com"
     );
-    expect(message.text).toContain("n.stepancikova@email.cz");
+    expect(message.text).toContain("jana.novakova@example.test");
     expect(message.text).not.toContain(setupUrl);
     expect(message.html).not.toContain("secret-token");
   });
