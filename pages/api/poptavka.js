@@ -51,13 +51,7 @@ export default async function handler(req, res) {
     } = req.body || {};
 
     if (company) {
-      return res.status(200).json({
-      ok: true,
-      emailSent,
-      message: emailSent
-        ? "Poptávka byla odeslána."
-        : "Poptávka byla uložena. Ozveme se vám i bez e-mailového oznámení.",
-    });
+      return res.status(200).json({ ok: true, message: "Poptávka byla odeslána." });
     }
 
     const cleanSelectedOption = within(selectedOption, 80);
@@ -153,7 +147,13 @@ export default async function handler(req, res) {
       }
     }
 
-    return res.status(200).json({ ok: true, message: "Poptávka byla odeslána." });
+    return res.status(200).json({
+      ok: true,
+      emailSent,
+      message: emailSent
+        ? "Poptávka byla odeslána."
+        : "Poptávka byla uložena. Ozveme se vám i bez e-mailového oznámení.",
+    });
   } catch (err) {
     console.error("API error:", err);
     return res.status(500).json({ error: "Serverová chyba." });
