@@ -30,6 +30,7 @@ export default function ClassroomInquiryPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [confirmationSent, setConfirmationSent] = useState(true);
 
   function updateField(event) {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -48,6 +49,7 @@ export default function ClassroomInquiryPage() {
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || "Poptávku se nepodařilo odeslat.");
+      setConfirmationSent(result.confirmationSent !== false);
       setSubmitted(true);
       setForm(EMPTY_FORM);
     } catch (submitError) {
@@ -91,7 +93,9 @@ export default function ClassroomInquiryPage() {
                   <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-600" aria-hidden="true" />
                   <h2 className="mt-5 text-2xl font-[950] text-navy-900">Poptávka byla odeslána</h2>
                   <p className="mx-auto mt-3 max-w-lg leading-relaxed text-muted">
-                    Děkujeme. Na váš e-mail jsme poslali potvrzení a s dalším postupem se vám ozveme osobně.
+                    {confirmationSent
+                      ? "Děkujeme. Na váš e-mail jsme poslali potvrzení a s dalším postupem se vám ozveme osobně."
+                      : "Děkujeme. Poptávku jsme bezpečně uložili. Potvrzovací e-mail se nepodařilo odeslat, ale ozveme se vám osobně."}
                   </p>
                   <Button href="/ucebna" className="mt-7">Zpět k učebně</Button>
                 </div>

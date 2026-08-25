@@ -201,15 +201,21 @@ describe("API egress, email, and secret-exposure controls", () => {
   });
 
   it.each(["poptavka-ucebny", "poptavka"])(
-    "%s validates SMTP server configuration rather than accepting it from input",
+    "%s routes inquiry email through the server-only Resend provider",
     (route) => {
       const source = readApi(route);
 
-      expect(source).toContain("process.env.SMTP_HOST");
-      expect(source).toContain("process.env.SMTP_USER");
-      expect(source).toContain("process.env.SMTP_PASS");
-      expect(source).toContain("process.env.MAIL_FROM");
-      expect(source).not.toMatch(/host:\s*req\.(body|query)/);
+      expect(source).toContain(
+        'import { sendRegistrationEmail } from "../../lib/server/registrationEmailProvider"'
+      );
+      expect(source).toContain("sendRegistrationEmail({");
+      expect(source).toContain("idempotencyKey");
+      expect(source).not.toContain("process.env.SMTP_HOST");
+      expect(source).not.toContain("process.env.SMTP_USER");
+      expect(source).not.toContain("process.env.SMTP_PASS");
+      expect(source).not.toContain("nodemailer");
+      expect(source).not.toContain("createTransport");
+      expect(source).not.toContain("sendMail");
     }
   );
 

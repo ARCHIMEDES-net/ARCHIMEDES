@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import nodemailer from "nodemailer";
+import { sendRegistrationEmail } from "../../lib/server/registrationEmailProvider";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 
 const supabase = createClient(
@@ -127,35 +127,12 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Poptávku se nepodařilo uložit." });
     }
 
-    const smtpPort = Number(process.env.SMTP_PORT);
-    if (
-      !process.env.SMTP_HOST ||
-      !smtpPort ||
-      !process.env.SMTP_USER ||
-      !process.env.SMTP_PASS ||
-      !process.env.MAIL_FROM
-    ) {
-      console.error("classroom inquiry SMTP config missing");
-      return res.status(500).json({
-        error: "Poptávka je uložená, ale oznámení se nepodařilo odeslat. Ozveme se vám i tak.",
-      });
-    }
-
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 20_000,
-    });
-
     const inquiryRecipient = "antonin.koplik@archimedeslive.com";
+    let emailSent = false;
+    let confirmationSent = false;
 
-    await Promise.all([
-      transporter.sendMail({
-        from: process.env.MAIL_FROM,
+    try {
+      const internalReceipt = await sendRegistrationEmail({
         to: inquiryRecipient,
         replyTo: email,
         subject: `Poptávka venkovní učebny – ${organization}`,
@@ -177,9 +154,24 @@ export default async function handler(req, res) {
           "",
           `Datum: ${createdAt}`,
         ].join("\n"),
-      }),
-      transporter.sendMail({
-        from: process.env.MAIL_FROM,
+        idempotencyKey: `classroom-inquiry:${data.id}:team`,
+      });
+      emailSent = true;
+      console.info("classroom inquiry delivered to provider", {
+        leadId: data.id,
+        provider: internalReceipt.provider,
+        messageId: internalReceipt.messageId,
+      });
+    } catch (internalEmailError) {
+      console.error("classroom inquiry internal email failed", {
+        leadId: data.id,
+        code: internalEmailError?.code || "unknown",
+        deliveryOutcome: internalEmailError?.deliveryOutcome || "unknown",
+      });
+    }
+
+    try {
+      const applicantReceipt = await sendRegistrationEmail({
         to: email,
         replyTo: inquiryRecipient,
         subject: "Potvrzení přijetí poptávky venkovní učebny ARCHIMEDES",
@@ -197,10 +189,30 @@ export default async function handler(req, res) {
           "S pozdravem",
           "tým ARCHIMEDES",
         ].join("\n"),
-      }),
-    ]);
+        idempotencyKey: `classroom-inquiry:${data.id}:applicant`,
+      });
+      confirmationSent = true;
+      console.info("classroom inquiry confirmation delivered to provider", {
+        leadId: data.id,
+        provider: applicantReceipt.provider,
+        messageId: applicantReceipt.messageId,
+      });
+    } catch (applicantEmailError) {
+      console.error("classroom inquiry confirmation failed", {
+        leadId: data.id,
+        code: applicantEmailError?.code || "unknown",
+        deliveryOutcome: applicantEmailError?.deliveryOutcome || "unknown",
+      });
+    }
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({
+      ok: true,
+      emailSent,
+      confirmationSent,
+      message: confirmationSent
+        ? "Poptávka byla odeslána."
+        : "Poptávka byla uložena. Ozveme se vám i bez potvrzovacího e-mailu.",
+    });
   } catch (error) {
     console.error("classroom inquiry API error:", error);
     return res.status(500).json({ error: "Poptávku se nepodařilo odeslat." });
