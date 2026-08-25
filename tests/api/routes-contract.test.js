@@ -32,6 +32,7 @@ const guardedRoutes = [
   ],
   ["poptavka-ucebny", () => import("../../pages/api/poptavka-ucebny"), "GET", "POST"],
   ["poptavka", () => import("../../pages/api/poptavka"), "GET", "POST"],
+  ["request-password-reset", () => import("../../pages/api/request-password-reset"), "GET", "POST"],
   ["portal-posts-create", () => import("../../pages/api/portal-posts-create"), "GET", "POST"],
   ["portal-posts-delete", () => import("../../pages/api/portal-posts-delete"), "GET", "POST"],
   ["portal-posts-update", () => import("../../pages/api/portal-posts-update"), "GET", "POST"],
