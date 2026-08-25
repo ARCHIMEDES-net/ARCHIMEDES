@@ -73,7 +73,7 @@ async function cleanupManagedInvitation({
     console.error("invite-user cleanup failed", {
       userId,
       organizationId,
-      error: error?.message || "unknown",
+      detail: error?.message || "unknown",
     });
     return false;
   }
