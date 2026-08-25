@@ -1,5 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
+import {
+  sendOrganizationUserInvitation,
+  sendOrganizationUserInvitationAuditCopy,
+  validateOrganizationUserInvitationEmailConfiguration,
+} from "../../lib/server/organizationUserInvitation";
+import { registrationEmailWasDefinitelyNotSent } from "../../lib/server/registrationEmailProvider";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -23,6 +29,56 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+async function cleanupManagedInvitation({
+  userId,
+  email,
+  organizationId,
+  inviterUserId,
+}) {
+  if (!userId) return true;
+
+  try {
+    const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+    const metadata = data?.user?.user_metadata || {};
+    const safeToDelete =
+      !error &&
+      data?.user?.id === userId &&
+      String(data.user.email || "").trim().toLowerCase() === email &&
+      metadata.archimedes_user_invitation_managed === true &&
+      metadata.archimedes_user_invitation_organization_id === organizationId &&
+      metadata.archimedes_user_invitation_inviter_id === inviterUserId;
+
+    if (!safeToDelete) {
+      console.error("invite-user refused unsafe cleanup", { userId, organizationId });
+      return false;
+    }
+
+    const { error: membershipError } = await supabaseAdmin
+      .from("organization_members")
+      .delete()
+      .eq("organization_id", organizationId)
+      .eq("user_id", userId);
+    if (membershipError) throw membershipError;
+
+    const { error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .delete()
+      .eq("id", userId);
+    if (profileError) throw profileError;
+
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (authError) throw authError;
+    return true;
+  } catch (error) {
+    console.error("invite-user cleanup failed", {
+      userId,
+      organizationId,
+      detail: error?.message || "unknown",
+    });
+    return false;
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
@@ -30,6 +86,12 @@ export default async function handler(req, res) {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
+
+  let invitedUserId = null;
+  let organizationId = "";
+  let cleanEmail = "";
+  let cleanInviterUserId = "";
+  let deliveryMayHaveStarted = false;
 
   try {
     const token = getBearerToken(req);
@@ -51,11 +113,11 @@ export default async function handler(req, res) {
 
     const { email, fullName, role } = req.body || {};
 
-    const cleanEmail = String(email || "").trim().toLowerCase();
+    cleanEmail = String(email || "").trim().toLowerCase();
     const cleanFullName = String(fullName || "").trim();
     const cleanRole =
       role === "organization_admin" ? "organization_admin" : "member";
-    const cleanInviterUserId = String(user.id || "").trim();
+    cleanInviterUserId = String(user.id || "").trim();
 
     if (!isValidEmail(cleanEmail) || cleanEmail.length > 254) {
       return res.status(400).json({ error: "Zadejte platný e-mail." });
@@ -111,11 +173,11 @@ export default async function handler(req, res) {
       });
     }
 
-    const organizationId = inviterMembership.organization_id;
+    organizationId = inviterMembership.organization_id;
 
     const { data: organization, error: organizationError } = await supabaseAdmin
       .from("organizations")
-      .select("org_type, status")
+      .select("name, org_type, status")
       .eq("id", organizationId)
       .maybeSingle();
 
@@ -144,29 +206,33 @@ export default async function handler(req, res) {
       });
     }
 
-    const { data: invitedUser, error: inviteError } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(cleanEmail, {
-        redirectTo: REDIRECT_TO,
-        data: {
-          full_name: cleanFullName,
+    validateOrganizationUserInvitationEmailConfiguration();
+
+    const { data: linkData, error: linkError } =
+      await supabaseAdmin.auth.admin.generateLink({
+        type: "invite",
+        email: cleanEmail,
+        options: {
+          redirectTo: REDIRECT_TO,
+          data: {
+            full_name: cleanFullName,
+            archimedes_user_invitation_managed: true,
+            archimedes_user_invitation_organization_id: organizationId,
+            archimedes_user_invitation_inviter_id: cleanInviterUserId,
+          },
         },
       });
 
-    if (inviteError) {
-      if (/already|registered|exists/i.test(inviteError.message || "")) {
+    invitedUserId = linkData?.user?.id || null;
+    const setupUrl = linkData?.properties?.action_link || "";
+
+    if (linkError || !invitedUserId || !setupUrl) {
+      if (/already|registered|exists/i.test(linkError?.message || "")) {
         return res.status(409).json({
           error: "Účet s tímto e-mailem už existuje.",
         });
       }
-      throw inviteError;
-    }
-
-    const invitedUserId = invitedUser?.user?.id;
-
-    if (!invitedUserId) {
-      return res
-        .status(500)
-        .json({ error: "Nepodařilo se získat ID pozvaného uživatele." });
+      throw linkError || new Error("Invitation link generation failed");
     }
 
     const { error: profileError } = await supabaseAdmin
@@ -203,12 +269,92 @@ export default async function handler(req, res) {
       throw membershipError;
     }
 
+    const emailValues = {
+      recipientEmail: cleanEmail,
+      fullName: cleanFullName,
+      organizationName: organization.name,
+      roleLabel:
+        cleanRole === "organization_admin"
+          ? "Administrátor organizace"
+          : "Člen organizace",
+      setupUrl,
+    };
+
+    let clientReceipt;
+    try {
+      const clientDelivery = sendOrganizationUserInvitation(
+        emailValues,
+        `organization-user-invitation:${invitedUserId}:client`
+      );
+      deliveryMayHaveStarted = true;
+      clientReceipt = await clientDelivery;
+    } catch (emailError) {
+      if (registrationEmailWasDefinitelyNotSent(emailError)) {
+        deliveryMayHaveStarted = false;
+        throw emailError;
+      }
+
+      console.error("invite-user delivery outcome unknown", {
+        invitedUserId,
+        organizationId,
+        code: emailError?.code || "unknown",
+      });
+      return res.status(502).json({
+        error:
+          "Přístup byl připraven, ale výsledek odeslání není známý. Pozvánku znovu neposílejte a kontaktujte podporu.",
+      });
+    }
+
+    let auditCopySent = true;
+    try {
+      const auditReceipt = await sendOrganizationUserInvitationAuditCopy(
+        emailValues,
+        `organization-user-invitation:${invitedUserId}:audit`
+      );
+      console.info("invite-user delivered to provider", {
+        invitedUserId,
+        organizationId,
+        provider: clientReceipt.provider,
+        clientMessageId: clientReceipt.messageId,
+        auditMessageId: auditReceipt.messageId,
+      });
+    } catch (copyError) {
+      auditCopySent = false;
+      console.error("invite-user audit copy failed", {
+        invitedUserId,
+        organizationId,
+        code: copyError?.code || "unknown",
+      });
+    }
+
     return res.status(200).json({
       success: true,
-      message: "Pozvánka byla odeslána a uživatel byl přiřazen do organizace.",
+      auditCopySent,
+      message: auditCopySent
+        ? "Pozvánka byla odeslána a uživatel byl přiřazen do organizace."
+        : "Pozvánka byla uživateli odeslána. Bezpečnou kopii Zuzaně se nepodařilo odeslat a je nutná kontrola.",
     });
   } catch (err) {
-    console.error("invite-user error:", err);
-    return res.status(500).json({ error: "Pozvánku se nepodařilo dokončit." });
+    let cleanupSucceeded = true;
+    if (invitedUserId && !deliveryMayHaveStarted) {
+      cleanupSucceeded = await cleanupManagedInvitation({
+        userId: invitedUserId,
+        email: cleanEmail,
+        organizationId,
+        inviterUserId: cleanInviterUserId,
+      });
+    }
+
+    console.error("invite-user error:", {
+      error: err,
+      invitedUserId,
+      organizationId,
+      cleanupSucceeded,
+    });
+    return res.status(500).json({
+      error: cleanupSucceeded
+        ? "Pozvánku se nepodařilo dokončit. Zkuste to prosím později."
+        : "Pozvánku se nepodařilo bezpečně dokončit. Pokus neopakujte a kontaktujte podporu.",
+    });
   }
 }
