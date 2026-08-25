@@ -51,6 +51,17 @@ export default async function handler(req, res) {
       .insert(event);
     if (error && error.code !== "23505") throw error;
 
+    if (!error && ["failed", "bounced"].includes(event.delivery_status)) {
+      console.error(JSON.stringify({
+        level: "error",
+        msg: "Resend email delivery incident",
+        route: "/api/webhooks/resend-registration-email",
+        deliveryStatus: event.delivery_status,
+        providerMessageId: event.provider_message_id,
+        eventId: event.event_id,
+      }));
+    }
+
     return res.status(200).json({ ok: true, replayed: error?.code === "23505" });
   } catch (error) {
     console.error("resend-registration-email webhook error:", error);
