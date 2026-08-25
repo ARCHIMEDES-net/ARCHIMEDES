@@ -68,6 +68,7 @@ const publicRateLimitedRoutes = [
   "join-organization",
   "poptavka-ucebny",
   "poptavka",
+  "request-password-reset",
   "zadost-o-pristup",
 ];
 
