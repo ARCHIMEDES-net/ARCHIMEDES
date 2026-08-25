@@ -267,6 +267,25 @@ describe("API egress, email, and secret-exposure controls", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("does not send authentication emails through Supabase SMTP", () => {
+    const applicationFiles = [
+      ...filesBelow("components"),
+      ...filesBelow("lib"),
+      ...filesBelow("pages"),
+    ];
+    const forbiddenMethods = [
+      "inviteUserByEmail",
+      "resetPasswordForEmail",
+      "signInWithOtp",
+    ];
+    const offenders = applicationFiles.filter((file) => {
+      const source = fs.readFileSync(path.join(repositoryRoot, file), "utf8");
+      return forbiddenMethods.some((method) => source.includes(method));
+    });
+
+    expect(offenders).toEqual([]);
+  });
+
   it("disables session persistence for every API service-role client", () => {
     const apiFiles = filesBelow("pages/api");
     const serviceRoleFiles = apiFiles.filter((file) =>
