@@ -26,21 +26,24 @@ export default function ResetHeslaPage() {
         throw new Error("Vyplňte prosím e-mail.");
       }
 
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-        trimmedEmail,
-        {
-          redirectTo: `${window.location.origin}/nastavit-heslo`,
-        }
-      );
+      const response = await fetch("/api/request-password-reset", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: trimmedEmail }),
+      });
+      const payload = await response.json().catch(() => ({}));
 
-      if (resetError) {
+      if (!response.ok) {
         throw new Error(
-          resetError.message || "Nepodařilo se odeslat odkaz pro obnovu hesla."
+          payload?.error || "Nepodařilo se odeslat odkaz pro obnovu hesla."
         );
       }
 
       setMessage(
-        "Pokud je tento e-mail v systému registrován, poslali jsme vám odkaz pro nastavení nového hesla."
+        payload?.message ||
+          "Pokud je tento e-mail v systému registrován, poslali jsme vám odkaz pro nastavení nového hesla."
       );
     } catch (e) {
       setError(e?.message || "Nepodařilo se odeslat odkaz pro obnovu hesla.");
