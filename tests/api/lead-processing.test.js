@@ -7,8 +7,6 @@ const dependencies = vi.hoisted(() => {
     inserts: [],
     updates: [],
   };
-  const sendMail = vi.fn(async () => ({ messageId: "message-1" }));
-  const createTransport = vi.fn(() => ({ sendMail }));
   const sendRegistrationEmail = vi.fn(async ({ to }) => ({
     provider: "resend",
     messageId: `resend-${to}`,
@@ -73,8 +71,6 @@ const dependencies = vi.hoisted(() => {
 
   return {
     state,
-    sendMail,
-    createTransport,
     sendRegistrationEmail,
     supabase,
     createClient: vi.fn(() => supabase),
@@ -84,12 +80,6 @@ const dependencies = vi.hoisted(() => {
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient: dependencies.createClient,
-}));
-
-vi.mock("nodemailer", () => ({
-  default: {
-    createTransport: dependencies.createTransport,
-  },
 }));
 
 vi.mock("../../lib/server/registrationEmailProvider", () => ({
@@ -104,14 +94,7 @@ import classroomInquiryHandler from "../../pages/api/poptavka-ucebny";
 import legacyInquiryHandler from "../../pages/api/poptavka";
 import accessRequestHandler from "../../pages/api/zadost-o-pristup";
 
-const environmentKeys = [
-  "SMTP_HOST",
-  "SMTP_PORT",
-  "SMTP_USER",
-  "SMTP_PASS",
-  "MAIL_FROM",
-  "MAIL_TO",
-];
+const environmentKeys = ["MAIL_TO"];
 const originalEnvironment = Object.fromEntries(
   environmentKeys.map((key) => [key, process.env[key]])
 );
@@ -121,8 +104,6 @@ beforeEach(() => {
   dependencies.state.updates.length = 0;
   dependencies.supabase.rpc.mockClear();
   dependencies.supabase.from.mockClear();
-  dependencies.sendMail.mockClear();
-  dependencies.createTransport.mockClear();
   dependencies.sendRegistrationEmail.mockReset();
   dependencies.sendRegistrationEmail.mockImplementation(async ({ to }) => ({
     provider: "resend",
@@ -130,11 +111,6 @@ beforeEach(() => {
   }));
   dependencies.consumePublicRateLimit.mockClear();
 
-  process.env.SMTP_HOST = "smtp.example.test";
-  process.env.SMTP_PORT = "465";
-  process.env.SMTP_USER = "smtp-user";
-  process.env.SMTP_PASS = "smtp-password";
-  process.env.MAIL_FROM = "ARCHIMEDES Live <noreply@example.test>";
   process.env.MAIL_TO = "team@example.test";
 
   vi.spyOn(console, "error").mockImplementation(() => {});
@@ -240,8 +216,6 @@ describe("authoritative lead processing", () => {
         html: expect.stringContaining("23 880 Kč bez DPH za 12 měsíců"),
       })
     );
-    expect(dependencies.createTransport).not.toHaveBeenCalled();
-
     expect(leadInsert?.rows[0].note).toContain(
       "DPA přijata: ano (verze 2026-08-11"
     );
@@ -289,7 +263,7 @@ describe("authoritative lead processing", () => {
     expect(dependencies.sendRegistrationEmail).toHaveBeenCalledTimes(1);
   });
 
-  it("stores a classroom inquiry and sends internal and applicant SMTP messages", async () => {
+  it("stores a classroom inquiry and sends internal and applicant messages through Resend", async () => {
     const { res } = await invoke(classroomInquiryHandler, {
       method: "POST",
       body: {
@@ -306,7 +280,11 @@ describe("authoritative lead processing", () => {
     });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ ok: true });
+    expect(res.body).toMatchObject({
+      ok: true,
+      emailSent: true,
+      confirmationSent: true,
+    });
     expect(dependencies.state.inserts[0]).toMatchObject({
       table: "leads",
       rows: [
@@ -318,14 +296,26 @@ describe("authoritative lead processing", () => {
         }),
       ],
     });
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
-    expect(dependencies.sendMail).toHaveBeenNthCalledWith(
+    expect(dependencies.sendRegistrationEmail).toHaveBeenCalledTimes(2);
+    expect(dependencies.sendRegistrationEmail).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        to: "antonin.koplik@archimedeslive.com",
+        replyTo: "eva@example.test",
+        idempotencyKey: "classroom-inquiry:lead-1:team",
+      })
+    );
+    expect(dependencies.sendRegistrationEmail).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ to: "eva@example.test" })
+      expect.objectContaining({
+        to: "eva@example.test",
+        replyTo: "antonin.koplik@archimedeslive.com",
+        idempotencyKey: "classroom-inquiry:lead-1:applicant",
+      })
     );
   });
 
-  it("preserves the legacy inquiry endpoint and its internal SMTP notification", async () => {
+  it("preserves the legacy inquiry endpoint and sends its internal notification through Resend", async () => {
     const { res } = await invoke(legacyInquiryHandler, {
       method: "POST",
       body: {
@@ -340,7 +330,7 @@ describe("authoritative lead processing", () => {
     });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toMatchObject({ ok: true });
+    expect(res.body).toMatchObject({ ok: true, emailSent: true });
     expect(dependencies.state.inserts[0]).toMatchObject({
       table: "leads",
       rows: [
@@ -352,11 +342,12 @@ describe("authoritative lead processing", () => {
         }),
       ],
     });
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
-    expect(dependencies.sendMail).toHaveBeenCalledWith(
+    expect(dependencies.sendRegistrationEmail).toHaveBeenCalledTimes(1);
+    expect(dependencies.sendRegistrationEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "team@example.test",
         replyTo: "petr@example.test",
+        idempotencyKey: "public-inquiry:lead-1:team",
       })
     );
   });
