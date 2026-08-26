@@ -35,12 +35,26 @@ const LICENSE_LABELS = {
   classroom_free_12m: "12 měsíců zdarma – obec s učebnou",
 };
 
+function memberRoleLabel(role) {
+  return role === "organization_admin" ? "Správce školy" : "Učitel";
+}
+
+function memberStatusLabel(member) {
+  if (member.membership_status !== "active" || member.is_active === false) {
+    return "Neaktivní";
+  }
+  if (member.must_set_password) return "Čeká na nastavení hesla";
+  if (!member.profile_completed) return "Profil není dokončený";
+  return "Aktivní";
+}
+
 export default function MunicipalityOrganizationsPage() {
   const [session, setSession] = useState(null);
   const [organizationId, setOrganizationId] = useState("");
   const [municipality, setMunicipality] = useState(null);
   const [membershipRole, setMembershipRole] = useState("");
   const [organizations, setOrganizations] = useState([]);
+  const [expandedOrganizations, setExpandedOrganizations] = useState({});
   const [invites, setInvites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -64,6 +78,13 @@ export default function MunicipalityOrganizationsPage() {
     setInvites(data.invites || []);
     setLoading(false);
   }, []);
+
+  function toggleOrganization(organizationId) {
+    setExpandedOrganizations((current) => ({
+      ...current,
+      [organizationId]: !current[organizationId],
+    }));
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -210,7 +231,8 @@ export default function MunicipalityOrganizationsPage() {
                 <p className="mt-2 max-w-[850px] text-sm leading-relaxed text-slate-600">
                   Požadavek na přidání školy nebo spolku předejte týmu ARCHIMEDES.
                   Centrální tým organizaci ověří, samostatně založí a propojí s licencí obce.
-                  Správce obce tím nezískává přístup k jejím uživatelům ani datům.
+                  Správce obce zde následně uvidí zapojené školy a stav jejich uživatelů.
+                  Obsah školy a osobní nastavení uživatelů zůstávají oddělené.
                 </p>
               </Card>
 
@@ -219,17 +241,70 @@ export default function MunicipalityOrganizationsPage() {
                   Zapojené organizace ({organizations.length})
                 </h2>
                 <div className="mt-4 grid gap-3">
-                  {organizations.map((organization) => (
-                    <div key={organization.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 p-4">
-                      <div>
-                        <div className="font-bold text-navy-900">{organization.name}</div>
-                        <div className="mt-1 text-sm text-slate-500">
-                          {TYPE_LABELS[organization.org_type] || organization.org_type}
+                  {organizations.map((organization) => {
+                    const isSchool = organization.org_type === "school";
+                    const members = Array.isArray(organization.members) ? organization.members : [];
+                    const expanded = expandedOrganizations[organization.id] === true;
+
+                    return (
+                      <div key={organization.id} className="rounded-2xl border border-slate-200 p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <div className="font-bold text-navy-900">{organization.name}</div>
+                            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                              <span>{TYPE_LABELS[organization.org_type] || organization.org_type}</span>
+                              {isSchool ? <span>• {members.length} {members.length === 1 ? "uživatel" : "uživatelů"}</span> : null}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="outline">
+                              {organization.status === "active" ? "Aktivní" : organization.status}
+                            </Badge>
+                            {isSchool ? (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                aria-expanded={expanded}
+                                onClick={() => toggleOrganization(organization.id)}
+                              >
+                                {expanded
+                                  ? "Skrýt učitele a správce"
+                                  : `Zobrazit učitele a správce (${members.length})`}
+                              </Button>
+                            ) : null}
+                          </div>
                         </div>
+
+                        {isSchool && expanded ? (
+                          <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
+                            <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 font-bold text-navy-900">
+                              Učitelé a správci školy
+                            </div>
+                            {members.length > 0 ? (
+                              <div className="divide-y divide-slate-200">
+                                {members.map((member) => (
+                                  <div
+                                    key={member.id}
+                                    className="grid gap-2 px-4 py-3 sm:grid-cols-[1.1fr_1.4fr_0.9fr_1fr] sm:items-center"
+                                  >
+                                    <div className="font-bold text-navy-900">{member.full_name || "Bez uvedeného jména"}</div>
+                                    <div className="break-all text-sm text-slate-600">{member.email || "E-mail neuveden"}</div>
+                                    <div className="text-sm text-slate-600">{memberRoleLabel(member.role_in_org)}</div>
+                                    <div className="text-sm font-semibold text-navy-900">{memberStatusLabel(member)}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="px-4 py-4 text-sm text-slate-500">
+                                Ke škole zatím není přiřazen žádný učitel ani správce školy.
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
                       </div>
-                      <Badge variant="outline">{organization.status === "active" ? "Aktivní" : organization.status}</Badge>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {organizations.length === 0 ? <div className="text-slate-500">Zatím není zapojená žádná organizace.</div> : null}
                 </div>
               </Card>
