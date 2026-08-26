@@ -66,6 +66,27 @@ describe("central organization onboarding contract", () => {
     expect(source).not.toContain("inviteUrl");
   });
 
+  it("shows school users to the verified municipality administrator without counting platform admins", () => {
+    const page = read("pages/portal/organizace-obce.js");
+    const route = read("pages/api/municipality/organization-invites.js");
+
+    expect(page).toContain("Učitelé a správci školy");
+    expect(page).toContain("Čeká na nastavení hesla");
+    expect(page).toContain("Profil není dokončený");
+    expect(page).toContain("Zobrazit učitele a správce");
+    expect(route).toContain('.from("organization_members")');
+    expect(route).toContain('.from("profiles")');
+    expect(route).toContain('.from("platform_admins")');
+    expect(route).toContain("platformAdminIds.has(membership.user_id)");
+    const childMembershipRead = route.indexOf(
+      '.from("organization_members")',
+      route.indexOf("if (schoolIds.length > 0)")
+    );
+    expect(route.indexOf("requireMunicipalityAdmin(req, res, municipalityId)")).toBeLessThan(
+      childMembershipRead
+    );
+  });
+
   it("does not expose a code path that creates municipality registration invites", () => {
     const source = read("pages/api/municipality/organization-invites.js");
 
