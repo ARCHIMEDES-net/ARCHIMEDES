@@ -138,10 +138,88 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: "Přehled organizací se nepodařilo načíst." });
       }
 
+      const organizationRows = organizations || [];
+      const schoolIds = organizationRows
+        .filter((organization) => organization.org_type === "school")
+        .map((organization) => organization.id);
+      let membersByOrganization = new Map();
+
+      if (schoolIds.length > 0) {
+        const { data: memberships, error: membershipListError } = await supabaseAdmin
+          .from("organization_members")
+          .select("organization_id, user_id, role_in_org, status, created_at")
+          .in("organization_id", schoolIds)
+          .order("created_at", { ascending: true });
+
+        if (membershipListError) {
+          return res.status(500).json({ error: "Uživatele škol se nepodařilo načíst." });
+        }
+
+        const userIds = [...new Set((memberships || []).map((membership) => membership.user_id))];
+        let profiles = [];
+        let platformAdminIds = new Set();
+
+        if (userIds.length > 0) {
+          const [{ data: profileRows, error: profileError }, { data: adminRows, error: adminError }] =
+            await Promise.all([
+              supabaseAdmin
+                .from("profiles")
+                .select("id, full_name, email, is_active, must_set_password, profile_completed_at")
+                .in("id", userIds),
+              supabaseAdmin
+                .from("platform_admins")
+                .select("user_id")
+                .in("user_id", userIds),
+            ]);
+
+          if (profileError || adminError) {
+            return res.status(500).json({ error: "Profily uživatelů škol se nepodařilo načíst." });
+          }
+
+          profiles = profileRows || [];
+          platformAdminIds = new Set((adminRows || []).map((row) => row.user_id));
+        }
+
+        const profilesById = new Map(profiles.map((profile) => [profile.id, profile]));
+        membersByOrganization = (memberships || []).reduce((result, membership) => {
+          if (platformAdminIds.has(membership.user_id)) return result;
+
+          const profile = profilesById.get(membership.user_id);
+          if (!profile) return result;
+
+          const current = result.get(membership.organization_id) || [];
+          current.push({
+            id: membership.user_id,
+            full_name: profile.full_name || "",
+            email: profile.email || "",
+            role_in_org: membership.role_in_org || "member",
+            membership_status: membership.status || "inactive",
+            is_active: profile.is_active !== false,
+            must_set_password: profile.must_set_password === true,
+            profile_completed: Boolean(profile.profile_completed_at),
+          });
+          result.set(membership.organization_id, current);
+          return result;
+        }, new Map());
+      }
+
+      const organizationsWithMembers = organizationRows.map((organization) => ({
+        ...organization,
+        members:
+          organization.org_type === "school"
+            ? (membersByOrganization.get(organization.id) || []).sort((a, b) =>
+                String(a.full_name || a.email).localeCompare(
+                  String(b.full_name || b.email),
+                  "cs"
+                )
+              )
+            : [],
+      }));
+
       return res.status(200).json({
         municipality: access.municipality,
         invites: invites || [],
-        organizations: organizations || [],
+        organizations: organizationsWithMembers,
       });
     }
 
