@@ -58,7 +58,7 @@ jobs:
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
         with:
-          version: 2.110.0
+          version: 2.116.0
 
       - name: Install PostgreSQL client
         run: |
@@ -113,10 +113,22 @@ jobs:
             --file "$database/roles.sql" --role-only
           supabase db dump --db-url "$SUPABASE_DB_URL" \
             --file "$database/schema.sql"
+          # Keep the complete Supabase logical backup for disaster recovery.
           supabase db dump --db-url "$SUPABASE_DB_URL" \
             --file "$database/data.sql" --use-copy --data-only \
             --exclude storage.buckets_vectors \
             --exclude storage.vector_indexes
+
+          # Local Supabase can lag the managed auth/storage schema. Restore-test
+          # application data separately so platform-only Storage columns do not
+          # create false failures while the complete backup remains untouched.
+          supabase db dump --db-url "$SUPABASE_DB_URL" \
+            --file "$database/public-data.sql" --use-copy --data-only \
+            --schema public
+          if grep -Eq '^COPY ("?(auth|storage)"?\.)' "$database/public-data.sql"; then
+            echo "Public restore-test dump unexpectedly contains managed schema data" >&2
+            exit 1
+          fi
 
           pg17_image="ghcr.io/supabase/postgres:17.6.1.143@sha256:80d7b27c3e8d77cfa7226eee9508671796da214781ff15a35b3670d7ad5ee453"
           docker run --rm --user "$(id -u):$(id -g)" --entrypoint pg_dump \
@@ -245,7 +257,17 @@ jobs:
 
           echo "payload=$payload" >> "$GITHUB_ENV"
 
-      - name: Run weekly database restore test
+      - name: Keep a short encrypted emergency copy in GitHub Actions
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: supabase-backup-${{ steps.snapshot.outputs.timestamp }}
+          path: |
+            ${{ runner.temp }}/offsite-verify/${{ steps.snapshot.outputs.archive }}
+            ${{ runner.temp }}/offsite-verify/${{ steps.snapshot.outputs.archive }}.sha256
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Run weekly application database restore test
         if: steps.snapshot.outputs.weekday == '7' || github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
@@ -261,7 +283,7 @@ jobs:
             --file "$payload/database/roles.sql" \
             --file "$payload/database/schema.sql" \
             --command "SET session_replication_role = 'replica';" \
-            --file "$payload/database/data.sql" \
+            --file "$payload/database/public-data.sql" \
             --dbname "$local_db"
 
           psql --variable ON_ERROR_STOP=1 --dbname "$local_db" <<'SQL'
@@ -283,17 +305,14 @@ jobs:
           SELECT count(*) AS profiles FROM public.profiles;
           SQL
 
-          supabase stop --no-backup
-
-      - name: Keep a short encrypted emergency copy in GitHub Actions
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: supabase-backup-${{ steps.snapshot.outputs.timestamp }}
-          path: |
-            ${{ runner.temp }}/offsite-verify/${{ steps.snapshot.outputs.archive }}
-            ${{ runner.temp }}/offsite-verify/${{ steps.snapshot.outputs.archive }}.sha256
-          retention-days: 14
-          if-no-files-found: error
+      - name: Stop weekly restore test environment
+        if: always() && (steps.snapshot.outputs.weekday == '7' || github.event_name == 'workflow_dispatch')
+        shell: bash
+        run: |
+          restore_project="$RUNNER_TEMP/supabase-restore-test"
+          if [[ -f "$restore_project/supabase/config.toml" ]]; then
+            supabase stop --workdir "$restore_project" --no-backup
+          fi
 
   schema-export:
     if: github.event_name == 'workflow_dispatch' && inputs.operation == 'schema-export'
@@ -307,7 +326,7 @@ jobs:
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
         with:
-          version: 2.110.0
+          version: 2.116.0
 
       - name: Validate schema export configuration
         shell: bash
@@ -380,7 +399,7 @@ jobs:
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
         with:
-          version: 2.110.0
+          version: 2.116.0
 
       - name: Validate baseline verification configuration
         shell: bash
