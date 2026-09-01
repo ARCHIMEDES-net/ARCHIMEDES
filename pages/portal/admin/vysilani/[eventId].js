@@ -1416,6 +1416,45 @@ export default function AdminVysilaniDetailPage() {
                     </p>
                   </div>
 
+                  {recipients.length ? (
+                    <details className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                      <summary className="cursor-pointer px-4 py-3 font-bold text-navy-900">
+                        Zobrazit připravené příjemce ({recipients.length})
+                      </summary>
+                      <div className="max-h-[360px] overflow-auto border-t border-slate-200">
+                        <table className="w-full min-w-[520px] border-collapse text-left text-sm">
+                          <thead className="sticky top-0 bg-slate-50">
+                            <tr className="border-b border-slate-200 text-slate-500">
+                              <th className="px-4 py-2 font-bold">Jméno</th>
+                              <th className="px-4 py-2 font-bold">E-mail</th>
+                              <th className="px-4 py-2 font-bold">Stav</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {recipients.map((recipient) => (
+                              <tr
+                                key={recipient.email}
+                                className="border-b border-slate-100 last:border-0"
+                              >
+                                <td className="px-4 py-2 text-slate-700">
+                                  {recipient.name || "Ručně zadaný účastník"}
+                                </td>
+                                <td className="px-4 py-2 font-medium text-navy-900">
+                                  {recipient.email}
+                                </td>
+                                <td className="px-4 py-2">
+                                  <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-bold text-blue-800">
+                                    Připraven k pozvání
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </details>
+                  ) : null}
+
                   <div className="mt-4 flex flex-wrap gap-3">
                     <Button
                       type="button"
