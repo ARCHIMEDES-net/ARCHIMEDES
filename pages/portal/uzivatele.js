@@ -321,7 +321,7 @@ export default function UzivateleSkolyPage() {
     );
   }
 
-  if (organizationType !== "school") {
+  if (!["school", "child_home", "foundation"].includes(organizationType)) {
     return (
       <RequireAuth>
         <div className="min-h-screen bg-slate-50">
@@ -330,9 +330,9 @@ export default function UzivateleSkolyPage() {
             <Card className="p-6">
               <h1 className="text-2xl font-black text-navy-900">Uživatelé organizace</h1>
               <p className="mt-2 text-muted">
-                Samostatné účty jednotlivých členů jsou určené pouze školám a
-                jejich učitelům. U spolku se registruje kontaktní osoba a její
-                osobní zájmy, nikoli každý člen spolku.
+                Samostatné účty jednotlivých členů jsou určené školám, dětským
+                domovům a zastřešujícím organizacím. U spolku se registruje
+                kontaktní osoba, nikoli každý člen spolku.
               </p>
             </Card>
           </main>
