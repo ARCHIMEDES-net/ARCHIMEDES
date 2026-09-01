@@ -236,21 +236,23 @@ export default function AdminVysilaniDetailPage() {
       setNotesInternal(session.notes_internal || "");
       setStartsAt(toDateTimeLocalValue(eventData.starts_at || session.starts_at));
       setNotificationsEnabled(session.notifications_enabled === true);
-      setManualRecipientEmails(
-        Array.isArray(session.manual_recipient_emails)
-          ? session.manual_recipient_emails.join("\n")
-          : ""
-      );
+      const savedManualEmails = Array.isArray(session.manual_recipient_emails)
+        ? session.manual_recipient_emails
+        : [];
+      setManualRecipientEmails(savedManualEmails.join("\n"));
       const groups = await loadRecipientGroups();
-      setSelectedRecipientGroups(
-        getInitialRecipientGroups({
-          event: eventData,
-          availableGroups: groups,
-          persistedCodes: session.recipient_group_codes,
-          configured: session.recipient_groups_configured,
-        })
-      );
-      await Promise.all([loadWebMeetingStatus(), loadAttendance()]);
+      const initialRecipientGroups = getInitialRecipientGroups({
+        event: eventData,
+        availableGroups: groups,
+        persistedCodes: session.recipient_group_codes,
+        configured: session.recipient_groups_configured,
+      });
+      setSelectedRecipientGroups(initialRecipientGroups);
+      await Promise.all([
+        loadWebMeetingStatus(),
+        loadAttendance(),
+        loadSavedRecipientList(initialRecipientGroups, savedManualEmails),
+      ]);
     } catch (e) {
       setError(e.message || "Nepodařilo se načíst detail vysílání.");
     } finally {
@@ -275,6 +277,36 @@ export default function AdminVysilaniDetailPage() {
     const groups = Array.isArray(payload) ? payload : [];
     setRecipientGroups(groups);
     return groups;
+  }
+
+  async function loadSavedRecipientList(groups, manualEmails) {
+    if (!groups.length && !manualEmails.length) {
+      setRecipients([]);
+      return;
+    }
+
+    try {
+      const token = await getAccessToken();
+      const response = await fetch("/api/admin/broadcast-recipients", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ groups, manualEmails }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Uložený seznam příjemců se nepodařilo načíst.");
+      }
+      setRecipients(Array.isArray(payload.users) ? payload.users : []);
+    } catch (recipientError) {
+      setRecipients([]);
+      setCopyInfo(
+        recipientError.message ||
+          "Uložený seznam příjemců se nepodařilo načíst; zkontrolujte jej a uložte znovu."
+      );
+    }
   }
 
   async function loadWebMeetingStatus() {
@@ -1417,6 +1449,12 @@ export default function AdminVysilaniDetailPage() {
                   </div>
 
                   {recipients.length ? (
+                    <p className="mt-4 text-xs leading-relaxed text-slate-500">
+                      Níže je seznam určený k pozvání. Skutečné vstupy a účast se zobrazují samostatně v části „Docházka účastníků“.
+                    </p>
+                  ) : null}
+
+                  {recipients.length ? (
                     <details className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
                       <summary className="cursor-pointer px-4 py-3 font-bold text-navy-900">
                         Zobrazit připravené příjemce ({recipients.length})
@@ -1444,7 +1482,7 @@ export default function AdminVysilaniDetailPage() {
                                 </td>
                                 <td className="px-4 py-2">
                                   <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-bold text-blue-800">
-                                    Připraven k pozvání
+                                    V aktuálním seznamu
                                   </span>
                                 </td>
                               </tr>
