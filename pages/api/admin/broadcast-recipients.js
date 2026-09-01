@@ -90,7 +90,10 @@ export default async function handler(req, res) {
       for (const user of groupsBySlug.get(slug).users) {
         const normalizedEmail = String(user.email || "").trim().toLowerCase();
         if (!normalizedEmail || recipientsByEmail.has(normalizedEmail)) continue;
-        recipientsByEmail.set(normalizedEmail, { email: user.email.trim() });
+        const recipient = { email: user.email.trim() };
+        const fullName = String(user.full_name || "").trim();
+        if (fullName) recipient.name = fullName;
+        recipientsByEmail.set(normalizedEmail, recipient);
       }
     }
 
