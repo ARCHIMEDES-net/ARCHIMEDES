@@ -116,6 +116,8 @@ export default function AdminVysilaniDetailPage() {
   const [manualRecipientEmails, setManualRecipientEmails] = useState("");
   const [recipients, setRecipients] = useState([]);
   const [recipientsLoading, setRecipientsLoading] = useState(false);
+  const [invitationsSending, setInvitationsSending] = useState(false);
+  const [recipientsExporting, setRecipientsExporting] = useState(false);
   const [webMeetingConfigured, setWebMeetingConfigured] = useState(null);
   const [webMeetingChecking, setWebMeetingChecking] = useState(false);
   const [webMeetingCreating, setWebMeetingCreating] = useState(false);
@@ -477,6 +479,85 @@ export default function AdminVysilaniDetailPage() {
       setCopyInfo(`${recipients.length} e-mailů bylo zkopírováno pro vložení do WebMeetingu.`);
     } catch (_e) {
       setCopyInfo("E-maily zkopírujte ručně.");
+    }
+  }
+
+  async function sendInvitationsNow() {
+    if (!externalMeetingId) {
+      setError("Nejprve vytvořte místnost ve WebMeetingu.");
+      return;
+    }
+    if (!recipients.length) {
+      setError("Nejprve uložte a vytvořte aktuální seznam příjemců.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Odeslat nyní pozvánku ${recipients.length} příjemcům? WebMeeting pošle zprávu pouze dosud nepozvaným osobám.`
+    );
+    if (!confirmed) return;
+
+    setInvitationsSending(true);
+    setError("");
+    setCopyInfo("");
+    try {
+      const token = await getAccessToken();
+      const response = await fetch("/api/admin/webmeeting/send-invitations", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ eventId }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Pozvánky se nepodařilo odeslat.");
+      }
+      setCopyInfo(
+        `WebMeeting zpracoval ${payload.count || recipients.length} příjemců a odeslal pozvánku dosud nepozvaným.`
+      );
+    } catch (e) {
+      setError(e.message || "Pozvánky se nepodařilo odeslat.");
+    } finally {
+      setInvitationsSending(false);
+    }
+  }
+
+  async function exportRecipientsToExcel() {
+    if (!recipients.length) {
+      setError("Nejprve uložte a vytvořte aktuální seznam příjemců.");
+      return;
+    }
+
+    setRecipientsExporting(true);
+    setError("");
+    setCopyInfo("");
+    try {
+      const token = await getAccessToken();
+      const response = await fetch(
+        `/api/admin/webmeeting/export-participants?eventId=${encodeURIComponent(eventId)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || "Excel se nepodařilo vytvořit.");
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = downloadUrl;
+      anchor.download = `archimedes-ucastnici-${String(eventId).slice(0, 8)}.xls`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(downloadUrl);
+      setCopyInfo(`Excel obsahuje ${recipients.length} účastníků.`);
+    } catch (e) {
+      setError(e.message || "Excel se nepodařilo vytvořit.");
+    } finally {
+      setRecipientsExporting(false);
     }
   }
 
@@ -1350,6 +1431,24 @@ export default function AdminVysilaniDetailPage() {
                     </Button>
                     <Button type="button" onClick={copyRecipients} disabled={!recipients.length} variant="secondary">
                       Zkopírovat {recipients.length ? `${recipients.length} e-mailů` : "e-maily"}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={exportRecipientsToExcel}
+                      disabled={!recipients.length || recipientsExporting}
+                      variant="secondary"
+                    >
+                      {recipientsExporting ? "Vytvářím Excel…" : "Exportovat účastníky do Excelu"}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={sendInvitationsNow}
+                      disabled={!recipients.length || !externalMeetingId || invitationsSending}
+                      variant="primary"
+                    >
+                      {invitationsSending
+                        ? "Odesílám pozvánky…"
+                        : `Odeslat pozvánky nyní${recipients.length ? ` (${recipients.length})` : ""}`}
                     </Button>
                   </div>
                 </div>
