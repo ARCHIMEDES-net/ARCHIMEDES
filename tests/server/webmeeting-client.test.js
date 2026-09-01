@@ -316,6 +316,30 @@ describe("WebMeeting operation payloads", () => {
     });
   });
 
+  it("maps invitation delivery to the provider contract and only targets uninvited participants", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        providerResponse({
+          body: {
+            server_timestamp: "2026-07-29 14:00:00",
+            response: true,
+          },
+        })
+      )
+    );
+
+    await webMeeting.sendInvitations(42);
+
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toMatchObject({
+      action: "sendInvitations",
+      meetingId: 42,
+      mode: 0,
+      filter: 1,
+      body: "",
+    });
+  });
+
   it("forces HTML5 entry links and wraps a single participant", async () => {
     vi.stubGlobal(
       "fetch",
