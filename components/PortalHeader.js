@@ -171,6 +171,7 @@ export default function PortalHeader({ title = "" }) {
     if (key === "archiv") return path.startsWith("/portal/archiv");
     if (key === "komunita") return path.startsWith("/portal/komunita");
     if (key === "souteze") return path.startsWith("/portal/souteze");
+    if (key === "kridla") return path.startsWith("/portal/kridla");
     if (key === "profil") return path.startsWith("/portal/muj-profil");
     if (key === "novinky") return path.startsWith("/portal/novinky");
     if (key === "organizace-obce") return path.startsWith("/portal/organizace-obce");
@@ -275,6 +276,7 @@ export default function PortalHeader({ title = "" }) {
     { key: "archiv", href: "/portal/archiv", label: "Archiv" },
     { key: "komunita", href: "/portal/komunita", label: "Komunita" },
     { key: "souteze", href: "/portal/souteze", label: "Soutěže a projekty" },
+    { key: "kridla", href: "/portal/kridla", label: "Křídla" },
     { key: "profil", href: "/portal/muj-profil", label: "Můj profil" },
   ];
 
@@ -284,7 +286,7 @@ export default function PortalHeader({ title = "" }) {
     isOrgAdmin && ["municipality", "obec"].includes(activeOrganizationType)
       ? { key: "organizace-obce", href: "/portal/organizace-obce", label: "Organizace obce" }
       : null,
-    isOrgAdmin && activeOrganizationType === "school"
+    isOrgAdmin && ["school", "child_home", "foundation"].includes(activeOrganizationType)
       ? { key: "uzivatele", href: "/portal/uzivatele", label: "Uživatelé" }
       : null,
     isPlatformAdmin ? { key: "admin", href: "/portal/admin", label: "Admin" } : null,

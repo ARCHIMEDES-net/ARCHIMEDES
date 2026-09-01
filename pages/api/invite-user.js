@@ -185,9 +185,13 @@ export default async function handler(req, res) {
       throw organizationError;
     }
 
-    if (!organization || organization.org_type !== "school" || organization.status !== "active") {
+    if (
+      !organization ||
+      !["school", "child_home", "foundation"].includes(organization.org_type) ||
+      organization.status !== "active"
+    ) {
       return res.status(403).json({
-        error: "Jednotlivé uživatele lze zvát pouze do aktivní školy.",
+        error: "Jednotlivé uživatele lze zvát pouze do podporované aktivní organizace.",
       });
     }
 

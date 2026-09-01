@@ -52,4 +52,13 @@ describe("organization user invitation", () => {
     expect(source).toContain("sendOrganizationUserInvitation");
     expect(source).not.toContain("inviteUserByEmail");
   });
+
+  it("supports users of schools, children's homes, and foundations", () => {
+    const source = fs.readFileSync(
+      path.join(repositoryRoot, "pages/api/invite-user.js"),
+      "utf8"
+    );
+
+    expect(source).toContain('["school", "child_home", "foundation"]');
+  });
 });
