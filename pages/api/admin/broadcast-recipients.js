@@ -29,9 +29,6 @@ export default async function handler(req, res) {
       ? [...new Set(req.body.groups.map((item) => String(item || "").trim()).filter(Boolean))]
       : [];
 
-    if (requestedGroups.length === 0) {
-      return res.status(400).json({ error: "Vyberte alespoň jednu skupinu zájmu." });
-    }
 
     if (requestedGroups.length > 50 || requestedGroups.some((slug) => slug.length > 100)) {
       return res.status(400).json({ error: "Výběr skupin je příliš rozsáhlý nebo neplatný." });
@@ -54,12 +51,20 @@ export default async function handler(req, res) {
       });
     }
 
+    if (requestedGroups.length === 0 && manualRecipients.emails.length === 0) {
+      return res.status(400).json({
+        error: "Vyberte alespoň jednu skupinu zájmu nebo zadejte alespoň jednu e-mailovou adresu.",
+      });
+    }
+
     const allowed = await consumeAuthenticatedRateLimit({
       supabaseAdmin,
       req,
       route: "admin-broadcast-recipients",
       userId: admin.id,
-      resourceId: requestedGroups.slice().sort().join(","),
+      resourceId: requestedGroups.length
+        ? requestedGroups.slice().sort().join(",")
+        : `manual:${manualRecipients.emails.length}`,
       limit: 30,
       windowSeconds: 10 * 60,
     });
@@ -71,7 +76,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const groups = await getEmailGroups(supabaseAdmin);
+    const groups = requestedGroups.length > 0 ? await getEmailGroups(supabaseAdmin) : [];
     const groupsBySlug = new Map(groups.map((group) => [group.slug, group]));
     const unknownGroups = requestedGroups.filter((slug) => !groupsBySlug.has(slug));
 
@@ -85,7 +90,10 @@ export default async function handler(req, res) {
       for (const user of groupsBySlug.get(slug).users) {
         const normalizedEmail = String(user.email || "").trim().toLowerCase();
         if (!normalizedEmail || recipientsByEmail.has(normalizedEmail)) continue;
-        recipientsByEmail.set(normalizedEmail, { email: user.email.trim() });
+        const recipient = { email: user.email.trim() };
+        const fullName = String(user.full_name || "").trim();
+        if (fullName) recipient.name = fullName;
+        recipientsByEmail.set(normalizedEmail, recipient);
       }
     }
 

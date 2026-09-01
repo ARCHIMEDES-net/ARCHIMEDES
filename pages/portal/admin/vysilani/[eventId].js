@@ -116,6 +116,8 @@ export default function AdminVysilaniDetailPage() {
   const [manualRecipientEmails, setManualRecipientEmails] = useState("");
   const [recipients, setRecipients] = useState([]);
   const [recipientsLoading, setRecipientsLoading] = useState(false);
+  const [invitationsSending, setInvitationsSending] = useState(false);
+  const [recipientsExporting, setRecipientsExporting] = useState(false);
   const [webMeetingConfigured, setWebMeetingConfigured] = useState(null);
   const [webMeetingChecking, setWebMeetingChecking] = useState(false);
   const [webMeetingCreating, setWebMeetingCreating] = useState(false);
@@ -234,21 +236,23 @@ export default function AdminVysilaniDetailPage() {
       setNotesInternal(session.notes_internal || "");
       setStartsAt(toDateTimeLocalValue(eventData.starts_at || session.starts_at));
       setNotificationsEnabled(session.notifications_enabled === true);
-      setManualRecipientEmails(
-        Array.isArray(session.manual_recipient_emails)
-          ? session.manual_recipient_emails.join("\n")
-          : ""
-      );
+      const savedManualEmails = Array.isArray(session.manual_recipient_emails)
+        ? session.manual_recipient_emails
+        : [];
+      setManualRecipientEmails(savedManualEmails.join("\n"));
       const groups = await loadRecipientGroups();
-      setSelectedRecipientGroups(
-        getInitialRecipientGroups({
-          event: eventData,
-          availableGroups: groups,
-          persistedCodes: session.recipient_group_codes,
-          configured: session.recipient_groups_configured,
-        })
-      );
-      await Promise.all([loadWebMeetingStatus(), loadAttendance()]);
+      const initialRecipientGroups = getInitialRecipientGroups({
+        event: eventData,
+        availableGroups: groups,
+        persistedCodes: session.recipient_group_codes,
+        configured: session.recipient_groups_configured,
+      });
+      setSelectedRecipientGroups(initialRecipientGroups);
+      await Promise.all([
+        loadWebMeetingStatus(),
+        loadAttendance(),
+        loadSavedRecipientList(initialRecipientGroups, savedManualEmails),
+      ]);
     } catch (e) {
       setError(e.message || "Nepodařilo se načíst detail vysílání.");
     } finally {
@@ -273,6 +277,36 @@ export default function AdminVysilaniDetailPage() {
     const groups = Array.isArray(payload) ? payload : [];
     setRecipientGroups(groups);
     return groups;
+  }
+
+  async function loadSavedRecipientList(groups, manualEmails) {
+    if (!groups.length && !manualEmails.length) {
+      setRecipients([]);
+      return;
+    }
+
+    try {
+      const token = await getAccessToken();
+      const response = await fetch("/api/admin/broadcast-recipients", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ groups, manualEmails }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Uložený seznam příjemců se nepodařilo načíst.");
+      }
+      setRecipients(Array.isArray(payload.users) ? payload.users : []);
+    } catch (recipientError) {
+      setRecipients([]);
+      setCopyInfo(
+        recipientError.message ||
+          "Uložený seznam příjemců se nepodařilo načíst; zkontrolujte jej a uložte znovu."
+      );
+    }
   }
 
   async function loadWebMeetingStatus() {
@@ -480,6 +514,85 @@ export default function AdminVysilaniDetailPage() {
     }
   }
 
+  async function sendInvitationsNow() {
+    if (!externalMeetingId) {
+      setError("Nejprve vytvořte místnost ve WebMeetingu.");
+      return;
+    }
+    if (!recipients.length) {
+      setError("Nejprve uložte a vytvořte aktuální seznam příjemců.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Odeslat nyní pozvánku ${recipients.length} příjemcům? WebMeeting pošle zprávu pouze dosud nepozvaným osobám.`
+    );
+    if (!confirmed) return;
+
+    setInvitationsSending(true);
+    setError("");
+    setCopyInfo("");
+    try {
+      const token = await getAccessToken();
+      const response = await fetch("/api/admin/webmeeting/send-invitations", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ eventId }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || "Pozvánky se nepodařilo odeslat.");
+      }
+      setCopyInfo(
+        `WebMeeting zpracoval ${payload.count || recipients.length} příjemců a odeslal pozvánku dosud nepozvaným.`
+      );
+    } catch (e) {
+      setError(e.message || "Pozvánky se nepodařilo odeslat.");
+    } finally {
+      setInvitationsSending(false);
+    }
+  }
+
+  async function exportRecipientsToExcel() {
+    if (!recipients.length) {
+      setError("Nejprve uložte a vytvořte aktuální seznam příjemců.");
+      return;
+    }
+
+    setRecipientsExporting(true);
+    setError("");
+    setCopyInfo("");
+    try {
+      const token = await getAccessToken();
+      const response = await fetch(
+        `/api/admin/webmeeting/export-participants?eventId=${encodeURIComponent(eventId)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || "Excel se nepodařilo vytvořit.");
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = downloadUrl;
+      anchor.download = `archimedes-ucastnici-${String(eventId).slice(0, 8)}.xls`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(downloadUrl);
+      setCopyInfo(`Excel obsahuje ${recipients.length} účastníků.`);
+    } catch (e) {
+      setError(e.message || "Excel se nepodařilo vytvořit.");
+    } finally {
+      setRecipientsExporting(false);
+    }
+  }
+
   async function handlePosterUpload(file) {
     setError("");
     setMessage("");
@@ -584,8 +697,14 @@ export default function AdminVysilaniDetailPage() {
         throw new Error("Publikovaný záznam musí mít vyplněný odkaz.");
       }
 
-      if (notificationsEnabled && selectedRecipientGroups.length === 0) {
-        throw new Error("Pro oznámení vyberte alespoň jednu skupinu příjemců.");
+      if (
+        notificationsEnabled &&
+        selectedRecipientGroups.length === 0 &&
+        manualRecipients.emails.length === 0
+      ) {
+        throw new Error(
+          "Pro oznámení vyberte alespoň jednu skupinu příjemců nebo zadejte alespoň jednu e-mailovou adresu."
+        );
       }
 
       const postProductionPayload = {
@@ -1281,7 +1400,7 @@ export default function AdminVysilaniDetailPage() {
                 <div className="mt-7 border-t border-slate-200 pt-6">
                   <h2 className="text-xl font-black text-navy-900">Příjemci pozvánky</h2>
                   <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                    Vyberte osobní zájmy. Jedna osoba se ve výsledku objeví pouze jednou, i když má vybráno více zájmů. ARCHIMEDES Live použije seznam pro vlastní pozvánky a řízení oprávněných vstupů.
+                    Vyberte osobní zájmy nebo zadejte alespoň jednu konkrétní e-mailovou adresu. Jedna osoba se ve výsledku objeví pouze jednou, i když má vybráno více zájmů. ARCHIMEDES Live použije seznam pro vlastní pozvánky a řízení oprávněných vstupů.
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-slate-500">
                     Jednoznačné zájmy jsou předvybrané podle cílovek události. Výběr vždy zkontrolujte; činnost organizace se zde nepoužívá.
@@ -1329,12 +1448,84 @@ export default function AdminVysilaniDetailPage() {
                     </p>
                   </div>
 
+                  {recipients.length ? (
+                    <p className="mt-4 text-xs leading-relaxed text-slate-500">
+                      Níže je seznam určený k pozvání. Skutečné vstupy a účast se zobrazují samostatně v části „Docházka účastníků“.
+                    </p>
+                  ) : null}
+
+                  {recipients.length ? (
+                    <details className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                      <summary className="cursor-pointer px-4 py-3 font-bold text-navy-900">
+                        Zobrazit připravené příjemce ({recipients.length})
+                      </summary>
+                      <div className="max-h-[360px] overflow-auto border-t border-slate-200">
+                        <table className="w-full min-w-[520px] border-collapse text-left text-sm">
+                          <thead className="sticky top-0 bg-slate-50">
+                            <tr className="border-b border-slate-200 text-slate-500">
+                              <th className="px-4 py-2 font-bold">Jméno</th>
+                              <th className="px-4 py-2 font-bold">E-mail</th>
+                              <th className="px-4 py-2 font-bold">Stav</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {recipients.map((recipient) => (
+                              <tr
+                                key={recipient.email}
+                                className="border-b border-slate-100 last:border-0"
+                              >
+                                <td className="px-4 py-2 text-slate-700">
+                                  {recipient.name || "Ručně zadaný účastník"}
+                                </td>
+                                <td className="px-4 py-2 font-medium text-navy-900">
+                                  {recipient.email}
+                                </td>
+                                <td className="px-4 py-2">
+                                  <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-bold text-blue-800">
+                                    V aktuálním seznamu
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </details>
+                  ) : null}
+
                   <div className="mt-4 flex flex-wrap gap-3">
-                    <Button type="button" onClick={generateRecipients} disabled={recipientsLoading || !selectedRecipientGroups.length || operationalLocked} variant="primary">
+                    <Button
+                      type="button"
+                      onClick={generateRecipients}
+                      disabled={
+                        recipientsLoading ||
+                        (!selectedRecipientGroups.length && !manualRecipientEmails.trim()) ||
+                        operationalLocked
+                      }
+                      variant="primary"
+                    >
                       {recipientsLoading ? "Ukládám a vytvářím…" : "Uložit a vytvořit seznam"}
                     </Button>
                     <Button type="button" onClick={copyRecipients} disabled={!recipients.length} variant="secondary">
                       Zkopírovat {recipients.length ? `${recipients.length} e-mailů` : "e-maily"}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={exportRecipientsToExcel}
+                      disabled={!recipients.length || recipientsExporting}
+                      variant="secondary"
+                    >
+                      {recipientsExporting ? "Vytvářím Excel…" : "Exportovat účastníky do Excelu"}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={sendInvitationsNow}
+                      disabled={!recipients.length || !externalMeetingId || invitationsSending}
+                      variant="primary"
+                    >
+                      {invitationsSending
+                        ? "Odesílám pozvánky…"
+                        : `Odeslat pozvánky nyní${recipients.length ? ` (${recipients.length})` : ""}`}
                     </Button>
                   </div>
                 </div>
