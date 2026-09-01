@@ -177,6 +177,28 @@ describe("admin email-group handlers", () => {
     );
   });
 
+  it("accepts manual recipients without a selected group", async () => {
+    const { res } = await invoke(broadcastRecipients, {
+      method: "POST",
+      body: { groups: [], manualEmails: ["solo@example.com"] },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
+      groups: [],
+      count: 1,
+      users: [{ email: "solo@example.com" }],
+    });
+    expect(dependencies.getEmailGroups).not.toHaveBeenCalled();
+    expect(dependencies.consumeAuthenticatedRateLimit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        route: "admin-broadcast-recipients",
+        userId: "admin-1",
+        resourceId: "manual:1",
+      })
+    );
+  });
+
   it("adds manual recipients and deduplicates them against selected groups", async () => {
     const { res } = await invoke(broadcastRecipients, {
       method: "POST",
