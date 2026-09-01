@@ -584,8 +584,14 @@ export default function AdminVysilaniDetailPage() {
         throw new Error("Publikovaný záznam musí mít vyplněný odkaz.");
       }
 
-      if (notificationsEnabled && selectedRecipientGroups.length === 0) {
-        throw new Error("Pro oznámení vyberte alespoň jednu skupinu příjemců.");
+      if (
+        notificationsEnabled &&
+        selectedRecipientGroups.length === 0 &&
+        manualRecipients.emails.length === 0
+      ) {
+        throw new Error(
+          "Pro oznámení vyberte alespoň jednu skupinu příjemců nebo zadejte alespoň jednu e-mailovou adresu."
+        );
       }
 
       const postProductionPayload = {
@@ -1281,7 +1287,7 @@ export default function AdminVysilaniDetailPage() {
                 <div className="mt-7 border-t border-slate-200 pt-6">
                   <h2 className="text-xl font-black text-navy-900">Příjemci pozvánky</h2>
                   <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                    Vyberte osobní zájmy. Jedna osoba se ve výsledku objeví pouze jednou, i když má vybráno více zájmů. ARCHIMEDES Live použije seznam pro vlastní pozvánky a řízení oprávněných vstupů.
+                    Vyberte osobní zájmy nebo zadejte alespoň jednu konkrétní e-mailovou adresu. Jedna osoba se ve výsledku objeví pouze jednou, i když má vybráno více zájmů. ARCHIMEDES Live použije seznam pro vlastní pozvánky a řízení oprávněných vstupů.
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-slate-500">
                     Jednoznačné zájmy jsou předvybrané podle cílovek události. Výběr vždy zkontrolujte; činnost organizace se zde nepoužívá.
@@ -1330,7 +1336,16 @@ export default function AdminVysilaniDetailPage() {
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-3">
-                    <Button type="button" onClick={generateRecipients} disabled={recipientsLoading || !selectedRecipientGroups.length || operationalLocked} variant="primary">
+                    <Button
+                      type="button"
+                      onClick={generateRecipients}
+                      disabled={
+                        recipientsLoading ||
+                        (!selectedRecipientGroups.length && !manualRecipientEmails.trim()) ||
+                        operationalLocked
+                      }
+                      variant="primary"
+                    >
                       {recipientsLoading ? "Ukládám a vytvářím…" : "Uložit a vytvořit seznam"}
                     </Button>
                     <Button type="button" onClick={copyRecipients} disabled={!recipients.length} variant="secondary">
