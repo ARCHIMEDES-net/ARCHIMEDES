@@ -61,7 +61,7 @@ kapacitu 201 účastníků. Oficiální dokumentace API přiřazuje místnosti p
 ## Zatím nezapojené části
 
 - automatická synchronizace záznamu a docházky bez ručního tlačítka;
-- automatické rozesílání pozvánek z ARCHIMEDES Live;
+- plně automatické rozesílání pozvánek bez potvrzení správce;
 - aktualizace a rušení již vytvořené místnosti při změně události;
 - webhooky (ve veřejném API nejsou doloženy);
 - zátěžové testy, SLA a garantovaný souběh místností.
@@ -77,7 +77,12 @@ sám přihlásí k on-line setkání nebo k záznamu. U kontrolovaného setkán�
 Účet nemá vlastní výchozí šablonu pro připomenutí, pozvánku před setkáním,
 follow-up ani zprávu po zpracování záznamu; bez vlastní šablony ale WebMeeting
 u systémových potvrzení a 30minutové připomínky použije svou systémovou verzi.
-Import účastníků pouze vytváří jejich záznamy a nenabízí volbu rozeslání.
+Import účastníků pouze vytváří jejich záznamy. Správa vysílání proto nabízí oddělené
+tlačítko **Odeslat pozvánky nyní**, které až po potvrzení správce naimportuje
+aktuální uložený seznam do WebMeetingu a odešle standardní pozvánku pouze dosud
+nepozvaným osobám. Uložení skupiny, ruční adresy ani vytvoření seznamu samo o
+sobě žádný e-mail neodešle. Stejný seznam lze z administrace exportovat do
+Excelu pro kontrolu.
 
 ARCHIMEDES proto 30minutové upozornění ukládá jen do interní schránky a v tomto
 čase nevytváří e-mail ani push. Nové pořady se zobrazují pouze v centru novinek.
