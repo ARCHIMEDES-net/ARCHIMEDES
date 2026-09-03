@@ -62,6 +62,19 @@ describe("PWA contract", () => {
     expect(serviceWorker).not.toContain("caches.open");
   });
 
+  it("shows broadcast dates instead of notification creation dates in the installed PWA", () => {
+    const manifest = JSON.parse(source("public/manifest.webmanifest"));
+    const newsPage = source("pages/portal/novinky.js");
+    const serviceWorker = source("public/sw.js");
+
+    expect(manifest.start_url).toBe("/portal/novinky");
+    expect(newsPage).toContain("events(starts_at)");
+    expect(newsPage).toContain("Termín vysílání:");
+    expect(newsPage).toContain("formatBroadcastDate(event.starts_at)");
+    expect(newsPage).not.toContain("formatDate(item.available_at)");
+    expect(serviceWorker).not.toContain('addEventListener("fetch"');
+  });
+
   it("accepts only same-origin notification destinations", () => {
     const serviceWorker = source("public/sw.js");
     expect(serviceWorker).toContain("url.origin !== self.location.origin");

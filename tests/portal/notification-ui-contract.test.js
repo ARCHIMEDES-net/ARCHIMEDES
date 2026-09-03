@@ -22,6 +22,10 @@ describe("notification UI contract", () => {
     expect(newsPage).toContain("Označit vše jako přečtené");
     expect(header).toContain("publishUnreadNotificationCount");
     expect(newsPage).toContain("publishUnreadNotificationCount(unreadCount)");
+    expect(newsPage).toContain("events(starts_at)");
+    expect(newsPage).toContain("Termín vysílání:");
+    expect(newsPage).toContain("formatBroadcastDate(event.starts_at)");
+    expect(newsPage).not.toContain("formatDate(item.available_at)");
   });
 
   it("offers an explicit iOS badge permission action in the notification center", () => {

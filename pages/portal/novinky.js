@@ -19,19 +19,6 @@ import {
   syncAppBadge,
 } from "../../lib/appBadge";
 
-function formatDate(value) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? ""
-    : date.toLocaleString("cs-CZ", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-}
-
 function formatBroadcastDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
@@ -66,7 +53,7 @@ export default function NovinkyPage() {
       ] = await Promise.all([
         supabase
           .from("user_notifications")
-          .select("id, kind, title, body, target_path, available_at, read_at")
+          .select("id, event_id, kind, title, body, target_path, available_at, read_at, events(starts_at)")
           .lte("available_at", nowIso)
           .order("available_at", { ascending: false })
           .limit(100),
@@ -232,6 +219,7 @@ export default function NovinkyPage() {
           <div className="grid gap-3">
             {notifications.map((item) => {
               const targetPath = safeNotificationTargetPath(item.target_path);
+              const event = Array.isArray(item.events) ? item.events[0] : item.events;
               const content = (
                 <Card className={item.read_at ? "p-5" : "border-blue-200 bg-blue-50/60 p-5"}>
                   <div className="flex items-start justify-between gap-4">
@@ -239,7 +227,11 @@ export default function NovinkyPage() {
                       <div className="text-xs font-black uppercase tracking-wide text-slate-500">{notificationKindLabel(item.kind)}</div>
                       <h2 className="mt-1 text-lg font-black text-navy-900">{item.title}</h2>
                       {item.body ? <p className="mt-2 leading-relaxed text-slate-600">{item.body}</p> : null}
-                      <div className="mt-3 text-xs font-semibold text-slate-500">{formatDate(item.available_at)}</div>
+                      {event?.starts_at ? (
+                        <div className="mt-3 text-sm font-bold text-slate-600">
+                          Termín vysílání: {formatBroadcastDate(event.starts_at)}
+                        </div>
+                      ) : null}
                     </div>
                     {!item.read_at ? <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-blue-600" aria-label="Nepřečtené" /> : null}
                   </div>
