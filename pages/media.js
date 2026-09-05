@@ -367,7 +367,7 @@ export default function MediaPage() {
                       className="aspect-[16/10] w-full object-cover"
                     />
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-navy-900/78 to-navy-900/0 px-4 pb-3.5 pt-4 text-left">
-                      <span className="text-base font-bold leading-tight text-white">
+                      <span className="text-base font-bold leading-tight text-navy-900">
                         {item.city}
                       </span>
                     </div>
