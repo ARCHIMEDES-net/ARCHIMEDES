@@ -285,7 +285,7 @@ export default function MediaPage() {
 
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button href="/ucebna">Zpět na stránku učebny</Button>
-                <Button href="/kontakt" variant="secondary">
+                <Button href="/poptavka-ucebny" variant="secondary">
                   Poptat učebnu
                 </Button>
               </div>
