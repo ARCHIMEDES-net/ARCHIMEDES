@@ -27,6 +27,12 @@ export default function AdminHome() {
         </p>
 
         <section className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-3">
+          <AdminCard title="Onboarding obcí" desc="Centrální kontrola READY / POZOR / STOP a schvalovací fronta.">
+            <Link href="/portal/admin/onboarding" className="font-bold text-brand hover:underline">
+              Otevřít onboarding centrum
+            </Link>
+          </AdminCard>
+
           <AdminCard title="START objednávky" desc="Přehled nových škol, onboarding a uživatelů.">
             <Link href="/portal/admin-start" className="font-bold text-brand hover:underline">
               Otevřít START přehled
