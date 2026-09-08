@@ -258,6 +258,7 @@ export default function AdminUdalosti() {
 
   const [editingId, setEditingId] = useState(null);
   const [lastSavedEventId, setLastSavedEventId] = useState("");
+  const [editingHasBroadcastSession, setEditingHasBroadcastSession] = useState(false);
 
   const [rubricKey, setRubricKey] = useState("");
   const [title, setTitle] = useState("");
@@ -334,6 +335,7 @@ export default function AdminUdalosti() {
               audience_groups: groups,
               audience: groups.length ? joinAudience(groups) : normalizeText(row.audience),
               broadcast_status: session?.status || "",
+              broadcast_session_id: session?.id || "",
               broadcast_viewer_url: session?.viewer_url || "",
               broadcast_recording_url: session?.recording_url || "",
               broadcast_recording_status: session?.recording_status || "none",
@@ -389,6 +391,7 @@ export default function AdminUdalosti() {
     }
 
     setEditingId(null);
+    setEditingHasBroadcastSession(false);
     setLastSavedEventId("");
     setRubricKey("");
     setTitle("");
@@ -422,6 +425,7 @@ export default function AdminUdalosti() {
     }
 
     setEditingId(r.id);
+    setEditingHasBroadcastSession(Boolean(r.broadcast_session_id));
     setLastSavedEventId(r.id);
     setRubricKey("");
     setTitle(normalizeText(r.title));
@@ -692,29 +696,33 @@ export default function AdminUdalosti() {
         setSavedPosterUrl(payload.poster_url);
         setSavedPosterPath(payload.poster_path || "");
 
-        const { data: authData } = await supabase.auth.getSession();
-        const token = authData?.session?.access_token;
-        if (!token) throw new Error("Událost byla uložena, ale přihlášení vypršelo.");
+        if (editingHasBroadcastSession) {
+          const { data: authData } = await supabase.auth.getSession();
+          const token = authData?.session?.access_token;
+          if (!token) throw new Error("Událost byla uložena, ale přihlášení vypršelo.");
 
-        const response = await fetch("/api/admin/webmeeting/update-meeting", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ eventId: editingId }),
-        });
-        const result = await response.json();
-        if (!response.ok) {
-          throw new Error(
-            `Událost je uložená v ARCHIMEDES, ale WebMeeting změnu nepřijal: ${
-              result.error || "neznámá chyba"
-            }`
-          );
+          const response = await fetch("/api/admin/webmeeting/update-meeting", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ eventId: editingId }),
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(
+              `Událost je uložená v ARCHIMEDES, ale WebMeeting změnu nepřijal: ${
+                result.error || "neznámá chyba"
+              }`
+            );
+          }
+          saveMessage = result.synced
+            ? "Událost byla upravena a změna se propsala do WebMeetingu."
+            : "Událost byla upravena. Místnost ve WebMeetingu ještě není založena.";
+        } else {
+          saveMessage = "Událost byla upravena. Vysílání zatím není nastaveno.";
         }
-        saveMessage = result.synced
-          ? "Událost byla upravena a změna se propsala do WebMeetingu."
-          : "Událost byla upravena. Místnost ve WebMeetingu ještě není založena.";
       } else {
         const { data, error, cleanupError } = await insertEventWithPosterCleanup(
           supabase,
@@ -752,6 +760,7 @@ export default function AdminUdalosti() {
         setEditingId(savedId || editingId);
       } else {
         setEditingId(null);
+        setEditingHasBroadcastSession(false);
         setRubricKey("");
         setTitle("");
         setStartsAtLocal("");
