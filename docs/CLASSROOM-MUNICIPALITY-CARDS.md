@@ -69,6 +69,11 @@ tabulky zachovat. Nemaže se existující obec, škola ani uživatel.
 - Cílená regresní sada: 64 testů. Kontrola migrací, lint změněných souborů
   a produkční build prošly. Build má pouze dřívější upozornění mimo tuto změnu.
 - Produkční kontrola byla pouze čtecí. Nebyly odeslány reálné pozvánky.
+- Migrace a transakční test prošly také v samostatné Supabase větvi s úplným
+  schématem produkce: založení obce bez kontaktu, škola bez kontaktu,
+  NNNN-SK-01, duplicita, zachování licence, audit a odmítnutí neadmina.
+  Všechny testovací zápisy skončily rollbackem.
+- GitHub CI i kontrola historie migrací prošly; Vercel sestavil náhled úspěšně.
 - Vizuální ověření v cloudovém prohlížeči nebylo dokončeno: lokální izolovaný
   server byl blokován chybou `ERR_BLOCKED_BY_CLIENT`. Přihlášený browser E2E
-  a ověření migrace v úplném izolovaném Supabase schématu zbývají před produkcí.
+  zůstává posledním neověřeným krokem před produkcí.
