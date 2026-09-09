@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import RequirePlatformAdmin from "../../../components/RequirePlatformAdmin";
 import PortalHeader from "../../../components/PortalHeader";
 import { supabase } from "../../../lib/supabaseClient";
+import { municipalityNeedsDetails } from "../../../lib/municipalityCard";
 import { cn } from "../../../lib/utils";
 import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
@@ -121,7 +122,7 @@ export default function AdminObcePage() {
     const { data, error: loadError } = await supabase
       .from("organizations")
       .select(
-        "id, name, org_type, parent_organization_id, registration_number, license_status, requested_license_plan, license_plan, license_started_at, license_valid_until, contract_status, billing_status, status, contact_name, contact_email, contact_phone, terms_accepted_at, created_at"
+        "id, name, org_type, parent_organization_id, registration_number, license_status, requested_license_plan, license_plan, license_started_at, license_valid_until, contract_status, billing_status, status, contact_name, contact_email, contact_phone, legal_identifier, ico, registered_address, terms_accepted_at, created_at"
       )
       .in("org_type", [
         "municipality",
@@ -432,7 +433,7 @@ export default function AdminObcePage() {
         <PortalHeader title="Admin • zákazníci" />
 
         <main className="mx-auto max-w-[1320px] px-6 py-10">
-          <h1 className="text-2xl font-black text-navy-900">Zákazníci</h1>
+          <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-2xl font-black text-navy-900">Zákazníci</h1><Link href="/portal/admin/obce/nova"><Button type="button">Založit obec s učebnou</Button></Link></div>
           <p className="mt-2.5 max-w-[940px] text-muted">
             Přehled hlavních zákazníků, jejich licence a navázaných organizací.
           </p>
@@ -852,7 +853,7 @@ export default function AdminObcePage() {
                         href={`/portal/admin/obce/${row.id}`}
                         className="font-bold text-navy-900 underline decoration-slate-300 underline-offset-4 hover:decoration-navy-900"
                       >
-                        {row.name}
+                        {row.name}{municipalityNeedsDetails(row) ? <span className="ml-2 rounded bg-amber-100 px-2 py-1 text-xs font-bold text-amber-900">K doplnění</span> : null}
                       </Link>
                     </TableCell>
                     <TableCell>{row.registration_number || "—"}</TableCell>

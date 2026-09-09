@@ -74,6 +74,8 @@ export default async function handler(req, res) {
     const token = getBearerToken(req);
     const municipalityId = String(req.body?.municipalityId || "").trim();
     const organizationType = String(req.body?.organizationType || "").trim();
+    const schoolIzo = String(req.body?.schoolIzo || "").trim();
+    if (schoolIzo && !/^[0-9]{9}$/.test(schoolIzo)) return res.status(400).json({ error: "IZO musí mít 9 číslic." });
     let name;
     let legalIdentifier;
     let address;
@@ -105,10 +107,10 @@ export default async function handler(req, res) {
     if (!name || name.length < 2 || !address || address.length < 2) {
       return res.status(400).json({ error: "Vyplňte název a adresu organizace." });
     }
-    if (!contactName || contactName.length < 2) {
+    if ((organizationType !== "school" || contactName) && contactName.length < 2) {
       return res.status(400).json({ error: "Vyplňte kontaktní osobu." });
     }
-    if (!contactEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+    if ((organizationType !== "school" || contactEmail) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
       return res.status(400).json({ error: "Kontaktní e-mail nemá platný formát." });
     }
     if (legalIdentifier && !/^\d{8}$/.test(legalIdentifier.replace(/\s+/g, ""))) {
@@ -147,8 +149,12 @@ export default async function handler(req, res) {
 
     const authenticatedClient = createAuthenticatedClient(token);
     const { data, error } = await authenticatedClient.rpc(
-      "create_municipality_child_organization",
-      {
+      organizationType === "school" ? "prepare_classroom_school" : "create_municipality_child_organization",
+      organizationType === "school" ? {
+        p_municipality_id: municipalityId, p_name: name, p_legal_identifier: legalIdentifier || null,
+        p_izo: schoolIzo || null, p_address: address, p_contact_name: contactName || null,
+        p_contact_email: contactEmail || null, p_contact_phone: contactPhone || null,
+      } : {
         p_municipality_id: municipalityId,
         p_name: name,
         p_org_type: organizationType,
@@ -168,7 +174,7 @@ export default async function handler(req, res) {
 
     if (error) {
       const safeError = safeRpcError(error);
-      return res.status(safeError.status).json({ error: safeError.message });
+      return res.status(safeError.status).json({ error: safeError.message, existingId: UUID_PATTERN.test(error.details || "") ? error.details : null });
     }
 
     const organization = data?.[0];
@@ -178,6 +184,12 @@ export default async function handler(req, res) {
       });
     }
 
+    const { data: confirmed, error: readError } = await authenticatedClient.from("organizations")
+      .select("id,parent_organization_id,registration_number").eq("id", organization.organization_id).single();
+    if (readError || confirmed?.parent_organization_id !== municipalityId ||
+      confirmed?.registration_number !== organization.registration_number) {
+      return res.status(500).json({ error: "Založení vyžaduje kontrolu výsledku. Obnovte přehled organizací před dalším pokusem." });
+    }
     return res.status(201).json({ ok: true, organization });
   } catch (error) {
     console.error("create-municipality-organization error:", error);
