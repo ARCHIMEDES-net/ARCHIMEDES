@@ -15,6 +15,7 @@ const EMPTY_FORM = {
   organizationType: "school",
   name: "",
   legalIdentifier: "",
+  schoolIzo: "",
   address: "",
   contactName: "",
   contactEmail: "",
@@ -32,6 +33,8 @@ export default function NewMunicipalityOrganizationPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [existingId, setExistingId] = useState(null);
+  const [schools, setSchools] = useState([]);
   const [created, setCreated] = useState(null);
 
   useEffect(() => {
@@ -42,7 +45,7 @@ export default function NewMunicipalityOrganizationPage() {
       setLoading(true);
       setError("");
 
-      const [municipalityResult, activityResult] = await Promise.all([
+      const [municipalityResult, activityResult, schoolResult] = await Promise.all([
         supabase
           .from("organizations")
           .select("id, name, org_type, status, license_status, license_valid_until")
@@ -54,6 +57,7 @@ export default function NewMunicipalityOrganizationPage() {
           .eq("section", "spolky")
           .eq("is_active", true)
           .order("sort_order"),
+        supabase.from("organizations").select("id,name,legal_identifier,school_izo,registered_address,parent_organization_id").eq("org_type", "school"),
       ]);
 
       if (cancelled) return;
@@ -63,10 +67,13 @@ export default function NewMunicipalityOrganizationPage() {
         !["municipality", "obec"].includes(municipalityResult.data.org_type)
       ) {
         setError("Obec se nepodařilo načíst.");
+      } else if (schoolResult.error) {
+        setError("Existující školy se nepodařilo ověřit. Obnovte stránku.");
       } else if (activityResult.error) {
         setError("Číselník činností se nepodařilo načíst.");
       } else {
         setMunicipality(municipalityResult.data);
+        setSchools(schoolResult.data || []);
         setActivities(activityResult.data || []);
       }
       setLoading(false);
@@ -87,6 +94,7 @@ export default function NewMunicipalityOrganizationPage() {
     setSubmitting(true);
     setError("");
     setCreated(null);
+    setExistingId(null);
 
     const {
       data: { session },
@@ -110,6 +118,7 @@ export default function NewMunicipalityOrganizationPage() {
       const result = await response.json();
 
       if (!response.ok) {
+        setExistingId(result.existingId || null);
         throw new Error(result?.error || "Organizaci se nepodařilo založit.");
       }
 
@@ -121,6 +130,10 @@ export default function NewMunicipalityOrganizationPage() {
     }
   }
 
+  const normalize = (text) => String(text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+  const matches = schools.filter((school) => (form.schoolIzo && school.school_izo === form.schoolIzo) ||
+    (form.legalIdentifier.length === 8 && school.legal_identifier === form.legalIdentifier) ||
+    (form.name.trim().length > 2 && normalize(school.name).includes(normalize(form.name)))).slice(0,8);
   const isAssociation = form.organizationType === "association";
 
   return (
@@ -143,11 +156,11 @@ export default function NewMunicipalityOrganizationPage() {
             nevytvoří uživatele a správci obce neposkytne přístup k jejím datům.
           </p>
 
-          {error ? <Alert variant="error" className="mt-5">{error}</Alert> : null}
+          {error ? <Alert variant="error" className="mt-5">{error}{existingId ? <Link className="ml-2 underline" href={`/portal/admin/skoly/${existingId}/onboarding`}>Otevřít existující školu</Link> : null}</Alert> : null}
           {created ? (
             <Alert variant="success" className="mt-5">
               Organizace „{created.organization_name}“ byla bezpečně založena.
-              Správce organizace se přidává samostatným krokem.
+              Registrační číslo: {created.registration_number || "—"}. Správce a učitelé se přidávají samostatným krokem.
             </Alert>
           ) : null}
           {loading ? <Card className="mt-5 p-6">Načítám obec…</Card> : null}
@@ -160,6 +173,9 @@ export default function NewMunicipalityOrganizationPage() {
                   Založení je povoleno pouze pod aktivní licencí; server stav znovu ověří.
                 </p>
 
+                {!isAssociation && matches.length ? <Alert className="mt-4">Podobné školy již evidujeme. Zkontrolujte je před založením:
+                  <ul>{matches.map((school) => <li key={school.id}>{school.name} · {school.registered_address} · IČO {school.legal_identifier || "—"} · IZO {school.school_izo || "—"}{school.parent_organization_id ? <Link className="ml-2 underline" href={`/portal/admin/skoly/${school.id}/onboarding`}>Otevřít školu</Link> : " · samostatná škola – vyžaduje kontrolu a propojení"}</li>)}</ul>
+                </Alert> : null}
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
                   <div>
                     <Label>Typ organizace</Label>
@@ -180,6 +196,7 @@ export default function NewMunicipalityOrganizationPage() {
                       maxLength={8}
                     />
                   </div>
+                  {!isAssociation ? <div><Label>IZO (volitelné)</Label><Input inputMode="numeric" pattern="[0-9]{9}" maxLength={9} value={form.schoolIzo} onChange={(event) => update("schoolIzo", event.target.value)} /></div> : null}
                   <div className="md:col-span-2">
                     <Label>Název organizace</Label>
                     <Input
@@ -229,22 +246,22 @@ export default function NewMunicipalityOrganizationPage() {
                     </>
                   ) : null}
                   <div>
-                    <Label>Kontaktní osoba</Label>
+                    <Label>Kontaktní osoba{!isAssociation ? " (volitelné)" : ""}</Label>
                     <Input
                       value={form.contactName}
                       onChange={(event) => update("contactName", event.target.value)}
                       maxLength={120}
-                      required
+                      required={isAssociation}
                     />
                   </div>
                   <div>
-                    <Label>Kontaktní e-mail</Label>
+                    <Label>Kontaktní e-mail{!isAssociation ? " (volitelné)" : ""}</Label>
                     <Input
                       type="email"
                       value={form.contactEmail}
                       onChange={(event) => update("contactEmail", event.target.value)}
                       maxLength={254}
-                      required
+                      required={isAssociation}
                     />
                   </div>
                   <div>
@@ -271,7 +288,8 @@ export default function NewMunicipalityOrganizationPage() {
           ) : null}
 
           {created ? (
-            <div className="mt-5">
+            <div className="mt-5 flex flex-wrap gap-3">
+              {created.organization_type === "school" ? <Link href={`/portal/admin/skoly/${created.organization_id}/onboarding`}><Button type="button">Pokračovat: správce školy a učitelé</Button></Link> : null}
               <Link href={`/portal/admin/obce/${municipalityId}`}>
                 <Button type="button">Zpět na detail obce</Button>
               </Link>
