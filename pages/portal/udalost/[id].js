@@ -157,6 +157,7 @@ export default function UdalostDetail() {
   const [licenseMode, setLicenseMode] = useState("active");
   const [licenseLoading, setLicenseLoading] = useState(true);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const [attendanceRoleReady, setAttendanceRoleReady] = useState(false);
   const [isPosterOpen, setIsPosterOpen] = useState(false);
 
   const [currentUserId, setCurrentUserId] = useState("");
@@ -207,6 +208,7 @@ export default function UdalostDetail() {
         const { data: adminData, error: adminError } = await supabase.rpc("is_admin");
         if (!adminError && mounted) {
           setIsPlatformAdmin(!!adminData);
+          setAttendanceRoleReady(true);
         }
 
         const {
@@ -441,7 +443,7 @@ export default function UdalostDetail() {
   }, [eventTitle, calendarStart, calendarEnd, calendarDetails, eventLocation]);
 
   async function handleAttendEvent() {
-    if (!id || !currentUserId || !activeOrganizationId || isAttending) return;
+    if (!attendanceRoleReady || isPlatformAdmin || !id || !currentUserId || !activeOrganizationId || isAttending) return;
 
     setAttendeeSaving(true);
     setAttendeeError("");
@@ -589,11 +591,11 @@ export default function UdalostDetail() {
             </div>
 
             <div className="mt-2 text-slate-700 leading-7">
-              Potvrďte jedním kliknutím, že se vaše škola plánuje tohoto vysílání zúčastnit.
+              {isPlatformAdmin ? "Jako správce platformy můžete vysílání sledovat bez přihlášení účasti. Účast za organizaci potvrzuje její vlastní uživatel." : "Potvrďte jedním kliknutím, že se vaše škola plánuje tohoto vysílání zúčastnit."}
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              {activeOrganizationId ? (
+              {isPlatformAdmin ? null : attendanceRoleReady && activeOrganizationId ? (
                 <button
                   type="button"
                   onClick={handleAttendEvent}
@@ -615,7 +617,7 @@ export default function UdalostDetail() {
                 </button>
               ) : (
                 <div className="text-sm text-slate-600">
-                  Účast může potvrdit pouze uživatel přiřazený ke škole nebo organizaci.
+                  {attendanceRoleReady ? "Účast může potvrdit pouze uživatel přiřazený ke škole nebo organizaci." : "Ověřuji oprávnění pro potvrzení účasti…"}
                 </div>
               )}
 
