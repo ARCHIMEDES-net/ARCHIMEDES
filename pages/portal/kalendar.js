@@ -169,11 +169,11 @@ function AttendButton({
   saving,
   onAttend,
 }) {
-  if (!canAttend) return null;
+  if (!canAttend && !isProgramAdmin) return null;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <button
+      {canAttend && <button
         type="button"
         onClick={() => onAttend(eventId)}
         disabled={saving || isAttending}
@@ -195,12 +195,12 @@ function AttendButton({
             {isAttending ? "Přihlášeno" : "Zúčastníme se"}
           </span>
         )}
-      </button>
+      </button>}
 
       {isProgramAdmin ? (
-        <span className="text-xs font-semibold text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
-          Škol: {attendeeCount || 0}
-        </span>
+        <Link href={`/portal/admin/ucast/${eventId}`} className="text-sm font-semibold text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 hover:bg-emerald-100 underline underline-offset-2">
+          Přihlášené organizace: {attendeeCount || 0} →
+        </Link>
       ) : null}
     </div>
   );

@@ -282,12 +282,13 @@ export default function UdalostDetail() {
     let mounted = true;
 
     async function loadAttendeeStatus() {
-      if (!id || !activeOrganizationId) return;
+      if (!id || (!activeOrganizationId && !isPlatformAdmin)) return;
 
       setAttendeeLoading(true);
       setAttendeeError("");
 
       try {
+        if (activeOrganizationId) {
         const { data: ownRows, error: ownError } = await supabase
           .from("event_attendees")
           .select("id")
@@ -299,6 +300,7 @@ export default function UdalostDetail() {
 
         if (mounted) {
           setIsAttending(Array.isArray(ownRows) && ownRows.length > 0);
+        }
         }
 
         if (isPlatformAdmin) {
@@ -618,9 +620,9 @@ export default function UdalostDetail() {
               )}
 
               {isPlatformAdmin ? (
-                <div className="text-sm font-semibold text-emerald-900 bg-white/70 border border-emerald-200 rounded-xl px-3 py-2">
-                  Přihlášeno škol: {attendeeCount}
-                </div>
+                <Link href={`/portal/admin/ucast/${id}`} className="text-sm font-semibold text-emerald-900 bg-white/70 border border-emerald-200 rounded-xl px-3 py-2 hover:bg-emerald-100 underline underline-offset-2">
+                  Přihlášené organizace: {attendeeCount} →
+                </Link>
               ) : null}
             </div>
 
