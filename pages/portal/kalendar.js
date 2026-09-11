@@ -287,6 +287,7 @@ export default function Kalendar() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [isProgramAdmin, setIsProgramAdmin] = useState(false);
+  const [attendanceRoleReady, setAttendanceRoleReady] = useState(false);
 
   const [currentUserId, setCurrentUserId] = useState("");
   const [activeOrganizationId, setActiveOrganizationId] = useState("");
@@ -418,6 +419,7 @@ export default function Kalendar() {
         if (cancelled) return;
 
         setIsProgramAdmin(!isAdminError && !!isAdminData);
+        setAttendanceRoleReady(!isAdminError);
       } catch (_e) {
         if (!cancelled) {
           setIsProgramAdmin(false);
@@ -463,7 +465,7 @@ export default function Kalendar() {
   }, [sortedRows, activeOrganizationId, isProgramAdmin]);
 
   async function handleAttend(eventId) {
-    if (!eventId || !currentUserId || !activeOrganizationId) return;
+    if (!attendanceRoleReady || isProgramAdmin || !eventId || !currentUserId || !activeOrganizationId) return;
 
     setSavingEventId(eventId);
     setAttendeeError("");
@@ -498,7 +500,7 @@ export default function Kalendar() {
 
   const nextOne = sortedRows[0] || null;
   const later = sortedRows.slice(1);
-  const canAttend = !!currentUserId && !!activeOrganizationId;
+  const canAttend = attendanceRoleReady && !isProgramAdmin && !!currentUserId && !!activeOrganizationId;
 
   return (
     <RequireAuth>
@@ -549,6 +551,7 @@ export default function Kalendar() {
         {isProgramAdmin ? (
           <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <div className="font-semibold text-slate-900">Administrace programu</div>
+            <p className="mt-2 text-sm text-slate-700">Jako správce platformy můžete vysílání sledovat bez přihlášení účasti. Výběrem organizace ji k vysílání nepřihlašujete; účast potvrzuje její vlastní uživatel.</p>
             <div className="text-sm text-slate-600 mt-1">
               Nové vysílání zakládejte přes tlačítko <strong>Nová událost</strong>. Po skončení vysílání
               doplňte záznam ve <strong>Správě vysílání</strong> a zkontrolujte výsledek v <strong>Archivu</strong>.
