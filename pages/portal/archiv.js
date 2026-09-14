@@ -20,6 +20,23 @@ import {
 } from "../../lib/archiveRecording";
 import { attachPortalBroadcastSessions } from "../../lib/portalBroadcastSessions";
 
+// Complete category catalogue allowed by events_category_allowed.
+const ARCHIVE_CATEGORIES = [
+  "Vstup expertů – 1. stupeň",
+  "Vstup expertů – 2. stupeň",
+  "Kariérní poradenství jinak",
+  "Smart City klub",
+  "Generace Z",
+  "13. komnata VIP",
+  "English Talk",
+  "Senior klub",
+  "Čtenářský klub – děti",
+  "Čtenářský klub – dospělí",
+  "Speciál",
+  "Wellbeing",
+  "Filmový klub"
+];
+
 function safeDate(value) {
   if (!value) return null;
   const d = new Date(value);
@@ -317,7 +334,7 @@ export default function Archiv() {
   }, [rows]);
 
   const categories = useMemo(() => {
-    const set = new Set();
+    const set = new Set(ARCHIVE_CATEGORIES);
     prepared.forEach((r) => {
       if (r.category) set.add(r.category);
     });
@@ -390,7 +407,7 @@ export default function Archiv() {
                   label="publikovaných záznamů v archivu"
                 />
                 <MiniStat
-                  value={String(categories.filter((x) => x !== "Vše").length)}
+                  value={String(new Set(prepared.map((r) => r.category).filter(Boolean)).size)}
                   label="rubrik v archivu"
                 />
                 <MiniStat
