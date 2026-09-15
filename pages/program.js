@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, GraduationCap, Leaf, Radio, School, Users } from "lucide-react";
 import Footer from "../components/Footer";
 import PublicEventCard from "../components/PublicEventCard";
+import PublicPwaPromotion from "../components/PublicPwaPromotion";
 import SectionEyebrow from "../components/home/SectionEyebrow";
 import { Button } from "../components/ui/button";
 import {
@@ -145,6 +146,8 @@ export default function ProgramPage({ initialEvents = [] }) {
               </p>
             </div>
 
+            <PublicPwaPromotion compact />
+
             {events.length ? (
               <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {events.map((event) => (
@@ -157,6 +160,7 @@ export default function ProgramPage({ initialEvents = [] }) {
                 <p className="mt-1 text-sm text-slate-600">Potvrzené pořady zde zveřejníme ihned po stanovení termínu.</p>
               </div>
             )}
+            <PublicPwaPromotion />
           </div>
         </section>
 
