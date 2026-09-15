@@ -556,6 +556,8 @@ export default function AdminUdalosti() {
     if (!file) return;
 
     const allowedTypes = [
+      "image/jpeg",
+      "image/png",
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "application/msword",
@@ -566,10 +568,10 @@ export default function AdminUdalosti() {
     ];
 
     const ext = safeFileExt(file?.name);
-    const allowedExts = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"];
+    const allowedExts = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "jpg", "jpeg", "png"];
 
     if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext)) {
-      setError("Pracovní list musí být PDF, DOC, DOCX, XLS, XLSX, PPT nebo PPTX.");
+      setError("Pracovní list musí být PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG nebo PNG.");
       return;
     }
 
@@ -999,13 +1001,17 @@ export default function AdminUdalosti() {
                       {uploadingWorksheet ? "Nahrávám…" : "Nahrát z PC"}
                       <input
                         type="file"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                        accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
                         className="hidden"
                         onChange={(e) => handleWorksheetUpload(e.target.files?.[0])}
                         disabled={uploadingWorksheet}
                       />
                     </label>
                   </div>
+
+                  <p className="mt-1.5 text-[13px] text-slate-500">
+                    PDF, Word, Excel, PowerPoint nebo obrázek JPG, JPEG či PNG. Max. 15 MB.
+                  </p>
 
                   {worksheetUrl ? (
                     <div className="mt-2.5">

@@ -330,7 +330,7 @@ describe("Supabase Storage and upload boundary assumptions", () => {
     expect(eventAdmin).toContain("file.size > 7 * 1024 * 1024");
     expect(eventAdmin).toContain("file.size > 15 * 1024 * 1024");
     expect(eventAdmin).toContain(
-      'const allowedExts = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"]'
+      'const allowedExts = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "jpg", "jpeg", "png"]'
     );
   });
 
