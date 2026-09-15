@@ -192,14 +192,14 @@ function AttendButton({
         ) : (
           <span className="inline-flex items-center gap-1.5">
             <Check className="h-4 w-4" aria-hidden="true" />
-            {isAttending ? "Přihlášeno" : "Zúčastníme se"}
+            {isAttending ? "Přihlášeno" : "Zúčastním se"}
           </span>
         )}
       </button>}
 
       {isProgramAdmin ? (
         <Link href={`/portal/admin/ucast/${eventId}`} className="text-sm font-semibold text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 hover:bg-emerald-100 underline underline-offset-2">
-          Přihlášené organizace: {attendeeCount || 0} →
+          Přihlášení účastníci: {attendeeCount || 0} →
         </Link>
       ) : null}
     </div>
@@ -329,7 +329,7 @@ export default function Kalendar() {
     }
   }
 
-  async function loadAttendees(eventRows, orgId, adminMode) {
+  async function loadAttendees(eventRows, userId, adminMode) {
     if (!Array.isArray(eventRows) || eventRows.length === 0) {
       setAttendeeInfo({});
       return;
@@ -341,14 +341,14 @@ export default function Kalendar() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("event_attendees")
-      .select("event_id, organization_id")
-      .in("event_id", eventIds);
-
-    if (error) {
-      setAttendeeError(error.message);
-      return;
+    const data = [];
+    for (let offset = 0; ; offset += 200) {
+      const { data: page, error } = await supabase.from("event_attendees")
+        .select("id, event_id, user_id").in("event_id", eventIds)
+        .eq("excluded_admin_context", false).order("id").range(offset, offset + 199);
+      if (error) { setAttendeeError(error.message); return; }
+      data.push(...(page || []));
+      if (!page || page.length < 200) break;
     }
 
     const next = {};
@@ -372,7 +372,7 @@ export default function Kalendar() {
         next[item.event_id].count += 1;
       }
 
-      if (orgId && item.organization_id === orgId) {
+      if (userId && item.user_id === userId) {
         next[item.event_id].isAttending = true;
       }
     });
@@ -461,11 +461,11 @@ export default function Kalendar() {
   }, [visibleRows]);
 
   useEffect(() => {
-    loadAttendees(sortedRows, activeOrganizationId, isProgramAdmin);
-  }, [sortedRows, activeOrganizationId, isProgramAdmin]);
+    loadAttendees(sortedRows, currentUserId, isProgramAdmin);
+  }, [sortedRows, currentUserId, isProgramAdmin]);
 
   async function handleAttend(eventId) {
-    if (!attendanceRoleReady || isProgramAdmin || !eventId || !currentUserId || !activeOrganizationId) return;
+    if (!attendanceRoleReady || !eventId || !currentUserId || (!isProgramAdmin && !activeOrganizationId)) return;
 
     setSavingEventId(eventId);
     setAttendeeError("");
@@ -473,7 +473,7 @@ export default function Kalendar() {
     try {
       const { error } = await supabase.from("event_attendees").insert({
         event_id: eventId,
-        organization_id: activeOrganizationId,
+        organization_id: isProgramAdmin ? null : activeOrganizationId,
         user_id: currentUserId,
       });
 
@@ -500,7 +500,7 @@ export default function Kalendar() {
 
   const nextOne = sortedRows[0] || null;
   const later = sortedRows.slice(1);
-  const canAttend = attendanceRoleReady && !isProgramAdmin && !!currentUserId && !!activeOrganizationId;
+  const canAttend = attendanceRoleReady && !!currentUserId && (isProgramAdmin || !!activeOrganizationId);
 
   return (
     <RequireAuth>
@@ -551,7 +551,7 @@ export default function Kalendar() {
         {isProgramAdmin ? (
           <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <div className="font-semibold text-slate-900">Administrace programu</div>
-            <p className="mt-2 text-sm text-slate-700">Jako správce platformy můžete vysílání sledovat bez přihlášení účasti. Výběrem organizace ji k vysílání nepřihlašujete; účast potvrzuje její vlastní uživatel.</p>
+            <p className="mt-2 text-sm text-slate-700">Účast potvrzujete sami za sebe. Jako správce platformy se přihlašujete bez přiřazení k právě vybrané škole nebo obci.</p>
             <div className="text-sm text-slate-600 mt-1">
               Nové vysílání zakládejte přes tlačítko <strong>Nová událost</strong>. Po skončení vysílání
               doplňte záznam ve <strong>Správě vysílání</strong> a zkontrolujte výsledek v <strong>Archivu</strong>.

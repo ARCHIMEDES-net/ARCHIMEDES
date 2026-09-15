@@ -284,18 +284,18 @@ export default function UdalostDetail() {
     let mounted = true;
 
     async function loadAttendeeStatus() {
-      if (!id || (!activeOrganizationId && !isPlatformAdmin)) return;
+      if (!id || !currentUserId) return;
 
       setAttendeeLoading(true);
       setAttendeeError("");
 
       try {
-        if (activeOrganizationId) {
+        if (currentUserId) {
         const { data: ownRows, error: ownError } = await supabase
           .from("event_attendees")
           .select("id")
           .eq("event_id", id)
-          .eq("organization_id", activeOrganizationId)
+          .eq("user_id", currentUserId)
           .limit(1);
 
         if (ownError) throw ownError;
@@ -331,7 +331,7 @@ export default function UdalostDetail() {
     return () => {
       mounted = false;
     };
-  }, [id, activeOrganizationId, isPlatformAdmin]);
+  }, [id, currentUserId, isPlatformAdmin]);
 
   useEffect(() => {
     let mounted = true;
@@ -443,7 +443,7 @@ export default function UdalostDetail() {
   }, [eventTitle, calendarStart, calendarEnd, calendarDetails, eventLocation]);
 
   async function handleAttendEvent() {
-    if (!attendanceRoleReady || isPlatformAdmin || !id || !currentUserId || !activeOrganizationId || isAttending) return;
+    if (!attendanceRoleReady || !id || !currentUserId || (!isPlatformAdmin && !activeOrganizationId) || isAttending) return;
 
     setAttendeeSaving(true);
     setAttendeeError("");
@@ -453,7 +453,7 @@ export default function UdalostDetail() {
         .from("event_attendees")
         .insert({
           event_id: id,
-          organization_id: activeOrganizationId,
+          organization_id: isPlatformAdmin ? null : activeOrganizationId,
           user_id: currentUserId,
         });
 
@@ -591,11 +591,11 @@ export default function UdalostDetail() {
             </div>
 
             <div className="mt-2 text-slate-700 leading-7">
-              {isPlatformAdmin ? "Jako správce platformy můžete vysílání sledovat bez přihlášení účasti. Účast za organizaci potvrzuje její vlastní uživatel." : "Potvrďte jedním kliknutím, že se vaše škola plánuje tohoto vysílání zúčastnit."}
+              {isPlatformAdmin ? "Jako správce potvrzujete svou osobní účast bez přiřazení k vybrané organizaci." : "Potvrďte jedním kliknutím svou účast na vysílání. Každý přihlášený uživatel se eviduje samostatně."}
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              {isPlatformAdmin ? null : attendanceRoleReady && activeOrganizationId ? (
+              {attendanceRoleReady && currentUserId && (isPlatformAdmin || activeOrganizationId) ? (
                 <button
                   type="button"
                   onClick={handleAttendEvent}
@@ -611,7 +611,7 @@ export default function UdalostDetail() {
                   ) : (
                     <span className="inline-flex items-center gap-1.5">
                       <Check className="h-4 w-4" aria-hidden="true" />
-                      {isAttending ? "Vaše škola je přihlášena" : "Zúčastníme se vysílání"}
+                      {isAttending ? "Jste přihlášeni" : "Zúčastním se vysílání"}
                     </span>
                   )}
                 </button>
@@ -623,7 +623,7 @@ export default function UdalostDetail() {
 
               {isPlatformAdmin ? (
                 <Link href={`/portal/admin/ucast/${id}`} className="text-sm font-semibold text-emerald-900 bg-white/70 border border-emerald-200 rounded-xl px-3 py-2 hover:bg-emerald-100 underline underline-offset-2">
-                  Přihlášené organizace: {attendeeCount} →
+                  Přihlášení účastníci: {attendeeCount} →
                 </Link>
               ) : null}
             </div>

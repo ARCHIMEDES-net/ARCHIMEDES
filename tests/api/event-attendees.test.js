@@ -53,6 +53,13 @@ describe("attendance admin API", () => {
     expect(result).toHaveLength(201); expect(second.range).toHaveBeenCalledWith(200, 399);
     expect(result[200].email).toBe(""); expect(result[200].organization).toBe("Škola");
   });
+  it("shows personal admins without querying null organizations", async () => {
+    db.from.mockReturnValueOnce(query([{ id: "r", organization_id: null, user_id: "admin" }]))
+      .mockReturnValueOnce(query([{ id: "admin", full_name: "Správce", email: "admin@example.com" }]));
+    const rows = await loadEventAttendees(db, id);
+    expect(rows[0]).toMatchObject({ name: "Správce", email: "admin@example.com", organization: "Správce platformy – osobní účast" });
+    expect(db.from.mock.calls.map(([table]) => table)).toEqual(["event_attendees", "profiles"]);
+  });
   it("escapes spreadsheet content and encodes formulas as text", () => {
     const xml = attendanceWorkbook("A & B", [{ organization: "<škola>", name: '=HYPERLINK("x")', email: "a@b.cz", created_at: "2026-09-11T08:00:00Z" }]);
     expect(xml).toContain("A &amp; B"); expect(xml).toContain("&lt;škola&gt;");
