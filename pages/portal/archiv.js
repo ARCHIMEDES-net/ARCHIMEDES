@@ -396,6 +396,7 @@ export default function Archiv() {
               <h1 className="mt-3.5 text-[34px] font-[950] leading-[1.08] tracking-[-0.02em] text-navy-900">
                 {cfg.title}
               </h1>
+              <Link href="/portal/pracovni-listy" className="inline-flex min-h-11 items-center font-bold underline">Pracovní listy →</Link>
 
               <p className="mt-3.5 max-w-[760px] text-base leading-relaxed text-muted">
                 {cfg.text}

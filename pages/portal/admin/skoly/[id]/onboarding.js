@@ -64,6 +64,7 @@ export default function SchoolOnboarding() {
     <main className="mx-auto max-w-[1000px] px-4 py-8 sm:px-6">
       <Link className="underline" href={data ? `/portal/admin/obce/${data.school.parent_organization_id}` : "/portal/admin/obce"}>← Zpět na obec</Link>
       <h1 className="mt-3 text-3xl font-black text-navy-900">{data?.school.name || "Onboarding školy"}</h1>
+      <Link href={`/portal/uzivatele?organizationId=${id}`} className="inline-flex min-h-11 items-center font-bold underline">Spravovat uživatele školy →</Link>
       {data ? <p className="mt-2 text-slate-600">Registrační číslo: {data.school.registration_number || "—"} · {data.school.registered_address}</p> : null}
       {error ? <Alert variant="error" className="mt-5">{error}</Alert> : null}
       {message ? <Alert variant="success" className="mt-5">{message}</Alert> : null}

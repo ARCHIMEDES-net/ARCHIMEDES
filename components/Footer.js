@@ -37,6 +37,7 @@ export default function Footer() {
             />
           </div>
           <p className="footer-tagline">{tagline}</p>
+          <Link href="/instalace" className="footer-link pwa-install-promotion">Přidat aplikaci do telefonu</Link>
           {visibleSocial.length ? (
             <div className="footer-brand-social">
               <span className="footer-social-label">Sledujte nás</span>

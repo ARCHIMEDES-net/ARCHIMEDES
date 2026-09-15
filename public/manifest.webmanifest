@@ -5,7 +5,7 @@
   "description": "Živý program, novinky a připomenutí vysílání ARCHIMEDES Live.",
   "lang": "cs",
   "dir": "ltr",
-  "start_url": "/portal/novinky",
+  "start_url": "/aplikace",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

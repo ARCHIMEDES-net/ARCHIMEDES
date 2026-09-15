@@ -13,7 +13,8 @@ const header = fs.readFileSync(
 
 describe("Křídla portal UI", () => {
   it("shows the section to everyone while gating the actual materials", () => {
-    expect(header).toContain('href: "/portal/kridla"');
+    expect(header).toContain("communityLinks");
+    expect(fs.readFileSync(path.join(process.cwd(), "lib/portalNavigation.js"), "utf8")).toContain('["Křídla", "/portal/kridla"]');
     expect(page).toContain("Chráněná knihovna");
     expect(page).toContain("!loading && !hasAccess");
     expect(page).toContain("!loading && hasAccess");
