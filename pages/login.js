@@ -452,6 +452,8 @@ export default function LoginPage() {
             </Button>
           </div>
         </form>
+        <p className="pwa-install-promotion mt-5 text-center text-sm"><Link href="/instalace" className="font-bold underline">Přidat ARCHIMEDES Live do telefonu</Link><br />Rychlý přístup k programu a sledování. Instalace je dobrovolná.</p>
+        <style jsx global>{`@media (display-mode: standalone) { .pwa-install-promotion { display: none !important; } }`}</style>
 
         <div className="mt-1.5 border-t border-slate-900/[0.08] pt-5">
           <div className="mb-3 text-[15px] font-black text-navy-900">

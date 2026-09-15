@@ -11,7 +11,7 @@ describe("PWA contract", () => {
     const manifest = JSON.parse(source("public/manifest.webmanifest"));
     expect(manifest.name).toBe("ARCHIMEDES Live");
     expect(manifest.short_name).toBe("ARCHIMEDES Live");
-    expect(manifest.start_url).toBe("/portal/novinky");
+    expect(manifest.start_url).toBe("/aplikace");
     expect(manifest.display).toBe("standalone");
     expect(manifest.icons).toEqual([
       {
@@ -67,7 +67,7 @@ describe("PWA contract", () => {
     const newsPage = source("pages/portal/novinky.js");
     const serviceWorker = source("public/sw.js");
 
-    expect(manifest.start_url).toBe("/portal/novinky");
+    expect(manifest.start_url).toBe("/aplikace");
     expect(newsPage).toContain("events(starts_at)");
     expect(newsPage).toContain("Termín vysílání:");
     expect(newsPage).toContain("formatBroadcastDate(event.starts_at)");

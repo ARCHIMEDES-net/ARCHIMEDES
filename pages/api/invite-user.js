@@ -1,3 +1,4 @@
+import { requirePlatformAdmin } from "../../lib/server/platformAdminApi";
 import { createClient } from "@supabase/supabase-js";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 import {
@@ -133,6 +134,12 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Nepodařilo se ověřit uživatele." });
     }
 
+    if (req.body?.organizationId) {
+      const requestedId = String(req.body.organizationId);
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestedId)) return res.status(400).json({ error: "Neplatná organizace." });
+      if (!await requirePlatformAdmin(req, res, supabaseAdmin)) return;
+      organizationId = requestedId;
+    } else {
     const { data: inviterProfile, error: inviterProfileError } =
       await supabaseAdmin
         .from("profiles")
@@ -174,6 +181,8 @@ export default async function handler(req, res) {
     }
 
     organizationId = inviterMembership.organization_id;
+
+    }
 
     const { data: organization, error: organizationError } = await supabaseAdmin
       .from("organizations")

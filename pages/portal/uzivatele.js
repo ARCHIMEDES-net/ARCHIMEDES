@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import RequireAuth from "../../components/RequireAuth";
 import PortalHeader from "../../components/PortalHeader";
@@ -13,6 +14,9 @@ import { Badge } from "../../components/ui/badge";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/ui/table";
 
 export default function UzivateleSkolyPage() {
+  const router = useRouter();
+  const requestedOrganization = typeof router.query.organizationId === "string" ? router.query.organizationId : "";
+  const [platformContext, setPlatformContext] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isOrgAdmin, setIsOrgAdmin] = useState(false);
@@ -32,8 +36,8 @@ export default function UzivateleSkolyPage() {
   const [newRole, setNewRole] = useState("member");
 
   useEffect(() => {
-    loadAll();
-  }, []);
+    if (router.isReady) loadAll();
+  }, [router.isReady, requestedOrganization]);
 
   async function loadAll() {
     setLoading(true);
@@ -60,11 +64,19 @@ export default function UzivateleSkolyPage() {
 
       if (profileError) throw profileError;
 
-      const activeOrganizationId = profile?.active_organization_id || null;
+      let activeOrganizationId = profile?.active_organization_id || null;
+      let platformAdmin = false;
+      if (requestedOrganization) {
+        const { data: allowed, error: accessError } = await supabase.rpc("is_admin");
+        if (accessError || !allowed) throw new Error("Výběr cizí organizace je dostupný pouze správci platformy.");
+        platformAdmin = true;
+        activeOrganizationId = requestedOrganization;
+      }
+      setPlatformContext(platformAdmin);
 
-      let membership = null;
+      let membership = platformAdmin ? { organization_id: activeOrganizationId, role_in_org: "organization_admin" } : null;
 
-      if (activeOrganizationId) {
+      if (activeOrganizationId && !platformAdmin) {
         const { data: activeMembership, error: activeMembershipError } =
           await supabase
             .from("organization_members")
@@ -216,6 +228,7 @@ export default function UzivateleSkolyPage() {
           email: newEmail.trim().toLowerCase(),
           fullName: newFullName.trim(),
           role: newRole,
+          ...(platformContext ? { organizationId } : {}),
         }),
       });
 

@@ -40,6 +40,7 @@ export default function InstalacePage() {
           </div>
 
           <PwaInstallGuide />
+          <p className="mt-4 text-center text-slate-600">Instalace je zdarma a dobrovolná. Pro chráněná vysílání a záznamy potřebujete přihlášení a odpovídající přístup.</p>
 
           <section className="mt-6 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
             <div className="grid gap-5 sm:grid-cols-2">
@@ -66,10 +67,10 @@ export default function InstalacePage() {
 
           <div className="mt-7 flex flex-col items-center justify-center gap-3 text-center sm:flex-row">
             <Link
-              href="/portal/novinky"
+              href="/aplikace"
               className="inline-flex min-h-14 items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 text-base font-black text-navy-900"
             >
-              Přejít na Co je nového
+              Otevřít ARCHIMEDES Live
             </Link>
             <Link
               href="/kontakt"

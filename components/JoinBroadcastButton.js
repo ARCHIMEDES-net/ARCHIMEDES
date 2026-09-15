@@ -1,3 +1,4 @@
+import { isStandalonePwa } from "../lib/pwa";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getJoinButtonState } from "../lib/broadcastState";
@@ -66,7 +67,7 @@ export default function JoinBroadcastButton({
   async function joinThroughArchimedes() {
     setJoining(true);
     setJoinError("");
-    const target = window.open("", "_blank");
+    const target = isStandalonePwa() ? null : window.open("", "_blank");
 
     try {
       const { data } = await supabase.auth.getSession();

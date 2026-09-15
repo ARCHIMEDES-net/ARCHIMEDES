@@ -92,6 +92,7 @@ export default function PublicHeader({ active = "" }) {
         </nav>
 
         <div className="ph-actions">
+          <Link href="/instalace" className="ph-login pwa-install-promotion">Aplikace do telefonu</Link>
           <Link href="/login" className="ph-login">
             <span aria-hidden="true">👤</span>
             <span className="ph-loginLabel">Přihlášení</span>
@@ -121,6 +122,7 @@ export default function PublicHeader({ active = "" }) {
             </Link>
           ))}
 
+          <Link href="/instalace" className="ph-mobileLink pwa-install-promotion">Aplikace do telefonu</Link>
           <Link href="/login" className="ph-mobileLogin">
             👤 Přihlášení
           </Link>
@@ -128,6 +130,7 @@ export default function PublicHeader({ active = "" }) {
       ) : null}
 
       <style jsx global>{`
+        @media (display-mode: standalone) { .pwa-install-promotion { display: none !important; } }
         .ph-header {
           position: sticky;
           top: 0;

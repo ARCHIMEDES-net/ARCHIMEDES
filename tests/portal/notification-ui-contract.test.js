@@ -17,7 +17,7 @@ describe("notification UI contract", () => {
   it("adds a notification center to portal navigation", () => {
     const header = source("components/PortalHeader.js");
     const newsPage = source("pages/portal/novinky.js");
-    expect(header).toContain('href: "/portal/novinky"');
+    expect(header).toContain('["Co je nového", "/portal/novinky"]');
     expect(newsPage).toContain('from("user_notifications")');
     expect(newsPage).toContain("Označit vše jako přečtené");
     expect(header).toContain("publishUnreadNotificationCount");

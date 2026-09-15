@@ -8,6 +8,7 @@ import { Alert } from "../../components/ui/alert";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import {
+  CONTENT_NOTIFICATION_FILTER,
   notificationKindLabel,
   safeNotificationTargetPath,
 } from "../../lib/notifications";
@@ -37,6 +38,7 @@ export default function NovinkyPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [nextEvent, setNextEvent] = useState(null);
   const [badgePermission, setBadgePermission] = useState("unsupported");
   const [requestingBadgePermission, setRequestingBadgePermission] = useState(false);
@@ -50,10 +52,12 @@ export default function NovinkyPage() {
       const [
         { data: notificationData, error: notificationError },
         { data: eventData, error: eventError },
+        { count: unreadTotal, error: countError },
       ] = await Promise.all([
         supabase
           .from("user_notifications")
           .select("id, event_id, kind, title, body, target_path, available_at, read_at, events(starts_at)")
+          .or(CONTENT_NOTIFICATION_FILTER)
           .lte("available_at", nowIso)
           .order("available_at", { ascending: false })
           .limit(100),
@@ -64,10 +68,13 @@ export default function NovinkyPage() {
           .gt("starts_at", nowIso)
           .order("starts_at", { ascending: true })
           .limit(1),
+        supabase.from("user_notifications").select("id", {count:"exact",head:true}).or(CONTENT_NOTIFICATION_FILTER).is("read_at",null).lte("available_at",nowIso),
       ]);
 
       if (notificationError) throw notificationError;
       if (eventError) throw eventError;
+      if (countError) throw countError;
+      setUnreadCount(unreadTotal || 0);
 
       setNotifications(Array.isArray(notificationData) ? notificationData : []);
       setNextEvent(Array.isArray(eventData) ? eventData[0] || null : null);
@@ -85,7 +92,7 @@ export default function NovinkyPage() {
 
   async function markAllRead() {
     const unreadIds = notifications.filter((item) => !item.read_at).map((item) => item.id);
-    if (!unreadIds.length) return;
+    if (!unreadCount) return;
     setSaving(true);
     setError("");
     try {
@@ -93,8 +100,11 @@ export default function NovinkyPage() {
       const { error: updateError } = await supabase
         .from("user_notifications")
         .update({ read_at: readAt })
-        .in("id", unreadIds);
+        .or(CONTENT_NOTIFICATION_FILTER)
+        .is("read_at", null)
+        .lte("available_at", readAt);
       if (updateError) throw updateError;
+      setUnreadCount(0);
       setNotifications((items) =>
         items.map((item) => (unreadIds.includes(item.id) ? { ...item, read_at: readAt } : item))
       );
@@ -105,7 +115,6 @@ export default function NovinkyPage() {
     }
   }
 
-  const unreadCount = notifications.filter((item) => !item.read_at).length;
 
   async function enableIconBadge() {
     setRequestingBadgePermission(true);
@@ -186,7 +195,7 @@ export default function NovinkyPage() {
                       href={`/portal/udalost/${nextEvent.id}`}
                       className="inline-flex min-h-11 items-center rounded-xl bg-navy-900 px-4 py-2 font-bold text-white hover:bg-navy-800"
                     >
-                      Nastavit připomenutí
+                      Detail a sledování
                     </Link>
                     <Link
                       href="/portal/kalendar"

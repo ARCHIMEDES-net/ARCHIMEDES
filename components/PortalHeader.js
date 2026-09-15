@@ -11,6 +11,9 @@ import {
   syncAppBadge,
 } from "../lib/appBadge";
 import PwaInstallDiscovery from "./PwaInstallDiscovery";
+import PortalMenu, { MenuLink } from "./PortalMenu";
+import { communityLinks } from "../lib/portalNavigation";
+import { CONTENT_NOTIFICATION_FILTER } from "../lib/notifications";
 import PwaBadgePrompt from "./PwaBadgePrompt";
 
 const LOGO_SRC = "/logo-archimedes-live.png";
@@ -30,12 +33,6 @@ function MenuIcon({ open = false }) {
   );
 }
 
-const NAV_ITEM_BASE = "inline-flex min-h-[42px] items-center justify-center whitespace-nowrap rounded-full border px-3.5 text-sm font-extrabold transition-colors";
-const NAV_ITEM_INACTIVE = "border-slate-300 bg-white text-navy-900 hover:border-slate-400";
-const NAV_ITEM_ACTIVE = "border-navy-900 bg-navy-900 text-white";
-const MOBILE_ITEM_BASE = "flex min-h-[48px] items-center justify-start rounded-2xl border px-3.5 py-3 text-[15px] font-extrabold";
-const MOBILE_ITEM_INACTIVE = "border-slate-200 bg-white text-navy-900";
-const MOBILE_ITEM_ACTIVE = "border-navy-900 bg-navy-900 text-white";
 
 export default function PortalHeader({ title = "" }) {
   const router = useRouter();
@@ -50,6 +47,7 @@ export default function PortalHeader({ title = "" }) {
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+  const [operationalCount, setOperationalCount] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -72,11 +70,19 @@ export default function PortalHeader({ title = "" }) {
         const { count: notificationCount, error: notificationError } = await supabase
           .from("user_notifications")
           .select("id", { count: "exact", head: true })
+          .or(CONTENT_NOTIFICATION_FILTER)
           .is("read_at", null)
           .lte("available_at", new Date().toISOString());
         if (!notificationError && alive) {
           const unreadCount = publishUnreadNotificationCount(notificationCount || 0);
           setUnreadNotificationCount(unreadCount);
+        }
+
+        const { data: isAdminResult, error: isAdminError } = await supabase.rpc("is_admin");
+        if (isAdminError) throw isAdminError;
+        if (isAdminResult) {
+          const { count } = await supabase.from("user_notifications").select("id", { count: "exact", head: true }).like("target_path", "/portal/admin%").is("read_at", null).lte("available_at", new Date().toISOString());
+          if (alive) setOperationalCount(count || 0);
         }
 
         const { data: profile, error: profileError } = await supabase
@@ -109,12 +115,10 @@ export default function PortalHeader({ title = "" }) {
         const activeMembership = memberships.find((item) => item.organization_id === nextActiveOrganizationId);
         const nextIsOrgAdmin = activeMembership?.role_in_org === "organization_admin";
 
-        if (nextActiveOrganizationId && nextActiveOrganizationId !== requestedActiveId) {
+        if (!isAdminResult && nextActiveOrganizationId && nextActiveOrganizationId !== requestedActiveId) {
           await supabase.from("profiles").update({ active_organization_id: nextActiveOrganizationId }).eq("id", user.id);
         }
 
-        const { data: isAdminResult, error: isAdminError } = await supabase.rpc("is_admin");
-        if (isAdminError) throw isAdminError;
         if (!alive) return;
 
         const nextIsPlatformAdmin = !!isAdminResult;
@@ -146,7 +150,7 @@ export default function PortalHeader({ title = "" }) {
 
   useEffect(() => {
     function handleResize() {
-      const mobile = window.innerWidth <= 900;
+      const mobile = window.innerWidth <= 1100;
       setIsMobile(mobile);
       if (!mobile) setMenuOpen(false);
     }
@@ -161,29 +165,11 @@ export default function PortalHeader({ title = "" }) {
     function handleUnreadCount(event) {
       setUnreadNotificationCount(Number(event?.detail?.count) || 0);
     }
+    function handleOperationalCount(event) { setOperationalCount(Number(event.detail?.count) || 0); }
+    window.addEventListener("archimedes:operational-count", handleOperationalCount);
     window.addEventListener(UNREAD_NOTIFICATION_COUNT_EVENT, handleUnreadCount);
-    return () => window.removeEventListener(UNREAD_NOTIFICATION_COUNT_EVENT, handleUnreadCount);
+    return () => { window.removeEventListener(UNREAD_NOTIFICATION_COUNT_EVENT, handleUnreadCount); window.removeEventListener("archimedes:operational-count", handleOperationalCount); };
   }, []);
-
-  const isActive = (key) => {
-    if (key === "portal") return path === "/portal" || path === "/portal/";
-    if (key === "program") return path.startsWith("/portal/kalendar");
-    if (key === "archiv") return path.startsWith("/portal/archiv");
-    if (key === "komunita") return path.startsWith("/portal/komunita");
-    if (key === "souteze") return path.startsWith("/portal/souteze");
-    if (key === "kridla") return path.startsWith("/portal/kridla");
-    if (key === "profil") return path.startsWith("/portal/muj-profil");
-    if (key === "novinky") return path.startsWith("/portal/novinky");
-    if (key === "organizace-obce") return path.startsWith("/portal/organizace-obce");
-    if (key === "uzivatele") return path.startsWith("/portal/uzivatele");
-    if (key === "sprava-vysilani") return path.startsWith("/portal/admin-udalosti") || path.startsWith("/portal/admin/udalosti");
-    if (key === "email-skupiny") return path.startsWith("/portal/email-skupiny");
-    if (key === "admin") return path === "/portal/admin";
-    return false;
-  };
-
-  const navItemClass = (key) => cn(NAV_ITEM_BASE, isActive(key) ? NAV_ITEM_ACTIVE : NAV_ITEM_INACTIVE);
-  const mobileNavItemClass = (key) => cn(MOBILE_ITEM_BASE, isActive(key) ? MOBILE_ITEM_ACTIVE : MOBILE_ITEM_INACTIVE);
 
   async function onLogout() {
     try {
@@ -265,77 +251,54 @@ export default function PortalHeader({ title = "" }) {
   ) : null;
 
   const mainLinks = [
-    { key: "portal", href: "/portal", label: "Portál" },
-    {
-      key: "novinky",
-      href: "/portal/novinky",
-      label: "Co je nového",
-      badge: unreadNotificationCount,
-    },
-    { key: "program", href: "/portal/kalendar", label: "Program" },
-    { key: "archiv", href: "/portal/archiv", label: "Archiv" },
-    { key: "komunita", href: "/portal/komunita", label: "Komunita" },
-    { key: "souteze", href: "/portal/souteze", label: "Soutěže a projekty" },
-    { key: "kridla", href: "/portal/kridla", label: "Křídla" },
-    { key: "profil", href: "/portal/muj-profil", label: "Můj profil" },
+    ["Portál", "/portal"], ["Program", "/portal/kalendar"],
+    ["Archiv", "/portal/archiv"], ["Co je nového", "/portal/novinky"],
   ];
-
-  const adminLinks = [
-    isPlatformAdmin ? { key: "email-skupiny", href: "/portal/email-skupiny", label: "E-mailové skupiny" } : null,
-    isPlatformAdmin ? { key: "sprava-vysilani", href: "/portal/admin/udalosti", label: "Správa vysílání" } : null,
-    isOrgAdmin && ["municipality", "obec"].includes(activeOrganizationType)
-      ? { key: "organizace-obce", href: "/portal/organizace-obce", label: "Organizace obce" }
-      : null,
-    isOrgAdmin && ["school", "child_home", "foundation"].includes(activeOrganizationType)
-      ? { key: "uzivatele", href: "/portal/uzivatele", label: "Uživatelé" }
-      : null,
-    isPlatformAdmin ? { key: "admin", href: "/portal/admin", label: "Admin" } : null,
-  ].filter(Boolean);
-
-  return (
-    <>
-      <header className="sticky top-0 z-30 border-b border-slate-900/[0.08] bg-white/96 backdrop-blur-md">
-        <div className={cn("mx-auto max-w-[1160px]", isMobile ? "px-3.5 py-3" : "px-4 py-3")}>
-          <div className="flex items-start justify-between gap-4">
-          <div className="relative z-40 flex shrink-0 items-center gap-3">
-            <Link href="/portal" className="flex shrink-0 items-center">
-              <Image src={LOGO_SRC} alt="ARCHIMEDES Live" width={842} height={130} priority className={cn("-mt-0.5 block w-auto", isMobile ? "h-7" : "h-[34px]")} />
-            </Link>
-            {!isMobile && title ? <div className="max-w-[130px] truncate text-sm font-extrabold text-slate-500">{title}</div> : null}
-            {!isMobile ? organizationSwitcher : null}
-          </div>
-
-          {isMobile ? (
-            <button type="button" onClick={() => setMenuOpen((prev) => !prev)} aria-label={menuOpen ? "Zavřít menu" : "Otevřít menu"} aria-expanded={menuOpen} className="flex h-[42px] min-w-[42px] items-center justify-center rounded-2xl border border-slate-900/[0.12] bg-white px-3.5 font-extrabold text-navy-900">
-              <MenuIcon open={menuOpen} />
-            </button>
-          ) : (
-            <nav className="relative z-10 flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2.5">
-              {mainLinks.map((item) => <Link key={item.key} href={item.href} className={navItemClass(item.key)}><span>{item.label}</span>{item.badge ? <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[11px] leading-none text-white">{item.badge > 99 ? "99+" : item.badge}</span> : null}</Link>)}
-              {adminLinks.map((item) => <Link key={item.key} href={item.href} className={navItemClass(item.key)}>{item.label}</Link>)}
-              <Link href="/" className={cn(NAV_ITEM_BASE, NAV_ITEM_INACTIVE, "bg-slate-50")}>Veřejný web</Link>
-              <button type="button" onClick={onLogout} className="min-h-[42px] rounded-2xl border border-slate-200 bg-white px-3.5 text-sm font-extrabold text-navy-900">Odhlásit</button>
-            </nav>
-          )}
-          </div>
-
-          {isMobile && menuOpen ? (
-            <div className="mt-3 rounded-2xl border border-slate-900/[0.08] bg-slate-50 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
-              <nav className="grid gap-2.5">
-                {organizationSwitcher ? <div className="rounded-2xl border border-slate-200 bg-white p-3 [&_select]:w-full">{organizationSwitcher}</div> : null}
-                {mainLinks.map((item) => <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}><span>{item.label}</span>{item.badge ? <span className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[11px] leading-none text-white">{item.badge > 99 ? "99+" : item.badge}</span> : null}</Link>)}
-                {adminLinks.length > 0 ? <><div className="mb-1 mt-0.5 text-xs font-extrabold uppercase tracking-[0.04em] text-slate-500">Správa a nastavení</div>{adminLinks.map((item) => <Link key={item.key} href={item.href} className={mobileNavItemClass(item.key)}>{item.label}</Link>)}</> : null}
-                <div className="mb-1 mt-0.5 text-xs font-extrabold uppercase tracking-[0.04em] text-slate-500">Další</div>
-                <Link href="/instalace" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE)}>Přidat A Live do telefonu</Link>
-                <Link href="/" className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE)}>Veřejný web</Link>
-                <button type="button" onClick={onLogout} className={cn(MOBILE_ITEM_BASE, MOBILE_ITEM_INACTIVE, "cursor-pointer text-left")}>Odhlásit</button>
-              </nav>
-            </div>
-          ) : null}
+  const schoolAdminHref = ["municipality", "obec"].includes(activeOrganizationType) ? "/portal/organizace-obce" : "/portal/uzivatele";
+  const schoolAdminLabel = activeOrganizationType === "school" ? "Správa školy" : "Správa organizace";
+  const adminArea = path.startsWith("/portal/admin") || path === "/portal/email-skupiny";
+  const navLink = ([label, href]) => <Link key={href} href={href} aria-current={path === href ? "page" : undefined} className={cn("flex min-h-11 items-center rounded-xl px-3 py-2 text-sm font-bold", path === href ? "bg-navy-900 text-white" : "text-navy-900 hover:bg-slate-100")}>
+    {label}{href === "/portal/novinky" && unreadNotificationCount > 0 ? <span className="ml-2 rounded-full bg-red-600 px-1.5 text-xs text-white">{unreadNotificationCount}</span> : null}
+  </Link>;
+  const managementLinks = <>
+    <MenuLink href="/portal/admin">Přehled administrace</MenuLink>
+    <MenuLink href="/portal/admin/organizace">Vyhledat organizaci</MenuLink>
+    <MenuLink href="/portal/admin/udalosti">Správa vysílání</MenuLink>
+    <MenuLink href="/portal/email-skupiny">E-mailové skupiny</MenuLink>
+    <MenuLink href="/portal/admin/upozorneni">Provozní upozornění{operationalCount ? ` (${operationalCount})` : ""}</MenuLink>
+  </>;
+  const accountLinks = <>
+    <MenuLink href="/portal/muj-profil">Můj profil</MenuLink>
+    <MenuLink href="/instalace">Přidat aplikaci do telefonu</MenuLink>
+    <MenuLink href="/">Veřejný web</MenuLink>
+    <button type="button" onClick={onLogout} className="min-h-11 w-full rounded-xl px-3 py-2 text-left text-sm font-semibold hover:bg-slate-100">Odhlásit</button>
+  </>;
+  return <>
+    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
+      <div className="mx-auto max-w-[1280px] px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/portal" aria-label="ARCHIMEDES Live – portál" className="shrink-0"><Image src={LOGO_SRC} alt="ARCHIMEDES Live" width={842} height={130} priority className="h-auto w-[185px]" /></Link>
+          {isMobile ? <button type="button" aria-expanded={menuOpen} aria-label={menuOpen ? "Zavřít menu" : "Otevřít menu"} onClick={() => setMenuOpen(!menuOpen)} className="flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 px-3 font-bold"><MenuIcon open={menuOpen} /> Menu</button> :
+            <nav aria-label="Hlavní navigace" className="flex items-center gap-1">
+              {mainLinks.map(navLink)}
+              <PortalMenu label="Komunita" active={communityLinks.some(([,href]) => path.startsWith(href))}>{communityLinks.map(([label,href]) => <MenuLink key={href} href={href}>{label}</MenuLink>)}</PortalMenu>
+              {isPlatformAdmin ? <PortalMenu label={operationalCount ? `Správa (${operationalCount})` : "Správa"} active={adminArea}>{managementLinks}</PortalMenu> : isOrgAdmin ? navLink([schoolAdminLabel,schoolAdminHref]) : null}
+              <PortalMenu label="Můj účet" active={path === "/portal/muj-profil"}>{accountLinks}</PortalMenu>
+            </nav>}
         </div>
-      </header>
-      <PwaInstallDiscovery />
-      <PwaBadgePrompt unreadCount={unreadNotificationCount} />
-    </>
-  );
+        {!loadingRole ? <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2 text-sm text-slate-600">
+          {isPlatformAdmin ? <><span className="font-semibold">Správce platformy</span><Link href="/portal/admin/organizace" className="inline-flex min-h-11 items-center rounded-xl border border-slate-200 px-3 font-bold text-navy-900">Vyhledat školu, obec nebo organizaci →</Link></> : <div className="flex min-w-0 flex-wrap items-center gap-2"><span>Vaše organizace:</span>{organizationSwitcher || <strong className="break-words">{activeOrganization?.name || "Osobní účet"}</strong>}</div>}
+        </div> : null}
+        {isMobile && menuOpen ? <nav aria-label="Mobilní navigace" className="mt-3 grid max-h-[65dvh] gap-1 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2" onClick={(event) => { if (event.target.closest("a")) setMenuOpen(false); }}>
+          {mainLinks.map(navLink)}
+          <p className="px-3 pt-3 text-xs font-bold uppercase text-slate-500">Komunita</p>
+          {communityLinks.map(navLink)}
+          {isPlatformAdmin ? <><p className="px-3 pt-3 text-xs font-bold uppercase text-slate-500">Správa platformy</p>{managementLinks}</> : isOrgAdmin ? navLink([schoolAdminLabel,schoolAdminHref]) : null}
+          <p className="px-3 pt-3 text-xs font-bold uppercase text-slate-500">Můj účet</p>{accountLinks}
+        </nav> : null}
+      </div>
+    </header>
+    {!isPlatformAdmin && path === "/portal" ? <PwaInstallDiscovery /> : null}
+    <PwaBadgePrompt unreadCount={unreadNotificationCount} />
+  </>;
 }

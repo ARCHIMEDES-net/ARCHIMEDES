@@ -24,7 +24,7 @@ describe("onboarding control center", () => {
 
   it("links the control center from the admin home", () => {
     const adminHome = read("pages/portal/admin/index.js");
-    expect(adminHome).toContain('href="/portal/admin/onboarding"');
-    expect(adminHome).toContain("READY / POZOR / STOP");
+    expect(adminHome).toContain("administrationGroups");
+    expect(read("lib/portalNavigation.js")).toContain('"/portal/admin/onboarding"');
   });
 });

@@ -105,7 +105,7 @@ export default function RequireAuth({ children }) {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select(
-            "id, full_name, must_set_password, user_type, active_organization_id"
+            "id, full_name, must_set_password, user_type, active_organization_id, is_active"
           )
           .eq("id", user.id)
           .maybeSingle();
@@ -118,6 +118,14 @@ export default function RequireAuth({ children }) {
         if (profile.must_set_password) {
           await deny("/nastavit-heslo");
           return;
+        }
+
+        if (profile.is_active === true) {
+          const { data: admin, error: adminError } = await supabase.from("platform_admins").select("role").eq("user_id", user.id).maybeSingle();
+          if (!adminError && ["admin", "super_admin"].includes(admin?.role)) {
+            await allow();
+            return;
+          }
         }
 
         const activeMembership = await resolveActiveMembership(user.id, profile);
