@@ -10,6 +10,7 @@ import { Card } from "../../../../../components/ui/card";
 import { Input } from "../../../../../components/ui/input";
 import { Label } from "../../../../../components/ui/label";
 import { Select } from "../../../../../components/ui/select";
+import SchoolInvitationBatch from "../../../../../components/SchoolInvitationBatch";
 
 const STATES = { preparing: "Připravuje se", sending: "Odesílání probíhá – neopakovat", sent: "Předáno e-mailovému providerovi",
   sent_copy_failed: "Odesláno, kopie vyžaduje kontrolu", delivery_unknown: "Doručení není ověřené – neopakovat",
@@ -73,6 +74,9 @@ export default function SchoolOnboarding() {
           <p className="mt-2">Škola je připojena k obci. Pro uživatelský onboarding potřebujete jméno a pracovní e-mail každého uživatele.</p>
           <p className="mt-2 font-semibold">{hasAdmin ? "Škola má přímého administrátora. Pokračujte přidáním učitelů." : "Školní administrátor zatím není připojen."}</p>
         </Card>
+        <SchoolInvitationBatch key={id} schoolName={data.school.name} members={data.members} attempts={data.attempts}
+          busy={sending} onBusy={setSending} refresh={load}
+          send={(row) => request("POST", { organizationId: id, fullName: row.fullName, email: row.email, idempotencyKey: row.idempotencyKey, role: "member" })} />
         <form onSubmit={submit}>
           <Card className="mt-5 p-6">
             <h2 className="text-xl font-bold">2. Připojit správce školy nebo učitele</h2>

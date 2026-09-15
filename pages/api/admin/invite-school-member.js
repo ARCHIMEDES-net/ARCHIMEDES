@@ -192,7 +192,7 @@ export default async function handler(req, res) {
       route: "admin-invite-school-member",
       userId: platformAdmin.id,
       resourceId: organizationId,
-      limit: 10,
+      limit: 120,
       windowSeconds: 60 * 60,
     });
     if (!allowed) {
