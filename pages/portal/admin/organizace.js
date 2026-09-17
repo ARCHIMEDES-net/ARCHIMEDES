@@ -48,7 +48,7 @@ function Directory() {
     <div className="grid gap-3">{visible.map(org=><article key={org.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4">
       <div className="min-w-0 flex-1"><h2 className="break-words text-lg font-bold text-navy-900">{org.name}</h2><p className="mt-1 text-sm text-slate-600">{types[org.org_type] || org.org_type} · {states[org.status] || org.status}{org.is_system ? " · Systémová" : ""}</p>{org.parent_name ? <p className="mt-1 text-sm text-slate-600">Pod organizací: {org.parent_name}</p> : null}</div>
       {org.license_plan === PRIZE_PLAN ? <p className="text-sm text-slate-600">{PRIZE_LABEL} · do {new Date(org.license_valid_until).toLocaleDateString("cs-CZ", { timeZone: "Europe/Prague" })}</p> : null}
-      {!org.is_system ? <button type="button" onClick={() => setSelected(org)} className="min-h-11 rounded-xl border border-slate-300 px-4 py-2 font-bold">Výherní licence</button> : null}
+      {!org.is_system ? <button type="button" onClick={() => { setSelected(org); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="min-h-11 rounded-xl border border-slate-300 px-4 py-2 font-bold">Výherní licence</button> : null}
       <Link href={organizationAdminHref(org)} className="inline-flex min-h-11 items-center rounded-xl bg-navy-900 px-4 py-2 font-bold text-white">Otevřít správu</Link>
     </article>)}</div>
   </main></>;
