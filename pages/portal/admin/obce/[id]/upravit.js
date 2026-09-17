@@ -1,3 +1,4 @@
+import { prizeDateInput } from "../../../../../lib/prizeLicense";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
@@ -47,8 +48,8 @@ export default function AdminCustomerEditPage() {
       contactPhone: data.contact_phone || "",
       registeredAddress: data.registered_address || "",
       licensePlan: data.license_plan || "paid_monthly",
-      licenseStartedAt: dateInput(data.license_started_at),
-      licenseValidUntil: dateInput(data.license_valid_until),
+      licenseStartedAt: data.license_plan === "competition_prize_12m" ? prizeDateInput(data.license_started_at) : dateInput(data.license_started_at),
+      licenseValidUntil: data.license_plan === "competition_prize_12m" ? prizeDateInput(data.license_valid_until) : dateInput(data.license_valid_until),
       contractStatus: data.contract_status || "pending",
       billingStatus: data.billing_status || "pending",
     });
@@ -136,11 +137,11 @@ export default function AdminCustomerEditPage() {
               <Card className="mt-5 p-6">
                 <h2 className="text-xl font-black text-navy-900">Licence</h2>
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  <div><Label>Varianta</Label><Select value={form.licensePlan} onChange={(e) => updatePlan(e.target.value)}><option value="paid_monthly">1 990 Kč měsíčně</option><option value="paid_annual">12 měsíců placených</option><option value="classroom_free_12m">12 měsíců zdarma – učebna</option></Select></div>
+                  <div><Label>Varianta</Label><Select disabled={organization.license_plan === "competition_prize_12m" && new Date(organization.license_valid_until) >= new Date()} value={form.licensePlan} onChange={(e) => updatePlan(e.target.value)}>{organization.license_plan === "competition_prize_12m" ? <option value="competition_prize_12m">12 měsíců zdarma – výhra v soutěži</option> : null}<option value="paid_monthly">1 990 Kč měsíčně</option><option value="paid_annual">12 měsíců placených</option><option value="classroom_free_12m">12 měsíců zdarma – učebna</option></Select></div>
                   <div><Label>Stav smlouvy</Label><Select value={form.contractStatus} onChange={(e) => update("contractStatus", e.target.value)}><option value="pending">Čeká na potvrzení</option><option value="accepted">Potvrzeno</option></Select></div>
-                  <div><Label>Platnost od</Label><Input type="date" value={form.licenseStartedAt} onChange={(e) => update("licenseStartedAt", e.target.value)} /></div>
-                  <div><Label>Platnost do</Label><Input type="date" disabled={form.licensePlan === "paid_monthly"} value={form.licenseValidUntil} onChange={(e) => update("licenseValidUntil", e.target.value)} /></div>
-                  <div><Label>Fakturace</Label><Select disabled={form.licensePlan === "classroom_free_12m"} value={form.billingStatus} onChange={(e) => update("billingStatus", e.target.value)}><option value="pending">Čeká na úhradu</option><option value="paid">Uhrazeno</option><option value="not_applicable">Bez úhrady</option></Select></div>
+                  <div><Label>Platnost od</Label><Input disabled={form.licensePlan === "competition_prize_12m"} type="date" value={form.licenseStartedAt} onChange={(e) => update("licenseStartedAt", e.target.value)} /></div>
+                  <div><Label>Platnost do</Label><Input type="date" disabled={form.licensePlan === "competition_prize_12m" || form.licensePlan === "paid_monthly"} value={form.licenseValidUntil} onChange={(e) => update("licenseValidUntil", e.target.value)} /></div>
+                  <div><Label>Fakturace</Label><Select disabled={["classroom_free_12m", "competition_prize_12m"].includes(form.licensePlan)} value={form.billingStatus} onChange={(e) => update("billingStatus", e.target.value)}><option value="pending">Čeká na úhradu</option><option value="paid">Uhrazeno</option><option value="not_applicable">Bez úhrady</option></Select></div>
                 </div>
               </Card>
 

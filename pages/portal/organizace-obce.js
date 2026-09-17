@@ -32,6 +32,7 @@ const STATUS_LABELS = {
 const LICENSE_LABELS = {
   paid_monthly: "1 990 Kč měsíčně",
   paid_annual: "12 měsíců placených najednou",
+  competition_prize_12m: "12 měsíců zdarma – výhra v soutěži",
   classroom_free_12m: "12 měsíců zdarma – obec s učebnou",
 };
 

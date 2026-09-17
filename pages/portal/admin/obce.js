@@ -65,6 +65,7 @@ const ORGANIZATION_LABELS = {
 const LICENSE_LABELS = {
   paid_monthly: "Měsíční",
   paid_annual: "Roční",
+  competition_prize_12m: "12 měsíců zdarma – výhra v soutěži",
   classroom_free_12m: "12 měsíců zdarma – učebna",
 };
 
@@ -431,6 +432,7 @@ export default function AdminObcePage() {
     <RequirePlatformAdmin>
       <div className="min-h-screen bg-slate-50">
         <PortalHeader title="Admin • zákazníci" />
+      <div className="mx-auto max-w-[1100px] px-4 pt-4"><Link className="font-semibold underline" href="/portal/admin/organizace">Přidělit výherní licenci konkrétní organizaci →</Link></div>
 
         <main className="mx-auto max-w-[1320px] px-6 py-10">
           <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-2xl font-black text-navy-900">Zákazníci</h1><Link href="/portal/admin/obce/nova"><Button type="button">Založit obec s učebnou</Button></Link></div>

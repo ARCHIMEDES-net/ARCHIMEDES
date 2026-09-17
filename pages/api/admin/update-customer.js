@@ -1,3 +1,4 @@
+import { prizeDateInput } from "../../../lib/prizeLicense";
 import { createClient } from "@supabase/supabase-js";
 import { requirePlatformAdmin } from "../../../lib/server/platformAdminApi";
 import { consumeAuthenticatedRateLimit } from "../../../lib/server/authenticatedRateLimit";
@@ -10,7 +11,7 @@ const supabaseAdmin = createClient(
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const LICENSE_PLANS = ["paid_monthly", "paid_annual", "classroom_free_12m"];
+const LICENSE_PLANS = ["paid_monthly", "paid_annual", "classroom_free_12m", "competition_prize_12m"];
 const BILLING_STATUSES = ["pending", "paid", "not_applicable"];
 const CONTRACT_STATUSES = ["pending", "accepted"];
 
@@ -70,7 +71,7 @@ export default async function handler(req, res) {
 
     const { data: organization, error: lookupError } = await supabaseAdmin
       .from("organizations")
-      .select("id, org_type, parent_organization_id")
+      .select("id, org_type, parent_organization_id, license_plan, license_started_at, license_valid_until, billing_status, license_status, status")
       .eq("id", organizationId)
       .maybeSingle();
 
@@ -115,6 +116,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Bezplatná licence musí být bez úhrady." });
     }
 
+    const prize = organization.license_plan === "competition_prize_12m" && licensePlan === "competition_prize_12m";
+    const protectedPrize = organization.license_plan === "competition_prize_12m" && (!organization.license_valid_until || new Date(organization.license_valid_until) >= new Date());
+    if ((licensePlan === "competition_prize_12m" || protectedPrize) &&
+        (licensePlan !== organization.license_plan || billingStatus !== organization.billing_status ||
+         String(req.body?.licenseStartedAt || "").slice(0, 10) !== prizeDateInput(organization.license_started_at) ||
+         String(req.body?.licenseValidUntil || "").slice(0, 10) !== prizeDateInput(organization.license_valid_until))) {
+      return res.status(409).json({ error: "Výherní licenci spravujte přes akci Výherní licence u konkrétní organizace." });
+    }
     try {
       const needsEnd = ["paid_annual", "classroom_free_12m"].includes(licensePlan);
       licenseStartedAt = parseDate(req.body?.licenseStartedAt) || new Date().toISOString();
@@ -139,12 +148,12 @@ export default async function handler(req, res) {
         contact_phone: contactPhone,
         registered_address: registeredAddress,
         license_plan: licensePlan,
-        license_started_at: licenseStartedAt,
-        license_valid_until: licenseValidUntil,
+        license_started_at: prize ? organization.license_started_at : licenseStartedAt,
+        license_valid_until: prize ? organization.license_valid_until : licenseValidUntil,
         billing_status: billingStatus,
         contract_status: contractStatus,
-        license_status: "active",
-        status: "active",
+        license_status: prize ? organization.license_status : "active",
+        status: prize ? organization.status : "active",
       })
       .eq("id", organizationId)
       .select("*")

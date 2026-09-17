@@ -64,6 +64,7 @@ async function requireMunicipalityAdmin(req, res, municipalityId) {
   if (
     municipality.status !== "active" ||
     municipality.license_status !== "active" ||
+    municipality.license_plan === "competition_prize_12m" ||
     expired
   ) {
     res.status(403).json({ error: "Program obce není aktivní." });

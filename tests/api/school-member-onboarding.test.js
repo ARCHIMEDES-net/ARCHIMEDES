@@ -102,6 +102,19 @@ describe("child school member onboarding", () => {
     expect(mock.rows.profiles).toHaveLength(1);expect(mock.cleanup).not.toHaveBeenCalled();
     expect(mock.rows.school_member_invitation_attempts[0]).toMatchObject({status:"rolled_back",membership_id:null,user_id:null,prepared_user_id:USER});
   });
+  it("uses a child's prize independently of an inactive municipality", async () => {
+    Object.assign(mock.rows.organizations[0], {license_plan:"competition_prize_12m",license_status:"active",license_started_at:"2020-01-01",license_valid_until:"2099-01-01"});
+    mock.rows.organizations[1].license_status="inactive";
+    expect((await call()).code).toBe(200);
+  });
+  it("does not onboard a school through a municipality prize", async () => {
+    mock.rows.organizations[1].license_plan="competition_prize_12m";
+    expect((await call()).code).toBe(409);expect(mock.send).not.toHaveBeenCalled();
+  });
+  it("falls back to a valid municipality after an expired child prize", async () => {
+    Object.assign(mock.rows.organizations[0], {license_plan:"competition_prize_12m",license_status:"active",license_started_at:"2019-01-01",license_valid_until:"2020-01-01"});
+    expect((await call()).code).toBe(200);
+  });
   it("rejects an expired parent licence before preparing an account", async () => {
     mock.rows.organizations[1].license_valid_until="2000-01-01";
     expect((await call()).code).toBe(409);expect(mock.resolver).not.toHaveBeenCalled();expect(mock.send).not.toHaveBeenCalled();
