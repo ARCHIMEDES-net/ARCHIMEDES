@@ -22,6 +22,7 @@ const supabaseAdmin = createClient(
 const LICENSE_LABELS = {
   paid_monthly: "Měsíční licence",
   paid_annual: "Roční licence",
+  competition_prize_12m: "12 měsíců zdarma – výhra v soutěži",
   classroom_free_12m: "12 měsíců zdarma pro obec s učebnou ARCHIMEDES",
 };
 const UUID_PATTERN =

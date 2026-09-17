@@ -1,3 +1,4 @@
+import { activePrize, PRIZE_PLAN } from "../../../lib/prizeLicense";
 import { createClient } from "@supabase/supabase-js";
 import { consumeAuthenticatedRateLimit } from "../../../lib/server/authenticatedRateLimit";
 import {
@@ -22,6 +23,7 @@ const supabaseAdmin = createClient(
 const LICENSE_LABELS = {
   paid_monthly: "Měsíční licence",
   paid_annual: "Roční licence",
+  competition_prize_12m: "12 měsíců zdarma – výhra v soutěži",
   classroom_free_12m: "12 měsíců zdarma pro obec s učebnou ARCHIMEDES",
 };
 const UUID_PATTERN =
@@ -205,7 +207,7 @@ export default async function handler(req, res) {
     const { data: municipality, error: municipalityError } = await supabaseAdmin
       .from("organizations")
       .select(
-        "id, name, org_type, status, parent_organization_id, registration_number, license_status, license_plan, license_valid_until"
+        "id, name, org_type, status, parent_organization_id, registration_number, license_status, license_plan, license_started_at, license_valid_until"
       )
       .eq("id", organizationId)
       .maybeSingle();
@@ -223,11 +225,16 @@ export default async function handler(req, res) {
       });
     }
     const { data: parent, error: parentError } = await supabaseAdmin.from("organizations")
-      .select("id,org_type,status,license_status,license_plan,license_valid_until")
+      .select("id,org_type,status,license_status,license_plan,license_started_at,license_valid_until")
       .eq("id", municipality.parent_organization_id).maybeSingle();
     if (parentError) throw parentError;
     if (!parent || !["municipality","obec"].includes(parent.org_type)) return res.status(409).json({ error: "Škola nemá platnou vazbu na obec." });
-    const licence = municipality.license_plan ? municipality : parent;
+    const ownAvailable = municipality.license_plan === PRIZE_PLAN
+      ? activePrize(municipality)
+      : Boolean(municipality.license_plan && municipality.license_status === "active" &&
+          (!municipality.license_valid_until || new Date(municipality.license_valid_until) >= new Date()));
+    const licence = ownAvailable ? municipality : parent;
+    if (licence === parent && parent.license_plan === PRIZE_PLAN) return res.status(409).json({ error: "Výherní licence obce se na školu nepřenáší." });
     if (licence.status !== "active" || licence.license_status !== "active" ||
       (licence.license_valid_until && new Date(licence.license_valid_until) < new Date()) || !LICENSE_LABELS[licence.license_plan]) {
       return res.status(409).json({

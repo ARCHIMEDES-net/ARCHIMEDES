@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     const rows = [];
     for (let offset = 0; ; offset += 500) {
       const { data, error } = await client.from("organizations")
-        .select("id,name,org_type,status,parent_organization_id,is_system")
+        .select("id,name,org_type,status,parent_organization_id,is_system,license_plan,license_started_at,license_valid_until,license_status,billing_status")
         .order("id").range(offset, offset + 499);
       if (error) throw error;
       rows.push(...(data || []));

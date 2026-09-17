@@ -61,6 +61,7 @@ export default function SchoolOnboarding() {
 
   return <RequirePlatformAdmin><div className="min-h-screen bg-slate-50">
     <PortalHeader title="Admin • onboarding školy" />
+      <div className="mx-auto max-w-[1100px] px-4 pt-4"><Link className="font-semibold underline" href="/portal/admin/organizace">Přidělit výherní licenci konkrétní organizaci →</Link></div>
     <main className="mx-auto max-w-[1000px] px-4 py-8 sm:px-6">
       <Link className="underline" href={data ? `/portal/admin/obce/${data.school.parent_organization_id}` : "/portal/admin/obce"}>← Zpět na obec</Link>
       <h1 className="mt-3 text-3xl font-black text-navy-900">{data?.school.name || "Onboarding školy"}</h1>

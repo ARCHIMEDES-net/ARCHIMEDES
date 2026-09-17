@@ -209,6 +209,18 @@ describe("broadcast viewer authorization", () => {
     expect(organizationCall).toBe(2);
   });
 
+  it("does not inherit a municipal prize even with a legacy active child flag", async () => {
+    let call = 0;
+    const rows = [
+      { status: "active", license_status: "active", parent_organization_id: "parent", license_plan: null },
+      { org_type: "municipality", status: "active", license_status: "active", license_plan: "competition_prize_12m", license_started_at: "2020-01-01", license_valid_until: "2099-01-01" },
+    ];
+    const { supabase } = createSupabaseMock({ user: validUser, tableResults: viewerTables({
+      organizations: () => ({ data: rows[call++], error: null }),
+    }) });
+    await expect(requireBroadcastViewer(viewerRequest(), supabase)).rejects.toBeInstanceOf(BroadcastAccessError);
+  });
+
   it("rejects expired direct and parent licenses", async () => {
     const organizations = [
       {

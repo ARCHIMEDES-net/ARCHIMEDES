@@ -11,7 +11,7 @@ import { Button } from "../../../../components/ui/button";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../../../components/ui/table";
 
 const ORGANIZATION_LABELS = { municipality: "Obec", obec: "Obec", school: "Škola", association: "Spolek", spolek: "Spolek" };
-const LICENSE_LABELS = { paid_monthly: "1 990 Kč měsíčně", paid_annual: "12 měsíců placených najednou", classroom_free_12m: "12 měsíců zdarma – obec s učebnou" };
+const LICENSE_LABELS = { competition_prize_12m: "12 měsíců zdarma – výhra v soutěži", paid_monthly: "1 990 Kč měsíčně", paid_annual: "12 měsíců placených najednou", classroom_free_12m: "12 měsíců zdarma – obec s učebnou" };
 const BILLING_LABELS = { pending: "Čeká na úhradu", paid: "Uhrazeno", not_applicable: "Bez úhrady" };
 const CONTRACT_LABELS = { pending: "Čeká na potvrzení", accepted: "Potvrzeno" };
 
