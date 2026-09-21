@@ -76,7 +76,29 @@ export default function NovinkyPage() {
       if (countError) throw countError;
       setUnreadCount(unreadTotal || 0);
 
-      setNotifications(Array.isArray(notificationData) ? notificationData : []);
+      const visibleNotifications = (Array.isArray(notificationData) ? notificationData : []).filter((item) => {
+        // Operational/system messages belong to administration, never to the user-facing PWA feed.
+        if (item.kind === "system") return false;
+
+        const event = Array.isArray(item.events) ? item.events[0] : item.events;
+        const startsAt = event?.starts_at ? new Date(event.starts_at) : null;
+
+        // Event reminders and "new event" cards are useful only while the event is still upcoming.
+        // This also protects the PWA from stale unread rows left in the notification history.
+        if (
+          ["event_reminder", "new_event"].includes(item.kind) &&
+          startsAt &&
+          !Number.isNaN(startsAt.getTime()) &&
+          startsAt <= new Date()
+        ) {
+          return false;
+        }
+
+        return true;
+      });
+
+      setNotifications(visibleNotifications);
+      setUnreadCount(visibleNotifications.filter((item) => !item.read_at).length);
       setNextEvent(Array.isArray(eventData) ? eventData[0] || null : null);
     } catch (loadError) {
       setError(loadError?.message || "Novinky se nepodařilo načíst.");
