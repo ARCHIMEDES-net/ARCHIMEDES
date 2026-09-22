@@ -61,7 +61,8 @@ describe("notification UI contract", () => {
     const adminPage = source("pages/portal/admin/vysilani/[eventId].js");
     expect(adminPage).toContain("Aktivovat oznámení v aplikaci");
     expect(adminPage).toContain('notification_delivery_policy: "in_app_only"');
-    expect(adminPage).toContain("přístupový e-mail 30 minut");
+    expect(adminPage).toContain("se automatická e-mailová upomínka WebMeetingu nezapíná.");
+    expect(adminPage).toContain("rozešlete samostatně v části „Příjemci pozvánky“");
     expect(adminPage).toContain("notifications_enabled: notificationsEnabled");
   });
 
