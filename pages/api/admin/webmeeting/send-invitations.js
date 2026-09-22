@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { consumeAuthenticatedRateLimit } from "../../../../lib/server/authenticatedRateLimit";
 import { resolveWebMeetingParticipants } from "../../../../lib/server/broadcastRecipientResolver";
 import { requirePlatformAdmin } from "../../../../lib/server/platformAdminApi";
-import { invitationMessage, sendInvitationBatch } from "../../../../lib/server/broadcastInvitationEmail";
+import { validateRegistrationEmailConfiguration } from "../../../../lib/server/registrationEmailProvider";
 
 const MAX_INVITATION_RECIPIENTS = 1000;
 
@@ -15,18 +15,24 @@ const supabaseAdmin = createClient(
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
+  if (!["POST", "GET"].includes(req.method)) {
+    res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const eventId = String(req.body?.eventId || "").trim();
+  const eventId = String(req.body?.eventId || req.query?.eventId || "").trim();
   if (!eventId) return res.status(400).json({ error: "Chybí ID události." });
 
   try {
     const admin = await requirePlatformAdmin(req, res, supabaseAdmin);
     if (!admin) return;
 
+    if (req.method === "GET") {
+      const { data, error } = await supabaseAdmin.rpc("broadcast_mail_job_status", { p_event_id:eventId });
+      if (error) throw error;
+      return res.status(200).json(data || { state:"not_started",total:0,pending:0,accepted:0,skipped:0,failed:0,review:0 });
+    }
+    validateRegistrationEmailConfiguration();
     const allowed = await consumeAuthenticatedRateLimit({
       supabaseAdmin,
       req,
@@ -80,27 +86,14 @@ export default async function handler(req, res) {
       });
     }
 
-    const { data: batch, error: batchError } = await supabaseAdmin.rpc("prepare_broadcast_invitation_batch", {
-      p_event_id: eventId,
-      p_emails: participants.map(({ email }) => email),
-      p_message: invitationMessage(event),
-      p_admin_id: admin.id,
+    const { error: queueError } = await supabaseAdmin.rpc("enqueue_broadcast_mail", {
+      p_event_id:eventId,p_emails:participants.map(({email})=>email),p_admin_id:admin.id,
     });
-    if (batchError) throw batchError;
-    if (batch?.done) return res.status(200).json({
-      done: true, count: batch.accepted, total: batch.total,
-      skipped: batch.total - batch.accepted,
-    });
-    if (!batch?.id || !Array.isArray(batch.payload)) throw new Error("Neplatná dávka pozvánek.");
-    const selectedEmails = new Set(participants.map(({ email }) => email));
-    if (batch.payload.some((message) => !selectedEmails.has(message.to?.[0]))) {
-      return res.status(409).json({ error: "Zůstala nedokončená rozesílka pro jiný seznam příjemců. Nejprve obnovte původní seznam a dokončete ji." });
-    }
-    const count = await sendInvitationBatch(supabaseAdmin, batch);
-    return res.status(200).json({ done: false, count });
+    if (queueError) throw queueError;
+    return res.status(202).json({ queued:true,count:participants.length });
   } catch (error) {
     console.error("broadcast invitation error:", error?.code || error?.name);
-    return res.status(500).json({ error: error instanceof Error ? error.message : "Pozvánky se nepodařilo odeslat." });
+    return res.status(500).json({ error: "Rozesílku se nepodařilo připravit. Ověřte, že je vysílání zveřejněné a připravené, a zkuste to znovu." });
   }
 }
 

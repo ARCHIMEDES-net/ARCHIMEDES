@@ -170,6 +170,7 @@ export default function UdalostDetail() {
   const [reminderLoading, setReminderLoading] = useState(false);
   const [reminderSaving, setReminderSaving] = useState(false);
   const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [remindOnAttendance, setRemindOnAttendance] = useState(false);
   const [reminderError, setReminderError] = useState("");
 
   useEffect(() => {
@@ -349,9 +350,10 @@ export default function UdalostDetail() {
           .eq("profile_id", currentUserId)
           .maybeSingle();
         if (error) throw error;
-        if (mounted) setReminderEnabled(data?.enabled === true);
+        if (mounted) { setReminderEnabled(data?.enabled === true); setRemindOnAttendance(data ? data.enabled === true : true); }
       } catch (error) {
         if (mounted) {
+          setRemindOnAttendance(false);
           setReminderError(error?.message || "Připomenutí se nepodařilo načíst.");
         }
       } finally {
@@ -443,25 +445,24 @@ export default function UdalostDetail() {
   }, [eventTitle, calendarStart, calendarEnd, calendarDetails, eventLocation]);
 
   async function handleAttendEvent() {
-    if (!attendanceRoleReady || !id || !currentUserId || (!isPlatformAdmin && !activeOrganizationId) || isAttending) return;
+    if (reminderLoading || !attendanceRoleReady || !id || !currentUserId || (!isPlatformAdmin && !activeOrganizationId) || isAttending) return;
 
     setAttendeeSaving(true);
     setAttendeeError("");
 
     try {
-      const { error } = await supabase
-        .from("event_attendees")
-        .insert({
-          event_id: id,
-          organization_id: isPlatformAdmin ? null : activeOrganizationId,
-          user_id: currentUserId,
-        });
+      const { error } = await supabase.rpc("attend_event_with_reminder", {
+        p_event_id:id,
+        p_organization_id:isPlatformAdmin ? null : activeOrganizationId,
+        p_remind:remindOnAttendance,
+      });
 
-      if (error && error.code !== "23505") {
+      if (error) {
         throw error;
       }
 
       setIsAttending(true);
+      setReminderEnabled(remindOnAttendance);
 
       if (isPlatformAdmin) {
         setAttendeeCount((prev) => Math.max(1, Number(prev || 0) + 1));
@@ -489,6 +490,7 @@ export default function UdalostDetail() {
         );
       if (error) throw error;
       setReminderEnabled(nextEnabled);
+      setRemindOnAttendance(nextEnabled);
     } catch (error) {
       setReminderError(error?.message || "Nastavení připomenutí se nepodařilo uložit.");
     } finally {
@@ -587,19 +589,25 @@ export default function UdalostDetail() {
 
           <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
             <div className="text-sm font-extrabold uppercase tracking-wide text-emerald-800">
-              Účast školy
+              Vaše účast
             </div>
 
             <div className="mt-2 text-slate-700 leading-7">
               {isPlatformAdmin ? "Jako správce potvrzujete svou osobní účast bez přiřazení k vybrané organizaci." : "Potvrďte jedním kliknutím svou účast na vysílání. Každý přihlášený uživatel se eviduje samostatně."}
             </div>
 
+            {!isAttending && starts && starts.getTime()>Date.now() ? (
+              <label className="mt-3 flex items-start gap-2 text-sm text-slate-700">
+                <input type="checkbox" checked={remindOnAttendance} onChange={(event)=>setRemindOnAttendance(event.target.checked)} disabled={reminderLoading || attendeeSaving} className="mt-1" />
+                <span>Připomenout vysílání den a 30 minut před začátkem. E-mail dostanete, pokud jej máte povolený v nastavení upozornění.</span>
+              </label>
+            ) : null}
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {attendanceRoleReady && currentUserId && (isPlatformAdmin || activeOrganizationId) ? (
                 <button
                   type="button"
                   onClick={handleAttendEvent}
-                  disabled={attendeeLoading || attendeeSaving || isAttending}
+                  disabled={attendeeLoading || attendeeSaving || reminderLoading || isAttending}
                   className={
                     isAttending
                       ? "px-4 py-2 rounded-xl bg-emerald-700 text-white font-bold cursor-default"

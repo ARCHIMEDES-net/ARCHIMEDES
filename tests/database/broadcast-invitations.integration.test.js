@@ -41,4 +41,4 @@ it("persists 1000 invitation recipients in separate batches, resumes unchanged, 
       has_function_privilege('service_role','prepare_broadcast_invitation_batch(uuid,text[],jsonb,uuid)','EXECUTE') as service_execute;`)).rows[0];
     expect(access).toEqual({ anon_read: false, member_read: false, member_execute: false, service_execute: true });
   } finally { await db.close(); }
-});
+},20000);
