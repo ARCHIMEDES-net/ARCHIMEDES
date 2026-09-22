@@ -515,17 +515,13 @@ export default function AdminVysilaniDetailPage() {
   }
 
   async function sendInvitationsNow() {
-    if (!externalMeetingId) {
-      setError("Nejprve vytvořte místnost ve WebMeetingu.");
-      return;
-    }
     if (!recipients.length) {
       setError("Nejprve uložte a vytvořte aktuální seznam příjemců.");
       return;
     }
 
     const confirmed = window.confirm(
-      `Odeslat nyní pozvánku ${recipients.length} příjemcům? WebMeeting pošle zprávu pouze dosud nepozvaným osobám.`
+      `Odeslat nyní pozvánku ${recipients.length} příjemcům? ARCHIMEDES Live pošle e-mail s odkazem na detail vysílání. Pozvánka nikoho nepřihlásí do WebMeetingu. Dříve odeslané pozvánky z této rozesílky se neopakují.`
     );
     if (!confirmed) return;
 
@@ -534,22 +530,26 @@ export default function AdminVysilaniDetailPage() {
     setCopyInfo("");
     try {
       const token = await getAccessToken();
-      const response = await fetch("/api/admin/webmeeting/send-invitations", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ eventId }),
-      });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error || "Pozvánky se nepodařilo odeslat.");
+      let completed = false;
+      for (let batch = 0; batch < 12; batch += 1) {
+        const response = await fetch("/api/admin/webmeeting/send-invitations", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ eventId }),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "Pozvánky se nepodařilo odeslat.");
+        if (payload.done) {
+          setCopyInfo(`Rozesílka dokončena: ${payload.count} pozvánek předáno e-mailové službě (včetně dříve odeslaných).${payload.skipped ? ` Vynecháno dle nastavení příjemců: ${payload.skipped}.` : ""} Přihlášení ani docházka se nemění.`);
+          completed = true;
+          break;
+        }
+        setCopyInfo("Rozesílám další dávku pozvánek. Ponechte tuto stránku otevřenou…");
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-      setCopyInfo(
-        `WebMeeting zpracoval ${payload.count || recipients.length} příjemců a odeslal pozvánku dosud nepozvaným.`
-      );
+      if (!completed) throw new Error("Rozesílka ještě není dokončena. Spusťte ji znovu pro pokračování bez opakování již odeslaných pozvánek.");
     } catch (e) {
+      setCopyInfo("");
       setError(e.message || "Pozvánky se nepodařilo odeslat.");
     } finally {
       setInvitationsSending(false);
@@ -838,7 +838,7 @@ export default function AdminVysilaniDetailPage() {
           ? "Obsah i nastavení byly uloženy v ARCHIMEDES a propsány do WebMeetingu."
           : normalizedViewerUrl
             ? "Obsah i nastavení byly uloženy; volitelný odkaz se propsal do události."
-            : "Obsah i nastavení byly uloženy. Pozvánky a přístupový odkaz rozešle WebMeeting."
+            : "Obsah i nastavení byly uloženy. E-mailové pozvánky rozešlete tlačítkem níže."
       );
     } catch (e) {
       setError(e.message || "Vysílání se nepodařilo uložit.");
@@ -1283,8 +1283,9 @@ export default function AdminVysilaniDetailPage() {
                           Aktivovat oznámení v aplikaci
                           <span className="mt-1 block text-sm font-normal leading-relaxed text-slate-600">
                             Nové vysílání a zvolená připomenutí se zobrazí v „Co je nového“.
-                            E-mail ani push se tímto nastavením neposílá; přístupový e-mail 30 minut
-                            před začátkem nadále zajišťuje WebMeeting.
+                            E-mail ani push se tímto nastavením neposílá. E-mailovou pozvánku
+                            rozešlete samostatně v části „Příjemci pozvánky“. Pozvaným osobám
+                            se automatická e-mailová upomínka WebMeetingu nezapíná.
                           </span>
                           {status === "draft" ? (
                             <span className="mt-1 block text-xs font-semibold text-amber-700">
@@ -1400,7 +1401,7 @@ export default function AdminVysilaniDetailPage() {
                 <div className="mt-7 border-t border-slate-200 pt-6">
                   <h2 className="text-xl font-black text-navy-900">Příjemci pozvánky</h2>
                   <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                    Vyberte osobní zájmy nebo zadejte alespoň jednu konkrétní e-mailovou adresu. Jedna osoba se ve výsledku objeví pouze jednou, i když má vybráno více zájmů. ARCHIMEDES Live použije seznam pro vlastní pozvánky a řízení oprávněných vstupů.
+                    Vyberte osobní zájmy nebo zadejte alespoň jednu konkrétní e-mailovou adresu. Jedna osoba se ve výsledku objeví pouze jednou, i když má vybráno více zájmů. Seznam slouží k rozeslání e-mailových pozvánek. Pozvání není potvrzení účasti a nerezervuje místo ve WebMeetingu.
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-slate-500">
                     Jednoznačné zájmy jsou předvybrané podle cílovek události. Výběr vždy zkontrolujte; činnost organizace se zde nepoužívá.
@@ -1475,7 +1476,7 @@ export default function AdminVysilaniDetailPage() {
                                 className="border-b border-slate-100 last:border-0"
                               >
                                 <td className="px-4 py-2 text-slate-700">
-                                  {recipient.name || "Ručně zadaný účastník"}
+                                  {recipient.name || "Ručně zadaný příjemce"}
                                 </td>
                                 <td className="px-4 py-2 font-medium text-navy-900">
                                   {recipient.email}
@@ -1515,12 +1516,12 @@ export default function AdminVysilaniDetailPage() {
                       disabled={!recipients.length || recipientsExporting}
                       variant="secondary"
                     >
-                      {recipientsExporting ? "Vytvářím Excel…" : "Exportovat účastníky do Excelu"}
+                      {recipientsExporting ? "Vytvářím Excel…" : "Exportovat příjemce do Excelu"}
                     </Button>
                     <Button
                       type="button"
                       onClick={sendInvitationsNow}
-                      disabled={!recipients.length || !externalMeetingId || invitationsSending}
+                      disabled={!recipients.length || operationalLocked || invitationsSending}
                       variant="primary"
                     >
                       {invitationsSending
