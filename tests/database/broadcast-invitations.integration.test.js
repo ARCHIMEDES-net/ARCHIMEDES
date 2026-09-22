@@ -13,7 +13,7 @@ it("persists 1000 invitation recipients in separate batches, resumes unchanged, 
       create table public.profiles(id uuid primary key,email text,is_active boolean,email_notifications_enabled boolean);
       create table public.notification_channel_preferences(profile_id uuid,email_enabled boolean);
       insert into auth.users values('${adminId}'); insert into events values('${eventId}');`);
-    await db.exec(fs.readFileSync("supabase/migrations/20260922181258_separate_broadcast_email_invitations.sql", "utf8"));
+    await db.exec(fs.readFileSync("supabase/migrations/20260922182021_separate_broadcast_email_invitations.sql", "utf8"));
     const emails = Array.from({ length: 1000 }, (_, i) => `guest${i}@example.com`);
     const prepare = async (addresses = emails, subject = "original") => (await db.query(
       "select prepare_broadcast_invitation_batch($1,$2,$3,$4) as batch", [eventId, addresses, JSON.stringify({ subject }), adminId]
