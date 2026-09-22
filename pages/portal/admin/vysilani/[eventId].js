@@ -1283,8 +1283,9 @@ export default function AdminVysilaniDetailPage() {
                           Aktivovat oznámení v aplikaci
                           <span className="mt-1 block text-sm font-normal leading-relaxed text-slate-600">
                             Nové vysílání a zvolená připomenutí se zobrazí v „Co je nového“.
-                            E-mail ani push se tímto nastavením neposílá; přístupový e-mail 30 minut
-                            před začátkem nadále zajišťuje WebMeeting.
+                            E-mail ani push se tímto nastavením neposílá. E-mailovou pozvánku
+                            rozešlete samostatně v části „Příjemci pozvánky“. Pozvaným osobám
+                            se automatická e-mailová upomínka WebMeetingu nezapíná.
                           </span>
                           {status === "draft" ? (
                             <span className="mt-1 block text-xs font-semibold text-amber-700">
