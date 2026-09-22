@@ -4,7 +4,7 @@ import { resolveWebMeetingParticipants } from "../../../../lib/server/broadcastR
 import { requirePlatformAdmin } from "../../../../lib/server/platformAdminApi";
 import { WebMeetingApiError, webMeeting } from "../../../../lib/server/webmeetingClient";
 
-const MAX_WEBMEETING_RECIPIENTS = 200;
+const MAX_WEBMEETING_RECIPIENTS = 1000;
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -71,7 +71,7 @@ export default async function handler(req, res) {
     }
     if (participants.length > MAX_WEBMEETING_RECIPIENTS) {
       return res.status(400).json({
-        error: `WebMeeting umožňuje v tomto režimu nejvýše ${MAX_WEBMEETING_RECIPIENTS} příjemců.`,
+        error: `Najednou lze odeslat pozvánky nejvýše ${MAX_WEBMEETING_RECIPIENTS} příjemcům.`,
       });
     }
 
