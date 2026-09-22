@@ -117,6 +117,8 @@ export default function AdminVysilaniDetailPage() {
   const [recipients, setRecipients] = useState([]);
   const [recipientsLoading, setRecipientsLoading] = useState(false);
   const [invitationsSending, setInvitationsSending] = useState(false);
+  const [mailStatus, setMailStatus] = useState(null);
+  const [mailStatusError, setMailStatusError] = useState("");
   const [recipientsExporting, setRecipientsExporting] = useState(false);
   const [webMeetingConfigured, setWebMeetingConfigured] = useState(null);
   const [webMeetingChecking, setWebMeetingChecking] = useState(false);
@@ -514,6 +516,30 @@ export default function AdminVysilaniDetailPage() {
     }
   }
 
+  useEffect(() => {
+    if (!eventId) return;
+    let active = true;
+    let busy = false;
+    async function refreshMailStatus() {
+      if (busy) return;
+      busy = true;
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!data.session?.access_token) return;
+        const response = await fetch(`/api/admin/webmeeting/send-invitations?eventId=${encodeURIComponent(eventId)}`, {
+          headers:{ Authorization:`Bearer ${data.session.access_token}` },
+        });
+        const status = await response.json();
+        if (!response.ok) throw new Error("Stav rozesílky se nepodařilo načíst.");
+        if (active) { setMailStatus(status); setMailStatusError(""); }
+      } catch (_error) { if (active) setMailStatusError("Stav rozesílky se nepodařilo načíst. Rozesílka na serveru může dále pokračovat."); }
+      finally { busy = false; }
+    }
+    refreshMailStatus();
+    const timer = setInterval(refreshMailStatus,10000);
+    return () => { active = false; clearInterval(timer); };
+  },[eventId]);
+
   async function sendInvitationsNow() {
     if (!recipients.length) {
       setError("Nejprve uložte a vytvořte aktuální seznam příjemců.");
@@ -521,7 +547,7 @@ export default function AdminVysilaniDetailPage() {
     }
 
     const confirmed = window.confirm(
-      `Odeslat nyní pozvánku ${recipients.length} příjemcům? ARCHIMEDES Live pošle e-mail s odkazem na detail vysílání. Pozvánka nikoho nepřihlásí do WebMeetingu. Dříve odeslané pozvánky z této rozesílky se neopakují.`
+      `Zařadit e-mailové pozvánky pro ${recipients.length} příjemců k rozeslání na pozadí? ARCHIMEDES Live pošle e-mail s odkazem na detail vysílání. Pozvánka nikoho nepřihlásí do WebMeetingu. Dříve odeslané pozvánky z této rozesílky se neopakují.`
     );
     if (!confirmed) return;
 
@@ -530,24 +556,14 @@ export default function AdminVysilaniDetailPage() {
     setCopyInfo("");
     try {
       const token = await getAccessToken();
-      let completed = false;
-      for (let batch = 0; batch < 12; batch += 1) {
-        const response = await fetch("/api/admin/webmeeting/send-invitations", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ eventId }),
-        });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.error || "Pozvánky se nepodařilo odeslat.");
-        if (payload.done) {
-          setCopyInfo(`Rozesílka dokončena: ${payload.count} pozvánek předáno e-mailové službě (včetně dříve odeslaných).${payload.skipped ? ` Vynecháno dle nastavení příjemců: ${payload.skipped}.` : ""} Přihlášení ani docházka se nemění.`);
-          completed = true;
-          break;
-        }
-        setCopyInfo("Rozesílám další dávku pozvánek. Ponechte tuto stránku otevřenou…");
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-      if (!completed) throw new Error("Rozesílka ještě není dokončena. Spusťte ji znovu pro pokračování bez opakování již odeslaných pozvánek.");
+      const response = await fetch("/api/admin/webmeeting/send-invitations", {
+        method:"POST",headers:{ Authorization:`Bearer ${token}`,"Content-Type":"application/json" },
+        body:JSON.stringify({eventId}),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Rozesílku se nepodařilo připravit.");
+      setCopyInfo("Rozesílka byla zařazena. Proběhne na pozadí; tuto stránku můžete zavřít.");
+      setMailStatus((previous) => ({ ...previous,state:"active",pending:payload.count }));
     } catch (e) {
       setCopyInfo("");
       setError(e.message || "Pozvánky se nepodařilo odeslat.");
@@ -1280,12 +1296,12 @@ export default function AdminVysilaniDetailPage() {
                           disabled={operationalLocked || status === "draft"}
                         />
                         <span>
-                          Aktivovat oznámení v aplikaci
+                          Aktivovat oznámení a připomenutí
                           <span className="mt-1 block text-sm font-normal leading-relaxed text-slate-600">
                             Nové vysílání a zvolená připomenutí se zobrazí v „Co je nového“.
-                            E-mail ani push se tímto nastavením neposílá. E-mailovou pozvánku
-                            rozešlete samostatně v části „Příjemci pozvánky“. Pozvaným osobám
-                            se automatická e-mailová upomínka WebMeetingu nezapíná.
+                            Uživatelé se zapnutým připomenutím dostanou také e-mail den a 30 minut
+                            před začátkem podle svého nastavení. Samostatnou pozvánku rozešlete
+                            v části „Příjemci pozvánky“. Pozvánka nikoho nepřihlašuje do WebMeetingu.
                           </span>
                           {status === "draft" ? (
                             <span className="mt-1 block text-xs font-semibold text-amber-700">
@@ -1494,6 +1510,17 @@ export default function AdminVysilaniDetailPage() {
                     </details>
                   ) : null}
 
+                  {mailStatus && mailStatus.state !== "not_started" ? (
+                    <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm" role="status" aria-live="polite">
+                      <p className="font-bold">{mailStatus.pending > 0 ? "Rozesílka probíhá na pozadí" : mailStatus.review || mailStatus.failed ? "Rozesílka vyžaduje pozornost" : mailStatus.state === "cancelled" ? "Rozesílka zastavena" : "Rozesílka dokončena"}</p>
+                      <p className="mt-1">Předáno k odeslání: {mailStatus.accepted || 0} · Čeká: {mailStatus.pending || 0} · Vynecháno: {mailStatus.skipped || 0} · Chyba: {mailStatus.failed || 0} · K ověření: {mailStatus.review || 0}</p>
+                      <p className="mt-1">Stránku můžete zavřít. Předání e-mailové službě ještě nepotvrzuje doručení do schránky.</p>
+                      {mailStatus.review > 0 ? <p className="mt-2 text-amber-800">U některých zpráv není jistý výsledek dřívějšího odeslání. Správce musí ověřit doručení; tyto zprávy se automaticky neopakují.</p> : null}
+                      {mailStatus.failed > 0 ? <p className="mt-2 text-amber-800">Po opravě příčiny spusťte rozesílku znovu. Již přijaté zprávy se neopakují.</p> : null}
+                      {mailStatus.pending > 0 && (!mailStatus.workerLastRun || Date.now()-new Date(mailStatus.workerLastRun).getTime()>300000) ? <p className="mt-2 text-amber-800">Čekáme na potvrzení zpracování na serveru. Pokud stav přetrvává déle než pět minut, kontaktujte správce.</p> : null}
+                    </div>
+                  ) : null}
+                  {mailStatusError ? <p className="mt-2 text-amber-800">{mailStatusError}</p> : null}
                   <div className="mt-4 flex flex-wrap gap-3">
                     <Button
                       type="button"

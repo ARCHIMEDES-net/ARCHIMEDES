@@ -71,17 +71,18 @@ describe("notification queue candidate planning", () => {
     expect(candidates[0].push_enabled).toBe(true);
   });
 
-  it("queues e-mail only after explicit full ARCHIMEDES channel ownership", () => {
+  it("leaves reminder email to the durable worker while preserving daily push", () => {
     const input = baseInput();
     input.sessions[0].notification_delivery_policy = "archimedes_all";
 
     const candidates = buildNotificationCandidates(input);
 
     expect(candidates).toHaveLength(1);
-    expect(candidates[0].email_enabled).toBe(true);
+    expect(candidates[0].email_enabled).toBe(false);
+    expect(candidates[0].push_enabled).toBe(true);
   });
 
-  it("never duplicates the WebMeeting 30-minute e-mail with an external delivery", () => {
+  it("never duplicates the durable worker 30-minute email", () => {
     const input = baseInput();
     input.sessions[0].starts_at = "2026-08-15T10:30:00.000Z";
     input.sessions[0].notification_delivery_policy = "archimedes_all";

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { invoke } from "../helpers/http";
 
 const guardedRoutes = [
+  ["cron/broadcast-mail", () => import("../../pages/api/cron/broadcast-mail"), "POST", "GET"],
   ["admin/activate-municipality", () => import("../../pages/api/admin/activate-municipality"), "DELETE", "GET, POST"],
   ["admin/onboarding-test-runs", () => import("../../pages/api/admin/onboarding-test-runs"), "PATCH", "GET, POST, DELETE"],
   ["admin/create-municipality-organization", () => import("../../pages/api/admin/create-municipality-organization"), "GET", "POST"],
@@ -17,7 +18,7 @@ const guardedRoutes = [
   ["admin/webmeeting/create-meeting", () => import("../../pages/api/admin/webmeeting/create-meeting"), "GET", "POST"],
   ["admin/webmeeting/export-participants", () => import("../../pages/api/admin/webmeeting/export-participants"), "POST", "GET"],
   ["admin/webmeeting/moderator-url", () => import("../../pages/api/admin/webmeeting/moderator-url"), "GET", "POST"],
-  ["admin/webmeeting/send-invitations", () => import("../../pages/api/admin/webmeeting/send-invitations"), "GET", "POST"],
+  ["admin/webmeeting/send-invitations", () => import("../../pages/api/admin/webmeeting/send-invitations"), "DELETE", "GET, POST"],
   ["admin/webmeeting/status", () => import("../../pages/api/admin/webmeeting/status"), "DELETE", "GET, POST"],
   ["admin/webmeeting/sync-results", () => import("../../pages/api/admin/webmeeting/sync-results"), "GET", "POST"],
   ["admin/webmeeting/update-meeting", () => import("../../pages/api/admin/webmeeting/update-meeting"), "GET", "POST"],

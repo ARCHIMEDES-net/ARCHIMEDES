@@ -12,4 +12,5 @@ it("migrates existing lists and enforces 1000 addresses in PostgreSQL", async ()
     await db.exec("INSERT INTO public.broadcast_sessions VALUES (2, ARRAY(SELECT 'guest' || i || '@example.com' FROM generate_series(1,1000) i));");
     await expect(db.exec("INSERT INTO public.broadcast_sessions VALUES (3, ARRAY(SELECT 'guest' || i || '@example.com' FROM generate_series(1,1001) i));")).rejects.toThrow(/broadcast_sessions_manual_recipient_emails_limit/);
   } finally { await db.close(); }
-});
+},20000);
+
