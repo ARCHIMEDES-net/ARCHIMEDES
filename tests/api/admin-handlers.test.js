@@ -220,6 +220,16 @@ describe("admin email-group handlers", () => {
     });
   });
 
+  it.each([[1000, 200], [1001, 400]])("validates the manual recipient boundary at %i addresses", async (count, status) => {
+    const { res } = await invoke(broadcastRecipients, {
+      method: "POST",
+      body: { manualEmails: Array.from({ length: count }, (_, i) => `guest${i}@example.com`) },
+    });
+    expect(res.statusCode).toBe(status);
+    if (status === 200) expect(res.body.users).toHaveLength(count);
+    else expect(res.body.error).toContain("1000");
+  });
+
   it("rejects invalid manual recipient addresses before loading groups", async () => {
     const { res } = await invoke(broadcastRecipients, {
       method: "POST",

@@ -96,6 +96,20 @@ describe("WebMeeting participant resolver", () => {
     expect(dependencies.getEmailGroups).not.toHaveBeenCalled();
   });
 
+  it("resolves all 1000 addresses in bounded profile lookup batches", async () => {
+    const emails = Array.from({ length: 1000 }, (_, i) => `guest${i}@example.com`);
+    const lookup = vi.fn(async (_column, batch) => ({
+      data: batch.map((email) => ({ email, full_name: "Test Guest" })), error: null,
+    }));
+    const supabaseAdmin = { from: () => ({ select: () => ({ in: lookup }) }) };
+    const participants = await resolveWebMeetingParticipants(supabaseAdmin, { manualEmails: emails });
+    expect(participants).toHaveLength(1000);
+    expect(new Set(participants.map((p) => p.email))).toEqual(new Set(emails));
+    expect(participants.every((p) => p.firstname === "Test")).toBe(true);
+    expect(lookup).toHaveBeenCalledTimes(20);
+    expect(lookup.mock.calls.every(([, batch]) => batch.length <= 50)).toBe(true);
+  });
+
   it("rejects stale unknown group codes", async () => {
     await expect(
       resolveWebMeetingParticipants(supabaseWithManualProfiles(), {
