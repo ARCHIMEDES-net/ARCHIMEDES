@@ -4,14 +4,8 @@ import {
   LEGAL_DOCUMENT_EFFECTIVE_DATE_CS,
   LEGAL_DOCUMENT_VERSION,
 } from "../lib/legalDocuments";
-const ANALYTICS_CONSENT_KEY = "archimedes-analytics-consent";
 
 export default function PrivacyPage() {
-  function reopenAnalyticsSettings() {
-    window.localStorage.removeItem(ANALYTICS_CONSENT_KEY);
-    window.location.reload();
-  }
-
   return (
     <LegalPageLayout
       title="Informace o zpracování osobních údajů"
@@ -118,9 +112,8 @@ export default function PrivacyPage() {
         Slouží k základnímu měření výkonu webu na základě oprávněného zájmu.
       </p>
       <p>
-        Google Tag Manager slouží jako technická vrstva pro správu značek.
-        Výchozí stav úložišť Google je nastaven na „denied“. Google Analytics 4
-        se pro analytické měření aktivuje až po výslovném souhlasu. Při souhlasu
+        Skript Google Analytics 4 se načte až po výslovném souhlasu. Před jeho
+        udělením web neodesílá společnosti Google analytické požadavky. Při souhlasu
         mohou být zpracovávány údaje o zařízení, navštívených stránkách, zdroji
         návštěvy a interakcích. Analytická data jsou v Google Analytics
         nastavena k uchování nejdéle 14 měsíců, není-li dříve vymazána.
@@ -130,21 +123,7 @@ export default function PrivacyPage() {
         kdykoli změnit. Odvolání nemá vliv na zákonnost předchozího zpracování.
       </p>
       <p>
-        <button
-          type="button"
-          onClick={reopenAnalyticsSettings}
-          style={{
-            border: "1px solid #cbd5e1",
-            borderRadius: "10px",
-            background: "#ffffff",
-            color: "#0f172a",
-            padding: "10px 14px",
-            fontWeight: 800,
-            cursor: "pointer",
-          }}
-        >
-          Změnit nastavení analytiky
-        </button>
+        <Link href="/cookies">Zobrazit přehled technologií a změnit nastavení analytiky</Link>
       </p>
       <p>
         Marketingové a reklamní technologie, včetně Meta Pixelu, nejsou v

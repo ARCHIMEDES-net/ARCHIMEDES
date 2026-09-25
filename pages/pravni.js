@@ -119,9 +119,9 @@ export default function PravniPage() {
             </p>
             <p className="mb-3.5 text-[17px] leading-relaxed text-slate-700">
               Základní návštěvnost měříme také pomocí Vercel Web Analytics bez
-              cookies a s anonymizovanými údaji. Google Analytics se aktivuje až
-              po výslovném analytickém souhlasu. Souhlas lze kdykoli změnit na
-              stránce s informacemi o zpracování osobních údajů.
+              cookies. Google Analytics včetně jeho skriptu se načte až po
+              výslovném analytickém souhlasu. Souhlas lze kdykoli změnit na
+              samostatné stránce Cookies a analytika.
             </p>
             <div className="mb-3.5 mt-2 rounded-2xl border border-slate-900/[0.08] bg-slate-50 p-4 text-[15px] leading-relaxed text-slate-700">
               V případě dotazů k provozu portálu, ochraně osobních údajů nebo práci
@@ -129,10 +129,10 @@ export default function PravniPage() {
             </div>
             <div className="flex flex-wrap gap-4">
               <Link
-                href="/ochrana-osobnich-udaju"
+                href="/cookies"
                 className="inline-flex items-center gap-1.5 text-[15px] font-black text-brand hover:text-navy-900"
               >
-                Nastavení analytiky <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                Cookies a nastavení analytiky <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link
                 href="/kontakt"
