@@ -13,6 +13,12 @@ import { Analytics } from "@vercel/analytics/react";
 import { applyCzechNonBreakingSpaces } from "../lib/czechTypography";
 import { serializeJsonLd } from "../lib/safeJsonLd";
 import PwaRegistration from "../components/PwaRegistration";
+import {
+  ANALYTICS_CONSENT_EVENT,
+  deleteGoogleAnalyticsCookies,
+  readAnalyticsConsent,
+  setAnalyticsConsent as persistAnalyticsConsent,
+} from "../lib/analyticsConsent";
 
 function activeKeyFromPath(pathname = "") {
   if (pathname === "/program") return "program";
@@ -43,8 +49,6 @@ const NO_INDEX_PATHS = new Set([
 ]);
 
 const GA_MEASUREMENT_ID = "G-ZVPRHEBVJ4";
-const ANALYTICS_CONSENT_KEY = "archimedes-analytics-consent";
-
 const DEFAULT_DESCRIPTION =
   "Pravidelný živý program pro školy, spolky, seniory a další místní komunity. Lidé se při něm setkávají, vzdělávají a sbližují.";
 
@@ -224,10 +228,18 @@ export default function App({ Component, pageProps }) {
     !isInstallPage;
 
   useEffect(() => {
-    const storedConsent = window.localStorage.getItem(ANALYTICS_CONSENT_KEY);
-    if (storedConsent === "granted" || storedConsent === "denied") {
-      setAnalyticsConsent(storedConsent);
+    setAnalyticsConsent(readAnalyticsConsent());
+
+    function handleConsentChange(event) {
+      const nextValue = event.detail?.value;
+      if (nextValue === "granted" || nextValue === "denied") {
+        setAnalyticsConsent(nextValue);
+      }
     }
+
+    window.addEventListener(ANALYTICS_CONSENT_EVENT, handleConsentChange);
+    return () =>
+      window.removeEventListener(ANALYTICS_CONSENT_EVENT, handleConsentChange);
   }, []);
 
   useEffect(() => {
@@ -348,12 +360,22 @@ export default function App({ Component, pageProps }) {
   }
 
   const updateAnalyticsConsent = (value) => {
-    window.localStorage.setItem(ANALYTICS_CONSENT_KEY, value);
+    persistAnalyticsConsent(value);
     setAnalyticsConsent(value);
 
-    if (typeof window.gtag === "function") {
+    if (value === "denied") {
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", {
+          analytics_storage: "denied",
+          ad_storage: "denied",
+          ad_user_data: "denied",
+          ad_personalization: "denied",
+        });
+      }
+      deleteGoogleAnalyticsCookies();
+    } else if (typeof window.gtag === "function") {
       window.gtag("consent", "update", {
-        analytics_storage: value,
+        analytics_storage: "granted",
       });
     }
   };
@@ -415,19 +437,6 @@ export default function App({ Component, pageProps }) {
         ) : null}
       </Head>
 
-      <Script id="google-consent-default" strategy="beforeInteractive">
-        {`window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-window.gtag = gtag;
-gtag('consent', 'default', {
-  analytics_storage: 'denied',
-  ad_storage: 'denied',
-  ad_user_data: 'denied',
-  ad_personalization: 'denied',
-  wait_for_update: 500
-});`}
-      </Script>
-
       {analyticsConsent === "granted" ? (
         <>
           <Script
@@ -435,8 +444,16 @@ gtag('consent', 'default', {
             strategy="afterInteractive"
           />
           <Script id="google-analytics" strategy="afterInteractive">
-            {`gtag('js', new Date());
-gtag('consent', 'update', { analytics_storage: 'granted' });
+            {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+window.gtag = gtag;
+gtag('js', new Date());
+gtag('consent', 'default', {
+  analytics_storage: 'granted',
+  ad_storage: 'denied',
+  ad_user_data: 'denied',
+  ad_personalization: 'denied'
+});
 gtag('config', '${GA_MEASUREMENT_ID}', { anonymize_ip: true });`}
           </Script>
         </>
@@ -466,7 +483,7 @@ gtag('config', '${GA_MEASUREMENT_ID}', { anonymize_ip: true });`}
             S vaším souhlasem použijeme Google Analytics k anonymizovanému měření
             návštěvnosti. Bez souhlasu analytické cookies neaktivujeme.{" "}
             <Link
-              href="/ochrana-osobnich-udaju"
+              href="/cookies"
               style={{ color: "#f6c344", textDecoration: "underline" }}
             >
               Více informací
@@ -480,8 +497,8 @@ gtag('config', '${GA_MEASUREMENT_ID}', { anonymize_ip: true });`}
                 padding: "0.6rem 0.9rem",
                 border: "1px solid #9ca3af",
                 borderRadius: "9px",
-                background: "transparent",
-                color: "#fff",
+                background: "#ffffff",
+                color: "#111827",
                 cursor: "pointer",
               }}
             >
