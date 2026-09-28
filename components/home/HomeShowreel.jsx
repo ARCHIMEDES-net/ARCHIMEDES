@@ -71,8 +71,8 @@ export default function HomeShowreel() {
             <video
               ref={videoRef}
               className="h-full w-full object-cover"
-              src="/archimedes-live-homepage.mp4"
-              poster="/archimedes-live-homepage-poster.webp"
+              src="/archimedes-live-homepage.mp4?v=20260928"
+              poster="/archimedes-live-homepage-poster.webp?v=20260928"
               muted
               loop
               playsInline
