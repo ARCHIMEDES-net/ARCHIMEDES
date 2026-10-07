@@ -1,15 +1,17 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { BellOff, BellRing, Check, Lock, CalendarPlus, CalendarDays, FileText, X } from "lucide-react";
+import { BellOff, BellRing, Check, Lock, CalendarPlus, CalendarDays, FileText, Play, X } from "lucide-react";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
 import JoinBroadcastButton from "../../../components/JoinBroadcastButton";
-import { getStreamUrl } from "../../../lib/broadcastState";
+import { getStreamUrl, getJoinButtonState } from "../../../lib/broadcastState";
 import { resolveLicenseMode } from "../../../lib/licenseMode";
 import { supabase } from "../../../lib/supabaseClient";
 import { fetchMyOrganization } from "../../../lib/myOrganizations";
 import { attachPortalBroadcastSession } from "../../../lib/portalBroadcastSessions";
+
+import { getArchiveVideoUrl } from "../../../lib/archiveRecording";
 
 const BUCKET = "posters";
 
@@ -394,6 +396,9 @@ export default function UdalostDetail() {
     ? row.broadcast_sessions[0]
     : row?.broadcast_sessions;
   const hasWebMeetingRoom = Boolean(broadcastSession?.has_external_meeting);
+  const archiveUrl = getArchiveVideoUrl(row);
+  const isArchive = Boolean(archiveUrl && getJoinButtonState(row).state === "finished");
+  const hasActiveLicense = !licenseLoading && (isPlatformAdmin || licenseMode === "active");
   const worksheetUrl = row?.worksheet_url || "";
   const posterUrl = useMemo(() => resolvePosterUrl(row), [row]);
 
@@ -535,6 +540,21 @@ export default function UdalostDetail() {
         </div>
 
         <div className="mt-4 bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+          {isArchive ? (
+            <section className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-5" aria-label="Záznam vysílání">
+              <h2 className="text-xl font-bold text-navy-900">Záznam pro vaši výuku</h2>
+              <p className="mt-2 text-slate-700">Pusťte si vysílání ve chvíli, kdy se vám hodí do výuky. Popis a podklady najdete níže.</p>
+              {hasActiveLicense ? (
+                <a href={archiveUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-navy-900 px-4 py-3 font-bold text-white">
+                  <Play className="h-4 w-4" aria-hidden="true" /> Přehrát záznam
+                </a>
+              ) : (
+                <p className="mt-3 text-slate-700">{licenseLoading ? "Ověřuji přístup…" : "Záznam je dostupný s aktivní licencí ARCHIMEDES Live."}</p>
+              )}
+              <Link href="#materialy" className="mt-4 ml-0 inline-flex min-h-11 items-center px-4 font-bold text-navy-900 underline sm:ml-2">Pracovní listy a materiály</Link>
+            </section>
+          ) : null}
+
           {posterUrl ? (
             <div className="mb-5 border border-slate-200 rounded-2xl bg-slate-50 p-3">
               <button
@@ -587,7 +607,7 @@ export default function UdalostDetail() {
             <div className="mt-5 text-slate-500">Popis zatím není vyplněn.</div>
           )}
 
-          <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+          {!isArchive ? <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
             <div className="text-sm font-extrabold uppercase tracking-wide text-emerald-800">
               Vaše účast
             </div>
@@ -641,9 +661,9 @@ export default function UdalostDetail() {
                 {attendeeError}
               </div>
             ) : null}
-          </div>
+          </div> : null}
 
-          {showLockedStreamNotice ? (
+          {showLockedStreamNotice && !isArchive ? (
             <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
               <div className="text-sm font-extrabold uppercase tracking-wide text-amber-800">
                 Vysílání je součástí aktivní licence
@@ -694,14 +714,14 @@ export default function UdalostDetail() {
                 </span>
               </button>
             ) : null}
-            {canAccessStream ? (
+            {!isArchive && canAccessStream ? (
               <JoinBroadcastButton
                 event={row}
                 detailHref={`/portal/udalost/${row?.id}`}
                 showWaiting
                 forceDynamicJoin={isPlatformAdmin && hasWebMeetingRoom}
               />
-            ) : streamUrl || hasWebMeetingRoom ? (
+            ) : !isArchive && (streamUrl || hasWebMeetingRoom) ? (
               <button
                 type="button"
                 disabled
@@ -714,7 +734,7 @@ export default function UdalostDetail() {
               </button>
             ) : null}
 
-            {calendarStart && calendarEnd && googleCalendarUrl ? (
+            {!isArchive && calendarStart && calendarEnd && googleCalendarUrl ? (
               <a
                 href={googleCalendarUrl}
                 target="_blank"
@@ -728,7 +748,7 @@ export default function UdalostDetail() {
               </a>
             ) : null}
 
-            {calendarStart && calendarEnd ? (
+            {!isArchive && calendarStart && calendarEnd ? (
               <button
                 type="button"
                 onClick={handleDownloadIcs}
@@ -741,28 +761,24 @@ export default function UdalostDetail() {
               </button>
             ) : null}
 
-            {worksheetUrl ? (
-              <a
-                href={worksheetUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  <FileText className="h-4 w-4" aria-hidden="true" /> Pracovní list
-                </span>
-              </a>
-            ) : null}
-
             <Link
-              href="/portal/kalendar"
+              href={isArchive ? "/portal/archiv" : "/portal/kalendar"}
               className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
             >
-              Zpět na Program
+              {isArchive ? "Zpět do archivu" : "Zpět na Program"}
             </Link>
           </div>
 
-          {reminderEnabled ? (
+          <section id="materialy" className="mt-6 scroll-mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <h2 className="text-lg font-bold text-navy-900">Pracovní listy a materiály</h2>
+            {worksheetUrl ? (
+              <a href={worksheetUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-navy-900 hover:bg-slate-100">
+                <FileText className="h-4 w-4" aria-hidden="true" /> Otevřít pracovní list
+              </a>
+            ) : <p className="mt-2 text-slate-600">K tomuto vysílání zatím není přiložen pracovní list. Dostupné odkazy a pokyny najdete v popisu vysílání.</p>}
+          </section>
+
+          {!isArchive && reminderEnabled ? (
             <div className="mt-3 text-sm text-slate-600">
               Vysílání máte uložené mezi připomenutími. Způsob upozornění nastavíte v Mém profilu.
             </div>

@@ -488,7 +488,7 @@ export default function Archiv() {
           <div>
             <h1 className="text-2xl font-black text-navy-900">Archiv</h1>
             <p className="mt-1.5 text-muted">
-              Záznamy odvysílaných událostí, návrat k tématům a návazné materiály.
+              Vysílání pro vaši výuku: záznam, úplný popis a pracovní listy na jednom místě.
             </p>
           </div>
 
@@ -573,28 +573,20 @@ export default function Archiv() {
                       </div>
 
                       <div className="mt-2.5 flex flex-wrap gap-2.5">
-                        {r._archiveUrl ? (
-                          <a
-                            href={r._archiveUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-navy-900 px-3.5 py-2.5 font-black text-white"
-                          >
-                            <Play className="h-4 w-4" aria-hidden="true" /> Otevřít video z archivu
-                          </a>
-                        ) : (
-                          <Link
-                            href={`/portal/udalost/${r.id}`}
-                            className="inline-flex items-center rounded-xl bg-navy-900 px-3.5 py-2.5 font-black text-white"
-                          >
-                            Otevřít detail
-                          </Link>
-                        )}
+                        <Link
+                          href={`/portal/udalost/${r.id}`}
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-navy-900 px-3.5 py-2.5 font-black text-white"
+                        >
+                          <Play className="h-4 w-4" aria-hidden="true" /> Záznam a materiály
+                        </Link>
 
                         {r.worksheet_url ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-bold text-slate-500">
-                            <FileText className="h-4 w-4" aria-hidden="true" /> Pracovní list v detailu
-                          </span>
+                          <Link
+                            href={`/portal/udalost/${r.id}#materialy`}
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-bold text-navy-900 hover:bg-slate-50"
+                          >
+                            <FileText className="h-4 w-4" aria-hidden="true" /> Pracovní list
+                          </Link>
                         ) : null}
 
                         <Link
