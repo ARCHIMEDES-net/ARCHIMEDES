@@ -1,3 +1,4 @@
+import CollaboratorsSection from "../components/partners/CollaboratorsSection";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
@@ -361,6 +362,8 @@ export default function Home({ initialEvents = [] }) {
             </div>
           </div>
         </section>
+
+        <CollaboratorsSection />
 
         {/* CTA BAND */}
         {ctaBand.visible ? (

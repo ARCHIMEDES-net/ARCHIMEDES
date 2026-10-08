@@ -1,0 +1,11 @@
+begin;
+alter table public.portal_posts add column show_in_news boolean not null default false;
+alter table public.portal_posts alter column show_in_news set default true;
+alter table public.portal_posts add column news_expires_at timestamptz;
+alter table public.portal_posts add column related_event_id uuid references public.events(id) on delete set null;
+update public.portal_posts set show_in_news = true where section = 'community' and is_published = true and created_at >= now() - interval '60 days';
+alter table public.events add column recording_expected boolean;
+alter table public.events alter column recording_expected set default true;
+update public.events set recording_expected = true where starts_at >= now();
+comment on column public.events.recording_expected is 'true: recording promised within 48h; false: explicitly no recording; null: historical event without a promise';
+commit;
