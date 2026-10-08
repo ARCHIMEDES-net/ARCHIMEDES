@@ -77,7 +77,7 @@ export default async function handler(req, res) {
 
     let newsFields;
     try { newsFields = parsePostNewsFields(req.body || {}); }
-    catch (error) { return res.status(400).json({ error: error.message }); }
+    catch { return res.status(400).json({ error: "Zkontrolujte nastavení novinky, termín ukončení a propojené vysílání." }); }
 
     const { error: insertError } = await supabaseAdmin.from("portal_posts").insert({
       ...newsFields,

@@ -409,7 +409,7 @@ export default function Archiv() {
 
               <div className="mt-4 grid max-w-[760px] grid-cols-1 gap-3 sm:grid-cols-3">
                 <MiniStat
-                  value={String(prepared.length)}
+                  value={String(prepared.filter((item) => item._archiveUrl).length)}
                   label="publikovaných záznamů v archivu"
                 />
                 <MiniStat
