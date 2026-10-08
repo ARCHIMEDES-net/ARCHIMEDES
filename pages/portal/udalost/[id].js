@@ -1,3 +1,4 @@
+import RecordingNotice from "../../../components/RecordingNotice";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -691,6 +692,8 @@ export default function UdalostDetail() {
               </div>
             </div>
           ) : null}
+
+          <RecordingNotice event={row} />
 
           <div className="mt-6 flex flex-wrap gap-2">
             {calendarStart && calendarStart.getTime() > Date.now() ? (

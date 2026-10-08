@@ -107,6 +107,14 @@ export default function SoutezePage() {
     };
   }, [lightboxImage]);
 
+  useEffect(() => {
+    const postId = typeof router.query.post === "string" ? router.query.post : "";
+    if (!postId || !posts.some(post => post.id === postId)) return;
+    setExpandedPostIds(prev => ({ ...prev, [postId]: true }));
+    const timer = setTimeout(() => document.getElementById(`post-${postId}`)?.scrollIntoView({ block: "start" }), 0);
+    return () => clearTimeout(timer);
+  }, [router.query.post, posts]);
+
   function toggleExpanded(postId) {
     setExpandedPostIds((prev) => ({
       ...prev,
@@ -217,7 +225,7 @@ export default function SoutezePage() {
             const isLongText = fullText.length > TEXT_PREVIEW_LENGTH;
 
             return (
-              <Card key={post.id} className="mb-4 overflow-hidden">
+              <Card id={`post-${post.id}`} key={post.id} className="mb-4 scroll-mt-24 overflow-hidden">
                 <div className="flex flex-wrap items-start gap-6 p-5">
                   <div className="w-full flex-[0_0_320px] max-w-[320px]">
                     {post.image_path ? (

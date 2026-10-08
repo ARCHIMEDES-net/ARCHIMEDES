@@ -22,6 +22,13 @@ export default function AdminPrispevky() {
     return "community";
   }, [router.query.section]);
 
+  const [showInNews, setShowInNews] = useState(true);
+  const [newsExpiresAt, setNewsExpiresAt] = useState("");
+  const [relatedEventId, setRelatedEventId] = useState("");
+  const [events, setEvents] = useState([]);
+  useEffect(() => {
+    supabase.from("events").select("id,title").eq("is_published", true).order("starts_at", { ascending: false }).then(({ data }) => setEvents(data || []));
+  }, []);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isPublished, setIsPublished] = useState(true);
@@ -48,6 +55,9 @@ export default function AdminPrispevky() {
       }
 
       if (data) {
+        setShowInNews(data.show_in_news !== false);
+        setNewsExpiresAt(data.news_expires_at ? new Date(new Date(data.news_expires_at).getTime() - new Date(data.news_expires_at).getTimezoneOffset() * 60000).toISOString().slice(0,16) : "");
+        setRelatedEventId(data.related_event_id || "");
         setTitle(data.title || "");
         setContent(data.content || "");
         setIsPublished(Boolean(data.is_published));
@@ -135,6 +145,9 @@ export default function AdminPrispevky() {
             title: title.trim(),
             content: content.trim(),
             is_published: isPublished,
+            show_in_news: showInNews,
+            news_expires_at: newsExpiresAt ? new Date(newsExpiresAt).toISOString() : null,
+            related_event_id: relatedEventId || null,
             image_path: imagePath,
           }
         : {
@@ -142,6 +155,9 @@ export default function AdminPrispevky() {
             title: title.trim(),
             content: content.trim(),
             is_published: isPublished,
+            show_in_news: showInNews,
+            news_expires_at: newsExpiresAt ? new Date(newsExpiresAt).toISOString() : null,
+            related_event_id: relatedEventId || null,
             image_path: imagePath,
           };
 
@@ -214,6 +230,21 @@ export default function AdminPrispevky() {
                   <span>Publikovat</span>
                 </label>
 
+                <div className="mt-4 grid gap-3 rounded-xl border border-slate-200 p-4">
+                  <label className="flex items-center gap-2 font-bold"><input type="checkbox" checked={showInNews} onChange={(e) => setShowInNews(e.target.checked)} /> Zobrazit také v Co je nového</label>
+                  <p className="text-sm text-slate-500">V novinkách se zobrazí pouze publikovaný příspěvek.</p>
+                  <label className="grid gap-1 text-sm font-bold">Zobrazovat v novinkách do (volitelné)
+                    <Input type="datetime-local" value={newsExpiresAt} onChange={(e) => setNewsExpiresAt(e.target.value)} />
+                  </label>
+                  <p className="text-sm text-slate-500">U soutěže zadejte termín ukončení. Potom zmizí z novinek, původní příspěvek zůstane zachovaný.</p>
+                  <label className="grid gap-1 text-sm font-bold">Související vysílání (volitelné)
+                    <select className="w-full rounded-xl border border-slate-200 bg-white p-2" value={relatedEventId} onChange={(e) => setRelatedEventId(e.target.value)}>
+                      <option value="">Bez propojení</option>
+                      {events.map((event) => <option key={event.id} value={event.id}>{event.title}</option>)}
+                    </select>
+                  </label>
+                  <p className="text-sm text-slate-500">Propojení zabrání duplicitní kartě nového vysílání. Osobní připomenutí zůstanou zachovaná.</p>
+                </div>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Button type="submit" disabled={loading} variant="primary">
                     {loading ? "Ukládám..." : "Uložit"}

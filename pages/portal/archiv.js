@@ -1,3 +1,5 @@
+import RecordingNotice from "../../components/RecordingNotice";
+import { recordingAvailability, RECORDING_PROMISE } from "../../lib/recordingAvailability";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Plus, Wrench, Play, FileText, ArrowRight } from "lucide-react";
@@ -274,6 +276,9 @@ export default function Archiv() {
               id,
               title,
               starts_at,
+              ends_at,
+              status,
+              recording_expected,
               category,
               audience_groups,
               audience,
@@ -330,7 +335,7 @@ export default function Archiv() {
           _coverUrl: getArchiveCoverUrl(r),
         };
       })
-      .filter((r) => r._d && r._d < now && r._archiveUrl);
+      .filter((r) => r._d && r._d < now && (r._archiveUrl || ["processing", "overdue"].includes(recordingAvailability(r, now).state)));
   }, [rows]);
 
   const categories = useMemo(() => {
@@ -404,7 +409,7 @@ export default function Archiv() {
 
               <div className="mt-4 grid max-w-[760px] grid-cols-1 gap-3 sm:grid-cols-3">
                 <MiniStat
-                  value={String(prepared.length)}
+                  value={String(prepared.filter((item) => item._archiveUrl).length)}
                   label="publikovaných záznamů v archivu"
                 />
                 <MiniStat
@@ -504,6 +509,8 @@ export default function Archiv() {
           ) : null}
         </div>
 
+        <p className="mt-3 text-sm text-muted">{RECORDING_PROMISE}</p>
+
         <Card className="mt-3.5 grid grid-cols-1 gap-2.5 p-3 sm:grid-cols-3">
           <div>
             <Label>Hledat</Label>
@@ -572,12 +579,13 @@ export default function Archiv() {
                         ) : null}
                       </div>
 
+                      <RecordingNotice event={r} />
                       <div className="mt-2.5 flex flex-wrap gap-2.5">
                         <Link
                           href={`/portal/udalost/${r.id}`}
                           className="inline-flex items-center gap-1.5 rounded-xl bg-navy-900 px-3.5 py-2.5 font-black text-white"
                         >
-                          <Play className="h-4 w-4" aria-hidden="true" /> Záznam a materiály
+                          <Play className="h-4 w-4" aria-hidden="true" /> {r._archiveUrl ? "Záznam a materiály" : "Detail a materiály"}
                         </Link>
 
                         {r.worksheet_url ? (

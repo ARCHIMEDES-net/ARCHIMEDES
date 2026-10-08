@@ -1,3 +1,4 @@
+import { parsePostNewsFields } from "../../lib/portalPostNews";
 import { createClient } from "@supabase/supabase-js";
 import { consumeAuthenticatedRateLimit } from "../../lib/server/authenticatedRateLimit";
 import { requirePlatformAdmin } from "../../lib/server/platformAdminApi";
@@ -68,9 +69,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Text příspěvku musí mít nejvýše 50 000 znaků." });
     }
 
+    let newsFields;
+    try { newsFields = parsePostNewsFields(req.body || {}); }
+    catch { return res.status(400).json({ error: "Zkontrolujte nastavení novinky, termín ukončení a propojené vysílání." }); }
+
     const { data, error } = await supabaseAdmin
       .from("portal_posts")
       .update({
+        ...newsFields,
         title: cleanTitle,
         content: cleanContent,
         is_published: is_published === true,

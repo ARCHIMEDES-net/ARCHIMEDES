@@ -1,3 +1,4 @@
+import { recordingAvailability } from "../../../../lib/recordingAvailability";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import RequirePlatformAdmin from "../../../../components/RequirePlatformAdmin";
@@ -150,6 +151,7 @@ export default function AdminVysilaniDetailPage() {
   const [guest5Name, setGuest5Name] = useState("");
   const [viewerUrl, setViewerUrl] = useState("");
   const [recordingUrl, setRecordingUrl] = useState("");
+  const [recordingExpected, setRecordingExpected] = useState(true);
   const [recordingStatus, setRecordingStatus] = useState("none");
   const [notesInternal, setNotesInternal] = useState("");
   const [startsAt, setStartsAt] = useState("");
@@ -210,6 +212,7 @@ export default function AdminVysilaniDetailPage() {
       if (eventError) throw eventError;
 
       setEventRow(eventData);
+      setRecordingExpected(eventData.recording_expected ?? null);
       const posterUrl = eventData.poster_url || getPosterPublicUrl(supabase, eventData.poster_path);
       setEventTitle(eventData.title || "");
       setEventDescription(eventData.full_description || "");
@@ -771,8 +774,9 @@ export default function AdminVysilaniDetailPage() {
           : null;
 
       const eventPatch = operationalLocked
-        ? {}
+        ? { recording_expected: recordingExpected }
         : {
+            recording_expected: recordingExpected,
             title: eventTitle.trim(),
             full_description: eventDescription.trim(),
             audience_groups: normalizeAudienceGroups(eventAudienceGroups),
@@ -941,6 +945,8 @@ export default function AdminVysilaniDetailPage() {
 
     return { label: "🟡 Vysílání rozpracováno", className: "border-yellow-200 bg-yellow-50 text-yellow-800" };
   }, [lifecycle, status]);
+
+  const recordingOverdue = recordingAvailability({ ...eventRow, recording_expected: recordingExpected, broadcast_sessions: [{ recording_status: recordingStatus, recording_url: recordingUrl }] }).state === "overdue";
 
   return (
     <RequirePlatformAdmin>
@@ -1361,6 +1367,8 @@ export default function AdminVysilaniDetailPage() {
 
                     <div>
                       <FieldLabel>Stav záznamu</FieldLabel>
+                      <label className="mb-3 flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={recordingExpected !== false} onChange={(e) => setRecordingExpected(e.target.checked)} /> Záznam bude k dispozici do 48 hodin</label>
+                      {recordingOverdue ? <Alert variant="error" className="mb-3">Záznam chybí déle než 48 hodin po skončení vysílání. Zkontrolujte jeho zpracování a publikaci.</Alert> : null}
                       <Select value={recordingStatus} onChange={(e) => setRecordingStatus(e.target.value)}>
                         {RECORDING_STATUS_OPTIONS.map((item) => (
                           <option key={item.value} value={item.value}>

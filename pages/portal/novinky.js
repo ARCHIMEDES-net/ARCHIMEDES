@@ -1,3 +1,4 @@
+import { mergeNews } from "../../lib/portalPostNews";
 import Head from "next/head";
 import Link from "next/link";
 import { Bell, CalendarClock, CheckCheck } from "lucide-react";
@@ -37,6 +38,7 @@ function formatBroadcastDate(value) {
 export default function NovinkyPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [posts, setPosts] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [nextEvent, setNextEvent] = useState(null);
@@ -53,6 +55,7 @@ export default function NovinkyPage() {
         { data: notificationData, error: notificationError },
         { data: eventData, error: eventError },
         { count: unreadTotal, error: countError },
+        { data: postData, error: postError },
       ] = await Promise.all([
         supabase
           .from("user_notifications")
@@ -69,8 +72,11 @@ export default function NovinkyPage() {
           .order("starts_at", { ascending: true })
           .limit(1),
         supabase.from("user_notifications").select("id", {count:"exact",head:true}).or(CONTENT_NOTIFICATION_FILTER).is("read_at",null).lte("available_at",nowIso),
+        supabase.from("portal_posts").select("id,title,content,section,created_at,is_published,show_in_news,news_expires_at,related_event_id").in("section", ["community", "contests"]).eq("is_published", true).eq("show_in_news", true).or(`news_expires_at.is.null,news_expires_at.gt.${nowIso}`).order("created_at", { ascending: false }).limit(50),
       ]);
 
+      if (postError) throw postError;
+      setPosts(postData || []);
       if (notificationError) throw notificationError;
       if (eventError) throw eventError;
       if (countError) throw countError;
@@ -150,6 +156,8 @@ export default function NovinkyPage() {
     if (!loading) publishUnreadNotificationCount(unreadCount);
   }, [loading, unreadCount]);
 
+  const feed = mergeNews(notifications, posts, nextEvent?.id);
+
   return (
     <RequireAuth>
       <Head><title>Co je nového | ARCHIMEDES Live</title></Head>
@@ -161,7 +169,7 @@ export default function NovinkyPage() {
             <div>
               <p className="mb-2 text-xs font-black uppercase tracking-[0.08em] text-slate-500">ARCHIMEDES Live</p>
               <h1 className="text-[34px] font-[950] leading-tight text-navy-900">Co je nového</h1>
-              <p className="mt-2 text-slate-600">Nová vysílání, změny termínů a vaše připomenutí na jednom místě.</p>
+              <p className="mt-2 text-slate-600">Vysílání, články z Komunity, soutěže a vaše připomenutí na jednom místě.</p>
             </div>
             <Button type="button" variant="secondary" onClick={markAllRead} disabled={!unreadCount || saving}>
               <CheckCheck className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -234,7 +242,7 @@ export default function NovinkyPage() {
             </Card>
           ) : null}
 
-          {!loading && !notifications.length ? (
+          {!loading && !feed.length ? (
             <Card className="p-8 text-center">
               <Bell className="mx-auto h-10 w-10 text-slate-400" aria-hidden="true" />
               <h2 className="mt-4 text-xl font-black text-navy-900">Zatím tu nejsou žádná další oznámení</h2>
@@ -248,16 +256,17 @@ export default function NovinkyPage() {
           ) : null}
 
           <div className="grid gap-3">
-            {notifications.map((item) => {
+            {feed.map((item) => {
               const targetPath = safeNotificationTargetPath(item.target_path);
               const event = Array.isArray(item.events) ? item.events[0] : item.events;
               const content = (
                 <Card className={item.read_at ? "p-5" : "border-blue-200 bg-blue-50/60 p-5"}>
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-xs font-black uppercase tracking-wide text-slate-500">{notificationKindLabel(item.kind)}</div>
+                      <div className="text-xs font-black uppercase tracking-wide text-slate-500">{item.kind === "contest" ? "Soutěž" : item.kind === "article" ? "Článek · Komunita" : notificationKindLabel(item.kind)}</div>
                       <h2 className="mt-1 text-lg font-black text-navy-900">{item.title}</h2>
                       {item.body ? <p className="mt-2 leading-relaxed text-slate-600">{item.body}</p> : null}
+                      {item.isPost ? <span className="mt-3 inline-block text-sm font-bold text-brand">Otevřít příspěvek →</span> : null}
                       {event?.starts_at ? (
                         <div className="mt-3 text-sm font-bold text-slate-600">
                           Termín vysílání: {formatBroadcastDate(event.starts_at)}
@@ -268,7 +277,7 @@ export default function NovinkyPage() {
                   </div>
                 </Card>
               );
-              return targetPath ? <Link key={item.id} href={targetPath}>{content}</Link> : <div key={item.id}>{content}</div>;
+              return targetPath ? <Link key={item.feedKey} href={targetPath}>{content}</Link> : <div key={item.feedKey}>{content}</div>;
             })}
           </div>
         </div>
