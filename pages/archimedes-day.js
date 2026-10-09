@@ -103,8 +103,8 @@ const CONTENT = {
     nextWhen: "Čtvrtek 5. listopadu 2026 · 16:00",
     nextWhere: "Ratíškovice · učebna ARCHIMEDES® a živé vysílání",
     nextWhat: "Science ON · vědecká show KLAM",
-    nextPrimary: "Zobrazit program a přenos",
-    nextSecondary: "Přivézt Den generací k nám",
+    nextPrimary: "Ratíškovice – program a přenos",
+    nextSecondary: "Chci ARCHIMEDES DAY u nás",
     nextNote: "Vysílání plánujeme zpřístupnit zdarma. Přímý odkaz zveřejníme před akcí.",
     nextPhotoAlt: "Vědecké pokusy Science ON během červnového ARCHIMEDES DAY v Brně",
     nextPhotoCaption: "Science ON na ARCHIMEDES DAY · Brno, červen 2026",
@@ -260,8 +260,8 @@ const CONTENT = {
     nextWhen: "Thursday, 5 November 2026 · 4:00 pm CET",
     nextWhere: "Ratíškovice · ARCHIMEDES® classroom and livestream",
     nextWhat: "Science ON · KLAM science show",
-    nextPrimary: "View programme & livestream",
-    nextSecondary: "Bring Generations Day to us",
+    nextPrimary: "Ratíškovice – programme & livestream",
+    nextSecondary: "Bring ARCHIMEDES DAY to us",
     nextNote: "We plan to stream the event free of charge. A direct viewing link will be published before the event.",
     nextPhotoAlt: "Science ON performing experiments at ARCHIMEDES DAY in Brno, June 2026",
     nextPhotoCaption: "Science ON at ARCHIMEDES DAY · Brno, June 2026",
@@ -500,18 +500,18 @@ export default function ArchimedesDayPage() {
                 <p className="ad-next-subtitle">{t.nextSubtitle}</p>
                 <p className="ad-next-lead">{t.nextLead}</p>
                 <div className="ad-next-actions">
-                  <Link
+                  <a
                     href={"/archimedes-day/den-generaci" + (lang === "en" ? "?lang=en" : "")}
                     className="ad-btn ad-btn-primary"
                   >
-                    {t.nextPrimary} <span aria-hidden="true">↗</span>
-                  </Link>
-                  <Link
+                    {t.nextPrimary} <span aria-hidden="true">→</span>
+                  </a>
+                  <a
                     href={"/archimedes-day/pro-obce" + (lang === "en" ? "?lang=en" : "")}
                     className="ad-next-secondary"
                   >
                     {t.nextSecondary} <span aria-hidden="true">→</span>
-                  </Link>
+                  </a>
                 </div>
                 <div className="ad-next-meta" aria-label={lang === "en" ? "Event details" : "Podrobnosti akce"}>
                   <div>{t.nextWhen}</div>
@@ -1308,11 +1308,12 @@ export default function ArchimedesDayPage() {
           color: #162d49;
         }
         .ad-next-actions {
-          display: flex;
-          align-items: stretch;
-          flex-wrap: wrap;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr);
           gap: 12px;
           width: 100%;
+          max-width: 480px;
+          margin-top: 4px;
         }
         .ad-next-actions .ad-btn-primary,
         .ad-next-secondary {
@@ -1320,13 +1321,14 @@ export default function ArchimedesDayPage() {
           align-items: center;
           justify-content: center;
           gap: 8px;
-          flex: 1 1 205px;
-          min-height: 56px;
-          padding: 12px 17px;
+          width: 100%;
+          box-sizing: border-box;
+          min-height: 60px;
+          padding: 16px 22px;
           border-radius: 11px;
           text-align: center;
-          font-size: 14px;
-          font-weight: 850;
+          font-size: 16px;
+          font-weight: 800;
           line-height: 1.3;
           text-decoration: none;
           transition: background 0.18s ease, transform 0.18s ease;
@@ -1351,6 +1353,15 @@ export default function ArchimedesDayPage() {
           background: #f3d38a;
           color: #102742;
           transform: translateY(-2px);
+        }
+        .ad-next-actions a span {
+          flex-shrink: 0;
+          font-size: 21px;
+          line-height: 1;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ad-next-actions a { transition: none; }
+          .ad-next-actions a:hover { transform: none; }
         }
         .ad-next-note {
           margin: 17px 0 0;
