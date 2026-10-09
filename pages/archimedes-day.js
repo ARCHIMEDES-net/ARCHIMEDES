@@ -103,8 +103,8 @@ const CONTENT = {
     nextWhen: "Čtvrtek 5. listopadu 2026 · 16:00",
     nextWhere: "Ratíškovice · učebna ARCHIMEDES® a živé vysílání",
     nextWhat: "Science ON · vědecká show KLAM",
-    nextPrimary: "Zobrazit program a informace o přenosu",
-    nextSecondary: "Přivézt Den generací do naší obce",
+    nextPrimary: "Zobrazit program a přenos",
+    nextSecondary: "Přivézt Den generací k nám",
     nextNote: "Vysílání plánujeme zpřístupnit zdarma. Přímý odkaz zveřejníme před akcí.",
     nextPhotoAlt: "Vědecké pokusy Science ON během červnového ARCHIMEDES DAY v Brně",
     nextPhotoCaption: "Science ON na ARCHIMEDES DAY · Brno, červen 2026",
@@ -260,8 +260,8 @@ const CONTENT = {
     nextWhen: "Thursday, 5 November 2026 · 4:00 pm CET",
     nextWhere: "Ratíškovice · ARCHIMEDES® classroom and livestream",
     nextWhat: "Science ON · KLAM science show",
-    nextPrimary: "View the programme and livestream details",
-    nextSecondary: "Bring Generations Day to our community",
+    nextPrimary: "View programme & livestream",
+    nextSecondary: "Bring Generations Day to us",
     nextNote: "We plan to stream the event free of charge. A direct viewing link will be published before the event.",
     nextPhotoAlt: "Science ON performing experiments at ARCHIMEDES DAY in Brno, June 2026",
     nextPhotoCaption: "Science ON at ARCHIMEDES DAY · Brno, June 2026",
@@ -499,11 +499,6 @@ export default function ArchimedesDayPage() {
                 <h2 id="ad-next-event-title">{t.nextTitle}</h2>
                 <p className="ad-next-subtitle">{t.nextSubtitle}</p>
                 <p className="ad-next-lead">{t.nextLead}</p>
-                <div className="ad-next-meta" aria-label={lang === "en" ? "Event details" : "Podrobnosti akce"}>
-                  <div>{t.nextWhen}</div>
-                  <div>{t.nextWhere}</div>
-                  <div>{t.nextWhat}</div>
-                </div>
                 <div className="ad-next-actions">
                   <Link
                     href={"/archimedes-day/den-generaci" + (lang === "en" ? "?lang=en" : "")}
@@ -517,6 +512,11 @@ export default function ArchimedesDayPage() {
                   >
                     {t.nextSecondary} <span aria-hidden="true">→</span>
                   </Link>
+                </div>
+                <div className="ad-next-meta" aria-label={lang === "en" ? "Event details" : "Podrobnosti akce"}>
+                  <div>{t.nextWhen}</div>
+                  <div>{t.nextWhere}</div>
+                  <div>{t.nextWhat}</div>
                 </div>
                 <p className="ad-next-note">{t.nextNote}</p>
               </div>
@@ -1234,7 +1234,7 @@ export default function ArchimedesDayPage() {
 
 
         .ad-next-event {
-          padding: 62px 0 78px;
+          padding: 28px 0 48px;
           background: linear-gradient(180deg, #f1f4f8 0%, #faf9f5 100%);
           color: #142944;
         }
@@ -1251,14 +1251,14 @@ export default function ArchimedesDayPage() {
           display: flex;
           flex-direction: column;
           align-items: flex-start;
-          justify-content: center;
-          padding: clamp(30px, 4vw, 60px);
+          justify-content: flex-start;
+          padding: clamp(26px, 3vw, 42px);
         }
         .ad-next-eyebrow {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          margin: 0 0 20px;
+          margin: 0 0 13px;
           color: #8a6429;
           font-weight: 850;
           font-size: 12px;
@@ -1285,19 +1285,19 @@ export default function ArchimedesDayPage() {
           font-size: clamp(18px, 2vw, 24px);
           font-weight: 800;
           line-height: 1.3;
-          margin: 0 0 24px;
+          margin: 0 0 15px;
         }
         .ad-next-lead {
           font-size: 16px;
           line-height: 1.65;
-          margin: 0 0 25px;
+          margin: 0 0 20px;
           color: #425772;
           max-width: 590px;
         }
         .ad-next-meta {
           display: grid;
-          gap: 11px;
-          margin: 0 0 27px;
+          gap: 9px;
+          margin: 22px 0 0;
         }
         .ad-next-meta div {
           border-left: 3px solid #d4ae62;
@@ -1309,23 +1309,49 @@ export default function ArchimedesDayPage() {
         }
         .ad-next-actions {
           display: flex;
-          align-items: center;
+          align-items: stretch;
           flex-wrap: wrap;
-          gap: 16px 20px;
+          gap: 12px;
+          width: 100%;
+        }
+        .ad-next-actions .ad-btn-primary,
+        .ad-next-secondary {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          flex: 1 1 205px;
+          min-height: 56px;
+          padding: 12px 17px;
+          border-radius: 11px;
+          text-align: center;
+          font-size: 14px;
+          font-weight: 850;
+          line-height: 1.3;
+          text-decoration: none;
+          transition: background 0.18s ease, transform 0.18s ease;
         }
         .ad-next-actions .ad-btn-primary {
-          border-radius: 10px;
-          min-height: 53px;
-          padding: 0 20px;
+          background: #112e4d;
+          border: 1px solid #112e4d;
+          color: #fff;
+          box-shadow: 0 7px 16px rgba(17, 46, 77, 0.16);
         }
         .ad-next-secondary {
-          font-weight: 800;
-          font-size: 14px;
-          color: #19436b;
-          text-decoration: underline;
-          text-underline-offset: 5px;
+          background: #eac368;
+          border: 1px solid #d3a84d;
+          color: #102742;
+          box-shadow: 0 5px 14px rgba(196, 145, 41, 0.18);
         }
-        .ad-next-secondary:hover { color: #ac7727; }
+        .ad-next-actions .ad-btn-primary:hover {
+          background: #24496f;
+          transform: translateY(-2px);
+        }
+        .ad-next-secondary:hover {
+          background: #f3d38a;
+          color: #102742;
+          transform: translateY(-2px);
+        }
         .ad-next-note {
           margin: 17px 0 0;
           color: #677789;
@@ -1336,7 +1362,7 @@ export default function ArchimedesDayPage() {
           position: relative;
           margin: 0;
           background: #1a2e42;
-          min-height: 535px;
+          min-height: 475px;
           overflow: hidden;
         }
         .ad-next-image {
@@ -1400,9 +1426,9 @@ export default function ArchimedesDayPage() {
           .ad-shell {
             width: min(100% - 24px, 1180px);
           }
-          .ad-next-event { padding: 35px 0 52px; }
+          .ad-next-event { padding: 22px 0 40px; }
           .ad-next-event-grid { border-radius: 20px; }
-          .ad-next-event-copy { padding: 28px 22px 30px; }
+          .ad-next-event-copy { padding: 25px 21px 27px; }
           .ad-next-media { min-height: 310px; max-height: 380px; }
           .ad-next-actions { flex-direction: column; align-items: stretch; width: 100%; }
           .ad-next-actions .ad-btn { width: 100%; text-align: center; }
