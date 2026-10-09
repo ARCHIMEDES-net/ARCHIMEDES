@@ -169,6 +169,10 @@ function InquiryForm({ lang }) {
   </form>;
 }
 
+function PlatformMention({ text }) {
+  return text.split("ARCHIMEDES Live").map((part, index) => <span key={index}>{index > 0 && <Link href="/" style={{color:"inherit",textDecoration:"underline",textUnderlineOffset:"3px"}}>ARCHIMEDES Live</Link>}{part}</span>);
+}
+
 function Participation({ lang }) {
   const en = lang === "en";
   const calendar = [
@@ -184,8 +188,8 @@ function Participation({ lang }) {
     <p className={css.label}>5. 11. 2026 · 16:00 {en ? "CET" : ""}</p>
     <h2>{en ? "Live from Ratíškovice" : "Vysíláme živě z Ratíškovic"}</h2>
     <div className={css.participationGrid}>
-      <article><p className={css.label}>{en ? "WHERE THE EVENT TAKES PLACE" : "MÍSTO KONÁNÍ"}</p><h3>{en ? "ARCHIMEDES® classroom in Ratíškovice" : "Učebna ARCHIMEDES® v Ratíškovicích"}</h3><p>{en ? "Generations Day brings local grandparents and grandchildren together in Ratíškovice. The local event is organised by Seniorský klub Ratíškovice." : "Den generací propojí v Ratíškovicích místní prarodiče a vnoučata. Akci pořádá Seniorský klub Ratíškovice, který zajišťuje veškerou místní organizaci."}</p><p>{en ? "Together with Science ON, we will bring the shared discoveries to you through a live broadcast on ARCHIMEDES Live." : "Společné objevování se Science ON přeneseme živě také k vám prostřednictvím ARCHIMEDES Live."}</p></article>
-      <article><p className={css.label}>{en ? "LIVE BROADCAST" : "ŽIVÝ PŘENOS"}</p><h3>{en ? "Watch from your home, school or community" : "Sledujte z domova, školy nebo obce"}</h3><p>{en ? "Join us online on 5 November at 4:00 pm CET. The live broadcast is free and open to everyone, with no ARCHIMEDES Live registration required." : "Sledujte živě 5. listopadu v 16:00. Přenos je veřejný a zdarma pro všechny, bez registrace na platformě ARCHIMEDES Live."}</p><p>{en ? "The direct viewing link will appear here before the broadcast." : "Přímý odkaz na sledování najdete před vysíláním zde na stránce."}</p><button type="button" className={css.primary} disabled aria-describedby="stream-link-status" style={{ cursor: "default" }}>{en ? "Viewing link coming soon" : "Odkaz na vysílání připravujeme"}</button><p id="stream-link-status">{en ? "Once the broadcast is ready, you will find a direct “Join the broadcast” button here." : "Jakmile bude vysílání připravené, najdete zde tlačítko „Připojit se k vysílání“ s přímým odkazem."}</p></article>
+      <article><p className={css.label}>{en ? "WHERE THE EVENT TAKES PLACE" : "MÍSTO KONÁNÍ"}</p><h3>{en ? "ARCHIMEDES® classroom in Ratíškovice" : "Učebna ARCHIMEDES® v Ratíškovicích"}</h3><p>{en ? "Generations Day brings local grandparents and grandchildren together in Ratíškovice. The local event is organised by Seniorský klub Ratíškovice." : "Den generací propojí v Ratíškovicích místní prarodiče a vnoučata. Akci pořádá Seniorský klub Ratíškovice, který zajišťuje veškerou místní organizaci."}</p><p><PlatformMention text={en ? "Together with Science ON, we will bring the shared discoveries to you through a live broadcast on ARCHIMEDES Live." : "Společné objevování se Science ON přeneseme živě také k vám prostřednictvím ARCHIMEDES Live."}/></p></article>
+      <article><p className={css.label}>{en ? "LIVE BROADCAST" : "ŽIVÝ PŘENOS"}</p><h3>{en ? "Watch from your home, school or community" : "Sledujte z domova, školy nebo obce"}</h3><p>{en ? "Join us online on 5 November at 4:00 pm CET. The live broadcast is free and open to everyone, with no ARCHIMEDES Live registration required." : "Sledujte živě 5. listopadu v 16:00. Přenos je veřejný a zdarma pro všechny, bez registrace na platformě ARCHIMEDES Live."}</p><button type="button" className={css.primary} disabled aria-describedby="stream-link-status" style={{ cursor: "default" }}>{en ? "Viewing link coming soon" : "Odkaz na vysílání připravujeme"}</button><p id="stream-link-status">{en ? "You will find the link here before the broadcast begins." : "Odkaz najdete zde před začátkem přenosu."}</p></article>
     </div>
     <div className={css.calendarRow}><a className={css.primary} href={"data:text/calendar;charset=utf-8,"+encodeURIComponent(calendar)} download="archimedes-day-2026-11-05.ics">{en ? "Save the broadcast to your calendar ↓" : "Uložit vysílání do kalendáře ↓"}</a><p>{en ? "Save the start time: 5 November 2026 at 4:00 pm CET." : "Uložte si začátek přenosu: 5. listopadu 2026 v 16:00."}</p></div>
   </div></section>;
@@ -197,13 +201,13 @@ function PracticalInfo({lang}) {
     ["What do we provide?","Science ON’s science show and shared experiments. We will confirm the programme, capacity, technical requirements, preparation and travel in your individual offer."],
     ["What does the host arrange?","Propose a date and a suitable venue and invite local families. We will agree on equipment, seating, access and preparation before confirming the booking."],
     ["Can a school host the event?","Yes, you can enquire as a school. The programme creates opportunities to observe, ask questions, predict results and explore together. Tell us the children’s ages so we can confirm a suitable format."],
-    ["Do we need a classroom or a licence?","You can enquire about a community hall, school or another suitable venue. Tell us what facilities you have; any technical and access requirements will be clarified in the offer."],
+    ["Do we need a classroom or a licence?","No. Hosting the local programme does not require an ARCHIMEDES® classroom or an ARCHIMEDES Live licence. A community hall, school or another suitable venue is enough. We will agree on the technical arrangements together."],
     ["What does the price cover?","CZK 19,500 including VAT is an indicative price. The final scope and total including travel will be stated in your offer. Sending an enquiry does not confirm a booking."]
   ] : [
     ["Co zajistíme my?","Vědeckou show Science ON a společné pokusy. Konkrétní program, kapacitu, technické požadavky, přípravu a dopravu upřesníme v nabídce pro vaše místo."],
     ["Co připraví obec nebo škola?","Navrhnete termín a vhodný prostor a pozvete místní rodiny. Vybavení, sezení, přístup do prostoru a přípravu si společně odsouhlasíme před potvrzením akce."],
     ["Je program vhodný také pro školy?","Akci může poptat i škola. Program dává prostor pozorování, otázkám, odhadování výsledků a společnému objevování. Napište nám věk dětí, abychom potvrdili vhodnou podobu programu."],
-    ["Potřebujeme učebnu ARCHIMEDES® nebo licenci?","Poptat můžete program pro kulturní dům, školu i jiný vhodný prostor. Napište, jaké máte zázemí; technické podmínky a případné požadavky na přístup k platformě vyjasníme v nabídce."],
+    ["Potřebujeme učebnu ARCHIMEDES® nebo licenci?","Ne. K uspořádání místního programu nepotřebujete učebnu ARCHIMEDES® ani licenci ARCHIMEDES Live. Stačí kulturní dům, škola nebo jiný vhodný prostor. Technické zázemí domluvíme společně."],
     ["Co znamená orientační cena?","19 500 Kč včetně DPH je orientační částka. Přesný rozsah a konečnou cenu včetně dopravy uvedeme v nabídce. Odesláním poptávky si akci závazně neobjednáváte."]
   ];
   return <section className={css.practical}><div className={css.wrap}><p className={css.label}>{en?"BEFORE YOU DECIDE":"NEŽ SE ROZHODNETE"}</p><h2>{en?"Everything starts with your community":"Všechno začíná u vaší obce nebo školy"}</h2><div className={css.faq}>{items.map(([title,text])=><details key={title}><summary>{title}</summary><p>{text}</p></details>)}</div></div></section>;
@@ -251,7 +255,7 @@ export default function ArchimedesDayCampaign({ variant="event" }) {
             <div className={css.eyebrow}>{isEvent?t.eventTag:t.villageTag}</div>
             <p className={css.kicker}>ARCHIMEDES DAY · {isEvent?t.navOne:t.navTwo}</p>
             <h1>{pageTitle}</h1>
-            <p className={css.lead}>{lead}</p>
+            <p className={css.lead}><PlatformMention text={lead}/></p>
             <div className={css.actions}>
               {isEvent?<><a className={css.primary} href="#prenos">{t.eventPrimary} ↓</a><Link className={css.secondary} href={to("/archimedes-day/pro-obce")}>{t.eventSecondary}</Link></>:<><a className={css.primary} href="#poptavka">{t.villagePrimary} ↗</a><Link className={css.secondary} href={to("/archimedes-day/den-generaci")}>{t.villageSecondary}</Link></>}
             </div>
