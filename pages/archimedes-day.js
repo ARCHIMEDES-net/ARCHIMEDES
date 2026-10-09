@@ -96,6 +96,18 @@ const CONTENT = {
       "Mezinárodní vzdělávací iniciativa propojující školy, obce a generace. Připravujeme Den generací se Science ON, místní programy i další hlavní ročník.",
     ctaProgram: "Den generací 5. 11.",
     ctaGallery: "Program pro obce",
+    nextEyebrow: "NEJBLIŽŠÍ ARCHIMEDES DAY",
+    nextTitle: "Den generací",
+    nextSubtitle: "Babi, dědo, pojďme objevovat!",
+    nextLead: "V Ratíškovicích se setkají babičky, dědečkové a vnoučata, aby společně objevovali, jak nás mohou oklamat vlastní smysly. Čeká je vědecká show KLAM se Science ON i společné experimentování.",
+    nextWhen: "Čtvrtek 5. listopadu 2026 · 16:00",
+    nextWhere: "Ratíškovice · učebna ARCHIMEDES® a živé vysílání",
+    nextWhat: "Science ON · vědecká show KLAM",
+    nextPrimary: "Zobrazit program a informace o přenosu",
+    nextSecondary: "Přivézt Den generací do naší obce",
+    nextNote: "Vysílání plánujeme zpřístupnit zdarma. Přímý odkaz zveřejníme před akcí.",
+    nextPhotoAlt: "Vědecké pokusy Science ON během červnového ARCHIMEDES DAY v Brně",
+    nextPhotoCaption: "Science ON na ARCHIMEDES DAY · Brno, červen 2026",
 
     aboutKicker: "První ročník",
     aboutTitle: "Co je ARCHIMEDES DAY",
@@ -241,6 +253,18 @@ const CONTENT = {
       "An international educational initiative connecting schools, communities and generations. Join Generations Day with Science ON, local events and future editions.",
     ctaProgram: "Generations Day · Nov 5",
     ctaGallery: "For municipalities",
+    nextEyebrow: "UPCOMING ARCHIMEDES DAY",
+    nextTitle: "Generations Day",
+    nextSubtitle: "Grandma, Grandpa, let's discover together!",
+    nextLead: "Grandparents and grandchildren will come together in Ratíškovice to explore how easily our senses can deceive us. Join Science ON for its KLAM science show and a shared hands-on experience.",
+    nextWhen: "Thursday, 5 November 2026 · 4:00 pm CET",
+    nextWhere: "Ratíškovice · ARCHIMEDES® classroom and livestream",
+    nextWhat: "Science ON · KLAM science show",
+    nextPrimary: "View the programme and livestream details",
+    nextSecondary: "Bring Generations Day to our community",
+    nextNote: "We plan to stream the event free of charge. A direct viewing link will be published before the event.",
+    nextPhotoAlt: "Science ON performing experiments at ARCHIMEDES DAY in Brno, June 2026",
+    nextPhotoCaption: "Science ON at ARCHIMEDES DAY · Brno, June 2026",
 
     aboutKicker: "The first edition",
     aboutTitle: "What is ARCHIMEDES DAY",
@@ -466,24 +490,49 @@ export default function ArchimedesDayPage() {
           </div>
         </section>
 
-        <section className="ad-section ad-section-light">
+
+        <section className="ad-next-event" aria-labelledby="ad-next-event-title">
           <div className="ad-shell">
-            <div className="ad-heading ad-heading-dark">
-              <p className="ad-kicker">{lang === "en" ? "WHAT’S NEXT" : "CO PŘIPRAVUJEME"}</p>
-              <h2>{lang === "en" ? "Join us live or bring ARCHIMEDES DAY to your community" : "Zažijte ARCHIMEDES DAY živě nebo přímo ve své obci"}</h2>
-              <p>{lang === "en" ? "One shared brand for hands-on learning, generations and live connections." : "Jedna společná značka pro zážitkové vzdělávání, propojení generací a živá vysílání."}</p>
-            </div>
-            <div className="ad-values ad-values-light">
-              <article className="ad-value ad-value-light">
-                <h3>{lang === "en" ? "Generations Day · 5 November" : "Den generací · 5. listopadu"}</h3>
-                <p>{lang === "en" ? "Grandparents and grandchildren explore together with Science ON. Live from Ratíškovice at 4:00 pm, free stream planned." : "Babičky, dědečkové a vnoučata budou společně experimentovat se Science ON. Živě z Ratíškovic v 16:00, plánovaný přenos zdarma."}</p>
-                <Link href={`/archimedes-day/den-generaci${lang === "en" ? "?lang=en" : ""}`} className="ad-btn ad-btn-primary">{lang === "en" ? "Discover the event" : "Zjistit více o akci"}</Link>
-              </article>
-              <article className="ad-value ad-value-light">
-                <h3>{lang === "en" ? "ARCHIMEDES DAY in your town" : "ARCHIMEDES DAY ve vaší obci"}</h3>
-                <p>{lang === "en" ? "Choose your date and venue. We will propose a Science ON programme and prepare a tailored quote." : "Vyberte termín a místo. My připravíme program se Science ON a konkrétní nabídku podle vašich podmínek."}</p>
-                <Link href={`/archimedes-day/pro-obce${lang === "en" ? "?lang=en" : ""}`} className="ad-btn ad-btn-primary">{lang === "en" ? "Explore the offer" : "Prohlédnout nabídku"}</Link>
-              </article>
+            <div className="ad-next-event-grid">
+              <div className="ad-next-event-copy">
+                <p className="ad-next-eyebrow"><span className="ad-next-dot" aria-hidden="true" />{t.nextEyebrow}</p>
+                <h2 id="ad-next-event-title">{t.nextTitle}</h2>
+                <p className="ad-next-subtitle">{t.nextSubtitle}</p>
+                <p className="ad-next-lead">{t.nextLead}</p>
+                <div className="ad-next-meta" aria-label={lang === "en" ? "Event details" : "Podrobnosti akce"}>
+                  <div>{t.nextWhen}</div>
+                  <div>{t.nextWhere}</div>
+                  <div>{t.nextWhat}</div>
+                </div>
+                <div className="ad-next-actions">
+                  <Link
+                    href={"/archimedes-day/den-generaci" + (lang === "en" ? "?lang=en" : "")}
+                    className="ad-btn ad-btn-primary"
+                  >
+                    {t.nextPrimary} <span aria-hidden="true">↗</span>
+                  </Link>
+                  <Link
+                    href={"/archimedes-day/pro-obce" + (lang === "en" ? "?lang=en" : "")}
+                    className="ad-next-secondary"
+                  >
+                    {t.nextSecondary} <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
+                <p className="ad-next-note">{t.nextNote}</p>
+              </div>
+              <figure className="ad-next-media">
+                <Image
+                  src={GALLERY_PATH + "/ales1.jpg"}
+                  alt={t.nextPhotoAlt}
+                  width={1024}
+                  height={1536}
+                  sizes="(max-width: 850px) 100vw, 45vw"
+                  className="ad-next-image"
+                />
+                <figcaption className="ad-next-caption">
+                  {t.nextPhotoCaption}
+                </figcaption>
+              </figure>
             </div>
           </div>
         </section>
@@ -670,7 +719,7 @@ export default function ArchimedesDayPage() {
 
         .ad-hero {
           position: relative;
-          min-height: 88vh;
+          min-height: min(72vh, 680px);
           display: flex;
           align-items: center;
           overflow: hidden;
@@ -711,7 +760,7 @@ export default function ArchimedesDayPage() {
         .ad-hero-inner {
           position: relative;
           z-index: 2;
-          padding: 90px 0 86px;
+          padding: 66px 0 64px;
         }
 
         .ad-topbar {
@@ -1183,6 +1232,143 @@ export default function ArchimedesDayPage() {
           justify-content: center;
         }
 
+
+        .ad-next-event {
+          padding: 62px 0 78px;
+          background: linear-gradient(180deg, #f1f4f8 0%, #faf9f5 100%);
+          color: #142944;
+        }
+        .ad-next-event-grid {
+          display: grid;
+          grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+          overflow: hidden;
+          border: 1px solid #dfe5ec;
+          border-radius: 28px;
+          background: #ffffff;
+          box-shadow: 0 20px 60px rgba(17, 37, 62, 0.09);
+        }
+        .ad-next-event-copy {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: center;
+          padding: clamp(30px, 4vw, 60px);
+        }
+        .ad-next-eyebrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          margin: 0 0 20px;
+          color: #8a6429;
+          font-weight: 850;
+          font-size: 12px;
+          letter-spacing: 0.11em;
+          text-transform: uppercase;
+        }
+        .ad-next-dot {
+          display: inline-block;
+          width: 9px;
+          height: 9px;
+          background: #d1a84e;
+          border-radius: 50%;
+          flex: 0 0 auto;
+        }
+        .ad-next-event-copy h2 {
+          font-size: clamp(35px, 4vw, 56px);
+          line-height: 1.08;
+          letter-spacing: -0.04em;
+          margin: 0 0 9px;
+          color: #102742;
+        }
+        .ad-next-subtitle {
+          color: #9d7029;
+          font-size: clamp(18px, 2vw, 24px);
+          font-weight: 800;
+          line-height: 1.3;
+          margin: 0 0 24px;
+        }
+        .ad-next-lead {
+          font-size: 16px;
+          line-height: 1.65;
+          margin: 0 0 25px;
+          color: #425772;
+          max-width: 590px;
+        }
+        .ad-next-meta {
+          display: grid;
+          gap: 11px;
+          margin: 0 0 27px;
+        }
+        .ad-next-meta div {
+          border-left: 3px solid #d4ae62;
+          padding-left: 13px;
+          font-size: 14px;
+          font-weight: 700;
+          line-height: 1.35;
+          color: #162d49;
+        }
+        .ad-next-actions {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 16px 20px;
+        }
+        .ad-next-actions .ad-btn-primary {
+          border-radius: 10px;
+          min-height: 53px;
+          padding: 0 20px;
+        }
+        .ad-next-secondary {
+          font-weight: 800;
+          font-size: 14px;
+          color: #19436b;
+          text-decoration: underline;
+          text-underline-offset: 5px;
+        }
+        .ad-next-secondary:hover { color: #ac7727; }
+        .ad-next-note {
+          margin: 17px 0 0;
+          color: #677789;
+          font-size: 12px;
+          line-height: 1.55;
+        }
+        .ad-next-media {
+          position: relative;
+          margin: 0;
+          background: #1a2e42;
+          min-height: 535px;
+          overflow: hidden;
+        }
+        .ad-next-image {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center 10%;
+        }
+        .ad-next-media::after {
+          content: "";
+          position: absolute;
+          inset: 50% 0 0;
+          pointer-events: none;
+          background: linear-gradient(180deg, transparent 0%, rgba(9, 22, 38, 0.7) 100%);
+        }
+        .ad-next-caption {
+          position: absolute;
+          bottom: 21px;
+          left: 21px;
+          right: 21px;
+          z-index: 1;
+          color: #ffffff;
+          font-size: 12px;
+          font-weight: 650;
+          letter-spacing: 0.015em;
+        }
+        .ad-next-event a:focus-visible {
+          outline: 3px solid #b08233;
+          outline-offset: 4px;
+        }
+
         @media (max-width: 1120px) {
           .ad-hero-grid,
           .ad-intro,
@@ -1205,10 +1391,23 @@ export default function ArchimedesDayPage() {
           }
         }
 
+
+        @media (max-width: 950px) {
+          .ad-next-event-grid { grid-template-columns: 1fr; }
+          .ad-next-media { min-height: 390px; max-height: 520px; }
+        }
         @media (max-width: 720px) {
           .ad-shell {
             width: min(100% - 24px, 1180px);
           }
+          .ad-next-event { padding: 35px 0 52px; }
+          .ad-next-event-grid { border-radius: 20px; }
+          .ad-next-event-copy { padding: 28px 22px 30px; }
+          .ad-next-media { min-height: 310px; max-height: 380px; }
+          .ad-next-actions { flex-direction: column; align-items: stretch; width: 100%; }
+          .ad-next-actions .ad-btn { width: 100%; text-align: center; }
+          .ad-next-secondary { text-align: center; }
+
 
           .ad-section {
             padding: 68px 0;
