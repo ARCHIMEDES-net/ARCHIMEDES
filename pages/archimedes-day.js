@@ -86,16 +86,16 @@ const GALLERY = [
 
 const CONTENT = {
   cz: {
-    metaTitle: "ARCHIMEDES DAY | 19. června 2026",
+    metaTitle: "ARCHIMEDES DAY | Společně objevujeme",
     metaDescription:
-      "První ARCHIMEDES DAY se uskutečnil 19. června 2026 na BVV Brno. Propojil 120 škol, hosty z Česka a živý vstup z Museum Kotsanas v Řecku.",
-    badge: "První ročník • BVV Brno • ARCHIMEDES Live",
+      "ARCHIMEDES DAY propojuje generace, školy a obce prostřednictvím vědy, živých vysílání a společných zážitků. Den generací 5. listopadu 2026 a program pro obce.",
+    badge: "Společně objevujeme • ARCHIMEDES Live",
     heroTitle: "ARCHIMEDES DAY",
-    heroDate: "19. června 2026",
+    heroDate: "Společně objevujeme",
     heroText:
-      "První ročník mezinárodního dne vzdělávání, vědy a objevování propojil 120 škol, inspirativní hosty a živý vstup z Řecka.",
-    ctaProgram: "Prohlédnout program",
-    ctaGallery: "Fotogalerie z akce",
+      "Mezinárodní vzdělávací iniciativa propojující školy, obce a generace. Připravujeme Den generací se Science ON, místní programy i další hlavní ročník.",
+    ctaProgram: "Den generací 5. 11.",
+    ctaGallery: "Program pro obce",
 
     aboutKicker: "První ročník",
     aboutTitle: "Co je ARCHIMEDES DAY",
@@ -231,16 +231,16 @@ const CONTENT = {
   },
 
   en: {
-    metaTitle: "ARCHIMEDES DAY | June 19, 2026",
+    metaTitle: "ARCHIMEDES DAY | Discovering Together",
     metaDescription:
-      "The first ARCHIMEDES DAY took place at BVV Brno on June 19, 2026, connecting 120 schools, Czech guests and a live segment from Museum Kotsanas in Greece.",
-    badge: "First edition • BVV Brno • ARCHIMEDES Live",
+      "ARCHIMEDES DAY connects generations, schools and communities through science, live broadcasts and shared discoveries. Generations Day on 5 November 2026.",
+    badge: "Discovering Together • ARCHIMEDES Live",
     heroTitle: "ARCHIMEDES DAY",
-    heroDate: "June 19, 2026",
+    heroDate: "Discovering Together",
     heroText:
-      "The first edition of this international day of education, science and discovery connected 120 schools, inspiring guests and a live segment from Greece.",
-    ctaProgram: "See the program",
-    ctaGallery: "Event gallery",
+      "An international educational initiative connecting schools, communities and generations. Join Generations Day with Science ON, local events and future editions.",
+    ctaProgram: "Generations Day · Nov 5",
+    ctaGallery: "For municipalities",
 
     aboutKicker: "The first edition",
     aboutTitle: "What is ARCHIMEDES DAY",
@@ -439,13 +439,13 @@ export default function ArchimedesDayPage() {
                 <p className="ad-lead">{t.heroText}</p>
 
                 <div className="ad-hero-actions">
-                  <a href="#program" className="ad-btn ad-btn-primary">
+                  <Link href={`/archimedes-day/den-generaci${lang === "en" ? "?lang=en" : ""}`} className="ad-btn ad-btn-primary">
                     {t.ctaProgram}
-                  </a>
+                  </Link>
 
-                  <a href="#gallery" className="ad-btn ad-btn-secondary">
+                  <Link href={`/archimedes-day/pro-obce${lang === "en" ? "?lang=en" : ""}`} className="ad-btn ad-btn-secondary">
                     {t.ctaGallery}
-                  </a>
+                  </Link>
                 </div>
               </div>
 
@@ -466,6 +466,27 @@ export default function ArchimedesDayPage() {
           </div>
         </section>
 
+        <section className="ad-section ad-section-light">
+          <div className="ad-shell">
+            <div className="ad-heading ad-heading-dark">
+              <p className="ad-kicker">{lang === "en" ? "WHAT’S NEXT" : "CO PŘIPRAVUJEME"}</p>
+              <h2>{lang === "en" ? "Join us live or bring ARCHIMEDES DAY to your community" : "Zažijte ARCHIMEDES DAY živě nebo přímo ve své obci"}</h2>
+              <p>{lang === "en" ? "One shared brand for hands-on learning, generations and live connections." : "Jedna společná značka pro zážitkové vzdělávání, propojení generací a živá vysílání."}</p>
+            </div>
+            <div className="ad-values ad-values-light">
+              <article className="ad-value ad-value-light">
+                <h3>{lang === "en" ? "Generations Day · 5 November" : "Den generací · 5. listopadu"}</h3>
+                <p>{lang === "en" ? "Grandparents and grandchildren explore together with Science ON. Live from Ratíškovice at 4:00 pm, free stream planned." : "Babičky, dědečkové a vnoučata budou společně experimentovat se Science ON. Živě z Ratíškovic v 16:00, plánovaný přenos zdarma."}</p>
+                <Link href={`/archimedes-day/den-generaci${lang === "en" ? "?lang=en" : ""}`} className="ad-btn ad-btn-primary">{lang === "en" ? "Discover the event" : "Zjistit více o akci"}</Link>
+              </article>
+              <article className="ad-value ad-value-light">
+                <h3>{lang === "en" ? "ARCHIMEDES DAY in your town" : "ARCHIMEDES DAY ve vaší obci"}</h3>
+                <p>{lang === "en" ? "Choose your date and venue. We will propose a Science ON programme and prepare a tailored quote." : "Vyberte termín a místo. My připravíme program se Science ON a konkrétní nabídku podle vašich podmínek."}</p>
+                <Link href={`/archimedes-day/pro-obce${lang === "en" ? "?lang=en" : ""}`} className="ad-btn ad-btn-primary">{lang === "en" ? "Explore the offer" : "Prohlédnout nabídku"}</Link>
+              </article>
+            </div>
+          </div>
+        </section>
         <section id="gallery" className="ad-section ad-section-dark">
           <div className="ad-shell">
             <div className="ad-heading">
