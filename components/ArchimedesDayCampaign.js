@@ -156,7 +156,7 @@ export default function ArchimedesDayCampaign({ variant="event" }) {
           </div>
           <figure className={css.heroPhoto}>
             <Image src={photos+"ales1.jpg"} alt={t.imageOne} fill sizes="(max-width: 800px) 100vw, 45vw" priority style={{objectFit:"cover",objectPosition:"center top"}}/>
-            <figcaption><Image src="/partners/science-on.png" alt="Science ON" width={116} height={66} style={{objectFit:"contain"}}/><div className={css.photoCredit}><strong>ARCHIMEDES DAY</strong><small>{t.photoNote}</small></div></figcaption>
+            <figcaption><Image src="/partners/science-on.png" alt="Science ON" width={116} height={66} style={{objectFit:"contain"}}/><div className={css.photoCredit}><strong>ARCHIMEDES DAY</strong><small>{lang==="en"?"Brno · June 2026":"BVV Brno · červen 2026"}</small></div></figcaption>
           </figure>
         </div>
       </section>
