@@ -17,7 +17,7 @@ const words = {
     villageTitle:"Věda, která spojí tři generace. Přímo u vás.",
     eventIntro:"V Ratíškovicích se u jednoho stolu potkají vnoučata a prarodiče. Science ON jim ukáže, jak snadno nás mohou oklamat vlastní smysly. Čeká je vědecká show KLAM i společné pokusy. Sledujte živě na ARCHIMEDES Live.",
     villageIntro:"Vyberete termín a místo. My se Science ON přivezeme vědeckou show a pokusy, při kterých se potkají děti, rodiče i prarodiče. Zábavný program, který má smysl pro celou obec.",
-    eventPrimary:"Jak se zúčastnit",
+    eventPrimary:"Kde sledovat živý přenos",
     eventSecondary:"Chci Den generací u nás",
     villagePrimary:"Chci nezávaznou nabídku",
     villageSecondary:"Podívat se na Den generací",
@@ -31,7 +31,7 @@ const words = {
     secVillage:"Vyberete místo a datum. O program se postaráme.",
     secEventIntro:"Nejen dívat se, ale zkusit něco společně. Vnoučata a prarodiče budou moci sdílet překvapení, vlastní objevy i společné zážitky.",
     secVillageIntro:"Program tvoří 45 minut živé show a 60 minut společných pokusů. Konkrétní podobu a kapacitu přizpůsobíme vašemu prostoru.",
-    stepsEvent:[["01","Věříte vlastním očím?","Science ON představí show KLAM plnou překvapivých ukázek a smyslových klamů."],["02","Jeden pokus, dvě generace","Děti a prarodiče budou společně tipovat výsledky a zkoušet vybrané bezpečné aktivity."],["03","Z Ratíškovic až k vám","Program plánujeme vysílat živě, aby se mohly přidat další rodiny a obce."]],
+    stepsEvent:[["01","Věříte vlastním očím?","Science ON představí show KLAM plnou překvapivých ukázek a smyslových klamů."],["02","Jeden pokus, dvě generace","Děti a prarodiče budou společně tipovat výsledky a zkoušet vybrané bezpečné aktivity."],["03","Z Ratíškovic až k vám","Program vysíláme živě, aby společné objevování mohly sledovat i další rodiny a obce."]],
     stepsVillage:[["01","Navrhnete termín","Řeknete nám, kdy chcete rodiny ve své obci pozvat."],["02","Vyberete místo","Kulturní dům, škola nebo jiný vhodný prostor."],["03","Dostanete konkrétní nabídku","Ověříme dostupnost Science ON, technické podmínky a dopravu."],["04","Společně přivítáme generace","My se postaráme o program, obec pozve své rodiny."]],
     historyKicker:"OHLÉDNUTÍ | BRNO | 19. ČERVNA 2026",
     historyTitle:"Z Brna do Ratíškovic. A dál do dalších obcí.",
@@ -65,7 +65,7 @@ const words = {
     villageTitle:"Science brings three generations together. Right in your community.",
     eventIntro:"In Ratíškovice, grandparents and grandchildren will explore side by side. Science ON will show how easily our senses can fool us in its KLAM science show, followed by shared experiments. Join the live broadcast on ARCHIMEDES Live.",
     villageIntro:"Choose a date and venue. Together with Science ON, we'll bring a science show and hands-on experiments that children, parents and grandparents can all enjoy. A meaningful day for your community.",
-    eventPrimary:"How to take part",
+    eventPrimary:"Where to watch live",
     eventSecondary:"Bring Generations Day to my town",
     villagePrimary:"Request a no-obligation offer",
     villageSecondary:"Explore Generations Day",
@@ -79,7 +79,7 @@ const words = {
     secVillage:"Choose the date and venue. We'll take care of the programme.",
     secEventIntro:"More than watching a show: grandparents and grandchildren can share surprises, make discoveries and enjoy the experience together.",
     secVillageIntro:"The programme combines a 45-minute science show and 60 minutes of hands-on experiments. We'll adapt the format and capacity to your venue.",
-    stepsEvent:[["01","Can you trust your eyes?","Science ON's KLAM show is packed with surprising demonstrations and sensory illusions."],["02","One experiment, two generations","Children and grandparents will predict results and try selected safe activities together."],["03","From Ratíškovice to you","We plan to broadcast the programme live so families and communities can join remotely."]],
+    stepsEvent:[["01","Can you trust your eyes?","Science ON's KLAM show is packed with surprising demonstrations and sensory illusions."],["02","One experiment, two generations","Children and grandparents will predict results and try selected safe activities together."],["03","From Ratíškovice to you","We are broadcasting the programme live so other families and communities can share in the discoveries."]],
     stepsVillage:[["01","Suggest a date","Tell us when you'd like to invite families in your community."],["02","Choose a venue","A community hall, school or another suitable space."],["03","Receive a tailored offer","We check Science ON's availability, technical needs and travel costs."],["04","Bring generations together","We deliver the programme while you invite local families."]],
     historyKicker:"LOOKING BACK | BRNO | 19 JUNE 2026",
     historyTitle:"From Brno to Ratíškovice — and beyond.",
@@ -176,18 +176,18 @@ function Participation({ lang }) {
     "BEGIN:VEVENT","UID:den-generaci-20261105@archimedeslive.com","DTSTAMP:20261009T193000Z",
     "DTSTART:20261105T150000Z",
     "SUMMARY:ARCHIMEDES DAY – Den generací",
-    "DESCRIPTION:Začátek v 16:00 českého času. Délka a podmínky účasti budou upřesněny. Aktuální informace najdete na webu.",
+    "DESCRIPTION:Začátek v 16:00 českého času. Živý přenos z učebny ARCHIMEDES® v Ratíškovicích. Odkaz na vysílání najdete na webu.",
     "URL:https://www.archimedeslive.com/archimedes-day/den-generaci",
     "END:VEVENT","END:VCALENDAR",""
   ].join("\r\n");
   return <section id="prenos" className={css.broadcast}><div className={css.wrap}>
     <p className={css.label}>5. 11. 2026 · 16:00 {en ? "CET" : ""}</p>
-    <h2>{en ? "Join us in person or online" : "Přijďte osobně, nebo sledujte online"}</h2>
+    <h2>{en ? "Live from Ratíškovice" : "Vysíláme živě z Ratíškovic"}</h2>
     <div className={css.participationGrid}>
-      <article><p className={css.label}>{en ? "IN PERSON" : "OSOBNĚ"}</p><h3>{en ? "Visit Ratíškovice" : "Přijít do Ratíškovic"}</h3><p>{en ? "The event is being prepared in the ARCHIMEDES® classroom in Ratíškovice. The exact address, capacity, admission and booking arrangements will be published once confirmed." : "Akci připravujeme v učebně ARCHIMEDES® v Ratíškovicích. Přesnou adresu, kapacitu, případné vstupné a způsob rezervace zveřejníme po potvrzení organizátory."}</p><p>{en ? "Please check participation arrangements before travelling." : "Před cestou si prosím ověřte podmínky osobní účasti."}</p><a className={css.broadcastLink} href="mailto:zuzana.novotna@archimedeslive.com?subject=Den%20generac%C3%AD%20Rat%C3%AD%C5%A1kovice%20%E2%80%93%20osobn%C3%AD%20%C3%BA%C4%8Dast">{en ? "Ask about attending →" : "Zeptat se na osobní účast →"}</a></article>
-      <article><p className={css.label}>ONLINE</p><h3>{en ? "Watch from your home, school or community" : "Sledovat z domova, školy nebo obce"}</h3><p>{en ? "We plan to make the broadcast available free of charge on ARCHIMEDES Live. The viewing link and information about any registration will be published here before the event." : "Živé vysílání plánujeme zpřístupnit zdarma na ARCHIMEDES Live. Odkaz na přenos a informace o případné registraci zveřejníme zde před akcí."}</p><p>{en ? "The broadcast length and any materials for joining the experiments will also be clarified." : "Délku přenosu a případné pomůcky pro společné pokusy ještě upřesníme."}</p><Link className={css.broadcastLink} href="/kalendar">{en ? "Browse the broadcast calendar →" : "Prohlédnout kalendář vysílání →"}</Link></article>
+      <article><p className={css.label}>{en ? "WHERE THE EVENT TAKES PLACE" : "MÍSTO KONÁNÍ"}</p><h3>{en ? "ARCHIMEDES® classroom in Ratíškovice" : "Učebna ARCHIMEDES® v Ratíškovicích"}</h3><p>{en ? "Generations Day brings local grandparents and grandchildren together in Ratíškovice. The local event is organised by Seniorský klub Ratíškovice." : "Den generací propojí v Ratíškovicích místní prarodiče a vnoučata. Akci pořádá Seniorský klub Ratíškovice, který zajišťuje veškerou místní organizaci."}</p><p>{en ? "Together with Science ON, we will bring the shared discoveries to you through a live broadcast on ARCHIMEDES Live." : "Společné objevování se Science ON přeneseme živě také k vám prostřednictvím ARCHIMEDES Live."}</p></article>
+      <article><p className={css.label}>{en ? "LIVE BROADCAST" : "ŽIVÝ PŘENOS"}</p><h3>{en ? "Watch from your home, school or community" : "Sledujte z domova, školy nebo obce"}</h3><p>{en ? "Join us online on 5 November at 4:00 pm CET. We plan to make the live broadcast available free of charge on ARCHIMEDES Live." : "Připojte se online 5. listopadu v 16:00. Živé vysílání plánujeme zpřístupnit zdarma na ARCHIMEDES Live."}</p><p>{en ? "The direct viewing link will appear here before the broadcast." : "Přímý odkaz na sledování najdete před vysíláním zde na stránce."}</p><Link className={css.broadcastLink} href="/kalendar">{en ? "Browse the broadcast calendar →" : "Prohlédnout kalendář vysílání →"}</Link></article>
     </div>
-    <div className={css.calendarRow}><a className={css.primary} href={"data:text/calendar;charset=utf-8,"+encodeURIComponent(calendar)} download="archimedes-day-2026-11-05.ics">{en ? "Save the start time to your calendar ↓" : "Uložit začátek akce do kalendáře ↓"}</a><p>{en ? "This saves the start time, not a seat reservation. The end time is not yet confirmed." : "Uložíte si čas začátku, nejde o rezervaci místa. Konec programu zatím není potvrzen."}</p></div>
+    <div className={css.calendarRow}><a className={css.primary} href={"data:text/calendar;charset=utf-8,"+encodeURIComponent(calendar)} download="archimedes-day-2026-11-05.ics">{en ? "Save the broadcast to your calendar ↓" : "Uložit vysílání do kalendáře ↓"}</a><p>{en ? "Save the start time: 5 November 2026 at 4:00 pm CET." : "Uložte si začátek přenosu: 5. listopadu 2026 v 16:00."}</p></div>
   </div></section>;
 }
 
