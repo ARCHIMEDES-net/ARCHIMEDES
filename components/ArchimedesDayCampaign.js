@@ -16,11 +16,14 @@ const words = {
     villageTitle:"Den, který spojí generace ve vaší obci.",
     eventIntro:"Vnoučata, babičky a dědečkové u jednoho stolu. Science ON přijede do učebny ARCHIMEDES v Ratíškovicích s vědeckou show KLAM a společným objevováním. Buďte s námi živě.",
     villageIntro:"Přivezeme do vaší obce show Science ON a společné pokusy pro děti, rodiče i prarodiče. Vy určíte termín a místo. My připravíme program a postaráme se o realizaci.",
-    eventPrimary:"Přejít na ARCHIMEDES Live",
+    eventPrimary:"Informace k bezplatnému vysílání",
     eventSecondary:"Chci Den generací v obci",
     villagePrimary:"Nezávazně poptat termín",
     villageSecondary:"Podívat se na listopadový pilot",
-    eventNote:"Plánované vysílání zdarma. Přímý odkaz na tento pořad zveřejníme před akcí.",
+    eventNote:"Přímý odkaz na plánované bezplatné vysílání doplníme před akcí.",
+    streamHeading:"Kde sledovat živé vysílání?",
+    streamDetails:"5. listopadu od 16:00 plánujeme zpřístupnit speciální Den generací zdarma prostřednictvím ARCHIMEDES Live. Přímý odkaz na konkrétní vysílání doplníme sem ještě před akcí.",
+    streamLink:"Prohlédnout kalendář vysílání",
     infoEvent:["5. listopadu 2026","Začátek v 16:00","Ratíškovice + online","Science ON: KLAM"],
     infoVillage:["45 minut show","60 minut pokusů","Až 150 účastníků","Termín dle dohody"],
     secEvent:"Věda, která spojuje generace",
@@ -61,11 +64,14 @@ const words = {
     villageTitle:"A day that connects generations in your community.",
     eventIntro:"Grandchildren and grandparents discover side by side. Science ON will join us at the ARCHIMEDES classroom in Ratíškovice with the KLAM science show and hands-on exploration. Join us live.",
     villageIntro:"We bring a Science ON show and hands-on experiments for children, parents and grandparents to your town. You choose the date and venue. We help deliver the programme.",
-    eventPrimary:"Visit ARCHIMEDES Live",
+    eventPrimary:"Free livestream information",
     eventSecondary:"Bring Generations Day to my town",
     villagePrimary:"Request a date",
     villageSecondary:"Explore the November pilot event",
-    eventNote:"A free livestream is planned. The direct event link will be published before the broadcast.",
+    eventNote:"The direct link to the planned free livestream will appear here before the event.",
+    streamHeading:"Where can I watch live?",
+    streamDetails:"A free ARCHIMEDES Live broadcast of Generations Day is planned for 5 November at 4:00 pm CET. The direct event link will be added here before the broadcast.",
+    streamLink:"Browse the broadcast calendar",
     infoEvent:["5 November 2026","Starts at 16:00 CET","Ratíškovice + online","Science ON: KLAM"],
     infoVillage:["45-minute show","60 minutes of experiments","Up to 150 participants","Date by agreement"],
     secEvent:"Science that brings generations together",
@@ -144,17 +150,18 @@ export default function ArchimedesDayCampaign({ variant="event" }) {
             <h1>{pageTitle}</h1>
             <p className={css.lead}>{lead}</p>
             <div className={css.actions}>
-              {isEvent?<><a className={css.primary} href="https://www.archimedeslive.com/">{t.eventPrimary} ↗</a><Link className={css.secondary} href={to("/archimedes-day/pro-obce")}>{t.eventSecondary}</Link></>:<><a className={css.primary} href={hrefMail}>{t.villagePrimary} ↗</a><Link className={css.secondary} href={to("/archimedes-day/den-generaci")}>{t.villageSecondary}</Link></>}
+              {isEvent?<><a className={css.primary} href="#prenos">{t.eventPrimary} ↓</a><Link className={css.secondary} href={to("/archimedes-day/pro-obce")}>{t.eventSecondary}</Link></>:<><a className={css.primary} href={hrefMail}>{t.villagePrimary} ↗</a><Link className={css.secondary} href={to("/archimedes-day/den-generaci")}>{t.villageSecondary}</Link></>}
             </div>
             {isEvent&&<p className={css.streamNote}>{t.eventNote}</p>}
           </div>
           <figure className={css.heroPhoto}>
-            <Image src={photos+"ales1.jpg"} alt={t.imageOne} fill sizes="(max-width: 800px) 100vw, 45vw" priority style={{objectFit:"cover"}}/>
-            <figcaption>SCIENCE <strong>ON</strong><small>× ARCHIMEDES DAY</small></figcaption>
+            <Image src={photos+"ales1.jpg"} alt={t.imageOne} fill sizes="(max-width: 800px) 100vw, 45vw" priority style={{objectFit:"cover",objectPosition:"center top"}}/>
+            <figcaption><Image src="/partners/science-on.png" alt="Science ON" width={116} height={66} style={{objectFit:"contain"}}/><small>× ARCHIMEDES DAY</small></figcaption>
           </figure>
         </div>
       </section>
       <section className={css.facts}><div className={css.factsInner}>{(isEvent?t.infoEvent:t.infoVillage).map((v,i)=><div key={v}><small>0{i+1}</small><strong>{v}</strong></div>)}</div></section>
+      {isEvent && <section id="prenos" className={css.broadcast}><div className={css.wrap}><p className={css.label}>ARCHIMEDES LIVE · 5. 11. 2026</p><h2>{t.streamHeading}</h2><p>{t.streamDetails}</p><Link href="/kalendar" className={css.broadcastLink}>{t.streamLink} ↗</Link></div></section>}
       <section className={css.section}>
         <div className={css.wrap}>
           <p className={css.label}>ARCHIMEDES DAY × SCIENCE ON</p>
