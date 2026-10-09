@@ -21,9 +21,9 @@ const words = {
     eventSecondary:"Chci Den generací u nás",
     villagePrimary:"Chci nezávaznou nabídku",
     villageSecondary:"Podívat se na Den generací",
-    eventNote:"Přímý odkaz na plánované bezplatné vysílání doplníme před akcí.",
+    eventNote:"Veřejný přenos zdarma a bez registrace. Odkaz na vysílání připravujeme.",
     streamHeading:"Kde sledovat živé vysílání?",
-    streamDetails:"5. listopadu od 16:00 plánujeme zpřístupnit speciální Den generací zdarma prostřednictvím ARCHIMEDES Live. Přímý odkaz na konkrétní vysílání doplníme sem ještě před akcí.",
+    streamDetails:"Sledujte Den generací 5. listopadu od 16:00 zdarma a bez registrace. Přímý odkaz na vysílání doplníme zde na stránce.",
     streamLink:"Prohlédnout kalendář vysílání",
     infoEvent:["5. listopadu 2026","Začátek v 16:00","Ratíškovice + online","Science ON: KLAM"],
     infoVillage:["45 minut show","60 minut pokusů","Až 150 účastníků","Termín dle dohody"],
@@ -69,9 +69,9 @@ const words = {
     eventSecondary:"Bring Generations Day to my town",
     villagePrimary:"Request a no-obligation offer",
     villageSecondary:"Explore Generations Day",
-    eventNote:"The direct link to the planned free livestream will appear here before the event.",
+    eventNote:"Free public livestream, with no registration required. The viewing link is coming soon.",
     streamHeading:"Where can I watch live?",
-    streamDetails:"A free ARCHIMEDES Live broadcast of Generations Day is planned for 5 November at 4:00 pm CET. The direct event link will be added here before the broadcast.",
+    streamDetails:"Watch Generations Day free of charge on 5 November at 4:00 pm CET, with no registration required. The direct viewing link will be added here.",
     streamLink:"Browse the broadcast calendar",
     infoEvent:["5 November 2026","Starts at 16:00 CET","Ratíškovice + online","Science ON: KLAM"],
     infoVillage:["45-minute show","60 minutes of experiments","Up to 150 participants","Date by agreement"],
@@ -185,7 +185,7 @@ function Participation({ lang }) {
     <h2>{en ? "Live from Ratíškovice" : "Vysíláme živě z Ratíškovic"}</h2>
     <div className={css.participationGrid}>
       <article><p className={css.label}>{en ? "WHERE THE EVENT TAKES PLACE" : "MÍSTO KONÁNÍ"}</p><h3>{en ? "ARCHIMEDES® classroom in Ratíškovice" : "Učebna ARCHIMEDES® v Ratíškovicích"}</h3><p>{en ? "Generations Day brings local grandparents and grandchildren together in Ratíškovice. The local event is organised by Seniorský klub Ratíškovice." : "Den generací propojí v Ratíškovicích místní prarodiče a vnoučata. Akci pořádá Seniorský klub Ratíškovice, který zajišťuje veškerou místní organizaci."}</p><p>{en ? "Together with Science ON, we will bring the shared discoveries to you through a live broadcast on ARCHIMEDES Live." : "Společné objevování se Science ON přeneseme živě také k vám prostřednictvím ARCHIMEDES Live."}</p></article>
-      <article><p className={css.label}>{en ? "LIVE BROADCAST" : "ŽIVÝ PŘENOS"}</p><h3>{en ? "Watch from your home, school or community" : "Sledujte z domova, školy nebo obce"}</h3><p>{en ? "Join us online on 5 November at 4:00 pm CET. We plan to make the live broadcast available free of charge on ARCHIMEDES Live." : "Připojte se online 5. listopadu v 16:00. Živé vysílání plánujeme zpřístupnit zdarma na ARCHIMEDES Live."}</p><p>{en ? "The direct viewing link will appear here before the broadcast." : "Přímý odkaz na sledování najdete před vysíláním zde na stránce."}</p><Link className={css.broadcastLink} href="/kalendar">{en ? "Browse the broadcast calendar →" : "Prohlédnout kalendář vysílání →"}</Link></article>
+      <article><p className={css.label}>{en ? "LIVE BROADCAST" : "ŽIVÝ PŘENOS"}</p><h3>{en ? "Watch from your home, school or community" : "Sledujte z domova, školy nebo obce"}</h3><p>{en ? "Join us online on 5 November at 4:00 pm CET. The live broadcast is free and open to everyone, with no ARCHIMEDES Live registration required." : "Sledujte živě 5. listopadu v 16:00. Přenos je veřejný a zdarma pro všechny, bez registrace na platformě ARCHIMEDES Live."}</p><p>{en ? "The direct viewing link will appear here before the broadcast." : "Přímý odkaz na sledování najdete před vysíláním zde na stránce."}</p><button type="button" className={css.primary} disabled aria-describedby="stream-link-status" style={{ cursor: "default" }}>{en ? "Viewing link coming soon" : "Odkaz na vysílání připravujeme"}</button><p id="stream-link-status">{en ? "Once the broadcast is ready, you will find a direct “Join the broadcast” button here." : "Jakmile bude vysílání připravené, najdete zde tlačítko „Připojit se k vysílání“ s přímým odkazem."}</p></article>
     </div>
     <div className={css.calendarRow}><a className={css.primary} href={"data:text/calendar;charset=utf-8,"+encodeURIComponent(calendar)} download="archimedes-day-2026-11-05.ics">{en ? "Save the broadcast to your calendar ↓" : "Uložit vysílání do kalendáře ↓"}</a><p>{en ? "Save the start time: 5 November 2026 at 4:00 pm CET." : "Uložte si začátek přenosu: 5. listopadu 2026 v 16:00."}</p></div>
   </div></section>;
