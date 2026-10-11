@@ -105,7 +105,7 @@ const CONTENT = {
     nextWhat: "Science ON · vědecká show KLAM",
     nextPrimary: "Ratíškovice – program a přenos",
     nextSecondary: "Chci ARCHIMEDES DAY u nás",
-    nextNote: "Vysílání plánujeme zpřístupnit zdarma. Přímý odkaz zveřejníme před akcí.",
+    nextNote: "Veřejný přenos je zdarma a bez registrace. Přímý odkaz zveřejníme před akcí.",
     nextPhotoAlt: "Vědecké pokusy Science ON během červnového ARCHIMEDES DAY v Brně",
     nextPhotoCaption: "Science ON na ARCHIMEDES DAY · Brno, červen 2026",
 

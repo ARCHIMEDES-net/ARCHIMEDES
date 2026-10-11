@@ -128,6 +128,37 @@ afterEach(() => {
 });
 
 describe("authoritative lead processing", () => {
+  it("stores a non-binding platform inquiry without creating a customer or license", async () => {
+    const { res } = await invoke(legacyInquiryHandler, {
+      method: "POST",
+      body: { inquiryKind: "platform_consultation", name: "Jan Novák", email: "jan@example.test", place: "Obec Testov", phone: "", message: "Jak zapojíme klub?" },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({ ok: true, emailSent: true });
+    expect(dependencies.state.inserts).toHaveLength(1);
+    expect(dependencies.state.inserts[0].rows[0]).toMatchObject({ type: "komunita", organization: "Obec Testov", phone: null, status: "new" });
+    expect(dependencies.state.inserts[0].rows[0].note).toContain("Druh: platform_consultation");
+    expect(dependencies.supabase.rpc).not.toHaveBeenCalled();
+    expect(dependencies.state.updates).toHaveLength(0);
+    expect(dependencies.sendRegistrationEmail).toHaveBeenCalledWith(expect.objectContaining({ subject: "ARCHIMEDES Live – nezávazná poptávka zapojení", to: "team@example.test" }));
+  });
+
+  it("requires an organization for platform inquiries before saving or sending", async () => {
+    const { res } = await invoke(legacyInquiryHandler, { method: "POST", body: { inquiryKind: "platform_consultation", name: "Jan Novák", email: "jan@example.test", place: " " } });
+    expect(res.statusCode).toBe(400);
+    expect(dependencies.state.inserts).toHaveLength(0);
+    expect(dependencies.sendRegistrationEmail).not.toHaveBeenCalled();
+  });
+
+  it("keeps a non-binding inquiry saved when notification delivery fails", async () => {
+    dependencies.sendRegistrationEmail.mockRejectedValueOnce(new Error("provider unavailable"));
+    const { res } = await invoke(legacyInquiryHandler, { method: "POST", body: { inquiryKind: "platform_consultation", name: "Jan Novák", email: "jan@example.test", place: "Obec Testov" } });
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toMatchObject({ ok: true, emailSent: false });
+    expect(dependencies.state.inserts).toHaveLength(1);
+    expect(dependencies.supabase.rpc).not.toHaveBeenCalled();
+  });
+
   it("stores /zadost, creates the pending customer and archive, and sends both emails through Resend", async () => {
     const { res } = await invoke(accessRequestHandler, {
       method: "POST",

@@ -1,3 +1,4 @@
+import { isPlatformInquiry, PLATFORM_INQUIRY_LABEL } from "../../lib/platformInquiry";
 import { useEffect, useMemo, useState } from "react";
 import RequirePlatformAdmin from "../../components/RequirePlatformAdmin";
 import PortalHeader from "../../components/PortalHeader";
@@ -110,6 +111,8 @@ export default function AdminPoptavky() {
 
     if (typeFilter !== "all") {
       out = out.filter((r) => {
+        if (typeFilter === "platform") return isPlatformInquiry(r);
+        if (isPlatformInquiry(r)) return false;
         const t = norm(r?.type).toLowerCase();
         const n = norm(r?.note).toLowerCase();
 
@@ -202,6 +205,7 @@ export default function AdminPoptavky() {
               className="h-10 w-auto"
             >
               <option value="all">Vše</option>
+              <option value="platform">Platforma – nezávazně</option>
               <option value="demo">Demo</option>
               <option value="obec">Obec</option>
               <option value="skola">Škola</option>
@@ -285,7 +289,7 @@ export default function AdminPoptavky() {
                       </TableCell>
 
                       <TableCell>
-                        {norm(r.type) || "—"}
+                        {isPlatformInquiry(r) ? PLATFORM_INQUIRY_LABEL : norm(r.type) || "—"}
                         {demoLead ? (
                           <div className="mt-1.5">
                             <span className="inline-flex rounded-full bg-indigo-100 px-2 py-1 text-[11px] font-black text-indigo-900">

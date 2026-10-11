@@ -2,7 +2,8 @@ import CollaboratorsSection from "../components/partners/CollaboratorsSection";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
-import { track } from "@vercel/analytics";
+import { trackConversion as track } from "../lib/conversionAnalytics";
+import ArchimedesDayNotice from "../components/ArchimedesDayNotice";
 import {
   ArrowRight,
   Users,
@@ -85,6 +86,7 @@ export default function Home({ initialEvents = [] }) {
       </Head>
 
       <main className="bg-white text-slate-900">
+        <ArchimedesDayNotice />
         {/* HERO */}
         <section className="relative min-h-[680px] overflow-hidden bg-[#153a63] text-white lg:min-h-[78vh]">
           <div className="absolute inset-0">
@@ -119,11 +121,12 @@ export default function Home({ initialEvents = [] }) {
                 <p className="mt-3 max-w-xl text-base leading-relaxed text-white/78 sm:text-lg">
                   {hero.lead}
                 </p>
+                <p className="mt-3 text-sm font-semibold text-white">Venkovní učebnu nepotřebujete.</p>
 
                 <div className="mt-9 flex flex-wrap gap-3">
                   <Button
                     href={hero.primaryCta.href}
-                    className="bg-[#efbd58] text-slate-950 shadow-[0_16px_34px_rgba(239,189,88,0.24)] hover:bg-[#f5ca73]"
+                    className="h-auto min-h-12 whitespace-normal py-3 text-center bg-[#efbd58] text-slate-950 shadow-[0_16px_34px_rgba(239,189,88,0.24)] hover:bg-[#f5ca73]"
                     onClick={() => track("klik_home_cta_primary")}
                   >
                     {hero.primaryCta.label}
@@ -132,8 +135,8 @@ export default function Home({ initialEvents = [] }) {
                   <Button
                     href={hero.secondaryCta.href}
                     variant="light"
-                    className="border border-white/50 bg-white/5 text-white backdrop-blur hover:bg-white/15"
-                    onClick={() => track("klik_home_jak_to_funguje")}
+                    className="h-auto min-h-12 whitespace-normal py-3 text-center border border-white/50 bg-white/5 text-white backdrop-blur hover:bg-white/15"
+                    onClick={() => track("home_consultation_click")}
                   >
                     {hero.secondaryCta.label}
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -386,7 +389,7 @@ export default function Home({ initialEvents = [] }) {
                 <Button
                   href={ctaBand.cta.href}
                   variant="light"
-                  className="border border-slate-200"
+                  className="h-auto min-h-12 whitespace-normal border border-slate-200 py-3 text-center"
                   onClick={() => track("klik_home_cta_band")}
                 >
                   {ctaBand.cta.label} <ArrowRight className="h-4 w-4" aria-hidden="true" />

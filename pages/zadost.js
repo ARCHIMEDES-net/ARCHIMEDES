@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
@@ -12,6 +12,8 @@ import { Select } from "../components/ui/select";
 import { Label } from "../components/ui/label";
 import { Alert } from "../components/ui/alert";
 import { LEGAL_DOCUMENT_VERSION } from "../lib/legalDocuments";
+
+import { trackConversion } from "../lib/conversionAnalytics";
 
 const EMPTY_FORM = {
   type: "",
@@ -55,6 +57,8 @@ const CUSTOMER_TYPES = {
 
 export default function ZadostPage() {
   const router = useRouter();
+  const started = useRef(false);
+  useEffect(() => { trackConversion("platform_order_view"); }, []);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -71,6 +75,10 @@ export default function ZadostPage() {
   }, [router.isReady, router.query.type]);
 
   function updateField(event) {
+    if (!started.current && event.target.name !== "company") {
+      started.current = true;
+      trackConversion("platform_order_start");
+    }
     const { name, value } = event.target;
     setForm((current) => ({
       ...current,
@@ -143,8 +151,10 @@ export default function ZadostPage() {
           : `Děkujeme. Objednávku jsme zaznamenali. Smlouva zatím nevznikla.\n\nPo ověření ${CUSTOMER_TYPES[payload.type].successLabel} a oprávnění objednatele Vám zašleme písemné přijetí objednávky.`
       );
       setSubmitted(true);
+      trackConversion("platform_order_success", { type: payload.type, plan: payload.licensePlan });
       setForm(EMPTY_FORM);
     } catch (submitError) {
+      trackConversion("platform_order_error");
       setError(submitError.message || "Žádost se nepodařilo odeslat.");
     } finally {
       setSaving(false);
@@ -161,7 +171,7 @@ export default function ZadostPage() {
         />
       </Head>
       <main className="mx-auto max-w-[760px] px-4 py-10">
-        <Card className="p-7">
+        <Card className="p-5 sm:p-7">
           <Badge variant="outline">{submitted ? "Odesláno" : "Objednávka programu"}</Badge>
 
           {!submitted ? (
@@ -171,10 +181,12 @@ export default function ZadostPage() {
               </h1>
               <p className="mb-5 mt-3 text-[17px] leading-relaxed text-muted">
                 Jeden společný program stojí 1 990 Kč bez DPH měsíčně (objednávka
-                na 12 měsíců). Platbu lze fakturovat měsíčně nebo za všech 12
+                na 12 měsíců, celkem 23 880 Kč bez DPH). Měsíční fakturace nemění délku objednávky. Platbu lze fakturovat měsíčně nebo za všech 12
                 měsíců najednou. Smlouva vznikne až písemným přijetím objednávky
                 společností EduVision po jejím ověření.
               </p>
+
+              <p className="mb-5 text-sm leading-relaxed text-slate-600">Chcete nejprve probrat možnosti? <Link href="/nezavazne-zapojeni" className="font-bold text-brand underline">Poslat nezávaznou poptávku</Link>.</p>
 
               {error ? <Alert variant="error" className="mb-4">Chyba: {error}</Alert> : null}
 
@@ -323,7 +335,7 @@ export default function ZadostPage() {
                 </p>
 
                 <div className="mt-1 flex flex-wrap gap-2.5">
-                  <Button type="submit" disabled={saving} className="w-full sm:w-auto">{saving ? "Odesílám..." : "Odeslat závaznou objednávku"}</Button>
+                  <Button type="submit" disabled={saving} className="h-auto min-h-12 w-full whitespace-normal py-3 sm:w-auto">{saving ? "Odesílám..." : "Odeslat závaznou objednávku"}</Button>
                   <Button href="/" variant="secondary" className="w-full sm:w-auto">Zpět na hlavní stránku</Button>
                 </div>
 

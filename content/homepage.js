@@ -14,8 +14,8 @@ export const hero = {
   subtitle: "Živě. Společně. Přímo u vás.",
   lead:
     "Přinášíme pravidelná živá vysílání s odborníky. Program, při kterém se lidé setkávají, vzdělávají a sbližují.",
-  primaryCta: { label: "Chci program", href: "/zadost" },
-  secondaryCta: { label: "Jak to funguje", href: "#jak-to-funguje" },
+  primaryCta: { label: "Prohlédnout program pro obec", href: "/obec" },
+  secondaryCta: { label: "Nezávazně probrat zapojení", href: "/nezavazne-zapojeni" },
   photo: "/hero-komunita-dsc00554.webp",
   photoAlt: "Mezigenerační komunitní setkání před učebnou ARCHIMEDES Live",
   floatingCard: {
@@ -168,7 +168,7 @@ export const references = [
 export const ctaBand = {
   title: "Přineste společný živý program i do své obce",
   subtitle: "Probereme s vámi, jak mohou program využívat místní školy, spolky a senioři.",
-  cta: { label: "Chci program pro naši obec", href: "/zadost" },
+  cta: { label: "Nezávazně probrat zapojení", href: "/nezavazne-zapojeni" },
   visible: true,
 };
 

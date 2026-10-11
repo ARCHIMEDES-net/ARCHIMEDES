@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import { track } from "@vercel/analytics";
-import { ArrowUpRight, Building2, GraduationCap, Users, X } from "lucide-react";
+import { trackConversion as track } from "../lib/conversionAnalytics";
+import { ArrowUpRight, Building2, Users, X } from "lucide-react";
 
 const HIDDEN_ROUTES = new Set([
   "/zadost",
+  "/nezavazne-zapojeni",
   "/ucebna",
   "/poptavka-ucebny",
   "/login",
@@ -27,24 +28,8 @@ const HIDDEN_ROUTES = new Set([
 ]);
 
 const OPTIONS = [
-  {
-    type: "obec",
-    label: "Obec",
-    detail: "Program pro místní školu i spolky",
-    icon: Building2,
-  },
-  {
-    type: "skola",
-    label: "Škola",
-    detail: "Zapojení samostatně nebo přes obec",
-    icon: GraduationCap,
-  },
-  {
-    type: "spolek",
-    label: "Spolek",
-    detail: "Zapojení samostatně nebo přes obec",
-    icon: Users,
-  },
+  { type: "inquiry", label: "Nezávazně probrat zapojení", detail: "Zeptejte se na možnosti pro vaši organizaci", href: "/nezavazne-zapojeni", icon: Users },
+  { type: "order", label: "Objednat program", detail: "Závazná objednávka pro rozhodnuté zájemce", href: "/zadost", icon: Building2 },
 ];
 
 export default function FloatingJoinCta() {
@@ -147,8 +132,8 @@ export default function FloatingJoinCta() {
 
       <div id="floating-join-panel" className="floating-join__panel" aria-hidden={!open}>
         <p className="floating-join__eyebrow">ARCHIMEDES LIVE</p>
-        <h2>Koho chcete zapojit?</h2>
-        <p className="floating-join__intro">Vyberte cestu a formulář připravíme podle vás.</p>
+        <h2>Jak chcete pokračovat?</h2>
+        <p className="floating-join__intro">Nejdříve se poraďte, nebo rovnou objednejte program.</p>
         <div className="floating-join__options">
           {OPTIONS.map((option, index) => {
             const Icon = option.icon;
@@ -156,7 +141,7 @@ export default function FloatingJoinCta() {
               <Link
                 key={option.type}
                 ref={index === 0 ? firstOptionRef : undefined}
-                href={`/zadost?type=${option.type}`}
+                href={option.href}
                 tabIndex={open ? 0 : -1}
                 onClick={() => track("floating_join_select", { type: option.type })}
               >
@@ -219,6 +204,8 @@ export default function FloatingJoinCta() {
           right: 0;
           top: 66px;
           width: 100%;
+          max-height: calc(50vh - 90px);
+          overflow-y: auto;
           padding: 22px;
           border: 1px solid rgba(255,255,255,.76);
           border-radius: 24px;

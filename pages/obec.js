@@ -1,4 +1,6 @@
 import Head from "next/head";
+import { useEffect } from "react";
+import { trackConversion } from "../lib/conversionAnalytics";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check, MapPin, Radio, Users } from "lucide-react";
@@ -93,6 +95,7 @@ const municipalityFaqs = [
 ];
 
 export default function ObecPage() {
+  useEffect(() => { trackConversion("municipality_offer_view"); }, []);
   return (
     <>
       <Head>
@@ -123,9 +126,11 @@ export default function ObecPage() {
                   seniory a další obyvatele. Obsah připravíme my. Lidé se díky
                   němu potkají přímo ve své obci.
                 </p>
+                <p className="mt-5 text-base leading-relaxed text-slate-700"><strong>Venkovní učebnu nepotřebujete.</strong> Stačí vhodný prostor s internetem a obrazovkou.</p>
+                <p className="mt-4 text-base leading-relaxed text-navy-900"><strong>1 990 Kč bez DPH měsíčně</strong> za program pro obec, její školu a zapojené spolky.<br /><span className="text-sm">Na 12 měsíců, celkem 23 880 Kč bez DPH. Bez automatického prodloužení.</span></p>
                 <div className="mt-8 flex flex-wrap gap-3">
-                  <Button href="/zadost">
-                    Chci program pro naši obec
+                  <Button href="/nezavazne-zapojeni" className="h-auto min-h-12 whitespace-normal py-3 text-center">
+                    Nezávazně probrat zapojení
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Button>
                   <Link
@@ -198,6 +203,7 @@ export default function ObecPage() {
           </div>
         </section>
 
+        <section className="mx-auto max-w-[1180px] px-5 pb-12"><div className="rounded-3xl bg-slate-50 p-6 sm:p-8"><h2 className="text-2xl font-black text-navy-900">Jak může vypadat první společné sledování</h2><p className="mt-3 max-w-3xl leading-relaxed text-slate-700">Obec určí kontaktní osobu. Škola nebo klub vybere vhodný pořad, pozve účastníky a připraví prostor s internetem a obrazovkou. ARCHIMEDES Live zajistí obsah a vysílání.</p><Link href="/program" className="mt-4 inline-flex min-h-11 items-center font-bold text-brand underline">Prohlédnout konkrétní pořady →</Link></div></section>
         <MunicipalityBroadcastGallery />
 
         <section className="bg-[#f3f7fb] py-16 sm:py-20">
@@ -226,9 +232,9 @@ export default function ObecPage() {
               <p className="mt-4 text-[15px] leading-relaxed text-slate-600">
                 Jeden celý program pro obec, bez příplatku za školu a jednotlivé
                 spolky zapojené pod jejím registračním číslem. Objednávka je na
-                12 měsíců bez automatického prodloužení.
+                12 měsíců bez automatického prodloužení. Celkem 23 880 Kč bez DPH za 12 měsíců.
               </p>
-              <Button href="/zadost" className="mt-7 w-full sm:w-auto">
+              <Button href="/zadost?type=obec" onClick={() => trackConversion("municipality_order_click")} className="mt-7 w-full sm:w-auto">
                 Objednat program
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>

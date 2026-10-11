@@ -1,3 +1,4 @@
+import { PLATFORM_INQUIRY_KIND, PLATFORM_INQUIRY_LABEL, PLATFORM_INQUIRY_MARKER } from "../../lib/platformInquiry";
 import { createClient } from "@supabase/supabase-js";
 import { sendRegistrationEmail } from "../../lib/server/registrationEmailProvider";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
@@ -40,6 +41,7 @@ export default async function handler(req, res) {
     }
 
     const {
+      inquiryKind,
       selectedOption,
       selectedLabel,
       name,
@@ -54,8 +56,9 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, message: "Poptávka byla odeslána." });
     }
 
-    const cleanSelectedOption = within(selectedOption, 80);
-    const cleanSelectedLabel = within(selectedLabel, 120);
+    const isPlatform = inquiryKind === PLATFORM_INQUIRY_KIND;
+    const cleanSelectedOption = isPlatform ? "komunita" : within(selectedOption, 80);
+    const cleanSelectedLabel = isPlatform ? PLATFORM_INQUIRY_LABEL : within(selectedLabel, 120);
     const cleanName = within(name, 120);
     const cleanPlace = within(place, 180);
     const cleanEmail = within(email, 254).toLowerCase();
@@ -72,14 +75,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Vyplňte platný email." });
     }
 
+    if (isPlatform && !cleanPlace) {
+      return res.status(400).json({ error: "Vyplňte název obce nebo organizace." });
+    }
+
     const createdAt = new Date().toISOString();
     const note = [
+      ...(isPlatform ? [PLATFORM_INQUIRY_MARKER, "Nezávazná poptávka; nejde o objednávku ani aktivaci licence."] : []),
       `Zájem: ${cleanSelectedLabel || cleanSelectedOption}`,
       "",
       "Zpráva:",
       cleanMessage || "-",
       "",
-      "Zdroj: web archimedeslive.com/poptavka",
+      isPlatform ? "Zdroj: web archimedeslive.com/nezavazne-zapojeni" : "Zdroj: web archimedeslive.com/poptavka",
     ].join("\n");
 
     const { data, error } = await supabase
@@ -114,7 +122,7 @@ export default async function handler(req, res) {
         const receipt = await sendRegistrationEmail({
           to: inquiryRecipient,
           replyTo: cleanEmail,
-          subject: "Nová poptávka ARCHIMEDES Live",
+          subject: isPlatform ? "ARCHIMEDES Live – nezávazná poptávka zapojení" : "Nová poptávka ARCHIMEDES Live",
           text: [
             "Přišla nová poptávka z webu ARCHIMEDES Live",
             "",
