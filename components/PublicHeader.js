@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { key: "program", href: "/program", label: "Co přinášíme" },
   { key: "obec", href: "/obec", label: "Pro obce" },
   { key: "skoly", href: "/skoly", label: "Pro školy" },
-  { key: "pro-organizace", href: "/pro-organizace", label: "Pro spolky" },
+  { key: "spolky", href: "/spolky", label: "Pro spolky" },
   { key: "ucebna", href: "/ucebna", label: "Učebna ARCHIMEDES" },
   { key: "o-nas", href: "/o-nas", label: "Naše vize" },
   { key: "kontakt", href: "/kontakt", label: "Kontakt" },
@@ -33,12 +33,15 @@ function LogoMark({ inverse = false }) {
         .logoMark {
           display: inline-flex;
           align-items: center;
+          max-width: 100%;
         }
 
         .logoImg {
           height: 36px;
           width: auto;
           display: block;
+          max-width: 100%;
+          object-fit: contain;
         }
 
         @media (max-width: 480px) {
@@ -141,11 +144,11 @@ export default function PublicHeader({ active = "" }) {
         }
 
         .ph-headerHome {
-          position: absolute;
+          position: relative;
           left: 0;
           right: 0;
           color: #ffffff;
-          background: linear-gradient(180deg, rgba(12, 49, 87, 0.54), rgba(12, 49, 87, 0));
+          background: #153a63;
           border-bottom-color: transparent;
           backdrop-filter: none;
         }
@@ -188,6 +191,7 @@ export default function PublicHeader({ active = "" }) {
           display: inline-flex;
           text-decoration: none;
           flex: 0 0 auto;
+          max-width: calc(100% - 64px);
         }
 
         .ph-logoLink:focus-visible,
@@ -360,9 +364,7 @@ export default function PublicHeader({ active = "" }) {
           }
 
           .ph-actions {
-            order: 2;
-            flex-basis: 100%;
-            justify-content: center;
+            display: none;
           }
         }
       `}</style>
