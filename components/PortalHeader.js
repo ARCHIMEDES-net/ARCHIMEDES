@@ -12,7 +12,7 @@ import {
 } from "../lib/appBadge";
 import PwaInstallDiscovery from "./PwaInstallDiscovery";
 import PortalMenu, { MenuLink } from "./PortalMenu";
-import { communityLinks } from "../lib/portalNavigation";
+import { communityLinks, isPortalSectionActive } from "../lib/portalNavigation";
 import { CONTENT_NOTIFICATION_FILTER } from "../lib/notifications";
 import PwaBadgePrompt from "./PwaBadgePrompt";
 
@@ -34,7 +34,7 @@ function MenuIcon({ open = false }) {
 }
 
 
-export default function PortalHeader({ title = "" }) {
+export default function PortalHeader({ title = "", activeSection = "" }) {
   const router = useRouter();
   const path = useMemo(() => normalizePath(router?.asPath || ""), [router?.asPath]);
   const [isOrgAdmin, setIsOrgAdmin] = useState(() => cachedHeaderAccess?.isOrgAdmin || false);
@@ -257,7 +257,7 @@ export default function PortalHeader({ title = "" }) {
   const schoolAdminHref = ["municipality", "obec"].includes(activeOrganizationType) ? "/portal/organizace-obce" : "/portal/uzivatele";
   const schoolAdminLabel = activeOrganizationType === "school" ? "Správa školy" : "Správa organizace";
   const adminArea = path.startsWith("/portal/admin") || path === "/portal/email-skupiny";
-  const navLink = ([label, href]) => <Link key={href} href={href} aria-current={path === href ? "page" : undefined} className={cn("flex min-h-11 items-center rounded-xl px-3 py-2 text-sm font-bold", path === href ? "bg-navy-900 text-white" : "text-navy-900 hover:bg-slate-100")}>
+  const navLink = ([label, href]) => <Link key={href} href={href} aria-current={isPortalSectionActive(activeSection || path, href) ? "page" : undefined} className={cn("flex min-h-11 items-center rounded-xl px-3 py-2 text-sm font-bold", isPortalSectionActive(activeSection || path, href) ? "bg-navy-900 text-white" : "text-navy-900 hover:bg-slate-100")}>
     {label}{href === "/portal/novinky" && unreadNotificationCount > 0 ? <span className="ml-2 rounded-full bg-red-600 px-1.5 text-xs text-white">{unreadNotificationCount}</span> : null}
   </Link>;
   const managementLinks = <>

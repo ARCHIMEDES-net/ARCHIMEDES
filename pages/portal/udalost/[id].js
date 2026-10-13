@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BellOff, BellRing, Check, Lock, CalendarPlus, CalendarDays, FileText, Play, X } from "lucide-react";
 import RequireAuth from "../../../components/RequireAuth";
 import PortalHeader from "../../../components/PortalHeader";
+import { eventNavigation } from "../../../lib/portalNavigation";
 import JoinBroadcastButton from "../../../components/JoinBroadcastButton";
 import { getStreamUrl, getJoinButtonState } from "../../../lib/broadcastState";
 import { resolveLicenseMode } from "../../../lib/licenseMode";
@@ -399,6 +400,7 @@ export default function UdalostDetail() {
   const hasWebMeetingRoom = Boolean(broadcastSession?.has_external_meeting);
   const archiveUrl = getArchiveVideoUrl(row);
   const isArchive = Boolean(archiveUrl && getJoinButtonState(row).state === "finished");
+  const backNavigation = eventNavigation(router.query.from, isArchive);
   const hasActiveLicense = !licenseLoading && (isPlatformAdmin || licenseMode === "active");
   const worksheetUrl = row?.worksheet_url || "";
   const posterUrl = useMemo(() => resolvePosterUrl(row), [row]);
@@ -523,12 +525,12 @@ export default function UdalostDetail() {
 
   return (
     <RequireAuth>
-      <PortalHeader />
+      <PortalHeader activeSection={backNavigation.href} />
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="flex items-start justify-between gap-3 flex-wrap">
-          <Link href="/portal/kalendar" className="text-sm text-slate-500 hover:underline">
-            ← Zpět na Program
+          <Link href={backNavigation.href} className="text-sm text-slate-500 hover:underline">
+            ← {backNavigation.label}
           </Link>
 
           <button
@@ -765,10 +767,10 @@ export default function UdalostDetail() {
             ) : null}
 
             <Link
-              href={isArchive ? "/portal/archiv" : "/portal/kalendar"}
+              href={backNavigation.href}
               className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300"
             >
-              {isArchive ? "Zpět do archivu" : "Zpět na Program"}
+              {backNavigation.label}
             </Link>
           </div>
 

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { isPortalSectionActive } from "../lib/portalNavigation";
 import { useEffect, useRef, useState } from "react";
 
 export default function PortalMenu({ label, active, children }) {
@@ -22,5 +24,7 @@ export default function PortalMenu({ label, active, children }) {
 }
 
 export function MenuLink({ href, children }) {
-  return <Link href={href} className="block min-h-11 rounded-xl px-3 py-2.5 text-sm font-semibold text-navy-900 hover:bg-slate-100">{children}</Link>;
+  const router = useRouter();
+  const active = isPortalSectionActive(router.asPath, href);
+  return <Link href={href} aria-current={active ? "page" : undefined} className={`block min-h-11 rounded-xl px-3 py-2.5 text-sm font-semibold ${active ? "bg-navy-900 text-white" : "text-navy-900 hover:bg-slate-100"}`}>{children}</Link>;
 }

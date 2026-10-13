@@ -255,7 +255,7 @@ function EventCard({
             <JoinBroadcastButton
               event={row}
               compact={compact}
-              detailHref={`/portal/udalost/${row.id}`}
+              detailHref={`/portal/udalost/${row.id}?from=program`}
             />
 
             <AttendButton
@@ -270,7 +270,7 @@ function EventCard({
             />
 
             <Link
-              href={`/portal/udalost/${row.id}`}
+              href={`/portal/udalost/${row.id}?from=program`}
               className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-slate-300 font-semibold"
             >
               Detail

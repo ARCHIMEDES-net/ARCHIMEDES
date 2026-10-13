@@ -582,7 +582,7 @@ export default function Archiv() {
                       <RecordingNotice event={r} />
                       <div className="mt-2.5 flex flex-wrap gap-2.5">
                         <Link
-                          href={`/portal/udalost/${r.id}`}
+                          href={`/portal/udalost/${r.id}?from=archiv`}
                           className="inline-flex items-center gap-1.5 rounded-xl bg-navy-900 px-3.5 py-2.5 font-black text-white"
                         >
                           <Play className="h-4 w-4" aria-hidden="true" /> {r._archiveUrl ? "Záznam a materiály" : "Detail a materiály"}
@@ -590,7 +590,7 @@ export default function Archiv() {
 
                         {r.worksheet_url ? (
                           <Link
-                            href={`/portal/udalost/${r.id}#materialy`}
+                            href={`/portal/udalost/${r.id}?from=archiv#materialy`}
                             className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-bold text-navy-900 hover:bg-slate-50"
                           >
                             <FileText className="h-4 w-4" aria-hidden="true" /> Pracovní list
