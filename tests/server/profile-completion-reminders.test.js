@@ -73,6 +73,7 @@ describe("teacher reminder email clarity and safety", () => {
     expect(email.text).toContain("pracovní listy");
     expect(email.text).toContain("Na co se také například můžete těšit:");
     expect(email.html).toContain("Na co se také například můžete těšit:");
+    expect(email.html).toContain("Jde jen o malou ukázku našeho programu");
     expect((email.html.match(/<img /g) || []).length).toBe(4);
     expect(email.html).toContain("ověřte si to u jejího vedení");
     expect(email.html).toContain("www.archimedeslive.com");
