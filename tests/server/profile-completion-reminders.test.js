@@ -37,7 +37,8 @@ describe("profile completion reminder eligibility", () => {
     expect(
       nextReminderStep({
         profile: profile(),
-        attempts: [{ reminder_step: 1, status: "sent", client_delivery_status: "delivered" }],
+        attempts: [{ reminder_step: 1, status: "sent", client_delivery_status: "delivered",
+          sent_at: new Date(now - 6 * 24 * 60 * 60 * 1000).toISOString() }],
         now,
       })
     ).toBe(2);
@@ -51,6 +52,22 @@ describe("profile completion reminder eligibility", () => {
         now,
       })
     ).toBeNull();
+  });
+
+  it("never sends the second reminder fewer than five days after the first", () => {
+    const recentFirst = [{
+      reminder_step: 1, status: "sent", client_delivery_status: "delivered",
+      sent_at: new Date(now - 24 * 60 * 60 * 1000).toISOString(),
+    }];
+    expect(nextReminderStep({ profile: profile(), attempts: recentFirst, now })).toBeNull();
+    expect(nextReminderStep({ profile: profile(), attempts: recentFirst,
+      now: now + 4 * 24 * 60 * 60 * 1000 })).toBe(2);
+  });
+
+  it("requires a valid timestamp for a delivered first attempt before a follow-up", () => {
+    expect(nextReminderStep({ profile: profile(), now,
+      attempts: [{ reminder_step: 1, status: "sent", client_delivery_status: "delivered" }],
+    })).toBeNull();
   });
 
   it("stops after an ambiguous delivery and skips completed or inactive users", () => {
