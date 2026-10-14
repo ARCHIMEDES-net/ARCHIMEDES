@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   auditCopyMessage,
+  buildProfileReminderMessage,
   nextReminderStep,
   reminderReason,
   selectFeaturedProgrammes,
@@ -44,6 +45,58 @@ describe("balanced programme selection for reminder emails", () => {
   it("shows only available verified events when fewer than four are eligible", () => {
     expect(selectFeaturedProgrammes(events.slice(0,2))).toHaveLength(2);
     expect(selectFeaturedProgrammes([])).toEqual([]);
+  });
+});
+
+describe("teacher reminder email clarity and safety", () => {
+  const data = {
+    fullName: "Testovací pedagog",
+    reason: "password_and_profile",
+    passwordUrl: "https://example.org/example-password-url",
+    profileUrl: "https://www.archimedeslive.com/portal/muj-profil",
+    step: 1,
+    organizationName: "Základní škola Provodov-Šonov",
+    featuredEvents: [
+      { title: "Wellbeing", starts_at: "2026-10-16T08:00:00Z", url: "https://www.archimedeslive.com/portal/udalost/example-one", poster: "https://example.org/one.png" },
+      { title: "Tvořivá dílna", starts_at: "2026-10-23T09:00:00Z", url: "https://www.archimedeslive.com/portal/udalost/example-two", poster: "https://example.org/two.png" },
+      { title: "Angličtina", starts_at: "2026-11-05T10:00:00Z", url: "https://www.archimedeslive.com/portal/udalost/example-three", poster: "https://example.org/three.png" },
+      { title: "Zoo Praha", starts_at: "2026-12-10T09:00:00Z", url: "https://www.archimedeslive.com/portal/udalost/example-four", poster: "https://example.org/four.png" },
+    ],
+  };
+
+  it("explains the school's participation and that posters are only examples", () => {
+    const email = buildProfileReminderMessage(data);
+    expect(email.subject).toContain("Vaše škola");
+    expect(email.text).toContain("Základní škola Provodov-Šonov");
+    expect(email.text).toContain("Jak Vás možná již informovalo vedení školy");
+    expect(email.text).toContain("živá vzdělávací vysílání");
+    expect(email.text).toContain("pracovní listy");
+    expect(email.text).toContain("Na co se také například můžete těšit:");
+    expect(email.html).toContain("Na co se také například můžete těšit:");
+    expect((email.html.match(/<img /g) || []).length).toBe(4);
+    expect(email.html).toContain("ověřte si to u jejího vedení");
+    expect(email.html).toContain("www.archimedeslive.com");
+  });
+
+  it("escapes school names and titles in HTML and never puts the password link in the poster tiles", () => {
+    const email = buildProfileReminderMessage({
+      ...data,
+      organizationName: 'ZŠ <script>alert("x")</script>',
+      featuredEvents: [{ ...data.featuredEvents[0], title: '<script>alert("x")</script>' }],
+    });
+    expect(email.html).toContain("&lt;script&gt;");
+    expect(email.html).not.toContain("<script>");
+    expect(email.html).toContain('href="https://example.org/example-password-url"');
+    expect(email.html).not.toContain('href="https://example.org/example-password-url"><img');
+  });
+
+  it("keeps the sign-in first call-to-action in second-step and profile-only messages", () => {
+    const second = buildProfileReminderMessage({ ...data, step: 2 });
+    expect(second.subject).toContain("Připomenutí:");
+    expect(second.text).toContain("Jak Vás možná již informovalo vedení školy");
+    const profileOnly = buildProfileReminderMessage({ ...data, reason: "profile", passwordUrl: "" });
+    expect(profileOnly.text).toContain("doplňte svůj profil");
+    expect(profileOnly.html).not.toContain(">Nastavit heslo</a>");
   });
 });
 
