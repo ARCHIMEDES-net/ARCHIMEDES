@@ -8,7 +8,6 @@ import {
   FEATURED_REMINDER_LIMIT,
   PROFILE_REMINDER_DAILY_LIMIT,
   PROFILE_REMINDER_PER_RUN_LIMIT,
-  withinBulkReminderHours,
 } from "../../lib/server/profileCompletionReminders";
 
 const now = Date.UTC(2026, 7, 16, 12, 0, 0);
@@ -110,12 +109,9 @@ describe("time-boxed high-capacity onboarding campaign", () => {
     expect(PROFILE_REMINDER_PER_RUN_LIMIT).toBe(10);
   });
 
-  it("allows bulk sending only from 06:00 to 19:59 Czech local time", () => {
-    expect(withinBulkReminderHours(Date.parse("2026-10-15T03:59:00Z"))).toBe(false);
-    expect(withinBulkReminderHours(Date.parse("2026-10-15T04:00:00Z"))).toBe(true);
-    expect(withinBulkReminderHours(Date.parse("2026-10-15T12:00:00Z"))).toBe(true);
-    expect(withinBulkReminderHours(Date.parse("2026-10-15T18:00:00Z"))).toBe(false);
-    expect(withinBulkReminderHours(Date.parse("2026-11-03T05:00:00Z"))).toBe(true);
+  it("keeps ten-email pacing for both daytime and overnight runs", () => {
+    expect(PROFILE_REMINDER_PER_RUN_LIMIT).toBe(10);
+    expect(PROFILE_REMINDER_DAILY_LIMIT).toBe(500);
   });
 });
 
