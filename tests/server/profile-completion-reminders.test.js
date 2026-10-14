@@ -3,6 +3,8 @@ import {
   auditCopyMessage,
   nextReminderStep,
   reminderReason,
+  selectFeaturedProgrammes,
+  FEATURED_REMINDER_LIMIT,
 } from "../../lib/server/profileCompletionReminders";
 
 const now = Date.UTC(2026, 7, 16, 12, 0, 0);
@@ -19,6 +21,31 @@ function profile(overrides = {}) {
     ...overrides,
   };
 }
+
+describe("balanced programme selection for reminder emails", () => {
+  const events = [
+    {id:"eco",title:"Šetrný turismus",starts_at:"2026-10-20T08:00:00Z"},
+    {id:"science",title:"Science ON",starts_at:"2026-11-04T08:00:00Z"},
+    {id:"zoo",title:"Zoo Praha: Gaviál indický",starts_at:"2026-12-10T09:00:00Z"},
+    {id:"creative",title:"Tvořivá dílna – papírová dýně",starts_at:"2026-10-23T09:00:00Z"},
+    {id:"wellbeing",title:"Wellbeing: Vyrůstání v Česku",starts_at:"2026-10-16T08:00:00Z"},
+    {id:"english",title:"Angličtina: SPOOKY BRITAIN",starts_at:"2026-11-05T10:00:00Z"},
+  ];
+  it("includes four different subjects including December Zoo rather than simply next four", () => {
+    const selected = selectFeaturedProgrammes(events);
+    expect(FEATURED_REMINDER_LIMIT).toBe(4);
+    expect(selected.map(x=>x.id)).toEqual(["wellbeing","creative","english","zoo"]);
+  });
+  it("falls back to other published events without duplicates if a subject is missing", () => {
+    const selected = selectFeaturedProgrammes(events.filter(x=>x.id!=="english"));
+    expect(selected.map(x=>x.id)).toEqual(["wellbeing","eco","creative","zoo"]);
+    expect(new Set(selected.map(x=>x.id)).size).toBe(selected.length);
+  });
+  it("shows only available verified events when fewer than four are eligible", () => {
+    expect(selectFeaturedProgrammes(events.slice(0,2))).toHaveLength(2);
+    expect(selectFeaturedProgrammes([])).toEqual([]);
+  });
+});
 
 describe("profile completion reminder eligibility", () => {
   it("distinguishes password and profile work", () => {
