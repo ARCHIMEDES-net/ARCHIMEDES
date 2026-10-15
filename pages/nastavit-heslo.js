@@ -6,6 +6,7 @@ import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Alert } from "../components/ui/alert";
+import { finishRecoveredPasswordProfile } from "../lib/finishRecoveredPasswordProfile";
 import {
   getWeakPasswordMessage,
   PASSWORD_MIN_LENGTH,
@@ -225,13 +226,14 @@ export default function NastavitHeslo() {
         throw passwordError;
       }
 
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ must_set_password: false })
-        .eq("id", user.id);
-
-      if (profileError) {
-        console.error("PROFILE UPDATE ERROR:", profileError);
+      const profileSync = await finishRecoveredPasswordProfile(supabase, user.id);
+      if (!profileSync.ok) {
+        console.error("PASSWORD_SETUP_PROFILE_SYNC_FAILED", { code: profileSync.code });
+        setFormError(
+          "Heslo bylo nastaveno, ale aktivaci účtu se nepodařilo dokončit. " +
+          "Zkuste heslo potvrdit znovu. Pokud problém trvá, kontaktujte správce školy."
+        );
+        return;
       }
 
       setStatus("success");
