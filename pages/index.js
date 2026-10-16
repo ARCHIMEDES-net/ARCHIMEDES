@@ -23,6 +23,7 @@ import SectionEyebrow from "../components/home/SectionEyebrow";
 import StatsSection from "../components/home/StatsSection";
 import PatronageStrip from "../components/home/PatronageStrip";
 import ReferenceCard from "../components/home/ReferenceCard";
+import HeroPromoVideo from "../components/home/HeroPromoVideo";
 import HomeShowreel from "../components/home/HomeShowreel";
 import { AREA_ICONS } from "../components/partners/icons";
 import { communityCategories } from "../content/communityCategories";
@@ -103,7 +104,7 @@ export default function Home({ initialEvents = [] }) {
             <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(9,35,64,0.28)_0%,transparent_34%)]" />
           </div>
 
-          <div className="relative mx-auto flex min-h-[680px] max-w-[1280px] items-center px-5 pb-28 pt-24 lg:min-h-[78vh] lg:pb-32 lg:pt-28">
+          <div className="relative mx-auto flex min-h-[680px] max-w-[1280px] flex-col items-start justify-center lg:flex-row lg:items-center lg:justify-start px-5 pb-28 pt-24 lg:min-h-[78vh] lg:pb-32 lg:pt-28">
             <div className="max-w-[780px]">
                 <span className="mb-6 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white/90 backdrop-blur">
                   {hero.eyebrow}
@@ -143,6 +144,7 @@ export default function Home({ initialEvents = [] }) {
                   </Button>
                 </div>
             </div>
+            <HeroPromoVideo />
           </div>
         </section>
 
