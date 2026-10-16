@@ -180,7 +180,7 @@ export const footerContent = {
     {
       title: "ARCHIMEDES Live",
       links: [
-        { label: "Co přinášíme", href: "/program" },
+        { label: "Program vysílání", href: "/program" },
         { label: "Pro obce", href: "/obec" },
         { label: "Pro školy", href: "/skoly" },
         { label: "Pro spolky", href: "/spolky" },

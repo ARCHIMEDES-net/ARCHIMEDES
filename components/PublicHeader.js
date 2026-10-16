@@ -1,20 +1,25 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function stripQuery(asPath) {
   return (asPath || "").split("?")[0];
 }
 
 const NAV_ITEMS = [
-  { key: "program", href: "/program", label: "Co přinášíme" },
-  { key: "obec", href: "/obec", label: "Pro obce" },
-  { key: "skoly", href: "/skoly", label: "Pro školy" },
-  { key: "spolky", href: "/spolky", label: "Pro spolky" },
+  { key: "program", href: "/program", label: "Program vysílání" },
+  { key: "audience", label: "Komu je určeno" },
+  { key: "samples", href: "/#ukazky-vysilani", label: "Ukázky vysílání" },
   { key: "ucebna", href: "/ucebna", label: "Učebna ARCHIMEDES" },
   { key: "o-nas", href: "/o-nas", label: "Naše vize" },
   { key: "kontakt", href: "/kontakt", label: "Kontakt" },
+];
+
+const AUDIENCE_ITEMS = [
+  { key: "obec", href: "/obec", label: "Pro obce" },
+  { key: "skoly", href: "/skoly", label: "Pro školy" },
+  { key: "spolky", href: "/spolky", label: "Pro spolky" },
 ];
 
 function LogoMark({ inverse = false }) {
@@ -59,17 +64,41 @@ export default function PublicHeader({ active = "" }) {
   const pathname = router?.pathname || "";
   const asPath = stripQuery(router?.asPath || "");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [audienceOpen, setAudienceOpen] = useState(false);
+  const audienceRef = useRef(null);
+  const audienceButtonRef = useRef(null);
   const isHome = pathname === "/";
 
   useEffect(() => {
     setMobileOpen(false);
+    setAudienceOpen(false);
   }, [asPath]);
+
+  useEffect(() => {
+    function closeOutside(event) {
+      if (!audienceRef.current?.contains(event.target)) setAudienceOpen(false);
+    }
+    function closeEscape(event) {
+      if (event.key === "Escape") {
+        if (audienceOpen) audienceButtonRef.current?.focus();
+        setAudienceOpen(false);
+        setMobileOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", closeEscape);
+    };
+  }, [audienceOpen]);
 
   if (pathname.startsWith("/portal")) {
     return null;
   }
 
   const isActive = (item) => {
+    if (item.key === "audience") return AUDIENCE_ITEMS.some(isActive);
     if (active) return active === item.key;
     if (item.href.startsWith("/#")) return false;
     return asPath === item.href || pathname === item.href;
@@ -83,7 +112,22 @@ export default function PublicHeader({ active = "" }) {
         </Link>
 
         <nav className="ph-nav" aria-label="Hlavní navigace">
-          {NAV_ITEMS.map((item) => (
+          {NAV_ITEMS.map((item) => item.key === "audience" ? (
+            <div key={item.key} className="ph-dropdown" ref={audienceRef}
+              onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setAudienceOpen(false); }}>
+              <button type="button" ref={audienceButtonRef}
+                className={`ph-navLink ph-audienceToggle${isActive(item) ? " ph-navLinkActive" : ""}`}
+                aria-expanded={audienceOpen} aria-controls="ph-audience-options"
+                onClick={() => setAudienceOpen((value) => !value)}>
+                {item.label} <span aria-hidden="true">▾</span>
+              </button>
+              {audienceOpen && <div id="ph-audience-options" className="ph-dropdownPanel">
+                {AUDIENCE_ITEMS.map((child) => <Link key={child.key} href={child.href}
+                  onClick={() => setAudienceOpen(false)} aria-current={isActive(child) ? "page" : undefined}
+                  className={`ph-mobileLink${isActive(child) ? " ph-mobileLinkActive" : ""}`}>{child.label}</Link>)}
+              </div>}
+            </div>
+          ) : (
             <Link
               key={item.key}
               href={item.href}
@@ -115,10 +159,20 @@ export default function PublicHeader({ active = "" }) {
 
       {mobileOpen ? (
         <div className="ph-mobile">
-          {NAV_ITEMS.map((item) => (
+          {NAV_ITEMS.map((item) => item.key === "audience" ? (
+            <details key={item.key} className="ph-mobileAudience">
+              <summary className={`ph-mobileLink${isActive(item) ? " ph-mobileLinkActive" : ""}`}>{item.label}</summary>
+              <div className="ph-mobileAudienceOptions">
+                {AUDIENCE_ITEMS.map((child) => <Link key={child.key} href={child.href}
+                  onClick={() => setMobileOpen(false)} aria-current={isActive(child) ? "page" : undefined}
+                  className={`ph-mobileLink${isActive(child) ? " ph-mobileLinkActive" : ""}`}>{child.label}</Link>)}
+              </div>
+            </details>
+          ) : (
             <Link
               key={item.key}
               href={item.href}
+              onClick={() => setMobileOpen(false)}
               className={`ph-mobileLink${isActive(item) ? " ph-mobileLinkActive" : ""}`}
             >
               {item.label}
@@ -134,6 +188,12 @@ export default function PublicHeader({ active = "" }) {
 
       <style jsx global>{`
         @media (display-mode: standalone) { .pwa-install-promotion { display: none !important; } }
+        .ph-dropdown { position: relative; }
+        .ph-audienceToggle { border: 0; background: transparent; cursor: pointer; font-family: inherit; gap: 6px; }
+        .ph-dropdownPanel { position: absolute; top: calc(100% + 8px); left: 0; min-width: 200px; display: grid; gap: 4px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 16px; background: white; box-shadow: 0 16px 36px rgba(15,23,42,.16); }
+        .ph-dropdownPanel a:hover { background: #eff6ff; color: #1d4ed8; }
+        .ph-mobileAudience summary { cursor: pointer; }
+        .ph-mobileAudienceOptions { display: grid; gap: 4px; padding: 6px 0 0 16px; }
         .ph-header {
           position: sticky;
           top: 0;
@@ -346,7 +406,7 @@ export default function PublicHeader({ active = "" }) {
           text-align: center;
         }
 
-        @media (max-width: 1120px) {
+        @media (max-width: 1240px) {
           .ph-nav {
             display: none;
           }

@@ -238,8 +238,8 @@ export default function Home({ initialEvents = [] }) {
         {/* VERTICAL VIDEO STORIES */}
         <section id="program" aria-label="ARCHIMEDES Live ve videu" className="py-12">
           <div className="mx-auto max-w-[1180px] px-5">
-            <h2 className="mb-8 text-center text-3xl font-[950] tracking-[-0.045em] text-navy-900">
-              Vysílali jsme…
+            <h2 id="ukazky-vysilani" style={{ scrollMarginTop: "100px" }} className="mb-8 text-center text-3xl font-[950] tracking-[-0.045em] text-navy-900">
+              Ukázky vysílání
             </h2>
 
             <div className="grid grid-cols-1 justify-items-center gap-5 sm:grid-cols-2 sm:gap-7 lg:grid-cols-3">
@@ -284,6 +284,11 @@ export default function Home({ initialEvents = [] }) {
                   Váš prohlížeč nepodporuje přehrávání videa.
                 </video>
               </div>
+            </div>
+            <div className="mt-8 text-center">
+              <Link href="/vysilali-jsme" className="inline-flex min-h-11 items-center font-bold text-brand underline underline-offset-4">
+                Prohlédnout všechna odvysílaná témata
+              </Link>
             </div>
           </div>
         </section>
