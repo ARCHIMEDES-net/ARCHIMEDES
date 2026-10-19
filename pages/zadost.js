@@ -84,7 +84,7 @@ export default function ZadostPage() {
       ...current,
       [name]: value,
       ...(name === "type" &&
-      value !== "obec" &&
+      !["obec", "skola"].includes(value) &&
       current.licensePlan === "classroom_free_12m"
         ? { licensePlan: "paid_monthly" }
         : {}),
@@ -121,8 +121,8 @@ export default function ZadostPage() {
       if (!["paid_monthly", "paid_annual", "classroom_free_12m"].includes(payload.licensePlan)) {
         throw new Error("Vyberte prosím variantu licence.");
       }
-      if (payload.licensePlan === "classroom_free_12m" && payload.type !== "obec") {
-        throw new Error("Bezplatný první rok je určen pouze obcím s učebnou ARCHIMEDES.");
+      if (payload.licensePlan === "classroom_free_12m" && !["obec", "skola"].includes(payload.type)) {
+        throw new Error("Bezplatný první rok je určen obcím a samostatným školám s učebnou ARCHIMEDES.");
       }
       if (!payload.termsAccepted) {
         throw new Error("Pro odeslání objednávky přijměte VOP a DPA.");
@@ -221,9 +221,9 @@ export default function ZadostPage() {
                     <option value="paid_annual">
                       Roční fakturace – 23 880 Kč bez DPH za 12 měsíců
                     </option>
-                    {form.type === "obec" ? (
+                    {["obec", "skola"].includes(form.type) ? (
                       <option value="classroom_free_12m">
-                        12 měsíců zdarma pro obec s učebnou ARCHIMEDES
+                        12 měsíců zdarma – učebna ARCHIMEDES
                       </option>
                     ) : null}
                   </Select>
