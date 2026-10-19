@@ -24,7 +24,7 @@ function isValidEmail(value) {
 const LICENSE_PLANS = {
   paid_monthly: "Měsíční fakturace – 1 990 Kč bez DPH měsíčně (12 měsíců)",
   paid_annual: "Roční fakturace – 23 880 Kč bez DPH za 12 měsíců",
-  classroom_free_12m: "12 měsíců zdarma pro obec s učebnou ARCHIMEDES",
+  classroom_free_12m: "12 měsíců zdarma – učebna ARCHIMEDES",
 };
 
 const CUSTOMER_TYPES = {
@@ -424,9 +424,9 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Vyberte prosím variantu licence." });
     }
 
-    if (cleanLicensePlan === "classroom_free_12m" && customer.key !== "obec") {
+    if (cleanLicensePlan === "classroom_free_12m" && !["obec", "skola"].includes(customer.key)) {
       return res.status(400).json({
-        error: "Bezplatný první rok je určen pouze obcím s učebnou ARCHIMEDES.",
+        error: "Bezplatný první rok je určen obcím a samostatným školám s učebnou ARCHIMEDES.",
       });
     }
 

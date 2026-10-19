@@ -321,7 +321,7 @@ export default function AdminObcePage() {
       draft.licensePlan === "classroom_free_12m" &&
       !draft.classroomEligibilityVerified
     ) {
-      setError("Potvrďte ověření, že obec má učebnu ARCHIMEDES.");
+      setError("Potvrďte ověření, že obec nebo škola má učebnu ARCHIMEDES.");
       return;
     }
 
@@ -569,7 +569,7 @@ export default function AdminObcePage() {
                     {selectedCustomer.name}
                   </h2>
                   <p className="mt-1 text-sm text-slate-600">
-                    Kontakt obce: {selectedCustomer.contact_name || "—"} • {selectedCustomer.contact_email || "—"}
+                    Kontakt organizace: {selectedCustomer.contact_name || "—"} • {selectedCustomer.contact_email || "—"}
                   </p>
                 </div>
                 <Button type="button" variant="secondary" onClick={() => {
@@ -586,8 +586,8 @@ export default function AdminObcePage() {
                   <Select value={draft.licensePlan} onChange={(event) => updatePlan(event.target.value)}>
                     <option value="paid_monthly">1 990 Kč měsíčně</option>
                     <option value="paid_annual">12 měsíců placených najednou</option>
-                    {["municipality", "obec"].includes(selectedCustomer.org_type) ? (
-                      <option value="classroom_free_12m">12 měsíců zdarma – obec s učebnou</option>
+                    {["municipality", "obec", "school"].includes(selectedCustomer.org_type) ? (
+                      <option value="classroom_free_12m">12 měsíců zdarma – učebna</option>
                     ) : null}
                   </Select>
                 </div>
@@ -708,7 +708,7 @@ export default function AdminObcePage() {
                     className="mt-1 h-4 w-4"
                   />
                   <span className="text-sm font-semibold leading-relaxed text-amber-900">
-                    Ověřil/a jsem, že obec má učebnu ARCHIMEDES a splňuje podmínku pro prvních 12 měsíců zdarma.
+                    Ověřil/a jsem, že obec nebo škola má učebnu ARCHIMEDES a splňuje podmínku pro prvních 12 měsíců zdarma.
                   </span>
                 </label>
               ) : null}

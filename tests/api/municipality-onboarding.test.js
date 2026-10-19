@@ -371,6 +371,13 @@ afterEach(() => {
 });
 
 describe("audited municipality onboarding API", () => {
+  it("activates a standalone classroom school without municipality administrators", async () => {
+    dependencies.state.organization = { id: ORGANIZATION_ID, name: "Independent school", org_type: "school", parent_organization_id: null, contact_name: "School Admin", contact_email: "local@example.test" };
+    const { res } = await invoke(handler, { method: "POST", body: { ...validBody, licensePlan: "classroom_free_12m", billingStatus: "not_applicable", classroomEligibilityVerified: true } });
+    expect(res.statusCode).toBe(200);
+    expect(dependencies.authenticatedClient.rpc).toHaveBeenCalledWith("onboard_customer_v3", expect.objectContaining({ p_license_plan: "classroom_free_12m", p_classroom_eligibility_verified: true, p_central_admin_user_ids: [] }));
+    expect(res.body.centralAdminCount).toBe(0);
+  });
   it("canonicalizes configured central administrators independently of order", () => {
     expect(
       parseCentralAdminUserIds(

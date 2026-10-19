@@ -163,7 +163,8 @@ beforeAll(async () => {
       ico text,
       registered_address text,
       contact_name text,
-      contact_email text
+      contact_email text,
+      to_delete boolean default false
     );
     create table public.profiles (
       id uuid primary key references auth.users(id) on delete cascade,
@@ -568,6 +569,7 @@ beforeAll(async () => {
 
   await database.exec(migration);
   await database.exec(serviceMigration);
+  await database.exec(fs.readFileSync(path.join(process.cwd(), "supabase/migrations/20261019080616_allow_school_classroom_free_license.sql"), "utf8"));
 });
 
 afterAll(async () => {
@@ -575,6 +577,32 @@ afterAll(async () => {
 });
 
 describe("municipality onboarding v3 PostgreSQL integration", () => {
+  it.each([
+    ["school", true, "not_applicable", "accepted", true],
+    ["school", false, "not_applicable", "accepted", false],
+    ["school", true, "paid", "accepted", false],
+    ["school", true, "not_applicable", "pending", false],
+    ["association", true, "not_applicable", "accepted", false],
+  ])("checks free classroom access for %s (verified=%s, billing=%s, contract=%s)", async (orgType, verified, billing, contract, allowed) => {
+    await database.exec("begin");
+    try {
+      const id = "abababab-abab-4bab-8bab-abababababab";
+      await database.query(`insert into public.organizations (id,name,org_type,status,license_status,registered_address) values ($1,'Independent test school',$2,'inactive','pending_approval','Test 1')`, [id, orgType]);
+      const params = [id, LOCAL_ADMIN_ID, "local@example.test", "{}", "classroom_free_12m", "2026-10-19T00:00:00Z", "2027-10-18T23:59:59Z", contract, billing, verified];
+      const preflight = await queryAsAuthenticated(PERFORMER_ID, `select * from public.onboarding_preflight_v1($1::uuid,$2::uuid,$3::text,$4::uuid[],$5::text,$6::timestamptz,$7::timestamptz,$8::text,$9::text,$10::boolean)`, params);
+      expect(preflight.rows.find(row => row.check_code === "license_configuration").check_status).toBe(allowed ? "READY" : "STOP");
+      const activate = () => queryAsAuthenticated(PERFORMER_ID, `select * from public.onboard_customer_v3(gen_random_uuid(),$1::uuid,$2::uuid,$3::text,'Local Admin',$4::uuid[],$5::text,$6::timestamptz,$7::timestamptz,$8::text,$9::text,$10::boolean,false)`, params);
+      if (allowed) {
+        expect((await activate()).rows[0].organization_id).toBe(id);
+        const saved = await database.query(`select license_status,license_plan,parent_organization_id from public.organizations where id=$1`, [id]);
+        expect(saved.rows[0]).toEqual({license_status:"active",license_plan:"classroom_free_12m",parent_organization_id:null});
+      } else {
+        await expect(activate()).rejects.toThrow();
+      }
+    } finally {
+      await database.exec("rollback; reset role");
+    }
+  });
   it("preserves existing portal signatures, owners, ACL and authorized behavior", async () => {
     const catalogAfter = await database.query(`
       select
