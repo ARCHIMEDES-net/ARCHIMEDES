@@ -569,7 +569,7 @@ beforeAll(async () => {
 
   await database.exec(migration);
   await database.exec(serviceMigration);
-  await database.exec(fs.readFileSync(path.join(process.cwd(), "supabase/migrations/20261019080203_allow_school_classroom_free_license.sql"), "utf8"));
+  await database.exec(fs.readFileSync(path.join(process.cwd(), "supabase/migrations/20261019080616_allow_school_classroom_free_license.sql"), "utf8"));
 });
 
 afterAll(async () => {
