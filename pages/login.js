@@ -436,9 +436,12 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="mb-4">
+          <div className="mb-4 flex flex-wrap gap-x-5 gap-y-1">
             <Link href="/reset-hesla" className="text-sm text-slate-700 underline underline-offset-2">
               Zapomenuté heslo
+            </Link>
+            <Link href="/reset-hesla?prvni=1" className="text-sm font-bold text-navy-900 underline underline-offset-2">
+              Přihlašujete se poprvé? Nastavte si heslo
             </Link>
           </div>
 

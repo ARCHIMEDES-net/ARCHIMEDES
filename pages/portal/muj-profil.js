@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { BellRing, GraduationCap, Globe2, Landmark, Smartphone, Users } from "lucide-react";
 import PortalHeader from "../../components/PortalHeader";
 import RequireAuth from "../../components/RequireAuth";
@@ -102,6 +103,8 @@ function roleLabel(roleInOrg) {
 }
 
 export default function MujProfilPage() {
+  const router = useRouter();
+  const showWelcome = router.query?.vitejte === "1";
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -481,6 +484,12 @@ export default function MujProfilPage() {
       <main className="min-h-screen bg-slate-50">
         <div className="mx-auto max-w-[980px] px-5 py-8">
           <Card className="p-7">
+            {showWelcome ? (
+              <Alert variant="info" className="mb-5">
+                Heslo máte nastavené. Posledním krokem je profil: zkontrolujte jméno,
+                vyberte, co vás zajímá, a klikněte na „Uložit profil“.
+              </Alert>
+            ) : null}
             <div className="mb-5">
               <p className="mb-2 text-xs font-black uppercase tracking-[0.08em] text-slate-500">
                 Můj profil

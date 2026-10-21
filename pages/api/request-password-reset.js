@@ -1,3 +1,4 @@
+import { buildPasswordSetupUrl } from "../../lib/server/passwordSetupLink";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
@@ -82,7 +83,7 @@ export default async function handler(req, res) {
       });
 
     const userId = data?.user?.id || "";
-    const setupUrl = data?.properties?.action_link || "";
+    const setupUrl = buildPasswordSetupUrl(data, REDIRECT_TO, "recovery");
 
     if (linkError || !userId || !setupUrl) {
       console.info("password-reset link not issued", {

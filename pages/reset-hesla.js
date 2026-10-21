@@ -1,5 +1,6 @@
 // pages/reset-hesla.js
 import { useState } from "react";
+import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -8,6 +9,8 @@ import { Label } from "../components/ui/label";
 import { Alert } from "../components/ui/alert";
 
 export default function ResetHeslaPage() {
+  const router = useRouter();
+  const firstLogin = router.query?.prvni === "1";
   const [email, setEmail] = useState("");
   const [requestLoading, setRequestLoading] = useState(false);
   const [error, setError] = useState("");
@@ -57,11 +60,15 @@ export default function ResetHeslaPage() {
       <Card className="w-full max-w-[560px] p-6 sm:p-7">
         <div className="mb-4">
           <h1 className="text-[32px] font-[950] leading-[1.08] tracking-[-0.03em] text-navy-900">
-            Obnova hesla
+            {firstLogin ? "První přihlášení" : "Obnova hesla"}
           </h1>
           <p className="mt-2.5 text-base leading-relaxed text-muted">
-            Zadejte e-mail, pod kterým jste registrováni. Pošleme vám odkaz pro
-            nastavení nového hesla.
+            {firstLogin
+              ? "Zadejte svůj školní e-mail, na který vám přišla pozvánka. Hned vám pošleme odkaz pro nastavení hesla."
+              : "Zadejte e-mail, pod kterým jste registrováni. Pošleme vám odkaz pro nastavení nového hesla."}
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            Odkaz z e-mailu otevřete co nejdříve. Platí vždy jen ten nejnovější.
           </p>
         </div>
 

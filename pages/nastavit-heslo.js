@@ -73,8 +73,8 @@ function humanizeRecoveryError(errorCode = "", errorDescription = "") {
     String(errorDescription || "").replace(/\+/g, " ")
   );
 
-  if (code === "otp_expired") {
-    return "Odkaz pro nastavení hesla vypršel. Požádejte o nový odkaz.";
+  if (code === "otp_expired" || /expired|invalid|not found/i.test(description)) {
+    return "Odkaz pro nastavení hesla už neplatí (vypršel nebo byl použit). Klikněte níže na „Požádat o nový odkaz“, zadejte svůj e-mail a nový odkaz otevřete hned.";
   }
 
   if (description) {
@@ -90,7 +90,9 @@ export default function NastavitHeslo() {
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState("loading"); // loading | ready | success | error
+  const [status, setStatus] = useState("loading"); // loading | confirm | ready | success | error
+  const [pendingOtp, setPendingOtp] = useState(null);
+  const [confirming, setConfirming] = useState(false);
   const [message, setMessage] = useState("Ověřuji odkaz...");
   const [formError, setFormError] = useState("");
 
@@ -132,13 +134,13 @@ export default function NastavitHeslo() {
 
           cleanupUrl();
         } else if (tokenHash && type) {
-          const { error: verifyError } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type,
-          });
-
-          if (verifyError) throw verifyError;
-          cleanupUrl();
+          // Token se ověří až po kliknutí na tlačítko. Bezpečnostní skenery pošty
+          // odkaz jen načtou, ale nekliknou – jednorázový token tak zůstane platný.
+          if (!mounted) return;
+          setPendingOtp({ tokenHash, type });
+          setStatus("confirm");
+          setMessage("");
+          return;
         } else if (accessToken && refreshToken) {
           const { error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -185,6 +187,28 @@ export default function NastavitHeslo() {
       mounted = false;
     };
   }, []);
+
+  async function handleConfirmLink() {
+    if (!pendingOtp) return;
+    setConfirming(true);
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        token_hash: pendingOtp.tokenHash,
+        type: pendingOtp.type,
+      });
+      if (verifyError) throw verifyError;
+      cleanupUrl();
+      setPendingOtp(null);
+      setStatus("ready");
+      setMessage("");
+    } catch (err) {
+      cleanupUrl();
+      setStatus("error");
+      setMessage(humanizeRecoveryError(err?.code || "", err?.message || ""));
+    } finally {
+      setConfirming(false);
+    }
+  }
 
   async function handleSetPassword(e) {
     e.preventDefault();
@@ -236,11 +260,29 @@ export default function NastavitHeslo() {
         return;
       }
 
+      let nextUrl = "/portal";
+      try {
+        const { data: profileRow } = await supabase
+          .from("profiles")
+          .select("profile_completed_at")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (profileRow && !profileRow.profile_completed_at) {
+          nextUrl = "/portal/muj-profil?vitejte=1";
+        }
+      } catch {
+        // Při chybě zůstává výchozí přesměrování do portálu.
+      }
+
       setStatus("success");
-      setMessage("Heslo bylo nastaveno. Přesměrovávám do portálu...");
+      setMessage(
+        nextUrl === "/portal"
+          ? "Heslo bylo nastaveno. Přesměrovávám do portálu..."
+          : "Heslo bylo nastaveno. Teď prosím doplňte svůj profil – zabere to minutu."
+      );
 
       setTimeout(() => {
-        router.push("/portal");
+        router.push(nextUrl);
       }, 1200);
     } catch (err) {
       setFormError(
@@ -259,6 +301,18 @@ export default function NastavitHeslo() {
         </h1>
 
         {status === "loading" && <p className="text-muted">{message}</p>}
+
+        {status === "confirm" && (
+          <div className="grid gap-3.5">
+            <p className="text-muted">
+              Vítejte v ARCHIMEDES Live. Pokračujte kliknutím na tlačítko –
+              v dalším kroku si zvolíte své heslo.
+            </p>
+            <Button type="button" onClick={handleConfirmLink} disabled={confirming}>
+              {confirming ? "Ověřuji odkaz..." : "Pokračovat k nastavení hesla"}
+            </Button>
+          </div>
+        )}
 
         {status === "error" && (
           <div className="grid gap-3.5">

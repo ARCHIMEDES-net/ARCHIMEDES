@@ -1,3 +1,4 @@
+import { buildPasswordSetupUrl } from "../../lib/server/passwordSetupLink";
 import { requirePlatformAdmin } from "../../lib/server/platformAdminApi";
 import { createClient } from "@supabase/supabase-js";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
@@ -236,7 +237,7 @@ export default async function handler(req, res) {
       });
 
     invitedUserId = linkData?.user?.id || null;
-    const setupUrl = linkData?.properties?.action_link || "";
+    const setupUrl = buildPasswordSetupUrl(linkData, REDIRECT_TO, "invite");
 
     if (linkError || !invitedUserId || !setupUrl) {
       if (/already|registered|exists/i.test(linkError?.message || "")) {
