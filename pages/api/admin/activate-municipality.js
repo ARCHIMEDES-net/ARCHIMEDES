@@ -6,9 +6,7 @@ import {
   parseCentralAdminUserIds,
   resolveConfiguredCentralAdmins,
   resolveLocalAdministrator,
-  sendCustomerOnboardingAuditCopy,
   sendCustomerOnboardingEmail,
-  sendWrittenOrderAcceptanceAuditCopy,
   sendWrittenOrderAcceptanceEmail,
   updateAuthPreparationStatus,
   validateCustomerOnboardingEmailConfiguration,
@@ -148,17 +146,6 @@ async function ensureWrittenOrderAcceptance({
       ...emailValues,
       idempotencyKey: `written-order-acceptance:${claimed.id}:client`,
     });
-    let auditCopyReceipt = null;
-    let auditCopyErrorCode = null;
-    try {
-      auditCopyReceipt = await sendWrittenOrderAcceptanceAuditCopy(
-        emailValues,
-        `written-order-acceptance:${claimed.id}:audit`
-      );
-    } catch {
-      auditCopyErrorCode = "audit_copy_provider_failed";
-    }
-
     const { error: completeError } = await supabaseAdmin
       .from("customer_order_acceptances")
       .update({
@@ -166,9 +153,9 @@ async function ensureWrittenOrderAcceptance({
         sent_at: new Date().toISOString(),
         email_provider: clientReceipt.provider,
         client_provider_message_id: clientReceipt.messageId,
-        audit_copy_provider_message_id: auditCopyReceipt?.messageId || null,
-        audit_copy_sent_at: auditCopyReceipt ? new Date().toISOString() : null,
-        error_code: auditCopyErrorCode,
+        audit_copy_provider_message_id: null,
+        audit_copy_sent_at: null,
+        error_code: null,
       })
       .eq("id", claimed.id)
       .eq("status", "sending");
@@ -402,37 +389,18 @@ async function deliverOnboardingEmail({
       .eq("status", "sending");
     if (clientReceiptError) throw clientReceiptError;
 
-    let auditCopyReceipt = null;
-    let auditCopyFailed = false;
-    try {
-      auditCopyReceipt = await sendCustomerOnboardingAuditCopy(
-        emailValues,
-        `municipality-onboarding:${claim.attempt_id}:audit`
-      );
-      const { error: auditReceiptError } = await supabaseAdmin
-        .from("organization_onboarding_email_attempts")
-        .update({
-          audit_copy_provider_message_id: auditCopyReceipt.messageId,
-          audit_copy_sent_at: new Date().toISOString(),
-        })
-        .eq("id", claim.attempt_id)
-        .eq("status", "sending");
-      if (auditReceiptError) throw auditReceiptError;
-    } catch {
-      auditCopyFailed = true;
-    }
     const completion = await completeEmailAttempt(
       authenticatedClient,
       claim.attempt_id,
       "sent",
-      auditCopyFailed ? "audit_copy_provider_failed" : null,
+      null,
       rpcNames,
       performedBy
     );
     return {
       onboardingEmailSent: true,
       emailDeliveryInProgress: false,
-      emailManualReviewRequired: !completion.recorded || auditCopyFailed,
+      emailManualReviewRequired: !completion.recorded,
       emailRetryRequired: false,
       emailAttemptNumber: claim.attempt_number,
     };

@@ -413,7 +413,7 @@ describe("audited municipality onboarding API", () => {
         p_central_admin_user_ids: [CENTRAL_ADMIN_ID],
       })
     );
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
     expect(dependencies.sendMail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "local@example.test",
@@ -600,7 +600,7 @@ describe("audited municipality onboarding API", () => {
     );
   });
 
-  it("keeps the client delivery sent when only Zuzana's safe copy fails", async () => {
+  it("sends only the client message without attempting an audit copy", async () => {
     dependencies.sendMail
       .mockResolvedValueOnce({ provider: "resend", messageId: "client-1" })
       .mockRejectedValueOnce(new Error("Audit copy unavailable"));
@@ -612,17 +612,18 @@ describe("audited municipality onboarding API", () => {
     });
 
     expect(res.statusCode).toBe(200);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
     expect(res.body).toMatchObject({
       onboardingEmailSent: true,
       emailRetryRequired: false,
-      emailManualReviewRequired: true,
+      emailManualReviewRequired: false,
     });
     expect(dependencies.state.rpcCalls).toContainEqual(
       expect.objectContaining({
         name: "complete_onboarding_email_attempt",
         args: expect.objectContaining({
           p_outcome: "sent",
-          p_error_code: "audit_copy_provider_failed",
+          p_error_code: null,
         }),
       })
     );
@@ -665,7 +666,7 @@ describe("audited municipality onboarding API", () => {
     expect(retryResponse.statusCode).toBe(200);
     expect(dependencies.authAdmin.generateLink).toHaveBeenCalledTimes(2);
     expect(dependencies.authAdmin.deleteUser).toHaveBeenCalledTimes(1);
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
     expect(dependencies.state.authPreparationUpdates).toContainEqual(
       expect.objectContaining({
         status: "preparing",
@@ -819,7 +820,7 @@ describe("audited municipality onboarding API", () => {
       emailRetryRequired: false,
       emailManualReviewRequired: true,
     });
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
   });
 
   it("loads a failed email state after a page reload without sending", async () => {
@@ -937,7 +938,7 @@ describe("audited municipality onboarding API", () => {
         args: expect.objectContaining({ p_action: "retry_failed" }),
       })
     );
-    expect(dependencies.sendMail).toHaveBeenCalledTimes(2);
+    expect(dependencies.sendMail).toHaveBeenCalledTimes(1);
   });
 
   it("does not send on a manual retry double click that loses the DB claim", async () => {

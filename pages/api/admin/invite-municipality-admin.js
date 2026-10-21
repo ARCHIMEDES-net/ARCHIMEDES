@@ -4,7 +4,6 @@ import {
   cleanupNewAuthUser,
   CustomerOnboardingError,
   resolveLocalAdministrator,
-  sendCustomerOnboardingAuditCopy,
   sendCustomerOnboardingEmail,
   updateAuthPreparationStatus,
   validateCustomerOnboardingEmailConfiguration,
@@ -215,7 +214,7 @@ export default async function handler(req, res) {
         userId: attempt.user_id,
         membershipId: attempt.membership_id,
         invitationSent: true,
-        auditCopySent: attempt.status === "sent",
+        auditCopySent: Boolean(attempt.audit_copy_sent_at),
         message: "Pozvánka už byla bezpečně zpracována.",
       });
     }
@@ -340,34 +339,9 @@ export default async function handler(req, res) {
     }
 
     const clientSentAt = new Date().toISOString();
-    try {
-      const auditCopyReceipt = await sendCustomerOnboardingAuditCopy(
-        emailValues,
-        `municipality-admin-invitation:${attempt.id}:audit`
-      );
-      await updateAttempt(attempt.id, "sending", {
-        audit_copy_provider_message_id: auditCopyReceipt.messageId,
-      });
-    } catch (copyError) {
-      await updateAttempt(attempt.id, "sent_copy_failed", {
-        client_sent_at: clientSentAt,
-        error_code: "audit_copy_provider_failed",
-      });
-      return res.status(200).json({
-        ok: true,
-        organizationId,
-        userId: localAdministrator.userId,
-        membershipId,
-        invitationSent: true,
-        auditCopySent: false,
-        message:
-          "Pozvánka byla klientovi odeslána. Bezpečnou kopii Zuzaně se nepodařilo doručit; je evidována k ruční kontrole.",
-      });
-    }
-
     await updateAttempt(attempt.id, "sent", {
       client_sent_at: clientSentAt,
-      audit_copy_sent_at: new Date().toISOString(),
+      audit_copy_sent_at: null,
       error_code: null,
     });
     return res.status(200).json({
@@ -376,7 +350,7 @@ export default async function handler(req, res) {
       userId: localAdministrator.userId,
       membershipId,
       invitationSent: true,
-      auditCopySent: true,
+      auditCopySent: false,
       message: "Pozvánka byla odeslána a správce byl přidán k obci.",
     });
   } catch (error) {

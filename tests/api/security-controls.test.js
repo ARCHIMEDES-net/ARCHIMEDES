@@ -104,7 +104,7 @@ describe("cross-cutting API authentication and rate-limit controls", () => {
 
     expect(source).toContain("resolveLocalAdministrator");
     expect(source).toContain("sendCustomerOnboardingEmail");
-    expect(source).toContain("sendCustomerOnboardingAuditCopy");
+    expect(source).not.toContain("sendCustomerOnboardingAuditCopy");
     expect(source).toContain('from("municipality_admin_invitation_attempts")');
     expect(source).not.toContain("inviteUserByEmail");
     expect(source).toContain('role_in_org: "organization_admin"');

@@ -3,7 +3,6 @@ import { createClient } from "@supabase/supabase-js";
 import { consumePublicRateLimit } from "../../lib/server/publicRateLimit";
 import {
   sendOrganizationUserInvitation,
-  sendOrganizationUserInvitationAuditCopy,
   validateOrganizationUserInvitationEmailConfiguration,
 } from "../../lib/server/organizationUserInvitation";
 import { registrationEmailWasDefinitelyNotSent } from "../../lib/server/registrationEmailProvider";
@@ -318,34 +317,10 @@ export default async function handler(req, res) {
       });
     }
 
-    let auditCopySent = true;
-    try {
-      const auditReceipt = await sendOrganizationUserInvitationAuditCopy(
-        emailValues,
-        `organization-user-invitation:${invitedUserId}:audit`
-      );
-      console.info("invite-user delivered to provider", {
-        invitedUserId,
-        organizationId,
-        provider: clientReceipt.provider,
-        clientMessageId: clientReceipt.messageId,
-        auditMessageId: auditReceipt.messageId,
-      });
-    } catch (copyError) {
-      auditCopySent = false;
-      console.error("invite-user audit copy failed", {
-        invitedUserId,
-        organizationId,
-        code: copyError?.code || "unknown",
-      });
-    }
-
     return res.status(200).json({
       success: true,
-      auditCopySent,
-      message: auditCopySent
-        ? "Pozvánka byla odeslána a uživatel byl přiřazen do organizace."
-        : "Pozvánka byla uživateli odeslána. Bezpečnou kopii Zuzaně se nepodařilo odeslat a je nutná kontrola.",
+      auditCopySent: false,
+      message: "Pozvánka byla odeslána a uživatel byl přiřazen do organizace.",
     });
   } catch (err) {
     let cleanupSucceeded = true;

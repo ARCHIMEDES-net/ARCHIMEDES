@@ -66,6 +66,9 @@ describe("child school member onboarding", () => {
     expect(mock.rows.organization_members[0]).toMatchObject({organization_id:SCHOOL,user_id:USER,role_in_org:"organization_admin",status:"active"});
     expect(mock.send).toHaveBeenCalledWith(expect.objectContaining({setupUrl:null,memberRole:"organization_admin"}));
     expect(mock.rows.school_member_invitation_attempts[0].status).toBe("sent");
+    expect(mock.copy).not.toHaveBeenCalled();
+    expect(res.body.auditCopySent).toBe(false);
+    expect(mock.rows.school_member_invitation_attempts[0].audit_copy_sent_at).toBeNull();
   });
   it("creates a new teacher profile and membership before sending, with teacher role in the message", async () => {
     mock.rows.profiles=[];
