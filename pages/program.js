@@ -47,19 +47,31 @@ const formats = [
   },
 ];
 
-export default function ProgramPage({ initialEvents = [] }) {
+export default function ProgramPage({ initialEvents = [], initialReferenceAt }) {
   const [events, setEvents] = useState(initialEvents);
+  const [referenceAt, setReferenceAt] = useState(initialReferenceAt);
 
   useEffect(() => {
     let cancelled = false;
     fetchPublicProgramWindow(8).then((result) => {
       if (cancelled) return;
-      if (!result.error) setEvents(result.events || []);
+      if (!result.error) {
+        setEvents(result.events || []);
+        setReferenceAt(new Date().toISOString());
+      }
     });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  const referenceTime = new Date(referenceAt).getTime();
+  const upcomingEvents = events
+    .filter((event) => new Date(event.starts_at).getTime() >= referenceTime)
+    .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+  const previousEvents = events
+    .filter((event) => new Date(event.starts_at).getTime() < referenceTime)
+    .sort((a, b) => new Date(b.starts_at) - new Date(a.starts_at));
 
   const eventStructuredData = createPublicEventStructuredData(
     events,
@@ -137,20 +149,20 @@ export default function ProgramPage({ initialEvents = [] }) {
               <div>
                 <SectionEyebrow>Konkrétní program</SectionEyebrow>
                 <h2 className="max-w-2xl text-[clamp(34px,4vw,50px)] font-[950] leading-[1.03] tracking-[-0.045em] text-navy-900">
-                  Co jsme vysílali a co připravujeme
+                  Připravovaná vysílání
                 </h2>
               </div>
               <p className="max-w-md text-sm leading-relaxed text-slate-600">
-                Pokud ještě nejsou zveřejněné nové termíny, ukazujeme poslední
-                uskutečněná vysílání. Nové pořady je postupně nahradí.
+                Nejbližší vysílání najdete jako první. Proběhlé pořady
+                si můžete prohlédnout níže.
               </p>
             </div>
 
             <PublicPwaPromotion compact />
 
-            {events.length ? (
+            {upcomingEvents.length ? (
               <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {events.map((event) => (
+                {upcomingEvents.map((event) => (
                   <PublicEventCard key={event.id} event={event} compact />
                 ))}
               </div>
@@ -159,6 +171,21 @@ export default function ProgramPage({ initialEvents = [] }) {
                 <strong className="text-navy-900">Nový program právě připravujeme.</strong>
                 <p className="mt-1 text-sm text-slate-600">Potvrzené pořady zde zveřejníme ihned po stanovení termínu.</p>
               </div>
+            )}
+            {previousEvents.length > 0 && (
+              <section aria-labelledby="probehla-vysilani" className="mt-12 border-t border-slate-200 pt-10">
+                <h2 id="probehla-vysilani" className="text-3xl font-black tracking-tight text-navy-900">
+                  Proběhlá vysílání
+                </h2>
+                <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                  Ohlédnutí za posledními pořady, od nejnovějšího.
+                </p>
+                <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {previousEvents.map((event) => (
+                    <PublicEventCard key={event.id} event={event} compact />
+                  ))}
+                </div>
+              </section>
             )}
             <PublicPwaPromotion />
           </div>
@@ -228,15 +255,16 @@ export default function ProgramPage({ initialEvents = [] }) {
 }
 
 export async function getStaticProps() {
+  const initialReferenceAt = new Date().toISOString();
   try {
     const result = await fetchPublicProgramWindow(8);
     return {
-      props: { initialEvents: result.events || [] },
+      props: { initialEvents: result.events || [], initialReferenceAt },
       revalidate: 300,
     };
   } catch {
     return {
-      props: { initialEvents: [] },
+      props: { initialEvents: [], initialReferenceAt },
       revalidate: 300,
     };
   }
