@@ -11,31 +11,28 @@ const email = "zuzana.novotna@archimedeslive.com";
 const words = {
   cz: {
     navOne:"Den generací",navTwo:"Pro obce",navThree:"První ročník",
-    eventTag:"ČTVRTEK 5. LISTOPADU 2026 | 16:00 | RATÍŠKOVICE",
+    eventTag:"PROBĚHLO 5. LISTOPADU 2026 | RATÍŠKOVICE",
     villageTag:"DEN GENERACÍ PRO OBCE A ŠKOLY",
     eventTitle:"Babi, dědo, pojďme objevovat!",
-    villageTitle:"Věda, která spojí tři generace. Přímo u vás.",
-    eventIntro:"Science ON přijede do Ratíškovic za členy místního seniorklubu. Čeká je vědecká show KLAM a pokusy, které ukážou, jak snadno nás mohou oklamat vlastní smysly. Účast na místě organizuje obec pro svůj seniorklub; veřejnost zveme ke sledování zdarma online na ARCHIMEDES Live.",
+    villageTitle:"Věda, která spojí tři generace. Přímo u vás",
+    eventIntro:"Den generací se uskutečnil 5. listopadu 2026 v učebně ARCHIMEDES v Ratíškovicích. Seniorský klub Ratíškovice uspořádal odpoledne pro seniory a vnoučata se Science ON a vědeckou show KLAM. Součástí byl veřejný přenos na ARCHIMEDES Live.",
     villageIntro:"Vyberete termín a místo. My se Science ON přivezeme vědeckou show a pokusy, při kterých se potkají děti, rodiče i prarodiče. Zábavný program, který má smysl pro celou obec.",
-    eventPrimary:"Kde sledovat živý přenos",
+    eventPrimary:"Ohlédnutí za setkáním",
     eventSecondary:"Chci Den generací u nás",
     villagePrimary:"Chci nezávaznou nabídku",
-    villageSecondary:"Podívat se na Den generací",
-    eventNote:"Veřejný přenos zdarma a bez registrace. Odkaz na vysílání připravujeme.",
-    streamHeading:"Kde sledovat živé vysílání?",
-    streamDetails:"Sledujte Den generací 5. listopadu od 16:00 zdarma a bez registrace. Přímý odkaz na vysílání doplníme zde na stránce.",
-    streamLink:"Prohlédnout kalendář vysílání",
-    infoEvent:["5. listopadu 2026","Začátek v 16:00","Ratíškovice + online","Science ON: KLAM"],
+    villageSecondary:"Ohlédnutí za Ratíškovicemi",
+    eventNote:"Akce již proběhla. Program pro vaši obec připravíme po domluvě.",
+    infoEvent:["5. listopadu 2026","Akce již proběhla","Ratíškovice + online","Science ON: KLAM"],
     infoVillage:["45 minut show","60 minut pokusů","Až 150 účastníků","Termín dle dohody"],
     secEvent:"Společné objevování v Ratíškovicích i online",
-    secVillage:"Vyberete místo a datum. O program se postaráme.",
-    secEventIntro:"Odpoledne připravujeme pro místní seniorklub. Díky veřejnému přenosu mohou pořad sledovat také školy, rodiny a další obce — zdarma a bez registrace.",
+    secVillage:"Vyberete místo a datum. O program se postaráme",
+    secEventIntro:"Odpoledne uspořádal Seniorský klub Ratíškovice pro seniory a vnoučata. Společné objevování se Science ON propojilo místní setkání s veřejným online přenosem.",
     secVillageIntro:"Program tvoří 45 minut živé show a 60 minut společných pokusů. Konkrétní podobu a kapacitu přizpůsobíme vašemu prostoru.",
-    stepsEvent:[["01","Věříte vlastním očím?","Science ON představí show KLAM plnou překvapivých ukázek a smyslových klamů."],["02","Pokusy se Science ON","Členové místního seniorklubu se zapojí do společného objevování a pokusů."],["03","Z Ratíškovic až k vám","Program vysíláme živě, aby společné objevování mohly sledovat i další rodiny a obce."]],
+    stepsEvent:[["01","Věříte vlastním očím?","Science ON představilo show KLAM plnou překvapivých ukázek a smyslových klamů."],["02","Pokusy se Science ON","Členové místního seniorklubu se zapojili do společného objevování a pokusů."],["03","Z Ratíškovic až k vám","Program jsme vysílali živě, aby společné objevování mohly sledovat i další rodiny a obce."]],
     stepsVillage:[["01","Navrhnete termín","Řeknete nám, kdy chcete rodiny ve své obci pozvat."],["02","Vyberete místo","Kulturní dům, škola nebo jiný vhodný prostor."],["03","Dostanete konkrétní nabídku","Ověříme dostupnost Science ON, technické podmínky a dopravu."],["04","Společně přivítáme generace","My se postaráme o program, obec pozve své rodiny."]],
     historyKicker:"OHLÉDNUTÍ | BRNO | 19. ČERVNA 2026",
-    historyTitle:"Z Brna do Ratíškovic. A dál do dalších obcí.",
-    historyText:"První ARCHIMEDES DAY se uskutečnil v červnu 2026 na brněnském výstavišti. Science ON předvedlo vědecké pokusy, žáci se zapojili do programu a živý přenos propojil Brno s Museum Kotsanas v Řecku. Teď na tuto zkušenost navazujeme Dnem generací.",
+    historyTitle:"Z Brna do Ratíškovic. A dál do dalších obcí",
+    historyText:"První ARCHIMEDES DAY se uskutečnil v červnu 2026 na brněnském výstavišti. Science ON předvedlo vědecké pokusy, žáci se zapojili do programu a živý přenos propojil Brno s Museum Kotsanas v Řecku. V listopadu na něj navázal Den generací v Ratíškovicích.",
     historyLink:"Prohlédnout program a fotografie z Brna",
     photoNote:"ARCHIMEDES DAY · BVV Brno · 19. června 2026",
     imageOne:"Science ON během živého pokusu v Brně",
@@ -51,7 +48,7 @@ const words = {
     actionVillageTitle:"Chcete uspořádat Den generací?",
     actionVillageText:"Napište, pro jakou obec nebo školu akci plánujete. Termín ještě vědět nemusíte. Ozveme se a společně probereme možnosti.",
     actionVillageLink:"Požádat o nabídku",
-    futureTitle:"Jeden den může být začátkem mnoha dalších objevů.",
+    futureTitle:"Jeden den může být začátkem mnoha dalších objevů",
     futureText:"ARCHIMEDES DAY propojuje místní setkání s živým vysíláním a vzdělávacím programem ARCHIMEDES Live. Chceme, aby školy, obce a rodiny mohly objevovat společně — nejen jeden den v roce.",
     partner:"Na programu spolupracujeme se Science ON",
     mailSubject:"ARCHIMEDES DAY – poptávka pro obec",
@@ -59,31 +56,28 @@ const words = {
   },
   en: {
     navOne:"Generations Day",navTwo:"For municipalities",navThree:"First edition",
-    eventTag:"THURSDAY 5 NOVEMBER 2026 | 4:00 PM CET | RATÍŠKOVICE",
+    eventTag:"HELD ON 5 NOVEMBER 2026 | RATÍŠKOVICE",
     villageTag:"GENERATIONS DAY FOR COMMUNITIES AND SCHOOLS",
     eventTitle:"Grandma, Grandpa — let's discover together!",
-    villageTitle:"Science brings three generations together. Right in your community.",
-    eventIntro:"Science ON is visiting the local senior club in Ratíškovice with its KLAM science show and experiments exploring our senses. The municipality arranges attendance for its senior club; everyone else is invited to watch the free online broadcast on ARCHIMEDES Live.",
+    villageTitle:"Science brings three generations together. Right in your community",
+    eventIntro:"Generations Day took place on 5 November 2026 at the ARCHIMEDES classroom in Ratíškovice. Seniorský klub Ratíškovice organised an afternoon for seniors and grandchildren with Science ON and its KLAM science show, including a public broadcast on ARCHIMEDES Live.",
     villageIntro:"Choose a date and venue. Together with Science ON, we'll bring a science show and hands-on experiments that children, parents and grandparents can all enjoy. A meaningful day for your community.",
-    eventPrimary:"Where to watch live",
+    eventPrimary:"About the gathering",
     eventSecondary:"Bring Generations Day to my town",
     villagePrimary:"Request a no-obligation offer",
-    villageSecondary:"Explore Generations Day",
-    eventNote:"Free public livestream, with no registration required. The viewing link is coming soon.",
-    streamHeading:"Where can I watch live?",
-    streamDetails:"Watch Generations Day free of charge on 5 November at 4:00 pm CET, with no registration required. The direct viewing link will be added here.",
-    streamLink:"Browse the broadcast calendar",
-    infoEvent:["5 November 2026","Starts at 16:00 CET","Ratíškovice + online","Science ON: KLAM"],
+    villageSecondary:"Look back at Ratíškovice",
+    eventNote:"This event has ended. Contact us to arrange a programme for your community.",
+    infoEvent:["5 November 2026","Past event","Ratíškovice + online","Science ON: KLAM"],
     infoVillage:["45-minute show","60 minutes of experiments","Up to 150 participants","Date by agreement"],
     secEvent:"Discover together in Ratíškovice and online",
-    secVillage:"Choose the date and venue. We'll take care of the programme.",
-    secEventIntro:"This afternoon is organised for the local senior club. Schools, families and other communities can watch the public broadcast free of charge, without registration.",
+    secVillage:"Choose the date and venue. We will take care of the programme",
+    secEventIntro:"Seniorský klub Ratíškovice organised the afternoon for seniors and grandchildren. Shared discoveries with Science ON connected the local gathering with a public online broadcast.",
     secVillageIntro:"The programme combines a 45-minute science show and 60 minutes of hands-on experiments. We'll adapt the format and capacity to your venue.",
-    stepsEvent:[["01","Can you trust your eyes?","Science ON's KLAM show is packed with surprising demonstrations and sensory illusions."],["02","Experiments with Science ON","Local senior-club members will take part in shared discoveries and experiments."],["03","From Ratíškovice to you","We are broadcasting the programme live so other families and communities can share in the discoveries."]],
+    stepsEvent:[["01","Can you trust your eyes?","Science ON's KLAM show was packed with surprising demonstrations and sensory illusions."],["02","Experiments with Science ON","Local senior-club members took part in shared discoveries and experiments."],["03","From Ratíškovice to you","We broadcast the programme live so other families and communities could share in the discoveries."]],
     stepsVillage:[["01","Suggest a date","Tell us when you'd like to invite families in your community."],["02","Choose a venue","A community hall, school or another suitable space."],["03","Receive a tailored offer","We check Science ON's availability, technical needs and travel costs."],["04","Bring generations together","We deliver the programme while you invite local families."]],
     historyKicker:"LOOKING BACK | BRNO | 19 JUNE 2026",
-    historyTitle:"From Brno to Ratíškovice — and beyond.",
-    historyText:"The first ARCHIMEDES DAY took place at Brno Exhibition Centre in June 2026. Science ON presented live experiments, pupils joined the programme, and a live link connected Brno with the Kotsanas Museum in Greece. Generations Day builds on that experience.",
+    historyTitle:"From Brno to Ratíškovice — and beyond",
+    historyText:"The first ARCHIMEDES DAY took place at Brno Exhibition Centre in June 2026, with Science ON experiments and a live link to the Kotsanas Museum in Greece. Generations Day in Ratíškovice followed in November.",
     historyLink:"Explore the programme and photos from Brno",
     photoNote:"ARCHIMEDES DAY · Brno Exhibition Centre · 19 June 2026",
     imageOne:"Science ON performing a live experiment in Brno",
@@ -99,7 +93,7 @@ const words = {
     actionVillageTitle:"Would you like to host Generations Day?",
     actionVillageText:"Tell us which town or school you are planning the event for. You do not need to know the date yet. Our team will get in touch to discuss the options.",
     actionVillageLink:"Request an offer",
-    futureTitle:"One event can spark many more discoveries.",
+    futureTitle:"One event can spark many more discoveries",
     futureText:"ARCHIMEDES DAY connects local events with live broadcasts and the year-round ARCHIMEDES Live programme. Our goal is to help schools, communities and families discover together throughout the year.",
     partner:"Programme developed in collaboration with Science ON",
     mailSubject:"ARCHIMEDES DAY – community enquiry",
@@ -175,23 +169,13 @@ function PlatformMention({ text }) {
 
 function Participation({ lang }) {
   const en = lang === "en";
-  const calendar = [
-    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//EDUVISION//ARCHIMEDES DAY//CS",
-    "BEGIN:VEVENT","UID:den-generaci-20261105@archimedeslive.com","DTSTAMP:20261009T193000Z",
-    "DTSTART:20261105T150000Z",
-    "SUMMARY:ARCHIMEDES DAY – Den generací",
-    "DESCRIPTION:Začátek v 16:00 českého času. Živý přenos z učebny ARCHIMEDES® v Ratíškovicích. Odkaz na vysílání najdete na webu.",
-    "URL:https://www.archimedeslive.com/archimedes-day/den-generaci",
-    "END:VEVENT","END:VCALENDAR",""
-  ].join("\r\n");
   return <section id="prenos" className={css.broadcast}><div className={css.wrap}>
-    <p className={css.label}>5. 11. 2026 · 16:00 {en ? "CET" : ""}</p>
-    <h2>{en ? "Live from Ratíškovice" : "Vysíláme živě z Ratíškovic"}</h2>
+    <p className={css.label}>5. 11. 2026 · {en ? "PAST EVENT" : "PROBĚHLÁ AKCE"}</p>
+    <h2>{en ? "Generations Day in Ratíškovice" : "Den generací v Ratíškovicích"}</h2>
     <div className={css.participationGrid}>
-      <article><p className={css.label}>{en ? "WHERE THE EVENT TAKES PLACE" : "MÍSTO KONÁNÍ"}</p><h3>{en ? "ARCHIMEDES® classroom in Ratíškovice" : "Učebna ARCHIMEDES® v Ratíškovicích"}</h3><p>{en ? "Generations Day brings local grandparents and grandchildren together in Ratíškovice. The local event is organised by Seniorský klub Ratíškovice." : "Den generací propojí v Ratíškovicích místní prarodiče a vnoučata. Akci pořádá Seniorský klub Ratíškovice, který zajišťuje veškerou místní organizaci."}</p><p><PlatformMention text={en ? "Together with Science ON, we will bring the shared discoveries to you through a live broadcast on ARCHIMEDES Live." : "Společné objevování se Science ON přeneseme živě také k vám prostřednictvím ARCHIMEDES Live."}/></p></article>
-      <article><p className={css.label}>{en ? "LIVE BROADCAST" : "ŽIVÝ PŘENOS"}</p><h3>{en ? "Watch from your home, school or community" : "Sledujte z domova, školy nebo obce"}</h3><p>{en ? "Join us online on 5 November at 4:00 pm CET. The live broadcast is free and open to everyone, with no ARCHIMEDES Live registration required." : "Sledujte živě 5. listopadu v 16:00. Přenos je veřejný a zdarma pro všechny, bez registrace na platformě ARCHIMEDES Live."}</p><button type="button" className={css.primary} disabled aria-describedby="stream-link-status" style={{ cursor: "default" }}>{en ? "Viewing link coming soon" : "Odkaz na vysílání připravujeme"}</button><p id="stream-link-status">{en ? "You will find the link here before the broadcast begins." : "Odkaz najdete zde před začátkem přenosu."}</p></article>
+      <article><p className={css.label}>{en ? "THE LOCAL GATHERING" : "MÍSTNÍ SETKÁNÍ"}</p><h3>{en ? "ARCHIMEDES® classroom in Ratíškovice" : "Učebna ARCHIMEDES® v Ratíškovicích"}</h3><p>{en ? "The event for seniors and grandchildren was organised by Seniorský klub Ratíškovice. Science ON brought its KLAM science show and shared experiments." : "Akci pro seniory a vnoučata uspořádal Seniorský klub Ratíškovice. Science ON přivezlo vědeckou show KLAM a společné pokusy."}</p><p>{en ? "The event and its live broadcast have ended." : "Akce i její živý přenos již skončily."}</p></article>
+      <article><p className={css.label}>{en ? "NEXT TIME IN YOUR COMMUNITY" : "PŘÍŠTĚ VE VAŠÍ OBCI"}</p><h3>{en ? "Bring generations together" : "Pozvěte generace ke společnému objevování"}</h3><p>{en ? "Choose a date and venue. We will discuss the programme, technical arrangements and a tailored offer with you." : "Navrhněte termín a místo. Společně probereme podobu programu, technické zázemí a nabídku pro vaši obec."}</p><Link className={css.primary} href={"/archimedes-day/pro-obce" + (en ? "?lang=en" : "")}>{en ? "Explore the programme for communities →" : "Prohlédnout program pro obce →"}</Link></article>
     </div>
-    <div className={css.calendarRow}><a className={css.primary} href={"data:text/calendar;charset=utf-8,"+encodeURIComponent(calendar)} download="archimedes-day-2026-11-05.ics">{en ? "Save the broadcast to your calendar ↓" : "Uložit vysílání do kalendáře ↓"}</a><p>{en ? "Save the start time: 5 November 2026 at 4:00 pm CET." : "Uložte si začátek přenosu: 5. listopadu 2026 v 16:00."}</p></div>
   </div></section>;
 }
 
@@ -295,7 +279,7 @@ export default function ArchimedesDayCampaign({ variant="event" }) {
         {isEvent?<Link className={css.primary} href={to("/archimedes-day/pro-obce")}>{t.actionEventLink} ↗</Link>:<InquiryForm lang={lang}/>}
         {isEvent && <small><a href={"mailto:"+email}>{email}</a></small>}
       </div></section>
-      {isEvent && <section className="bg-slate-50 px-5 py-12"><div className="mx-auto max-w-[1000px]"><h2 className="text-2xl font-black text-navy-900">{lang === "en" ? "Regular programmes for your community?" : "Chcete pravidelný program i pro svou obec?"}</h2><p className="mt-3 leading-relaxed text-slate-700">{lang === "en" ? "This broadcast is free. Discover the separate ARCHIMEDES Live subscription for schools, clubs and seniors." : "Tento přenos je zdarma. ARCHIMEDES Live vedle něj nabízí samostatné předplatné pravidelných pořadů pro školy, spolky a seniory."}</p><Link href="/obec" className="mt-4 inline-flex min-h-11 items-center font-bold text-brand underline">{lang === "en" ? "Explore the programme for municipalities →" : "Prohlédnout program pro obec →"}</Link></div></section>}
+      {isEvent && <section className="bg-slate-50 px-5 py-12"><div className="mx-auto max-w-[1000px]"><h2 className="text-2xl font-black text-navy-900">{lang === "en" ? "Regular programmes for your community?" : "Chcete pravidelný program i pro svou obec?"}</h2><p className="mt-3 leading-relaxed text-slate-700">{lang === "en" ? "Discover the separate ARCHIMEDES Live subscription for schools, clubs and seniors." : "ARCHIMEDES Live nabízí samostatné předplatné pravidelných pořadů pro školy, spolky a seniory."}</p><Link href="/obec" className="mt-4 inline-flex min-h-11 items-center font-bold text-brand underline">{lang === "en" ? "Explore the programme for municipalities →" : "Prohlédnout program pro obec →"}</Link></div></section>}
       <section className={css.future}><div className={css.wrap}><h2>{t.futureTitle}</h2><p>{t.futureText}</p><a href="https://www.archimedeslive.com/" className={css.textLink}>ARCHIMEDES Live ↗</a></div></section>
     </main>
     <Footer/>
