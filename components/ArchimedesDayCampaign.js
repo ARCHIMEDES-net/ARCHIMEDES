@@ -202,6 +202,10 @@ export default function ArchimedesDayCampaign({ variant="event" }) {
   const lang = router.query.lang === "en" ? "en" : "cz";
   const t = words[lang];
   const isEvent = variant === "event";
+  const videoName = isEvent ? "ratiskovice" : "pro-obce";
+  const videoLabel = lang === "en"
+    ? (isEvent ? "A look back at Ratíškovice · 38 seconds · Czech audio" : "ARCHIMEDES DAY for your community · 32 seconds · Czech audio")
+    : (isEvent ? "Ohlédnutí za Ratíškovicemi · 38 sekund" : "ARCHIMEDES DAY ve vaší obci · 32 sekund");
   const path = isEvent ? "/archimedes-day/den-generaci" : "/archimedes-day/pro-obce";
   const to = (p) => p + (lang === "en" ? "?lang=en" : "");
   const change = (l) => router.replace({pathname:router.pathname,query:l==="en"?{lang:"en"}:{}},undefined,{shallow:true,scroll:false});
@@ -245,9 +249,14 @@ export default function ArchimedesDayCampaign({ variant="event" }) {
             </div>
             {isEvent ? <p className={css.streamNote}>{t.eventNote}</p> : <p className={css.streamNote}>{lang==="en"?"Indicative price: CZK 19,500 incl. VAT. Final quote depends on location and travel.":"Orientační cena: 19 500 Kč vč. DPH. Konečnou cenu potvrdíme podle místa a dopravy."}</p>}
           </div>
-          <figure className={css.heroPhoto}>
-            <Image src={photos+"ales2.jpg"} alt={lang==="en"?"A pupil and Science ON experimenting together in Brno":"Žák a Science ON při společném pokusu v Brně"} fill sizes="(max-width: 800px) 100vw, 45vw" priority style={{objectFit:"cover",objectPosition:"center 43%"}}/>
-            <figcaption><ScienceLogo/><div className={css.photoCredit}><strong>ARCHIMEDES DAY</strong><small>{lang==="en"?"Brno · June 2026":"BVV Brno · červen 2026"}</small></div></figcaption>
+          <figure style={{margin:0,width:"100%",maxWidth:480,justifySelf:"center"}}>
+            <video key={videoName} controls playsInline preload="none" poster={photos+videoName+".jpg"}
+              aria-label={videoLabel} width={1080} height={1350}
+              style={{display:"block",width:"100%",height:"auto",aspectRatio:"4 / 5",borderRadius:18,background:"#07172a"}}>
+              <source src={photos+videoName+".mp4"} type="video/mp4"/>
+              <a href={photos+videoName+".mp4"}>{lang==="en"?"Open video":"Otevřít video"}</a>
+            </video>
+            <figcaption style={{color:"#e1eaf1",fontSize:13,lineHeight:1.6,marginTop:12}}>{videoLabel}<br/>{lang==="en"?"Ratíškovice · 5 November 2026":"Ratíškovice · 5. listopadu 2026"}</figcaption>
           </figure>
         </div>
       </section>
