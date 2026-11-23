@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getJoinButtonState } from "../lib/broadcastState";
 import { supabase } from "../lib/supabaseClient";
+import { recordPortalUsage } from "../lib/portalUsage";
 
 const baseButtonStyle = {
   display: "inline-flex",
@@ -64,7 +65,12 @@ export default function JoinBroadcastButton({
       }
     : getJoinButtonState(event);
 
+  function recordJoin() {
+    if (event?.id) recordPortalUsage("broadcast_join", String(event.id));
+  }
+
   async function joinThroughArchimedes() {
+    recordJoin();
     setJoining(true);
     setJoinError("");
     const target = isStandalonePwa() ? null : window.open("", "_blank");
@@ -136,6 +142,7 @@ export default function JoinBroadcastButton({
         href={state.href}
         target="_blank"
         rel="noreferrer"
+        onClick={recordJoin}
         style={{
           ...baseButtonStyle,
           ...sizeStyle(compact, fullWidth),

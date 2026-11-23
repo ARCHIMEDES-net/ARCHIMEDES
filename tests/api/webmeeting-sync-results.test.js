@@ -92,4 +92,29 @@ describe("WebMeeting result synchronization", () => {
     expect(dependencies.getPresence).not.toHaveBeenCalled();
     expect(dependencies.state.updates).toEqual([]);
   });
+  it("stores how many distinct participants WebMeeting reported for the room", async () => {
+    dependencies.state.event = {
+      data: { id: "event-1", starts_at: "2020-08-14T07:00:00.000Z" },
+      error: null,
+    };
+    dependencies.getRecordings.mockResolvedValue([]);
+    dependencies.getPresence.mockResolvedValue([
+      { participant_id: 1 },
+      { participant_id: 2 },
+      { participant_id: 2 },
+      { participant_id: null },
+    ]);
+
+    const { res } = await invoke(syncResults, {
+      method: "POST",
+      body: { eventId: "event-1" },
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.connectedParticipantCount).toBe(2);
+    const sessionUpdate = dependencies.state.updates.find(
+      (update) => update.table === "broadcast_sessions"
+    );
+    expect(sessionUpdate.values.presence_participant_count).toBe(2);
+  });
 });

@@ -108,10 +108,12 @@ export default async function handler(req, res) {
     if (participantRows.error) throw participantRows.error;
     const syncedAt = new Date().toISOString();
     const recording = latestRecording(recordings);
+    const presenceMap = presenceByParticipant(presence);
     const sessionPatch = {
       last_synced_at: syncedAt,
       last_provider_error: null,
       provider_status: "results_synced",
+      presence_participant_count: presenceMap.size,
     };
 
     if (recording?.url) {
@@ -127,7 +129,6 @@ export default async function handler(req, res) {
       .eq("id", session.id);
     if (updateSessionError) throw updateSessionError;
 
-    const presenceMap = presenceByParticipant(presence);
     let attendanceCount = 0;
 
     for (const participant of participantRows.data || []) {
@@ -152,6 +153,7 @@ export default async function handler(req, res) {
       recordingUrl: recording?.url || null,
       recordingLengthMinutes: recording?.length ?? null,
       attendanceCount,
+      connectedParticipantCount: presenceMap.size,
       unmatchedPresenceCount: Math.max(0, presenceMap.size - attendanceCount),
     });
   } catch (error) {
