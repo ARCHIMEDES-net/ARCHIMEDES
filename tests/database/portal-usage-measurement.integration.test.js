@@ -3,7 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { describe, expect, it } from "vitest";
 
 const migration = fs.readFileSync(
-  "supabase/migrations/20261123090000_portal_usage_measurement.sql",
+  "supabase/migrations/20261123112123_portal_usage_measurement.sql",
   "utf8"
 );
 
