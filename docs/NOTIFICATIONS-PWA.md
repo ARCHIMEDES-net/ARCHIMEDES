@@ -2,7 +2,7 @@
 
 ## Cíl
 
-Uživatel má na jednom místě vidět, co je nového, a může si zapnout připomenutí konkrétního vysílání. PWA později umožní instalaci webu na plochu telefonu a push oznámení; e-mail zůstane dostupným a spolehlivým kanálem.
+Uživatel má na jednom místě vidět, co je nového, a může si zapnout připomenutí konkrétního vysílání. PWA umožňuje instalaci webu na plochu telefonu a zobrazení počtu nepřečtených novinek na ikoně; externí push zprávy zůstávají vypnuté. Přístupové e-maily k vysílání nadále zajišťuje WebMeeting.
 
 ## Bezpečné pořadí zavádění
 
@@ -77,3 +77,25 @@ Samotné doplnění veřejného klíče ještě nesmí zapnout plánovač ani hr
   analytické cookies, aby uživatele nerušila od jediného úkolu.
 - Instalace sama nezapíná e-mail ani push. O povolení čísla na ikoně rozhoduje
   uživatel samostatně v centru „Co je nového“.
+
+## Značka a ikony PWA
+
+- Od 16. 8. 2026 používá PWA dodaný znak ARCHIMEDES Live: černé malé „a“ s
+  červeným štítkem „live“ na bílém podkladu. Původní červená ikona „A LIVE“ se
+  už nemá používat.
+- Zdroj značky je uložen jako `public/pwa-icon-source.jpg`. Skript
+  `scripts/generate-pwa-icons.mjs` z něj opakovatelně vytváří běžné ikony 180,
+  192 a 512 px, Apple Touch ikonu, favicon a samostatnou bezpečnou `maskable`
+  variantu pro Android.
+- Značka zabírá u běžných ikon nejvýše 82 % šířky a u `maskable` varianty 68 %,
+  aby systémový kruhový nebo zaoblený ořez neodřízl znak ani štítek „live“.
+- Manifest musí obsahovat běžné ikony 192 a 512 px s `purpose: "any"` a
+  `pwa-icon-maskable-512.png` s `purpose: "maskable"`.
+- Změna ikony nemění úvodní stránku PWA (`/portal/novinky`), přihlášení,
+  oznámení, číselný odznak ani integraci s WebMeetingem.
+- iOS může držet starou ikonu v systémové paměti. Pro jistou změnu musí uživatel
+  odstranit existující A Live z plochy a znovu ji přidat přes Safari. Číselný
+  odznak nepřečtených novinek bude fungovat i na nové ikoně.
+- Produkční změna byla provedena v PR #189, sloučena do `main` jako commit
+  `1d0a3f812d666c4799f44f8674a24518360d1cf4` a ověřena úspěšným CI i
+  produkčním nasazením Vercelu.
