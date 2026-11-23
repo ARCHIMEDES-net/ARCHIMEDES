@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
+import { recordPortalUsage } from "../lib/portalUsage";
 
 // Reuse a successful check only during the current client-side visit.
 // A full reload always performs the complete authorization check again.
@@ -34,6 +35,7 @@ export default function RequireAuth({ children }) {
       if (!mounted) return;
       portalSessionVerified = true;
       setChecking(false);
+      recordPortalUsage("portal_visit");
     }
 
     async function resolveActiveMembership(userId, profile) {
