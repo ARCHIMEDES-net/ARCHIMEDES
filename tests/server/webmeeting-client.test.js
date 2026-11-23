@@ -246,6 +246,12 @@ describe("signed WebMeeting API calls", () => {
   it.each([
     [new Error("network down"), "WebMeeting API není dostupné."],
     [
+      Object.assign(new TypeError("fetch failed"), {
+        cause: Object.assign(new Error("getaddrinfo ENOTFOUND admin.webmeeting.cz"), { code: "ENOTFOUND" }),
+      }),
+      "WebMeeting API není dostupné (ENOTFOUND).",
+    ],
+    [
       Object.assign(new Error("aborted"), { name: "AbortError" }),
       "WebMeeting API neodpovědělo v časovém limitu.",
     ],
