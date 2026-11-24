@@ -25,6 +25,7 @@ import PatronageStrip from "../components/home/PatronageStrip";
 import ReferenceCard from "../components/home/ReferenceCard";
 import HeroPromoVideo from "../components/home/HeroPromoVideo";
 import HomeShowreel from "../components/home/HomeShowreel";
+import LiveEventHighlight from "../components/home/LiveEventHighlight";
 import { AREA_ICONS } from "../components/partners/icons";
 import { communityCategories } from "../content/communityCategories";
 import {
@@ -88,6 +89,7 @@ export default function Home({ initialEvents = [] }) {
 
       <main className="bg-white text-slate-900">
         <ArchimedesDayNotice />
+        <LiveEventHighlight />
         {/* HERO */}
         <section className="relative min-h-[680px] overflow-hidden bg-[#153a63] text-white lg:min-h-[78vh]">
           <div className="absolute inset-0">
