@@ -55,8 +55,9 @@ export default function LiveEventHighlight() {
           <p className="mt-4 max-w-xl text-base font-semibold leading-relaxed text-white">
             Vysílání i záznam jsou výjimečně zdarma pro všechny školy, i když
             vaše obec program ARCHIMEDES Live zatím nemá. Do vysílání se
-            zaregistrujte předem. Ve čtvrtek ho pak stačí pustit ve třídě na
-            tabuli.
+            zaregistrujte předem. Odkaz na připojení vám přijde e-mailem asi
+            15 až 30 minut před začátkem. Vysílání pak stačí pustit ve třídě
+            na tabuli.
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">
