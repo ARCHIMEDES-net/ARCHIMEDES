@@ -14,6 +14,7 @@ import { fetchMyOrganization } from "../../../lib/myOrganizations";
 import { attachPortalBroadcastSession } from "../../../lib/portalBroadcastSessions";
 
 import { getArchiveVideoUrl } from "../../../lib/archiveRecording";
+import { freeRegistrationUrlFor } from "../../../lib/freeBroadcasts";
 
 const BUCKET = "posters";
 
@@ -155,11 +156,124 @@ function slugifyFileName(value = "") {
 // nepřihlášeného pošle na /login?next=/portal/udalost/<id> a po přihlášení
 // ho vrátí zpět sem, kde může potvrdit účast. Dřív se tabulka events četla
 // ještě před kontrolou a nepřihlášený viděl „permission denied for table events“.
+//
+// Nepřihlášený navíc nejdřív vidí veřejnou pozvánku (název, datum, plakát –
+// jen sloupce, které smí role anon číst) s tlačítkem na přihlášení a u vysílání
+// zdarma i s veřejnou registrací přes WebMeeting, která nevyžaduje účet.
 export default function UdalostDetail() {
+  const [session, setSession] = useState("checking");
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setSession(data?.session ? "in" : "out");
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (session === "checking") return <div className="p-6">Načítám…</div>;
+  if (session === "out") return <PublicEventInvite />;
+
   return (
     <RequireAuth>
       <UdalostDetailContent />
     </RequireAuth>
+  );
+}
+
+function PublicEventInvite() {
+  const router = useRouter();
+  const { id } = router.query;
+  const [row, setRow] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    let mounted = true;
+    supabase
+      .from("events")
+      .select("id, title, starts_at, poster_url, poster_path, category, audience_groups")
+      .eq("id", id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!mounted) return;
+        setRow(data || null);
+        setLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
+
+  const loginHref = `/login?next=${encodeURIComponent(`/portal/udalost/${id || ""}`)}`;
+  const freeRegistrationUrl = freeRegistrationUrlFor(id);
+  const starts = safeDate(row?.starts_at);
+  const posterUrl = row ? resolvePosterUrl(row) : "";
+
+  if (!id || loading) return <div className="p-6">Načítám…</div>;
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <Link href="/" className="text-sm text-slate-500 hover:underline">
+          ← ARCHIMEDES Live
+        </Link>
+
+        <div className="mt-4 bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+          {posterUrl ? (
+            <img
+              src={posterUrl}
+              alt="Plakát vysílání"
+              className="mx-auto mb-5 w-full max-w-xl max-h-[480px] object-contain rounded-xl"
+            />
+          ) : null}
+
+          {starts ? (
+            <div className="text-sm text-slate-500">{formatDateTimeCS(starts)}</div>
+          ) : null}
+          <h1 className="text-2xl font-semibold mt-2">
+            {row?.title || "Vysílání ARCHIMEDES Live"}
+          </h1>
+
+          {freeRegistrationUrl ? (
+            <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+              <div className="text-sm font-extrabold uppercase tracking-wide text-emerald-800">
+                Zdarma pro všechny školy
+              </div>
+              <p className="mt-2 text-slate-700 leading-7">
+                Toto vysílání je výjimečně zdarma. Zaregistrujte třídu předem –
+                nepotřebujete k tomu účet na platformě. Odkaz na připojení vám
+                přijde e-mailem.
+              </p>
+              <a
+                href={freeRegistrationUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700"
+              >
+                Zaregistrovat třídu do vysílání
+              </a>
+            </div>
+          ) : null}
+
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-slate-700 leading-7">
+              {freeRegistrationUrl
+                ? "Máte účet na platformě ARCHIMEDES Live? Můžete se také přihlásit a účast potvrdit tam."
+                : "Pro registraci do vysílání se přihlaste do platformy ARCHIMEDES Live. Po přihlášení vás vrátíme na toto vysílání."}
+            </p>
+            <Link
+              href={loginHref}
+              className="mt-3 inline-flex min-h-11 items-center rounded-xl bg-navy-900 px-4 py-3 font-bold text-white"
+            >
+              Přihlásit se do platformy
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -416,6 +530,7 @@ function UdalostDetailContent() {
   const backNavigation = eventNavigation(router.query.from, isArchive);
   const hasActiveLicense = !licenseLoading && (isPlatformAdmin || licenseMode === "active");
   const worksheetUrl = row?.worksheet_url || "";
+  const freeRegistrationUrl = freeRegistrationUrlFor(row?.id);
   const posterUrl = useMemo(() => resolvePosterUrl(row), [row]);
 
   const canAccessStream =
@@ -679,7 +794,26 @@ function UdalostDetailContent() {
             ) : null}
           </div> : null}
 
-          {showLockedStreamNotice && !isArchive ? (
+          {showLockedStreamNotice && !isArchive && freeRegistrationUrl ? (
+            <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+              <div className="text-sm font-extrabold uppercase tracking-wide text-emerald-800">
+                Toto vysílání je zdarma pro všechny školy
+              </div>
+              <div className="mt-2 text-slate-700 leading-7">
+                Zaregistrujte třídu předem. Odkaz na připojení vám přijde e-mailem.
+              </div>
+              <a
+                href={freeRegistrationUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white hover:bg-emerald-700"
+              >
+                Zaregistrovat třídu do vysílání
+              </a>
+            </div>
+          ) : null}
+
+          {showLockedStreamNotice && !isArchive && !freeRegistrationUrl ? (
             <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
               <div className="text-sm font-extrabold uppercase tracking-wide text-amber-800">
                 Vysílání je součástí aktivní licence
