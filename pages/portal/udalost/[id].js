@@ -150,7 +150,20 @@ function slugifyFileName(value = "") {
     .toLowerCase();
 }
 
+// Odkaz z pozvánky na vysílání často otevře nepřihlášený člověk.
+// Data vysílání proto načítáme až po ověření přihlášení: RequireAuth
+// nepřihlášeného pošle na /login?next=/portal/udalost/<id> a po přihlášení
+// ho vrátí zpět sem, kde může potvrdit účast. Dřív se tabulka events četla
+// ještě před kontrolou a nepřihlášený viděl „permission denied for table events“.
 export default function UdalostDetail() {
+  return (
+    <RequireAuth>
+      <UdalostDetailContent />
+    </RequireAuth>
+  );
+}
+
+function UdalostDetailContent() {
   const router = useRouter();
   const { id } = router.query;
 
@@ -524,7 +537,7 @@ export default function UdalostDetail() {
   if (!row) return <div className="p-6">Událost nenalezena.</div>;
 
   return (
-    <RequireAuth>
+    <>
       <PortalHeader activeSection={backNavigation.href} />
 
       <div className="max-w-4xl mx-auto px-4 py-6">
@@ -820,6 +833,6 @@ export default function UdalostDetail() {
           </div>
         </div>
       ) : null}
-    </RequireAuth>
+    </>
   );
 }
